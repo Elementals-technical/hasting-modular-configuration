@@ -22,6 +22,20 @@
   }
 }
 
+.headerTop_left,
+.headerTop_left__link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.headerTop_left {
+  .headerTop_left__link {
+    margin-left: 3px;
+    color: var(--text-color-base);
+  }
+}
+
 .headerTop_right__menu {
   display: flex;
   align-items: center;
@@ -31,8 +45,17 @@
     list-style: none;
 
     a {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+
       text-decoration: none;
       color: var(--text-color-base);
+
+      span {
+        display: flex;
+        align-items: center;
+      }
     }
   }
 }

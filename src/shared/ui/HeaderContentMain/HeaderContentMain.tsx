@@ -3,6 +3,10 @@ import s from "./HeaderContentMain.module.scss";
 import MainLogo from "../../assets/images/svg/MainLogo";
 import { Search } from "../../assets/images/svg/Search";
 import { Wishlist } from "../../assets/images/svg/Wishlist";
+import { ArrowRight } from "../../assets/images/svg/ArrowRight";
+import { LocationIcon } from "../../assets/images/svg/LocationIcon";
+import { PhoneIcon } from "../../assets/images/svg/PhoneIcon";
+import { CustomerIcon } from "../../assets/images/svg/CustomerIcon";
 
 export const HeaderContentMain: React.FC = () => {
   return (
@@ -10,20 +14,38 @@ export const HeaderContentMain: React.FC = () => {
       <div className={s.mainHeaderContent}>
         <div className={s.headerTop}>
           <div className={s.container}>
-            <div className="headerTop_left">
+            <div className={s.headerTop_left}>
               Our Customers Love Us:
-              <Link to={"#"}> View Our Case Studies</Link>
+              <Link to={"#"} className={s.headerTop_left__link}>
+                View Our Case Studies
+                <ArrowRight />
+              </Link>
             </div>
             <div className={s.headerTop_right}>
               <ul className={s.headerTop_right__menu}>
                 <li>
-                  <Link to={""}>Visit Our NYC Showroom</Link>
+                  <Link to={""}>
+                    <span>
+                      <LocationIcon />
+                    </span>
+                    Visit Our NYC Showroom
+                  </Link>
                 </li>
                 <li>
-                  <Link to={""}>800-351-0038</Link>
+                  <Link to={""}>
+                    <span>
+                      <PhoneIcon />
+                    </span>
+                    800-351-0038
+                  </Link>
                 </li>
                 <li>
-                  <Link to={""}>Customer Support</Link>
+                  <Link to={""}>
+                    <span>
+                      <CustomerIcon />
+                    </span>
+                    Customer Support
+                  </Link>
                 </li>
               </ul>
             </div>
