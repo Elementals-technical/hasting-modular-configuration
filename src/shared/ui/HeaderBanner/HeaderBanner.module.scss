@@ -17,6 +17,24 @@
 
   color: #fff;
   text-decoration: none;
+
+  span {
+    font-size: 16px;
+
+    &:first-child {
+      display: flex;
+      align-items: center;
+
+      gap: 10px;
+    }
+
+    &:nth-child(2) {
+      display: flex;
+      align-items: center;
+
+      gap: 10px;
+    }
+  }
 }
 
 .headerBannerMain_img {
@@ -26,5 +44,74 @@
   img {
     width: 20px;
     height: 20px;
+  }
+}
+
+.closeIcon {
+  position: absolute;
+  top: 50%;
+  right: 0;
+
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  align-items: center;
+
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .headerBannerMain_link {
+    span {
+      &:first-child {
+      }
+
+      &:nth-child(2) {
+        flex-wrap: wrap;
+        gap: 0;
+      }
+
+      &:last-child {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+@media (max-width: 660px) {
+  .headerBannerMain {
+    padding: 10px;
+    justify-content: start;
+  }
+
+  .headerBannerMain_link {
+    span {
+      font-size: 13px;
+    }
+  }
+
+  .headerPhone {
+    padding-right: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerBannerMain {
+    padding: 10px;
+    justify-content: start;
+  }
+
+  .headerBannerMain_link {
+    span {
+      font-size: 13px;
+    }
+  }
+}
+
+@media (max-width: 420px) {
+  .headerBannerMain_link {
+    span {
+      font-size: 12px;
+    }
   }
 }

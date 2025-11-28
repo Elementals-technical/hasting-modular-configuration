@@ -1,6 +1,11 @@
-const MainLogo = () => {
+interface MainLogoI {
+  width?: string;
+  height?: string;
+}
+
+const MainLogo: React.FC<MainLogoI> = ({ height = "48", width = "197" }) => {
   return (
-    <svg width="197" height="48" viewBox="0 0 197 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={width} height={height} viewBox="0 0 197 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clip-path="url(#clip0_3342_1786)">
         <g clip-path="url(#clip1_3342_1786)">
           <path
