@@ -68,6 +68,10 @@
 .headerBottom_left {
   width: 178px;
   flex-grow: 1;
+
+  svg {
+    margin-bottom: -10px;
+  }
 }
 
 .headerBottom_right {
@@ -91,4 +95,72 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+.mainHeaderContent__mobile {
+  .btn {
+    display: flex;
+    align-items: center;
+
+    padding: 11px;
+    font-size: 12px;
+
+    height: 33px;
+  }
+}
+
+// BURGER MENU
+.burgerMenu {
+  width: 28px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.burgerMenu span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: #000; /* or var(--text-color-base) */
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* Optional: hover effect */
+.burgerMenu:hover span:nth-child(2) {
+  opacity: 0.7;
+}
+
+/* Optional: active/close state styles if you add a class like .isOpen */
+.burgerMenu.isOpen span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+.burgerMenu.isOpen span:nth-child(2) {
+  opacity: 0;
+}
+.burgerMenu.isOpen span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+@media (min-width: 1100px) {
+  .mainHeaderContent {
+    display: block;
+  }
+
+  .mainHeaderContent__mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .mainHeaderContent {
+    display: none;
+  }
+
+  .mainHeaderContent__mobile {
+    display: block;
+  }
 }
