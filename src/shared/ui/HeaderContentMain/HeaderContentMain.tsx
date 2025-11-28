@@ -7,6 +7,8 @@ import { ArrowRight } from "../../assets/images/svg/ArrowRight";
 import { LocationIcon } from "../../assets/images/svg/LocationIcon";
 import { PhoneIcon } from "../../assets/images/svg/PhoneIcon";
 import { CustomerIcon } from "../../assets/images/svg/CustomerIcon";
+import { HEADER_MAIN_MENU } from "../../constants";
+import { ArrowDown } from "../../assets/images/svg/ArrowDown";
 
 export const HeaderContentMain: React.FC = () => {
   return (
@@ -58,21 +60,16 @@ export const HeaderContentMain: React.FC = () => {
             </div>
             <div className={s.headerBottom_menu}>
               <ul>
-                <li>
-                  <Link to={""}>Products</Link>
-                </li>
-                <li>
-                  <Link to={""}>Inspiration</Link>
-                </li>
-                <li>
-                  <Link to={""}>Resources</Link>
-                </li>
-                <li>
-                  <Link to={""}>How to Buy</Link>
-                </li>
-                <li>
-                  <Link to={""}>Company</Link>
-                </li>
+                {HEADER_MAIN_MENU.map((item) => (
+                  <li key={item.title}>
+                    <Link to={item.to}>
+                      {item.title}
+                      <span>
+                        <ArrowDown />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
 
               <div className={s.headerBottom_right}>
