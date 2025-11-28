@@ -1,0 +1,30 @@
+.headerBannerMain {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 43px;
+  background-color: var(--header-banner-bg);
+}
+
+.headerBannerMain_link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #fff;
+  text-decoration: none;
+}
+
+.headerBannerMain_img {
+  display: flex;
+  align-items: center;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
