@@ -9,8 +9,4 @@ export const routerConfig = createBrowserRouter([
     path: ROUTES.HOME,
     element: <HomePage />,
   },
-  //   {
-  //     path: ROUTES.NOT_FOUND,
-  //     element: <NotFoundPage />,
-  //   },
 ]);

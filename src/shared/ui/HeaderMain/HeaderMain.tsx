@@ -1,16 +1,14 @@
 import { Link } from "react-router-dom";
-import s from "./HeaderContentMain.module.scss";
 import MainLogo from "../../assets/images/svg/MainLogo";
 import { Search } from "../../assets/images/svg/Search";
 import { Wishlist } from "../../assets/images/svg/Wishlist";
 import { ArrowRight } from "../../assets/images/svg/ArrowRight";
-import { LocationIcon } from "../../assets/images/svg/LocationIcon";
-import { PhoneIcon } from "../../assets/images/svg/PhoneIcon";
-import { CustomerIcon } from "../../assets/images/svg/CustomerIcon";
-import { HEADER_MAIN_MENU } from "../../constants";
+import { HEADER_MAIN_MENU, HEADER_TOP_RIGHT_MENU } from "../../constants";
 import { ArrowDown } from "../../assets/images/svg/ArrowDown";
 
-export const HeaderContentMain: React.FC = () => {
+import s from "./HeaderMain.module.scss";
+
+export const HeaderMain = () => {
   return (
     <>
       <div className={s.mainHeaderContent}>
@@ -25,30 +23,16 @@ export const HeaderContentMain: React.FC = () => {
             </div>
             <div className={s.headerTop_right}>
               <ul className={s.headerTop_right__menu}>
-                <li>
-                  <Link to={""}>
-                    <span>
-                      <LocationIcon />
-                    </span>
-                    Visit Our NYC Showroom
-                  </Link>
-                </li>
-                <li>
-                  <Link to={""}>
-                    <span>
-                      <PhoneIcon />
-                    </span>
-                    800-351-0038
-                  </Link>
-                </li>
-                <li>
-                  <Link to={""}>
-                    <span>
-                      <CustomerIcon />
-                    </span>
-                    Customer Support
-                  </Link>
-                </li>
+                {HEADER_TOP_RIGHT_MENU.map((i, idx) => {
+                  return (
+                    <li key={idx}>
+                      <Link to={i.to}>
+                        <span>{i.icon}</span>
+                        {i.title}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
