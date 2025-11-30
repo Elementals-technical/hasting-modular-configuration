@@ -1,5 +1,6 @@
 import { FilterRow } from "@/shared/ui/Filter/FilterRow.tsx";
-import { StepNavigationBar } from "@/shared/ui/StepNavigationBar /StepNavigationBar.tsx";
+import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
+import { StepNavigationBar } from "@/shared/ui/StepNavigationBar /StepNavigationBar";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem.tsx";
 
@@ -10,20 +11,7 @@ export const ConfiguratorSidebar = () => {
     <div className={s.configSidebar}>
       <StepNavigationBar />
 
-      <div className={s.modeSwitcher}>
-        <div className={`${s.modeSwitcher_tabItem} ${s.active}`}>
-          <div className={s.wrap}>
-            <div className={s.title}>Pre-Built Models</div>
-            <p className={s.description}>Customize your design from pre-made solutions</p>
-          </div>
-        </div>
-        <div className={s.modeSwitcher_tabItem}>
-          <div className={s.wrap}>
-            <div className={s.title}>Create Your Own</div>
-            <p className={s.description}> Build your own custom, tailored concept</p>
-          </div>
-        </div>
-      </div>
+      <ModeSwitcher />
 
       <FilterRow>
         <FilterItem
