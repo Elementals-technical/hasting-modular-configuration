@@ -1,7 +1,8 @@
-import { HeaderMain } from "../../shared";
-import HeaderBanner from "../../shared/ui/HeaderBanner/HeaderBanner";
-import Player from "../../widgets/Player/ui/Player.tsx";
-import { ConfiguratorSidebar } from "../../widgets/ConfiguratorSidebar/ui/ConfiguratorSidebar.tsx";
+import Player from "@/widgets/Player/ui/Player.tsx";
+import { ConfiguratorSidebar } from "@/widgets/ConfiguratorSidebar/ui/ConfiguratorSidebar.tsx";
+
+import { HeaderMain } from "@/shared";
+import HeaderBanner from "@/shared/ui/HeaderBanner/HeaderBanner";
 
 import s from "./HomePage.module.scss";
 

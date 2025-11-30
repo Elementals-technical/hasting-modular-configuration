@@ -1,4 +1,4 @@
-import { PlayCanvasIntegration } from "../components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
+import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
 function Player() {
   return (

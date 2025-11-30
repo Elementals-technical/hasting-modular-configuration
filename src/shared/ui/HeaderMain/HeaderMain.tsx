@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import MainLogo from "../../assets/images/svg/MainLogo";
-import { Search } from "../../assets/images/svg/Search";
-import { Wishlist } from "../../assets/images/svg/Wishlist";
-import { ArrowRight } from "../../assets/images/svg/ArrowRight";
-import { HEADER_MAIN_MENU, HEADER_TOP_RIGHT_MENU } from "../../constants";
-import { ArrowDown } from "../../assets/images/svg/ArrowDown";
+
+import MainLogo from "@/shared/assets/images/svg/MainLogo";
+import { Search } from "@/shared/assets/images/svg/Search";
+import { Wishlist } from "@/shared/assets/images/svg/Wishlist";
+import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
+import { HEADER_MAIN_MENU, HEADER_TOP_RIGHT_MENU } from "@/shared/constants";
+import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown";
 
 import s from "./HeaderMain.module.scss";
 

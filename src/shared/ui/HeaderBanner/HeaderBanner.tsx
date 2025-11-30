@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 
-import hotfire_telephone from "../../assets/images/png/hotfire3.png";
+import hotfire_telephone from "@/shared/assets/images/png/hotfire3.png";
+import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
 
 import s from "./HeaderBanner.module.scss";
-import { CloseIcon } from "../../assets/images/svg/CloseIcon";
 
 const HeaderBanner = () => {
   return (

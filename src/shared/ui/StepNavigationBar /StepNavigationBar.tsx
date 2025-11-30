@@ -1,5 +1,5 @@
-import { ArrowLeft } from "../../assets/images/svg/ArrowLeft.tsx";
-import { HintIcon } from "../../assets/images/svg/HintIcon.tsx";
+import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
+import { HintIcon } from "@/shared/assets/images/svg/HintIcon.tsx";
 
 import s from "./StepNavigationBar.module.scss";
 

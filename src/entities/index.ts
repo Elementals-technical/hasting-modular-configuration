@@ -1,1 +1,1 @@
-export * from "../features/ModeSwitcher/ui/ModeSwitcher.tsx";
+export * from "@/features/ModeSwitcher/ui/ModeSwitcher.tsx";

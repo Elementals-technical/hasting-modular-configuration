@@ -1,6 +1,6 @@
-import { LocationIcon } from "../assets/images/svg/LocationIcon.tsx";
-import { PhoneIcon } from "../assets/images/svg/PhoneIcon.tsx";
-import { CustomerIcon } from "../assets/images/svg/CustomerIcon.tsx";
+import { LocationIcon } from "@/shared/assets/images/svg/LocationIcon.tsx";
+import { PhoneIcon } from "@/shared/assets/images/svg/PhoneIcon.tsx";
+import { CustomerIcon } from "@/shared/assets/images/svg/CustomerIcon.tsx";
 
 export const HEADER_MAIN_MENU = [
   { title: "Products", to: "" },
