@@ -11,8 +11,6 @@
   background-color: #f1ebe6;
   border-bottom: 1px solid #e5e6ea;
 
-  cursor: pointer;
-
   .title {
     color: #282828;
     font-family: Poppins;
@@ -43,5 +41,9 @@
 
   &.active {
     background-color: #fff;
+  }
+
+  &:last-child {
+    cursor: pointer;
   }
 }
