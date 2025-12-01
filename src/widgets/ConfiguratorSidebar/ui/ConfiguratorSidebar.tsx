@@ -1,39 +1,19 @@
-import { FilterRow } from "@/shared/ui/Filter/FilterRow.tsx";
-import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
-import { StepNavigationBar } from "@/shared/ui/StepNavigationBar /StepNavigationBar";
+import type { PropsWithChildren } from "react";
 
-import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem.tsx";
+import { StepNavigationBar } from "@/shared/ui/StepNavigationBar /StepNavigationBar";
 
 import s from "./ConfiguratorSidebar.module.scss";
 
-export const ConfiguratorSidebar = () => {
+type ConfiguratorSidebarProps = PropsWithChildren<{
+  flow?: "prebuilt" | "custom";
+}>;
+
+export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: ConfiguratorSidebarProps) => {
   return (
-    <div className={s.configSidebar}>
+    <div className={s.configSidebar} data-flow={flow}>
       <StepNavigationBar />
 
-      <ModeSwitcher />
-
-      <FilterRow>
-        <FilterItem
-          label="Size"
-          options={[
-            { label: "Small", value: "s" },
-            { label: "Medium", value: "m" },
-            { label: "Large", value: "l" },
-          ]}
-        />
-
-        <FilterItem
-          label="Style"
-          options={[
-            { label: "Style 1", value: "s" },
-            { label: "Style 2", value: "m" },
-            { label: "Style 3", value: "l" },
-          ]}
-        />
-      </FilterRow>
-
-      <div className="prebuiltGridProducts"></div>
+      <div className={s.stepContent}>{children}</div>
     </div>
   );
 };
