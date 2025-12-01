@@ -1,8 +1,17 @@
-// configSidebar
 .configSidebar {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
   border-left: 1px solid #e5e6ea;
 }
 
 .stepContent {
-  margin-top: 16px;
+  flex: 1;
+  overflow-y: auto;
+
+  margin-bottom: 30px;
 }

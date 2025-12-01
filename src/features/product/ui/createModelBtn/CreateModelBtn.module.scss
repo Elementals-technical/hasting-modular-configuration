@@ -1,0 +1,44 @@
+.createModel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .selectArea {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 195px;
+    height: 195px;
+
+    background-color: #fbfaf9;
+    border-radius: 5px;
+
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .title {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 14px; /* 116.667% */
+  }
+
+  .desc {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 14px; /* 116.667% */
+  }
+
+  &:hover {
+    .selectArea {
+      border: 1px solid #ac5331;
+    }
+  }
+}

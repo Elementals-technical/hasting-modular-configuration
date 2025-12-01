@@ -1,4 +1,6 @@
 .homePageWrap {
+  position: relative;
+
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -7,9 +9,11 @@
 
 /* Main content block */
 .content {
+  position: relative;
+
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 780px;
+  grid-template-columns: 1fr 670px;
   gap: 0;
   height: calc(100vh - var(--header-height) - var(--banner-height));
   overflow: hidden;
@@ -33,7 +37,9 @@
   justify-content: center;
   overflow: hidden;
 
-  canvas, img, .render-area {
+  canvas,
+  img,
+  .render-area {
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -50,4 +56,34 @@
   padding: 24px;
 
   scrollbar-gutter: stable;
+}
+
+.navWrap {
+  position: fixed;
+
+  height: 100%;
+  padding: 32px;
+  z-index: 100;
+
+  border-right: 1px solid #e5e6ea;
+}
+
+.currentStep {
+  position: absolute;
+  top: 50px;
+  left: 32px;
+
+  z-index: 1;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    color: #ac5331;
+    font-weight: 600;
+    font-size: 14px;
+
+    cursor: pointer;
+  }
 }

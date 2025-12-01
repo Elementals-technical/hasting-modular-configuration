@@ -10,5 +10,5 @@ export * from "./custom/type";
 export * from "./prebuilt/accessories";
 export * from "./prebuilt/cabinet";
 export * from "./prebuilt/countertop";
-export * from "./prebuilt/model";
+export * from "./prebuilt/model/ModelPage.tsx";
 export * from "./prebuilt/summary";
