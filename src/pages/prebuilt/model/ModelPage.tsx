@@ -1,7 +1,10 @@
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
+import { CreateModelBtn } from "@/features/product/ui/createModelBtn/CreateModelBtn";
 
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
+
+import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 export const ModelPage = () => {
   return (
@@ -27,6 +30,8 @@ export const ModelPage = () => {
           ]}
         />
       </FilterRow>
+
+      <ProductModelsGrid createModelBtn={<CreateModelBtn />} />
     </div>
   );
 };
