@@ -1,1 +1,1 @@
-export * from "./BottomBar/ui/BottomStickyBar.tsx";
+export * from "./bottomBar/ui/BottomStickyBar.tsx";
