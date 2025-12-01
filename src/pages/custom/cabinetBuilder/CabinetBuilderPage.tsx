@@ -1,5 +1,5 @@
 import { StepStub } from "@/shared";
 
-export const CustomTypePage = () => {
+export const CabinetBuilderPage = () => {
   return <StepStub flow="Custom" step="Cabinet Type" />;
 };

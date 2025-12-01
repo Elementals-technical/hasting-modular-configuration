@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import {
-  CustomTypePage,
   CustomCabinetColorsPage,
   CustomCountertopPage,
   CustomAccessoriesPage,
@@ -13,6 +12,7 @@ import {
   PrebuiltCabinetPage,
   PrebuiltCountertopPage,
   PrebuiltSummaryPage,
+  CabinetBuilderPage,
 } from "@/pages";
 
 import { ROUTES } from "@/shared";
@@ -40,8 +40,8 @@ export const routerConfig = createBrowserRouter([
       {
         path: ROUTES.CUSTOM.slice(1),
         children: [
-          { index: true, element: <Navigate to="type" replace /> },
-          { path: "type", element: <CustomTypePage /> },
+          { index: true, element: <Navigate to="cabinet-builder" replace /> },
+          { path: "cabinet-builder", element: <CabinetBuilderPage /> },
           { path: "cabinet-colors", element: <CustomCabinetColorsPage /> },
           { path: "countertop", element: <CustomCountertopPage /> },
           { path: "accessories", element: <CustomAccessoriesPage /> },

@@ -58,7 +58,15 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn
 
       {productMockData.map((i) => {
         return (
-          <ProductModelItem id={i.id} title={i.title} img={i.img} desc={i.desc} price={i.price} isProductModel={true} />
+          <ProductModelItem
+            key={i.id}
+            id={i.id}
+            title={i.title}
+            img={i.img}
+            desc={i.desc}
+            price={i.price}
+            isProductModel={true}
+          />
         );
       })}
     </div>

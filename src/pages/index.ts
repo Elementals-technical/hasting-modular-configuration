@@ -5,7 +5,7 @@ export * from "./custom/cabinetColors";
 export * from "./custom/countertop";
 export * from "./custom/faucetHoles";
 export * from "./custom/summary";
-export * from "./custom/type";
+export * from "./custom/cabinetBuilder/CabinetBuilderPage.tsx";
 
 export * from "./prebuilt/accessories";
 export * from "./prebuilt/cabinet";
