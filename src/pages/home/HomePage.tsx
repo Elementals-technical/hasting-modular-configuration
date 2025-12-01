@@ -1,10 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
 
-import Player from "@/widgets/Player/ui/Player.tsx";
-import { ConfiguratorSidebar } from "@/widgets/ConfiguratorSidebar/ui/ConfiguratorSidebar.tsx";
+import { ConfiguratorSidebar, Player } from "@/widgets";
 
-import { HeaderMain } from "@/shared";
-import HeaderBanner from "@/shared/ui/HeaderBanner/HeaderBanner";
+import { HeaderBanner, HeaderMain } from "@/shared";
 
 import s from "./HomePage.module.scss";
 

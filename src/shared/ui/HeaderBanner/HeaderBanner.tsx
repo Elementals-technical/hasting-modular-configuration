@@ -5,7 +5,7 @@ import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
 
 import s from "./HeaderBanner.module.scss";
 
-const HeaderBanner = () => {
+export const HeaderBanner = () => {
   return (
     <div className={s.headerBannerMain}>
       <Link to={"#"} className={s.headerBannerMain_link}>
@@ -27,5 +27,3 @@ const HeaderBanner = () => {
     </div>
   );
 };
-
-export default HeaderBanner;

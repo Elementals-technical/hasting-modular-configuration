@@ -1,5 +1,7 @@
 import type { PropsWithChildren } from "react";
 
+import { BottomStickyBar } from "@/features";
+
 import { StepNavigationBar } from "@/shared/ui/StepNavigationBar /StepNavigationBar";
 
 import s from "./ConfiguratorSidebar.module.scss";
@@ -14,6 +16,8 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
       <StepNavigationBar />
 
       <div className={s.stepContent}>{children}</div>
+
+      <BottomStickyBar />
     </div>
   );
 };
