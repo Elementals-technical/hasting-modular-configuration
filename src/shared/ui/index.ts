@@ -1,1 +1,2 @@
-export * from "./HeaderContentMain/HeaderContentMain.tsx";
+export * from "./HeaderMain/HeaderMain.tsx";
+export * from "./StepStub/StepStub.tsx";

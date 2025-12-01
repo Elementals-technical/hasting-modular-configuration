@@ -1,0 +1,18 @@
+.stepNavigationBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px;
+  border-top:  1px solid var(--border-main-color);
+  border-bottom: 1px solid var(--border-main-color);
+}
+
+.stepNavigationBar_title {
+  color: #282828;
+  font-family: Poppins;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px;
+}

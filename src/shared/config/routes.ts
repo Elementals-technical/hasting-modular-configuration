@@ -1,5 +1,7 @@
 export const ROUTES = {
   HOME: "/",
+  PREBUILT: "/prebuilt",
+  CUSTOM: "/custom",
   NOT_FOUND: "*",
 } as const;
 

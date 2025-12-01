@@ -1,5 +1,53 @@
 .homePageWrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
 }
 
+/* Main content block */
 .content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 780px;
+  gap: 0;
+  height: calc(100vh - var(--header-height) - var(--banner-height));
+  overflow: hidden;
+
+  @media (max-width: 1400px) {
+    grid-template-columns: 1fr 390px;
+  }
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Player area */
+.content :global(.playerWrap) {
+  position: relative;
+  background: #f8f8f8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  canvas, img, .render-area {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* Sidebar area */
+.content :global(.configuratorSidebar) {
+  background: #fff;
+  border-left: 1px solid #e5e5e5;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+
+  scrollbar-gutter: stable;
 }
