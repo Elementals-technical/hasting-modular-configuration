@@ -1,4 +1,6 @@
 .homePageWrap {
+  position: relative;
+
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -52,4 +54,13 @@
   padding: 24px;
 
   scrollbar-gutter: stable;
+}
+
+.navWrap {
+  position: fixed;
+
+  height: 100%;
+  padding: 32px;
+
+  border-right: 1px solid #e5e6ea;
 }

@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 
-import { ConfiguratorSidebar, Player } from "@/widgets";
+import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
 import { HeaderBanner, HeaderMain } from "@/shared";
 
@@ -16,6 +16,10 @@ export const HomePage = () => {
       <HeaderBanner />
 
       <div className={s.content}>
+        <div className={s.navWrap}>
+          <SideNavigation flow={flow} />
+        </div>
+
         <Player />
 
         <ConfiguratorSidebar flow={flow}>
