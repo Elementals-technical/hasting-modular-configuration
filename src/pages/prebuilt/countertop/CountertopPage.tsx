@@ -1,30 +1,66 @@
+import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionItem";
+
+const optionsMockData = [
+  {
+    id: 1,
+    title: "Colortech",
+    desc: "Bianco 10B",
+  },
+  {
+    id: 2,
+    title: "Colortech",
+    desc: "Grigio fume 10F",
+  },
+  {
+    id: 3,
+    title: "Cemento",
+    desc: "Centre 1A1",
+  },
+  {
+    id: 4,
+    title: "Cemento",
+    desc: "Tortora 1A2",
+  },
+  {
+    id: 5,
+    title: "Colortech",
+    desc: "Bianco 10B",
+  },
+  {
+    id: 7,
+    title: "Colortech",
+    desc: "Bianco 10B",
+  },
+  {
+    id: 8,
+    title: "Colortech",
+    desc: "Bianco 10B",
+  },
+  {
+    id: 9,
+    title: "Colortech",
+    desc: "Bianco 10B",
+  },
+];
 
 export const CountertopPage = () => {
   return (
     <div className="countertop">
       <ConfiguratorAccordion title={"Countertop Color"} defaultOpen>
-        <ProductOptionItem />
-        <ProductOptionItem />
-        <ProductOptionItem />
-        <ProductOptionItem />
-        <ProductOptionItem />
-        <ProductOptionItem />
-        <ProductOptionItem />
-        <ProductOptionItem />
+        <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Thickness"}>
-        <ProductOptionItem />
+        <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Countertop Style"}>
-        <ProductOptionItem />
+        <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Basin style"}>
-        <ProductOptionItem />
+        <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
     </div>
   );
