@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 
+import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
+
 import s from "./ProductModelItem.module.scss";
 
 interface ProductModelGridI {
@@ -13,8 +15,12 @@ interface ProductModelGridI {
 
 export const ProductModelItem: React.FC<ProductModelGridI> = ({ title, desc, img, isProductModel, price }) => {
   return (
-    <div className={s.productOptionItem}>
+    <div className={s.productModelItem}>
       <div className={s.optionImage}>
+        <div className={s.innerButton}>
+          Customize
+          <ArrowTopRight />
+        </div>
         <img src={img} alt="image" />
       </div>
       <div className={s.title}>{title}</div>

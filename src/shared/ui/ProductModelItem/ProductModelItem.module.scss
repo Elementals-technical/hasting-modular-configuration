@@ -1,4 +1,4 @@
-.productOptionItem {
+.productModelItem {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -49,10 +49,17 @@
     .optionImage {
       border: 1px solid #ac5331;
     }
+
+    .innerButton {
+      opacity: 1;
+      visibility: visible;
+    }
   }
 }
 
 .optionImage {
+  position: relative;
+
   border: 1px solid transparent;
   border-radius: 5px;
 
@@ -61,8 +68,36 @@
   width: 195px;
   height: 195px;
 
+  transition: all 0.2s ease-in;
+
+  .innerButton {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+
+    display: flex;
+    align-items: center;
+
+    background-color: #ac5331;
+
+    color: #fff;
+    padding: 4px 4px 4px 6px;
+    border-radius: 30px;
+
+    transition: all 0.2s ease-in;
+
+    opacity: 0;
+    visibility: hidden;
+    z-index: 3;
+
+    &:hover {
+      background-color: #ac5431dd;
+    }
+  }
+
   img {
     border-radius: 5px;
     width: 100%;
+    z-index: 1;
   }
 }
