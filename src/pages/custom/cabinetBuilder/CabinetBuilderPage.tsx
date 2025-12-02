@@ -1,5 +1,10 @@
-import { StepStub } from "@/shared";
+import { InstructionPopup } from "@/features/popups/ui/InstructionPopup/InstructionPopup";
+import s from "./CabinetBuilderPage.module.scss";
 
 export const CabinetBuilderPage = () => {
-  return <StepStub flow="Custom" step="Cabinet Type" />;
+  return (
+    <div className={s.cabinetBuilder}>
+      <InstructionPopup />
+    </div>
+  );
 };
