@@ -1,15 +1,24 @@
+import { useNavigate } from "react-router-dom";
+
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { CreateModelBtn } from "@/features/product/ui/createModelBtn/CreateModelBtn";
 
+import { ROUTES } from "@/shared";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 export const ModelPage = () => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate(ROUTES.CUSTOM);
+  };
+
   return (
     <div>
-      <ModeSwitcher />
+      <ModeSwitcher onClick={handleNavigate} />
 
       <FilterRow>
         <FilterItem

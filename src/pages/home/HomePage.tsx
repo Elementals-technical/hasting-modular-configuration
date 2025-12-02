@@ -25,11 +25,9 @@ export const HomePage = () => {
       <HeaderBanner />
 
       <div className={s.content}>
-        {isOpenSidebar && (
-          <div className={s.navWrap}>
-            <SideNavigation flow={flow} />
-          </div>
-        )}
+        <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
+          <SideNavigation flow={flow} />
+        </div>
 
         <div className={s.currentStep}>
           <div>Step :</div>
