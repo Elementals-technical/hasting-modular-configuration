@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 
 import s from "./ProductModelItem.module.scss";
+import { Hint } from "../Hint/Hint";
 
 interface ProductModelGridI {
   id: number;
@@ -17,10 +18,16 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({ title, desc, img
   return (
     <div className={s.productModelItem}>
       <div className={s.optionImage}>
-        <div className={s.innerButton}>
-          Customize
-          <ArrowTopRight />
-        </div>
+        <Hint
+          content="Take this pre-built model into custom mode for full design control. Use our drag-n-drop editor to add/remove/reposition cabinets and more."
+          placement="top"
+          trigger="hover"
+        >
+          <div className={s.innerButton}>
+            Customize
+            <ArrowTopRight />
+          </div>
+        </Hint>
         <img src={img} alt="image" />
       </div>
       <div className={s.title}>{title}</div>

@@ -1,0 +1,30 @@
+.hint {
+  position: fixed;
+  z-index: 2000;
+  transform: translate(-50%, -100%); // default top
+  pointer-events: none;
+
+  width: 100%;
+  max-width: 300px;
+
+  &.bottom {
+    transform: translate(-50%, 0);
+  }
+  &.left {
+    transform: translate(-100%, -50%);
+  }
+  &.right {
+    transform: translate(0, -50%);
+  }
+}
+
+.bubble {
+  background: #282828;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font:
+    500 12px/1.4 Poppins,
+    sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
