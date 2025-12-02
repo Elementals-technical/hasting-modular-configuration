@@ -4,6 +4,7 @@
   transform: translate(-50%, -100%); // default top
   pointer-events: none;
 
+  // width: auto;
   width: 100%;
   max-width: 300px;
 
@@ -27,4 +28,7 @@
     500 12px/1.4 Poppins,
     sans-serif;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  white-space: normal;
+  word-break: break-word;
 }

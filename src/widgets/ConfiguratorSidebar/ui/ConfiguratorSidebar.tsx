@@ -35,7 +35,7 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
       <div className={s.stepContent}>{children}</div>
 
-      <BottomStickyBar />
+      <BottomStickyBar flow={flow} />
     </div>
   );
 };
