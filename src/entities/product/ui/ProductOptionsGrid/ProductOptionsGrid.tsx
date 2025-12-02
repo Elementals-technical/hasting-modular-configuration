@@ -2,7 +2,7 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 import s from "./ProductOptionsGrid.module.scss";
 
 interface ProductOptionsGridI {
-  data: { id: number; title: string; desc: string }[];
+  data: { id: number; title: string; desc?: string | undefined }[];
 }
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data }) => {

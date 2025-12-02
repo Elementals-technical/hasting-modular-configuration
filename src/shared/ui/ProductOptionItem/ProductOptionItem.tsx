@@ -6,7 +6,7 @@ import s from "./ProductOptionItem.module.scss";
 interface ProductOptionItemI {
   id: number;
   title: string;
-  desc: string;
+  desc?: string | undefined;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({ id, title, desc }) => {
