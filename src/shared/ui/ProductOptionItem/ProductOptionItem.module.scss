@@ -1,0 +1,29 @@
+.productOption {
+  .title {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 14px; /* 116.667% */
+
+    margin-bottom: 4px;
+  }
+
+  .desc {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 14px; /* 116.667% */
+  }
+
+  .image {
+    margin-bottom: 8px;
+
+    img {
+      width: 100%;
+    }
+  }
+}
