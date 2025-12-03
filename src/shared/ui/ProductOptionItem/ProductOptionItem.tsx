@@ -23,7 +23,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({ id, title, des
       {available ? (
         <div className={`${s.title} `}>{title}</div>
       ) : (
-        <Hint content={"Not available for Mineralmaro Countertop"}>
+        <Hint className={s.optionHint} content={"Not available for Mineralmaro Countertop"}>
           <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
         </Hint>
       )}
