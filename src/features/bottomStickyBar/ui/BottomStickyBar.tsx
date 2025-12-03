@@ -2,9 +2,8 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 
 import s from "./BottomStickyBar.module.scss";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
-import { useEffect, type PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 
 type BottomStickyBarProps = PropsWithChildren<{
   flow?: "prebuilt" | "custom";

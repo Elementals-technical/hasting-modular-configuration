@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { AnimationOpacity } from "../Animation/AnimationOpacity/AnimationOpacity";
 import { useMount } from "../hooks/useMount";
 import { PopupOverlay } from "../PopupOverlay/PopupOverlay";

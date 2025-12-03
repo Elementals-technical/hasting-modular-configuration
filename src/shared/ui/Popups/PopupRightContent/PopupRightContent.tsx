@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { AnimationOpacity } from "../Animation/AnimationOpacity/AnimationOpacity";
 import { useMount } from "../hooks/useMount";
 import s from "./PopupRightContent.module.scss";
@@ -12,7 +12,6 @@ interface PopupFullHeightLeftPropsI extends PropsWithChildren {
 
 export const PopupRightContent = ({
   children,
-  onClose,
   isOpening,
   disableAnimation = false,
   animationDurationMs,

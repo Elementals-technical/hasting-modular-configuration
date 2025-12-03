@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { type PropsWithChildren, useEffect, useRef, useState } from "react";
 import { CSSTransition } from "react-transition-group";
 import { PortalBody } from "../Portal/PortalBody";
 import s_animate from "./animation.module.scss";

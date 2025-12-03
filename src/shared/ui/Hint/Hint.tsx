@@ -1,4 +1,12 @@
-import { cloneElement, PropsWithChildren, ReactElement, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  cloneElement,
+  type PropsWithChildren,
+  type ReactElement,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import clsx from "clsx";
 

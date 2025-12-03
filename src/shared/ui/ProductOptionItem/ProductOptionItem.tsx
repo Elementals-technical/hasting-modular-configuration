@@ -13,7 +13,7 @@ interface ProductOptionItemI {
   isShortDesc: boolean;
 }
 
-export const ProductOptionItem: React.FC<ProductOptionItemI> = ({ id, title, desc, isAvailable, isShortDesc }) => {
+export const ProductOptionItem: React.FC<ProductOptionItemI> = ({ title, desc, isAvailable, isShortDesc }) => {
   const available = isAvailable ?? true; // undefined as available
 
   return (
