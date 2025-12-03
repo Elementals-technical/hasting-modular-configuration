@@ -1,0 +1,33 @@
+.viewTopPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+
+  > div {
+    a {
+      color: #ac5331;
+      font-family: Poppins;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 16px; /* 133.333% */
+      text-decoration-line: underline;
+      text-decoration-style: solid;
+      text-decoration-skip-ink: none;
+      text-decoration-thickness: auto;
+      text-underline-offset: auto;
+      text-underline-position: from-font;
+
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+}
+
+.leftIcon {
+  display: flex;
+  align-items: center;
+}

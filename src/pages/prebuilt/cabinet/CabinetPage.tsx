@@ -6,6 +6,7 @@ import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/Pro
 
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
+import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 
@@ -144,14 +145,7 @@ export const CabinetPage = () => {
   return (
     <div className={s.cabinetPage}>
       <ConfiguratorAccordion title={"Cabinet Color"} defaultOpen>
-        <div className={s.viewTopPanel}>
-          <div className={s.leftText}>
-            <Link to={"#"}>View in full mode</Link>
-          </div>
-          <div className={s.rightText}>
-            <Link to={"#"}>Order free Swatches</Link>
-          </div>
-        </div>
+        <ViewModePanel />
 
         <FilterRow className={s.innerRow}>
           <FilterItem
@@ -195,14 +189,7 @@ export const CabinetPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Handle Groove Color (Optional)"}>
-        <div className={s.viewTopPanel}>
-          <div className={s.leftText}>
-            <Link to={"#"}>View in full mode</Link>
-          </div>
-          <div className={s.rightText}>
-            <Link to={"#"}>Order free Swatches</Link>
-          </div>
-        </div>
+        <ViewModePanel />
 
         <FilterRow className={s.innerRow}>
           <FilterItem
