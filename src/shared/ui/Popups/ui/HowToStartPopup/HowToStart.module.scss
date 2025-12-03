@@ -1,0 +1,75 @@
+.howToStart {
+  width: 420px;
+  background-color: #fff;
+}
+
+.paginationInner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  button {
+    width: 12px;
+    height: 12px;
+    aspect-ratio: 1/1;
+
+    border-radius: 100px;
+    background: #e5e6ea;
+    border: none;
+    padding: 0;
+
+    cursor: pointer;
+
+    &.active {
+      background: #ac5331;
+    }
+  }
+}
+
+.pagination {
+  position: relative;
+
+  display: flex;
+  justify-content: center;
+
+  width: 100%;
+
+  &:first-child {
+    flex-grow: 1;
+  }
+}
+
+.content {
+  max-width: 900px;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 5px;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 50%;
+  background-color: #e5e6ea;
+}
+
+.howToStartInner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  padding: 20px;
+}
+
+.footer {
+  text-align: center;
+}
+
+.popupTopContent {
+  position: relative;
+}

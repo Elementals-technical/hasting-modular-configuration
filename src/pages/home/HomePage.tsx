@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
@@ -11,13 +12,21 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import s from "./HomePage.module.scss";
+import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 
 export const HomePage = () => {
+  const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("howToBuildSeen"));
+
   const { pathname } = useLocation();
   const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
 
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
+
+  const handleClose = () => {
+    sessionStorage.setItem("howToBuildSeen", "1");
+    setIsOpenedBuildInfo(false);
+  };
 
   return (
     <div className={s.homePageWrap}>
@@ -42,6 +51,8 @@ export const HomePage = () => {
         <ConfiguratorSidebar flow={flow}>
           <Outlet />
         </ConfiguratorSidebar>
+
+        {isOpenedBuildInfo && <HowToStart handleClose={handleClose} />}
       </div>
     </div>
   );

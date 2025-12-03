@@ -81,7 +81,7 @@ const optionsMockData3 = [
   },
 ];
 
-export const CustomCountertopPage = () => {
+export const CountertopPage = () => {
   return (
     <div className="countertop">
       <ConfiguratorAccordion title={"Countertop Color"} defaultOpen>

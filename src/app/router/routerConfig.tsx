@@ -8,11 +8,11 @@ import {
   CustomSummaryPage,
   HomePage,
   ModelPage,
-  PrebuiltAccessoriesPage,
-  PrebuiltCabinetPage,
-  PrebuiltCountertopPage,
-  PrebuiltSummaryPage,
+  AccessoriesPage,
+  CountertopPage,
+  FaucetPage,
   CabinetBuilderPage,
+  CabinetPage,
 } from "@/pages";
 
 import { ROUTES } from "@/shared";
@@ -31,10 +31,10 @@ export const routerConfig = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="model" replace /> },
           { path: "model", element: <ModelPage /> },
-          { path: "cabinet", element: <PrebuiltCabinetPage /> },
-          { path: "countertop", element: <PrebuiltCountertopPage /> },
-          { path: "accessories", element: <PrebuiltAccessoriesPage /> },
-          { path: "summary", element: <PrebuiltSummaryPage /> },
+          { path: "cabinet", element: <CabinetPage /> },
+          { path: "countertop", element: <CountertopPage /> },
+          { path: "accessories", element: <AccessoriesPage /> },
+          { path: "summary", element: <FaucetPage /> },
         ],
       },
       {

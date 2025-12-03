@@ -52,52 +52,23 @@ const optionsMockData = [
   },
 ];
 
-const optionsMockData2 = [
-  {
-    id: 1,
-    title: "Integrated",
-    isAvailable: false,
-    isShortDesc: false,
-  },
-  {
-    id: 2,
-    title: "Vessel",
-    isAvailable: true,
-    isShortDesc: false,
-  },
-  {
-    id: 3,
-    title: "Undermount",
-    isAvailable: false,
-    isShortDesc: false,
-  },
-];
-
-const optionsMockData3 = [
-  {
-    id: 1,
-    title: "Diamond",
-    isShortDesc: true,
-  },
-];
-
-export const CustomCountertopPage = () => {
+export const AccessoriesPage = () => {
   return (
-    <div className="countertop">
-      <ConfiguratorAccordion title={"Countertop Color"} defaultOpen>
+    <div className="accessoriesPage">
+      <ConfiguratorAccordion title={"Side Panels"} defaultOpen>
         <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
-      <ConfiguratorAccordion title={"Thickness"}>
+      <ConfiguratorAccordion title={"LED"}>
         <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
-      <ConfiguratorAccordion title={"Countertop Style"}>
-        <ProductOptionsGrid data={optionsMockData2} />
+      <ConfiguratorAccordion title={"Dividers"}>
+        <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
-      <ConfiguratorAccordion title={"Basin style"}>
-        <ProductOptionsGrid data={optionsMockData3} />
+      <ConfiguratorAccordion title={"Towel Bar"}>
+        <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
     </div>
   );

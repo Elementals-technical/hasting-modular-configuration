@@ -52,52 +52,15 @@ const optionsMockData = [
   },
 ];
 
-const optionsMockData2 = [
-  {
-    id: 1,
-    title: "Integrated",
-    isAvailable: false,
-    isShortDesc: false,
-  },
-  {
-    id: 2,
-    title: "Vessel",
-    isAvailable: true,
-    isShortDesc: false,
-  },
-  {
-    id: 3,
-    title: "Undermount",
-    isAvailable: false,
-    isShortDesc: false,
-  },
-];
-
-const optionsMockData3 = [
-  {
-    id: 1,
-    title: "Diamond",
-    isShortDesc: true,
-  },
-];
-
-export const CustomCountertopPage = () => {
+export const FaucetPage = () => {
   return (
-    <div className="countertop">
-      <ConfiguratorAccordion title={"Countertop Color"} defaultOpen>
+    <div className="faucetPage">
+      <ConfiguratorAccordion title={"Faucet Holes Amount"} defaultOpen>
         <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
-      <ConfiguratorAccordion title={"Thickness"}>
+      <ConfiguratorAccordion title={"Faucet Holes Spacing"}>
         <ProductOptionsGrid data={optionsMockData} />
-      </ConfiguratorAccordion>
-
-      <ConfiguratorAccordion title={"Countertop Style"}>
-        <ProductOptionsGrid data={optionsMockData2} />
-      </ConfiguratorAccordion>
-
-      <ConfiguratorAccordion title={"Basin style"}>
-        <ProductOptionsGrid data={optionsMockData3} />
       </ConfiguratorAccordion>
     </div>
   );

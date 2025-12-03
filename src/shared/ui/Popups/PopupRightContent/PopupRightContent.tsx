@@ -1,8 +1,7 @@
 import { type PropsWithChildren } from "react";
 import { AnimationOpacity } from "../Animation/AnimationOpacity/AnimationOpacity";
 import { useMount } from "../hooks/useMount";
-import { PopupOverlay } from "../PopupOverlay/PopupOverlay";
-import s from "./PopupCenterContent.module.scss";
+import s from "./PopupRightContent.module.scss";
 
 interface PopupFullHeightLeftPropsI extends PropsWithChildren {
   onClose: () => void;
@@ -11,9 +10,8 @@ interface PopupFullHeightLeftPropsI extends PropsWithChildren {
   animationDurationMs?: number;
 }
 
-export const PopupCenterContent = ({
+export const PopupRightContent = ({
   children,
-  onClose,
   isOpening,
   disableAnimation = false,
   animationDurationMs,
@@ -25,16 +23,14 @@ export const PopupCenterContent = ({
   }
 
   return (
-    <PopupOverlay isOpening={isOpening} onClose={onClose} animationDurationMs={animationDurationMs}>
-      <div className={s.centerContent}>
-        {disableAnimation ? (
-          children
-        ) : (
-          <AnimationOpacity isOpening={isOpening} animationDurationMs={animationDurationMs}>
-            {children}
-          </AnimationOpacity>
-        )}
-      </div>
-    </PopupOverlay>
+    <div className={s.rightContent}>
+      {disableAnimation ? (
+        children
+      ) : (
+        <AnimationOpacity isOpening={isOpening} animationDurationMs={animationDurationMs}>
+          {children}
+        </AnimationOpacity>
+      )}
+    </div>
   );
 };

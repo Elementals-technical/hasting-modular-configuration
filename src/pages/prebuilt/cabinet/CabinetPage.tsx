@@ -7,7 +7,7 @@ import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/Pro
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 
-import s from "./CustomCabinetColorsPage.module.scss";
+import s from "./CabinetPage.module.scss";
 
 const optionsMockData = [
   {
@@ -140,7 +140,7 @@ const optionsMockData4 = [
   },
 ];
 
-export const CustomCabinetColorsPage = () => {
+export const CabinetPage = () => {
   return (
     <div className={s.cabinetPage}>
       <ConfiguratorAccordion title={"Cabinet Color"} defaultOpen>

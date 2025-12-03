@@ -1,0 +1,42 @@
+.viewTopPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+
+  > div {
+    a {
+      color: #ac5331;
+      font-family: Poppins;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 16px; /* 133.333% */
+      text-decoration-line: underline;
+      text-decoration-style: solid;
+      text-decoration-skip-ink: none;
+      text-decoration-thickness: auto;
+      text-underline-offset: auto;
+      text-underline-position: from-font;
+    }
+  }
+}
+
+.innerRow {
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: 20px;
+
+  padding-top: 0 !important;
+
+  div {
+    button {
+      min-width: auto !important;
+    }
+
+    &:nth-child(3) {
+      flex-grow: 1;
+    }
+  }
+}

@@ -7,8 +7,8 @@ export * from "./custom/faucetHoles";
 export * from "./custom/summary";
 export * from "./custom/cabinetBuilder/CabinetBuilderPage.tsx";
 
-export * from "./prebuilt/accessories";
-export * from "./prebuilt/cabinet";
-export * from "./prebuilt/countertop";
+export * from "./prebuilt/accessories/AccessoriesPage.tsx";
+export * from "./prebuilt/cabinet/CabinetPage.tsx";
+export * from "./prebuilt/countertop/CountertopPage.tsx";
 export * from "./prebuilt/model/ModelPage.tsx";
-export * from "./prebuilt/summary";
+export * from "./prebuilt/faucet/index.tsx";
