@@ -2,8 +2,9 @@ import { useState } from "react";
 
 import { BaseButton } from "../Buttons/BaseButton";
 
-import s from "./HowToBuild.module.scss";
 import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
+
+import s from "./HowToBuild.module.scss";
 
 const steps = [
   {

@@ -44,6 +44,24 @@ const optionsMockData = [
   },
 ];
 
+const optionsMockData2 = [
+  {
+    id: 1,
+    title: "Integrated",
+    isAvailable: false,
+  },
+  {
+    id: 2,
+    title: "Vessel",
+    isAvailable: true,
+  },
+  {
+    id: 3,
+    title: "Undermount",
+    isAvailable: false,
+  },
+];
+
 export const CountertopPage = () => {
   return (
     <div className="countertop">
@@ -56,7 +74,7 @@ export const CountertopPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Countertop Style"}>
-        <ProductOptionsGrid data={optionsMockData} />
+        <ProductOptionsGrid data={optionsMockData2} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Basin style"}>

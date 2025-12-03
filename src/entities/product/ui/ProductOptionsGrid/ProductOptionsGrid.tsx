@@ -2,14 +2,14 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 import s from "./ProductOptionsGrid.module.scss";
 
 interface ProductOptionsGridI {
-  data: { id: number; title: string; desc?: string | undefined }[];
+  data: { id: number; title: string; desc?: string | undefined; isAvailable?: boolean }[];
 }
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data }) => {
   return (
     <div className={s.optionsGrid}>
       {data.map((i) => {
-        return <ProductOptionItem key={i.id} id={i.id} title={i.title} desc={i.desc} />;
+        return <ProductOptionItem key={i.id} id={i.id} title={i.title} desc={i.desc} isAvailable={i.isAvailable} />;
       })}
     </div>
   );
