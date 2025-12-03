@@ -9,7 +9,7 @@
     font-weight: 600;
     line-height: 14px; /* 116.667% */
 
-    margin-top: 8px;
+    margin-top: 12px;
     margin-bottom: 4px;
   }
 
@@ -44,5 +44,16 @@
 }
 
 .optionHint {
+  z-index: 3;
   max-width: 170px;
+}
+
+.optionHint_descr {
+  max-width: 150px;
+}
+
+.titleHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
