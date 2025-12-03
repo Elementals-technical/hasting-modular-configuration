@@ -1,22 +1,6 @@
-.howToBuild {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-
+.howToStart {
+  width: 420px;
   background-color: #fff;
-
-  padding: 20px;
-
-  border-top: 1px solid #e5e6ea;
-
-  z-index: 1000;
 }
 
 .paginationInner {
@@ -61,7 +45,8 @@
 
 .closeBtn {
   position: absolute;
-  right: 0;
+  top: 15px;
+  right: 15px;
   padding: 5px;
 
   cursor: pointer;
@@ -71,4 +56,20 @@
 
   border-radius: 50%;
   background-color: #e5e6ea;
+}
+
+.howToStartInner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  padding: 20px;
+}
+
+.footer {
+  text-align: center;
+}
+
+.popupTopContent {
+  position: relative;
 }

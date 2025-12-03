@@ -10,9 +10,9 @@ import { HeaderBanner, HeaderMain } from "@/shared";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
-import { HowToBuild } from "@/shared/ui/HowToBuild/HowToBuild";
 
 import s from "./HomePage.module.scss";
+import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 
 export const HomePage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("howToBuildSeen"));
@@ -52,7 +52,7 @@ export const HomePage = () => {
           <Outlet />
         </ConfiguratorSidebar>
 
-        {isOpenedBuildInfo && <HowToBuild handleClose={handleClose} />}
+        {isOpenedBuildInfo && <HowToStart handleClose={handleClose} />}
       </div>
     </div>
   );
