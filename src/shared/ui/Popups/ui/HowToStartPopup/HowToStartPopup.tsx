@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
-import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { BaseButton } from "@/shared";
 
 import img_1 from "../../../../assets/images/png/h1.png";

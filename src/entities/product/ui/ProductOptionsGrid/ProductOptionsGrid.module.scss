@@ -20,3 +20,23 @@
     width: 100%;
   }
 }
+
+.message {
+  display: flex;
+  width: 560px;
+  padding: 20px 0;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+
+  color: #ac5331;
+  text-align: center;
+  font-family: Poppins;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px; /* 142.857% */
+
+  height: 100%;
+}

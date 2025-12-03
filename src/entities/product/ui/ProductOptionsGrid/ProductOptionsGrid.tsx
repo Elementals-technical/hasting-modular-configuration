@@ -7,19 +7,25 @@ interface ProductOptionsGridI {
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data }) => {
   return (
-    <div className={s.optionsGrid}>
-      {data.map((i) => {
-        return (
-          <ProductOptionItem
-            key={i.id}
-            id={i.id}
-            title={i.title}
-            desc={i.desc}
-            isAvailable={i.isAvailable}
-            isShortDesc={i.isShortDesc}
-          />
-        );
-      })}
-    </div>
+    <>
+      {data.length ? (
+        <div className={s.optionsGrid}>
+          {data.map((i) => {
+            return (
+              <ProductOptionItem
+                key={i.id}
+                id={i.id}
+                title={i.title}
+                desc={i.desc}
+                isAvailable={i.isAvailable}
+                isShortDesc={i.isShortDesc}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div className={s.message}>Select cabinet type first</div>
+      )}
+    </>
   );
 };
