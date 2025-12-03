@@ -1,13 +1,14 @@
+import { useState } from "react";
+
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { BaseButton } from "@/shared";
 
-import img_1 from "../../../../shared/assets/images/png/first_inst.png";
-import img_2 from "../../../../shared/assets/images/png/sec_inst.png";
-import img_3 from "../../../../shared/assets/images/png/third_inst.png";
+import img_1 from "@/shared/assets/images/png/first_inst.png";
+import img_2 from "@/shared/assets/images/png/sec_inst.png";
+import img_3 from "@/shared/assets/images/png/third_inst.png";
 
 import s from "./InstructionPopup.module.scss";
-import { useState } from "react";
 
 export const InstructionPopup = () => {
   const [isOpening, setIsOpening] = useState(true);

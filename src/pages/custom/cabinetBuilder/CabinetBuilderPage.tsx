@@ -1,4 +1,4 @@
-import { InstructionPopup } from "@/features/popups/ui/InstructionPopup/InstructionPopup";
+import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
 import s from "./CabinetBuilderPage.module.scss";
 
 export const CabinetBuilderPage = () => {

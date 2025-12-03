@@ -1,9 +1,10 @@
-// Popup
 .instrPopup {
   width: 420px;
   background-color: #fff;
 
   border-radius: 10px;
+
+  box-shadow: -2px -2px 10px 0 rgba(40, 40, 40, 0.1);
 
   .header {
     display: flex;
@@ -51,4 +52,28 @@
 .content,
 .footer {
   padding: 20px;
+}
+
+.popupList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  li {
+    width: 100%;
+    list-style: none;
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 20px;
+
+      border-radius: 10px;
+      border: 1px solid #e5e6ea;
+
+      text-decoration: none;
+    }
+  }
 }
