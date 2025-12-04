@@ -1,6 +1,11 @@
-export const Search = () => {
+interface SearchI {
+  width?: string;
+  height?: string;
+}
+
+export const Search: React.FC<SearchI> = ({ width = "20", height = "20" }) => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 20 20" fill="none">
       <g clip-path="url(#clip0_2176_940)">
         <path
           fill-rule="evenodd"

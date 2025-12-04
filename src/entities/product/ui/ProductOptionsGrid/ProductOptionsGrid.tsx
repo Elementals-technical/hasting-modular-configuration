@@ -1,0 +1,31 @@
+import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionItem";
+import s from "./ProductOptionsGrid.module.scss";
+
+interface ProductOptionsGridI {
+  data: { id: number; title: string; desc?: string | undefined; isAvailable?: boolean; isShortDesc: boolean }[];
+}
+
+export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data }) => {
+  return (
+    <>
+      {data.length ? (
+        <div className={s.optionsGrid}>
+          {data.map((i) => {
+            return (
+              <ProductOptionItem
+                key={i.id}
+                id={i.id}
+                title={i.title}
+                desc={i.desc}
+                isAvailable={i.isAvailable}
+                isShortDesc={i.isShortDesc}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div className={s.message}>Select cabinet type first</div>
+      )}
+    </>
+  );
+};

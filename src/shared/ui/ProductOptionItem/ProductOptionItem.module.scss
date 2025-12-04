@@ -1,0 +1,59 @@
+.productOption {
+  cursor: pointer;
+
+  .title {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 14px; /* 116.667% */
+
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+
+  .desc {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 14px; /* 116.667% */
+  }
+
+  .image {
+    height: 158px;
+    border-radius: 10px;
+
+    img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+
+  &:hover {
+    .image {
+      border: 1px solid #ac5331;
+    }
+  }
+}
+
+.titleDisabled {
+  color: #e5e6ea !important;
+}
+
+.optionHint {
+  z-index: 3;
+  max-width: 170px;
+}
+
+.optionHint_descr {
+  max-width: 150px;
+}
+
+.titleHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

@@ -1,1 +1,4 @@
-export * from "./HeaderContentMain/HeaderContentMain.tsx";
+export * from "./HeaderMain/HeaderMain.tsx";
+export * from "./Buttons/BaseButton.tsx";
+export * from "./HeaderBanner/HeaderBanner.tsx";
+export * from "./StepStub/StepStub.tsx";

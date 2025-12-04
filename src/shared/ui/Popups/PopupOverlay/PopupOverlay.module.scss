@@ -1,0 +1,40 @@
+.popupWrapper {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  padding: 0;
+
+  z-index: 200;
+
+  display: flex;
+
+  .overlay {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background: rgba(40, 40, 40, 0.25);
+    cursor: pointer;
+  }
+  &.Left,
+  &.LeftFromMenu {
+    justify-content: flex-start;
+    align-items: flex-start;
+    [class*="contentPopup"] {
+      box-shadow: 15px 0px 15px 0px rgba(0, 0, 0, 0.1);
+    }
+  }
+  &.LeftFromMenu {
+    margin-left: var(--width-sidebar);
+  }
+  &.Right {
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
+}
