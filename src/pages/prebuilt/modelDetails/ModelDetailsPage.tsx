@@ -1,26 +1,52 @@
 import { Link } from "react-router-dom";
+
+import img_desc from "../../../shared/assets/images/png/descr_image.png";
+
 import s from "./ModelDetailsPage.module.scss";
+import { StepAIcon } from "@/shared/assets/images/svg/StepAIcon";
+import { StepBIcon } from "@/shared/assets/images/svg/StepBIcon";
+import { StepCIcon } from "@/shared/assets/images/svg/StepCIcon";
 
 export const ModelDetailsPage = () => {
   return (
     <div className={s.modelDetails}>
       <div className={s.detailsDimensions}>
-        <div className={s.image}></div>
+        <div className={s.image}>
+          <img src={img_desc} alt="dimentions image" />
+        </div>
         <div className={s.dimensions}>
-          <div>
-            <h4>Dimensions</h4>
+          <div className={s.dimensions_titleBlock}>
+            <h4 className={s.title}>Dimensions</h4>
             <p>51" Wide</p>
             <p>31" Deep</p>
           </div>
 
-          <div>
+          <div className={s.dimensionsBreakdown}>
             <h4>Cabinet breakdown</h4>
 
             <ul>
               <li>
-                <Link to={""}>
-                  <span>A</span>
+                <Link to={"#"}>
+                  <span className={s.stepIcon}>
+                    <StepAIcon />
+                  </span>
                   <span>Open Shelf | 35 cm</span>
+                </Link>
+              </li>
+              <li>
+                <Link to={"#"}>
+                  <span className={s.stepIcon}>
+                    <StepBIcon />
+                  </span>
+                  <span>Side Cabinet | 50 cm 2-Drawer</span>
+                </Link>
+              </li>
+              <li>
+                <Link to={"#"}>
+                  <span className={s.stepIcon}>
+                    <StepCIcon />
+                  </span>
+                  <span>Side Base | 60 cm 2-Drawer</span>
                 </Link>
               </li>
             </ul>
@@ -30,8 +56,9 @@ export const ModelDetailsPage = () => {
 
       <div className={s.detailsDescription}>
         <div>
-          <h4>Cabinet Characteristics</h4>
-          <ul>
+          <h4 className={s.title}>Cabinet Characteristics</h4>
+
+          <ul className={s.descList}>
             <li>Soft-close, ergonomic drawer system</li>
             <li>Metal drawer glide structure</li>
             <li>Dark anthracite internal drawer base finish</li>
@@ -42,8 +69,9 @@ export const ModelDetailsPage = () => {
         </div>
 
         <div>
-          <h4>Production | Capacity</h4>
-          <ul>
+          <h4 className={s.title}>Production | Capacity</h4>
+
+          <ul className={s.descList}>
             <li>Italian-made, designed and built-to-order</li>
             <li>Eco-conscious production methods</li>
             <li>Max weight capacity 40Kg (88lb per cabinet)</li>

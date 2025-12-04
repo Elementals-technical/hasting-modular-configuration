@@ -1,3 +1,81 @@
 .modelDetails {
   padding: 20px;
 }
+
+.detailsDimensions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  margin-bottom: 40px;
+
+  .image {
+    width: 250px;
+    height: 250px;
+    background-color: #fbfaf9;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.title {
+  color: #282828;
+  font-size: 14px;
+}
+
+.dimensions_titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-bottom: 20px;
+}
+
+.dimensionsBreakdown {
+  h4 {
+    margin-bottom: 8px;
+  }
+
+  ul {
+    li {
+      list-style: none;
+      margin-bottom: 12px;
+
+      a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        text-decoration: none;
+        color: #282828;
+        font-size: 12px;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.stepIcon {
+  display: flex;
+  align-items: center;
+}
+
+.detailsDescription {
+  display: flex;
+  align-items: start;
+
+  > div {
+    h4 {
+      margin-bottom: 20px;
+    }
+
+    ul {
+      margin-left: 20px;
+    }
+  }
+}
