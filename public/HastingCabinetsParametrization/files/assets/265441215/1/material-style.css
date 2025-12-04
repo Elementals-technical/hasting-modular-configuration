@@ -1,0 +1,152 @@
+/* --- Main Panel --- */
+.mat-ui-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    font-family: 'Segoe UI', sans-serif;
+    color: #eceff1;
+    overflow: visible; 
+}
+
+.mat-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 5px;
+}
+
+.mat-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    overflow: visible; 
+}
+
+/* --- Row --- */
+.mat-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #b0bec5; /* Light Grey Text (Matches Preset) */
+    letter-spacing: 0.8px;
+}
+
+/* --- Custom Dropdown --- */
+.mat-select-wrapper {
+    position: relative;
+    user-select: none;
+    width: 100%;
+}
+
+.mat-select-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mat-select-trigger:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.mat-select-trigger.active {
+    border-color: #7986cb; /* Muted Indigo (Matches Preset) */
+    background: rgba(121, 134, 203, 0.1);
+}
+
+.arrow {
+    font-size: 10px;
+    opacity: 0.6;
+    transition: transform 0.2s;
+}
+
+.mat-select-trigger.active .arrow {
+    transform: rotate(180deg);
+}
+
+/* Options List */
+.mat-options {
+    display: none;
+    flex-direction: column;
+    margin-top: 5px;
+    background: #263238; /* Dark Blue Grey */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    
+    max-height: 200px;
+    overflow-y: auto;
+    
+    /* Overlay */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+}
+
+.mat-options.open {
+    display: flex;
+}
+
+.mat-options::-webkit-scrollbar { width: 4px; }
+.mat-options::-webkit-scrollbar-track { background: #263238; }
+.mat-options::-webkit-scrollbar-thumb { background: #546E7A; }
+
+.mat-option {
+    padding: 10px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: #cfd8dc;
+}
+
+.mat-option:last-child {
+    border-bottom: none;
+}
+
+.mat-option:hover {
+    background: #5c6bc0; /* Highlight Color (Indigo) */
+    color: white;
+}
+
+/* --- Copy Button --- */
+.mat-copy-btn {
+    width: 100%;
+    padding: 5px 0; /* Compact padding like other panels */
+    background: #455A64; /* Slate */
+    color: #fff;
+    border: 1px solid #546E7A;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.mat-copy-btn:hover {
+    background: #546E7A;
+    border-color: #78909C;
+}
+
+.mat-copy-btn:active {
+    transform: translateY(1px);
+}

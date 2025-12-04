@@ -1,0 +1,95 @@
+/* Main Container (Right Side) */
+.ui-host-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    
+    max-height: 90vh; 
+    height: auto;
+    
+    display: flex;
+    flex-direction: column;
+    
+    background: rgba(15, 15, 20, 0.95); /* Deep Dark */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: -10px 10px 30px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #eee;
+    z-index: 9999;
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+/* Global Title */
+.ui-host-title {
+    padding: 15px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0; /* Заголовок не сжимается */
+}
+
+.ui-host-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+}
+
+/* Scrollbar styling */
+.ui-host-scroll-area::-webkit-scrollbar { width: 6px; }
+.ui-host-scroll-area::-webkit-scrollbar-track { background: transparent; }
+.ui-host-scroll-area::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+.ui-host-scroll-area::-webkit-scrollbar-thumb:hover { background: #666; }
+
+/* --- ACCORDION SECTIONS --- */
+
+.ui-host-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.ui-host-header {
+    padding: 12px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.03);
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.ui-host-header:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.ui-host-icon {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.ui-host-content {
+    padding: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    height: auto; 
+    overflow: visible; 
+}
