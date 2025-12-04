@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
-import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
+import { getActiveStep, getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { toggle } from "@/features/sidebar/model/store/slice";
 
 import { HeaderBanner, HeaderMain } from "@/shared";
@@ -22,6 +22,7 @@ export const HomePage = () => {
 
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
+  const activeStep = useAppSelector(getActiveStep);
 
   const handleClose = () => {
     sessionStorage.setItem("howToBuildSeen", "1");
@@ -41,7 +42,7 @@ export const HomePage = () => {
         <div className={s.currentStep}>
           <div>Step :</div>
           <div className={s.title} onClick={() => dispatch(toggle())}>
-            Model
+            {activeStep}
             <ArrowRight />
           </div>
         </div>

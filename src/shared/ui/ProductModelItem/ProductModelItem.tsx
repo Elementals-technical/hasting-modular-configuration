@@ -32,9 +32,13 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({ title, desc, img
       </div>
       <div className={s.title}>{title}</div>
       <div className={s.desc}>{desc}</div>
+
       {isProductModel && (
         <Link className={s.link} to={""}>
-          Product Details
+          <span>Product Details</span>
+          <span className={s.linkIcon}>
+            <ArrowTopRight color={"#ad5534"} />
+          </span>
         </Link>
       )}
       <div className={s.price}>{price}</div>

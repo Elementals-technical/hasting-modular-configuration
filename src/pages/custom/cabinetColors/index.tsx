@@ -8,6 +8,7 @@ import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordi
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 
 import s from "./CustomCabinetColorsPage.module.scss";
+import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 const optionsMockData = [
   {
@@ -144,14 +145,7 @@ export const CustomCabinetColorsPage = () => {
   return (
     <div className={s.cabinetPage}>
       <ConfiguratorAccordion title={"Cabinet Color"} defaultOpen>
-        <div className={s.viewTopPanel}>
-          <div className={s.leftText}>
-            <Link to={"#"}>View in full mode</Link>
-          </div>
-          <div className={s.rightText}>
-            <Link to={"#"}>Order free Swatches</Link>
-          </div>
-        </div>
+        <ViewModePanel />
 
         <FilterRow className={s.innerRow}>
           <FilterItem
@@ -195,14 +189,7 @@ export const CustomCabinetColorsPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Handle Groove Color (Optional)"}>
-        <div className={s.viewTopPanel}>
-          <div className={s.leftText}>
-            <Link to={"#"}>View in full mode</Link>
-          </div>
-          <div className={s.rightText}>
-            <Link to={"#"}>Order free Swatches</Link>
-          </div>
-        </div>
+        <ViewModePanel />
 
         <FilterRow className={s.innerRow}>
           <FilterItem
