@@ -34,7 +34,6 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
       navigate("/prebuilt/model");
       return;
     }
-    navigate(-1);
   };
 
   const handleOpenPopup = () => {
