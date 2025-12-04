@@ -17,6 +17,7 @@ import {
 } from "@/pages";
 
 import { ROUTES } from "@/shared";
+import { SummaryPage } from "@/pages/prebuilt/summary/SummaryPage";
 
 export const routerConfig = createBrowserRouter([
   {
@@ -39,7 +40,8 @@ export const routerConfig = createBrowserRouter([
           { path: "cabinet", element: <CabinetPage /> },
           { path: "countertop", element: <CountertopPage /> },
           { path: "accessories", element: <AccessoriesPage /> },
-          { path: "summary", element: <FaucetPage /> },
+          { path: "faucet-holes", element: <FaucetPage /> },
+          { path: "summary", element: <SummaryPage /> },
         ],
       },
       {
