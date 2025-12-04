@@ -4,10 +4,6 @@ import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupC
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { BaseButton } from "@/shared";
 
-import img_1 from "@/shared/assets/images/png/first_inst.png";
-import img_2 from "@/shared/assets/images/png/sec_inst.png";
-import img_3 from "@/shared/assets/images/png/third_inst.png";
-
 import s from "./InstructionPopup.module.scss";
 
 interface InstructionPopupI {
@@ -39,28 +35,7 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
           </div>
         </div>
 
-        <div className={s.content}>
-          <div className={s.contentBlock}>
-            <div>1. Tap on the piece you’d like to add.</div>
-            <div className={s.contentBlock_img}>
-              <img src={img_1} alt="first image" />
-            </div>
-          </div>
-
-          <div className={s.contentBlock}>
-            <div>2. Tap on + icon to insert the selected piece.</div>
-            <div className={s.contentBlock_img}>
-              <img src={img_2} alt="first image" />
-            </div>
-          </div>
-
-          <div className={s.contentBlock}>
-            <div>3. To edit, tap a piece, then click an action you want</div>
-            <div className={s.contentBlock_img}>
-              <img src={img_3} alt="first image" />
-            </div>
-          </div>
-        </div>
+        <div className={s.content}></div>
 
         <div className={s.footer}>
           <BaseButton

@@ -1,0 +1,108 @@
+/* Main Container - PURE STRUCTURE (Relative to Host) */
+.stretch-ui-panel {
+    width: 100%;
+    position: static;
+    background: none;
+    box-shadow: none;
+    border: none;
+    backdrop-filter: none;
+    padding: 0;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+}
+
+/* Toolbar */
+.stretch-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 5px;
+}
+
+/* List - NO SCROLL HERE */
+.stretch-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    max-height: none;
+}
+
+/* Tag Group */
+.stretch-tag-group {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.stretch-group-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ccc;
+    margin-bottom: 6px;
+    text-transform: capitalize;
+}
+
+/* Axis Row */
+.stretch-axis-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+}
+
+.axis-label {
+    font-weight: bold;
+    font-size: 10px;
+    width: 10px;
+}
+.axis-label.x { color: #ff4d4d; }
+.axis-label.y { color: #4dff4d; }
+.axis-label.z { color: #4d4dff; }
+
+.stretch-input-number {
+    width: 45px;
+    padding: 2px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 3px;
+    text-align: center;
+    font-size: 11px;
+}
+.stretch-input-number:focus { outline: none; border-color: #F60; }
+
+.stretch-input-range {
+    flex: 1;
+    cursor: pointer;
+    accent-color: #888;
+    height: 3px;
+    margin: 0;
+}
+.stretch-range-x { accent-color: #ff4d4d; }
+.stretch-range-y { accent-color: #4dff4d; }
+.stretch-range-z { accent-color: #4d4dff; }
+
+/* Copy Button */
+.stretch-copy-btn {
+    width: 100%;
+    padding: 5px 0;
+    background: #444;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+.stretch-copy-btn:hover { background: #F60; color: #fff; }

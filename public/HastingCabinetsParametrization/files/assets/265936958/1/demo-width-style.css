@@ -1,0 +1,98 @@
+
+/* --- Main Panel --- */
+.demo-ui-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+    padding-bottom: 5px;
+}
+
+/* --- Header --- */
+.demo-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.demo-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #90CAF9; /* Light Blue Text */
+    letter-spacing: 0.5px;
+}
+
+.demo-value {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    background: #1565C0; /* Blue Bg */
+    padding: 2px 8px;
+    border-radius: 4px;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* --- Slider Area --- */
+.demo-slider-container {
+    position: relative;
+    padding: 5px 0;
+}
+
+/* Range Input */
+.demo-range {
+    width: 100%;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+    position: relative;
+    margin: 0;
+}
+
+/* Track */
+.demo-range::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Thumb */
+.demo-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #448AFF; /* Accent Blue */
+    margin-top: -7px; /* Center on track */
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    border: 2px solid #fff;
+    transition: transform 0.1s;
+}
+
+.demo-range:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+    background: #fff;
+}
+
+/* Ticks decoration */
+.demo-ticks {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 9px; /* Half thumb width offset */
+    margin-top: -14px; /* Move up behind slider */
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.demo-ticks span {
+    font-size: 8px;
+    color: white;
+    position: relative;
+    top: 20px; /* Push lines down */
+}

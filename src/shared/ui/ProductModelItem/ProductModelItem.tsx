@@ -14,7 +14,7 @@ interface ProductModelGridI {
   price: string;
 }
 
-export const ProductModelItem: React.FC<ProductModelGridI> = ({ title, desc, img, isProductModel, price }) => {
+export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
   return (
     <div className={s.productModelItem}>
       <div className={s.optionImage}>
@@ -34,7 +34,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({ title, desc, img
       <div className={s.desc}>{desc}</div>
 
       {isProductModel && (
-        <Link className={s.link} to={""}>
+        <Link className={s.link} to={`/prebuilt/model/${id}`}>
           <span>Product Details</span>
           <span className={s.linkIcon}>
             <ArrowTopRight color={"#ad5534"} />

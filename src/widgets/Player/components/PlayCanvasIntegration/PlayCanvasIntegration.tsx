@@ -1,11 +1,12 @@
 export const PlayCanvasIntegration = () => {
   return (
-    <div>
+    <div style={{ height: "100%" }}>
       <iframe
         title="scene"
         id="demo"
         width="100%"
         height="100%"
+        src="/HastingCabinetsParametrization/index.html"
         style={{
           width: "100%",
           height: "100%",

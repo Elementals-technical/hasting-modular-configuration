@@ -7,12 +7,11 @@ import { getActiveStep, getIsOpenSidebar } from "@/features/sidebar/model/store/
 import { toggle } from "@/features/sidebar/model/store/slice";
 
 import { HeaderBanner, HeaderMain } from "@/shared";
-
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
+import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 
 import s from "./HomePage.module.scss";
-import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 
 export const HomePage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("howToBuildSeen"));
