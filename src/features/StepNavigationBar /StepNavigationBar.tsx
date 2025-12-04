@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useMatch, useNavigate } from "react-router-dom";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
 import { HintIcon } from "@/shared/assets/images/svg/HintIcon.tsx";
@@ -20,11 +20,21 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   const navigate = useNavigate();
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
 
+  const isModelDetails = !!useMatch("/prebuilt/model/:modelId");
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
 
   const handleNavigate = () => {
-    if (prevStep) navigate(prevStep?.path);
+    if (prevStep) {
+      navigate(prevStep.path);
+      return;
+    }
+
+    if (isModelDetails) {
+      navigate("/prebuilt/model");
+      return;
+    }
+    navigate(-1);
   };
 
   const handleOpenPopup = () => {

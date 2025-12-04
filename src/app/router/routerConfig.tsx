@@ -13,6 +13,7 @@ import {
   FaucetPage,
   CabinetBuilderPage,
   CabinetPage,
+  ModelDetailsPage,
 } from "@/pages";
 
 import { ROUTES } from "@/shared";
@@ -30,7 +31,11 @@ export const routerConfig = createBrowserRouter([
         path: ROUTES.PREBUILT.slice(1),
         children: [
           { index: true, element: <Navigate to="model" replace /> },
-          { path: "model", element: <ModelPage /> },
+          {
+            path: "model",
+            element: <ModelPage />,
+            children: [{ path: ":modelId", element: <ModelDetailsPage /> }],
+          },
           { path: "cabinet", element: <CabinetPage /> },
           { path: "countertop", element: <CountertopPage /> },
           { path: "accessories", element: <AccessoriesPage /> },

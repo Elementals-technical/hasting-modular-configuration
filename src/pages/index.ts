@@ -12,3 +12,4 @@ export * from "./prebuilt/cabinet/CabinetPage.tsx";
 export * from "./prebuilt/countertop/CountertopPage.tsx";
 export * from "./prebuilt/model/ModelPage.tsx";
 export * from "./prebuilt/faucet/index.tsx";
+export * from "./prebuilt/modelDetails/ModelDetailsPage.tsx";
