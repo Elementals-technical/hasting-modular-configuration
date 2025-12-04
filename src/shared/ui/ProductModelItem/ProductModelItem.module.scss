@@ -34,6 +34,15 @@
     text-decoration-thickness: auto;
     text-underline-offset: auto;
     text-underline-position: from-font;
+
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .linkIcon {
+      display: flex;
+      align-items: center;
+    }
   }
 
   .price {
