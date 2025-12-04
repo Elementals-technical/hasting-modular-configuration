@@ -140,6 +140,8 @@ const optionsMockData4 = [
 ];
 
 export const CabinetPage = () => {
+  console.log("cabinet page");
+
   return (
     <div className={s.cabinetPage}>
       <ConfiguratorAccordion title={"Cabinet Color"} defaultOpen>
