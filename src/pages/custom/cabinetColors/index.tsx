@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
