@@ -11,4 +11,7 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  preview: {
+    allowedHosts: ["hasting-modular-configuration-v3aur.ondigitalocean.app"],
+  },
 });
