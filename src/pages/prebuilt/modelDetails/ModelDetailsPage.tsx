@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 
-import img_desc from "../../../shared/assets/images/png/descr_image.png";
-
-import s from "./ModelDetailsPage.module.scss";
+import img_desc from "@/shared/assets/images/png/descr_image.png";
 import { StepAIcon } from "@/shared/assets/images/svg/StepAIcon";
 import { StepBIcon } from "@/shared/assets/images/svg/StepBIcon";
 import { StepCIcon } from "@/shared/assets/images/svg/StepCIcon";
+
+import s from "./ModelDetailsPage.module.scss";
 
 export const ModelDetailsPage = () => {
   return (
