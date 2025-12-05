@@ -66,9 +66,10 @@ const productMockData = [
 
 interface ProductModelsGridI {
   createModelBtn?: React.ReactNode;
+  handleAddPreset: (presetProducts: any) => void;
 }
 
-export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn }) => {
+export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn, handleAddPreset }) => {
   return (
     <div className={s.optionsGrid}>
       {createModelBtn}
@@ -84,6 +85,7 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn
             price={i.price}
             isProductModel={true}
             presetProducts={i.presetProducts}
+            onClick={handleAddPreset}
           />
         );
       })}

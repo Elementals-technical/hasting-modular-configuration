@@ -1,3 +1,4 @@
+// Return product and its ID
 export async function addProduct(name: string) {
   // @ts-ignore
   const containerRef = window.containerRef;

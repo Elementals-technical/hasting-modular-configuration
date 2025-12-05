@@ -1,12 +1,10 @@
 import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { addProductId } from "@/features/product/model/store/slice";
+
+import { Hint } from "../Hint/Hint";
 
 import s from "./ProductModelItem.module.scss";
-import { Hint } from "../Hint/Hint";
-import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 
 interface ProductModelGridI {
   id: number;
@@ -16,28 +14,38 @@ interface ProductModelGridI {
   isProductModel: boolean;
   price: string;
   presetProducts?: Array<{ name: string }>;
+  onClick: (presetProducts: any) => void;
 }
 
-export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
-  const dispatch = useAppDispatch();
+export const ProductModelItem: React.FC<ProductModelGridI> = ({
+  id,
+  title,
+  desc,
+  img,
+  isProductModel,
+  price,
+  onClick,
+  presetProducts,
+}) => {
+  // const dispatch = useAppDispatch();
 
-  const handleAdd = async (name: string) => {
-    try {
-      const productId = await addProduct(name);
+  // const handleAdd = async (name: string) => {
+  //   try {
+  //     const productId = await addProduct(name);
 
-      if (productId) {
-        dispatch(addProductId(productId));
-      }
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to apply preset", error);
-    }
-  };
+  //     if (productId) {
+  //       dispatch(addProductId(productId));
+  //     }
+  //   } catch (error) {
+  //     console.error("[ProductModelItem] Failed to apply preset", error);
+  //   }
+  // };
 
   return (
     <div
       className={s.productModelItem}
       onClick={() => {
-        handleAdd(title);
+        onClick(presetProducts);
       }}
     >
       <div className={s.optionImage}>

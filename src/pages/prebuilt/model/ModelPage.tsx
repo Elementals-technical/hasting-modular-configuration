@@ -6,15 +6,26 @@ import { CreateModelBtn } from "@/features/product/ui/createModelBtn/CreateModel
 import { ROUTES } from "@/shared";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
+import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 
 export const ModelPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
 
   const handleNavigate = () => {
     navigate(ROUTES.CUSTOM);
+  };
+
+  const handleAddPreset = async (presetProducts: any) => {
+    try {
+      const presets = await addPreset(presetProducts);
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to apply preset", error);
+    }
   };
 
   return (
@@ -43,7 +54,7 @@ export const ModelPage = () => {
             />
           </FilterRow>
 
-          <ProductModelsGrid createModelBtn={<CreateModelBtn />} />
+          <ProductModelsGrid handleAddPreset={handleAddPreset} createModelBtn={<CreateModelBtn />} />
         </>
       )}
 
