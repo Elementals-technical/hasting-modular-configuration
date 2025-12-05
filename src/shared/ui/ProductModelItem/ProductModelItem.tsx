@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { setProductId } from "@/features/product/model/store/slice";
+import { addProductId } from "@/features/product/model/store/slice";
 
 import s from "./ProductModelItem.module.scss";
 import { Hint } from "../Hint/Hint";
@@ -26,7 +26,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc,
       const productId = await addProduct(name);
 
       if (productId) {
-        dispatch(setProductId(productId));
+        dispatch(addProductId(productId));
       }
     } catch (error) {
       console.error("[ProductModelItem] Failed to apply preset", error);

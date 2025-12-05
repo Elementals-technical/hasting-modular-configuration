@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
-import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { removeProductId } from "@/features/product/model/store/slice";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 
@@ -112,15 +113,26 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
-  const prodId = useAppSelector((store) => store.rootStateUI.product.productId);
+  const dispatch = useAppDispatch();
+  const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
-  const handleRemoveProducts = async (id: string) => {
-    await removeProduct(prodId);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-  };
+  const handleRemoveProducts = useCallback(async () => {
+    if (!productIds.length) return;
 
-  const dropdownItems: DropdownItem[] = useMemo(
-    () => [
+    const [idToRemove] = productIds;
+
+    try {
+      await removeProduct(idToRemove);
+      dispatch(removeProductId(idToRemove));
+    } catch (error) {
+      console.error("[PlayCanvasIntegration] Failed to remove product", error);
+    } finally {
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+    }
+  }, [dispatch, productIds]);
+
+  const dropdownItems: DropdownItem[] = useMemo(() => {
+    const items: DropdownItem[] = [
       {
         id: "resize",
         label: "Resize",
@@ -130,10 +142,14 @@ export const PlayCanvasIntegration = () => {
         ],
       },
       { id: "add", label: "Add", trailing: "+" },
-      { id: "delete", label: "Delete", trailing: "🗑", onClick: handleRemoveProducts },
-    ],
-    [handleRemoveProducts],
-  );
+    ];
+
+    if (productIds.length) {
+      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
+    }
+
+    return items;
+  }, [handleRemoveProducts, productIds.length]);
 
   return (
     <div style={{ position: "relative", height: "100%" }}>

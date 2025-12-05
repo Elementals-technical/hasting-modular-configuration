@@ -1,19 +1,25 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 type ProductState = {
-  productId: string | null;
+  productIds: string[];
 };
 
 const initialState: ProductState = {
-  productId: null,
+  productIds: [],
 };
 
 const productSlice = createSlice({
   name: "product",
   initialState,
   reducers: {
-    setProductId(state, action: PayloadAction<string | null>) {
-      state.productId = action.payload;
+    addProductId(state, action: PayloadAction<string>) {
+      const id = action.payload;
+      if (!id) return;
+      const next = [...state.productIds.filter((pid) => pid !== id), id].slice(-3);
+      state.productIds = next;
+    },
+    removeProductId(state, action: PayloadAction<string>) {
+      state.productIds = state.productIds.filter((pid) => pid !== action.payload);
     },
     reset() {
       return initialState;
@@ -21,5 +27,5 @@ const productSlice = createSlice({
   },
 });
 
-export const { setProductId, reset } = productSlice.actions;
+export const { addProductId, removeProductId, reset } = productSlice.actions;
 export const productReducer = productSlice.reducer;
