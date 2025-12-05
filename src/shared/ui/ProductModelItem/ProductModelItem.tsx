@@ -4,7 +4,7 @@ import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 
 import s from "./ProductModelItem.module.scss";
 import { Hint } from "../Hint/Hint";
-import { setProducts } from "@/utils/functions/playcanvas/setProducts";
+import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 
 interface ProductModelGridI {
   id: number;
@@ -16,31 +16,22 @@ interface ProductModelGridI {
   presetProducts?: Array<{ name: string }>;
 }
 
-export const ProductModelItem: React.FC<ProductModelGridI> = ({
-  id,
-  title,
-  desc,
-  img,
-  isProductModel,
-  price,
-  presetProducts,
-}) => {
-  const handleCustomize = () => {
-    if (!presetProducts || presetProducts.length === 0) return;
-    const api = setProducts();
-    if (api?.presetProducts) {
-      try {
-        api.presetProducts(presetProducts);
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to apply preset", error);
-      }
-    } else {
-      console.warn("[ProductModelItem] ConfiguratorAPI.presetProducts not ready");
+export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
+  const handleCustomize = async (name: string) => {
+    try {
+      await addProduct(name);
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to apply preset", error);
     }
   };
 
   return (
-    <div className={s.productModelItem} onClick={handleCustomize}>
+    <div
+      className={s.productModelItem}
+      onClick={() => {
+        handleCustomize(title);
+      }}
+    >
       <div className={s.optionImage}>
         <Hint
           content="Take this pre-built model into custom mode for full design control. Use our drag-n-drop editor to add/remove/reposition cabinets and more."

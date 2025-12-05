@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 

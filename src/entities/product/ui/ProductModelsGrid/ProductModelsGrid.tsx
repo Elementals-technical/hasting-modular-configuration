@@ -8,33 +8,25 @@ const productMockData = [
   {
     id: 1,
     img: temp_img,
-    title: "Urban Standard ",
+    title: "CabinetUniBox",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
-    presetProducts: [
-      { name: "CabinetUniBox" },
-      { name: "CabinetUniBox" },
-      { name: "UniOpenShelves" },
-    ],
+    presetProducts: [{ name: "CabinetUniBox" }, { name: "CabinetUniBox" }, { name: "UniOpenShelves" }],
   },
   {
     id: 2,
     img: temp_img,
-    title: "Urban Standard ",
+    title: "CabinetUniBox",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
-    presetProducts: [
-      { name: "CabinetUniBox" },
-      { name: "UniOpenShelves" },
-      { name: "CabinetUniBox" },
-    ],
+    presetProducts: [{ name: "CabinetUniBox" }, { name: "UniOpenShelves" }, { name: "CabinetUniBox" }],
   },
   {
     id: 3,
     img: temp_img,
-    title: "Urban Standard ",
+    title: "CabinetUniBox",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
@@ -45,26 +37,21 @@ const productMockData = [
       { name: "CabinetUniBox" },
 
       { name: "UniOpenShelves" },
-
     ],
   },
   {
     id: 4,
     img: temp_img,
-    title: "Urban Standard ",
+    title: "CabinetUniBox",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
-    presetProducts: [
-      { name: "UniOpenShelves" },
-      { name: "UniOpenShelves" },
-
-    ],
+    presetProducts: [{ name: "UniOpenShelves" }, { name: "UniOpenShelves" }],
   },
   {
     id: 5,
     img: temp_img,
-    title: "Urban Standard ",
+    title: "CabinetUniBox",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
