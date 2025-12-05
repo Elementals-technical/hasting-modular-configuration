@@ -2,10 +2,18 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 import s from "./ProductOptionsGrid.module.scss";
 
 interface ProductOptionsGridI {
-  data: { id: number; title: string; desc?: string | undefined; isAvailable?: boolean; isShortDesc: boolean }[];
+  data: {
+    id: number;
+    title: string;
+    name?: string;
+    desc?: string | undefined;
+    isAvailable?: boolean;
+    isShortDesc: boolean;
+  }[];
+  handleAdd?: (name: string) => void;
 }
 
-export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data }) => {
+export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data, handleAdd }) => {
   return (
     <>
       {data.length ? (
@@ -15,10 +23,12 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data }) => {
               <ProductOptionItem
                 key={i.id}
                 id={i.id}
+                name={i.name}
                 title={i.title}
                 desc={i.desc}
                 isAvailable={i.isAvailable}
                 isShortDesc={i.isShortDesc}
+                onClick={() => handleAdd(i.name)}
               />
             );
           })}
