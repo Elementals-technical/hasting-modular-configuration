@@ -1,21 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
+import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
-
-const dropdownItems: DropdownItem[] = [
-  {
-    id: "resize",
-    label: "Resize",
-    children: [
-      { id: "resize-width", label: "Width" },
-      { id: "resize-depth", label: "Depth" },
-    ],
-  },
-  { id: "add", label: "Add", trailing: "+" },
-  { id: "delete", label: "Delete", trailing: "🗑" },
-];
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
@@ -122,6 +110,27 @@ export const PlayCanvasIntegration = () => {
       detachPointerListener();
     };
   }, []);
+
+  const handleRemoveProducts = useCallback(() => {
+    removeAllProducts();
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  const dropdownItems: DropdownItem[] = useMemo(
+    () => [
+      {
+        id: "resize",
+        label: "Resize",
+        children: [
+          { id: "resize-width", label: "Width" },
+          { id: "resize-depth", label: "Depth" },
+        ],
+      },
+      { id: "add", label: "Add", trailing: "+" },
+      { id: "delete", label: "Delete", trailing: "🗑", onClick: handleRemoveProducts },
+    ],
+    [handleRemoveProducts],
+  );
 
   return (
     <div style={{ position: "relative", height: "100%" }}>
