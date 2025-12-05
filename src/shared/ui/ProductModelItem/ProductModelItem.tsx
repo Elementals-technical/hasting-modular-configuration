@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { addProductId } from "@/features/product/model/store/slice";
 
 import s from "./ProductModelItem.module.scss";
 import { Hint } from "../Hint/Hint";
+import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 
 interface ProductModelGridI {
   id: number;
@@ -15,41 +18,28 @@ interface ProductModelGridI {
   presetProducts?: Array<{ name: string }>;
 }
 
-const CONFIGURATOR_IFRAME_ID = "demo";
+export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
+  const dispatch = useAppDispatch();
 
-const getConfiguratorApi = () => {
-  const apiFromWindow = (window as any).ConfiguratorAPI;
-  if (apiFromWindow) return apiFromWindow;
+  const handleAdd = async (name: string) => {
+    try {
+      const productId = await addProduct(name);
 
-  const iframe = document.getElementById(CONFIGURATOR_IFRAME_ID) as HTMLIFrameElement | null;
-  return iframe?.contentWindow && (iframe.contentWindow as any).ConfiguratorAPI;
-};
-
-export const ProductModelItem: React.FC<ProductModelGridI> = ({
-  id,
-  title,
-  desc,
-  img,
-  isProductModel,
-  price,
-  presetProducts,
-}) => {
-  const handleCustomize = () => {
-    if (!presetProducts || presetProducts.length === 0) return;
-    const api = getConfiguratorApi();
-    if (api?.presetProducts) {
-      try {
-        api.presetProducts(presetProducts);
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to apply preset", error);
+      if (productId) {
+        dispatch(addProductId(productId));
       }
-    } else {
-      console.warn("[ProductModelItem] ConfiguratorAPI.presetProducts not ready");
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to apply preset", error);
     }
   };
 
   return (
-    <div className={s.productModelItem} onClick={handleCustomize}>
+    <div
+      className={s.productModelItem}
+      onClick={() => {
+        handleAdd(title);
+      }}
+    >
       <div className={s.optionImage}>
         <Hint
           content="Take this pre-built model into custom mode for full design control. Use our drag-n-drop editor to add/remove/reposition cabinets and more."
