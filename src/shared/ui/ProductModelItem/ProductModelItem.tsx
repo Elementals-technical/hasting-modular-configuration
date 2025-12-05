@@ -4,6 +4,7 @@ import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 
 import s from "./ProductModelItem.module.scss";
 import { Hint } from "../Hint/Hint";
+import { setProducts } from "@/utils/functions/playcanvas/setProducts";
 
 interface ProductModelGridI {
   id: number;
@@ -14,16 +15,6 @@ interface ProductModelGridI {
   price: string;
   presetProducts?: Array<{ name: string }>;
 }
-
-const CONFIGURATOR_IFRAME_ID = "demo";
-
-const getConfiguratorApi = () => {
-  const apiFromWindow = (window as any).ConfiguratorAPI;
-  if (apiFromWindow) return apiFromWindow;
-
-  const iframe = document.getElementById(CONFIGURATOR_IFRAME_ID) as HTMLIFrameElement | null;
-  return iframe?.contentWindow && (iframe.contentWindow as any).ConfiguratorAPI;
-};
 
 export const ProductModelItem: React.FC<ProductModelGridI> = ({
   id,
@@ -36,7 +27,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
 }) => {
   const handleCustomize = () => {
     if (!presetProducts || presetProducts.length === 0) return;
-    const api = getConfiguratorApi();
+    const api = setProducts();
     if (api?.presetProducts) {
       try {
         api.presetProducts(presetProducts);
