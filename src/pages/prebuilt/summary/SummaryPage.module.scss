@@ -20,11 +20,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
 }
 
 .sectionTitle {
-  color: #ac5331;
+  color: #333;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -72,14 +71,16 @@
 }
 
 .bullet {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  margin-top: 3px;
+  display: flex;
+  align-items: center;
 
-  border-radius: 50%;
-  background: linear-gradient(145deg, #b77b53, #d3a17c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  img {
+    width: 36px;
+    height: 36px;
+  }
+
+  border-radius: 10px;
+  background: #fbfaf9;
 }
 
 .itemTexts {
@@ -113,8 +114,8 @@
   gap: 4px;
 
   border-radius: 10px;
-  border: 1px solid #e1ded9;
-  background: #f7f5f3;
+  border: none;
+  background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -143,8 +144,8 @@
 .copyIcon::after {
   content: "";
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border: 1.5px solid #6d6d6d;
   border-radius: 3px;
   background: transparent;
@@ -157,8 +158,8 @@
 }
 
 .copyIcon::after {
-  top: 0;
-  left: 0;
+  top: -1px;
+  left: -1px;
 }
 
 .swatch {
@@ -169,8 +170,6 @@
 
   padding: 8px 10px;
   border-radius: 12px;
-  border: 1px solid var(--border-main-color);
-  background: #faf9f8;
 }
 
 .swatchColor {
@@ -202,9 +201,10 @@
 }
 
 .sectionHint {
-  margin: 0 0 12px;
   color: #cd7c62;
   font-size: 12px;
+
+  margin-bottom: 20px;
 }
 
 .addSwatches {
@@ -212,23 +212,10 @@
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  margin-bottom: 14px;
   font-weight: 700;
   color: #48413b;
 
-  input {
-    display: none;
-  }
-
-  input:checked + .checkboxVisual {
-    border-color: #c87f66;
-    background: #fff7f4;
-
-    .plus::before,
-    .plus::after {
-      background: #c87f66;
-    }
-  }
+  margin-bottom: 20px;
 }
 
 .checkboxVisual {
@@ -277,7 +264,7 @@
 
 .swatchesListHeader {
   margin-bottom: 10px;
-  color: #ac5331;
+  color: #333;
   font-size: 13px;
   font-weight: 700;
 }
@@ -297,7 +284,7 @@
 
 .tileColor {
   width: 64px;
-  height: 44px;
+  height: 64px;
   border-radius: 10px;
   border: 1px solid #d7d4cf;
 }
@@ -320,4 +307,8 @@
   .price {
     justify-self: start;
   }
+}
+
+.copyHint {
+  width: 190px;
 }

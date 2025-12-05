@@ -1,4 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
+
+import { Hint } from "@/shared/ui/Hint/Hint";
+import base_img from "../../../shared/assets/images/png/descr_image.png";
 
 import s from "./SummaryPage.module.scss";
 
@@ -30,8 +33,8 @@ const summarySections: SummarySection[] = [
     items: [
       {
         id: "cabinet-1",
-        title: "Sink Base 2-Drawer | 60x50x46",
-        subtitle: "Central Groove",
+        title: "Sink Base",
+        subtitle: " 2-Drawer | 60x50x46 Central Groove",
         swatch: {
           label: "Colortech",
           value: "Bianco 10B",
@@ -42,8 +45,8 @@ const summarySections: SummarySection[] = [
       },
       {
         id: "cabinet-2",
-        title: "Sink Base 2-Drawer | 60x50x46",
-        subtitle: "Central Groove",
+        title: "Sink Base",
+        subtitle: "2-Drawer | 60x50x46 Central Groove",
         swatch: {
           label: "Colortech",
           value: "Bianco 10B",
@@ -60,7 +63,7 @@ const summarySections: SummarySection[] = [
       {
         id: "countertop-1",
         title: "Mineralmarmo",
-        subtitle: '"x"',
+        subtitle: "½”",
         swatch: {
           label: "Colortech",
           value: "Grigio fume 10F",
@@ -136,22 +139,6 @@ const swatches = [
 export const SummaryPage = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const copyAll = useMemo(
-    () =>
-      summarySections
-        .map((section) =>
-          section.items
-            .map((item) => {
-              const base = [section.title, item.title, item.subtitle].filter(Boolean).join(" - ");
-              const swatch = item.swatch ? ` | ${item.swatch.label} ${item.swatch.value}` : "";
-              return `${base}${swatch}`;
-            })
-            .join("\n"),
-        )
-        .join("\n\n"),
-    [],
-  );
-
   const handleCopy = (text: string, id: string) => {
     if (!navigator.clipboard) {
       return;
@@ -169,11 +156,6 @@ export const SummaryPage = () => {
         <div key={section.id} className={s.section}>
           <div className={s.sectionHeader}>
             <div className={s.sectionTitle}>{section.title}</div>
-            {section.copyLabel && (
-              <button className={s.copyPill} onClick={() => handleCopy(copyAll, section.id)}>
-                {section.copyLabel}
-              </button>
-            )}
           </div>
 
           <div className={s.sectionList}>
@@ -185,7 +167,9 @@ export const SummaryPage = () => {
               return (
                 <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
                   <div className={s.itemInfo}>
-                    <span className={s.bullet} />
+                    <span className={s.bullet}>
+                      <img src={base_img} alt="#" />
+                    </span>
 
                     <div className={s.itemTexts}>
                       <div className={s.itemTitle}>{item.title}</div>
@@ -193,13 +177,15 @@ export const SummaryPage = () => {
                     </div>
 
                     {item.copyable && (
-                      <button
-                        className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                        onClick={() => handleCopy(textToCopy, item.id)}
-                        aria-label="Copy sku and description"
-                      >
-                        <span className={s.copyIcon} />
-                      </button>
+                      <Hint className={s.copyHint} content={"Copy SKU and descriprion"}>
+                        <button
+                          className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
+                          onClick={() => handleCopy(textToCopy, item.id)}
+                          aria-label="Copy sku and description"
+                        >
+                          <span className={s.copyIcon} />
+                        </button>
+                      </Hint>
                     )}
                   </div>
 
@@ -229,10 +215,7 @@ export const SummaryPage = () => {
         <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
 
         <label className={s.addSwatches}>
-          <input type="checkbox" defaultChecked />
-          <span className={s.checkboxVisual}>
-            <span className={s.plus} />
-          </span>
+          <input type="checkbox" />
           <span className={s.addLabel}>Add free swatches</span>
         </label>
 
@@ -242,7 +225,7 @@ export const SummaryPage = () => {
           {swatches.map((swatch) => (
             <div key={swatch.id} className={s.swatchTile}>
               <span className={s.tileColor} style={{ backgroundColor: swatch.color }} />
-              <span className={s.tileLabel}>{swatch.name}</span>
+              {/* <span className={s.tileLabel}>{swatch.name}</span> */}
             </div>
           ))}
         </div>

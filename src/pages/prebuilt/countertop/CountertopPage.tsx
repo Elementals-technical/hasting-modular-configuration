@@ -1,5 +1,13 @@
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
+
+import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
+
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { FilterRow } from "@/shared/ui/Filter/FilterRow";
+import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+
+import s from "./CountertopPage.module.scss";
 
 const optionsMockData = [
   {
@@ -52,6 +60,14 @@ const optionsMockData = [
   },
 ];
 
+const optionsMockData4 = [
+  {
+    id: 11,
+    title: "½”",
+    isShortDesc: false,
+  },
+];
+
 const optionsMockData2 = [
   {
     id: 1,
@@ -85,11 +101,51 @@ export const CountertopPage = () => {
   return (
     <div className="countertop">
       <ConfiguratorAccordion title={"Countertop Color"} defaultOpen>
+        <ViewModePanel />
+
+        <FilterRow className={s.innerRow}>
+          <FilterItem
+            label="Material"
+            options={[
+              { label: "Small", value: "s" },
+              { label: "Medium", value: "m" },
+              { label: "Large", value: "l" },
+            ]}
+          />
+
+          <FilterItem
+            label="Color"
+            options={[
+              { label: "Style 1", value: "s" },
+              { label: "Style 2", value: "m" },
+              { label: "Style 3", value: "l" },
+            ]}
+          />
+
+          <FilterItem
+            label="Look"
+            options={[
+              { label: "Style 1", value: "s" },
+              { label: "Style 2", value: "m" },
+              { label: "Style 3", value: "l" },
+            ]}
+          />
+
+          <FilterItem
+            label="Price"
+            options={[
+              { label: "Style 1", value: "s" },
+              { label: "Style 2", value: "m" },
+              { label: "Style 3", value: "l" },
+            ]}
+          />
+        </FilterRow>
+
         <ProductOptionsGrid data={optionsMockData} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Thickness"}>
-        <ProductOptionsGrid data={optionsMockData} />
+        <ProductSwatchesGrid data={optionsMockData4} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Countertop Style"}>
