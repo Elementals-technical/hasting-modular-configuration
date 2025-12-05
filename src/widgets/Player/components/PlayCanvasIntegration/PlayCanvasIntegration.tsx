@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
+import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 
@@ -110,10 +112,12 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
-  const handleRemoveProducts = useCallback(() => {
-    removeAllProducts();
+  const prodId = useAppSelector((store) => store.rootStateUI.product.productId);
+
+  const handleRemoveProducts = async (id: string) => {
+    await removeProduct(prodId);
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, []);
+  };
 
   const dropdownItems: DropdownItem[] = useMemo(
     () => [

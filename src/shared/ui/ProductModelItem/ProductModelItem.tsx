@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { setProductId } from "@/features/product/model/store/slice";
 
 import s from "./ProductModelItem.module.scss";
 import { Hint } from "../Hint/Hint";
@@ -17,9 +19,15 @@ interface ProductModelGridI {
 }
 
 export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
+  const dispatch = useAppDispatch();
+
   const handleCustomize = async (name: string) => {
     try {
-      await addProduct(name);
+      const productId = await addProduct(name);
+
+      if (productId) {
+        dispatch(setProductId(productId));
+      }
     } catch (error) {
       console.error("[ProductModelItem] Failed to apply preset", error);
     }

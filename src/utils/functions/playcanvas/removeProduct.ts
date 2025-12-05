@@ -1,4 +1,4 @@
-export async function addProduct(id: string) {
+export async function removeProduct(id: string) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
