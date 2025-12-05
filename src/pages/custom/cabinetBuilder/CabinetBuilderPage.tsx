@@ -2,10 +2,11 @@ import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/Instruc
 import s from "./CabinetBuilderPage.module.scss";
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductId } from "@/features/product/model/store/slice";
+import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 
 const optionsMockData = [
   {
@@ -56,6 +57,18 @@ export const CabinetBuilderPage = () => {
       console.error("[ProductModelItem] Failed to apply preset", error);
     }
   };
+
+  useEffect(() => {
+    async function removePrebuiltProducts() {
+      try {
+        await removeAllProducts();
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    removePrebuiltProducts();
+  }, []);
 
   return (
     <div className={s.cabinetBuilder}>
