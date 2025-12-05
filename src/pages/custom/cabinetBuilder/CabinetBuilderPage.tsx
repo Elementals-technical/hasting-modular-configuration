@@ -46,7 +46,9 @@ export const CabinetBuilderPage = () => {
     setIsOpenedBuildInfo(false);
   };
 
-  const handleAddProduct = async (name: string) => {
+  const handleAddProduct = async (name?: string) => {
+    if (!name) return;
+
     try {
       const productId = await addProduct(name);
 

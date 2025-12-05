@@ -10,9 +10,9 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
-  name: string;
+  name: string | undefined;
   isShortDesc: boolean;
-  onClick: (name: string) => void;
+  onClick?: (name?: string) => void | Promise<void>;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
@@ -29,7 +29,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     <div
       className={s.productOption}
       onClick={() => {
-        onClick(name);
+        onClick?.(name);
       }}
     >
       <div className={s.image}>

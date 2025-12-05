@@ -5,12 +5,12 @@ interface ProductOptionsGridI {
   data: {
     id: number;
     title: string;
-    name?: string;
+    name?: string | undefined;
     desc?: string | undefined;
     isAvailable?: boolean;
     isShortDesc: boolean;
   }[];
-  handleAdd?: (name: string) => void;
+  handleAdd?: (name?: string) => void | Promise<void>;
 }
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data, handleAdd }) => {
@@ -28,7 +28,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data, handle
                 desc={i.desc}
                 isAvailable={i.isAvailable}
                 isShortDesc={i.isShortDesc}
-                onClick={() => handleAdd(i.name)}
+                onClick={handleAdd}
               />
             );
           })}

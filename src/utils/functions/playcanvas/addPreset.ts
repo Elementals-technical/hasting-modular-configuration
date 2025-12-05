@@ -11,7 +11,7 @@ export async function addPreset(presetProducts: any) {
   }
 
   try {
-    const presets = await addPreset(presetProducts);
+    await addPreset(presetProducts);
   } catch (error) {
     console.error("[PlayCanvas] Failed to set width", error);
     return null;
