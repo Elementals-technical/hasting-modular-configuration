@@ -8,6 +8,8 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
+import { addPreset } from "@/utils/functions/playcanvas/addPreset";
+import { useEffect, useState } from "react";
 
 export const ModelPage = () => {
   const navigate = useNavigate();
@@ -16,6 +18,35 @@ export const ModelPage = () => {
   const handleNavigate = () => {
     navigate(ROUTES.CUSTOM);
   };
+
+  const handleAddPreset = async (presetProducts: any) => {
+    try {
+      await addPreset(presetProducts);
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to apply preset", error);
+    }
+  };
+
+  const [canvasReady, setCanvasReady] = useState(false);
+
+  useEffect(() => {
+    const onReady = () => setCanvasReady(true);
+    window.addEventListener("playcanvas-ready", onReady);
+    if ((window as any).playCanvasReady) setCanvasReady(true); // already ready
+    return () => window.removeEventListener("playcanvas-ready", onReady);
+  }, []);
+
+  useEffect(() => {
+    if (!canvasReady) return;
+    const run = async () => {
+      try {
+        await addPreset([{ name: "CabinetUniBox" }, { name: "CabinetUniBox" }, { name: "CabinetUniBox" }]);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    run();
+  }, [canvasReady]);
 
   return (
     <div>
@@ -43,7 +74,7 @@ export const ModelPage = () => {
             />
           </FilterRow>
 
-          <ProductModelsGrid createModelBtn={<CreateModelBtn />} />
+          <ProductModelsGrid handleAddPreset={handleAddPreset} createModelBtn={<CreateModelBtn />} />
         </>
       )}
 

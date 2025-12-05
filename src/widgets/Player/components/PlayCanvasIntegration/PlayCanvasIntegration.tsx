@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
@@ -18,6 +19,9 @@ export const PlayCanvasIntegration = () => {
   });
 
   const dispatch = useAppDispatch();
+
+  const location = useLocation();
+  const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
   const handleAdd = async (name: string) => {
     try {
@@ -222,7 +226,7 @@ export const PlayCanvasIntegration = () => {
             zIndex: 10,
           }}
         >
-          <NestedDropdown items={dropdownItems} />
+          {!isPrebuilt && <NestedDropdown items={dropdownItems} />}
         </div>
       )}
     </div>

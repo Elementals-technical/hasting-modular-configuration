@@ -10,14 +10,28 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  name: string | undefined;
   isShortDesc: boolean;
+  onClick?: (name?: string) => void | Promise<void>;
 }
 
-export const ProductOptionItem: React.FC<ProductOptionItemI> = ({ title, desc, isAvailable, isShortDesc }) => {
+export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
+  title,
+  desc,
+  isAvailable,
+  isShortDesc,
+  name,
+  onClick,
+}) => {
   const available = isAvailable ?? true; // undefined as available
 
   return (
-    <div className={s.productOption}>
+    <div
+      className={s.productOption}
+      onClick={() => {
+        onClick?.(name);
+      }}
+    >
       <div className={s.image}>
         <img src={title !== "None" ? color_img : none_img} alt="color image" />
       </div>
