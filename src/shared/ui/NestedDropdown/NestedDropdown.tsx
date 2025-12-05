@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import { useState } from "react";
 
 import clsx from "clsx";
 
@@ -21,11 +20,8 @@ interface NestedDropdownProps {
 }
 
 export const NestedDropdown = ({ items, className, style }: NestedDropdownProps) => {
-  const [openId, setOpenId] = useState<string | null>(null);
-
   const handleClick = (item: DropdownItem) => {
     if (item.children && item.children.length > 0) {
-      setOpenId(item.id);
       return;
     }
     item.onClick?.();
@@ -35,13 +31,10 @@ export const NestedDropdown = ({ items, className, style }: NestedDropdownProps)
     <div className={clsx(s.menu, isSub && s.subMenu)}>
       {list.map((item) => {
         const hasChildren = Boolean(item.children?.length);
-        const isOpen = openId === item.id;
         return (
           <div
             key={item.id}
-            className={clsx(s.item, isOpen && hasChildren && s.active)}
-            onMouseEnter={() => hasChildren && setOpenId(item.id)}
-            onMouseLeave={() => hasChildren && setOpenId(null)}
+            className={clsx(s.item, hasChildren && s.hasChildren)}
             onClick={() => handleClick(item)}
           >
             <div className={s.left}>
@@ -53,9 +46,7 @@ export const NestedDropdown = ({ items, className, style }: NestedDropdownProps)
               {hasChildren && <span className={s.caret}>›</span>}
             </div>
 
-            {hasChildren && isOpen && (
-              <div className={s.subWrapper}>{renderItems(item.children ?? [], true)}</div>
-            )}
+            {hasChildren && <div className={s.subWrapper}>{renderItems(item.children ?? [], true)}</div>}
           </div>
         );
       })}

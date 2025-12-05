@@ -17,7 +17,7 @@ const productMockData = [
   {
     id: 2,
     img: temp_img,
-    title: "CabinetUniBox",
+    title: "UniOpenShelves",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
@@ -26,7 +26,7 @@ const productMockData = [
   {
     id: 3,
     img: temp_img,
-    title: "CabinetUniBox",
+    title: "UniOpenShelves",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
@@ -42,7 +42,7 @@ const productMockData = [
   {
     id: 4,
     img: temp_img,
-    title: "CabinetUniBox",
+    title: "UniOpenShelves",
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",

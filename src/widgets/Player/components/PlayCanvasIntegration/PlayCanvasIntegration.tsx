@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
+import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { removeProductId } from "@/features/product/model/store/slice";
+import { addProductId, removeProductId } from "@/features/product/model/store/slice";
+import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 
@@ -14,6 +16,20 @@ export const PlayCanvasIntegration = () => {
     x: 0,
     y: 0,
   });
+
+  const dispatch = useAppDispatch();
+
+  const handleAdd = async (name: string) => {
+    try {
+      const productId = await addProduct(name);
+
+      if (productId) {
+        dispatch(addProductId(productId));
+      }
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to apply preset", error);
+    }
+  };
 
   // Bridge PlayCanvas Configurator API
   useEffect(() => {
@@ -113,8 +129,26 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
-  const dispatch = useAppDispatch();
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
+
+  const handleSetWidth = useCallback(
+    async (width: number) => {
+      const targetId = productIds[productIds.length - 1];
+      if (!targetId) {
+        console.warn("[PlayCanvasIntegration] No product to resize");
+        return;
+      }
+
+      try {
+        await setWidth(targetId, width);
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set width", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [productIds],
+  );
 
   const handleRemoveProducts = useCallback(async () => {
     if (!productIds.length) return;
@@ -132,16 +166,25 @@ export const PlayCanvasIntegration = () => {
   }, [dispatch, productIds]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
+    const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
+
     const items: DropdownItem[] = [
       {
         id: "resize",
         label: "Resize",
         children: [
-          { id: "resize-width", label: "Width" },
-          { id: "resize-depth", label: "Depth" },
+          {
+            id: "resize-width",
+            label: "Width",
+            children: widthOptions.map((value) => ({
+              id: `resize-width-${value}`,
+              label: `${value}`,
+              onClick: () => handleSetWidth(value),
+            })),
+          },
         ],
       },
-      { id: "add", label: "Add", trailing: "+" },
+      { id: "add", label: "Add", trailing: "+", onClick: () => handleAdd("CabinetUniBox") },
     ];
 
     if (productIds.length) {
@@ -149,7 +192,7 @@ export const PlayCanvasIntegration = () => {
     }
 
     return items;
-  }, [handleRemoveProducts, productIds.length]);
+  }, [handleRemoveProducts, handleSetWidth, productIds.length]);
 
   return (
     <div style={{ position: "relative", height: "100%" }}>

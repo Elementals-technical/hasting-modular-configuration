@@ -21,7 +21,7 @@ interface ProductModelGridI {
 export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
   const dispatch = useAppDispatch();
 
-  const handleCustomize = async (name: string) => {
+  const handleAdd = async (name: string) => {
     try {
       const productId = await addProduct(name);
 
@@ -37,7 +37,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc,
     <div
       className={s.productModelItem}
       onClick={() => {
-        handleCustomize(title);
+        handleAdd(title);
       }}
     >
       <div className={s.optionImage}>
