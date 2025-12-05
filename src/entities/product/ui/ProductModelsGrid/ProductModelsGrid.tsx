@@ -12,6 +12,11 @@ const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
+    presetProducts: [
+      { name: "CabinetUniBox" },
+      { name: "CabinetUniBox" },
+      { name: "UniOpenShelves" },
+    ],
   },
   {
     id: 2,
@@ -20,6 +25,10 @@ const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
+    presetProducts: [
+      { name: "CabinetUniBox" },
+      { name: "CabinetUniBox" },
+    ],
   },
   {
     id: 3,
@@ -28,6 +37,11 @@ const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
+    presetProducts: [
+      { name: "UniOpenShelves" },
+      { name: "UniOpenShelves" },
+      { name: "UniOpenShelves" },
+    ],
   },
   {
     id: 4,
@@ -66,6 +80,7 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn
             desc={i.desc}
             price={i.price}
             isProductModel={true}
+            presetProducts={i.presetProducts}
           />
         );
       })}

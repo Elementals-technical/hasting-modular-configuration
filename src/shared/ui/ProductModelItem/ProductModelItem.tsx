@@ -12,11 +12,44 @@ interface ProductModelGridI {
   desc: string;
   isProductModel: boolean;
   price: string;
+  presetProducts?: Array<{ name: string }>;
 }
 
-export const ProductModelItem: React.FC<ProductModelGridI> = ({ id, title, desc, img, isProductModel, price }) => {
+const CONFIGURATOR_IFRAME_ID = "demo";
+
+const getConfiguratorApi = () => {
+  const apiFromWindow = (window as any).ConfiguratorAPI;
+  if (apiFromWindow) return apiFromWindow;
+
+  const iframe = document.getElementById(CONFIGURATOR_IFRAME_ID) as HTMLIFrameElement | null;
+  return iframe?.contentWindow && (iframe.contentWindow as any).ConfiguratorAPI;
+};
+
+export const ProductModelItem: React.FC<ProductModelGridI> = ({
+  id,
+  title,
+  desc,
+  img,
+  isProductModel,
+  price,
+  presetProducts,
+}) => {
+  const handleCustomize = () => {
+    if (!presetProducts || presetProducts.length === 0) return;
+    const api = getConfiguratorApi();
+    if (api?.presetProducts) {
+      try {
+        api.presetProducts(presetProducts);
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to apply preset", error);
+      }
+    } else {
+      console.warn("[ProductModelItem] ConfiguratorAPI.presetProducts not ready");
+    }
+  };
+
   return (
-    <div className={s.productModelItem}>
+    <div className={s.productModelItem} onClick={handleCustomize}>
       <div className={s.optionImage}>
         <Hint
           content="Take this pre-built model into custom mode for full design control. Use our drag-n-drop editor to add/remove/reposition cabinets and more."
