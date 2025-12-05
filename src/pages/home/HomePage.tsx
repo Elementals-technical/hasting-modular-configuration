@@ -6,7 +6,7 @@ import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 import { getActiveStep, getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { toggle } from "@/features/sidebar/model/store/slice";
 
-import { HeaderBanner, HeaderMain } from "@/shared";
+import { HeaderBanner, HeaderMain, NestedDropdown, type DropdownItem } from "@/shared";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
@@ -28,10 +28,25 @@ export const HomePage = () => {
     setIsOpenedBuildInfo(false);
   };
 
+  const items: DropdownItem[] = [
+    {
+      id: "resize",
+      label: "Resize",
+      children: [
+        { id: "width", label: "Width" },
+        { id: "depth", label: "Depth" },
+      ],
+    },
+    { id: "add", label: "Add", trailing: "+" },
+    { id: "delete", label: "Delete", trailing: "-" },
+  ];
+
   return (
     <div className={s.homePageWrap}>
       <HeaderMain />
       <HeaderBanner />
+
+      {/* <NestedDropdown items={items} /> */}
 
       <div className={s.content}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
