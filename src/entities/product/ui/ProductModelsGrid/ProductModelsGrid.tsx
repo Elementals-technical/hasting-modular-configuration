@@ -27,6 +27,7 @@ const productMockData = [
     price: "$1,299.99",
     presetProducts: [
       { name: "CabinetUniBox" },
+      { name: "UniOpenShelves" },
       { name: "CabinetUniBox" },
     ],
   },
@@ -40,7 +41,11 @@ const productMockData = [
     presetProducts: [
       { name: "UniOpenShelves" },
       { name: "UniOpenShelves" },
+      { name: "CabinetUniBox" },
+      { name: "CabinetUniBox" },
+
       { name: "UniOpenShelves" },
+
     ],
   },
   {
@@ -50,6 +55,11 @@ const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
+    presetProducts: [
+      { name: "UniOpenShelves" },
+      { name: "UniOpenShelves" },
+
+    ],
   },
   {
     id: 5,
@@ -58,6 +68,12 @@ const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
+    presetProducts: [
+      { name: "CabinetUniBox" },
+      { name: "CabinetUniBox" },
+      { name: "CabinetUniBox" },
+      { name: "CabinetUniBox" },
+    ],
   },
 ];
 
