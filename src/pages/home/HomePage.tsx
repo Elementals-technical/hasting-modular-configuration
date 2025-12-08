@@ -6,7 +6,6 @@ import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 import { getActiveStep, getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { toggle } from "@/features/sidebar/model/store/slice";
 
-import { HeaderBanner, HeaderMain } from "@/shared";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
@@ -30,8 +29,8 @@ export const HomePage = () => {
 
   return (
     <div className={s.homePageWrap}>
-      <HeaderMain />
-      <HeaderBanner />
+      {/* <HeaderMain />
+      <HeaderBanner /> */}
 
       <div className={s.content}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
