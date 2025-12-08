@@ -1,12 +1,13 @@
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
-import s from "./CabinetBuilderPage.module.scss";
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
-import { addProductId } from "@/features/product/model/store/slice";
+import { addProductId } from "@/entities/product/model/store/slice";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+
+import s from "./CabinetBuilderPage.module.scss";
 
 const optionsMockData = [
   {
@@ -32,6 +33,19 @@ const optionsMockData = [
   {
     id: 4,
     title: "Side Shelf",
+    isShortDesc: false,
+  },
+];
+
+const optionsMockData2 = [
+  {
+    id: 1,
+    title: "1 Drawer",
+    isShortDesc: false,
+  },
+  {
+    id: 2,
+    title: "2 Drawer",
     isShortDesc: false,
   },
 ];
@@ -81,7 +95,7 @@ export const CabinetBuilderPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Cabinet Style"} defaultOpen>
-        <ProductOptionsGrid data={[]} />
+        <ProductOptionsGrid data={optionsMockData2} requiresActiveCabinet />
       </ConfiguratorAccordion>
     </div>
   );

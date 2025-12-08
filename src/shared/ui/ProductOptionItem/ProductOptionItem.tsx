@@ -1,7 +1,8 @@
-import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
 import color_img from "../../assets/images/png/img_png.png";
 import none_img from "../../assets/images/png/none_img.png";
 import { Hint } from "../Hint/Hint";
+
+import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
 
 import s from "./ProductOptionItem.module.scss";
 
@@ -13,23 +14,27 @@ interface ProductOptionItemI {
   name: string | undefined;
   isShortDesc: boolean;
   onClick?: (name?: string) => void | Promise<void>;
+  setActive?: (id: number) => void;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
+  id,
   title,
   desc,
   isAvailable,
   isShortDesc,
   name,
   onClick,
+  setActive,
 }) => {
   const available = isAvailable ?? true; // undefined as available
 
   return (
     <div
-      className={s.productOption}
+      className={`${s.productOption}`}
       onClick={() => {
         onClick?.(name);
+        setActive?.(id);
       }}
     >
       <div className={s.image}>

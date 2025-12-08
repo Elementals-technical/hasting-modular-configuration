@@ -5,10 +5,13 @@ import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/Ne
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductId, removeProductId } from "@/features/product/model/store/slice";
+import { addProductId, removeProductId } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
+const RIGHT_BUTTON = 2;
+const HOLD_MS = 250;
+const MOVE_THRESHOLD = 6;
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
@@ -93,34 +96,98 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
-  // Toggle dropdown on right click inside iframe; hide on regular click
+  // Toggle dropdown on short right click; allow orbit/drag on long-press or drag with right button
   useEffect(() => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
+    const holdTimer = { current: null as number | null };
+    const rightDown = { current: false };
+    const orbitMode = { current: false };
+    const startPos = { current: { x: 0, y: 0 } };
+
+    const clearHold = () => {
+      if (holdTimer.current !== null) {
+        window.clearTimeout(holdTimer.current);
+        holdTimer.current = null;
+      }
+    };
+
     let iframeDoc: Document | null = null;
-    const handleIframePointer = (event: PointerEvent) => {
-      if (event.button === 2) {
-        event.preventDefault();
-        const rect = iframeEl.getBoundingClientRect();
-        const x = rect.left + event.clientX;
-        const y = rect.top + event.clientY - 120; // lift the dropdown slightly above cursor
-        setDropdownState({ visible: true, x, y });
-      } else {
+
+    const showDropdown = (event: PointerEvent) => {
+      const rect = iframeEl.getBoundingClientRect();
+      const x = rect.left + event.clientX;
+      const y = rect.top + event.clientY - 120; // lift the dropdown slightly above cursor
+      setDropdownState({ visible: true, x, y });
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== RIGHT_BUTTON) {
         setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      rightDown.current = true;
+      orbitMode.current = false;
+      startPos.current = { x: event.clientX, y: event.clientY };
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+
+      clearHold();
+      holdTimer.current = window.setTimeout(() => {
+        orbitMode.current = true;
+      }, HOLD_MS);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!rightDown.current) return;
+      const dx = event.clientX - startPos.current.x;
+      const dy = event.clientY - startPos.current.y;
+      if (Math.hypot(dx, dy) > MOVE_THRESHOLD) {
+        orbitMode.current = true;
+        clearHold();
+      }
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (event.button !== RIGHT_BUTTON) return;
+
+      clearHold();
+      rightDown.current = false;
+
+      if (orbitMode.current) {
+        orbitMode.current = false;
+        return;
+      }
+
+      event.preventDefault();
+      showDropdown(event);
+    };
+
+    const handleContextMenu = (event: MouseEvent) => {
+      if (orbitMode.current || rightDown.current) {
+        event.preventDefault();
       }
     };
 
     const attachPointerListener = () => {
       iframeDoc = iframeEl.contentDocument || iframeEl.contentWindow?.document || null;
       if (!iframeDoc) return;
-      iframeDoc.addEventListener("pointerdown", handleIframePointer, true);
+
+      iframeDoc.addEventListener("pointerdown", handlePointerDown, true);
+      iframeDoc.addEventListener("pointermove", handlePointerMove, true);
+      iframeDoc.addEventListener("pointerup", handlePointerUp, true);
+      iframeDoc.addEventListener("contextmenu", handleContextMenu, true);
     };
 
     const detachPointerListener = () => {
       if (iframeDoc) {
-        iframeDoc.removeEventListener("pointerdown", handleIframePointer, true);
+        iframeDoc.removeEventListener("pointerdown", handlePointerDown, true);
+        iframeDoc.removeEventListener("pointermove", handlePointerMove, true);
+        iframeDoc.removeEventListener("pointerup", handlePointerUp, true);
+        iframeDoc.removeEventListener("contextmenu", handleContextMenu, true);
       }
+
       iframeDoc = null;
     };
 
@@ -196,7 +263,7 @@ export const PlayCanvasIntegration = () => {
     }
 
     return items;
-  }, [handleRemoveProducts, handleSetWidth, productIds.length]);
+  }, [handleRemoveProducts, handleSetWidth, productIds.length, handleAdd]);
 
   return (
     <div style={{ position: "relative", height: "100%" }}>
