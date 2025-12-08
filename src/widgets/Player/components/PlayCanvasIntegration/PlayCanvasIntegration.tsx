@@ -5,7 +5,7 @@ import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/Ne
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductId, removeProductId } from "@/features/product/model/store/slice";
+import { addProductId, removeProductId } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
