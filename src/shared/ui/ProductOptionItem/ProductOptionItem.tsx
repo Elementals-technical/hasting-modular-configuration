@@ -1,5 +1,5 @@
 import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
-import color_img from "../../assets/images/jpeg/colorImage.jpg";
+import color_img from "../../assets/images/png/img_png.png";
 import none_img from "../../assets/images/png/none_img.png";
 import { Hint } from "../Hint/Hint";
 

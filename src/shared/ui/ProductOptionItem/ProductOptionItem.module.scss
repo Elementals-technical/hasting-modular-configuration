@@ -26,9 +26,16 @@
     height: 158px;
     border-radius: 10px;
 
+    height: 141px;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #fbfaf9;
+
     img {
-      height: 100%;
-      width: 100%;
     }
   }
 
