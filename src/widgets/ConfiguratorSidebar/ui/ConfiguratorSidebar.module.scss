@@ -18,3 +18,21 @@
 
   max-height: 822px;
 }
+
+@media (max-width: 1536px) {
+  .stepContent {
+    max-height: 550px;
+  }
+}
+
+@media (max-width: 1366px) {
+  .stepContent {
+    max-height: 480px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .stepContent {
+    max-height: 470px;
+  }
+}
