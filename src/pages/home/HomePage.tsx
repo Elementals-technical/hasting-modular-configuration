@@ -29,9 +29,6 @@ export const HomePage = () => {
 
   return (
     <div className={s.homePageWrap}>
-      {/* <HeaderMain />
-      <HeaderBanner /> */}
-
       <div className={s.content}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
           <SideNavigation flow={flow} />
