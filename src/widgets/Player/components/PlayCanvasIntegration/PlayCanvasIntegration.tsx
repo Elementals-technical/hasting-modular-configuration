@@ -305,15 +305,15 @@ export const PlayCanvasIntegration = () => {
             label: "Add",
             trailing: "",
             children: [
-              { id: "add-left", label: "Add to left", onClick: () => handleAddLeft("CabinetUniBox") },
-              { id: "add-right", label: "Add to right", onClick: () => handleAddRight("CabinetUniBox") },
+              { id: "add-left", label: "Add to left", onClick: () => handleAddLeft("UniOpenShelves") },
+              { id: "add-right", label: "Add to right", onClick: () => handleAddRight("UniOpenShelves") },
             ],
           }
         : {
             id: "add",
             label: "Add",
             trailing: "",
-            onClick: () => handleAdd("CabinetUniBox"),
+            onClick: () => handleAdd("UniOpenShelves"),
           };
 
     items.push(addItem);
