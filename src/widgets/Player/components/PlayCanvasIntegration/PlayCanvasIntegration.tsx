@@ -24,6 +24,7 @@ export const PlayCanvasIntegration = () => {
   });
 
   console.log("integration");
+  console.log("integration");
 
   const dispatch = useAppDispatch();
 
