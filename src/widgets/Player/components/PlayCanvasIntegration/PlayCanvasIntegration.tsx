@@ -7,6 +7,8 @@ import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { addProductId, removeProductId } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
+import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
+import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 const RIGHT_BUTTON = 2;
@@ -25,18 +27,6 @@ export const PlayCanvasIntegration = () => {
 
   const location = useLocation();
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
-
-  const handleAdd = async (name: string) => {
-    try {
-      const productId = await addProduct(name);
-
-      if (productId) {
-        dispatch(addProductId(productId));
-      }
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to apply preset", error);
-    }
-  };
 
   // Bridge PlayCanvas Configurator API
   useEffect(() => {
@@ -236,6 +226,57 @@ export const PlayCanvasIntegration = () => {
     }
   }, [dispatch, productIds]);
 
+  const handleAddLeft = useCallback(
+    async (name: string) => {
+      try {
+        const productId = await addProductByLeft(name);
+
+        if (productId) {
+          dispatch(addProductId(productId));
+        }
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to add product to the left", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [dispatch],
+  );
+
+  const handleAdd = useCallback(
+    async (name: string) => {
+      try {
+        const productId = await addProduct(name);
+
+        if (productId) {
+          dispatch(addProductId(productId));
+        }
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to add product", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [dispatch],
+  );
+
+  const handleAddRight = useCallback(
+    async (name: string) => {
+      try {
+        const productId = await addProductByRight(name);
+
+        if (productId) {
+          dispatch(addProductId(productId));
+        }
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to add product to the right", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [dispatch],
+  );
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
 
@@ -255,15 +296,34 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      { id: "add", label: "Add", trailing: "+", onClick: () => handleAdd("CabinetUniBox") },
     ];
+
+    const addItem: DropdownItem =
+      productIds.length > 0
+        ? {
+            id: "add",
+            label: "Add",
+            trailing: "",
+            children: [
+              { id: "add-left", label: "Add to left", onClick: () => handleAddLeft("CabinetUniBox") },
+              { id: "add-right", label: "Add to right", onClick: () => handleAddRight("CabinetUniBox") },
+            ],
+          }
+        : {
+            id: "add",
+            label: "Add",
+            trailing: "",
+            onClick: () => handleAdd("CabinetUniBox"),
+          };
+
+    items.push(addItem);
 
     if (productIds.length) {
       items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
     }
 
     return items;
-  }, [handleRemoveProducts, handleSetWidth, productIds.length, handleAdd]);
+  }, [handleAdd, handleAddLeft, handleAddRight, handleRemoveProducts, handleSetWidth, productIds.length]);
 
   return (
     <div style={{ position: "relative", height: "100%" }}>

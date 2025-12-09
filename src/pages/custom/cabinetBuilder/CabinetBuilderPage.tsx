@@ -8,6 +8,7 @@ import { addProductId } from "@/entities/product/model/store/slice";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 
 import s from "./CabinetBuilderPage.module.scss";
+import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
 
 const optionsMockData = [
   {
@@ -95,8 +96,10 @@ export const CabinetBuilderPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Cabinet Style"} defaultOpen>
-        <ProductOptionsGrid data={optionsMockData2} requiresActiveCabinet />
+        <ProductStyleGrid data={optionsMockData2} requiresActiveCabinet />
       </ConfiguratorAccordion>
+
+      {/* <RightCabinetStyleSidebar /> */}
     </div>
   );
 };
