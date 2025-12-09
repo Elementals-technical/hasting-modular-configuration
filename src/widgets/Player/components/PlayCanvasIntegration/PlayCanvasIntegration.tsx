@@ -23,6 +23,8 @@ export const PlayCanvasIntegration = () => {
     y: 0,
   });
 
+  console.log("integration");
+
   const dispatch = useAppDispatch();
 
   const location = useLocation();
