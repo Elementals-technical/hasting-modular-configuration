@@ -98,6 +98,8 @@ export const CabinetBuilderPage = () => {
       <ConfiguratorAccordion title={"Cabinet Style"} defaultOpen>
         <ProductStyleGrid data={optionsMockData2} requiresActiveCabinet />
       </ConfiguratorAccordion>
+
+      {/* <RightCabinetStyleSidebar /> */}
     </div>
   );
 };
