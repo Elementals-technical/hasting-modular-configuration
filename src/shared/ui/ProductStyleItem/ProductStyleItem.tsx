@@ -10,7 +10,7 @@ interface ProductStyleItemI {
   title: string;
 }
 
-export const ProductStyleItem: React.FC<ProductStyleItemI> = ({ id, title }) => {
+export const ProductStyleItem: React.FC<ProductStyleItemI> = ({ title }) => {
   return (
     <div className={s.productStyleItem}>
       <div className={s.image}>
