@@ -1,0 +1,82 @@
+precision highp float;
+
+varying vec3 vWorldPos;
+varying vec3 vWorldNormal;
+
+uniform sampler2D uDiffuseMap;
+uniform sampler2D uNormalMap;
+uniform sampler2D uRoughnessMap;
+uniform vec2 uTile;
+
+// Тріпланар для normal map
+vec3 triplanarNormal(vec3 worldPos, vec3 normalW) {
+    vec3 blending = abs(normalW);
+    blending = max(blending, 0.00001);
+    blending /= (blending.x + blending.y + blending.z);
+
+    vec2 uvX = worldPos.yz * uTile;
+    vec2 uvY = worldPos.xz * uTile;
+    vec2 uvZ = worldPos.xy * uTile;
+
+    vec3 nX = texture2D(uNormalMap, uvX).xyz * 2.0 - 1.0;
+    vec3 nY = texture2D(uNormalMap, uvY).xyz * 2.0 - 1.0;
+    vec3 nZ = texture2D(uNormalMap, uvZ).xyz * 2.0 - 1.0;
+
+    vec3 n = nX * blending.x + nY * blending.y + nZ * blending.z;
+    return normalize(n);
+}
+
+// Тріпланар для Diffuse
+vec3 triplanarColor(vec3 worldPos, vec3 normalW) {
+    vec3 blending = abs(normalW);
+    blending = max(blending, 0.00001);
+    blending /= (blending.x + blending.y + blending.z);
+
+    vec2 uvX = worldPos.yz * uTile;
+    vec2 uvY = worldPos.xz * uTile;
+    vec2 uvZ = worldPos.xy * uTile;
+
+    vec3 cX = texture2D(uDiffuseMap, uvX).rgb;
+    vec3 cY = texture2D(uDiffuseMap, uvY).rgb;
+    vec3 cZ = texture2D(uDiffuseMap, uvZ).rgb;
+
+    return cX * blending.x + cY * blending.y + cZ * blending.z;
+}
+
+// Тріпланар для Roughness (один канал R)
+float triplanarRoughness(vec3 worldPos, vec3 normalW) {
+    vec3 blending = abs(normalW);
+    blending = max(blending, 0.00001);
+    blending /= (blending.x + blending.y + blending.z);
+
+    vec2 uvX = worldPos.yz * uTile;
+    vec2 uvY = worldPos.xz * uTile;
+    vec2 uvZ = worldPos.xy * uTile;
+
+    float rX = texture2D(uRoughnessMap, uvX).r;
+    float rY = texture2D(uRoughnessMap, uvY).r;
+    float rZ = texture2D(uRoughnessMap, uvZ).r;
+
+    return rX * blending.x + rY * blending.y + rZ * blending.z;
+}
+
+void main(void) {
+    vec3 n = normalize(vWorldNormal);
+
+    vec3 albedo = triplanarColor(vWorldPos, n);
+    vec3 normal = triplanarNormal(vWorldPos, n);
+    float rough = triplanarRoughness(vWorldPos, n);
+
+    // Просте освітлення (одне напрямлене світло)
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
+    float ndl = max(dot(normal, lightDir), 0.0);
+
+    // Базова дифузка + легка «ambient» складова
+    float diffuseFactor = mix(0.2, 1.0, 1.0 - rough);
+    vec3 diffuse = albedo * ndl * diffuseFactor;
+    vec3 ambient = albedo * 0.1;
+
+    vec3 color = diffuse + ambient;
+
+    gl_FragColor = vec4(color, 1.0);
+}
