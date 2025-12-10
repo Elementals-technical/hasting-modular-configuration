@@ -3,11 +3,13 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 type SidebarState = {
   isOpen: boolean;
   activeStep: string | null;
+  isOpenStyleSidebar: boolean;
 };
 
 const initialState: SidebarState = {
   isOpen: false,
   activeStep: null,
+  isOpenStyleSidebar: false,
 };
 
 const sidebarSlice = createSlice({
@@ -29,8 +31,11 @@ const sidebarSlice = createSlice({
     reset() {
       return initialState;
     },
+    setOpenStyleSidebar(state, action: PayloadAction<boolean>) {
+      state.isOpenStyleSidebar = action.payload;
+    },
   },
 });
 
-export const { open, close, toggle, setActiveStep, reset } = sidebarSlice.actions;
+export const { open, close, toggle, setActiveStep, reset, setOpenStyleSidebar } = sidebarSlice.actions;
 export const sidebarReducer = sidebarSlice.reducer;
