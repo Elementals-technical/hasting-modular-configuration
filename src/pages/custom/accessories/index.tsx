@@ -1,102 +1,53 @@
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
-import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 
-const optionsMockData = [
-  {
-    id: 1,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 2,
-    title: "Colortech",
-    desc: "Grigio fume 10F",
-    isShortDesc: false,
-  },
-  {
-    id: 3,
-    title: "Cemento",
-    desc: "Centre 1A1",
-    isShortDesc: false,
-  },
-  {
-    id: 4,
-    title: "Cemento",
-    desc: "Tortora 1A2",
-    isShortDesc: false,
-  },
-  {
-    id: 5,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 7,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 8,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 9,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-];
+import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import type { AccordionConfig } from "@/shared/constants/types";
 
-const optionsSwatchData = [
-  {
-    id: 1,
-    title: "None",
-  },
-  {
-    id: 2,
-    title: "Auto Fill",
-  },
-  {
-    id: 3,
-    title: "Customize",
-  },
-];
-
-const optionsSwatchData2 = [
-  {
-    id: 1,
-    title: "None",
-  },
-  {
-    id: 2,
-    title: "Customize",
-  },
-];
+import { optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
 
 export const CustomAccessoriesPage = () => {
+  const ACCORDIONS: AccordionConfig[] = [
+    {
+      id: 1,
+      title: "Side Panels",
+      defaultOpen: true,
+      content: (
+        <>
+          <ProductOptionsGrid data={optionsMockData} />
+        </>
+      ),
+    },
+    {
+      id: 2,
+      title: "LED",
+      content: (
+        <>
+          <ProductSwatchesGrid data={optionsSwatchData} />
+        </>
+      ),
+    },
+    {
+      id: 3,
+      title: "Dividers",
+      content: <ProductSwatchesGrid data={optionsSwatchData2} />,
+    },
+    {
+      id: 4,
+      title: "Towel Bar",
+      content: <ProductOptionsGrid data={optionsMockData} />,
+    },
+  ];
+
   return (
     <div className="accessoriesPage">
-      <ConfiguratorAccordion title={"Side Panels"} defaultOpen>
-        <ProductOptionsGrid data={optionsMockData} />
-      </ConfiguratorAccordion>
-
-      <ConfiguratorAccordion title={"LED"}>
-        <ProductSwatchesGrid data={optionsSwatchData} />
-      </ConfiguratorAccordion>
-
-      <ConfiguratorAccordion title={"Dividers"}>
-        <ProductSwatchesGrid data={optionsSwatchData2} />
-      </ConfiguratorAccordion>
-
-      <ConfiguratorAccordion title={"Towel Bar"}>
-        <ProductOptionsGrid data={optionsMockData} />
-      </ConfiguratorAccordion>
+      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+        {ACCORDIONS.map(({ id, title, content }) => (
+          <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
+            {content}
+          </ConfiguratorAccordionItem>
+        ))}
+      </ConfiguratorAccordionGroup>
     </div>
   );
 };
