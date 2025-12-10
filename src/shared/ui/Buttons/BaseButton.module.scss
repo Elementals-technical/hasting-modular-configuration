@@ -55,9 +55,14 @@
 }
 
 .ghost {
-  background: transparent;
   color: #1f2933;
-  padding: 10px 12px;
+  padding: 10px;
+
+  border-radius: 100px;
+  border: 1px solid #282828;
+  background: #fff;
+
+  cursor: pointer;
 }
 .ghost:hover {
   background: #f4f6fa;

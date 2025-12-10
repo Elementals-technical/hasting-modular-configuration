@@ -15,9 +15,14 @@ interface ProductStyleGridI {
     isShortDesc: boolean;
   }[];
   requiresActiveCabinet?: boolean;
+  handleOpenStyleSidebar: () => void;
 }
 
-export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({ data, requiresActiveCabinet }) => {
+export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
+  data,
+  requiresActiveCabinet,
+  handleOpenStyleSidebar,
+}) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const hasActiveCabinet = activeCabinet !== null;
 
@@ -28,7 +33,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({ data, requiresAc
   return (
     <div className={s.optionsGrid}>
       {data.map((i) => (
-        <ProductStyleItem key={i.id} id={i.id} title={i.title} />
+        <ProductStyleItem key={i.id} id={i.id} title={i.title} handleOpenStyleSidebar={handleOpenStyleSidebar} />
       ))}
     </div>
   );

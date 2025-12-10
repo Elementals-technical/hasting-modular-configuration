@@ -1,4 +1,5 @@
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 
 const optionsMockData = [
@@ -52,6 +53,32 @@ const optionsMockData = [
   },
 ];
 
+const optionsSwatchData = [
+  {
+    id: 1,
+    title: "None",
+  },
+  {
+    id: 2,
+    title: "Auto Fill",
+  },
+  {
+    id: 3,
+    title: "Customize",
+  },
+];
+
+const optionsSwatchData2 = [
+  {
+    id: 1,
+    title: "None",
+  },
+  {
+    id: 2,
+    title: "Customize",
+  },
+];
+
 export const CustomAccessoriesPage = () => {
   return (
     <div className="accessoriesPage">
@@ -60,11 +87,11 @@ export const CustomAccessoriesPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"LED"}>
-        <ProductOptionsGrid data={optionsMockData} />
+        <ProductSwatchesGrid data={optionsSwatchData} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Dividers"}>
-        <ProductOptionsGrid data={optionsMockData} />
+        <ProductSwatchesGrid data={optionsSwatchData2} />
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Towel Bar"}>

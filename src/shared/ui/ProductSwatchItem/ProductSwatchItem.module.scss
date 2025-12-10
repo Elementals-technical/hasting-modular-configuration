@@ -1,4 +1,8 @@
 .swatchItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
   padding: 8px 16px;
 
   border: 1px solid #bc7358;
@@ -7,4 +11,9 @@
   background-color: transparent;
 
   cursor: pointer;
+
+  > div {
+    display: flex;
+    align-items: center;
+  }
 }

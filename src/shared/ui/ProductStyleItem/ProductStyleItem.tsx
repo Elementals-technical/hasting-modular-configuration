@@ -8,12 +8,13 @@ import s from "./ProductStyleItem.module.scss";
 interface ProductStyleItemI {
   id: number;
   title: string;
+  handleOpenStyleSidebar: () => void;
 }
 
-export const ProductStyleItem: React.FC<ProductStyleItemI> = ({ title }) => {
+export const ProductStyleItem: React.FC<ProductStyleItemI> = ({ title, handleOpenStyleSidebar }) => {
   return (
     <div className={s.productStyleItem}>
-      <div className={s.image}>
+      <div className={s.image} onClick={handleOpenStyleSidebar}>
         <img src={none_img} alt="image" />
       </div>
       <div className={s.title}>{title}</div>

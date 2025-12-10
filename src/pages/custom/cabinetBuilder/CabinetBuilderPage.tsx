@@ -9,6 +9,8 @@ import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProduct
 
 import s from "./CabinetBuilderPage.module.scss";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
+import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
+import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 const optionsMockData = [
   {
@@ -75,6 +77,10 @@ export const CabinetBuilderPage = () => {
     }
   };
 
+  const handleOpenStyleSidebar = () => {
+    dispatch(setOpenStyleSidebar(true));
+  };
+
   useEffect(() => {
     async function removePrebuiltProducts() {
       try {
@@ -96,10 +102,14 @@ export const CabinetBuilderPage = () => {
       </ConfiguratorAccordion>
 
       <ConfiguratorAccordion title={"Cabinet Style"} defaultOpen>
-        <ProductStyleGrid data={optionsMockData2} requiresActiveCabinet />
+        <ProductStyleGrid
+          handleOpenStyleSidebar={handleOpenStyleSidebar}
+          data={optionsMockData2}
+          requiresActiveCabinet
+        />
       </ConfiguratorAccordion>
 
-      {/* <RightCabinetStyleSidebar /> */}
+      <RightCabinetStyleSidebar />
     </div>
   );
 };

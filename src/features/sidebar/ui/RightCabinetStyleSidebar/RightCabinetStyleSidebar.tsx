@@ -4,13 +4,23 @@ import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import image from "../../../../shared/assets/images/png/img_png.png";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { getIsActiveStyleSidebar } from "../../model/store/selectors";
+import { setOpenStyleSidebar } from "../../model/store/slice";
 
 export const RightCabinetStyleSidebar = () => {
+  const dispatch = useAppDispatch();
+  const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
+
   const handleSelect = () => {};
 
+  const handleCloseSidebar = () => {
+    dispatch(setOpenStyleSidebar(false));
+  };
+
   return (
-    <div className={s.cabinetStyleSidebar}>
-      <div className={s.arrow}>
+    <div className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
+      <div className={s.arrow} onClick={handleCloseSidebar}>
         <ArrowRight width="16" />
       </div>
       <div className={s.content}>
