@@ -1,87 +1,63 @@
 export const optionsMockData = [
   {
-    id: 1,
+    id: 1001,
     title: "Colortech",
     desc: "Bianco 10B",
     isShortDesc: false,
   },
   {
-    id: 2,
+    id: 1002,
     title: "Colortech",
     desc: "Grigio fume 10F",
     isShortDesc: false,
   },
   {
-    id: 3,
+    id: 1003,
     title: "Cemento",
     desc: "Centre 1A1",
     isShortDesc: false,
   },
   {
-    id: 4,
+    id: 1004,
     title: "Cemento",
     desc: "Tortora 1A2",
-    isShortDesc: false,
-  },
-  {
-    id: 5,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 7,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 8,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 9,
-    title: "Colortech",
-    desc: "Bianco 10B",
     isShortDesc: false,
   },
 ];
 
 export const optionsMockData2 = [
   {
-    id: 6,
+    id: 2001,
     title: "None",
     desc: "Keep same color as cabinet",
     isShortDesc: false,
   },
   {
-    id: 1,
+    id: 2002,
     title: "Colortech",
     desc: "Bianco 10B",
     isShortDesc: false,
   },
   {
-    id: 2,
+    id: 2003,
     title: "Colortech",
     desc: "Grigio fume 10F",
     isShortDesc: false,
   },
   {
-    id: 3,
-    title: "Cemento",
+    id: 2004,
+    title: "Cemento 1a",
     desc: "Centre 1A1",
     isShortDesc: false,
   },
   {
-    id: 4,
-    title: "Cemento",
+    id: 2005,
+    title: "Cemento 1a2",
     desc: "Tortora 1A2",
     isShortDesc: false,
   },
   {
-    id: 5,
+    id: 2006,
     title: "Colortech",
     desc: "Bianco 10B",
     isShortDesc: false,
@@ -90,27 +66,27 @@ export const optionsMockData2 = [
 
 export const optionsMockData3 = [
   {
-    id: 6,
+    id: 3001,
     title: "None",
     isShortDesc: false,
   },
   {
-    id: 1,
+    id: 3002,
     title: "Uniform",
     isShortDesc: false,
   },
   {
-    id: 2,
+    id: 3003,
     title: "Staggered",
     isShortDesc: false,
   },
   {
-    id: 3,
+    id: 3004,
     title: "Cannete",
     isShortDesc: false,
   },
   {
-    id: 4,
+    id: 3005,
     title: "Rigatino",
     isShortDesc: false,
   },
@@ -118,12 +94,12 @@ export const optionsMockData3 = [
 
 export const optionsMockData4 = [
   {
-    id: 1,
+    id: 4001,
     title: "Horizontal",
     isShortDesc: false,
   },
   {
-    id: 2,
+    id: 4002,
     title: "Vertical",
     isShortDesc: false,
   },

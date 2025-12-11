@@ -9,3 +9,5 @@ export const getSelectedDimensions = (state: RootState) => state.rootStateUI.pro
 export const getSelectedProducts = (state: RootState) => state.rootStateUI.product.productIds;
 
 export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.activeDrawerProduct;
+
+export const getCabinetColor = (state: RootState) => state.rootStateUI.product.colorsOptions.CabinetColor;

@@ -82,12 +82,21 @@ export const CabinetBuilderPage = () => {
     resetAndBootstrapFirstProduct();
   }, [canvasReady, dispatch, handleAddProduct]);
 
+  const setActiveCabinet = (id: number) => {
+    console.log(id);
+
+    removeAllProducts();
+    dispatch(setActiveCabinetType(id));
+  };
+
   const accordions: AccordionConfig[] = [
     {
       id: "cabinet-type",
       title: "Cabinet Type",
       defaultOpen: true,
-      content: <ProductOptionsGrid handleAdd={handleAddProduct} data={optionsMockData} />,
+      content: (
+        <ProductOptionsGrid handleAdd={handleAddProduct} data={optionsMockData} setActiveCabinet={setActiveCabinet} />
+      ),
     },
     {
       id: "cabinet-style",

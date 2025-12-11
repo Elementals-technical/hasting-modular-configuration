@@ -5,6 +5,9 @@ export const addProductByLeft = async (name: string) => {
 
   const addProductToLeft = canvasIframe?.ConfiguratorAPI?.addProductByLeft;
 
+  console.log("call addProductToLeft", addProductToLeft);
+  console.log("name", name);
+
   if (!addProductToLeft) {
     console.warn("[PlayCanvas] ConfiguratorAPI.addProductByLeft not ready");
     return null;

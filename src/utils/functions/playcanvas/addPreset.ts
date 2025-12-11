@@ -1,9 +1,13 @@
-export async function addPreset(presetProducts: any) {
+export async function addPreset(presetProducts: any, globalConfig?: Record<string, unknown>) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
 
   const addPreset = canvasIframe?.ConfiguratorAPI?.presetProducts;
+
+  console.log("call addPreset", addPreset);
+  console.log("presetProducts", presetProducts);
+  console.log("config", globalConfig);
 
   if (!addPreset) {
     console.warn("[PlayCanvas] ConfiguratorAPI.addPreset not ready");
@@ -11,7 +15,7 @@ export async function addPreset(presetProducts: any) {
   }
 
   try {
-    await addPreset(presetProducts);
+    await addPreset(presetProducts, globalConfig);
   } catch (error) {
     console.error("[PlayCanvas] Failed to set width", error);
     return null;
