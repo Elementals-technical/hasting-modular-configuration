@@ -107,7 +107,7 @@ export const CustomCabinetColorsPage = () => {
     console.log(colorName);
 
     setConfigBatch(selectedProducts, {
-      CabinetColor: "White Matte",
+      CabinetColor: "Arancio Zucca 09 MT",
     });
 
     dispatch(setCabinetColor(colorName));

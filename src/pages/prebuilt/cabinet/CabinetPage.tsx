@@ -15,6 +15,9 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { setCabinetColor } from "@/entities/product/model/store/slice";
 
 const renderFilters = () => (
   <FilterRow className={s.innerRow}>
@@ -56,50 +59,64 @@ const renderFilters = () => (
   </FilterRow>
 );
 
-const ACCORDIONS: AccordionConfig[] = [
-  {
-    id: 1,
-    title: "Cabinet Color",
-    defaultOpen: true,
-    content: (
-      <>
-        <ViewModePanel />
-        {renderFilters()}
-        <ProductOptionsGrid data={optionsMockData} />
-      </>
-    ),
-  },
-  {
-    id: 2,
-    title: "Handle Groove Color (Optional)",
-    content: (
-      <>
-        <ViewModePanel />
-        {renderFilters()}
-        <ProductOptionsGrid data={optionsMockData2} />
-      </>
-    ),
-  },
-  {
-    id: 3,
-    title: "Drawer Panel Fluting",
-    content: <ProductOptionsGrid data={optionsMockData3} />,
-  },
-  {
-    id: 4,
-    title: "Grain Direction",
-    content: <ProductOptionsGrid data={optionsMockData4} />,
-  },
-];
+export const CabinetPage = () => {
+  const dispatch = useAppDispatch();
 
-export const CabinetPage = () => (
-  <div className={s.cabinetPage}>
-    <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
-      {ACCORDIONS.map(({ id, title, content }) => (
-        <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
-          {content}
-        </ConfiguratorAccordionItem>
-      ))}
-    </ConfiguratorAccordionGroup>
-  </div>
-);
+  const handleChangeColor = (colorName?: string) => {
+    if (!colorName) return;
+
+    console.log(colorName);
+
+    setConfigBatch({ productType: "CabinetUniBox" }, { CabinetColor: "Arancio Zucca 09 MT" });
+
+    dispatch(setCabinetColor(colorName));
+  };
+
+  const ACCORDIONS: AccordionConfig[] = [
+    {
+      id: 1,
+      title: "Cabinet Color",
+      defaultOpen: true,
+      content: (
+        <>
+          <ViewModePanel />
+          {renderFilters()}
+          <ProductOptionsGrid data={optionsMockData} handleAdd={handleChangeColor} />
+        </>
+      ),
+    },
+    {
+      id: 2,
+      title: "Handle Groove Color (Optional)",
+      content: (
+        <>
+          <ViewModePanel />
+          {renderFilters()}
+          <ProductOptionsGrid data={optionsMockData2} />
+        </>
+      ),
+    },
+    {
+      id: 3,
+      title: "Drawer Panel Fluting",
+      content: <ProductOptionsGrid data={optionsMockData3} />,
+    },
+    {
+      id: 4,
+      title: "Grain Direction",
+      content: <ProductOptionsGrid data={optionsMockData4} />,
+    },
+  ];
+
+  return (
+    <div className={s.cabinetPage}>
+      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+        {ACCORDIONS.map(({ id, title, content }) => (
+          <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
+            {content}
+          </ConfiguratorAccordionItem>
+        ))}
+      </ConfiguratorAccordionGroup>
+    </div>
+  );
+};
