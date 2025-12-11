@@ -1,11 +1,8 @@
-import { setActiveCabinetType } from "@/entities/product/model/store/slice";
-
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionItem";
 
 import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType } from "../../model/store/selectors";
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 
 interface ProductOptionsGridI {
   data: {
@@ -18,22 +15,21 @@ interface ProductOptionsGridI {
   }[];
   handleAdd?: (name?: string) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
+  setActiveCabinet?: (id: number) => void;
 }
 
-export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data, handleAdd, requiresActiveCabinet }) => {
+export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
+  data,
+  handleAdd,
+  requiresActiveCabinet,
+  setActiveCabinet,
+}) => {
   const dispatch = useAppDispatch();
 
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const hasActiveCabinet = activeCabinet !== null;
 
   console.log("hasActiveCabinet", hasActiveCabinet);
-
-  const setActiveCabinet = (id: number) => {
-    console.log(id);
-
-    removeAllProducts();
-    dispatch(setActiveCabinetType(id));
-  };
 
   if (requiresActiveCabinet && !hasActiveCabinet) {
     return <div className={s.message}>Select cabinet type first</div>;
