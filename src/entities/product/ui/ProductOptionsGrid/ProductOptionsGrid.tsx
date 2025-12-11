@@ -49,6 +49,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data, handle
           isAvailable={i.isAvailable}
           isShortDesc={i.isShortDesc}
           onClick={handleAdd}
+          isActive={activeCabinet === i.id}
           setActive={setActiveCabinet}
         />
       ))}
