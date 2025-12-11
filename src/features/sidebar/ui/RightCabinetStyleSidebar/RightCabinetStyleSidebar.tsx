@@ -7,10 +7,12 @@ import s from "./RightCabinetStyleSidebar.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
 import { setOpenStyleSidebar } from "../../model/store/slice";
+import { getDimensionOptions } from "@/entities/product/model/store/selectors";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
+  const dimensionOptions = useAppSelector(getDimensionOptions);
 
   const handleSelect = () => {};
 
@@ -28,11 +30,7 @@ export const RightCabinetStyleSidebar = () => {
           <div>Width</div>
           <FilterSelection
             label={"Width"}
-            options={[
-              { label: "60", value: "60" },
-              { label: "65", value: "65" },
-              { label: "70", value: "70" },
-            ]}
+            options={dimensionOptions.width}
             onSelect={handleSelect}
           />
         </div>
@@ -41,24 +39,16 @@ export const RightCabinetStyleSidebar = () => {
           <div>Depth</div>
           <FilterSelection
             label={"Depth"}
-            options={[
-              { label: "60", value: "60" },
-              { label: "65", value: "65" },
-              { label: "70", value: "70" },
-            ]}
+            options={dimensionOptions.depth}
             onSelect={handleSelect}
           />
         </div>
 
         <div className={s.contentItem}>
-          <div>Upper Groove</div>
+          <div>Height</div>
           <FilterSelection
-            label={"Upper Groove"}
-            options={[
-              { label: "Upper Groove", value: "60" },
-              { label: "Upper Groove", value: "65" },
-              { label: "Upper Groove", value: "70" },
-            ]}
+            label={"Height"}
+            options={dimensionOptions.height}
             onSelect={handleSelect}
           />
         </div>

@@ -5,21 +5,22 @@ import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown.tsx";
 import s from "./FilterSelection.module.scss";
 
 type Option = {
-  label: string;
-  value: string;
+  label?: string;
+  name?: number;
+  value: number;
 };
 
 type FilterSelectionProps = {
   label?: string;
   options?: Option[];
-  value?: string;
-  onSelect?: (value: string) => void;
+  value?: string | number;
+  onSelect?: (value: string | number) => void;
   className?: string;
 };
 
 export const FilterSelection = ({ label = "Size", options = [], value, onSelect, className }: FilterSelectionProps) => {
   const [open, setOpen] = useState(false);
-  const [internalValue, setInternalValue] = useState<string | undefined>(value);
+  const [internalValue, setInternalValue] = useState<number | undefined>(value);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -29,6 +30,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
     () => options.find((option) => option.value === selectedValue),
     [options, selectedValue],
   );
+  const selectedLabel = selectedOption?.name ?? label;
 
   useEffect(() => {
     setInternalValue(value);
@@ -68,7 +70,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className={s.label}>{selectedOption?.label ?? label}</span>
+        <span className={s.label}>{selectedLabel}</span>
         <span>
           <ArrowDown />
         </span>
@@ -88,7 +90,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
                 aria-selected={isSelected}
                 onClick={() => handleSelect(option)}
               >
-                {option.label}
+                {option.name}
               </button>
             );
           })}
