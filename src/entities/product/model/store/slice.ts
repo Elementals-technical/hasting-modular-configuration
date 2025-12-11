@@ -21,7 +21,11 @@ const productSlice = createSlice({
       state.productIds = next;
     },
     removeProductId(state, action: PayloadAction<string>) {
-      state.productIds = state.productIds.filter((pid) => pid !== action.payload);
+      const lastIndex = state.productIds.lastIndexOf(action.payload);
+
+      if (lastIndex !== -1) {
+        state.productIds.splice(lastIndex, 1);
+      }
     },
     reset() {
       return initialState;
