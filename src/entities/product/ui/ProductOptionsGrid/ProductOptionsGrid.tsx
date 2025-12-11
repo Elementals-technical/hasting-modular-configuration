@@ -4,15 +4,17 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor } from "../../model/store/selectors";
 
+type ProductOptionData = {
+  id: number | string;
+  title: string;
+  name?: string;
+  desc?: string;
+  isAvailable?: boolean;
+  isShortDesc: boolean;
+};
+
 interface ProductOptionsGridI {
-  data: {
-    id: number;
-    title: string;
-    name?: string | undefined;
-    desc?: string | undefined;
-    isAvailable?: boolean;
-    isShortDesc: boolean;
-  }[];
+  data: ProductOptionData[];
   handleAdd?: (name?: string) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
   setActiveCabinet?: (id: number) => void;
@@ -39,7 +41,14 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
     <div className={s.optionsGrid}>
       {data.map((i) => {
         const optionName = i.name ?? i.desc ?? i.title;
-        const isActive = activeCabinet === i.id || activeColor === optionName;
+        const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
+
+        const isActive = matchesCabinet || activeColor === optionName;
+
+        const handleSetActive =
+          typeof i.id === "number" && setActiveCabinet
+            ? (id: string | number) => setActiveCabinet(id as number)
+            : undefined;
 
         return (
           <ProductOptionItem
@@ -52,7 +61,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
             isShortDesc={i.isShortDesc}
             onClick={handleAdd}
             isActive={isActive}
-            setActive={setActiveCabinet}
+            setActive={handleSetActive}
           />
         );
       })}

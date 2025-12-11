@@ -7,7 +7,7 @@ import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
 import s from "./ProductOptionItem.module.scss";
 
 interface ProductOptionItemI {
-  id: number;
+  id: number | string;
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
@@ -15,7 +15,7 @@ interface ProductOptionItemI {
   isShortDesc: boolean;
   isActive?: boolean;
   onClick?: (name?: string) => void | Promise<void>;
-  setActive?: (id: number) => void;
+  setActive?: (id: number | string) => void;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
