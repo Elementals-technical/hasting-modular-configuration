@@ -4,7 +4,7 @@ import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/Pro
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
@@ -19,6 +19,8 @@ import {
   setActiveCabinetType,
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
+
+import { getActiveCabinetType, getSelectedProducts } from "@/entities/product/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
@@ -35,6 +37,12 @@ export const CabinetBuilderPage = () => {
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
+
+  const activeCabinetType = useAppSelector(getActiveCabinetType);
+  const selectedProducts = useAppSelector(getSelectedProducts);
+
+  const hasActiveCabinet = Boolean(activeCabinetType);
+  const hasProducts = selectedProducts.length > 0;
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -64,10 +72,12 @@ export const CabinetBuilderPage = () => {
 
   useEffect(() => {
     if (!canvasReady) return;
+    if (hasProducts || hasActiveCabinet) return;
 
     async function resetAndBootstrapFirstProduct() {
       try {
-        await removeAllProducts();
+        removeAllProducts();
+        dispatch(resetProducts());
 
         const firstCabinetOption = optionsMockData[0];
 
@@ -85,7 +95,7 @@ export const CabinetBuilderPage = () => {
     }
 
     resetAndBootstrapFirstProduct();
-  }, [canvasReady, dispatch, handleAddProduct]);
+  }, [canvasReady, dispatch, handleAddProduct, hasActiveCabinet, hasProducts]);
 
   const setActiveCabinet = (id: number) => {
     console.log(id);
