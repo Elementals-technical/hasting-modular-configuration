@@ -5,6 +5,7 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 
 import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType } from "../../model/store/selectors";
+import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 
 interface ProductOptionsGridI {
   data: {
@@ -30,6 +31,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({ data, handle
   const setActiveCabinet = (id: number) => {
     console.log(id);
 
+    removeAllProducts();
     dispatch(setActiveCabinetType(id));
   };
 

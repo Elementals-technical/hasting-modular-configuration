@@ -9,19 +9,20 @@ export const optionsMockData = [
   {
     id: 2,
     title: "Sink Cabinet",
-    name: "UniOpenShelves",
+    name: "CabinetUniBox",
     desc: "Cabinet without a basin",
     isShortDesc: false,
   },
   {
     id: 3,
     title: "Open Shelf",
-    name: "CabinetUniBox",
+    name: "UniOpenShelves",
     isShortDesc: false,
   },
   {
     id: 4,
     title: "Side Shelf",
+    name: "UniOpenSideShelves",
     isShortDesc: false,
   },
 ];
