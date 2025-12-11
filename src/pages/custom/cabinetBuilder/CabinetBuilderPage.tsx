@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
@@ -34,6 +34,7 @@ type AccordionConfig = {
 
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
+  const bootstrappedRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
@@ -71,8 +72,8 @@ export const CabinetBuilderPage = () => {
   };
 
   useEffect(() => {
-    if (!canvasReady) return;
-    if (hasProducts || hasActiveCabinet) return;
+    if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
+    bootstrappedRef.current = true;
 
     async function resetAndBootstrapFirstProduct() {
       try {
