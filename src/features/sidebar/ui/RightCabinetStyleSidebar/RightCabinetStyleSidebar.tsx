@@ -19,6 +19,7 @@ import { useEffect } from "react";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { BaseButton } from "@/shared";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
+import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -48,6 +49,8 @@ export const RightCabinetStyleSidebar = () => {
   const addToLeft = async () => {
     try {
       const productId = await addProductByLeft(activeDrawerProduct);
+
+      setConfig(productId, { Width: selectedDimensions.width });
 
       if (productId) {
         dispatch(addProductId(productId));

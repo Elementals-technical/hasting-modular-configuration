@@ -5,6 +5,10 @@ export function setConfigBatch(ids: string[], config: any) {
 
   const setConfigBatch = canvasIframe?.ConfiguratorAPI?.setConfigBatch;
 
+  console.log("call setConfigBatch", setConfigBatch);
+  console.log("ids", ids);
+  console.log("config", config);
+
   if (!setConfigBatch) {
     console.warn("[PlayCanvas] ConfiguratorAPI.setConfigBatch not ready");
     return null;

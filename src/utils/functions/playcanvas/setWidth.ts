@@ -5,6 +5,10 @@ export async function setWidth(productId: string, width: number) {
 
   const setConfig = canvasIframe?.ConfiguratorAPI?.setConfig || canvasIframe?.setConfig;
 
+  console.log("call setWidth", setWidth);
+  console.log("productId", productId);
+  console.log("width", width);
+
   if (!setConfig) {
     console.warn("[PlayCanvas] ConfiguratorAPI.setConfig not ready");
     return null;

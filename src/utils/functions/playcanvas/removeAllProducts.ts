@@ -5,6 +5,8 @@ export async function removeAllProducts() {
 
   const removeProducts = canvasIframe?.ConfiguratorAPI?.removeAllProduct;
 
+  console.log("call removeAllProducts", removeProducts);
+
   if (!removeProducts) {
     console.warn("[PlayCanvas] ConfiguratorAPI.removeProducts not ready");
     return null;

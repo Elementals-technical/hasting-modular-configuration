@@ -6,6 +6,9 @@ export async function addProduct(name: string) {
 
   const addProduct = canvasIframe?.ConfiguratorAPI?.addProduct;
 
+  console.log("call addProduct", addProduct);
+  console.log("name", name);
+
   if (!addProduct) {
     console.warn("[PlayCanvas] ConfiguratorAPI.addProduct not ready");
     return null;

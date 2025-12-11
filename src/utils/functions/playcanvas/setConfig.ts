@@ -5,6 +5,10 @@ export async function setConfig(id: number, config: any) {
 
   const setConfig = canvasIframe?.ConfiguratorAPI?.setConfig;
 
+  console.log("call setConfig", setConfig);
+  console.log("id", id);
+  console.log("config", config);
+
   if (!setConfig) {
     console.warn("[PlayCanvas] ConfiguratorAPI.setConfig not ready");
     return null;
