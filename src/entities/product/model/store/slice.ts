@@ -15,6 +15,9 @@ type ProductState = {
     height: DimensionOption[];
     depth: DimensionOption[];
   };
+  colorsOptions: {
+    CabinetColor: string;
+  };
 };
 
 type ProductDimensions = {
@@ -61,6 +64,9 @@ const initialState: ProductState = {
     height: HEIGHT_OPTIONS,
     depth: DEPTH_OPTIONS,
   },
+  colorsOptions: {
+    CabinetColor: "White Matte",
+  },
 };
 
 const productSlice = createSlice({
@@ -92,9 +98,19 @@ const productSlice = createSlice({
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
     },
+    setCabinetColor(state, action: PayloadAction<string>) {
+      state.colorsOptions.CabinetColor = action.payload;
+    },
   },
 });
 
-export const { addProductId, removeProductId, reset, setActiveCabinetType, setSelectedDimensions, setDrawerProduct } =
-  productSlice.actions;
+export const {
+  addProductId,
+  removeProductId,
+  reset,
+  setActiveCabinetType,
+  setSelectedDimensions,
+  setDrawerProduct,
+  setCabinetColor,
+} = productSlice.actions;
 export const productReducer = productSlice.reducer;

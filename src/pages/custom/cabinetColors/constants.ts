@@ -23,30 +23,6 @@ export const optionsMockData = [
     desc: "Tortora 1A2",
     isShortDesc: false,
   },
-  {
-    id: 1005,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 1006,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 1007,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 1008,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
 ];
 
 export const optionsMockData2 = [
@@ -70,13 +46,13 @@ export const optionsMockData2 = [
   },
   {
     id: 2004,
-    title: "Cemento",
+    title: "Cemento 1a",
     desc: "Centre 1A1",
     isShortDesc: false,
   },
   {
     id: 2005,
-    title: "Cemento",
+    title: "Cemento 1a2",
     desc: "Tortora 1A2",
     isShortDesc: false,
   },

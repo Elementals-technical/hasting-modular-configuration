@@ -10,8 +10,17 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setCabinetColor } from "@/entities/product/model/store/slice";
 
 export const CustomCabinetColorsPage = () => {
+  const dispatch = useAppDispatch();
+  const selectedProducts = useAppSelector(getSelectedProducts);
+
+  console.log("selectedProducts", selectedProducts);
+
   const renderFiltersForCabinetColor = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -92,6 +101,18 @@ export const CustomCabinetColorsPage = () => {
     </FilterRow>
   );
 
+  const handleChangeColor = (colorName?: string) => {
+    if (!colorName) return;
+
+    console.log(colorName);
+
+    setConfigBatch(selectedProducts, {
+      CabinetColor: "White Matte",
+    });
+
+    dispatch(setCabinetColor(colorName));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: 1,
@@ -101,7 +122,7 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFiltersForCabinetColor()}
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={optionsMockData} handleAdd={handleChangeColor} />
         </>
       ),
     },
