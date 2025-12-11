@@ -13,7 +13,12 @@ import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { addProductId, setActiveCabinetType, setDrawerProduct } from "@/entities/product/model/store/slice";
+import {
+  addProductId,
+  resetProducts,
+  setActiveCabinetType,
+  setDrawerProduct,
+} from "@/entities/product/model/store/slice";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
@@ -86,6 +91,8 @@ export const CabinetBuilderPage = () => {
     console.log(id);
 
     removeAllProducts();
+    dispatch(resetProducts());
+
     dispatch(setActiveCabinetType(id));
   };
 
