@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";

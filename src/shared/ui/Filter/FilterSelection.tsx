@@ -5,9 +5,9 @@ import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown.tsx";
 import s from "./FilterSelection.module.scss";
 
 type Option = {
-  label?: string;
-  name?: number;
-  value: number;
+  label?: string | number;
+  name?: string | number;
+  value: string | number;
 };
 
 type FilterSelectionProps = {
@@ -20,7 +20,7 @@ type FilterSelectionProps = {
 
 export const FilterSelection = ({ label = "Size", options = [], value, onSelect, className }: FilterSelectionProps) => {
   const [open, setOpen] = useState(false);
-  const [internalValue, setInternalValue] = useState<number | undefined>(value);
+  const [internalValue, setInternalValue] = useState<string | number | undefined>(value);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,7 +30,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
     () => options.find((option) => option.value === selectedValue),
     [options, selectedValue],
   );
-  const selectedLabel = selectedOption?.name ?? label;
+  const selectedLabel = selectedOption?.label ?? selectedOption?.name ?? label;
 
   useEffect(() => {
     setInternalValue(value);
