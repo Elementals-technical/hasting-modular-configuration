@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
@@ -6,13 +6,14 @@ import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/Product
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { addProductId } from "@/entities/product/model/store/slice";
+import { addProductId, setActiveCabinetType } from "@/entities/product/model/store/slice";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
@@ -28,41 +29,54 @@ export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
 
   const dispatch = useAppDispatch();
+  const canvasReady = usePlayCanvasReady();
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
     setIsOpenedBuildInfo(false);
   };
 
-  const handleAddProduct = async (name?: string) => {
-    if (!name) return;
+  const handleAddProduct = useCallback(
+    async (name?: string) => {
+      if (!name) return;
 
-    try {
-      const productId = await addProduct(name);
+      try {
+        const productId = await addProduct(name);
 
-      if (productId) {
-        dispatch(addProductId(productId));
+        if (productId) {
+          dispatch(addProductId(productId));
+        }
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to apply preset", error);
       }
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to apply preset", error);
-    }
-  };
+    },
+    [dispatch],
+  );
 
   const handleOpenStyleSidebar = () => {
     dispatch(setOpenStyleSidebar(true));
   };
 
   useEffect(() => {
-    async function removePrebuiltProducts() {
+    if (!canvasReady) return;
+
+    async function resetAndBootstrapFirstProduct() {
       try {
         await removeAllProducts();
+
+        const firstCabinetOption = optionsMockData[0];
+
+        if (firstCabinetOption) {
+          dispatch(setActiveCabinetType(firstCabinetOption.id));
+          await handleAddProduct(firstCabinetOption.name);
+        }
       } catch (error) {
         console.log(error);
       }
     }
 
-    removePrebuiltProducts();
-  }, []);
+    resetAndBootstrapFirstProduct();
+  }, [canvasReady, dispatch, handleAddProduct]);
 
   const accordions: AccordionConfig[] = [
     {
