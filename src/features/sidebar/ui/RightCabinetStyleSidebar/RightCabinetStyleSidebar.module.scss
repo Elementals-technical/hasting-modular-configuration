@@ -77,3 +77,15 @@
   align-items: center;
   justify-content: center;
 }
+
+.tempButtons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 20px;
+
+  button {
+    cursor: pointer;
+  }
+}

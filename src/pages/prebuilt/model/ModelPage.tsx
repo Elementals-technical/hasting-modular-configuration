@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -9,7 +10,7 @@ import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
-import { useEffect, useState } from "react";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
 export const ModelPage = () => {
   const navigate = useNavigate();
@@ -27,14 +28,7 @@ export const ModelPage = () => {
     }
   };
 
-  const [canvasReady, setCanvasReady] = useState(false);
-
-  useEffect(() => {
-    const onReady = () => setCanvasReady(true);
-    window.addEventListener("playcanvas-ready", onReady);
-    if ((window as any).playCanvasReady) setCanvasReady(true); // already ready
-    return () => window.removeEventListener("playcanvas-ready", onReady);
-  }, []);
+  const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
     if (!canvasReady) return;

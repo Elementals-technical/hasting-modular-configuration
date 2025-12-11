@@ -1,113 +1,120 @@
-import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
-import { ConfiguratorAccordion } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
-import { useEffect, useState } from "react";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { addProduct } from "@/utils/functions/playcanvas/addProduct";
-import { addProductId } from "@/entities/product/model/store/slice";
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
-import s from "./CabinetBuilderPage.module.scss";
+import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
+
+import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
-const optionsMockData = [
-  {
-    id: 1,
-    title: "Sink Base",
-    name: "CabinetUniBox",
-    desc: "Cabinet with a basin",
-    isShortDesc: false,
-  },
-  {
-    id: 2,
-    title: "Sink Cabinet",
-    name: "UniOpenShelves",
-    desc: "Cabinet without a basin",
-    isShortDesc: false,
-  },
-  {
-    id: 3,
-    title: "Open Shelf",
-    name: "CabinetUniBox",
-    isShortDesc: false,
-  },
-  {
-    id: 4,
-    title: "Side Shelf",
-    isShortDesc: false,
-  },
-];
+import { addProduct } from "@/utils/functions/playcanvas/addProduct";
+import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { addProductId, setActiveCabinetType, setDrawerProduct } from "@/entities/product/model/store/slice";
 
-const optionsMockData2 = [
-  {
-    id: 1,
-    title: "1 Drawer",
-    isShortDesc: false,
-  },
-  {
-    id: 2,
-    title: "2 Drawer",
-    isShortDesc: false,
-  },
-];
+import { optionsMockData, optionsMockData2 } from "./constants";
+import s from "./CabinetBuilderPage.module.scss";
+
+type AccordionConfig = {
+  id: string;
+  title: string;
+  content: ReactNode;
+  defaultOpen?: boolean;
+};
 
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
 
   const dispatch = useAppDispatch();
+  const canvasReady = usePlayCanvasReady();
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
     setIsOpenedBuildInfo(false);
   };
 
-  const handleAddProduct = async (name?: string) => {
-    if (!name) return;
+  const handleAddProduct = useCallback(
+    async (name?: string) => {
+      if (!name) return;
 
-    try {
-      const productId = await addProduct(name);
+      try {
+        const productId = await addProduct(name);
 
-      if (productId) {
-        dispatch(addProductId(productId));
+        if (productId) {
+          dispatch(addProductId(productId));
+        }
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to apply preset", error);
       }
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to apply preset", error);
-    }
-  };
+    },
+    [dispatch],
+  );
 
   const handleOpenStyleSidebar = () => {
     dispatch(setOpenStyleSidebar(true));
   };
 
   useEffect(() => {
-    async function removePrebuiltProducts() {
+    if (!canvasReady) return;
+
+    async function resetAndBootstrapFirstProduct() {
       try {
         await removeAllProducts();
+
+        const firstCabinetOption = optionsMockData[0];
+
+        if (firstCabinetOption) {
+          dispatch(setActiveCabinetType(firstCabinetOption.id));
+          await handleAddProduct(firstCabinetOption.name);
+
+          if (firstCabinetOption.name) {
+            dispatch(setDrawerProduct(firstCabinetOption.name));
+          }
+        }
       } catch (error) {
         console.log(error);
       }
     }
 
-    removePrebuiltProducts();
-  }, []);
+    resetAndBootstrapFirstProduct();
+  }, [canvasReady, dispatch, handleAddProduct]);
 
-  return (
-    <div className={s.cabinetBuilder}>
-      {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
-
-      <ConfiguratorAccordion title={"Cabinet Type"} defaultOpen>
-        <ProductOptionsGrid handleAdd={handleAddProduct} data={optionsMockData} />
-      </ConfiguratorAccordion>
-
-      <ConfiguratorAccordion title={"Cabinet Style"} defaultOpen>
+  const accordions: AccordionConfig[] = [
+    {
+      id: "cabinet-type",
+      title: "Cabinet Type",
+      defaultOpen: true,
+      content: <ProductOptionsGrid handleAdd={handleAddProduct} data={optionsMockData} />,
+    },
+    {
+      id: "cabinet-style",
+      title: "Cabinet Style",
+      content: (
         <ProductStyleGrid
           handleOpenStyleSidebar={handleOpenStyleSidebar}
           data={optionsMockData2}
           requiresActiveCabinet
         />
-      </ConfiguratorAccordion>
+      ),
+    },
+  ];
+
+  const defaultValue = accordions.find((accordion) => accordion.defaultOpen)?.id;
+
+  return (
+    <div className={s.cabinetBuilder}>
+      {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
+
+      <ConfiguratorAccordionGroup defaultValue={defaultValue}>
+        {accordions.map(({ id, title, content }) => (
+          <ConfiguratorAccordionItem key={id} value={id} title={title}>
+            {content}
+          </ConfiguratorAccordionItem>
+        ))}
+      </ConfiguratorAccordionGroup>
 
       <RightCabinetStyleSidebar />
     </div>
