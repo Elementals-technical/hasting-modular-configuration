@@ -8,11 +8,18 @@ type DimensionOption = {
 type ProductState = {
   productIds: string[];
   activeCabinetType: number | null;
+  selectedDimensions: ProductDimensions;
   dimensionOptions: {
     width: DimensionOption[];
     height: DimensionOption[];
     depth: DimensionOption[];
   };
+};
+
+type ProductDimensions = {
+  width: number;
+  height: number;
+  depth: number;
 };
 
 const WIDTH_OPTIONS: DimensionOption[] = [
@@ -37,9 +44,16 @@ const DEPTH_OPTIONS: DimensionOption[] = [
   { name: 50.5, value: 50.5 },
 ];
 
+const DEFAULT_DIMENSIONS: ProductDimensions = {
+  width: 60,
+  height: 56,
+  depth: 46,
+};
+
 const initialState: ProductState = {
   productIds: [],
   activeCabinetType: null,
+  selectedDimensions: DEFAULT_DIMENSIONS,
   dimensionOptions: {
     width: WIDTH_OPTIONS,
     height: HEIGHT_OPTIONS,
@@ -70,8 +84,11 @@ const productSlice = createSlice({
     setActiveCabinetType(state, action: PayloadAction<number>) {
       state.activeCabinetType = action.payload;
     },
+    setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
+      state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
+    },
   },
 });
 
-export const { addProductId, removeProductId, reset, setActiveCabinetType } = productSlice.actions;
+export const { addProductId, removeProductId, reset, setActiveCabinetType, setSelectedDimensions } = productSlice.actions;
 export const productReducer = productSlice.reducer;

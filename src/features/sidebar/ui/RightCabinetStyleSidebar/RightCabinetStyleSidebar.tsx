@@ -7,14 +7,14 @@ import s from "./RightCabinetStyleSidebar.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
 import { setOpenStyleSidebar } from "../../model/store/slice";
-import { getDimensionOptions } from "@/entities/product/model/store/selectors";
+import { getDimensionOptions, getSelectedDimensions } from "@/entities/product/model/store/selectors";
+import { setSelectedDimensions } from "@/entities/product/model/store/slice";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const dimensionOptions = useAppSelector(getDimensionOptions);
-
-  const handleSelect = () => {};
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
 
   const handleCloseSidebar = () => {
     dispatch(setOpenStyleSidebar(false));
@@ -31,7 +31,8 @@ export const RightCabinetStyleSidebar = () => {
           <FilterSelection
             label={"Width"}
             options={dimensionOptions.width}
-            onSelect={handleSelect}
+            value={selectedDimensions.width}
+            onSelect={(value) => dispatch(setSelectedDimensions({ width: Number(value) }))}
           />
         </div>
 
@@ -40,7 +41,8 @@ export const RightCabinetStyleSidebar = () => {
           <FilterSelection
             label={"Depth"}
             options={dimensionOptions.depth}
-            onSelect={handleSelect}
+            value={selectedDimensions.depth}
+            onSelect={(value) => dispatch(setSelectedDimensions({ depth: Number(value) }))}
           />
         </div>
 
@@ -49,7 +51,8 @@ export const RightCabinetStyleSidebar = () => {
           <FilterSelection
             label={"Height"}
             options={dimensionOptions.height}
-            onSelect={handleSelect}
+            value={selectedDimensions.height}
+            onSelect={(value) => dispatch(setSelectedDimensions({ height: Number(value) }))}
           />
         </div>
 
