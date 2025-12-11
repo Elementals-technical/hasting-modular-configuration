@@ -8,6 +8,7 @@ type DimensionOption = {
 type ProductState = {
   productIds: string[];
   activeCabinetType: number | null;
+  activeDrawerProduct: string;
   selectedDimensions: ProductDimensions;
   dimensionOptions: {
     width: DimensionOption[];
@@ -53,6 +54,7 @@ const DEFAULT_DIMENSIONS: ProductDimensions = {
 const initialState: ProductState = {
   productIds: [],
   activeCabinetType: null,
+  activeDrawerProduct: "",
   selectedDimensions: DEFAULT_DIMENSIONS,
   dimensionOptions: {
     width: WIDTH_OPTIONS,
@@ -70,6 +72,9 @@ const productSlice = createSlice({
       if (!id) return;
       const next = [...state.productIds.filter((pid) => pid !== id), id];
       state.productIds = next;
+    },
+    setDrawerProduct(state, action: PayloadAction<string>) {
+      state.activeDrawerProduct = action.payload;
     },
     removeProductId(state, action: PayloadAction<string>) {
       const lastIndex = state.productIds.lastIndexOf(action.payload);
@@ -90,5 +95,6 @@ const productSlice = createSlice({
   },
 });
 
-export const { addProductId, removeProductId, reset, setActiveCabinetType, setSelectedDimensions } = productSlice.actions;
+export const { addProductId, removeProductId, reset, setActiveCabinetType, setSelectedDimensions, setDrawerProduct } =
+  productSlice.actions;
 export const productReducer = productSlice.reducer;

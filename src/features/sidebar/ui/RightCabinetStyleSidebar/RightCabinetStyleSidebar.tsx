@@ -3,22 +3,68 @@ import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import image from "../../../../shared/assets/images/png/img_png.png";
 
-import s from "./RightCabinetStyleSidebar.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
 import { setOpenStyleSidebar } from "../../model/store/slice";
-import { getDimensionOptions, getSelectedDimensions } from "@/entities/product/model/store/selectors";
-import { setSelectedDimensions } from "@/entities/product/model/store/slice";
+import {
+  getDimensionOptions,
+  getDrawerProduct,
+  getSelectedDimensions,
+  getSelectedProducts,
+} from "@/entities/product/model/store/selectors";
+import { addProductId, setSelectedDimensions } from "@/entities/product/model/store/slice";
+
+import s from "./RightCabinetStyleSidebar.module.scss";
+import { useEffect } from "react";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { BaseButton } from "@/shared";
+import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
+
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const selectedProducts = useAppSelector(getSelectedProducts);
+  const activeDrawerProduct = useAppSelector(getDrawerProduct);
 
   const handleCloseSidebar = () => {
     dispatch(setOpenStyleSidebar(false));
   };
+
+  const handleChangeWidth = (value: string | number) => {
+    dispatch(setSelectedDimensions({ width: Number(value) }));
+  };
+
+  const handleChangeDepth = (value: string | number) => {
+    dispatch(setSelectedDimensions({ depth: Number(value) }));
+  };
+
+  const handleChangeHeight = (value: string | number) => {
+    dispatch(setSelectedDimensions({ height: Number(value) }));
+  };
+
+  const addToLeft = async () => {
+    try {
+      const productId = await addProductByLeft(activeDrawerProduct);
+
+      if (productId) {
+        dispatch(addProductId(productId));
+      }
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to add product to the left", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedProducts.length) return;
+
+    setConfigBatch(selectedProducts, {
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+    });
+  }, [selectedDimensions, selectedProducts]);
 
   return (
     <div className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
@@ -32,7 +78,7 @@ export const RightCabinetStyleSidebar = () => {
             label={"Width"}
             options={dimensionOptions.width}
             value={selectedDimensions.width}
-            onSelect={(value) => dispatch(setSelectedDimensions({ width: Number(value) }))}
+            onSelect={(value) => handleChangeWidth(value)}
           />
         </div>
 
@@ -42,7 +88,7 @@ export const RightCabinetStyleSidebar = () => {
             label={"Depth"}
             options={dimensionOptions.depth}
             value={selectedDimensions.depth}
-            onSelect={(value) => dispatch(setSelectedDimensions({ depth: Number(value) }))}
+            onSelect={(value) => handleChangeDepth(value)}
           />
         </div>
 
@@ -52,13 +98,18 @@ export const RightCabinetStyleSidebar = () => {
             label={"Height"}
             options={dimensionOptions.height}
             value={selectedDimensions.height}
-            onSelect={(value) => dispatch(setSelectedDimensions({ height: Number(value) }))}
+            onSelect={(value) => handleChangeHeight(value)}
           />
         </div>
 
         <div className={s.image}>
           <img src={image} alt="image" />
         </div>
+      </div>
+
+      <div className={s.tempButtons}>
+        <BaseButton onClick={addToLeft}>Left</BaseButton>
+        <BaseButton>Right</BaseButton>
       </div>
       <div className={s.bottomText}>Click the + button to place your cabinet</div>
     </div>
