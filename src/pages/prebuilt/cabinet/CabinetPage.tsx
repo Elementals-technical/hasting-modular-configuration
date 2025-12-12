@@ -74,7 +74,7 @@ export const CabinetPage = () => {
 
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "cabinet-color",
       title: "Cabinet Color",
       defaultOpen: true,
       content: (
@@ -86,7 +86,7 @@ export const CabinetPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "handle-groove",
       title: "Handle Groove Color (Optional)",
       content: (
         <>
@@ -97,12 +97,12 @@ export const CabinetPage = () => {
       ),
     },
     {
-      id: 3,
+      id: "drawer-panel",
       title: "Drawer Panel Fluting",
       content: <ProductOptionsGrid data={optionsMockData3} />,
     },
     {
-      id: 4,
+      id: "grain-direction",
       title: "Grain Direction",
       content: <ProductOptionsGrid data={optionsMockData4} />,
     },

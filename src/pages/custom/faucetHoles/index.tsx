@@ -6,7 +6,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 export const CustomFaucetHolesPage = () => {
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "faucet-holes-amount",
       title: "Faucet Holes Amount",
       defaultOpen: true,
       content: (
@@ -16,7 +16,7 @@ export const CustomFaucetHolesPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "faucet-holes-spacing",
       title: "Faucet Holes Spacing",
       content: (
         <>

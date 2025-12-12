@@ -56,7 +56,7 @@ const optionsMockData = [
 export const FaucetPage = () => {
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "faucet-holes-amount",
       title: "Faucet Holes Amount",
       defaultOpen: true,
       content: (
@@ -66,7 +66,7 @@ export const FaucetPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "faucet-holes-spacing",
       title: "Faucet Holes Spacing",
       content: (
         <>
