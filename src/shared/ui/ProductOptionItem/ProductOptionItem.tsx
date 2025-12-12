@@ -14,7 +14,7 @@ interface ProductOptionItemI {
   name: string | undefined;
   isShortDesc: boolean;
   isActive?: boolean;
-  onClick?: (name?: string) => void | Promise<void>;
+  onClick?: (name: string) => void | Promise<void>;
   setActive?: (id: number | string) => void;
 }
 
@@ -24,7 +24,6 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   desc,
   isAvailable,
   isShortDesc,
-  name,
   isActive = false,
   onClick,
   setActive,
@@ -35,7 +34,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     <div
       className={`${s.productOption} ${isActive ? s.activeItem : ""}`}
       onClick={() => {
-        onClick?.(name);
+        onClick?.(title);
         setActive?.(id);
       }}
     >

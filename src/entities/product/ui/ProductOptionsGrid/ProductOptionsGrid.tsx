@@ -15,7 +15,7 @@ type ProductOptionData = {
 
 interface ProductOptionsGridI {
   data: ProductOptionData[];
-  handleAdd?: (name?: string) => void | Promise<void>;
+  handleAdd?: (name: string) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
   setActiveCabinet?: (id: number) => void;
 }
@@ -40,7 +40,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   return (
     <div className={s.optionsGrid}>
       {data.map((i) => {
-        const optionName = i.name ?? i.desc ?? i.title;
+        const optionName = i.title ?? i.desc ?? i.name;
         const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
 
         const isActive = matchesCabinet || activeColor === optionName;

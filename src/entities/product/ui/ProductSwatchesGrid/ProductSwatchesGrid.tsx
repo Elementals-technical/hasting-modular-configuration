@@ -10,7 +10,12 @@ export const ProductSwatchesGrid: React.FC<ProductSwatchesGridI> = ({ data }) =>
   return (
     <div className={s.swatchesGrid}>
       {data.map((i) => {
-        return <ProductSwatchItem key={i.id} title={i.title} isSwatchWithHint />;
+        console.log(i.title);
+        return (
+          <>
+            <ProductSwatchItem key={i.id} title={i.title} isSwatchWithHint />
+          </>
+        );
       })}
     </div>
   );

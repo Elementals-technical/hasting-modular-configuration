@@ -104,13 +104,13 @@ export const CustomCabinetColorsPage = () => {
     </FilterRow>
   );
 
-  const handleChangeColor = (colorName?: string) => {
+  const handleChangeColor = (colorName: string) => {
     if (!colorName) return;
 
-    console.log(colorName);
+    console.log("colorName", colorName);
 
     setConfigBatch(selectedProducts, {
-      CabinetColor: "Arancio Zucca 09 MT",
+      CabinetColor: colorName,
     });
 
     dispatch(setCabinetColor(colorName));
