@@ -9,6 +9,7 @@ import { addProductId, removeProductId } from "@/entities/product/model/store/sl
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
+import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 const RIGHT_BUTTON = 2;
@@ -23,7 +24,6 @@ export const PlayCanvasIntegration = () => {
     y: 0,
   });
 
-  console.log("integration");
   console.log("integration");
 
   const dispatch = useAppDispatch();
@@ -280,6 +280,10 @@ export const PlayCanvasIntegration = () => {
     [dispatch],
   );
 
+  const handleSwapProducts = (idA: string, idB: string) => {
+    swapProducts(idA, idB);
+  };
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
 
@@ -323,6 +327,20 @@ export const PlayCanvasIntegration = () => {
 
     if (productIds.length) {
       items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
+    }
+
+    if (productIds.length === 2) {
+      items.unshift({
+        id: "reposition",
+        label: "Reposition",
+        children: [
+          {
+            id: "reposition-left",
+            label: "Move left",
+            onClick: () => handleSwapProducts(productIds[0], productIds[1]),
+          },
+        ],
+      });
     }
 
     return items;
