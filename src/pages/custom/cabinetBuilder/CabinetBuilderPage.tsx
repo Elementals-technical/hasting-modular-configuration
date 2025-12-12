@@ -24,6 +24,7 @@ import { getActiveCabinetType, getSelectedProducts } from "@/entities/product/mo
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
+import { useSearchParams } from "react-router-dom";
 
 type AccordionConfig = {
   id: string;
@@ -131,11 +132,19 @@ export const CabinetBuilderPage = () => {
 
   const defaultValue = accordions.find((accordion) => accordion.defaultOpen)?.id;
 
+  const [searchParams] = useSearchParams();
+  const [accordionValue, setAccordionValue] = useState(defaultValue);
+
+  useEffect(() => {
+    const target = searchParams.get("accordion");
+    if (target) setAccordionValue(target);
+  }, [searchParams]);
+
   return (
     <div className={s.cabinetBuilder}>
       {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
 
-      <ConfiguratorAccordionGroup defaultValue={defaultValue}>
+      <ConfiguratorAccordionGroup defaultValue={defaultValue} value={accordionValue} onValueChange={setAccordionValue}>
         {accordions.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id} title={title}>
             {content}

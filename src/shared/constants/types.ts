@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export type AccordionConfig = {
-  id: number;
+  id: string;
   title: string;
   defaultOpen?: boolean;
   content: ReactNode;

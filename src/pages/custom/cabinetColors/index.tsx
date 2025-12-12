@@ -1,3 +1,6 @@
+import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
@@ -115,7 +118,7 @@ export const CustomCabinetColorsPage = () => {
 
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "cabinet-color",
       title: "Cabinet Color",
       defaultOpen: true,
       content: (
@@ -127,7 +130,7 @@ export const CustomCabinetColorsPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "groove-color",
       title: "Handle Groove Color (Optional)",
       content: (
         <>
@@ -138,20 +141,30 @@ export const CustomCabinetColorsPage = () => {
       ),
     },
     {
-      id: 3,
+      id: "drawer-panel",
       title: "Drawer Panel Fluting",
       content: <ProductOptionsGrid data={optionsMockData3} />,
     },
     {
-      id: 4,
+      id: "grain-direction",
       title: "Grain Direction",
       content: <ProductOptionsGrid data={optionsMockData4} />,
     },
   ];
 
+  const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id;
+
+  const [searchParams] = useSearchParams();
+  const [accordionValue, setAccordionValue] = useState(defaultValue);
+
+  useEffect(() => {
+    const target = searchParams.get("accordion");
+    if (target) setAccordionValue(target);
+  }, [searchParams]);
+
   return (
     <div className={s.cabinetPage}>
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup defaultValue={defaultValue} value={accordionValue} onValueChange={setAccordionValue}>
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}

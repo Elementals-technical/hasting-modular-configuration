@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
@@ -25,11 +25,11 @@ export const PlayCanvasIntegration = () => {
     y: 0,
   });
 
-  console.log("integration");
-
   const dispatch = useAppDispatch();
 
   const location = useLocation();
+  const navigate = useNavigate();
+
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
   // Bridge PlayCanvas Configurator API
@@ -285,6 +285,16 @@ export const PlayCanvasIntegration = () => {
     swapProducts(idA, idB);
   };
 
+  const handleOpenCabinetStyle = () => {
+    navigate("/custom/cabinet-builder?accordion=cabinet-style");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  };
+
+  const handleOpenCabinetColor = () => {
+    navigate("/custom/cabinet-colors?accordion=cabinet-color");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  };
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
 
@@ -297,6 +307,7 @@ export const PlayCanvasIntegration = () => {
             id: "cabinet-select-style",
             label: "Select Style",
             trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCabinetStyle,
           },
         ],
       },
@@ -308,6 +319,7 @@ export const PlayCanvasIntegration = () => {
             id: "cabinet-select-color",
             label: "Select Color",
             trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCabinetColor,
           },
         ],
       },

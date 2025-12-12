@@ -10,11 +10,18 @@ type ConfiguratorAccordionItemProps = {
 type ConfiguratorAccordionGroupProps = {
   children: ReactNode;
   defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
 };
 
 // Group wrapper lets multiple accordion items share the same root (single open).
-export const ConfiguratorAccordionGroup = ({ children, defaultValue }: ConfiguratorAccordionGroupProps) => (
-  <Accordion.Root type="single" collapsible defaultValue={defaultValue}>
+export const ConfiguratorAccordionGroup = ({
+  children,
+  defaultValue,
+  value,
+  onValueChange,
+}: ConfiguratorAccordionGroupProps) => (
+  <Accordion.Root type="single" collapsible defaultValue={defaultValue} value={value} onValueChange={onValueChange}>
     {children}
   </Accordion.Root>
 );

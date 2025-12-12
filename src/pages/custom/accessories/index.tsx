@@ -9,7 +9,7 @@ import { optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./consta
 export const CustomAccessoriesPage = () => {
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "side-panels",
       title: "Side Panels",
       defaultOpen: true,
       content: (
@@ -19,7 +19,7 @@ export const CustomAccessoriesPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "led",
       title: "LED",
       content: (
         <>
@@ -28,12 +28,12 @@ export const CustomAccessoriesPage = () => {
       ),
     },
     {
-      id: 3,
+      id: "dividers",
       title: "Dividers",
       content: <ProductSwatchesGrid data={optionsSwatchData2} />,
     },
     {
-      id: 4,
+      id: "tovel-bar",
       title: "Towel Bar",
       content: <ProductOptionsGrid data={optionsMockData} />,
     },
