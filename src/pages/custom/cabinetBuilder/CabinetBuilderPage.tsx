@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
@@ -13,7 +13,14 @@ import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { addProductId, setActiveCabinetType, setDrawerProduct } from "@/entities/product/model/store/slice";
+import {
+  addProductId,
+  resetProducts,
+  setActiveCabinetType,
+  setDrawerProduct,
+} from "@/entities/product/model/store/slice";
+
+import { getActiveCabinetType, getSelectedProducts } from "@/entities/product/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
@@ -27,9 +34,16 @@ type AccordionConfig = {
 
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
+  const bootstrappedRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
+
+  const activeCabinetType = useAppSelector(getActiveCabinetType);
+  const selectedProducts = useAppSelector(getSelectedProducts);
+
+  const hasActiveCabinet = Boolean(activeCabinetType);
+  const hasProducts = selectedProducts.length > 0;
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -58,11 +72,13 @@ export const CabinetBuilderPage = () => {
   };
 
   useEffect(() => {
-    if (!canvasReady) return;
+    if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
+    bootstrappedRef.current = true;
 
     async function resetAndBootstrapFirstProduct() {
       try {
-        await removeAllProducts();
+        removeAllProducts();
+        dispatch(resetProducts());
 
         const firstCabinetOption = optionsMockData[0];
 
@@ -80,12 +96,14 @@ export const CabinetBuilderPage = () => {
     }
 
     resetAndBootstrapFirstProduct();
-  }, [canvasReady, dispatch, handleAddProduct]);
+  }, [canvasReady, dispatch, handleAddProduct, hasActiveCabinet, hasProducts]);
 
   const setActiveCabinet = (id: number) => {
     console.log(id);
 
     removeAllProducts();
+    dispatch(resetProducts());
+
     dispatch(setActiveCabinetType(id));
   };
 

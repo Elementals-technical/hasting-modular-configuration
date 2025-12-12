@@ -7,8 +7,8 @@ export const optionsMockData = [
   },
   {
     id: 1002,
-    title: "Colortech",
-    desc: "Grigio fume 10F",
+    title: "Colortech 10FF",
+    desc: "Grigio fume 10FF",
     isShortDesc: false,
   },
   {
@@ -34,13 +34,13 @@ export const optionsMockData2 = [
   },
   {
     id: 2002,
-    title: "Colortech",
+    title: "Colortech 10B",
     desc: "Bianco 10B",
     isShortDesc: false,
   },
   {
     id: 2003,
-    title: "Colortech",
+    title: "Colortech 10F",
     desc: "Grigio fume 10F",
     isShortDesc: false,
   },
@@ -58,7 +58,7 @@ export const optionsMockData2 = [
   },
   {
     id: 2006,
-    title: "Colortech",
+    title: "Colortech 10BB",
     desc: "Bianco 10B",
     isShortDesc: false,
   },

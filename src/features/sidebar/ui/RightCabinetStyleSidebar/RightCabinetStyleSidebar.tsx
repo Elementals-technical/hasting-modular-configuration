@@ -20,6 +20,7 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { BaseButton } from "@/shared";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
+import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -57,6 +58,20 @@ export const RightCabinetStyleSidebar = () => {
       }
     } catch (error) {
       console.error("[ProductModelItem] Failed to add product to the left", error);
+    }
+  };
+
+  const addToRight = async () => {
+    try {
+      const productId = await addProductByRight(activeDrawerProduct);
+
+      setConfig(productId, { Width: selectedDimensions.width });
+
+      if (productId) {
+        dispatch(addProductId(productId));
+      }
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to add product to the right", error);
     }
   };
 
@@ -112,7 +127,7 @@ export const RightCabinetStyleSidebar = () => {
 
       <div className={s.tempButtons}>
         <BaseButton onClick={addToLeft}>Left</BaseButton>
-        <BaseButton>Right</BaseButton>
+        <BaseButton onClick={addToRight}>Right</BaseButton>
       </div>
       <div className={s.bottomText}>Click the + button to place your cabinet</div>
     </div>

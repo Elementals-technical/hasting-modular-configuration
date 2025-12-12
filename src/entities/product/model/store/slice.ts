@@ -92,6 +92,9 @@ const productSlice = createSlice({
     reset() {
       return initialState;
     },
+    resetProducts(state) {
+      state.productIds = [];
+    },
     setActiveCabinetType(state, action: PayloadAction<number>) {
       state.activeCabinetType = action.payload;
     },
@@ -112,5 +115,6 @@ export const {
   setSelectedDimensions,
   setDrawerProduct,
   setCabinetColor,
+  resetProducts,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;
