@@ -10,6 +10,7 @@ import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
+import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 const RIGHT_BUTTON = 2;
@@ -289,6 +290,28 @@ export const PlayCanvasIntegration = () => {
 
     const items: DropdownItem[] = [
       {
+        id: "cabinet-style",
+        label: "Cabinet Style",
+        children: [
+          {
+            id: "cabinet-select-style",
+            label: "Select Style",
+            trailing: <ArrowTopRight color={"#333"} />,
+          },
+        ],
+      },
+      {
+        id: "cabinet-color",
+        label: "Cabinet Color",
+        children: [
+          {
+            id: "cabinet-select-color",
+            label: "Select Color",
+            trailing: <ArrowTopRight color={"#333"} />,
+          },
+        ],
+      },
+      {
         id: "resize",
         label: "Resize",
         children: [
@@ -325,10 +348,6 @@ export const PlayCanvasIntegration = () => {
 
     items.push(addItem);
 
-    if (productIds.length) {
-      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
-    }
-
     if (productIds.length === 2) {
       items.unshift({
         id: "reposition",
@@ -341,6 +360,10 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       });
+    }
+
+    if (productIds.length) {
+      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
     }
 
     return items;

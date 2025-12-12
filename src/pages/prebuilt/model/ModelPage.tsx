@@ -32,9 +32,32 @@ export const ModelPage = () => {
 
   useEffect(() => {
     if (!canvasReady) return;
+
     const run = async () => {
       try {
-        await addPreset([{ name: "CabinetUniBox" }, { name: "CabinetUniBox" }, { name: "CabinetUniBox" }]);
+        await addPreset([
+          {
+            name: "CabinetUniBox",
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 60,
+          },
+          {
+            name: "CabinetUniBox",
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 60,
+          },
+          {
+            name: "CabinetUniBox",
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 60,
+          },
+        ]);
       } catch (error) {
         console.log(error);
       }
