@@ -54,7 +54,7 @@ export const CountertopPage = () => {
 
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "countertop-color",
       title: "Countertop Color",
       defaultOpen: true,
       content: (
@@ -66,7 +66,7 @@ export const CountertopPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "thickness",
       title: "Thickness",
       content: (
         <>
@@ -75,12 +75,12 @@ export const CountertopPage = () => {
       ),
     },
     {
-      id: 3,
+      id: "countertop-styles",
       title: "Countertop Style",
       content: <ProductOptionsGrid data={optionsMockData2} />,
     },
     {
-      id: 4,
+      id: "basin-style",
       title: "Basin style",
       content: <ProductOptionsGrid data={optionsMockData3} />,
     },

@@ -11,10 +11,10 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
-  name: string | undefined;
+  name?: string;
   isShortDesc: boolean;
   isActive?: boolean;
-  onClick?: (name?: string) => void | Promise<void>;
+  onClick?: (name: string) => void | Promise<void>;
   setActive?: (id: number | string) => void;
 }
 
@@ -30,12 +30,13 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   setActive,
 }) => {
   const available = isAvailable ?? true; // undefined as available
+  const productName = name ?? title;
 
   return (
     <div
       className={`${s.productOption} ${isActive ? s.activeItem : ""}`}
       onClick={() => {
-        onClick?.(name);
+        onClick?.(productName);
         setActive?.(id);
       }}
     >

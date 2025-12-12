@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
@@ -10,6 +10,7 @@ import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
+import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
 const RIGHT_BUTTON = 2;
@@ -24,11 +25,11 @@ export const PlayCanvasIntegration = () => {
     y: 0,
   });
 
-  console.log("integration");
-
   const dispatch = useAppDispatch();
 
   const location = useLocation();
+  const navigate = useNavigate();
+
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
   // Bridge PlayCanvas Configurator API
@@ -284,10 +285,44 @@ export const PlayCanvasIntegration = () => {
     swapProducts(idA, idB);
   };
 
+  const handleOpenCabinetStyle = () => {
+    navigate("/custom/cabinet-builder?accordion=cabinet-style");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  };
+
+  const handleOpenCabinetColor = () => {
+    navigate("/custom/cabinet-colors?accordion=cabinet-color");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  };
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
 
     const items: DropdownItem[] = [
+      {
+        id: "cabinet-style",
+        label: "Cabinet Style",
+        children: [
+          {
+            id: "cabinet-select-style",
+            label: "Select Style",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCabinetStyle,
+          },
+        ],
+      },
+      {
+        id: "cabinet-color",
+        label: "Cabinet Color",
+        children: [
+          {
+            id: "cabinet-select-color",
+            label: "Select Color",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCabinetColor,
+          },
+        ],
+      },
       {
         id: "resize",
         label: "Resize",
@@ -325,10 +360,6 @@ export const PlayCanvasIntegration = () => {
 
     items.push(addItem);
 
-    if (productIds.length) {
-      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
-    }
-
     if (productIds.length === 2) {
       items.unshift({
         id: "reposition",
@@ -341,6 +372,10 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       });
+    }
+
+    if (productIds.length) {
+      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
     }
 
     return items;

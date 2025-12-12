@@ -74,3 +74,21 @@ export const optionsSwatchData2 = [
     title: "Customize",
   },
 ];
+
+export const dividersMockData = [
+  {
+    id: 5000,
+    title: "Option A",
+    isShortDesc: false,
+  },
+  {
+    id: 5001,
+    title: "Option B",
+    isShortDesc: false,
+  },
+  {
+    id: 5002,
+    title: "Option C",
+    isShortDesc: false,
+  },
+];

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -15,6 +15,7 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 export const ModelPage = () => {
   const navigate = useNavigate();
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
+  const isDefinedProductsRef = useRef(false);
 
   const handleNavigate = () => {
     navigate(ROUTES.CUSTOM);
@@ -31,10 +32,35 @@ export const ModelPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
-    if (!canvasReady) return;
+    if (!canvasReady || isDefinedProductsRef.current) return;
+
+    isDefinedProductsRef.current = true;
+
     const run = async () => {
       try {
-        await addPreset([{ name: "CabinetUniBox" }, { name: "CabinetUniBox" }, { name: "CabinetUniBox" }]);
+        await addPreset([
+          {
+            name: "CabinetUniBox",
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 60,
+          },
+          {
+            name: "CabinetUniBox",
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 60,
+          },
+          {
+            name: "CabinetUniBox",
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 60,
+          },
+        ]);
       } catch (error) {
         console.log(error);
       }

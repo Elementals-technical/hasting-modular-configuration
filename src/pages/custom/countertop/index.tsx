@@ -7,7 +7,7 @@ import { optionsMockData, optionsMockData2, optionsMockData3 } from "./constants
 export const CustomCountertopPage = () => {
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "counter-top-color",
       title: "Countertop Color",
       defaultOpen: true,
       content: (
@@ -17,7 +17,7 @@ export const CustomCountertopPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "thickness",
       title: "Thickness",
       content: (
         <>
@@ -26,12 +26,12 @@ export const CustomCountertopPage = () => {
       ),
     },
     {
-      id: 3,
+      id: "countertop-style",
       title: "Countertop Style",
       content: <ProductOptionsGrid data={optionsMockData2} />,
     },
     {
-      id: 4,
+      id: "basin-style",
       title: "Basin style",
       content: <ProductOptionsGrid data={optionsMockData3} />,
     },

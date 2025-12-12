@@ -1,15 +1,19 @@
+import { useState } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 
-import { optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
+import { dividersMockData, optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
 
 export const CustomAccessoriesPage = () => {
+  const [dividerSelection, setDividerSelection] = useState<string | null>(null);
+
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: 1,
+      id: "side-panels",
       title: "Side Panels",
       defaultOpen: true,
       content: (
@@ -19,21 +23,26 @@ export const CustomAccessoriesPage = () => {
       ),
     },
     {
-      id: 2,
+      id: "led",
       title: "LED",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsSwatchData} />
+          <ProductSwatchesGrid data={optionsSwatchData} isLedSection={true} />
         </>
       ),
     },
     {
-      id: 3,
+      id: "dividers",
       title: "Dividers",
-      content: <ProductSwatchesGrid data={optionsSwatchData2} />,
+      content: (
+        <>
+          <ProductSwatchesGrid data={optionsSwatchData2} onSelectChange={setDividerSelection} />
+          {dividerSelection === "Customize" && <ProductOptionsGrid data={dividersMockData} />}
+        </>
+      ),
     },
     {
-      id: 4,
+      id: "tovel-bar",
       title: "Towel Bar",
       content: <ProductOptionsGrid data={optionsMockData} />,
     },
