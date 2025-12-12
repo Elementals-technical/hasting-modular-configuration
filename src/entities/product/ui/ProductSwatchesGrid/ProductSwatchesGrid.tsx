@@ -7,9 +7,10 @@ import s from "./ProductSwatchesGrid.module.scss";
 interface ProductSwatchesGridI {
   data: { id: number; title: string }[];
   isLedSection?: boolean;
+  onSelectChange?: (title: string | null) => void;
 }
 
-export const ProductSwatchesGrid: React.FC<ProductSwatchesGridI> = ({ data, isLedSection }) => {
+export const ProductSwatchesGrid: React.FC<ProductSwatchesGridI> = ({ data, isLedSection, onSelectChange }) => {
   const [selected, setSelected] = useState<string | null>(null);
 
   const showExtras = (isLedSection && selected === "Auto Fill") || (isLedSection && selected === "Customize");
@@ -23,7 +24,10 @@ export const ProductSwatchesGrid: React.FC<ProductSwatchesGridI> = ({ data, isLe
             title={i.title}
             isSwatchWithHint
             isActive={selected === i.title}
-            onSelect={() => setSelected(i.title)}
+            onSelect={() => {
+              setSelected(i.title);
+              onSelectChange?.(i.title);
+            }}
           />
         ))}
       </div>

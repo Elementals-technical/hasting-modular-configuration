@@ -1,12 +1,16 @@
+import { useState } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 
-import { optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
+import { dividersMockData, optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
 
 export const CustomAccessoriesPage = () => {
+  const [dividerSelection, setDividerSelection] = useState<string | null>(null);
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "side-panels",
@@ -30,7 +34,12 @@ export const CustomAccessoriesPage = () => {
     {
       id: "dividers",
       title: "Dividers",
-      content: <ProductSwatchesGrid data={optionsSwatchData2} />,
+      content: (
+        <>
+          <ProductSwatchesGrid data={optionsSwatchData2} onSelectChange={setDividerSelection} />
+          {dividerSelection === "Customize" && <ProductOptionsGrid data={dividersMockData} />}
+        </>
+      ),
     },
     {
       id: "tovel-bar",

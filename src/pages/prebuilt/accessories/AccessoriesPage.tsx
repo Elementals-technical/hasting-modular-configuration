@@ -23,7 +23,7 @@ export const AccessoriesPage = () => {
       title: "LED",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsSwatchData} />
+          <ProductSwatchesGrid data={optionsSwatchData} isLedSection={true} />
         </>
       ),
     },
