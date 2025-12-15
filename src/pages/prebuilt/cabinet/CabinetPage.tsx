@@ -71,8 +71,6 @@ export const CabinetPage = () => {
   const handleChangeColor = (colorName?: string) => {
     if (!colorName) return;
 
-    console.log(colorName);
-
     presetNames.forEach((productName) => {
       setConfigBatch({ productType: productName }, { CabinetColor: colorName });
     });

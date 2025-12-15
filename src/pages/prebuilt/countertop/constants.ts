@@ -80,8 +80,27 @@ export const optionsMockData2 = [
 
 export const optionsMockData3 = [
   {
-    id: 1,
-    title: "Diamond",
+    id: 3001,
+    title: "Prisma",
+    name: "Top_HPLPrisma",
     isShortDesc: true,
+  },
+  {
+    id: 3002,
+    title: "Quadra",
+    name: "Top_HPLQuadra",
+    isShortDesc: false,
+  },
+  {
+    id: 3003,
+    title: "Cover",
+    name: "Top_HPLCover",
+    isShortDesc: false,
+  },
+  {
+    id: 3004,
+    title: "Strip",
+    name: "Top_HPLStrip",
+    isShortDesc: false,
   },
 ];
