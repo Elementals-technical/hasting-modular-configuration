@@ -3,7 +3,7 @@ export interface addProductConfigI {
   Depth: number;
   CabinetColor: string;
   Width: number;
-  sinkType: string;
+  sinkType?: string;
 }
 
 // Return product and its ID
