@@ -11,7 +11,7 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
-import { addProduct } from "@/utils/functions/playcanvas/addProduct";
+import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import {
   addProductId,
@@ -52,7 +52,7 @@ export const CabinetBuilderPage = () => {
   };
 
   const handleAddProduct = useCallback(
-    async (name?: string) => {
+    async (name?: string, config: addProductConfigI) => {
       if (!name) return;
 
       try {
@@ -85,10 +85,16 @@ export const CabinetBuilderPage = () => {
 
         if (firstCabinetOption) {
           dispatch(setActiveCabinetType(firstCabinetOption.id));
-          await handleAddProduct(firstCabinetOption.name);
+          await handleAddProduct(firstCabinetOption.title, {
+            Height: 56,
+            Depth: 50.5,
+            CabinetColor: "Ardesia DD GL",
+            Width: 120,
+            sinkType: "Top_HPLPrisma",
+          });
 
-          if (firstCabinetOption.name) {
-            dispatch(setDrawerProduct(firstCabinetOption.name));
+          if (firstCabinetOption.title) {
+            dispatch(setDrawerProduct(firstCabinetOption.title));
           }
         }
       } catch (error) {

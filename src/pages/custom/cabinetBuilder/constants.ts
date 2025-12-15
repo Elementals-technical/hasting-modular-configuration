@@ -1,7 +1,7 @@
 export const optionsMockData = [
   {
     id: 101,
-    title: "Sink Base",
+    title: "Sink-Base",
     name: "CabinetUniBox",
     desc: "Cabinet with a basin",
     isShortDesc: false,

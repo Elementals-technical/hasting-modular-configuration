@@ -40,25 +40,25 @@ export const ModelPage = () => {
       try {
         await addPreset([
           {
-            name: "CabinetUniBox",
+            name: "Sink-Base",
             Height: 56,
             Depth: 50.5,
             CabinetColor: "Ardesia DD GL",
+            Width: 120,
+          },
+          {
+            name: "Sink-Cabinet",
+            Height: 56,
+            CabinetColor: "Ardesia DD GL",
+            Depth: 50.5,
             Width: 60,
           },
           {
-            name: "CabinetUniBox",
+            name: "Sink-Base",
             Height: 56,
-            Depth: 50.5,
             CabinetColor: "Ardesia DD GL",
-            Width: 60,
-          },
-          {
-            name: "CabinetUniBox",
-            Height: 56,
             Depth: 50.5,
-            CabinetColor: "Ardesia DD GL",
-            Width: 60,
+            Width: 90,
           },
         ]);
       } catch (error) {
