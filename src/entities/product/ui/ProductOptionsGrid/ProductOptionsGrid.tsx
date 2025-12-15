@@ -3,6 +3,7 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 
 import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor } from "../../model/store/selectors";
+import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 
 type ProductOptionData = {
   id: number | string;
@@ -11,6 +12,7 @@ type ProductOptionData = {
   desc?: string;
   isAvailable?: boolean;
   isShortDesc: boolean;
+  config?: addProductConfigI;
 };
 
 interface ProductOptionsGridI {
@@ -59,6 +61,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
             desc={i.desc}
             isAvailable={i.isAvailable}
             isShortDesc={i.isShortDesc}
+            config={i.config}
             onClick={handleAdd}
             isActive={isActive}
             setActive={handleSetActive}

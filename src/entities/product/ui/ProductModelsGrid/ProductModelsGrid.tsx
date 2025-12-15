@@ -12,7 +12,11 @@ export const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
-    presetProducts: [{ name: "CabinetUniBox" }, { name: "CabinetUniBox" }, { name: "UniOpenShelves" }],
+    presetProducts: [
+      { name: "Sink-Base", Height: 56, Depth: 50.5, CabinetColor: "Ardesia DD GL", Width: 120 },
+      { name: "Sink-Base", Height: 56, CabinetColor: "Ardesia DD GL", Depth: 50.5, Width: 60 },
+      { name: "Sink-Base", Height: 56, CabinetColor: "Ardesia DD GL", Depth: 50.5, Width: 90 },
+    ],
   },
   {
     id: 2,
@@ -21,7 +25,11 @@ export const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
-    presetProducts: [{ name: "CabinetUniBox" }, { name: "UniOpenShelves" }, { name: "CabinetUniBox" }],
+    presetProducts: [
+      { name: "Sink-Base", Width: 60 },
+      { name: "UniOpenShelves", Width: 90 },
+      { name: "Sink-Base", Width: 120 },
+    ],
   },
   {
     id: 3,
@@ -31,12 +39,12 @@ export const productMockData = [
     isProductModel: true,
     price: "$1,299.99",
     presetProducts: [
-      { name: "UniOpenShelves" },
-      { name: "UniOpenShelves" },
-      { name: "CabinetUniBox" },
-      { name: "CabinetUniBox" },
+      { name: "Open-Shelf", Width: 60 },
+      { name: "Open-Shelf", Width: 60 },
+      { name: "Sink-Base", Width: 60 },
+      { name: "Sink-Base", Width: 60 },
 
-      { name: "UniOpenShelves" },
+      { name: "Open-Shelf" },
     ],
   },
   {
@@ -46,7 +54,7 @@ export const productMockData = [
     desc: "57'' 2-Drawer",
     isProductModel: true,
     price: "$1,299.99",
-    presetProducts: [{ name: "UniOpenShelves" }, { name: "UniOpenShelves" }],
+    presetProducts: [{ name: "Open-Shelf" }, { name: "Open-Shelf" }],
   },
   {
     id: 5,
@@ -56,10 +64,10 @@ export const productMockData = [
     isProductModel: true,
     price: "$1,299.99",
     presetProducts: [
-      { name: "CabinetUniBox" },
-      { name: "CabinetUniBox" },
-      { name: "CabinetUniBox" },
-      { name: "CabinetUniBox" },
+      { name: "Sink-Base", Width: 120 },
+      { name: "Sink-Base" },
+      { name: "Sink-Base" },
+      { name: "Sink-Base", Width: 120 },
     ],
   },
 ];
