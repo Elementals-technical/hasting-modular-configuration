@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router-dom";
 
-import { StepAIcon } from "@/shared/assets/images/svg/StepAIcon";
 import img_desc from "@/shared/assets/images/png/descr_image.png";
 
 import s from "./ModelDetailsPage.module.scss";
@@ -11,6 +10,7 @@ export const ModelDetailsPage = () => {
   const selectedModel = productMockData.find(({ id }) => id === Number(modelId));
 
   const presetProducts = selectedModel?.presetProducts ?? [];
+  const stepLabels = ["A", "B", "C", "D", "E"];
 
   return (
     <div className={s.modelDetails}>
@@ -33,9 +33,7 @@ export const ModelDetailsPage = () => {
                 return (
                   <li key={`${i.name}-${index}`}>
                     <Link to={"#"}>
-                      <span className={s.stepIcon}>
-                        <StepAIcon />
-                      </span>
+                      <span className={s.stepIcon}>{stepLabels[index]}</span>
                       <span>{i.name}</span>
                     </Link>
                   </li>

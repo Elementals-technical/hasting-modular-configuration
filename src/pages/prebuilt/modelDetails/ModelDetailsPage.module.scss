@@ -61,8 +61,18 @@
 }
 
 .stepIcon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ac5331;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .detailsDescription {
