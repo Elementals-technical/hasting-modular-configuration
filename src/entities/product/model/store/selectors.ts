@@ -10,4 +10,6 @@ export const getSelectedProducts = (state: RootState) => state.rootStateUI.produ
 
 export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.activeDrawerProduct;
 
-export const getCabinetColor = (state: RootState) => state.rootStateUI.product.colorsOptions.CabinetColor;
+export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
+
+export const getSinkType = (state: RootState) => state.rootStateUI.product.productOptions.sinkType;
