@@ -5,6 +5,7 @@ import { Hint } from "../Hint/Hint";
 import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
 
 import s from "./ProductOptionItem.module.scss";
+import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 
 interface ProductOptionItemI {
   id: number | string;
@@ -13,8 +14,9 @@ interface ProductOptionItemI {
   isAvailable?: boolean;
   name?: string;
   isShortDesc: boolean;
+  config?: addProductConfigI;
   isActive?: boolean;
-  onClick?: (name: string) => void | Promise<void>;
+  onClick?: (name: string, config?: addProductConfigI) => void | Promise<void>;
   setActive?: (id: number | string) => void;
 }
 
@@ -25,6 +27,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   isAvailable,
   isShortDesc,
   name,
+  config,
   isActive = false,
   onClick,
   setActive,
@@ -36,7 +39,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     <div
       className={`${s.productOption} ${isActive ? s.activeItem : ""}`}
       onClick={() => {
-        onClick?.(productName);
+        onClick?.(productName, config);
         setActive?.(id);
       }}
     >

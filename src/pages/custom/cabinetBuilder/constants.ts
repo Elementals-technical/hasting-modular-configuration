@@ -2,28 +2,53 @@ export const optionsMockData = [
   {
     id: 101,
     title: "Sink-Base",
-    name: "CabinetUniBox",
+    name: "Sink-Base",
     desc: "Cabinet with a basin",
     isShortDesc: false,
+    config: {
+      Height: 56,
+      Depth: 50.5,
+      CabinetColor: "Ardesia DD GL",
+      Width: 120,
+      sinkType: "Top_HPLPrisma",
+    },
   },
   {
     id: 102,
     title: "Sink Cabinet",
-    name: "CabinetUniBox",
+    name: "Sink-Cabinet",
     desc: "Cabinet without a basin",
     isShortDesc: false,
+    config: {
+      Height: 56,
+      Depth: 50.5,
+      CabinetColor: "Ardesia DD GL",
+      Width: 120,
+    },
   },
   {
     id: 103,
     title: "Open Shelf",
-    name: "UniOpenShelves",
+    name: "Open-Shelf",
     isShortDesc: false,
+    config: {
+      Height: 56,
+      Depth: 50.5,
+      CabinetColor: "Ardesia DD GL",
+      Width: 120,
+    },
   },
   {
     id: 104,
     title: "Side Shelf",
-    name: "UniOpenSideShelves",
+    name: "Side-Shelf",
     isShortDesc: false,
+    config: {
+      Height: 56,
+      Depth: 50.5,
+      CabinetColor: "Ardesia DD GL",
+      Width: 120,
+    },
   },
 ];
 
