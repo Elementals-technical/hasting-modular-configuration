@@ -15,10 +15,9 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setCabinetColor } from "@/entities/product/model/store/slice";
-import { getProductsPresets } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
 
 const renderFilters = () => (
   <FilterRow className={s.innerRow}>
