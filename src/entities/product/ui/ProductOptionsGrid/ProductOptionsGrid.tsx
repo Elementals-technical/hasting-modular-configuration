@@ -46,7 +46,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         const optionName = i.name ?? i.title ?? i.desc;
         const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
 
-        const isActive = matchesCabinet || activeColor === optionName || activeBasinStyle === optionName;
+        const isActive = matchesCabinet || activeColor === optionName || activeBasinStyle === i.name;
 
         const handleSetActive =
           typeof i.id === "number" && setActiveCabinet

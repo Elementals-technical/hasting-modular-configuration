@@ -16,6 +16,7 @@ import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProduct
 import {
   addProductId,
   resetProducts,
+  setActiveBasinStyle,
   setActiveCabinetType,
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
@@ -85,13 +86,9 @@ export const CabinetBuilderPage = () => {
 
         if (firstCabinetOption) {
           dispatch(setActiveCabinetType(firstCabinetOption.id));
-          await handleAddProduct(firstCabinetOption.title, {
-            Height: 56,
-            Depth: 50.5,
-            CabinetColor: "Ardesia DD GL",
-            Width: 120,
-            sinkType: "Top_HPLPrisma",
-          });
+          await handleAddProduct(firstCabinetOption.title, firstCabinetOption.config);
+
+          dispatch(setActiveBasinStyle(firstCabinetOption.config.sinkType!));
 
           if (firstCabinetOption.title) {
             dispatch(setDrawerProduct(firstCabinetOption.title));
