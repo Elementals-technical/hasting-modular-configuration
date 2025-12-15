@@ -17,7 +17,8 @@ import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setCabinetColor } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { getProductsPresets } from "@/entities/product/model/store/selectors";
 
 const renderFilters = () => (
   <FilterRow className={s.innerRow}>
@@ -61,21 +62,18 @@ const renderFilters = () => (
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
-  // const presetsProducts = useAppSelector(getProductsPresets);
+  const presetsProducts = useAppSelector(getProductsPresets);
 
-  // const presetNames = presetsProducts.map((i) => {
-  //   return i.name;
-  // });
-
-  // const presetConfigArr: Array<Omit<PresetProduct, "name">> = presetsProducts.map(({ name, ...rest }) => rest);
+  const presetNames = presetsProducts.map((i) => {
+    return i.name;
+  });
 
   const handleChangeColor = (colorName?: string) => {
     if (!colorName) return;
 
-    console.log(colorName);
-
-    // addPreset(presetsProducts, { Height: 53, Depth: 46, Width: 90 });
-    setConfigBatch({ productType: "Sink-Base" }, { CabinetColor: colorName });
+    presetNames.forEach((productName) => {
+      setConfigBatch({ productType: productName }, { CabinetColor: colorName });
+    });
 
     dispatch(setCabinetColor(colorName));
   };

@@ -1,17 +1,38 @@
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
+import { getProductsPresets } from "@/entities/product/model/store/selectors.ts";
+import { setActiveBasinStyle } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import type { AccordionConfig } from "@/shared/constants/types";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
+
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
+
+import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CountertopPage.module.scss";
-import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
-import type { AccordionConfig } from "@/shared/constants/types";
 
 export const CountertopPage = () => {
+  const dispatch = useAppDispatch();
+  const presetsProducts = useAppSelector(getProductsPresets);
+
+  const presetNames = presetsProducts.map((i) => {
+    return i.name;
+  });
+
+  const handleAddBasinStyle = (basinStyle: string) => {
+    presetNames.forEach((productName) => {
+      setConfigBatch({ productType: productName }, { sinkType: basinStyle });
+    });
+
+    dispatch(setActiveBasinStyle(basinStyle));
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -82,7 +103,7 @@ export const CountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: <ProductOptionsGrid data={optionsMockData3} />,
+      content: <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={optionsMockData3} />,
     },
   ];
 
