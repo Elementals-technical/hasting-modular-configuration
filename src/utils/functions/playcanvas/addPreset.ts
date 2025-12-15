@@ -1,4 +1,6 @@
-export async function addPreset(presetProducts: any, globalConfig?: Record<string, unknown>) {
+import { type PresetProduct } from "@/entities/product/types";
+
+export async function addPreset(presetProducts: PresetProduct[] = [], globalConfig?: Record<string, unknown>) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;

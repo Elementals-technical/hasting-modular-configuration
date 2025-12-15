@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
+import { type PresetProduct } from "@/entities/product/types";
 
 import { Hint } from "../Hint/Hint";
 
@@ -13,8 +14,8 @@ interface ProductModelGridI {
   desc: string;
   isProductModel: boolean;
   price: string;
-  presetProducts?: Array<{ name: string }>;
-  onClick: (presetProducts: any) => void;
+  presetProducts?: PresetProduct[];
+  onClick: (presetProducts?: PresetProduct[]) => void;
 }
 
 export const ProductModelItem: React.FC<ProductModelGridI> = ({

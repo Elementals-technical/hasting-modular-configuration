@@ -15,9 +15,9 @@ export function setConfigBatch(ids: string[] | { productType: string }, config: 
   }
 
   try {
-    const batchedProducts = setConfigBatch({ productIds: ids }, config);
+    const payload = Array.isArray(ids) ? { productIds: ids } : ids;
 
-    return batchedProducts;
+    return setConfigBatch(payload, config);
   } catch (error) {
     console.error("[PlayCanvas] Failed to setConfigBatch", error);
     return null;

@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { PresetProduct } from "../../types";
 
 type DimensionOption = {
   name: number;
@@ -15,9 +16,12 @@ type ProductState = {
     height: DimensionOption[];
     depth: DimensionOption[];
   };
-  colorsOptions: {
+  productOptions: {
     CabinetColor: string;
+    sinkType: string;
   };
+
+  productsPresets: PresetProduct[];
 };
 
 type ProductDimensions = {
@@ -64,9 +68,12 @@ const initialState: ProductState = {
     height: HEIGHT_OPTIONS,
     depth: DEPTH_OPTIONS,
   },
-  colorsOptions: {
+  productOptions: {
     CabinetColor: "White Matte",
+    sinkType: "",
   },
+
+  productsPresets: [],
 };
 
 const productSlice = createSlice({
@@ -78,9 +85,6 @@ const productSlice = createSlice({
       if (!id) return;
       const next = [...state.productIds.filter((pid) => pid !== id), id];
       state.productIds = next;
-    },
-    setDrawerProduct(state, action: PayloadAction<string>) {
-      state.activeDrawerProduct = action.payload;
     },
     removeProductId(state, action: PayloadAction<string>) {
       const lastIndex = state.productIds.lastIndexOf(action.payload);
@@ -95,6 +99,13 @@ const productSlice = createSlice({
     resetProducts(state) {
       state.productIds = [];
     },
+    addProductPreset(state, action: PayloadAction<PresetProduct[]>) {
+      state.productsPresets = action.payload;
+    },
+
+    setDrawerProduct(state, action: PayloadAction<string>) {
+      state.activeDrawerProduct = action.payload;
+    },
     setActiveCabinetType(state, action: PayloadAction<number>) {
       state.activeCabinetType = action.payload;
     },
@@ -102,13 +113,17 @@ const productSlice = createSlice({
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
     },
     setCabinetColor(state, action: PayloadAction<string>) {
-      state.colorsOptions.CabinetColor = action.payload;
+      state.productOptions.CabinetColor = action.payload;
+    },
+    setActiveBasinStyle(state, action: PayloadAction<string>) {
+      state.productOptions.sinkType = action.payload;
     },
   },
 });
 
 export const {
   addProductId,
+  addProductPreset,
   removeProductId,
   reset,
   setActiveCabinetType,
@@ -116,5 +131,6 @@ export const {
   setDrawerProduct,
   setCabinetColor,
   resetProducts,
+  setActiveBasinStyle,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;

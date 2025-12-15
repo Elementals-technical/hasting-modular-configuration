@@ -3,8 +3,25 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import type { AccordionConfig } from "@/shared/constants/types";
 
 import { optionsMockData, optionsMockData2, optionsMockData3 } from "./constants";
+import { getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setActiveBasinStyle } from "@/entities/product/model/store/slice";
 
 export const CustomCountertopPage = () => {
+  const dispatch = useAppDispatch();
+  const selectedProducts = useAppSelector(getSelectedProducts);
+
+  const handleAddbasinStyle = (basinStyle: string) => {
+    console.log("basinStyle", basinStyle);
+
+    setConfigBatch(selectedProducts, {
+      sinkType: basinStyle,
+    });
+
+    dispatch(setActiveBasinStyle(basinStyle));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "counter-top-color",
@@ -33,7 +50,7 @@ export const CustomCountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: <ProductOptionsGrid data={optionsMockData3} />,
+      content: <ProductOptionsGrid data={optionsMockData3} handleAdd={handleAddbasinStyle} />,
     },
   ];
 

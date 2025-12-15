@@ -15,9 +15,9 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { setCabinetColor } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { setCabinetColor } from "@/entities/product/model/store/slice";
 
 const renderFilters = () => (
   <FilterRow className={s.innerRow}>
@@ -61,13 +61,21 @@ const renderFilters = () => (
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
+  // const presetsProducts = useAppSelector(getProductsPresets);
+
+  // const presetNames = presetsProducts.map((i) => {
+  //   return i.name;
+  // });
+
+  // const presetConfigArr: Array<Omit<PresetProduct, "name">> = presetsProducts.map(({ name, ...rest }) => rest);
 
   const handleChangeColor = (colorName?: string) => {
     if (!colorName) return;
 
     console.log(colorName);
 
-    setConfigBatch({ productType: "CabinetUniBox" }, { CabinetColor: "Arancio Zucca 09 MT" });
+    // addPreset(presetsProducts, { Height: 53, Depth: 46, Width: 90 });
+    setConfigBatch({ productType: "Sink-Base" }, { CabinetColor: colorName });
 
     dispatch(setCabinetColor(colorName));
   };

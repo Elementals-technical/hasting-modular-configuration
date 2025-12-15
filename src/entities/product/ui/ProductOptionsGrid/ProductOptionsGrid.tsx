@@ -2,7 +2,7 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionItem";
 
 import s from "./ProductOptionsGrid.module.scss";
-import { getActiveCabinetType, getCabinetColor } from "../../model/store/selectors";
+import { getActiveCabinetType, getCabinetColor, getSinkType } from "../../model/store/selectors";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 
 type ProductOptionData = {
@@ -30,6 +30,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
 }) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const activeColor = useAppSelector(getCabinetColor);
+  const activeBasinStyle = useAppSelector(getSinkType);
 
   const hasActiveCabinet = activeCabinet !== null;
 
@@ -45,7 +46,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         const optionName = i.name ?? i.title ?? i.desc;
         const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
 
-        const isActive = matchesCabinet || activeColor === optionName;
+        const isActive = matchesCabinet || activeColor === optionName || activeBasinStyle === i.name;
 
         const handleSetActive =
           typeof i.id === "number" && setActiveCabinet
