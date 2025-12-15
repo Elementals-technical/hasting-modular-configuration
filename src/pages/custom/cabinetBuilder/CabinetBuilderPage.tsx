@@ -52,11 +52,11 @@ export const CabinetBuilderPage = () => {
   };
 
   const handleAddProduct = useCallback(
-    async (name?: string, config: addProductConfigI) => {
+    async (name?: string, config?: addProductConfigI) => {
       if (!name) return;
 
       try {
-        const productId = await addProduct(name);
+        const productId = await addProduct(name, config);
 
         if (productId) {
           dispatch(addProductId(productId));
