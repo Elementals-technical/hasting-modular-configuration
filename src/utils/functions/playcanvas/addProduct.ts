@@ -1,5 +1,13 @@
+export interface addProductConfigI {
+  Height: number;
+  Depth: number;
+  CabinetColor: string;
+  Width: number;
+  sinkType: string;
+}
+
 // Return product and its ID
-export async function addProduct(name: string) {
+export async function addProduct(name: string, config?: addProductConfigI) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
@@ -15,7 +23,7 @@ export async function addProduct(name: string) {
   }
 
   try {
-    const productId = await addProduct(name);
+    const productId = await addProduct(name, config);
     console.log(productId);
 
     return productId;

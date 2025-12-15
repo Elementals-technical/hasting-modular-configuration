@@ -4,7 +4,7 @@ import temp_img from "@/shared/assets/images/png/Image.png";
 
 import s from "./ProductModelsGrid.module.scss";
 
-const productMockData = [
+export const productMockData = [
   {
     id: 1,
     img: temp_img,

@@ -1,13 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
-import img_desc from "@/shared/assets/images/png/descr_image.png";
 import { StepAIcon } from "@/shared/assets/images/svg/StepAIcon";
-import { StepBIcon } from "@/shared/assets/images/svg/StepBIcon";
-import { StepCIcon } from "@/shared/assets/images/svg/StepCIcon";
+import img_desc from "@/shared/assets/images/png/descr_image.png";
 
 import s from "./ModelDetailsPage.module.scss";
+import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 export const ModelDetailsPage = () => {
+  const { modelId } = useParams<{ modelId: string }>();
+  const selectedModel = productMockData.find(({ id }) => id === Number(modelId));
+
+  const presetProducts = selectedModel?.presetProducts ?? [];
+
   return (
     <div className={s.modelDetails}>
       <div className={s.detailsDimensions}>
@@ -25,30 +29,18 @@ export const ModelDetailsPage = () => {
             <h4>Cabinet breakdown</h4>
 
             <ul>
-              <li>
-                <Link to={"#"}>
-                  <span className={s.stepIcon}>
-                    <StepAIcon />
-                  </span>
-                  <span>Open Shelf | 35 cm</span>
-                </Link>
-              </li>
-              <li>
-                <Link to={"#"}>
-                  <span className={s.stepIcon}>
-                    <StepBIcon />
-                  </span>
-                  <span>Side Cabinet | 50 cm 2-Drawer</span>
-                </Link>
-              </li>
-              <li>
-                <Link to={"#"}>
-                  <span className={s.stepIcon}>
-                    <StepCIcon />
-                  </span>
-                  <span>Side Base | 60 cm 2-Drawer</span>
-                </Link>
-              </li>
+              {presetProducts.map((i, index) => {
+                return (
+                  <li key={`${i.name}-${index}`}>
+                    <Link to={"#"}>
+                      <span className={s.stepIcon}>
+                        <StepAIcon />
+                      </span>
+                      <span>{i.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
