@@ -1,26 +1,14 @@
 export const optionsMockData = [
   {
     id: 1001,
-    title: "Colortech",
+    title: "Arancio Zucca 09 MT",
     desc: "Bianco 10B",
     isShortDesc: false,
   },
   {
     id: 1002,
-    title: "Colortech 10FF",
+    title: "Ardesia DD GL",
     desc: "Grigio fume 10FF",
-    isShortDesc: false,
-  },
-  {
-    id: 1003,
-    title: "Cemento",
-    desc: "Centre 1A1",
-    isShortDesc: false,
-  },
-  {
-    id: 1004,
-    title: "Cemento",
-    desc: "Tortora 1A2",
     isShortDesc: false,
   },
 ];

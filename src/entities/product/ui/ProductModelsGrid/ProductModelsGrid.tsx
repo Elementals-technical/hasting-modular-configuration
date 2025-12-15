@@ -1,10 +1,11 @@
 import { ProductModelItem } from "@/shared/ui/ProductModelItem/ProductModelItem";
 
 import temp_img from "@/shared/assets/images/png/Image.png";
+import { type ProductModel, type PresetProduct } from "@/entities/product/types";
 
 import s from "./ProductModelsGrid.module.scss";
 
-export const productMockData = [
+export const productMockData: ProductModel[] = [
   {
     id: 1,
     img: temp_img,
@@ -74,7 +75,7 @@ export const productMockData = [
 
 interface ProductModelsGridI {
   createModelBtn?: React.ReactNode;
-  handleAddPreset: (presetProducts: any) => void;
+  handleAddPreset: (presetProducts?: PresetProduct[]) => void;
 }
 
 export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn, handleAddPreset }) => {

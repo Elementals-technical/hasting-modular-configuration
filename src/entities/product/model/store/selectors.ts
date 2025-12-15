@@ -13,3 +13,5 @@ export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.
 export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
 
 export const getSinkType = (state: RootState) => state.rootStateUI.product.productOptions.sinkType;
+
+export const getProductsPresets = (state: RootState) => state.rootStateUI.product.productsPresets;

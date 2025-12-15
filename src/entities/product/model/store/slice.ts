@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { PresetProduct } from "../../types";
 
 type DimensionOption = {
   name: number;
@@ -19,6 +20,8 @@ type ProductState = {
     CabinetColor: string;
     sinkType: string;
   };
+
+  productsPresets: PresetProduct[];
 };
 
 type ProductDimensions = {
@@ -69,6 +72,8 @@ const initialState: ProductState = {
     CabinetColor: "White Matte",
     sinkType: "",
   },
+
+  productsPresets: [],
 };
 
 const productSlice = createSlice({
@@ -94,6 +99,9 @@ const productSlice = createSlice({
     resetProducts(state) {
       state.productIds = [];
     },
+    addProductPreset(state, action: PayloadAction<PresetProduct[]>) {
+      state.productsPresets = action.payload;
+    },
 
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
@@ -115,6 +123,7 @@ const productSlice = createSlice({
 
 export const {
   addProductId,
+  addProductPreset,
   removeProductId,
   reset,
   setActiveCabinetType,
