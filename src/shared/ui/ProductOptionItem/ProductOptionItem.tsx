@@ -32,7 +32,6 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   isActive = false,
   onClick,
   setActive,
-  metadata,
 }) => {
   const available = isAvailable ?? true; // undefined as available
   const productName = name ?? title;

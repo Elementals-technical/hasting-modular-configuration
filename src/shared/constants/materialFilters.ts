@@ -96,6 +96,7 @@ export const getMaterialOptionsGridData = (optionName: string): ProductOptionDat
       materials: parseList(metadata?.Material),
       looks: parseList(metadata?.Look),
       hex: metadata?.hex?.trim(),
+      value: metadata?.value ?? value,
     },
   }));
 };

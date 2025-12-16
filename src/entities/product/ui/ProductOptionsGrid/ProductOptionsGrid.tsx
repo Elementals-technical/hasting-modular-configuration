@@ -10,6 +10,7 @@ export type ProductOptionMetadata = {
   materials?: string[];
   looks?: string[];
   hex?: string;
+  value?: string;
 };
 
 export type ProductOptionData = {
@@ -52,7 +53,6 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
     <div className={s.optionsGrid}>
       {data.map((i) => {
         const playcanvasValue = i.metadata?.value ?? i.name ?? i.title ?? i.desc;
-        const optionName = i.name ?? i.title ?? i.desc;
         const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
 
         const isActive = matchesCabinet || activeColor === playcanvasValue || activeBasinStyle === playcanvasValue;
@@ -66,7 +66,6 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
           <ProductOptionItem
             key={i.id}
             id={i.id}
-            name={i.name}
             title={i.title}
             desc={i.desc}
             isAvailable={i.isAvailable}
