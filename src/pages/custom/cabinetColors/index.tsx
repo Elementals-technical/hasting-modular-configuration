@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -9,8 +9,9 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
-import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -18,48 +19,64 @@ import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setCabinetColor } from "@/entities/product/model/store/slice";
 
+const BASE_PANEL_OPTION = "Base Panel";
+
 export const CustomCabinetColorsPage = () => {
   const dispatch = useAppDispatch();
   const selectedProducts = useAppSelector(getSelectedProducts);
 
-  console.log("selectedProducts", selectedProducts);
+  const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
+  const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
+
+  const [selectedFilter, setSelectedFilter] = useState<{
+    material?: string;
+    color?: string;
+    look?: string;
+    hex?: string;
+  }>({});
+
+  const filteredBasePanelOptions = useMemo(() => {
+    return basePanelOptions.filter((option) => {
+      const { materials, colors, looks, hex } = option.metadata ?? {};
+
+      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
+      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
+      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
+      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
+
+      return materialMatch && colorMatch && lookMatch && hexMatch;
+    });
+  }, [basePanelOptions, selectedFilter]);
+
+  const sortedBasePanelOptions = useMemo(
+    () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
+    [filteredBasePanelOptions],
+  );
 
   const renderFiltersForCabinetColor = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
         label="Material"
-        options={[
-          { label: "Small", value: "s" },
-          { label: "Medium", value: "m" },
-          { label: "Large", value: "l" },
-        ]}
+        options={materialFilters.materials}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, material: value as string }))}
       />
 
       <FilterItem
         label="Color"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
+        options={materialFilters.colors}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, color: value as string }))}
       />
 
       <FilterItem
         label="Look"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
+        options={materialFilters.looks}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, look: value as string }))}
       />
 
       <FilterItem
         label="Price"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
+        options={materialFilters.hex}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
   );
@@ -125,7 +142,7 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFiltersForCabinetColor()}
-          <ProductOptionsGrid data={optionsMockData} handleAdd={handleChangeColor} />
+          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeColor} />
         </>
       ),
     },

@@ -18,6 +18,7 @@ interface ProductOptionItemI {
   isActive?: boolean;
   onClick?: (name: string, config?: addProductConfigI) => void | Promise<void>;
   setActive?: (id: number | string) => void;
+  metadata?: Record<string, unknown>;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
@@ -31,6 +32,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   isActive = false,
   onClick,
   setActive,
+  metadata,
 }) => {
   const available = isAvailable ?? true; // undefined as available
   const productName = name ?? title;
