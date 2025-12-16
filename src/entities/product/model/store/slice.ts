@@ -19,6 +19,7 @@ type ProductState = {
   productOptions: {
     CabinetColor: string;
     sinkType: string;
+    CountertopColor: string;
   };
 
   productsPresets: PresetProduct[];
@@ -71,6 +72,7 @@ const initialState: ProductState = {
   productOptions: {
     CabinetColor: "White Matte",
     sinkType: "",
+    CountertopColor: "",
   },
 
   productsPresets: [],
@@ -118,6 +120,9 @@ const productSlice = createSlice({
     setActiveBasinStyle(state, action: PayloadAction<string>) {
       state.productOptions.sinkType = action.payload;
     },
+    setActiveCountertopColor(state, action: PayloadAction<string>) {
+      state.productOptions.CountertopColor = action.payload;
+    },
   },
 });
 
@@ -132,5 +137,6 @@ export const {
   setCabinetColor,
   resetProducts,
   setActiveBasinStyle,
+  setActiveCountertopColor,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;

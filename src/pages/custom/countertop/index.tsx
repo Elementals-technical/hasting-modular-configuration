@@ -9,7 +9,7 @@ import { optionsMockData, optionsMockData2, optionsMockData3 } from "./constants
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setActiveBasinStyle } from "@/entities/product/model/store/slice";
+import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -18,12 +18,21 @@ export const CustomCountertopPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
 
   const countertopOptions = useMemo(
-    () =>
-      getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) =>
-        (a.title ?? "").localeCompare(b.title ?? ""),
-      ),
+    () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [],
   );
+
+  const handleChangeCountertopColor = (colorName: string) => {
+    if (!colorName) return;
+
+    console.log("Countertop Color", colorName);
+
+    setConfigBatch(selectedProducts, {
+      CountertopColor: colorName,
+    });
+
+    dispatch(setActiveCountertopColor(colorName));
+  };
 
   const handleAddbasinStyle = (basinStyle: string) => {
     console.log("basinStyle", basinStyle);
@@ -42,7 +51,7 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={countertopOptions} />
+          <ProductOptionsGrid data={countertopOptions} handleAdd={handleChangeCountertopColor} />
         </>
       ),
     },
