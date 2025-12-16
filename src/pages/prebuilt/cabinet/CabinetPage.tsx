@@ -4,7 +4,7 @@ import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
-import { optionsMockData2, optionsMockData3, optionsMockData4 } from "@/pages/prebuilt/cabinet/constants";
+import { optionsMockData3, optionsMockData4 } from "@/pages/prebuilt/cabinet/constants";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
@@ -12,7 +12,7 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { setCabinetColor } from "@/entities/product/model/store/slice";
+import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -94,6 +94,18 @@ export const CabinetPage = () => {
     dispatch(setCabinetColor(colorName));
   };
 
+  const handleChangeGrooveColor = (colorName: string) => {
+    if (!colorName) return;
+
+    console.log("HandleGrooveColor", colorName);
+
+    presetNames.forEach((productName) => {
+      setConfigBatch({ productType: productName }, { HandleGrooveColor: colorName });
+    });
+
+    dispatch(setHandleGrooveColor(colorName));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -114,7 +126,7 @@ export const CabinetPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={optionsMockData2} />
+          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeGrooveColor} />
         </>
       ),
     },

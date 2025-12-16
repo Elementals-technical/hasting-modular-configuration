@@ -14,6 +14,9 @@ export const getSelectedProductConfig = (state: RootState) => state.rootStateUI.
 
 export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
 
+export const getHandleGrooveColor = (state: RootState) =>
+  state.rootStateUI.product.productOptions.HandleGrooveColor;
+
 export const getSinkType = (state: RootState) => state.rootStateUI.product.productOptions.sinkType;
 
 export const getProductsPresets = (state: RootState) => state.rootStateUI.product.productsPresets;
