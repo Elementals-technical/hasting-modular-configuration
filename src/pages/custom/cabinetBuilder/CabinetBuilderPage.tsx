@@ -18,6 +18,7 @@ import {
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
+  setSelectedProductConfig,
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
 
@@ -52,18 +53,15 @@ export const CabinetBuilderPage = () => {
     setIsOpenedBuildInfo(false);
   };
 
-  const handleAddProduct = useCallback(
-    async (name?: string, config?: addProductConfigI) => {
+  const handleSelectCabinetConfig = useCallback(
+    (name?: string, config?: addProductConfigI) => {
       if (!name) return;
 
-      try {
-        const productId = await addProduct(name, config);
+      dispatch(setDrawerProduct(name));
+      dispatch(setSelectedProductConfig(config ?? null));
 
-        if (productId) {
-          dispatch(addProductId(productId));
-        }
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to apply preset", error);
+      if (config?.sinkType) {
+        dispatch(setActiveBasinStyle(config.sinkType));
       }
     },
     [dispatch],
@@ -84,14 +82,25 @@ export const CabinetBuilderPage = () => {
 
         const firstCabinetOption = optionsMockData[0];
 
+        const defaultProductName = "Sink-Base";
+        const defaultProductConfig: addProductConfigI = {
+          Height: 56,
+          Depth: 46,
+          CabinetColor: "Ardesia DD GL",
+          Width: 60,
+          sinkType: "Top_HPLPrisma",
+          CountertopColor: "Rosso Rubino 19 MT",
+          HandleGrooveColor: "Blu Pavone A6 MT",
+        };
+
         if (firstCabinetOption) {
           dispatch(setActiveCabinetType(firstCabinetOption.id));
-          await handleAddProduct(firstCabinetOption.title, firstCabinetOption.config);
 
-          dispatch(setActiveBasinStyle(firstCabinetOption.config.sinkType!));
+          const productId = await addProduct(defaultProductName, defaultProductConfig);
+          handleSelectCabinetConfig(defaultProductName, defaultProductConfig);
 
-          if (firstCabinetOption.title) {
-            dispatch(setDrawerProduct(firstCabinetOption.title));
+          if (productId) {
+            dispatch(addProductId(productId));
           }
         }
       } catch (error) {
@@ -100,14 +109,9 @@ export const CabinetBuilderPage = () => {
     }
 
     resetAndBootstrapFirstProduct();
-  }, [canvasReady, dispatch, handleAddProduct, hasActiveCabinet, hasProducts]);
+  }, [canvasReady, dispatch, handleSelectCabinetConfig, hasActiveCabinet, hasProducts]);
 
   const setActiveCabinet = (id: number) => {
-    console.log(id);
-
-    removeAllProducts();
-    dispatch(resetProducts());
-
     dispatch(setActiveCabinetType(id));
   };
 
@@ -117,7 +121,11 @@ export const CabinetBuilderPage = () => {
       title: "Cabinet Type",
       defaultOpen: true,
       content: (
-        <ProductOptionsGrid handleAdd={handleAddProduct} data={optionsMockData} setActiveCabinet={setActiveCabinet} />
+        <ProductOptionsGrid
+          handleAdd={handleSelectCabinetConfig}
+          data={optionsMockData}
+          setActiveCabinet={setActiveCabinet}
+        />
       ),
     },
     {

@@ -11,11 +11,12 @@ import {
   getDrawerProduct,
   getSelectedDimensions,
   getSelectedProducts,
+  getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
 import { addProductId, setSelectedDimensions } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { BaseButton } from "@/shared";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
@@ -30,6 +31,17 @@ export const RightCabinetStyleSidebar = () => {
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+
+  const productConfig = useMemo(
+    () => ({
+      ...(selectedProductConfig ?? {}),
+      Width: selectedDimensions.width,
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+    }),
+    [selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedProductConfig],
+  );
 
   const handleCloseSidebar = () => {
     dispatch(setOpenStyleSidebar(false));
@@ -49,13 +61,14 @@ export const RightCabinetStyleSidebar = () => {
 
   const addToLeft = async () => {
     try {
+      if (!activeDrawerProduct) return;
+
       const productId = await addProductByLeft(activeDrawerProduct);
 
-      setConfig(productId, { Width: selectedDimensions.width });
+      if (!productId) return;
 
-      if (productId) {
-        dispatch(addProductId(productId));
-      }
+      await setConfig(productId, productConfig);
+      dispatch(addProductId(productId));
     } catch (error) {
       console.error("[ProductModelItem] Failed to add product to the left", error);
     }
@@ -63,13 +76,14 @@ export const RightCabinetStyleSidebar = () => {
 
   const addToRight = async () => {
     try {
+      if (!activeDrawerProduct) return;
+
       const productId = await addProductByRight(activeDrawerProduct);
 
-      setConfig(productId, { Width: selectedDimensions.width });
+      if (!productId) return;
 
-      if (productId) {
-        dispatch(addProductId(productId));
-      }
+      await setConfig(productId, productConfig);
+      dispatch(addProductId(productId));
     } catch (error) {
       console.error("[ProductModelItem] Failed to add product to the right", error);
     }

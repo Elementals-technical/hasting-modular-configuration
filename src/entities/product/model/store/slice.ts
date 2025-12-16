@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
 type DimensionOption = {
@@ -10,6 +11,7 @@ type ProductState = {
   productIds: string[];
   activeCabinetType: number | null;
   activeDrawerProduct: string;
+  selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
   dimensionOptions: {
     width: DimensionOption[];
@@ -30,6 +32,10 @@ type ProductDimensions = {
   height: number;
   depth: number;
 };
+
+type ProductConfig = {
+  [key: string]: unknown;
+} & Partial<addProductConfigI>;
 
 const WIDTH_OPTIONS: DimensionOption[] = [
   { name: 25, value: 25 },
@@ -63,6 +69,7 @@ const initialState: ProductState = {
   productIds: [],
   activeCabinetType: null,
   activeDrawerProduct: "",
+  selectedProductConfig: null,
   selectedDimensions: DEFAULT_DIMENSIONS,
   dimensionOptions: {
     width: WIDTH_OPTIONS,
@@ -114,6 +121,9 @@ const productSlice = createSlice({
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
     },
+    setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
+      state.selectedProductConfig = action.payload;
+    },
     setCabinetColor(state, action: PayloadAction<string>) {
       state.productOptions.CabinetColor = action.payload;
     },
@@ -134,6 +144,7 @@ export const {
   setActiveCabinetType,
   setSelectedDimensions,
   setDrawerProduct,
+  setSelectedProductConfig,
   setCabinetColor,
   resetProducts,
   setActiveBasinStyle,

@@ -4,6 +4,7 @@ export interface addProductConfigI {
   CabinetColor: string;
   Width: number;
   sinkType?: string;
+  [key: string]: unknown;
 }
 
 // Return product and its ID
