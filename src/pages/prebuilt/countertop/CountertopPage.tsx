@@ -1,7 +1,9 @@
+import { useMemo, useState } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { getProductsPresets } from "@/entities/product/model/store/selectors.ts";
-import { setActiveBasinStyle } from "@/entities/product/model/store/slice.ts";
+import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -10,10 +12,11 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
+import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
 
-import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CountertopPage.module.scss";
 
@@ -21,9 +24,49 @@ export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
 
+  const materialFilters = useMemo(() => buildMaterialFilters("Counertops materials"), []);
+  const countertopOptions = useMemo(() => getMaterialOptionsGridData("Counertops materials"), []);
+
+  const [selectedFilter, setSelectedFilter] = useState<{
+    material?: string;
+    color?: string;
+    look?: string;
+    hex?: string;
+  }>({});
+
+  const filteredCountertopOptions = useMemo(() => {
+    return countertopOptions.filter((option) => {
+      const { materials, colors, looks, hex } = option.metadata ?? {};
+
+      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
+      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
+      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
+      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
+
+      return materialMatch && colorMatch && lookMatch && hexMatch;
+    });
+  }, [countertopOptions, selectedFilter]);
+
+  const sortedCountertopOptions = useMemo(
+    () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [filteredCountertopOptions],
+  );
+
   const presetNames = presetsProducts.map((i) => {
     return i.name;
   });
+
+  const handleChangeCountertopColor = (colorName: string) => {
+    if (!colorName) return;
+
+    console.log("Countertop Color", colorName);
+
+    presetNames.forEach((productName) => {
+      setConfigBatch({ productType: productName }, { CountertopColor: colorName });
+    });
+
+    dispatch(setActiveCountertopColor(colorName));
+  };
 
   const handleAddBasinStyle = (basinStyle: string) => {
     presetNames.forEach((productName) => {
@@ -37,38 +80,26 @@ export const CountertopPage = () => {
     <FilterRow className={s.innerRow}>
       <FilterItem
         label="Material"
-        options={[
-          { label: "Small", value: "s" },
-          { label: "Medium", value: "m" },
-          { label: "Large", value: "l" },
-        ]}
+        options={materialFilters.materials}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, material: value as string }))}
       />
 
       <FilterItem
         label="Color"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
+        options={materialFilters.colors}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, color: value as string }))}
       />
 
       <FilterItem
         label="Look"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
+        options={materialFilters.looks}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, look: value as string }))}
       />
 
       <FilterItem
         label="Price"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
+        options={materialFilters.hex}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
   );
@@ -82,7 +113,7 @@ export const CountertopPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={sortedCountertopOptions} handleAdd={handleChangeCountertopColor} />
         </>
       ),
     },
