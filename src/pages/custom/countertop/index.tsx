@@ -1,6 +1,9 @@
+import { useMemo } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 import { optionsMockData, optionsMockData2, optionsMockData3 } from "./constants";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
@@ -8,9 +11,19 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setActiveBasinStyle } from "@/entities/product/model/store/slice";
 
+const COUNTERTOP_OPTION = "Counertops materials";
+
 export const CustomCountertopPage = () => {
   const dispatch = useAppDispatch();
   const selectedProducts = useAppSelector(getSelectedProducts);
+
+  const countertopOptions = useMemo(
+    () =>
+      getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) =>
+        (a.title ?? "").localeCompare(b.title ?? ""),
+      ),
+    [],
+  );
 
   const handleAddbasinStyle = (basinStyle: string) => {
     console.log("basinStyle", basinStyle);
@@ -29,7 +42,7 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={countertopOptions} />
         </>
       ),
     },

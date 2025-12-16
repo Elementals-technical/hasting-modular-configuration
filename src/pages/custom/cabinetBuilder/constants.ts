@@ -8,9 +8,11 @@ export const optionsMockData = [
     config: {
       Height: 56,
       Depth: 50.5,
-      CabinetColor: "Ardesia DD GL",
       Width: 120,
+      CabinetColor: "Ardesia DD GL",
       sinkType: "Top_HPLPrisma",
+      HandleGrooveColor: "Ardesia DD GL",
+      CountertopColor: "Blu Pavone A6 MT",
     },
   },
   {
