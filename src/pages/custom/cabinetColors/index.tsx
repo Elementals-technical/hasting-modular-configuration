@@ -11,7 +11,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
-import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -53,7 +53,7 @@ export const CustomCabinetColorsPage = () => {
     [filteredBasePanelOptions],
   );
 
-  const renderFiltersForCabinetColor = () => (
+  const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
         label="Material"
@@ -81,46 +81,6 @@ export const CustomCabinetColorsPage = () => {
     </FilterRow>
   );
 
-  const renderFiltersForHandleColor = () => (
-    <FilterRow className={s.innerRow}>
-      <FilterItem
-        label="Material"
-        options={[
-          { label: "Small", value: "s" },
-          { label: "Medium", value: "m" },
-          { label: "Large", value: "l" },
-        ]}
-      />
-
-      <FilterItem
-        label="Color"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
-      />
-
-      <FilterItem
-        label="Look"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
-      />
-
-      <FilterItem
-        label="Price"
-        options={[
-          { label: "Style 1", value: "s" },
-          { label: "Style 2", value: "m" },
-          { label: "Style 3", value: "l" },
-        ]}
-      />
-    </FilterRow>
-  );
-
   const handleChangeColor = (colorName: string) => {
     if (!colorName) return;
 
@@ -141,7 +101,7 @@ export const CustomCabinetColorsPage = () => {
       content: (
         <>
           <ViewModePanel />
-          {renderFiltersForCabinetColor()}
+          {renderFilters()}
           <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeColor} />
         </>
       ),
@@ -152,8 +112,8 @@ export const CustomCabinetColorsPage = () => {
       content: (
         <>
           <ViewModePanel />
-          {renderFiltersForHandleColor()}
-          <ProductOptionsGrid data={optionsMockData2} />
+          {renderFilters()}
+          <ProductOptionsGrid data={sortedBasePanelOptions} />
         </>
       ),
     },
