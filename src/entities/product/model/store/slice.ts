@@ -22,6 +22,7 @@ type ProductState = {
     CabinetColor: string;
     sinkType: string;
     CountertopColor: string;
+    HandleGrooveColor: string;
   };
 
   productsPresets: PresetProduct[];
@@ -80,6 +81,7 @@ const initialState: ProductState = {
     CabinetColor: "White Matte",
     sinkType: "",
     CountertopColor: "",
+    HandleGrooveColor: "",
   },
 
   productsPresets: [],
@@ -127,6 +129,9 @@ const productSlice = createSlice({
     setCabinetColor(state, action: PayloadAction<string>) {
       state.productOptions.CabinetColor = action.payload;
     },
+    setHandleGrooveColor(state, action: PayloadAction<string>) {
+      state.productOptions.HandleGrooveColor = action.payload;
+    },
     setActiveBasinStyle(state, action: PayloadAction<string>) {
       state.productOptions.sinkType = action.payload;
     },
@@ -146,6 +151,7 @@ export const {
   setDrawerProduct,
   setSelectedProductConfig,
   setCabinetColor,
+  setHandleGrooveColor,
   resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,

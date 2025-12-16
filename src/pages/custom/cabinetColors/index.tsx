@@ -17,7 +17,7 @@ import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setCabinetColor } from "@/entities/product/model/store/slice";
+import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
 
 const BASE_PANEL_OPTION = "Base Panel";
 
@@ -102,7 +102,7 @@ export const CustomCabinetColorsPage = () => {
       HandleGrooveColor: colorName,
     });
 
-    dispatch(setCabinetColor(colorName));
+    dispatch(setHandleGrooveColor(colorName));
   };
 
   const ACCORDIONS: AccordionConfig[] = [
