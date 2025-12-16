@@ -5,6 +5,7 @@ import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
+import { useLocation } from "react-router-dom";
 
 import s from "./BottomCanvasButtons.module.scss";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
@@ -23,6 +24,8 @@ import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 
 export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
+  const { pathname } = useLocation();
+  const isCustomRoute = pathname.includes("/custom");
 
   const resetCustomBuilderScene = async () => {
     removeAllProducts();
@@ -88,7 +91,14 @@ export const BottomCanvasButtons = () => {
         <ShareIcon />
       </BaseButton>
 
-      <BaseButton variant="ghost" onClick={resetCustomBuilderScene}>
+      <BaseButton
+        variant="ghost"
+        onClick={() => {
+          if (isCustomRoute) {
+            resetCustomBuilderScene();
+          }
+        }}
+      >
         <RotateIcon />
       </BaseButton>
     </div>
