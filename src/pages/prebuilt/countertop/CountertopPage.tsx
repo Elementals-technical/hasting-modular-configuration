@@ -1,7 +1,7 @@
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { getProductsPresets } from "@/entities/product/model/store/selectors.ts";
-import { setActiveBasinStyle } from "@/entities/product/model/store/slice.ts";
+import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -24,6 +24,18 @@ export const CountertopPage = () => {
   const presetNames = presetsProducts.map((i) => {
     return i.name;
   });
+
+  const handleChangeCountertopColor = (colorName: string) => {
+    if (!colorName) return;
+
+    console.log("Countertop Color", colorName);
+
+    presetNames.forEach((productName) => {
+      setConfigBatch({ productType: productName }, { CountertopColor: colorName });
+    });
+
+    dispatch(setActiveCountertopColor(colorName));
+  };
 
   const handleAddBasinStyle = (basinStyle: string) => {
     presetNames.forEach((productName) => {
@@ -82,7 +94,7 @@ export const CountertopPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={optionsMockData} handleAdd={handleChangeCountertopColor} />
         </>
       ),
     },
