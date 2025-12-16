@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { getProductsPresets } from "@/entities/product/model/store/selectors.ts";
@@ -10,16 +12,23 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
+import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
 
-import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CountertopPage.module.scss";
 
 export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
+
+  const countertopOptions = useMemo(
+    () =>
+      getMaterialOptionsGridData("Counertops materials").sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [],
+  );
 
   const presetNames = presetsProducts.map((i) => {
     return i.name;
@@ -94,7 +103,7 @@ export const CountertopPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={optionsMockData} handleAdd={handleChangeCountertopColor} />
+          <ProductOptionsGrid data={countertopOptions} handleAdd={handleChangeCountertopColor} />
         </>
       ),
     },
