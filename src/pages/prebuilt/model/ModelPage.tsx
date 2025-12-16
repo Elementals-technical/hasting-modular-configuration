@@ -12,14 +12,16 @@ import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 import { productMockData, ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { addProductPreset } from "@/entities/product/model/store/slice";
+import { getProductsPresets } from "@/entities/product/model/store/selectors";
 
 export const ModelPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
+  const productsPresets = useAppSelector(getProductsPresets);
 
   const handleNavigate = () => {
     navigate(ROUTES.CUSTOM);
@@ -38,7 +40,7 @@ export const ModelPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
-    if (!canvasReady || isDefinedProductsRef.current) return;
+    if (!canvasReady || isDefinedProductsRef.current || productsPresets.length) return;
 
     isDefinedProductsRef.current = true;
 
@@ -52,7 +54,7 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady]);
+  }, [canvasReady, productsPresets.length]);
 
   return (
     <div>
