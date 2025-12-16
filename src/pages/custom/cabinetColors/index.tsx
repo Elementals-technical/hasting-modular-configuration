@@ -93,6 +93,18 @@ export const CustomCabinetColorsPage = () => {
     dispatch(setCabinetColor(colorName));
   };
 
+  const handleChangeGrooveColor = (colorName: string) => {
+    if (!colorName) return;
+
+    console.log("HandleGrooveColor", colorName);
+
+    setConfigBatch(selectedProducts, {
+      HandleGrooveColor: colorName,
+    });
+
+    dispatch(setCabinetColor(colorName));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -113,7 +125,7 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} />
+          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeGrooveColor} />
         </>
       ),
     },
