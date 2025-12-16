@@ -5,7 +5,15 @@ import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor, getSinkType } from "../../model/store/selectors";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 
-type ProductOptionData = {
+export type ProductOptionMetadata = {
+  colors?: string[];
+  materials?: string[];
+  looks?: string[];
+  hex?: string;
+  value?: string;
+};
+
+export type ProductOptionData = {
   id: number | string;
   title: string;
   name?: string;
@@ -13,6 +21,7 @@ type ProductOptionData = {
   isAvailable?: boolean;
   isShortDesc: boolean;
   config?: addProductConfigI;
+  metadata?: ProductOptionMetadata;
 };
 
 interface ProductOptionsGridI {
@@ -43,10 +52,10 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   return (
     <div className={s.optionsGrid}>
       {data.map((i) => {
-        const optionName = i.name ?? i.title ?? i.desc;
+        const playcanvasValue = i.metadata?.value ?? i.name ?? i.title ?? i.desc;
         const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
 
-        const isActive = matchesCabinet || activeColor === optionName || activeBasinStyle === i.name;
+        const isActive = matchesCabinet || activeColor === playcanvasValue || activeBasinStyle === playcanvasValue;
 
         const handleSetActive =
           typeof i.id === "number" && setActiveCabinet
@@ -57,15 +66,16 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
           <ProductOptionItem
             key={i.id}
             id={i.id}
-            name={i.name}
             title={i.title}
             desc={i.desc}
             isAvailable={i.isAvailable}
             isShortDesc={i.isShortDesc}
+            metadata={i.metadata}
             config={i.config}
             onClick={handleAdd}
             isActive={isActive}
             setActive={handleSetActive}
+            name={playcanvasValue}
           />
         );
       })}

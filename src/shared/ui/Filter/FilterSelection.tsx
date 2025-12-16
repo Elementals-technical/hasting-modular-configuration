@@ -80,6 +80,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
         <div className={s.menu} role="listbox" aria-label={label}>
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
+            const optionLabel = option.label ?? option.name;
 
             return (
               <button
@@ -90,7 +91,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
                 aria-selected={isSelected}
                 onClick={() => handleSelect(option)}
               >
-                {option.name}
+                {optionLabel}
               </button>
             );
           })}
