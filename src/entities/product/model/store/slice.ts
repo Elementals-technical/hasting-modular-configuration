@@ -110,6 +110,9 @@ const productSlice = createSlice({
     resetProducts(state) {
       state.productIds = [];
     },
+    resetPrebuiltProducts(state) {
+      state.productsPresets = [];
+    },
     addProductPreset(state, action: PayloadAction<PresetProduct[]>) {
       state.productsPresets = action.payload;
     },
@@ -155,5 +158,6 @@ export const {
   resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  resetPrebuiltProducts,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;
