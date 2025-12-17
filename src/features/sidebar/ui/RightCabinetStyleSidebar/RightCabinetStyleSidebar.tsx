@@ -23,10 +23,13 @@ import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft"
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
+  const isPlayCanvasReady = usePlayCanvasReady();
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -107,6 +110,29 @@ export const RightCabinetStyleSidebar = () => {
       setVisibleButtons(false);
     };
   }, [isOpenedStyleSidebar]);
+
+  // Set the product to the desired side.
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    const onPlusClick = async (entityId: string, side: "left" | "right") => {
+      console.log("Clicked Plus Button", entityId, side);
+
+      if (!activeDrawerProduct) return;
+
+      const productId =
+        side === "left"
+          ? await addProductByLeft(activeDrawerProduct)
+          : await addProductByRight(activeDrawerProduct);
+
+      if (!productId) return;
+
+      await setConfig(productId, productConfig);
+      dispatch(addProductId(productId));
+    };
+
+    setHandleButtonClick(onPlusClick);
+  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch]);
 
   return (
     <div className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
