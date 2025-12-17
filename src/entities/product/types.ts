@@ -4,6 +4,8 @@ export type PresetProduct = {
   Height?: number;
   Depth?: number;
   CabinetColor?: string;
+  TypeDrawer?: string;
+  sinkType?: string;
 };
 
 export type ProductModel = {
