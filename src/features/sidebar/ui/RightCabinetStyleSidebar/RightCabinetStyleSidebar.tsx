@@ -22,6 +22,7 @@ import { BaseButton } from "@/shared";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
+import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -97,6 +98,15 @@ export const RightCabinetStyleSidebar = () => {
       Depth: selectedDimensions.depth,
     });
   }, [selectedDimensions, selectedProducts]);
+
+  // Show plus buttons when the sidebar is opened.
+  useEffect(() => {
+    setVisibleButtons(isOpenedStyleSidebar);
+
+    return () => {
+      setVisibleButtons(false);
+    };
+  }, [isOpenedStyleSidebar]);
 
   return (
     <div className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
