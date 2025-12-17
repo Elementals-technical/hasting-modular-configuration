@@ -16,23 +16,23 @@
   overflow-y: auto;
   padding: 0 20px 30px;
 
-  max-height: 822px;
+  // max-height: 822px;
 }
 
-@media (max-width: 1536px) {
-  .stepContent {
-    max-height: 550px;
-  }
-}
+// @media (max-width: 1536px) {
+//   .stepContent {
+//     max-height: 550px;
+//   }
+// }
 
-@media (max-width: 1366px) {
-  .stepContent {
-    max-height: 480px;
-  }
-}
+// @media (max-width: 1366px) {
+//   .stepContent {
+//     max-height: 480px;
+//   }
+// }
 
-@media (max-width: 1280px) {
-  .stepContent {
-    max-height: 470px;
-  }
-}
+// @media (max-width: 1280px) {
+//   .stepContent {
+//     max-height: 470px;
+//   }
+// }
