@@ -11,6 +11,8 @@ import s from "./BottomCanvasButtons.module.scss";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import {
   addProductId,
+  addProductPreset,
+  resetPrebuiltProducts,
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
@@ -21,6 +23,8 @@ import {
 import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
+import { addPreset } from "@/utils/functions/playcanvas/addPreset";
+import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
@@ -69,6 +73,19 @@ export const BottomCanvasButtons = () => {
     }
   };
 
+  const resetPrebuiltScene = async () => {
+    removeAllProducts();
+    dispatch(resetPrebuiltProducts());
+
+    try {
+      await addPreset(productMockData[0].presetProducts);
+
+      dispatch(addProductPreset(productMockData[0].presetProducts));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className={s.bottomCanvasButtons}>
       <BaseButton variant="ghost">
@@ -96,6 +113,8 @@ export const BottomCanvasButtons = () => {
         onClick={() => {
           if (isCustomRoute) {
             resetCustomBuilderScene();
+          } else {
+            resetPrebuiltScene();
           }
         }}
       >

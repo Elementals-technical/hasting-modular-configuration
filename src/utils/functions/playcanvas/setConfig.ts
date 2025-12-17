@@ -1,4 +1,4 @@
-export async function setConfig(id: number, config: any) {
+export async function setConfig(id: string | null, config: any) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
