@@ -111,7 +111,7 @@ export const RightCabinetStyleSidebar = () => {
     };
   }, [isOpenedStyleSidebar]);
 
-  // Set the product to the desired side.
+  // Set the product to the desired side (left/right).
   useEffect(() => {
     if (!isPlayCanvasReady) return;
 
@@ -121,9 +121,7 @@ export const RightCabinetStyleSidebar = () => {
       if (!activeDrawerProduct) return;
 
       const productId =
-        side === "left"
-          ? await addProductByLeft(activeDrawerProduct)
-          : await addProductByRight(activeDrawerProduct);
+        side === "left" ? await addProductByLeft(activeDrawerProduct) : await addProductByRight(activeDrawerProduct);
 
       if (!productId) return;
 
