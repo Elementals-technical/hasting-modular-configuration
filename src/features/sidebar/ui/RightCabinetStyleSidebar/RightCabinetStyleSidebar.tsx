@@ -18,7 +18,6 @@ import { addProductId, setSelectedDimensions } from "@/entities/product/model/st
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { useEffect, useMemo } from "react";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { BaseButton } from "@/shared";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
@@ -63,35 +62,35 @@ export const RightCabinetStyleSidebar = () => {
     dispatch(setSelectedDimensions({ height: Number(value) }));
   };
 
-  const addToLeft = async () => {
-    try {
-      if (!activeDrawerProduct) return;
+  // const addToLeft = async () => {
+  //   try {
+  //     if (!activeDrawerProduct) return;
 
-      const productId = await addProductByLeft(activeDrawerProduct);
+  //     const productId = await addProductByLeft(activeDrawerProduct);
 
-      if (!productId) return;
+  //     if (!productId) return;
 
-      await setConfig(productId, productConfig);
-      dispatch(addProductId(productId));
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to add product to the left", error);
-    }
-  };
+  //     await setConfig(productId, productConfig);
+  //     dispatch(addProductId(productId));
+  //   } catch (error) {
+  //     console.error("[ProductModelItem] Failed to add product to the left", error);
+  //   }
+  // };
 
-  const addToRight = async () => {
-    try {
-      if (!activeDrawerProduct) return;
+  // const addToRight = async () => {
+  //   try {
+  //     if (!activeDrawerProduct) return;
 
-      const productId = await addProductByRight(activeDrawerProduct);
+  //     const productId = await addProductByRight(activeDrawerProduct);
 
-      if (!productId) return;
+  //     if (!productId) return;
 
-      await setConfig(productId, productConfig);
-      dispatch(addProductId(productId));
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to add product to the right", error);
-    }
-  };
+  //     await setConfig(productId, productConfig);
+  //     dispatch(addProductId(productId));
+  //   } catch (error) {
+  //     console.error("[ProductModelItem] Failed to add product to the right", error);
+  //   }
+  // };
 
   useEffect(() => {
     if (!selectedProducts.length) return;
@@ -173,10 +172,10 @@ export const RightCabinetStyleSidebar = () => {
         </div>
       </div>
 
-      <div className={s.tempButtons}>
+      {/* <div className={s.tempButtons}>
         <BaseButton onClick={addToLeft}>Left</BaseButton>
         <BaseButton onClick={addToRight}>Right</BaseButton>
-      </div>
+      </div> */}
       <div className={s.bottomText}>Click the + button to place your cabinet</div>
     </div>
   );
