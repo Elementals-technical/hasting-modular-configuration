@@ -22,7 +22,8 @@ import {
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
 
-import { getActiveCabinetType, getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { getActiveCabinetType, getSelectedProducts, getDrawerProduct } from "@/entities/product/model/store/selectors";
+import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
@@ -35,8 +36,15 @@ type AccordionConfig = {
   defaultOpen?: boolean;
 };
 
+const CABINET_TYPE_ID = "cabinet-type";
+const CABINET_STYLE_ID = "cabinet-style";
+const defaultValue = CABINET_TYPE_ID;
+
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
+  const [accordionValue, setAccordionValue] = useState(defaultValue);
+  const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
+
   const bootstrappedRef = useRef(false);
 
   const dispatch = useAppDispatch();
@@ -44,6 +52,10 @@ export const CabinetBuilderPage = () => {
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedProducts = useAppSelector(getSelectedProducts);
+
+  const drawerProduct = useAppSelector(getDrawerProduct);
+  const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
+  const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
 
   const hasActiveCabinet = Boolean(activeCabinetType);
   const hasProducts = selectedProducts.length > 0;
@@ -69,6 +81,11 @@ export const CabinetBuilderPage = () => {
 
   const handleOpenStyleSidebar = () => {
     dispatch(setOpenStyleSidebar(true));
+  };
+
+  const setActiveCabinet = (id: number) => {
+    dispatch(setActiveCabinetType(id));
+    setAccordionValue(CABINET_STYLE_ID);
   };
 
   useEffect(() => {
@@ -111,13 +128,15 @@ export const CabinetBuilderPage = () => {
     resetAndBootstrapFirstProduct();
   }, [canvasReady, dispatch, handleSelectCabinetConfig, hasActiveCabinet, hasProducts]);
 
-  const setActiveCabinet = (id: number) => {
-    dispatch(setActiveCabinetType(id));
-  };
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const target = searchParams.get("accordion");
+    if (target) setAccordionValue(target);
+  }, [searchParams]);
 
   const accordions: AccordionConfig[] = [
     {
-      id: "cabinet-type",
+      id: CABINET_TYPE_ID,
       title: "Cabinet Type",
       defaultOpen: true,
       content: (
@@ -129,27 +148,20 @@ export const CabinetBuilderPage = () => {
       ),
     },
     {
-      id: "cabinet-style",
+      id: CABINET_STYLE_ID,
       title: "Cabinet Style",
       content: (
         <ProductStyleGrid
           handleOpenStyleSidebar={handleOpenStyleSidebar}
           data={optionsMockData2}
           requiresActiveCabinet
+          isActive={isStyleDrawerActive}
+          activeStyleId={activeStyleId}
+          onSelectStyle={setActiveStyleId}
         />
       ),
     },
   ];
-
-  const defaultValue = accordions.find((accordion) => accordion.defaultOpen)?.id;
-
-  const [searchParams] = useSearchParams();
-  const [accordionValue, setAccordionValue] = useState(defaultValue);
-
-  useEffect(() => {
-    const target = searchParams.get("accordion");
-    if (target) setAccordionValue(target);
-  }, [searchParams]);
 
   return (
     <div className={s.cabinetBuilder}>

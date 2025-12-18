@@ -8,6 +8,8 @@ type Option = {
   label?: string | number;
   name?: string | number;
   value: string | number;
+  disabled?: boolean;
+  reason?: string;
 };
 
 type FilterSelectionProps = {
@@ -80,18 +82,27 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
         <div className={s.menu} role="listbox" aria-label={label}>
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
+            const isDisabled = Boolean(option.disabled);
             const optionLabel = option.label ?? option.name;
+
+            const optionTitle = isDisabled ? option.reason : undefined;
+            const classes = [s.menuItem, isSelected ? s.activeItem : "", isDisabled ? s.disabledItem : ""]
+              .filter(Boolean)
+              .join(" ");
 
             return (
               <button
                 key={option.value}
                 type="button"
-                className={`${s.menuItem} ${isSelected ? s.activeItem : ""}`}
+                className={classes}
                 role="option"
                 aria-selected={isSelected}
+                disabled={isDisabled}
+                title={optionTitle}
                 onClick={() => handleSelect(option)}
               >
-                {optionLabel}
+                <span className={s.optionLabel}>{optionLabel}</span>
+                {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
               </button>
             );
           })}

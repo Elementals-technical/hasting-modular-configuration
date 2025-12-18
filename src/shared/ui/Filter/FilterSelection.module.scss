@@ -101,3 +101,26 @@
   border-color: #9e5a3e;
   background-color: #fff4ec;
 }
+
+.disabledItem {
+  color: #9ea0a5;
+  background-color: #f7f7f7;
+  cursor: not-allowed;
+  border-color: #e1e2e5;
+
+  &:hover {
+    background-color: #f7f7f7;
+    border-color: #e1e2e5;
+  }
+}
+
+.optionLabel {
+  display: inline-block;
+}
+
+.optionReason {
+  display: block;
+  color: #9ea0a5;
+  font-size: 12px;
+  margin-top: 2px;
+}

@@ -1,10 +1,25 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  applyConfiguratorRules,
+  type Intent,
+  type OptionState,
+  type Selection,
+} from "@/features/configurator-rule-core";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
 type DimensionOption = {
-  name: number;
-  value: number;
+  name: number | string;
+  value: number | string;
+  disabled?: boolean;
+  reason?: string;
+};
+
+type DimensionOptionGroup = {
+  width: DimensionOption[];
+  height: DimensionOption[];
+  depth: DimensionOption[];
+  drawers: DimensionOption[];
 };
 
 type ProductState = {
@@ -13,11 +28,7 @@ type ProductState = {
   activeDrawerProduct: string;
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
-  dimensionOptions: {
-    width: DimensionOption[];
-    height: DimensionOption[];
-    depth: DimensionOption[];
-  };
+  dimensionOptions: DimensionOptionGroup;
   productOptions: {
     CabinetColor: string;
     sinkType: string;
@@ -38,54 +49,73 @@ type ProductConfig = {
   [key: string]: unknown;
 } & Partial<addProductConfigI>;
 
-const WIDTH_OPTIONS: DimensionOption[] = [
-  { name: 25, value: 25 },
-  { name: 35, value: 35 },
-  { name: 50, value: 50 },
-  { name: 60, value: 60 },
-  { name: 70, value: 70 },
-  { name: 90, value: 90 },
-  { name: 105, value: 105 },
-  { name: 120, value: 120 },
-];
-
-const HEIGHT_OPTIONS: DimensionOption[] = [
-  { name: 50, value: 50 },
-  { name: 53, value: 53 },
-  { name: 56, value: 56 },
-];
-
-const DEPTH_OPTIONS: DimensionOption[] = [
-  { name: 46, value: 46 },
-  { name: 50.5, value: 50.5 },
-];
-
 const DEFAULT_DIMENSIONS: ProductDimensions = {
   width: 60,
   height: 56,
   depth: 46,
 };
 
-const initialState: ProductState = {
-  productIds: [],
-  activeCabinetType: null,
-  activeDrawerProduct: "",
-  selectedProductConfig: null,
-  selectedDimensions: DEFAULT_DIMENSIONS,
-  dimensionOptions: {
-    width: WIDTH_OPTIONS,
-    height: HEIGHT_OPTIONS,
-    depth: DEPTH_OPTIONS,
-  },
-  productOptions: {
-    CabinetColor: "White Matte",
-    sinkType: "",
-    CountertopColor: "",
-    HandleGrooveColor: "",
-  },
+const mapOptionState = <T extends string | number>(option: OptionState<T>): DimensionOption => ({
+  name: option.label ?? option.value,
+  value: option.value,
+  disabled: !option.enabled,
+  reason: option.reason,
+});
 
-  productsPresets: [],
+const toSelection = (state: ProductState): Selection => ({
+  cabinetTypeId: state.activeCabinetType,
+  width: state.selectedDimensions.width,
+  depth: state.selectedDimensions.depth,
+  height: state.selectedDimensions.height,
+  drawers: null,
+});
+
+const applyRulesToState = (state: ProductState, intent?: Intent) => {
+  const ruleResult = applyConfiguratorRules(toSelection(state), intent);
+
+  state.dimensionOptions = {
+    width: ruleResult.availableOptions.width.map(mapOptionState),
+    depth: ruleResult.availableOptions.depth.map(mapOptionState),
+    height: ruleResult.availableOptions.height.map(mapOptionState),
+    drawers: ruleResult.availableOptions.drawers.map(mapOptionState),
+  };
+
+  state.selectedDimensions = {
+    width: ruleResult.nextSelection.width,
+    height: ruleResult.nextSelection.height,
+    depth: ruleResult.nextSelection.depth,
+  };
 };
+
+const createInitialState = (): ProductState => {
+  const baseState: ProductState = {
+    productIds: [],
+    activeCabinetType: null,
+    activeDrawerProduct: "",
+    selectedProductConfig: null,
+    selectedDimensions: DEFAULT_DIMENSIONS,
+    dimensionOptions: {
+      width: [],
+      height: [],
+      depth: [],
+      drawers: [],
+    },
+    productOptions: {
+      CabinetColor: "White Matte",
+      sinkType: "",
+      CountertopColor: "",
+      HandleGrooveColor: "",
+    },
+
+    productsPresets: [],
+  };
+
+  applyRulesToState(baseState);
+
+  return baseState;
+};
+
+const initialState: ProductState = createInitialState();
 
 const productSlice = createSlice({
   name: "product",
@@ -105,7 +135,7 @@ const productSlice = createSlice({
       }
     },
     reset() {
-      return initialState;
+      return createInitialState();
     },
     resetProducts(state) {
       state.productIds = [];
@@ -122,9 +152,19 @@ const productSlice = createSlice({
     },
     setActiveCabinetType(state, action: PayloadAction<number>) {
       state.activeCabinetType = action.payload;
+      applyRulesToState(state, { field: "cabinetTypeId", value: action.payload });
     },
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
+      const [intentField, intentValue] = Object.entries(action.payload)[0] ?? [];
+
+      if (intentField) {
+        const intent: Intent = { field: intentField as Intent["field"], value: intentValue as number };
+
+        applyRulesToState(state, intent);
+      } else {
+        applyRulesToState(state);
+      }
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       state.selectedProductConfig = action.payload;

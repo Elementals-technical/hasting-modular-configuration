@@ -16,12 +16,18 @@ interface ProductStyleGridI {
   }[];
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
+  isActive?: boolean;
+  activeStyleId?: number | null;
+  onSelectStyle?: (id: number) => void;
 }
 
 export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   data,
   requiresActiveCabinet,
   handleOpenStyleSidebar,
+  isActive = false,
+  activeStyleId = null,
+  onSelectStyle,
 }) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const hasActiveCabinet = activeCabinet !== null;
@@ -32,9 +38,20 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
 
   return (
     <div className={s.optionsGrid}>
-      {data.map((i) => (
-        <ProductStyleItem key={i.id} id={i.id} title={i.title} handleOpenStyleSidebar={handleOpenStyleSidebar} />
-      ))}
+      {data.map((i) => {
+        const isItemActive = isActive && activeStyleId === i.id;
+
+        return (
+          <ProductStyleItem
+            key={i.id}
+            id={i.id}
+            title={i.title}
+            handleOpenStyleSidebar={handleOpenStyleSidebar}
+            isActive={isItemActive}
+            onSelectStyle={onSelectStyle}
+          />
+        );
+      })}
     </div>
   );
 };

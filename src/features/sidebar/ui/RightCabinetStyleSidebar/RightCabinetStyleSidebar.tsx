@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useRef } from "react";
+
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
@@ -16,9 +18,7 @@ import {
 import { addProductId, setSelectedDimensions } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
-import { useEffect, useMemo } from "react";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { BaseButton } from "@/shared";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
@@ -30,6 +30,7 @@ export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -63,35 +64,35 @@ export const RightCabinetStyleSidebar = () => {
     dispatch(setSelectedDimensions({ height: Number(value) }));
   };
 
-  const addToLeft = async () => {
-    try {
-      if (!activeDrawerProduct) return;
+  // const addToLeft = async () => {
+  //   try {
+  //     if (!activeDrawerProduct) return;
 
-      const productId = await addProductByLeft(activeDrawerProduct);
+  //     const productId = await addProductByLeft(activeDrawerProduct);
 
-      if (!productId) return;
+  //     if (!productId) return;
 
-      await setConfig(productId, productConfig);
-      dispatch(addProductId(productId));
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to add product to the left", error);
-    }
-  };
+  //     await setConfig(productId, productConfig);
+  //     dispatch(addProductId(productId));
+  //   } catch (error) {
+  //     console.error("[ProductModelItem] Failed to add product to the left", error);
+  //   }
+  // };
 
-  const addToRight = async () => {
-    try {
-      if (!activeDrawerProduct) return;
+  // const addToRight = async () => {
+  //   try {
+  //     if (!activeDrawerProduct) return;
 
-      const productId = await addProductByRight(activeDrawerProduct);
+  //     const productId = await addProductByRight(activeDrawerProduct);
 
-      if (!productId) return;
+  //     if (!productId) return;
 
-      await setConfig(productId, productConfig);
-      dispatch(addProductId(productId));
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to add product to the right", error);
-    }
-  };
+  //     await setConfig(productId, productConfig);
+  //     dispatch(addProductId(productId));
+  //   } catch (error) {
+  //     console.error("[ProductModelItem] Failed to add product to the right", error);
+  //   }
+  // };
 
   useEffect(() => {
     if (!selectedProducts.length) return;
@@ -110,6 +111,22 @@ export const RightCabinetStyleSidebar = () => {
       setVisibleButtons(false);
     };
   }, [isOpenedStyleSidebar]);
+
+  // Close sidebar when clicking outside of it.
+  useEffect(() => {
+    if (!isOpenedStyleSidebar) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!sidebarRef.current) return;
+
+      if (sidebarRef.current.contains(event.target as Node)) return;
+
+      dispatch(setOpenStyleSidebar(false));
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [dispatch, isOpenedStyleSidebar]);
 
   // Set the product to the desired side (left/right).
   useEffect(() => {
@@ -133,7 +150,7 @@ export const RightCabinetStyleSidebar = () => {
   }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch]);
 
   return (
-    <div className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
+    <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
       <div className={s.arrow} onClick={handleCloseSidebar}>
         <ArrowRight width="16" />
       </div>
@@ -173,10 +190,10 @@ export const RightCabinetStyleSidebar = () => {
         </div>
       </div>
 
-      <div className={s.tempButtons}>
+      {/* <div className={s.tempButtons}>
         <BaseButton onClick={addToLeft}>Left</BaseButton>
         <BaseButton onClick={addToRight}>Right</BaseButton>
-      </div>
+      </div> */}
       <div className={s.bottomText}>Click the + button to place your cabinet</div>
     </div>
   );
