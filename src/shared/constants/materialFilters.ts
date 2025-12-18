@@ -86,19 +86,26 @@ export const getMaterialOptionsGridData = (optionName: string): ProductOptionDat
     return aLabel.localeCompare(bLabel);
   });
 
-  return sorted.map(({ value, label, metadata }) => ({
-    id: value,
-    title: metadata?.label ?? label ?? value,
-    name: metadata?.value ?? value,
-    desc: metadata?.Color ?? metadata?.Material,
-    isShortDesc: false,
-    metadata: {
-      colors: parseList(metadata?.Color),
-      materials: parseList(metadata?.Material),
-      looks: parseList(metadata?.Look),
-      hex: metadata?.hex?.trim(),
-      value: metadata?.value ?? value,
-      image: metadata?.image,
-    },
-  }));
+  return sorted
+    .filter(({ metadata }) => {
+      const hasImage = Boolean(metadata?.image);
+      const hasHex = Boolean(metadata?.hex?.trim());
+
+      return hasImage || hasHex;
+    })
+    .map(({ value, label, metadata }) => ({
+      id: value,
+      title: metadata?.label ?? label ?? value,
+      name: metadata?.value ?? value,
+      desc: metadata?.Color ?? metadata?.Material,
+      isShortDesc: false,
+      metadata: {
+        colors: parseList(metadata?.Color),
+        materials: parseList(metadata?.Material),
+        looks: parseList(metadata?.Look),
+        hex: metadata?.hex?.trim(),
+        value: metadata?.value ?? value,
+        image: metadata?.image,
+      },
+    }));
 };
