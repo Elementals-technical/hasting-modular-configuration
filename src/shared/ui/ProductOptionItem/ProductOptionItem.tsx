@@ -3,9 +3,21 @@ import none_img from "../../assets/images/png/none_img.png";
 import { Hint } from "../Hint/Hint";
 
 import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
+import type { ProductOptionMetadata } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 import s from "./ProductOptionItem.module.scss";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
+
+const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
+
+const buildImageSrc = (imagePath?: string) => {
+  if (!imagePath) return undefined;
+
+  if (imagePath.startsWith("http")) return imagePath;
+
+  const normalizedPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
+  return `${THREEKIT_PREVIEW_BASE_URL}${normalizedPath}`;
+};
 
 interface ProductOptionItemI {
   id: number | string;
@@ -18,7 +30,7 @@ interface ProductOptionItemI {
   isActive?: boolean;
   onClick?: (name: string, config?: addProductConfigI) => void | Promise<void>;
   setActive?: (id: number | string) => void;
-  metadata?: Record<string, unknown>;
+  metadata?: ProductOptionMetadata;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
@@ -32,9 +44,11 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   isActive = false,
   onClick,
   setActive,
+  metadata,
 }) => {
   const available = isAvailable ?? true; // undefined as available
   const productName = name ?? title;
+  const imageSrc = buildImageSrc(metadata?.image) ?? (title !== "None" ? color_img : none_img);
 
   return (
     <div
@@ -45,7 +59,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
       }}
     >
       <div className={s.image}>
-        <img src={title !== "None" ? color_img : none_img} alt="color image" />
+        <img src={imageSrc} alt="color image" />
       </div>
 
       {available ? (

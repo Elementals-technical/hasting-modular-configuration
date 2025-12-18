@@ -11,6 +11,7 @@ export type ProductOptionMetadata = {
   looks?: string[];
   hex?: string;
   value?: string;
+  image?: string;
 };
 
 export type ProductOptionData = {

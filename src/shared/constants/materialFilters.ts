@@ -6,6 +6,7 @@ type MaterialMetadata = {
   Color?: string;
   Material?: string;
   Look?: string;
+  image?: string;
   label?: string;
   value?: string;
 };
@@ -97,6 +98,7 @@ export const getMaterialOptionsGridData = (optionName: string): ProductOptionDat
       looks: parseList(metadata?.Look),
       hex: metadata?.hex?.trim(),
       value: metadata?.value ?? value,
+      image: metadata?.image,
     },
   }));
 };
