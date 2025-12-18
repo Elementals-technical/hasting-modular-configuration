@@ -12,7 +12,7 @@ import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRigh
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 
-const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html";
+const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html?v=001";
 const RIGHT_BUTTON = 2;
 const HOLD_MS = 250;
 const MOVE_THRESHOLD = 6;
