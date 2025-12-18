@@ -22,7 +22,8 @@ import {
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
 
-import { getActiveCabinetType, getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { getActiveCabinetType, getSelectedProducts, getDrawerProduct } from "@/entities/product/model/store/selectors";
+import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
@@ -42,6 +43,7 @@ const defaultValue = CABINET_TYPE_ID;
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
   const [accordionValue, setAccordionValue] = useState(defaultValue);
+  const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
 
   const bootstrappedRef = useRef(false);
 
@@ -50,6 +52,10 @@ export const CabinetBuilderPage = () => {
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedProducts = useAppSelector(getSelectedProducts);
+
+  const drawerProduct = useAppSelector(getDrawerProduct);
+  const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
+  const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
 
   const hasActiveCabinet = Boolean(activeCabinetType);
   const hasProducts = selectedProducts.length > 0;
@@ -149,6 +155,9 @@ export const CabinetBuilderPage = () => {
           handleOpenStyleSidebar={handleOpenStyleSidebar}
           data={optionsMockData2}
           requiresActiveCabinet
+          isActive={isStyleDrawerActive}
+          activeStyleId={activeStyleId}
+          onSelectStyle={setActiveStyleId}
         />
       ),
     },
