@@ -48,7 +48,9 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 }) => {
   const available = isAvailable ?? true; // undefined as available
   const productName = name ?? title;
-  const imageSrc = buildImageSrc(metadata?.image) ?? (title !== "None" ? color_img : none_img);
+  const hasImage = !!metadata?.image;
+  const hasHexColor = !!metadata?.hex;
+  const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
 
   return (
     <div
@@ -59,7 +61,13 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
       }}
     >
       <div className={s.image}>
-        <img src={imageSrc} alt="color image" />
+        {hasImage ? (
+          <img src={imageSrc} alt="color image" />
+        ) : hasHexColor ? (
+          <div className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
+        ) : (
+          <img src={imageSrc} alt="color image" />
+        )}
       </div>
 
       {available ? (
