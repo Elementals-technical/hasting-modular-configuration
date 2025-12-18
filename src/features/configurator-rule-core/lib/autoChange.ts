@@ -1,7 +1,14 @@
-import type { AutoChangeEntry, AutoChangeResult, AvailableOptions, RuleContext, RuleResult } from "../model/types";
+import type {
+  AutoChangeEntry,
+  AutoChangeResult,
+  AvailableOptions,
+  OptionState,
+  RuleContext,
+  RuleResult,
+} from "../model/types";
 
-const resolveValue = <T>(
-  options: { value: T; enabled: boolean }[],
+const resolveValue = <T extends string | number>(
+  options: OptionState<T>[],
   current: T,
   emptyFallback?: T | null,
 ): { next: T; changed: boolean } => {
@@ -27,10 +34,10 @@ export const autoChange = (ruleResult: RuleResult, context: RuleContext): AutoCh
 
   const autoChanges: AutoChangeEntry[] = [];
 
-  const update = <T>(
+  const update = <T extends string | number>(
     field: keyof AvailableOptions,
     current: T,
-    options: AvailableOptions[keyof AvailableOptions],
+    options: OptionState<T>[],
     emptyFallback?: T | null,
   ): T => {
     const { next, changed } = resolveValue(options, current, emptyFallback);
