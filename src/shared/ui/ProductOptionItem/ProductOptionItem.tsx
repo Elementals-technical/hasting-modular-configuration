@@ -50,6 +50,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const productName = name ?? title;
   const hasImage = !!metadata?.image;
   const hasHexColor = !!metadata?.hex;
+  const hasVisual = hasImage || hasHexColor;
   const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
 
   return (
@@ -60,7 +61,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
         setActive?.(id);
       }}
     >
-      <div className={s.image}>
+      <div className={`${s.image} ${hasVisual ? s.withVisual : ""}`}>
         {hasImage ? (
           <img src={imageSrc} alt="color image" />
         ) : hasHexColor ? (
