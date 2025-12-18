@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useRef } from "react";
+
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
@@ -16,7 +18,6 @@ import {
 import { addProductId, setSelectedDimensions } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
-import { useEffect, useMemo } from "react";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
@@ -29,6 +30,7 @@ export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -110,6 +112,22 @@ export const RightCabinetStyleSidebar = () => {
     };
   }, [isOpenedStyleSidebar]);
 
+  // Close sidebar when clicking outside of it.
+  useEffect(() => {
+    if (!isOpenedStyleSidebar) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!sidebarRef.current) return;
+
+      if (sidebarRef.current.contains(event.target as Node)) return;
+
+      dispatch(setOpenStyleSidebar(false));
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [dispatch, isOpenedStyleSidebar]);
+
   // Set the product to the desired side (left/right).
   useEffect(() => {
     if (!isPlayCanvasReady) return;
@@ -132,7 +150,7 @@ export const RightCabinetStyleSidebar = () => {
   }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch]);
 
   return (
-    <div className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
+    <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
       <div className={s.arrow} onClick={handleCloseSidebar}>
         <ArrowRight width="16" />
       </div>
