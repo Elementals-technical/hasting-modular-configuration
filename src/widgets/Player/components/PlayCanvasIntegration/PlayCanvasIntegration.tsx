@@ -5,12 +5,13 @@ import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/Ne
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductId, removeProductId } from "@/entities/product/model/store/slice";
+import { addProductId, removeProductId, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
+import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html?v=001";
 const RIGHT_BUTTON = 2;
@@ -294,6 +295,22 @@ export const PlayCanvasIntegration = () => {
     navigate("/custom/cabinet-colors?accordion=cabinet-color");
     setDropdownState((prev) => ({ ...prev, visible: false }));
   };
+
+  const selectTool = getSelectTool();
+
+  if (selectTool) {
+    selectTool.on("select", (selectedEntity) => {
+      const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
+
+      if (firstSelected) {
+        console.log(`Выбран объект: ${firstSelected.name}`);
+        dispatch(setSelectedSceneProduct(firstSelected.name!));
+      } else {
+        console.log("клик в пустоту");
+        dispatch(setSelectedSceneProduct(""));
+      }
+    });
+  }
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
