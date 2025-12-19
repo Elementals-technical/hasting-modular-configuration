@@ -64,36 +64,6 @@ export const RightCabinetStyleSidebar = () => {
     dispatch(setSelectedDimensions({ height: Number(value) }));
   };
 
-  // const addToLeft = async () => {
-  //   try {
-  //     if (!activeDrawerProduct) return;
-
-  //     const productId = await addProductByLeft(activeDrawerProduct);
-
-  //     if (!productId) return;
-
-  //     await setConfig(productId, productConfig);
-  //     dispatch(addProductId(productId));
-  //   } catch (error) {
-  //     console.error("[ProductModelItem] Failed to add product to the left", error);
-  //   }
-  // };
-
-  // const addToRight = async () => {
-  //   try {
-  //     if (!activeDrawerProduct) return;
-
-  //     const productId = await addProductByRight(activeDrawerProduct);
-
-  //     if (!productId) return;
-
-  //     await setConfig(productId, productConfig);
-  //     dispatch(addProductId(productId));
-  //   } catch (error) {
-  //     console.error("[ProductModelItem] Failed to add product to the right", error);
-  //   }
-  // };
-
   useEffect(() => {
     if (!selectedProducts.length) return;
 

@@ -27,6 +27,7 @@ import {
   getSelectedProducts,
   getDrawerProduct,
   getDimensionOptions,
+  getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -59,9 +60,12 @@ export const CabinetBuilderPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
 
   const drawerProduct = useAppSelector(getDrawerProduct);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
+
+  console.log("selectedProductConfig", selectedProductConfig);
 
   const hasActiveCabinet = Boolean(activeCabinetType);
   const hasProducts = selectedProducts.length > 0;
@@ -100,6 +104,29 @@ export const CabinetBuilderPage = () => {
     dispatch(setOpenStyleSidebar(true));
   };
 
+  const mapDrawerValueToConfig = (value?: string) => {
+    if (value === "1") return "1D";
+    if (value === "2") return "2D";
+    if (value === "1+inner") return "1DWID";
+    return undefined;
+  };
+
+  const handleSelectDrawerStyle = (id: number) => {
+    setActiveStyleId(id);
+
+    const option = optionsMockData2.find((item) => item.id === id);
+    const mappedValue = mapDrawerValueToConfig(option?.value);
+
+    if (mappedValue) {
+      dispatch(
+        setSelectedProductConfig({
+          ...(selectedProductConfig ?? {}),
+          Drawers: mappedValue,
+        }),
+      );
+    }
+  };
+
   const setActiveCabinet = (id: number) => {
     dispatch(setActiveCabinetType(id));
     setAccordionValue(CABINET_STYLE_ID);
@@ -122,6 +149,7 @@ export const CabinetBuilderPage = () => {
           Depth: 46,
           CabinetColor: "Ardesia DD GL",
           Width: 60,
+          Drawers: "2D",
           sinkType: "Top_HPLPrisma",
           CountertopColor: "Rosso Rubino 19 MT",
           HandleGrooveColor: "Blu Pavone A6 MT",
@@ -174,7 +202,7 @@ export const CabinetBuilderPage = () => {
           requiresActiveCabinet
           isActive={isStyleDrawerActive}
           activeStyleId={activeStyleId}
-          onSelectStyle={setActiveStyleId}
+          onSelectStyle={handleSelectDrawerStyle}
         />
       ),
     },
