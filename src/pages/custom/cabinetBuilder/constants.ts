@@ -69,11 +69,11 @@ export const optionsMockData2 = [
     isAvailable: true,
     isShortDesc: false,
   },
-  {
-    id: 203,
-    title: "1 Drawer With Inner Drawer",
-    value: "1+inner",
-    isAvailable: true,
-    isShortDesc: false,
-  },
+  // {
+  //   id: 203,
+  //   title: "1 Drawer With Inner Drawer",
+  //   value: "1+inner",
+  //   isAvailable: true,
+  //   isShortDesc: false,
+  // },
 ];
