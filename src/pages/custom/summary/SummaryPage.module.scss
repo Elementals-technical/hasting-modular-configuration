@@ -8,6 +8,8 @@
   gap: 12px;
 
   background: #ffffff;
+
+  max-height: 700px;
 }
 
 .section {
@@ -311,4 +313,28 @@
 
 .copyHint {
   width: 190px;
+}
+
+@media screen and (max-height: 900px) {
+  .summaryPage {
+    max-height: 620px;
+  }
+}
+
+@media screen and (max-height: 800px) {
+  .summaryPage {
+    max-height: 500px;
+  }
+}
+
+@media screen and (max-height: 700px) {
+  .summaryPage {
+    max-height: 450px;
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .summaryPage {
+    max-height: 400px;
+  }
 }
