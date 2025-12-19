@@ -5,17 +5,20 @@ import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/Ne
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductId, removeProductId } from "@/entities/product/model/store/slice";
+import { addProductId, removeProductId, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
+import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
+import { setConfig } from "@/utils/functions/playcanvas/setConfig";
+import { getSelectedSceneProduct } from "@/entities/product/model/store/selectors";
 
 const PLAYCANVAS_SRC = "/HastingCabinetsParametrization/index.html?v=001";
-const RIGHT_BUTTON = 2;
-const HOLD_MS = 250;
-const MOVE_THRESHOLD = 6;
+// const RIGHT_BUTTON = 2;
+// const HOLD_MS = 250;
+// const MOVE_THRESHOLD = 6;
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
@@ -24,6 +27,7 @@ export const PlayCanvasIntegration = () => {
     x: 0,
     y: 0,
   });
+  const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -31,6 +35,17 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+  const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+
+  const showDropdownAt = useCallback((clientX: number, clientY: number) => {
+    const iframeEl = containerRef.current;
+    if (!iframeEl) return;
+
+    const rect = iframeEl.getBoundingClientRect();
+    const x = rect.left + clientX;
+    const y = rect.top + clientY - 120;
+    setDropdownState({ visible: true, x, y });
+  }, []);
 
   // Bridge PlayCanvas Configurator API
   useEffect(() => {
@@ -91,108 +106,106 @@ export const PlayCanvasIntegration = () => {
   }, []);
 
   // Toggle dropdown on short right click; allow orbit/drag on long-press or drag with right button
-  useEffect(() => {
-    const iframeEl = containerRef.current;
-    if (!iframeEl) return;
+  // useEffect(() => {
+  //   const iframeEl = containerRef.current;
+  //   if (!iframeEl) return;
 
-    const holdTimer = { current: null as number | null };
-    const rightDown = { current: false };
-    const orbitMode = { current: false };
-    const startPos = { current: { x: 0, y: 0 } };
+  //   const holdTimer = { current: null as number | null };
+  //   const rightDown = { current: false };
+  //   const orbitMode = { current: false };
+  //   const startPos = { current: { x: 0, y: 0 } };
 
-    const clearHold = () => {
-      if (holdTimer.current !== null) {
-        window.clearTimeout(holdTimer.current);
-        holdTimer.current = null;
-      }
-    };
+  //   const clearHold = () => {
+  //     if (holdTimer.current !== null) {
+  //       window.clearTimeout(holdTimer.current);
+  //       holdTimer.current = null;
+  //     }
+  //   };
 
-    let iframeDoc: Document | null = null;
+  //   let iframeDoc: Document | null = null;
 
-    const showDropdown = (event: PointerEvent) => {
-      const rect = iframeEl.getBoundingClientRect();
-      const x = rect.left + event.clientX;
-      const y = rect.top + event.clientY - 120; // lift the dropdown slightly above cursor
-      setDropdownState({ visible: true, x, y });
-    };
+  //   const handlePointerDown = (event: PointerEvent) => {
+  //     if (event.button === 0) {
+  //       lastPointerPosRef.current = { x: event.clientX, y: event.clientY };
+  //       return;
+  //     }
 
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.button !== RIGHT_BUTTON) {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-        return;
-      }
+  //     if (event.button !== RIGHT_BUTTON) {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //       return;
+  //     }
 
-      rightDown.current = true;
-      orbitMode.current = false;
-      startPos.current = { x: event.clientX, y: event.clientY };
-      setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     rightDown.current = true;
+  //     orbitMode.current = false;
+  //     startPos.current = { x: event.clientX, y: event.clientY };
+  //     setDropdownState((prev) => ({ ...prev, visible: false }));
 
-      clearHold();
-      holdTimer.current = window.setTimeout(() => {
-        orbitMode.current = true;
-      }, HOLD_MS);
-    };
+  //     clearHold();
+  //     holdTimer.current = window.setTimeout(() => {
+  //       orbitMode.current = true;
+  //     }, HOLD_MS);
+  //   };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!rightDown.current) return;
-      const dx = event.clientX - startPos.current.x;
-      const dy = event.clientY - startPos.current.y;
-      if (Math.hypot(dx, dy) > MOVE_THRESHOLD) {
-        orbitMode.current = true;
-        clearHold();
-      }
-    };
+  //   const handlePointerMove = (event: PointerEvent) => {
+  //     if (!rightDown.current) return;
+  //     const dx = event.clientX - startPos.current.x;
+  //     const dy = event.clientY - startPos.current.y;
+  //     if (Math.hypot(dx, dy) > MOVE_THRESHOLD) {
+  //       orbitMode.current = true;
+  //       clearHold();
+  //     }
+  //   };
 
-    const handlePointerUp = (event: PointerEvent) => {
-      if (event.button !== RIGHT_BUTTON) return;
+  //   const handlePointerUp = (event: PointerEvent) => {
+  //     if (event.button !== RIGHT_BUTTON) return;
 
-      clearHold();
-      rightDown.current = false;
+  //     clearHold();
+  //     rightDown.current = false;
 
-      if (orbitMode.current) {
-        orbitMode.current = false;
-        return;
-      }
+  //     if (orbitMode.current) {
+  //       orbitMode.current = false;
+  //       return;
+  //     }
 
-      event.preventDefault();
-      showDropdown(event);
-    };
+  //     event.preventDefault();
+  //     showDropdownAt(event.clientX, event.clientY);
+  //   };
 
-    const handleContextMenu = (event: MouseEvent) => {
-      if (orbitMode.current || rightDown.current) {
-        event.preventDefault();
-      }
-    };
+  //   const handleContextMenu = (event: MouseEvent) => {
+  //     if (orbitMode.current || rightDown.current) {
+  //       event.preventDefault();
+  //     }
+  //   };
 
-    const attachPointerListener = () => {
-      iframeDoc = iframeEl.contentDocument || iframeEl.contentWindow?.document || null;
-      if (!iframeDoc) return;
+  //   const attachPointerListener = () => {
+  //     iframeDoc = iframeEl.contentDocument || iframeEl.contentWindow?.document || null;
+  //     if (!iframeDoc) return;
 
-      iframeDoc.addEventListener("pointerdown", handlePointerDown, true);
-      iframeDoc.addEventListener("pointermove", handlePointerMove, true);
-      iframeDoc.addEventListener("pointerup", handlePointerUp, true);
-      iframeDoc.addEventListener("contextmenu", handleContextMenu, true);
-    };
+  //     iframeDoc.addEventListener("pointerdown", handlePointerDown, true);
+  //     iframeDoc.addEventListener("pointermove", handlePointerMove, true);
+  //     iframeDoc.addEventListener("pointerup", handlePointerUp, true);
+  //     iframeDoc.addEventListener("contextmenu", handleContextMenu, true);
+  //   };
 
-    const detachPointerListener = () => {
-      if (iframeDoc) {
-        iframeDoc.removeEventListener("pointerdown", handlePointerDown, true);
-        iframeDoc.removeEventListener("pointermove", handlePointerMove, true);
-        iframeDoc.removeEventListener("pointerup", handlePointerUp, true);
-        iframeDoc.removeEventListener("contextmenu", handleContextMenu, true);
-      }
+  //   const detachPointerListener = () => {
+  //     if (iframeDoc) {
+  //       iframeDoc.removeEventListener("pointerdown", handlePointerDown, true);
+  //       iframeDoc.removeEventListener("pointermove", handlePointerMove, true);
+  //       iframeDoc.removeEventListener("pointerup", handlePointerUp, true);
+  //       iframeDoc.removeEventListener("contextmenu", handleContextMenu, true);
+  //     }
 
-      iframeDoc = null;
-    };
+  //     iframeDoc = null;
+  //   };
 
-    iframeEl.addEventListener("load", attachPointerListener);
-    attachPointerListener();
+  //   iframeEl.addEventListener("load", attachPointerListener);
+  //   attachPointerListener();
 
-    return () => {
-      iframeEl.removeEventListener("load", attachPointerListener);
-      detachPointerListener();
-    };
-  }, []);
+  //   return () => {
+  //     iframeEl.removeEventListener("load", attachPointerListener);
+  //     detachPointerListener();
+  //   };
+  // }, [showDropdownAt]);
 
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
@@ -295,8 +308,80 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   };
 
+  const handleSetDrawers = useCallback(
+    async (drawers: string) => {
+      if (!selectedSceneProduct) return;
+
+      try {
+        await setConfig(selectedSceneProduct, { Drawers: drawers });
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set drawers", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [selectedSceneProduct],
+  );
+
+  const handleSetHandleType = useCallback(
+    async (handleType: string) => {
+      if (!selectedSceneProduct) return;
+
+      try {
+        await setConfig(selectedSceneProduct, { HandleType: handleType });
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set handle type", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [selectedSceneProduct],
+  );
+
+  const selectToolAttachedRef = useRef(false);
+  const selectTool = getSelectTool();
+
+  if (selectTool && !selectToolAttachedRef.current) {
+    selectToolAttachedRef.current = true;
+    selectTool.on("select", (selectedEntity) => {
+      const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
+
+      if (firstSelected) {
+        console.log(`Выбран объект: ${firstSelected.name}`);
+        dispatch(setSelectedSceneProduct(firstSelected.name!));
+        const lastPos = lastPointerPosRef.current;
+
+        if (lastPos) {
+          showDropdownAt(lastPos.x, lastPos.y);
+        } else {
+          const iframeEl = containerRef.current;
+          if (iframeEl) {
+            const rect = iframeEl.getBoundingClientRect();
+            showDropdownAt(rect.width / 2, rect.height / 2);
+          }
+        }
+      } else {
+        console.log("клик в пустоту");
+        dispatch(setSelectedSceneProduct(""));
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    });
+  }
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
+
+    const drawerOptions = [
+      { id: "drawer-1d", label: "1 Drawer", value: "1D" },
+      { id: "drawer-2d", label: "2 Drawer", value: "2D" },
+      { id: "drawer-1dwid", label: "1 Drawer with Inner Drawer", value: "1DWID" },
+    ];
+
+    const handleOptions = [
+      { id: "handle-pto", label: "Pto handle", value: "handle_pto" },
+      { id: "handle-urban-topcut", label: "Urban Handle Top Cut", value: "handle_urban_topcut" },
+      { id: "handle-urban-botcut", label: "Urban Handle Bot Cut", value: "handle_urban_botcut" },
+    ];
 
     const items: DropdownItem[] = [
       {
@@ -340,6 +425,29 @@ export const PlayCanvasIntegration = () => {
       },
     ];
 
+    if (selectedSceneProduct) {
+      items.unshift(
+        {
+          id: "drawer-style",
+          label: "Drawer Style",
+          children: drawerOptions.map((option) => ({
+            id: option.id,
+            label: option.label,
+            onClick: () => handleSetDrawers(option.value),
+          })),
+        },
+        {
+          id: "handle-style",
+          label: "Handle Style",
+          children: handleOptions.map((option) => ({
+            id: option.id,
+            label: option.label,
+            onClick: () => handleSetHandleType(option.value),
+          })),
+        },
+      );
+    }
+
     const addItem: DropdownItem =
       productIds.length > 0
         ? {
@@ -379,7 +487,17 @@ export const PlayCanvasIntegration = () => {
     }
 
     return items;
-  }, [handleAdd, handleAddLeft, handleAddRight, handleRemoveProducts, handleSetWidth, productIds.length]);
+  }, [
+    handleAdd,
+    handleAddLeft,
+    handleAddRight,
+    handleRemoveProducts,
+    handleSetDrawers,
+    handleSetHandleType,
+    handleSetWidth,
+    productIds.length,
+    selectedSceneProduct,
+  ]);
 
   return (
     <div style={{ position: "relative", height: "100%" }}>

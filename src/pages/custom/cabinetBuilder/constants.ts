@@ -58,11 +58,22 @@ export const optionsMockData2 = [
   {
     id: 201,
     title: "1 Drawer",
+    value: "1",
+    isAvailable: true,
     isShortDesc: false,
   },
   {
     id: 202,
     title: "2 Drawer",
+    value: "2",
+    isAvailable: true,
+    isShortDesc: false,
+  },
+  {
+    id: 203,
+    title: "1 Drawer With Inner Drawer",
+    value: "1+inner",
+    isAvailable: true,
     isShortDesc: false,
   },
 ];

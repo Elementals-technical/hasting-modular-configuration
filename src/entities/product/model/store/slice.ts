@@ -37,6 +37,7 @@ type ProductState = {
   };
 
   productsPresets: PresetProduct[];
+  selectedSceneProduct: string;
 };
 
 type ProductDimensions = {
@@ -108,6 +109,7 @@ const createInitialState = (): ProductState => {
     },
 
     productsPresets: [],
+    selectedSceneProduct: "",
   };
 
   applyRulesToState(baseState);
@@ -181,6 +183,10 @@ const productSlice = createSlice({
     setActiveCountertopColor(state, action: PayloadAction<string>) {
       state.productOptions.CountertopColor = action.payload;
     },
+
+    setSelectedSceneProduct(state, action: PayloadAction<string>) {
+      state.selectedSceneProduct = action.payload;
+    },
   },
 });
 
@@ -199,5 +205,6 @@ export const {
   setActiveBasinStyle,
   setActiveCountertopColor,
   resetPrebuiltProducts,
+  setSelectedSceneProduct,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;

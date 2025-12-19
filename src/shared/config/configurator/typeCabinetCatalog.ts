@@ -48,6 +48,9 @@ const typeCabinetRules: TypeCabinetRuleConfig[] = [
 
 const uniqueNumbers = (values: number[]) => Array.from(new Set(values)).sort((a, b) => a - b);
 
+/**
+  flatten берёт массив массивов чисел (width/depth/height по типам) и сводит в один плоский массив, чтобы построить общий “универсум” значений и потом сделать uniqueNumbers(). Это нужно, чтобы знать полный список допустимых размеров для всех типов без ручного перечисления.
+ */
 const flatten = (items: number[][]) => items.reduce<number[]>((acc, item) => acc.concat(item), []);
 
 export const typeCabinetDimensionUniverse = {
