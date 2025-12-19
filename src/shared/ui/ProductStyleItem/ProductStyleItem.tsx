@@ -11,6 +11,7 @@ interface ProductStyleItemI {
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
   onSelectStyle?: (id: number) => void;
+  isAvailable?: boolean;
 }
 
 export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
@@ -19,14 +20,19 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   handleOpenStyleSidebar,
   isActive = false,
   onSelectStyle,
+  isAvailable = true,
 }) => {
+  const isClickable = isAvailable;
+
   const handleClick = () => {
+    if (!isClickable) return;
+
     onSelectStyle?.(id);
     handleOpenStyleSidebar();
   };
 
   return (
-    <div className={`${s.productStyleItem} ${isActive ? s.activeItem : ""}`}>
+    <div className={`${s.productStyleItem} ${isActive ? s.activeItem : ""} ${!isClickable ? s.disabled : ""}`}>
       <div className={s.image} onClick={handleClick}>
         <img src={none_img} alt="image" />
       </div>

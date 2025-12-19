@@ -13,6 +13,7 @@ interface ProductStyleGridI {
     desc?: string | undefined;
     isAvailable?: boolean;
     isShortDesc: boolean;
+    value?: string;
   }[];
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
@@ -48,6 +49,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
             title={i.title}
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             isActive={isItemActive}
+            isAvailable={i.isAvailable}
             onSelectStyle={onSelectStyle}
           />
         );

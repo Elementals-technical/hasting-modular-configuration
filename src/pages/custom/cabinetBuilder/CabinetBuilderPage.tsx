@@ -22,7 +22,12 @@ import {
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
 
-import { getActiveCabinetType, getSelectedProducts, getDrawerProduct } from "@/entities/product/model/store/selectors";
+import {
+  getActiveCabinetType,
+  getSelectedProducts,
+  getDrawerProduct,
+  getDimensionOptions,
+} from "@/entities/product/model/store/selectors";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
@@ -54,11 +59,23 @@ export const CabinetBuilderPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
 
   const drawerProduct = useAppSelector(getDrawerProduct);
+  const dimensionOptions = useAppSelector(getDimensionOptions);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
 
   const hasActiveCabinet = Boolean(activeCabinetType);
   const hasProducts = selectedProducts.length > 0;
+
+  const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
+
+  const cabinetStyleOptions = optionsMockData2.map((option) => {
+    const ruleOption = option.value ? drawerOptionMap.get(option.value) : undefined;
+
+    return {
+      ...option,
+      isAvailable: ruleOption ? !ruleOption.disabled : option.isAvailable,
+    };
+  });
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -153,7 +170,7 @@ export const CabinetBuilderPage = () => {
       content: (
         <ProductStyleGrid
           handleOpenStyleSidebar={handleOpenStyleSidebar}
-          data={optionsMockData2}
+          data={cabinetStyleOptions}
           requiresActiveCabinet
           isActive={isStyleDrawerActive}
           activeStyleId={activeStyleId}

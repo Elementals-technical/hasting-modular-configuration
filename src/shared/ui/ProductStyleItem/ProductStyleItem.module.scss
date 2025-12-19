@@ -45,6 +45,14 @@
       border: 1px solid #ac5331;
     }
   }
+
+  &.disabled {
+    opacity: 0.5;
+
+    .image {
+      cursor: not-allowed;
+    }
+  }
 }
 
 .titleDisabled {
