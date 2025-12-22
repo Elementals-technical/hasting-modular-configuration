@@ -8,6 +8,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 
 import {
   optionsMockData,
+  optionsSidePanelsData,
   optionsSwatchData,
   optionsSwatchData2,
   optionsSwatchDataTowel,
@@ -24,7 +25,7 @@ export const AccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={optionsSidePanelsData} />
         </>
       ),
     },

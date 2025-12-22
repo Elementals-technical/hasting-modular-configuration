@@ -49,6 +49,34 @@ export const optionsMockData = [
   },
 ];
 
+export const optionsSidePanelsData = [
+  {
+    id: 9001,
+    title: "None",
+    isShortDesc: false,
+  },
+  {
+    id: 9002,
+    title: "No groove",
+    isShortDesc: false,
+  },
+  {
+    id: 9003,
+    title: "1 groove (upper)",
+    isShortDesc: false,
+  },
+  {
+    id: 9004,
+    title: "1 groove (central)",
+    isShortDesc: false,
+  },
+  {
+    id: 9005,
+    title: "2 groove",
+    isShortDesc: false,
+  },
+];
+
 export const optionsSwatchData = [
   {
     id: 2001,

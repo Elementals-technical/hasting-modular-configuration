@@ -9,6 +9,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import {
   dividersMockData,
   optionsMockData,
+  optionsSidePanelsData,
   optionsSwatchData,
   optionsSwatchData2,
   optionsSwatchDataTowel,
@@ -26,7 +27,7 @@ export const CustomAccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={optionsSidePanelsData} />
         </>
       ),
     },
