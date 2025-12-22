@@ -15,7 +15,7 @@ import { optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { getCabinetColor, getHandleGrooveColor, getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
 
@@ -24,6 +24,8 @@ const BASE_PANEL_OPTION = "Base Panel";
 export const CustomCabinetColorsPage = () => {
   const dispatch = useAppDispatch();
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const activeCabinetColor = useAppSelector(getCabinetColor);
+  const activeGrooveColor = useAppSelector(getHandleGrooveColor);
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
@@ -114,7 +116,11 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeColor} />
+          <ProductOptionsGrid
+            data={sortedBasePanelOptions}
+            handleAdd={handleChangeColor}
+            activeValue={activeCabinetColor}
+          />
         </>
       ),
     },
@@ -125,7 +131,11 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeGrooveColor} />
+          <ProductOptionsGrid
+            data={sortedBasePanelOptions}
+            handleAdd={handleChangeGrooveColor}
+            activeValue={activeGrooveColor}
+          />
         </>
       ),
     },

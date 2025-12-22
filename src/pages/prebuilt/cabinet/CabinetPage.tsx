@@ -15,7 +15,11 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { getProductsPresets } from "@/entities/product/model/store/selectors";
+import {
+  getCabinetColor,
+  getHandleGrooveColor,
+  getProductsPresets,
+} from "@/entities/product/model/store/selectors";
 import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 const BASE_PANEL_OPTION = "Base Panel";
@@ -23,6 +27,8 @@ const BASE_PANEL_OPTION = "Base Panel";
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
+  const activeCabinetColor = useAppSelector(getCabinetColor);
+  const activeGrooveColor = useAppSelector(getHandleGrooveColor);
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
@@ -115,7 +121,11 @@ export const CabinetPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeColor} />
+          <ProductOptionsGrid
+            data={sortedBasePanelOptions}
+            handleAdd={handleChangeColor}
+            activeValue={activeCabinetColor}
+          />
         </>
       ),
     },
@@ -126,7 +136,11 @@ export const CabinetPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeGrooveColor} />
+          <ProductOptionsGrid
+            data={sortedBasePanelOptions}
+            handleAdd={handleChangeGrooveColor}
+            activeValue={activeGrooveColor}
+          />
         </>
       ),
     },
