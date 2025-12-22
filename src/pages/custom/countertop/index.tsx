@@ -5,17 +5,23 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import type { AccordionConfig } from "@/shared/constants/types";
 import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
-import { optionsMockData, optionsMockData2, optionsMockData3 } from "./constants";
-import { getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { getActiveCountertopThickness, getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice";
+import {
+  setActiveBasinStyle,
+  setActiveCountertopColor,
+  setActiveCountertopThickness,
+} from "@/entities/product/model/store/slice";
+import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
 export const CustomCountertopPage = () => {
   const dispatch = useAppDispatch();
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const activeThickness = useAppSelector(getActiveCountertopThickness);
 
   const countertopOptions = useMemo(
     () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -44,6 +50,16 @@ export const CustomCountertopPage = () => {
     dispatch(setActiveBasinStyle(basinStyle));
   };
 
+  const handleAddThickness = (thickness: string) => {
+    console.log("thickness", thickness);
+
+    setConfigBatch(selectedProducts, {
+      Thickness: thickness,
+    });
+
+    dispatch(setActiveCountertopThickness(thickness));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "counter-top-color",
@@ -60,7 +76,11 @@ export const CustomCountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductSwatchesGrid
+            data={optionsMockData4}
+            onSelectChange={(value) => value && handleAddThickness(value)}
+            selectedValue={activeThickness}
+          />
         </>
       ),
     },

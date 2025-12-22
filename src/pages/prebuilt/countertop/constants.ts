@@ -51,9 +51,40 @@ export const optionsMockData = [
 
 export const optionsMockData4 = [
   {
+    id: 10,
+    title: "⅜”",
+    isShortDesc: false,
+    isSwatchWithHint: true,
+  },
+  {
     id: 11,
     title: "½”",
     isShortDesc: false,
+    isSwatchWithHint: false,
+  },
+  {
+    id: 12,
+    title: "2⅜”",
+    isShortDesc: false,
+    isSwatchWithHint: false,
+  },
+  {
+    id: 13,
+    title: "4”",
+    isShortDesc: false,
+    isSwatchWithHint: false,
+  },
+  {
+    id: 14,
+    title: "5⅛”",
+    isShortDesc: false,
+    isSwatchWithHint: false,
+  },
+  {
+    id: 15,
+    title: "5½”",
+    isShortDesc: false,
+    isSwatchWithHint: false,
   },
 ];
 

@@ -15,16 +15,16 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
-import { addProductId, setSelectedDimensions } from "@/entities/product/model/store/slice";
+import { addProductId, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
-import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -37,6 +37,18 @@ export const RightCabinetStyleSidebar = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+
+  const handleOptions = useMemo(
+    () =>
+      dimensionOptions.handles?.length
+        ? dimensionOptions.handles
+        : [
+            { label: "Push to open", value: "handle_pto" },
+            { label: "Upper Groove", value: "handle_urban_topcut" },
+            { label: "Central Groove", value: "handle_urban_botcut" },
+          ],
+    [dimensionOptions.handles],
+  );
 
   const productConfig = useMemo(
     () => ({
@@ -62,6 +74,15 @@ export const RightCabinetStyleSidebar = () => {
 
   const handleChangeHeight = (value: string | number) => {
     dispatch(setSelectedDimensions({ height: Number(value) }));
+  };
+
+  const handleSetHandleType = (handleType: string) => {
+    dispatch(
+      setSelectedProductConfig({
+        ...(selectedProductConfig ?? {}),
+        Handle: handleType,
+      }),
+    );
   };
 
   useEffect(() => {
@@ -152,6 +173,16 @@ export const RightCabinetStyleSidebar = () => {
             options={dimensionOptions.height}
             value={selectedDimensions.height}
             onSelect={(value) => handleChangeHeight(value)}
+          />
+        </div>
+
+        <div className={s.contentItem}>
+          <div>Handle</div>
+          <FilterSelection
+            label={"Handle"}
+            options={handleOptions}
+            value={selectedProductConfig?.Handle as string | undefined}
+            onSelect={(value) => handleSetHandleType(String(value))}
           />
         </div>
 
