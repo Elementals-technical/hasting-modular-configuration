@@ -75,6 +75,25 @@ export const optionsSwatchData2 = [
   },
 ];
 
+export const optionsSwatchDataTowel = [
+  {
+    id: 4001,
+    title: "None",
+  },
+  {
+    id: 4002,
+    title: "Left",
+  },
+  {
+    id: 4003,
+    title: "Right",
+  },
+  {
+    id: 4004,
+    title: "Both",
+  },
+];
+
 export const dividersMockData = [
   {
     id: 5000,

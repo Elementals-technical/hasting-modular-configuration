@@ -74,3 +74,22 @@ export const optionsSwatchData2 = [
     title: "Customize",
   },
 ];
+
+export const optionsSwatchDataTowel = [
+  {
+    id: 101,
+    title: "None",
+  },
+  {
+    id: 102,
+    title: "Left",
+  },
+  {
+    id: 103,
+    title: "Right",
+  },
+  {
+    id: 104,
+    title: "Both",
+  },
+];
