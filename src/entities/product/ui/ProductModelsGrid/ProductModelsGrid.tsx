@@ -14,7 +14,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -25,7 +25,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -36,7 +36,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 70, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -47,7 +47,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 70, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -58,7 +58,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -69,7 +69,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -80,8 +80,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 25, Depth: 51, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 25, Depth: 51, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -92,8 +92,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 25, Depth: 51, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 25, Depth: 51, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -104,7 +104,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -115,7 +115,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -126,7 +126,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 105, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 105, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -137,7 +137,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 105, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 105, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -148,8 +148,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Base", Width: 70, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -160,8 +160,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 70, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -172,8 +172,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Base", Width: 80, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -184,8 +184,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 80, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 51, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -196,8 +196,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 50, Depth: 51, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Base", Width: 70, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 51, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -208,8 +208,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 50, Depth: 51, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 70, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 51, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -220,8 +220,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -232,8 +232,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -244,9 +244,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
       { name: "Open-Shelf", Width: 35, Depth: 50.5, Height: 56 },
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -258,8 +258,8 @@ export const productMockData: ProductModel[] = [
     price: "Price on request",
     presetProducts: [
       { name: "Open-Shelf", Width: 35, Depth: 50.5, Height: 56 },
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -270,8 +270,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -282,8 +282,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -294,8 +294,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -306,9 +306,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
       { name: "Open-Shelf", Width: 35, Depth: 50.5, Height: 53 },
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -319,9 +319,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -332,8 +332,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -344,8 +344,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -356,8 +356,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -368,8 +368,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
       { name: "Open-Shelf", Width: 50, Depth: 50.5, Height: 56 },
     ],
   },
@@ -381,8 +381,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -393,9 +393,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -406,8 +406,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -418,9 +418,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
       { name: "Open-Shelf", Width: 35, Depth: 50.5, Height: 53 },
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -431,9 +431,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -444,8 +444,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -456,9 +456,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -469,8 +469,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
       { name: "Open-Shelf", Width: 35, Depth: 50.5, Height: 56 },
     ],
   },
@@ -482,9 +482,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -495,9 +495,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -508,9 +508,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -521,8 +521,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -533,9 +533,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -546,9 +546,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
       { name: "Open-Shelf", Width: 60, Depth: 50.5, Height: 53 },
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -559,8 +559,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -571,9 +571,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -584,9 +584,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -597,9 +597,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -610,9 +610,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -623,8 +623,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -635,9 +635,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
-      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -648,10 +648,10 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
-      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", Width: 70, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", Width: 105, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
       { name: "Open-Shelf", Width: 35, Depth: 50.5, Height: 53 },
-      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, TypeDrawer: "1-Drawer" },
+      { name: "Sink-Cabinet", Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -662,11 +662,11 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
       { name: "Open-Shelf", Width: 25, Depth: 50.5, Height: 56 },
-      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer" },
+      { name: "Sink-Cabinet", Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
       { name: "Open-Shelf", Width: 25, Depth: 50.5, Height: 56 },
-      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, TypeDrawer: "2-Drawer", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
 ];
