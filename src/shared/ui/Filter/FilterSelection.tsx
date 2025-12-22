@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown.tsx";
 
@@ -26,6 +27,10 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
   const selectedValue = value ?? internalValue;
 
   const selectedOption = useMemo(
@@ -40,7 +45,12 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+
+      if (wrapperRef.current && wrapperRef.current.contains(target)) return;
+      if (menuRef.current && menuRef.current.contains(target)) return;
+
+      if (wrapperRef.current) {
         setOpen(false);
       }
     };
@@ -51,6 +61,22 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const buttonEl = buttonRef.current;
+    if (!buttonEl) return;
+
+    const rect = buttonEl.getBoundingClientRect();
+    setMenuStyle({
+      position: "fixed",
+      top: rect.bottom + 6,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 1000,
+    });
+  }, [open]);
 
   const handleSelect = (option: Option) => {
     if (value === undefined) {
@@ -67,6 +93,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
     <div className={s.wrapper} ref={wrapperRef}>
       <button
         type="button"
+        ref={buttonRef}
         className={`${classes} ${open ? s.open : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -78,36 +105,39 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
         </span>
       </button>
 
-      {open && options.length > 0 ? (
-        <div className={s.menu} role="listbox" aria-label={label}>
-          {options.map((option) => {
-            const isSelected = option.value === selectedValue;
-            const isDisabled = Boolean(option.disabled);
-            const optionLabel = option.label ?? option.name;
+      {open && options.length > 0
+        ? createPortal(
+            <div className={s.menu} role="listbox" aria-label={label} style={menuStyle} ref={menuRef}>
+              {options.map((option) => {
+                const isSelected = option.value === selectedValue;
+                const isDisabled = Boolean(option.disabled);
+                const optionLabel = option.label ?? option.name;
 
-            const optionTitle = isDisabled ? option.reason : undefined;
-            const classes = [s.menuItem, isSelected ? s.activeItem : "", isDisabled ? s.disabledItem : ""]
-              .filter(Boolean)
-              .join(" ");
+                const optionTitle = isDisabled ? option.reason : undefined;
+                const classes = [s.menuItem, isSelected ? s.activeItem : "", isDisabled ? s.disabledItem : ""]
+                  .filter(Boolean)
+                  .join(" ");
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                className={classes}
-                role="option"
-                aria-selected={isSelected}
-                disabled={isDisabled}
-                title={optionTitle}
-                onClick={() => handleSelect(option)}
-              >
-                <span className={s.optionLabel}>{optionLabel}</span>
-                {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={classes}
+                    role="option"
+                    aria-selected={isSelected}
+                    disabled={isDisabled}
+                    title={optionTitle}
+                    onClick={() => handleSelect(option)}
+                  >
+                    <span className={s.optionLabel}>{optionLabel}</span>
+                    {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
+                  </button>
+                );
+              })}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 };
