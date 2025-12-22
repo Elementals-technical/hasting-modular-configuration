@@ -1,7 +1,10 @@
+import { useState } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 
 const optionsMockData = [
   {
@@ -73,7 +76,16 @@ const faucetHolesAmountData = [
   },
 ];
 
+const faucetHolesSpacingOptions = [
+  {
+    label: '4"',
+    value: '4"',
+  },
+];
+
 export const FaucetPage = () => {
+  const [faucetSpacing, setFaucetSpacing] = useState('4"');
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "faucet-holes-amount",
@@ -90,7 +102,12 @@ export const FaucetPage = () => {
       title: "Faucet Holes Spacing",
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <FilterSelection
+            label="Spacing"
+            options={faucetHolesSpacingOptions}
+            value={faucetSpacing}
+            onSelect={(value) => setFaucetSpacing(String(value))}
+          />
         </>
       ),
     },
