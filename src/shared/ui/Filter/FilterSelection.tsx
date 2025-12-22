@@ -107,7 +107,14 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
 
       {open && options.length > 0
         ? createPortal(
-            <div className={s.menu} role="listbox" aria-label={label} style={menuStyle} ref={menuRef}>
+            <div
+              className={s.menu}
+              role="listbox"
+              aria-label={label}
+              style={menuStyle}
+              ref={menuRef}
+              data-filter-menu="true"
+            >
               {options.map((option) => {
                 const isSelected = option.value === selectedValue;
                 const isDisabled = Boolean(option.disabled);

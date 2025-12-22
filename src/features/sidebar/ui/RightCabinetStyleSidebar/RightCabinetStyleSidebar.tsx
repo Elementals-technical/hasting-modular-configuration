@@ -110,6 +110,9 @@ export const RightCabinetStyleSidebar = () => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (!sidebarRef.current) return;
 
+      const target = event.target as Element | null;
+      if (target?.closest?.('[data-filter-menu="true"]')) return;
+
       if (sidebarRef.current.contains(event.target as Node)) return;
 
       dispatch(setOpenStyleSidebar(false));
