@@ -1,6 +1,7 @@
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { optionsMockData } from "./constants";
+import { faucetHolesAmountData, optionsMockData } from "./constants";
 import type { AccordionConfig } from "@/shared/constants/types";
 
 export const CustomFaucetHolesPage = () => {
@@ -11,7 +12,7 @@ export const CustomFaucetHolesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductSwatchesGrid data={faucetHolesAmountData} />
         </>
       ),
     },

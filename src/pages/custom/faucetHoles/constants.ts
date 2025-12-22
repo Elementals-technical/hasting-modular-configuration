@@ -48,3 +48,22 @@ export const optionsMockData = [
     isShortDesc: false,
   },
 ];
+
+export const faucetHolesAmountData = [
+  {
+    id: "faucet-holes-0",
+    title: "0",
+  },
+  {
+    id: "faucet-holes-1",
+    title: "1",
+  },
+  {
+    id: "faucet-holes-2",
+    title: "2",
+  },
+  {
+    id: "faucet-holes-3",
+    title: "3",
+  },
+];
