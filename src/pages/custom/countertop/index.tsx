@@ -5,7 +5,7 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import type { AccordionConfig } from "@/shared/constants/types";
 import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
-import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 import { getActiveCountertopThickness, getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";

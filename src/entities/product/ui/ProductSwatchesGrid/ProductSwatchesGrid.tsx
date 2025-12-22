@@ -5,7 +5,7 @@ import { ProductSwatchItem } from "@/shared/ui/ProductSwatchItem/ProductSwatchIt
 import s from "./ProductSwatchesGrid.module.scss";
 
 interface ProductSwatchesGridI {
-  data: { id: number; title: string; value?: string; isSwatchWithHint: boolean }[];
+  data: { id: number; title: string; value?: string; isSwatchWithHint?: boolean }[];
   isLedSection?: boolean;
   onSelectChange?: (title: string | null) => void;
   selectedValue?: string | null;

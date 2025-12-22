@@ -1,11 +1,4 @@
-import type {
-  AutoChangeEntry,
-  AutoChangeResult,
-  AvailableOptions,
-  OptionState,
-  RuleContext,
-  RuleResult,
-} from "../model/types";
+import type { AutoChangeEntry, AutoChangeResult, OptionState, RuleContext, RuleResult } from "../model/types";
 
 const resolveValue = <T extends string | number>(
   options: OptionState<T>[],
@@ -35,7 +28,7 @@ export const autoChange = (ruleResult: RuleResult, context: RuleContext): AutoCh
   const autoChanges: AutoChangeEntry[] = [];
 
   const update = <T extends string | number>(
-    field: keyof AvailableOptions,
+    field: AutoChangeEntry["field"],
     current: T,
     options: OptionState<T>[],
     emptyFallback?: T | null,
