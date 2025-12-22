@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
@@ -18,6 +18,8 @@ export const HomePage = () => {
   const { pathname } = useLocation();
   const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
 
+  const prevFlowRef = useRef(flow);
+
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
   const activeStep = useAppSelector(getActiveStep);
@@ -26,6 +28,13 @@ export const HomePage = () => {
     sessionStorage.setItem("howToBuildSeen", "1");
     setIsOpenedBuildInfo(false);
   };
+
+  useEffect(() => {
+    if (prevFlowRef.current === flow) return;
+
+    prevFlowRef.current = flow;
+    window.location.assign(pathname);
+  }, [flow, pathname]);
 
   return (
     <div className={s.homePageWrap}>
