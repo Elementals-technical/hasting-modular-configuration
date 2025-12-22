@@ -72,6 +72,7 @@ export const typeCabinetRule = (catalog: ConfiguratorCatalog, context: RuleConte
       depth: depths.options,
       height: heights.options,
       drawers: drawers.options,
+      handles: [],
     },
 
     violations,

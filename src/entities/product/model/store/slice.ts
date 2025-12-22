@@ -20,6 +20,7 @@ type DimensionOptionGroup = {
   height: DimensionOption[];
   depth: DimensionOption[];
   drawers: DimensionOption[];
+  handles: DimensionOption[];
 };
 
 type ProductState = {
@@ -66,12 +67,36 @@ const mapOptionState = <T extends string | number>(option: OptionState<T>): Dime
   reason: option.reason,
 });
 
+const mapDrawerConfigToRule = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+
+  const normalized = value.trim();
+
+  if (normalized === "1D") return "1";
+  if (normalized === "2D") return "2";
+  if (normalized === "1DWID") return "1+inner";
+
+  if (normalized === "1" || normalized === "2" || normalized === "1+inner") {
+    return normalized;
+  }
+
+  return null;
+};
+
+const mapHandleConfigToRule = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+};
+
 const toSelection = (state: ProductState): Selection => ({
   cabinetTypeId: state.activeCabinetType,
   width: state.selectedDimensions.width,
   depth: state.selectedDimensions.depth,
   height: state.selectedDimensions.height,
-  drawers: null,
+  drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers),
+  handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle),
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
@@ -82,6 +107,7 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
     depth: ruleResult.availableOptions.depth.map(mapOptionState),
     height: ruleResult.availableOptions.height.map(mapOptionState),
     drawers: ruleResult.availableOptions.drawers.map(mapOptionState),
+    handles: ruleResult.availableOptions.handles.map(mapOptionState),
   };
 
   state.selectedDimensions = {
@@ -103,6 +129,7 @@ const createInitialState = (): ProductState => {
       height: [],
       depth: [],
       drawers: [],
+      handles: [],
     },
     productOptions: {
       CabinetColor: "White Matte",
@@ -174,6 +201,7 @@ const productSlice = createSlice({
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       state.selectedProductConfig = action.payload;
+      applyRulesToState(state);
     },
     setCabinetColor(state, action: PayloadAction<string>) {
       state.productOptions.CabinetColor = action.payload;
