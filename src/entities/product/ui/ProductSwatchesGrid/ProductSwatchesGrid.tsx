@@ -5,7 +5,7 @@ import { ProductSwatchItem } from "@/shared/ui/ProductSwatchItem/ProductSwatchIt
 import s from "./ProductSwatchesGrid.module.scss";
 
 interface ProductSwatchesGridI {
-  data: { id: number; title: string }[];
+  data: { id: number; title: string; isSwatchWithHint: boolean }[];
   isLedSection?: boolean;
   onSelectChange?: (title: string | null) => void;
 }
@@ -22,7 +22,7 @@ export const ProductSwatchesGrid: React.FC<ProductSwatchesGridI> = ({ data, isLe
           <ProductSwatchItem
             key={i.id}
             title={i.title}
-            isSwatchWithHint
+            isSwatchWithHint={i.isSwatchWithHint}
             isActive={selected === i.title}
             onSelect={() => {
               setSelected(i.title);

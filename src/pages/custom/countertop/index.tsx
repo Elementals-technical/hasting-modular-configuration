@@ -5,11 +5,12 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import type { AccordionConfig } from "@/shared/constants/types";
 import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
-import { optionsMockData, optionsMockData2, optionsMockData3 } from "./constants";
+import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice";
+import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -60,7 +61,7 @@ export const CustomCountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductSwatchesGrid data={optionsMockData4} />
         </>
       ),
     },
