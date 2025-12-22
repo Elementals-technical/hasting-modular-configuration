@@ -9,7 +9,11 @@ import { optionsMockData, optionsMockData2, optionsMockData3, optionsMockData4 }
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice";
+import {
+  setActiveBasinStyle,
+  setActiveCountertopColor,
+  setActiveCountertopThickness,
+} from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
 const COUNTERTOP_OPTION = "Counertops materials";
@@ -43,6 +47,16 @@ export const CustomCountertopPage = () => {
     });
 
     dispatch(setActiveBasinStyle(basinStyle));
+  };
+
+  const handleAddbThickness = (thickness: string) => {
+    console.log("thickness", thickness);
+
+    setConfigBatch(selectedProducts, {
+      Thickness: thickness,
+    });
+
+    dispatch(setActiveCountertopThickness(thickness));
   };
 
   const ACCORDIONS: AccordionConfig[] = [

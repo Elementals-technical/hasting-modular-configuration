@@ -36,6 +36,7 @@ type ProductState = {
     CountertopColor: string;
     HandleGrooveColor: string;
     Handle: HandleOption;
+    Thickness: string;
   };
 
   productsPresets: PresetProduct[];
@@ -137,6 +138,7 @@ const createInitialState = (): ProductState => {
       CountertopColor: "",
       HandleGrooveColor: "",
       Handle: "",
+      Thickness: "",
     },
 
     productsPresets: [],
@@ -215,6 +217,9 @@ const productSlice = createSlice({
     setActiveCountertopColor(state, action: PayloadAction<string>) {
       state.productOptions.CountertopColor = action.payload;
     },
+    setActiveCountertopThickness(state, action: PayloadAction<string>) {
+      state.productOptions.Thickness = action.payload;
+    },
 
     setSelectedSceneProduct(state, action: PayloadAction<string>) {
       state.selectedSceneProduct = action.payload;
@@ -236,6 +241,7 @@ export const {
   resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setActiveCountertopThickness,
   resetPrebuiltProducts,
   setSelectedSceneProduct,
 } = productSlice.actions;

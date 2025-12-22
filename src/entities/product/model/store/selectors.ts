@@ -21,3 +21,5 @@ export const getSinkType = (state: RootState) => state.rootStateUI.product.produ
 export const getProductsPresets = (state: RootState) => state.rootStateUI.product.productsPresets;
 
 export const getSelectedSceneProduct = (state: RootState) => state.rootStateUI.product.selectedSceneProduct;
+
+export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;
