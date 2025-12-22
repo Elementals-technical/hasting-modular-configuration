@@ -25,6 +25,11 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
 
   const handleNavigate = () => {
+    if (location.pathname.startsWith("/custom/cabinet-builder")) {
+      navigate("/prebuilt/model");
+      return;
+    }
+
     if (prevStep) {
       navigate(prevStep.path);
       return;

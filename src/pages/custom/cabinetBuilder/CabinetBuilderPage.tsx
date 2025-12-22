@@ -15,6 +15,7 @@ import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import {
   addProductId,
+  reset,
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
@@ -33,7 +34,7 @@ import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selector
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 type AccordionConfig = {
   id: string;
@@ -55,6 +56,7 @@ export const CabinetBuilderPage = () => {
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
+  const { pathname } = useLocation();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedProducts = useAppSelector(getSelectedProducts);
@@ -131,6 +133,17 @@ export const CabinetBuilderPage = () => {
     dispatch(setActiveCabinetType(id));
     setAccordionValue(CABINET_STYLE_ID);
   };
+
+  useEffect(() => {
+    if (!pathname.includes("/custom/cabinet-builder")) return;
+
+    bootstrappedRef.current = false;
+    dispatch(reset());
+
+    if (canvasReady) {
+      removeAllProducts();
+    }
+  }, [canvasReady, dispatch, pathname]);
 
   useEffect(() => {
     if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;

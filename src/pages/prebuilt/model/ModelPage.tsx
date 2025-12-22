@@ -40,21 +40,25 @@ export const ModelPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
-    if (!canvasReady || isDefinedProductsRef.current || productsPresets.length) return;
+    if (!canvasReady || isDefinedProductsRef.current) return;
 
     isDefinedProductsRef.current = true;
 
+    const presetProducts = productsPresets.length ? productsPresets : productMockData[0].presetProducts;
+
     const run = async () => {
       try {
-        await addPreset(productMockData[0].presetProducts);
+        await addPreset(presetProducts);
 
-        dispatch(addProductPreset(productMockData[0].presetProducts));
+        if (!productsPresets.length) {
+          dispatch(addProductPreset(presetProducts));
+        }
       } catch (error) {
         console.log(error);
       }
     };
     run();
-  }, [canvasReady, productsPresets.length]);
+  }, [canvasReady, dispatch, productsPresets]);
 
   return (
     <div>
