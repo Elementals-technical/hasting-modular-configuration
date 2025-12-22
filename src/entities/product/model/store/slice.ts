@@ -34,6 +34,7 @@ type ProductState = {
     sinkType: string;
     CountertopColor: string;
     HandleGrooveColor: string;
+    Handle: HandleOption;
   };
 
   productsPresets: PresetProduct[];
@@ -49,6 +50,8 @@ type ProductDimensions = {
 type ProductConfig = {
   [key: string]: unknown;
 } & Partial<addProductConfigI>;
+
+type HandleOption = "" | "handle_pto" | "handle_urban_topcut" | "handle_urban_botcut";
 
 const DEFAULT_DIMENSIONS: ProductDimensions = {
   width: 60,
@@ -106,6 +109,7 @@ const createInitialState = (): ProductState => {
       sinkType: "",
       CountertopColor: "",
       HandleGrooveColor: "",
+      Handle: "",
     },
 
     productsPresets: [],

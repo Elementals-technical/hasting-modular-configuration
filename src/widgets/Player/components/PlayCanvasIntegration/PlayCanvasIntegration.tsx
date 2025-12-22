@@ -328,7 +328,7 @@ export const PlayCanvasIntegration = () => {
       if (!selectedSceneProduct) return;
 
       try {
-        await setConfig(selectedSceneProduct, { HandleType: handleType });
+        await setConfig(selectedSceneProduct, { Handle: handleType });
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
       } finally {
