@@ -678,24 +678,26 @@ interface ProductModelsGridI {
 
 export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn, handleAddPreset }) => {
   return (
-    <div className={s.optionsGrid}>
-      {createModelBtn}
+    <div className={s.optionsGridWrapper}>
+      <div className={s.optionsGrid}>
+        {createModelBtn}
 
-      {productMockData.map((i) => {
-        return (
-          <ProductModelItem
-            key={i.id}
-            id={i.id}
-            title={i.title}
-            img={i.img}
-            desc={i.desc}
-            price={i.price}
-            isProductModel={true}
-            presetProducts={i.presetProducts}
-            onClick={handleAddPreset}
-          />
-        );
-      })}
+        {productMockData.map((i) => {
+          return (
+            <ProductModelItem
+              key={i.id}
+              id={i.id}
+              title={i.title}
+              img={i.img}
+              desc={i.desc}
+              price={i.price}
+              isProductModel={true}
+              presetProducts={i.presetProducts}
+              onClick={handleAddPreset}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };

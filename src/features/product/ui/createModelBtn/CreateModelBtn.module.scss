@@ -9,7 +9,7 @@
     justify-content: center;
 
     width: 195px;
-    height: 195px;
+    height: 177px;
 
     background-color: #fbfaf9;
     border-radius: 5px;
@@ -40,5 +40,13 @@
     .selectArea {
       border: 1px solid #ac5331;
     }
+  }
+}
+
+@media (max-width: 1390px) {
+  .selectArea {
+    width: auto !important;
+
+    height: 145px !important;
   }
 }
