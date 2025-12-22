@@ -20,6 +20,7 @@ type DimensionOptionGroup = {
   height: DimensionOption[];
   depth: DimensionOption[];
   drawers: DimensionOption[];
+  handles: DimensionOption[];
 };
 
 type ProductState = {
@@ -66,12 +67,20 @@ const mapOptionState = <T extends string | number>(option: OptionState<T>): Dime
   reason: option.reason,
 });
 
+const mapDrawersToRuleValue = (drawers?: unknown): string | null => {
+  if (drawers === "1D" || drawers === "1") return "1";
+  if (drawers === "2D" || drawers === "2") return "2";
+  if (drawers === "1DWID" || drawers === "1+inner") return "1+inner";
+  return null;
+};
+
 const toSelection = (state: ProductState): Selection => ({
   cabinetTypeId: state.activeCabinetType,
   width: state.selectedDimensions.width,
   depth: state.selectedDimensions.depth,
   height: state.selectedDimensions.height,
-  drawers: null,
+  drawers: mapDrawersToRuleValue(state.selectedProductConfig?.Drawers),
+  handle: (state.selectedProductConfig?.Handle as string | undefined) ?? null,
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
@@ -82,6 +91,7 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
     depth: ruleResult.availableOptions.depth.map(mapOptionState),
     height: ruleResult.availableOptions.height.map(mapOptionState),
     drawers: ruleResult.availableOptions.drawers.map(mapOptionState),
+    handles: ruleResult.availableOptions.handles.map(mapOptionState),
   };
 
   state.selectedDimensions = {
@@ -103,6 +113,7 @@ const createInitialState = (): ProductState => {
       height: [],
       depth: [],
       drawers: [],
+      handles: [],
     },
     productOptions: {
       CabinetColor: "White Matte",
@@ -174,6 +185,22 @@ const productSlice = createSlice({
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       state.selectedProductConfig = action.payload;
+      if (action.payload) {
+        const nextDimensions: ProductDimensions = { ...state.selectedDimensions };
+
+        if (typeof action.payload.Width === "number") {
+          nextDimensions.width = action.payload.Width;
+        }
+        if (typeof action.payload.Height === "number") {
+          nextDimensions.height = action.payload.Height;
+        }
+        if (typeof action.payload.Depth === "number") {
+          nextDimensions.depth = action.payload.Depth;
+        }
+
+        state.selectedDimensions = nextDimensions;
+      }
+      applyRulesToState(state);
     },
     setCabinetColor(state, action: PayloadAction<string>) {
       state.productOptions.CabinetColor = action.payload;

@@ -1,6 +1,7 @@
 export type DimensionField = "width" | "depth" | "height";
 export type DrawerField = "drawers";
-export type IntentField = DimensionField | DrawerField | "cabinetTypeId";
+export type HandleField = "handle";
+export type IntentField = DimensionField | DrawerField | HandleField | "cabinetTypeId";
 
 export type Selection = {
   cabinetTypeId: number | null;
@@ -8,6 +9,7 @@ export type Selection = {
   depth: number;
   height: number;
   drawers?: string | null;
+  handle?: string | null;
 };
 
 export type Intent = {
@@ -27,6 +29,7 @@ export type AvailableOptions = {
   depth: OptionState<number>[];
   height: OptionState<number>[];
   drawers: OptionState<string>[];
+  handles: OptionState<string>[];
 };
 
 export type Violation = {
