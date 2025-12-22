@@ -16,7 +16,7 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getSelectedSceneProduct } from "@/entities/product/model/store/selectors";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "001";
+const PLAYCANVAS_VERSION = "002";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 // const RIGHT_BUTTON = 2;
 // const HOLD_MS = 250;
