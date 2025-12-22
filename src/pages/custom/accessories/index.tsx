@@ -12,6 +12,7 @@ import {
   optionsSwatchData,
   optionsSwatchData2,
   optionsSwatchDataTowel,
+  optionsTowelData,
 } from "./constants";
 
 export const CustomAccessoriesPage = () => {
@@ -54,7 +55,7 @@ export const CustomAccessoriesPage = () => {
       content: (
         <>
           <ProductSwatchesGrid data={optionsSwatchDataTowel} onSelectChange={setTowelSelection} />
-          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsMockData} />}
+          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsTowelData} />}
         </>
       ),
     },

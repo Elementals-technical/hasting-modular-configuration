@@ -6,7 +6,13 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 
-import { optionsMockData, optionsSwatchData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
+import {
+  optionsMockData,
+  optionsSwatchData,
+  optionsSwatchData2,
+  optionsSwatchDataTowel,
+  optionsTowelData,
+} from "./constants";
 
 export const AccessoriesPage = () => {
   const [towelSelection, setTowelSelection] = useState<string | null>(null);
@@ -46,7 +52,7 @@ export const AccessoriesPage = () => {
       content: (
         <>
           <ProductSwatchesGrid data={optionsSwatchDataTowel} onSelectChange={setTowelSelection} />
-          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsMockData} />}
+          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsTowelData} />}
         </>
       ),
     },

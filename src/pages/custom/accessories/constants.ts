@@ -111,3 +111,30 @@ export const dividersMockData = [
     isShortDesc: false,
   },
 ];
+
+export const optionsTowelData = [
+  {
+    id: 11001,
+    title: "Color 1",
+    desc: "Bianco 10B",
+    isShortDesc: false,
+  },
+  {
+    id: 11002,
+    title: "Color 2",
+    desc: "Grigio fume 10F",
+    isShortDesc: false,
+  },
+  {
+    id: 11003,
+    title: "Color 3",
+    desc: "Centre 1A1",
+    isShortDesc: false,
+  },
+  {
+    id: 11004,
+    title: "Color 4",
+    desc: "Tortora 1A2",
+    isShortDesc: false,
+  },
+];

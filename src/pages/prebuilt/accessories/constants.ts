@@ -93,3 +93,30 @@ export const optionsSwatchDataTowel = [
     title: "Both",
   },
 ];
+
+export const optionsTowelData = [
+  {
+    id: 1001,
+    title: "Color 1",
+    desc: "Bianco 10B",
+    isShortDesc: false,
+  },
+  {
+    id: 1002,
+    title: "Color 2",
+    desc: "Grigio fume 10F",
+    isShortDesc: false,
+  },
+  {
+    id: 1003,
+    title: "Color 3",
+    desc: "Centre 1A1",
+    isShortDesc: false,
+  },
+  {
+    id: 1004,
+    title: "Color 4",
+    desc: "Tortora 1A2",
+    isShortDesc: false,
+  },
+];
