@@ -37,7 +37,10 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+
+  console.log("selectedSceneProduct", selectedSceneProduct);
 
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {
     const iframeEl = containerRef.current;
@@ -213,21 +216,17 @@ export const PlayCanvasIntegration = () => {
 
   const handleSetWidth = useCallback(
     async (width: number) => {
-      const targetId = productIds[productIds.length - 1];
-      if (!targetId) {
-        console.warn("[PlayCanvasIntegration] No product to resize");
-        return;
-      }
+      if (!selectedSceneProduct) return;
 
       try {
-        await setWidth(targetId, width);
+        await setConfig(selectedSceneProduct, { Width: width });
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set width", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds],
+    [selectedSceneProduct],
   );
 
   const handleRemoveProducts = useCallback(async () => {
