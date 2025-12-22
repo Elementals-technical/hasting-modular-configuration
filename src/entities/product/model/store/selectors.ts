@@ -22,4 +22,6 @@ export const getProductsPresets = (state: RootState) => state.rootStateUI.produc
 
 export const getSelectedSceneProduct = (state: RootState) => state.rootStateUI.product.selectedSceneProduct;
 
+export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColor;
+
 export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;

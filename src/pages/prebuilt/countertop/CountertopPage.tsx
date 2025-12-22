@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
-import { getProductsPresets } from "@/entities/product/model/store/selectors.ts";
+import { getActiveCountertopColor, getProductsPresets } from "@/entities/product/model/store/selectors.ts";
 import {
   setActiveBasinStyle,
   setActiveCountertopColor,
@@ -27,6 +27,7 @@ import s from "./CountertopPage.module.scss";
 export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
+  const activeCountertopColor = useAppSelector(getActiveCountertopColor);
 
   const materialFilters = useMemo(() => buildMaterialFilters("Counertops materials"), []);
   const countertopOptions = useMemo(() => getMaterialOptionsGridData("Counertops materials"), []);
@@ -127,7 +128,11 @@ export const CountertopPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedCountertopOptions} handleAdd={handleChangeCountertopColor} />
+          <ProductOptionsGrid
+            data={sortedCountertopOptions}
+            handleAdd={handleChangeCountertopColor}
+            activeValue={activeCountertopColor}
+          />
         </>
       ),
     },

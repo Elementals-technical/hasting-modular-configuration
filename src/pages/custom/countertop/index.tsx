@@ -6,7 +6,11 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
-import { getActiveCountertopThickness, getSelectedProducts } from "@/entities/product/model/store/selectors";
+import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getSelectedProducts,
+} from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import {
@@ -22,6 +26,7 @@ export const CustomCountertopPage = () => {
   const dispatch = useAppDispatch();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
+  const activeCountertopColor = useAppSelector(getActiveCountertopColor);
 
   const countertopOptions = useMemo(
     () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -67,7 +72,11 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={countertopOptions} handleAdd={handleChangeCountertopColor} />
+          <ProductOptionsGrid
+            data={countertopOptions}
+            handleAdd={handleChangeCountertopColor}
+            activeValue={activeCountertopColor}
+          />
         </>
       ),
     },
