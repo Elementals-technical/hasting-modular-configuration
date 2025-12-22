@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
-import { setWidth } from "@/utils/functions/playcanvas/setWidth";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { addProductId, removeProductId, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
@@ -13,7 +12,8 @@ import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
-import { getSelectedSceneProduct } from "@/entities/product/model/store/selectors";
+import { getDimensionOptions, getSelectedSceneProduct } from "@/entities/product/model/store/selectors";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "004";
@@ -39,6 +39,7 @@ export const PlayCanvasIntegration = () => {
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const dimensionOptions = useAppSelector(getDimensionOptions);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
 
@@ -229,6 +230,21 @@ export const PlayCanvasIntegration = () => {
     [selectedSceneProduct],
   );
 
+  const handleSetDepth = useCallback(
+    async (depth: number) => {
+      if (!productIds) return;
+
+      try {
+        await setConfigBatch(productIds, { Depth: depth });
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set width", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [productIds],
+  );
+
   const handleRemoveProducts = useCallback(async () => {
     if (!productIds.length) return;
 
@@ -370,7 +386,8 @@ export const PlayCanvasIntegration = () => {
   }
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
-    const widthOptions = [25, 35, 50, 60, 70, 90, 105, 120];
+    const widthOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
+    const depthOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
 
     const drawerOptions = [
       { id: "drawer-1d", label: "1 Drawer", value: "1D" },
@@ -420,6 +437,15 @@ export const PlayCanvasIntegration = () => {
               id: `resize-width-${value}`,
               label: `${value}`,
               onClick: () => handleSetWidth(value),
+            })),
+          },
+          {
+            id: "resize-depth",
+            label: "Depth",
+            children: depthOptions.map((value) => ({
+              id: `resize-depth-${value}`,
+              label: `${value}`,
+              onClick: () => handleSetDepth(value),
             })),
           },
         ],
@@ -496,6 +522,9 @@ export const PlayCanvasIntegration = () => {
     handleSetDrawers,
     handleSetHandleType,
     handleSetWidth,
+    handleSetDepth,
+    dimensionOptions.depth,
+    dimensionOptions.width,
     productIds.length,
     selectedSceneProduct,
   ]);
