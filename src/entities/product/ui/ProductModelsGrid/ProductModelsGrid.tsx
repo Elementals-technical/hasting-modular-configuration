@@ -674,9 +674,14 @@ export const productMockData: ProductModel[] = [
 interface ProductModelsGridI {
   createModelBtn?: React.ReactNode;
   handleAddPreset: (presetProducts?: PresetProduct[]) => void;
+  activePresetId?: number | null;
 }
 
-export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn, handleAddPreset }) => {
+export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
+  createModelBtn,
+  handleAddPreset,
+  activePresetId,
+}) => {
   return (
     <div className={s.optionsGridWrapper}>
       <div className={s.optionsGrid}>
@@ -687,16 +692,17 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({ createModelBtn
             <ProductModelItem
               key={i.id}
               id={i.id}
-              title={i.title}
-              img={i.img}
-              desc={i.desc}
-              price={i.price}
-              isProductModel={true}
-              presetProducts={i.presetProducts}
-              onClick={handleAddPreset}
-            />
-          );
-        })}
+            title={i.title}
+            img={i.img}
+            desc={i.desc}
+            price={i.price}
+            isProductModel={true}
+            presetProducts={i.presetProducts}
+            onClick={handleAddPreset}
+            isActive={activePresetId === i.id}
+          />
+        );
+      })}
       </div>
     </div>
   );

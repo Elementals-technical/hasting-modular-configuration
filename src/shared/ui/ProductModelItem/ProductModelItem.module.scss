@@ -66,6 +66,17 @@
   }
 }
 
+.active {
+  .optionImage {
+    border: 1px solid #ac5331;
+  }
+
+  .innerButton {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
 .optionImage {
   position: relative;
 

@@ -16,6 +16,7 @@ interface ProductModelGridI {
   price: string;
   presetProducts?: PresetProduct[];
   onClick: (presetProducts?: PresetProduct[]) => void;
+  isActive?: boolean;
 }
 
 export const ProductModelItem: React.FC<ProductModelGridI> = ({
@@ -27,9 +28,12 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
   price,
   onClick,
   presetProducts,
+  isActive,
 }) => {
+  const className = [s.productModelItem, isActive ? s.active : ""].filter(Boolean).join(" ");
+
   return (
-    <div className={s.productModelItem}>
+    <div className={className}>
       <div
         className={s.optionImage}
         onClick={() => {
