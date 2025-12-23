@@ -162,12 +162,44 @@ const productSlice = createSlice({
       const next = [...state.productIds.filter((pid) => pid !== id), id];
       state.productIds = next;
     },
+    insertProductIdRelative(
+      state,
+      action: PayloadAction<{ id: string; prevId: string; side: "left" | "right" }>,
+    ) {
+      const { id, prevId, side } = action.payload;
+      if (!id) return;
+
+      const next = state.productIds.filter((pid) => pid !== id);
+      const prevIndex = next.indexOf(prevId);
+
+      if (prevIndex === -1) {
+        next.push(id);
+        state.productIds = next;
+        return;
+      }
+
+      const insertIndex = side === "left" ? prevIndex : prevIndex + 1;
+      next.splice(insertIndex, 0, id);
+      state.productIds = next;
+    },
     removeProductId(state, action: PayloadAction<string>) {
       const lastIndex = state.productIds.lastIndexOf(action.payload);
 
       if (lastIndex !== -1) {
         state.productIds.splice(lastIndex, 1);
       }
+    },
+    swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
+      const { idA, idB } = action.payload;
+      const indexA = state.productIds.indexOf(idA);
+      const indexB = state.productIds.indexOf(idB);
+
+      if (indexA === -1 || indexB === -1 || indexA === indexB) return;
+
+      const next = [...state.productIds];
+      next[indexA] = idB;
+      next[indexB] = idA;
+      state.productIds = next;
     },
     reset() {
       return createInitialState();
@@ -231,6 +263,8 @@ export const {
   addProductId,
   addProductPreset,
   removeProductId,
+  swapProductIds,
+  insertProductIdRelative,
   reset,
   setActiveCabinetType,
   setSelectedDimensions,

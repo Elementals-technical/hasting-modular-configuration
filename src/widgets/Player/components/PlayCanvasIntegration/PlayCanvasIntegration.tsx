@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductId, removeProductId, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
+import { addProductId, removeProductId, setSelectedSceneProduct, swapProductIds } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
 import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
@@ -366,9 +366,26 @@ export const PlayCanvasIntegration = () => {
     ],
   );
 
-  const handleSwapProducts = (idA: string, idB: string) => {
+  const handleSwapProducts = useCallback((idA: string, idB: string) => {
     swapProducts(idA, idB);
-  };
+    dispatch(swapProductIds({ idA, idB }));
+  }, [dispatch]);
+
+  const handleMoveProduct = useCallback(
+    (direction: "left" | "right") => {
+      if (!selectedSceneProduct) return;
+
+      const currentIndex = productIds.indexOf(selectedSceneProduct);
+      if (currentIndex === -1) return;
+
+      const neighborIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
+      if (neighborIndex < 0 || neighborIndex >= productIds.length) return;
+
+      handleSwapProducts(selectedSceneProduct, productIds[neighborIndex]);
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+    },
+    [handleSwapProducts, productIds, selectedSceneProduct],
+  );
 
   const handleOpenCabinetStyle = () => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
@@ -554,16 +571,13 @@ export const PlayCanvasIntegration = () => {
 
     items.push(addItem);
 
-    if (productIds.length === 2) {
+    if (selectedSceneProduct) {
       items.unshift({
         id: "reposition",
         label: "Reposition",
         children: [
-          {
-            id: "reposition-left",
-            label: "Move left",
-            onClick: () => handleSwapProducts(productIds[0], productIds[1]),
-          },
+          { id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") },
+          { id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") },
         ],
       });
     }
@@ -587,6 +601,7 @@ export const PlayCanvasIntegration = () => {
     dimensionOptions.width,
     productIds.length,
     selectedSceneProduct,
+    handleMoveProduct,
   ]);
 
   return (
