@@ -7,6 +7,9 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
   removeProductId,
+  setActiveCabinetType,
+  setSelectedDimensions,
+  setSelectedProductConfig,
   setSelectedSceneProduct,
   swapProductIds,
 } from "@/entities/product/model/store/slice";
@@ -30,9 +33,11 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "006";
+const PLAYCANVAS_VERSION = "008";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 // const RIGHT_BUTTON = 2;
 // const HOLD_MS = 250;
@@ -65,6 +70,17 @@ export const PlayCanvasIntegration = () => {
   const dimensionOptions = useAppSelector(getDimensionOptions);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
+
+  const resolveCabinetTypeId = useCallback((productType: string | null) => {
+    if (!productType) return null;
+
+    const normalized = productType.toLowerCase();
+    const match = typeCabinetCatalog.typeCabinetRules.find((rule) =>
+      normalized.includes(rule.code.toLowerCase()),
+    );
+
+    return match?.id ?? null;
+  }, []);
 
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {
     const iframeEl = containerRef.current;
@@ -466,6 +482,40 @@ export const PlayCanvasIntegration = () => {
       }
     });
   }
+
+  useEffect(() => {
+    if (!selectedSceneProduct) return;
+
+    const loadConfig = async () => {
+      const config = await getConfig(selectedSceneProduct);
+      if (!config) return;
+
+      const productType =
+        (typeof config.ProductType === "string" && config.ProductType) ||
+        (typeof config.productType === "string" && config.productType) ||
+        (typeof config.type === "string" && config.type) ||
+        null;
+      const resolvedCabinetTypeId = resolveCabinetTypeId(productType ?? selectedSceneProduct);
+
+      if (resolvedCabinetTypeId !== null) {
+        dispatch(setActiveCabinetType(resolvedCabinetTypeId));
+      }
+
+      dispatch(setSelectedProductConfig(config));
+
+      const nextDimensions: { width?: number; height?: number; depth?: number } = {};
+
+      if (typeof config.Width === "number") nextDimensions.width = config.Width;
+      if (typeof config.Height === "number") nextDimensions.height = config.Height;
+      if (typeof config.Depth === "number") nextDimensions.depth = config.Depth;
+
+      if (Object.keys(nextDimensions).length) {
+        dispatch(setSelectedDimensions(nextDimensions));
+      }
+    };
+
+    loadConfig();
+  }, [dispatch, resolveCabinetTypeId, selectedSceneProduct]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
