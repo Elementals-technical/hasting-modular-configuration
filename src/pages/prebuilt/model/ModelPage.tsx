@@ -13,7 +13,7 @@ import { productMockData, ProductModelsGrid } from "@/entities/product/ui/Produc
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductPreset } from "@/entities/product/model/store/slice";
+import { addProductPreset, resetPrebuiltProducts } from "@/entities/product/model/store/slice";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
 
 const presetKeys: Array<keyof PresetProduct> = [
@@ -53,6 +53,7 @@ export const ModelPage = () => {
   }, [productsPresets]);
 
   const handleNavigate = () => {
+    dispatch(resetPrebuiltProducts());
     navigate(ROUTES.CUSTOM);
   };
 
@@ -64,6 +65,13 @@ export const ModelPage = () => {
     } catch (error) {
       console.error("[ProductModelItem] Failed to apply preset", error);
     }
+  };
+
+  const handleCustomizePreset = (presetProducts?: PresetProduct[]) => {
+    if (!presetProducts?.length) return;
+
+    dispatch(addProductPreset(presetProducts));
+    navigate(ROUTES.CUSTOM);
   };
 
   const canvasReady = usePlayCanvasReady();
@@ -117,6 +125,7 @@ export const ModelPage = () => {
 
           <ProductModelsGrid
             handleAddPreset={handleAddPreset}
+            handleCustomizePreset={handleCustomizePreset}
             createModelBtn={<CreateModelBtn />}
             activePresetId={activePresetId}
           />
