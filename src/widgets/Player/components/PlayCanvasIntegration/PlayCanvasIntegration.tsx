@@ -493,7 +493,7 @@ export const PlayCanvasIntegration = () => {
             children: widthOptions.map((value) => ({
               id: `resize-width-${value}`,
               label: `${value}`,
-              onClick: () => handleSetWidth(value),
+              onClick: () => handleSetWidth(Number(value)),
             })),
           },
           {
@@ -502,7 +502,7 @@ export const PlayCanvasIntegration = () => {
             children: depthOptions.map((value) => ({
               id: `resize-depth-${value}`,
               label: `${value}`,
-              onClick: () => handleSetDepth(value),
+              onClick: () => handleSetDepth(Number(value)),
             })),
           },
         ],

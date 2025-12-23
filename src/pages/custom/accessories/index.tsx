@@ -8,7 +8,6 @@ import type { AccordionConfig } from "@/shared/constants/types";
 
 import {
   dividersMockData,
-  optionsMockData,
   optionsSidePanelsData,
   optionsSwatchData,
   optionsSwatchData2,

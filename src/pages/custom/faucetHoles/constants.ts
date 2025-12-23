@@ -51,19 +51,19 @@ export const optionsMockData = [
 
 export const faucetHolesAmountData = [
   {
-    id: "faucet-holes-0",
+    id: 0,
     title: "0",
   },
   {
-    id: "faucet-holes-1",
+    id: 1,
     title: "1",
   },
   {
-    id: "faucet-holes-2",
+    id: 2,
     title: "2",
   },
   {
-    id: "faucet-holes-3",
+    id: 3,
     title: "3",
   },
 ];

@@ -7,7 +7,6 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import type { AccordionConfig } from "@/shared/constants/types";
 
 import {
-  optionsMockData,
   optionsSidePanelsData,
   optionsSwatchData,
   optionsSwatchData2,

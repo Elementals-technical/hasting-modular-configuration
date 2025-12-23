@@ -1,9 +1,8 @@
 import { useState } from "react";
 
-import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { faucetHolesAmountData, optionsMockData } from "./constants";
+import { faucetHolesAmountData } from "./constants";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 
