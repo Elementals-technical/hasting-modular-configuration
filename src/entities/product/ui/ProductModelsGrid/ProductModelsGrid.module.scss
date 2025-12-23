@@ -9,6 +9,10 @@
   max-height: 380px;
 }
 
+.optionsGridWrapper {
+  container-type: inline-size;
+}
+
 .optionImage {
   border: 1px solid transparent;
   border-radius: 5px;
@@ -18,5 +22,11 @@
   img {
     border-radius: 5px;
     width: 100%;
+  }
+}
+
+@media (max-width: 1390px) {
+  .optionsGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

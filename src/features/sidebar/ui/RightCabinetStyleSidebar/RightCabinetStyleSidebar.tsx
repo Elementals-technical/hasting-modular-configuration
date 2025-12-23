@@ -11,6 +11,9 @@ import { setOpenStyleSidebar } from "../../model/store/slice";
 import {
   getDimensionOptions,
   getDrawerProduct,
+  getCabinetColor,
+  getHandleGrooveColor,
+  getActiveCountertopColor,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedProductConfig,
@@ -37,6 +40,9 @@ export const RightCabinetStyleSidebar = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
 
   const handleOptions = useMemo(
     () =>
@@ -56,8 +62,19 @@ export const RightCabinetStyleSidebar = () => {
       Width: selectedDimensions.width,
       Height: selectedDimensions.height,
       Depth: selectedDimensions.depth,
+      CabinetColor: cabinetColor,
+      CountertopColor: countertopColor,
+      HandleGrooveColor: handleGrooveColor,
     }),
-    [selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedProductConfig],
+    [
+      cabinetColor,
+      countertopColor,
+      handleGrooveColor,
+      selectedDimensions.depth,
+      selectedDimensions.height,
+      selectedDimensions.width,
+      selectedProductConfig,
+    ],
   );
 
   const handleCloseSidebar = () => {
@@ -109,6 +126,9 @@ export const RightCabinetStyleSidebar = () => {
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!sidebarRef.current) return;
+
+      const target = event.target as Element | null;
+      if (target?.closest?.('[data-filter-menu="true"]')) return;
 
       if (sidebarRef.current.contains(event.target as Node)) return;
 

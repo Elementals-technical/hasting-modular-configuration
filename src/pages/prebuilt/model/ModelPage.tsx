@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -16,12 +16,41 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { addProductPreset } from "@/entities/product/model/store/slice";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
 
+const presetKeys: Array<keyof PresetProduct> = [
+  "name",
+  "Width",
+  "Height",
+  "Depth",
+  "CabinetColor",
+  "Drawers",
+  "sinkType",
+];
+
+const arePresetsEqual = (left: PresetProduct[] = [], right: PresetProduct[] = []) => {
+  if (left.length !== right.length) return false;
+
+  return left.every((item, index) => {
+    const compare = right[index];
+    if (!compare) return false;
+
+    return presetKeys.every((key) => (item[key] ?? null) === (compare[key] ?? null));
+  });
+};
+
 export const ModelPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
+
+  const activePresetId = useMemo(() => {
+    const target = productsPresets.length ? productsPresets : (productMockData[0]?.presetProducts ?? []);
+
+    const match = productMockData.find((preset) => arePresetsEqual(preset.presetProducts, target));
+
+    return match?.id ?? productMockData[0]?.id ?? null;
+  }, [productsPresets]);
 
   const handleNavigate = () => {
     navigate(ROUTES.CUSTOM);
@@ -40,21 +69,25 @@ export const ModelPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
-    if (!canvasReady || isDefinedProductsRef.current || productsPresets.length) return;
+    if (!canvasReady || isDefinedProductsRef.current) return;
 
     isDefinedProductsRef.current = true;
 
+    const presetProducts = productsPresets.length ? productsPresets : productMockData[0].presetProducts;
+
     const run = async () => {
       try {
-        await addPreset(productMockData[0].presetProducts);
+        await addPreset(presetProducts);
 
-        dispatch(addProductPreset(productMockData[0].presetProducts));
+        if (!productsPresets.length) {
+          dispatch(addProductPreset(presetProducts));
+        }
       } catch (error) {
         console.log(error);
       }
     };
     run();
-  }, [canvasReady, productsPresets.length]);
+  }, [canvasReady, dispatch, productsPresets]);
 
   return (
     <div>
@@ -82,7 +115,11 @@ export const ModelPage = () => {
             />
           </FilterRow>
 
-          <ProductModelsGrid handleAddPreset={handleAddPreset} createModelBtn={<CreateModelBtn />} />
+          <ProductModelsGrid
+            handleAddPreset={handleAddPreset}
+            createModelBtn={<CreateModelBtn />}
+            activePresetId={activePresetId}
+          />
         </>
       )}
 

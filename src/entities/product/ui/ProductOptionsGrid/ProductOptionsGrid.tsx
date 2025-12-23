@@ -30,6 +30,8 @@ interface ProductOptionsGridI {
   handleAdd?: (name: string) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
   setActiveCabinet?: (id: number) => void;
+  activeValue?: string | number | null;
+  activeValueSecondary?: string | number | null;
 }
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
@@ -37,6 +39,8 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   handleAdd,
   requiresActiveCabinet,
   setActiveCabinet,
+  activeValue,
+  activeValueSecondary,
 }) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const activeColor = useAppSelector(getCabinetColor);
@@ -56,7 +60,13 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         const playcanvasValue = i.metadata?.value ?? i.name ?? i.title ?? i.desc;
         const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
 
-        const isActive = matchesCabinet || activeColor === playcanvasValue || activeBasinStyle === playcanvasValue;
+        const hasExplicitActive = activeValue !== undefined || activeValueSecondary !== undefined;
+
+        const matchesExplicit = activeValue === playcanvasValue || activeValueSecondary === playcanvasValue;
+
+        const matchesDefault = activeColor === playcanvasValue || activeBasinStyle === playcanvasValue;
+
+        const isActive = matchesCabinet || (hasExplicitActive ? matchesExplicit : matchesDefault);
 
         const handleSetActive =
           typeof i.id === "number" && setActiveCabinet

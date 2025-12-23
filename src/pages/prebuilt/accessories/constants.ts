@@ -49,6 +49,34 @@ export const optionsMockData = [
   },
 ];
 
+export const optionsSidePanelsData = [
+  {
+    id: 9001,
+    title: "None",
+    isShortDesc: false,
+  },
+  {
+    id: 9002,
+    title: "No groove",
+    isShortDesc: false,
+  },
+  {
+    id: 9003,
+    title: "1 groove (upper)",
+    isShortDesc: false,
+  },
+  {
+    id: 9004,
+    title: "1 groove (central)",
+    isShortDesc: false,
+  },
+  {
+    id: 9005,
+    title: "2 groove",
+    isShortDesc: false,
+  },
+];
+
 export const optionsSwatchData = [
   {
     id: 1,
@@ -72,5 +100,51 @@ export const optionsSwatchData2 = [
   {
     id: 2,
     title: "Customize",
+  },
+];
+
+export const optionsSwatchDataTowel = [
+  {
+    id: 101,
+    title: "None",
+  },
+  {
+    id: 102,
+    title: "Left",
+  },
+  {
+    id: 103,
+    title: "Right",
+  },
+  {
+    id: 104,
+    title: "Both",
+  },
+];
+
+export const optionsTowelData = [
+  {
+    id: 1001,
+    title: "Color 1",
+    desc: "Bianco 10B",
+    isShortDesc: false,
+  },
+  {
+    id: 1002,
+    title: "Color 2",
+    desc: "Grigio fume 10F",
+    isShortDesc: false,
+  },
+  {
+    id: 1003,
+    title: "Color 3",
+    desc: "Centre 1A1",
+    isShortDesc: false,
+  },
+  {
+    id: 1004,
+    title: "Color 4",
+    desc: "Tortora 1A2",
+    isShortDesc: false,
   },
 ];

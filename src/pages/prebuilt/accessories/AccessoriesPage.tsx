@@ -1,12 +1,22 @@
+import { useState } from "react";
+
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 
-import { optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
+import {
+  optionsSidePanelsData,
+  optionsSwatchData,
+  optionsSwatchData2,
+  optionsSwatchDataTowel,
+  optionsTowelData,
+} from "./constants";
 
 export const AccessoriesPage = () => {
+  const [towelSelection, setTowelSelection] = useState<string | null>(null);
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "side-panels",
@@ -14,7 +24,7 @@ export const AccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={optionsSidePanelsData} />
         </>
       ),
     },
@@ -41,7 +51,8 @@ export const AccessoriesPage = () => {
       title: "Towel Bar",
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductSwatchesGrid data={optionsSwatchDataTowel} onSelectChange={setTowelSelection} />
+          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsTowelData} />}
         </>
       ),
     },

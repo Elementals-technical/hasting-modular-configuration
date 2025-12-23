@@ -66,6 +66,17 @@
   }
 }
 
+.active {
+  .optionImage {
+    border: 1px solid #ac5331;
+  }
+
+  .innerButton {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
 .optionImage {
   position: relative;
 
@@ -108,5 +119,14 @@
     border-radius: 5px;
     width: 100%;
     z-index: 1;
+  }
+}
+
+@container (max-width: 1390px) {
+  .optionImage {
+    width: auto;
+
+    height: 100%;
+    overflow: hidden;
   }
 }

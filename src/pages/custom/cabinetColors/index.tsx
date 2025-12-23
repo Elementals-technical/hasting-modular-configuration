@@ -15,8 +15,9 @@ import { optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { getSelectedProducts } from "@/entities/product/model/store/selectors";
+import { getCabinetColor, getHandleGrooveColor, getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
 
 const BASE_PANEL_OPTION = "Base Panel";
@@ -24,6 +25,9 @@ const BASE_PANEL_OPTION = "Base Panel";
 export const CustomCabinetColorsPage = () => {
   const dispatch = useAppDispatch();
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const activeCabinetColor = useAppSelector(getCabinetColor);
+  const activeGrooveColor = useAppSelector(getHandleGrooveColor);
+  const isPlayCanvasReady = usePlayCanvasReady();
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
@@ -105,6 +109,23 @@ export const CustomCabinetColorsPage = () => {
     dispatch(setHandleGrooveColor(colorName));
   };
 
+  // Fill all products.
+  useEffect(() => {
+    if (!isPlayCanvasReady || !activeCabinetColor) return;
+
+    setConfigBatch(selectedProducts, {
+      CabinetColor: activeCabinetColor,
+    });
+  }, [activeCabinetColor, isPlayCanvasReady, selectedProducts]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady || !activeGrooveColor) return;
+
+    setConfigBatch(selectedProducts, {
+      HandleGrooveColor: activeGrooveColor,
+    });
+  }, [activeGrooveColor, isPlayCanvasReady, selectedProducts]);
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -114,7 +135,11 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeColor} />
+          <ProductOptionsGrid
+            data={sortedBasePanelOptions}
+            handleAdd={handleChangeColor}
+            activeValue={activeCabinetColor}
+          />
         </>
       ),
     },
@@ -125,7 +150,11 @@ export const CustomCabinetColorsPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedBasePanelOptions} handleAdd={handleChangeGrooveColor} />
+          <ProductOptionsGrid
+            data={sortedBasePanelOptions}
+            handleAdd={handleChangeGrooveColor}
+            activeValue={activeGrooveColor}
+          />
         </>
       ),
     },

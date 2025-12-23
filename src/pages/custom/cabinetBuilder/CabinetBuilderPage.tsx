@@ -15,6 +15,7 @@ import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import {
   addProductId,
+  reset,
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
@@ -24,16 +25,21 @@ import {
 
 import {
   getActiveCabinetType,
+  getCabinetColor,
+  getHandleGrooveColor,
+  getActiveCountertopColor,
   getSelectedProducts,
   getDrawerProduct,
   getDimensionOptions,
   getSelectedProductConfig,
+  getSelectedDimensions,
+  getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 type AccordionConfig = {
   id: string;
@@ -45,6 +51,7 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
+const hasBootstrappedOnceRef = { current: false };
 
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
@@ -55,12 +62,18 @@ export const CabinetBuilderPage = () => {
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
+  const { pathname } = useLocation();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedProducts = useAppSelector(getSelectedProducts);
 
   const drawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
@@ -133,7 +146,21 @@ export const CabinetBuilderPage = () => {
   };
 
   useEffect(() => {
+    if (!pathname.includes("/custom/cabinet-builder")) return;
+
+    bootstrappedRef.current = false;
+    if (hasBootstrappedOnceRef.current) return;
+    dispatch(reset());
+
+    if (canvasReady) {
+      removeAllProducts();
+    }
+  }, [canvasReady, dispatch, pathname]);
+
+  useEffect(() => {
     if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
+    if (hasBootstrappedOnceRef.current) return;
+
     bootstrappedRef.current = true;
 
     async function resetAndBootstrapFirstProduct() {
@@ -145,14 +172,14 @@ export const CabinetBuilderPage = () => {
 
         const defaultProductName = "Sink-Base";
         const defaultProductConfig: addProductConfigI = {
-          Height: 56,
-          Depth: 46,
-          CabinetColor: "Ardesia DD GL",
-          Width: 60,
-          Drawers: "2D",
-          sinkType: "Top_HPLPrisma",
-          CountertopColor: "Rosso Rubino 19 MT",
-          HandleGrooveColor: "Blu Pavone A6 MT",
+          Height: selectedDimensions.height,
+          Depth: selectedDimensions.depth,
+          Width: selectedDimensions.width,
+          CabinetColor: cabinetColor,
+          sinkType,
+          CountertopColor: countertopColor,
+          HandleGrooveColor: handleGrooveColor,
+          ...(selectedProductConfig ?? {}),
         };
 
         if (firstCabinetOption) {
@@ -165,6 +192,8 @@ export const CabinetBuilderPage = () => {
             dispatch(addProductId(productId));
           }
         }
+
+        hasBootstrappedOnceRef.current = true;
       } catch (error) {
         console.log(error);
       }

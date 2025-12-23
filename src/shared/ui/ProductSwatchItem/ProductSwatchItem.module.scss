@@ -5,7 +5,7 @@
 
   padding: 8px 16px;
 
-  border: 1px solid #bc7358;
+  border: 1px solid #000000;
   border-radius: 30px;
 
   background-color: transparent;
@@ -21,8 +21,9 @@
     display: flex;
     align-items: center;
   }
-}
 
-.active {
-  border-color: #bc7358;
+  &:hover,
+  &.active {
+    border-color: #bc7358;
+  }
 }

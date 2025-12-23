@@ -6,10 +6,18 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 
-import { dividersMockData, optionsMockData, optionsSwatchData, optionsSwatchData2 } from "./constants";
+import {
+  dividersMockData,
+  optionsSidePanelsData,
+  optionsSwatchData,
+  optionsSwatchData2,
+  optionsSwatchDataTowel,
+  optionsTowelData,
+} from "./constants";
 
 export const CustomAccessoriesPage = () => {
   const [dividerSelection, setDividerSelection] = useState<string | null>(null);
+  const [towelSelection, setTowelSelection] = useState<string | null>(null);
 
   const ACCORDIONS: AccordionConfig[] = [
     {
@@ -18,7 +26,7 @@ export const CustomAccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductOptionsGrid data={optionsSidePanelsData} />
         </>
       ),
     },
@@ -44,7 +52,12 @@ export const CustomAccessoriesPage = () => {
     {
       id: "tovel-bar",
       title: "Towel Bar",
-      content: <ProductOptionsGrid data={optionsMockData} />,
+      content: (
+        <>
+          <ProductSwatchesGrid data={optionsSwatchDataTowel} onSelectChange={setTowelSelection} />
+          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsTowelData} />}
+        </>
+      ),
     },
   ];
 

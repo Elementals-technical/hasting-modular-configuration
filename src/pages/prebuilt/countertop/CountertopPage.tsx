@@ -2,8 +2,12 @@ import { useMemo, useState } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
-import { getProductsPresets } from "@/entities/product/model/store/selectors.ts";
-import { setActiveBasinStyle, setActiveCountertopColor } from "@/entities/product/model/store/slice.ts";
+import { getActiveCountertopColor, getProductsPresets } from "@/entities/product/model/store/selectors.ts";
+import {
+  setActiveBasinStyle,
+  setActiveCountertopColor,
+  setActiveCountertopThickness,
+} from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -23,6 +27,7 @@ import s from "./CountertopPage.module.scss";
 export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
+  const activeCountertopColor = useAppSelector(getActiveCountertopColor);
 
   const materialFilters = useMemo(() => buildMaterialFilters("Counertops materials"), []);
   const countertopOptions = useMemo(() => getMaterialOptionsGridData("Counertops materials"), []);
@@ -76,6 +81,16 @@ export const CountertopPage = () => {
     dispatch(setActiveBasinStyle(basinStyle));
   };
 
+  const handleAddThickness = (thickness: string) => {
+    console.log("thickness prebuilt", thickness);
+
+    presetNames.forEach((productName) => {
+      setConfigBatch({ productType: productName }, { Thickness: thickness });
+    });
+
+    dispatch(setActiveCountertopThickness(thickness));
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -113,7 +128,11 @@ export const CountertopPage = () => {
         <>
           <ViewModePanel />
           {renderFilters()}
-          <ProductOptionsGrid data={sortedCountertopOptions} handleAdd={handleChangeCountertopColor} />
+          <ProductOptionsGrid
+            data={sortedCountertopOptions}
+            handleAdd={handleChangeCountertopColor}
+            activeValue={activeCountertopColor}
+          />
         </>
       ),
     },
@@ -122,7 +141,7 @@ export const CountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsMockData4} />
+          <ProductSwatchesGrid data={optionsMockData4} onSelectChange={(value) => value && handleAddThickness(value)} />
         </>
       ),
     },

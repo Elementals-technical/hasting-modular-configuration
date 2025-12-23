@@ -1,59 +1,39 @@
-import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { useState } from "react";
+
+import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 
-const optionsMockData = [
+const faucetHolesAmountData = [
+  {
+    id: 0,
+    title: "0",
+  },
   {
     id: 1,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
+    title: "1",
   },
   {
     id: 2,
-    title: "Colortech",
-    desc: "Grigio fume 10F",
-    isShortDesc: false,
+    title: "2",
   },
   {
     id: 3,
-    title: "Cemento",
-    desc: "Centre 1A1",
-    isShortDesc: false,
+    title: "3",
   },
+];
+
+const faucetHolesSpacingOptions = [
   {
-    id: 4,
-    title: "Cemento",
-    desc: "Tortora 1A2",
-    isShortDesc: false,
-  },
-  {
-    id: 5,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 7,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 8,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-  },
-  {
-    id: 9,
-    title: "Colortech",
-    desc: "Bianco 10B",
-    isShortDesc: false,
+    label: '4"',
+    value: '4"',
   },
 ];
 
 export const FaucetPage = () => {
+  const [faucetSpacing, setFaucetSpacing] = useState('4"');
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "faucet-holes-amount",
@@ -61,7 +41,7 @@ export const FaucetPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <ProductSwatchesGrid data={faucetHolesAmountData} />
         </>
       ),
     },
@@ -70,7 +50,12 @@ export const FaucetPage = () => {
       title: "Faucet Holes Spacing",
       content: (
         <>
-          <ProductOptionsGrid data={optionsMockData} />
+          <FilterSelection
+            label="Spacing"
+            options={faucetHolesSpacingOptions}
+            value={faucetSpacing}
+            onSelect={(value) => setFaucetSpacing(String(value))}
+          />
         </>
       ),
     },
