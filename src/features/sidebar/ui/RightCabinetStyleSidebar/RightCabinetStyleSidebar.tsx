@@ -22,12 +22,10 @@ import { addProductId, setSelectedDimensions, setSelectedProductConfig } from "@
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
-import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
+import { setProductByParams } from "@/utils/functions/playcanvas/setProductByParams";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -148,12 +146,9 @@ export const RightCabinetStyleSidebar = () => {
 
       if (!activeDrawerProduct) return;
 
-      const productId =
-        side === "left" ? await addProductByLeft(activeDrawerProduct) : await addProductByRight(activeDrawerProduct);
+      const productId = await setProductByParams(activeDrawerProduct, entityId, side);
 
       if (!productId) return;
-
-      await setConfig(productId, productConfig);
       dispatch(addProductId(productId));
     };
 
