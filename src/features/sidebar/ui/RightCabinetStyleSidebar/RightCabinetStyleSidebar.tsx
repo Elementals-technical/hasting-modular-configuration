@@ -26,6 +26,7 @@ import { setProductByParams } from "@/utils/functions/playcanvas/setProductByPar
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -149,6 +150,8 @@ export const RightCabinetStyleSidebar = () => {
       const productId = await setProductByParams(activeDrawerProduct, entityId, side);
 
       if (!productId) return;
+
+      await setConfig(productId, productConfig);
       dispatch(addProductId(productId));
     };
 
