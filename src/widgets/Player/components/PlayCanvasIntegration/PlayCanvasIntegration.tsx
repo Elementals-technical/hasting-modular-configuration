@@ -263,19 +263,17 @@ export const PlayCanvasIntegration = () => {
   );
 
   const handleRemoveProducts = useCallback(async () => {
-    if (!productIds.length) return;
-
-    const [idToRemove] = productIds;
+    if (!selectedSceneProduct) return;
 
     try {
-      await removeProduct(idToRemove);
-      dispatch(removeProductId(idToRemove));
+      await removeProduct(selectedSceneProduct);
+      dispatch(removeProductId(selectedSceneProduct));
     } catch (error) {
       console.error("[PlayCanvasIntegration] Failed to remove product", error);
     } finally {
       setDropdownState((prev) => ({ ...prev, visible: false }));
     }
-  }, [dispatch, productIds]);
+  }, [dispatch, selectedSceneProduct]);
 
   const handleAddLeft = useCallback(
     async (name: string) => {
