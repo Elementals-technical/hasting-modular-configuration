@@ -32,7 +32,7 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "005";
+const PLAYCANVAS_VERSION = "006";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 // const RIGHT_BUTTON = 2;
 // const HOLD_MS = 250;
