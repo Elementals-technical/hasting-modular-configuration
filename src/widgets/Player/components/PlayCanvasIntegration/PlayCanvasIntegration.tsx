@@ -37,7 +37,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "008";
+const PLAYCANVAS_VERSION = "009";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 // const RIGHT_BUTTON = 2;
 // const HOLD_MS = 250;
@@ -75,9 +75,7 @@ export const PlayCanvasIntegration = () => {
     if (!productType) return null;
 
     const normalized = productType.toLowerCase();
-    const match = typeCabinetCatalog.typeCabinetRules.find((rule) =>
-      normalized.includes(rule.code.toLowerCase()),
-    );
+    const match = typeCabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
     return match?.id ?? null;
   }, []);
