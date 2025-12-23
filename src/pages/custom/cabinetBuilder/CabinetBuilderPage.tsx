@@ -45,6 +45,7 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 type AccordionConfig = {
   id: string;
@@ -185,8 +186,23 @@ export const CabinetBuilderPage = () => {
       const existingIds = getOrderedProductIds();
 
       if (!existingIds.length) {
+        const mergedPresets = productsPresets.map((preset) => ({
+          ...preset,
+          CabinetColor: preset.CabinetColor ?? cabinetColor,
+          sinkType: preset.sinkType ?? sinkType,
+          CountertopColor: preset.CountertopColor ?? countertopColor,
+          HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
+        }));
+
         removeAllProducts();
-        await addPreset(productsPresets);
+        await addPreset(mergedPresets);
+      } else {
+        setConfigBatch(existingIds, {
+          CabinetColor: cabinetColor,
+          sinkType,
+          CountertopColor: countertopColor,
+          HandleGrooveColor: handleGrooveColor,
+        });
       }
 
       const orderedIds = existingIds.length ? existingIds : getOrderedProductIds();
