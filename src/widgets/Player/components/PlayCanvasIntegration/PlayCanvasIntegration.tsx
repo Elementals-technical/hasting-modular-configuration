@@ -12,7 +12,17 @@ import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
-import { getDimensionOptions, getSelectedSceneProduct } from "@/entities/product/model/store/selectors";
+import {
+  getActiveCountertopColor,
+  getCabinetColor,
+  getDimensionOptions,
+  getDrawerProduct,
+  getHandleGrooveColor,
+  getSelectedDimensions,
+  getSelectedProductConfig,
+  getSelectedSceneProduct,
+  getSinkType,
+} from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
@@ -39,6 +49,13 @@ export const PlayCanvasIntegration = () => {
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const activeDrawerProduct = useAppSelector(getDrawerProduct);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
@@ -266,6 +283,16 @@ export const PlayCanvasIntegration = () => {
         const productId = await addProductByLeft(name);
 
         if (productId) {
+          await setConfig(productId, {
+            ...(selectedProductConfig ?? {}),
+            Width: selectedDimensions.width,
+            Height: selectedDimensions.height,
+            Depth: selectedDimensions.depth,
+            CabinetColor: cabinetColor,
+            CountertopColor: countertopColor,
+            HandleGrooveColor: handleGrooveColor,
+            sinkType,
+          });
           dispatch(addProductId(productId));
         }
       } catch (error) {
@@ -274,7 +301,17 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [dispatch],
+    [
+      cabinetColor,
+      countertopColor,
+      dispatch,
+      handleGrooveColor,
+      selectedDimensions.depth,
+      selectedDimensions.height,
+      selectedDimensions.width,
+      selectedProductConfig,
+      sinkType,
+    ],
   );
 
   const handleAdd = useCallback(
@@ -300,6 +337,16 @@ export const PlayCanvasIntegration = () => {
         const productId = await addProductByRight(name);
 
         if (productId) {
+          await setConfig(productId, {
+            ...(selectedProductConfig ?? {}),
+            Width: selectedDimensions.width,
+            Height: selectedDimensions.height,
+            Depth: selectedDimensions.depth,
+            CabinetColor: cabinetColor,
+            CountertopColor: countertopColor,
+            HandleGrooveColor: handleGrooveColor,
+            sinkType,
+          });
           dispatch(addProductId(productId));
         }
       } catch (error) {
@@ -308,7 +355,17 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [dispatch],
+    [
+      cabinetColor,
+      countertopColor,
+      dispatch,
+      handleGrooveColor,
+      selectedDimensions.depth,
+      selectedDimensions.height,
+      selectedDimensions.width,
+      selectedProductConfig,
+      sinkType,
+    ],
   );
 
   const handleSwapProducts = (idA: string, idB: string) => {
@@ -475,16 +532,20 @@ export const PlayCanvasIntegration = () => {
       );
     }
 
+    const canAddDrawerProduct = Boolean(activeDrawerProduct);
+
     const addItem: DropdownItem =
       productIds.length > 0
         ? {
             id: "add",
             label: "Add",
             trailing: "",
-            children: [
-              { id: "add-left", label: "Add to left", onClick: () => handleAddLeft("UniOpenShelves") },
-              { id: "add-right", label: "Add to right", onClick: () => handleAddRight("UniOpenShelves") },
-            ],
+            children: canAddDrawerProduct
+              ? [
+                  { id: "add-left", label: "Add to left", onClick: () => handleAddLeft(activeDrawerProduct) },
+                  { id: "add-right", label: "Add to right", onClick: () => handleAddRight(activeDrawerProduct) },
+                ]
+              : [],
           }
         : {
             id: "add",
@@ -523,6 +584,7 @@ export const PlayCanvasIntegration = () => {
     handleSetHandleType,
     handleSetWidth,
     handleSetDepth,
+    activeDrawerProduct,
     dimensionOptions.depth,
     dimensionOptions.width,
     productIds.length,
