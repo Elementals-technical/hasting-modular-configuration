@@ -14,6 +14,7 @@ import {
   getCabinetColor,
   getHandleGrooveColor,
   getActiveCountertopColor,
+  getActiveCabinetType,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedProductConfig,
@@ -29,6 +30,8 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
+import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
+
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
@@ -40,9 +43,13 @@ export const RightCabinetStyleSidebar = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+
+  const activeCabinet = optionsMockData.find((o) => o.id === activeCabinetType);
+  const handlesDisabled = activeCabinet?.name === "Open-Shelf" || activeCabinet?.name === "Side-Shelf";
 
   const handleOptions = useMemo(
     () =>
@@ -199,15 +206,17 @@ export const RightCabinetStyleSidebar = () => {
           />
         </div>
 
-        <div className={s.contentItem}>
-          <div>Handle</div>
-          <FilterSelection
-            label={"Handle"}
-            options={handleOptions}
-            value={selectedProductConfig?.Handle as string | undefined}
-            onSelect={(value) => handleSetHandleType(String(value))}
-          />
-        </div>
+        {!handlesDisabled && (
+          <div className={s.contentItem}>
+            <div>Handle</div>
+            <FilterSelection
+              label={"Handle"}
+              options={handleOptions}
+              value={selectedProductConfig?.Handle as string | undefined}
+              onSelect={(value) => handleSetHandleType(String(value))}
+            />
+          </div>
+        )}
 
         <div className={s.image}>
           <img src={image} alt="image" />
