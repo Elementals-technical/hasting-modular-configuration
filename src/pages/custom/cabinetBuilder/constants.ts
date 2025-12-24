@@ -78,6 +78,9 @@ export const optionsMockData2 = [
     value: "1",
     isAvailable: true,
     isShortDesc: false,
+    metadata: {
+      image: "/src/shared/assets/images/png/1_drawer.png",
+    },
   },
   {
     id: 202,
@@ -85,6 +88,9 @@ export const optionsMockData2 = [
     value: "2",
     isAvailable: true,
     isShortDesc: false,
+    metadata: {
+      image: "/src/shared/assets/images/png/2_drawer.png",
+    },
   },
   // {
   //   id: 203,

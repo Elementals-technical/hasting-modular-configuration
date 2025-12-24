@@ -14,6 +14,9 @@ interface ProductStyleGridI {
     isAvailable?: boolean;
     isShortDesc: boolean;
     value?: string;
+    metadata?: {
+      image?: string;
+    };
   }[];
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
@@ -47,6 +50,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
             key={i.id}
             id={i.id}
             title={i.title}
+            imageSrc={i.metadata?.image}
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             isActive={isItemActive}
             isAvailable={i.isAvailable}
