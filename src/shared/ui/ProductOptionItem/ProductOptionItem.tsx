@@ -15,8 +15,9 @@ const buildImageSrc = (imagePath?: string) => {
 
   if (imagePath.startsWith("http")) return imagePath;
 
-  const normalizedPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
-  return `${THREEKIT_PREVIEW_BASE_URL}${normalizedPath}`;
+  if (imagePath.startsWith("/api/")) return `${THREEKIT_PREVIEW_BASE_URL}${imagePath}`;
+
+  return imagePath;
 };
 
 interface ProductOptionItemI {
