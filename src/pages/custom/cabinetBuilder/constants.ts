@@ -2,6 +2,8 @@ import sinkBaseImage from "@/shared/assets/images/png/sink_base.png";
 import sinkCabinetImage from "@/shared/assets/images/png/sink_cabinet.png";
 import openShelfImage from "@/shared/assets/images/png/open_shelf.png";
 import sideShelfImage from "@/shared/assets/images/png/side-shelf.png";
+import oneDrawerImage from "@/shared/assets/images/png/1_drawer.png";
+import twoDrawerImage from "@/shared/assets/images/png/2_drawer.png";
 
 export const optionsMockData = [
   {
@@ -79,7 +81,7 @@ export const optionsMockData2 = [
     isAvailable: true,
     isShortDesc: false,
     metadata: {
-      image: "/src/shared/assets/images/png/1_drawer.png",
+      image: oneDrawerImage,
     },
   },
   {
@@ -89,7 +91,7 @@ export const optionsMockData2 = [
     isAvailable: true,
     isShortDesc: false,
     metadata: {
-      image: "/src/shared/assets/images/png/2_drawer.png",
+      image: twoDrawerImage,
     },
   },
   // {
