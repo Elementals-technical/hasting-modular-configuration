@@ -1,3 +1,8 @@
+import sinkBaseImage from "@/shared/assets/images/png/sink_base.png";
+import sinkCabinetImage from "@/shared/assets/images/png/sink_cabinet.png";
+import openShelfImage from "@/shared/assets/images/png/open_shelf.png";
+import sideShelfImage from "@/shared/assets/images/png/side-shelf.png";
+
 export const optionsMockData = [
   {
     id: 101,
@@ -5,6 +10,9 @@ export const optionsMockData = [
     name: "Sink-Base",
     desc: "Cabinet with a basin",
     isShortDesc: false,
+    metadata: {
+      image: sinkBaseImage,
+    },
     config: {
       Height: 56,
       Depth: 50.5,
@@ -21,6 +29,9 @@ export const optionsMockData = [
     name: "Sink-Cabinet",
     desc: "Cabinet without a basin",
     isShortDesc: false,
+    metadata: {
+      image: sinkCabinetImage,
+    },
     config: {
       Height: 56,
       Depth: 50.5,
@@ -33,6 +44,9 @@ export const optionsMockData = [
     title: "Open Shelf",
     name: "Open-Shelf",
     isShortDesc: false,
+    metadata: {
+      image: openShelfImage,
+    },
     config: {
       Height: 56,
       Depth: 50.5,
@@ -45,6 +59,9 @@ export const optionsMockData = [
     title: "Side Shelf",
     name: "Side-Shelf",
     isShortDesc: false,
+    metadata: {
+      image: sideShelfImage,
+    },
     config: {
       Height: 56,
       Depth: 50.5,
@@ -61,6 +78,9 @@ export const optionsMockData2 = [
     value: "1",
     isAvailable: true,
     isShortDesc: false,
+    metadata: {
+      image: "/src/shared/assets/images/png/1_drawer.png",
+    },
   },
   {
     id: 202,
@@ -68,6 +88,9 @@ export const optionsMockData2 = [
     value: "2",
     isAvailable: true,
     isShortDesc: false,
+    metadata: {
+      image: "/src/shared/assets/images/png/2_drawer.png",
+    },
   },
   // {
   //   id: 203,

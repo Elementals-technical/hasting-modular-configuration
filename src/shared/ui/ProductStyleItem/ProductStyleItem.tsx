@@ -8,6 +8,7 @@ import s from "./ProductStyleItem.module.scss";
 interface ProductStyleItemI {
   id: number;
   title: string;
+  imageSrc?: string;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
   onSelectStyle?: (id: number) => void;
@@ -17,6 +18,7 @@ interface ProductStyleItemI {
 export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   id,
   title,
+  imageSrc,
   handleOpenStyleSidebar,
   isActive = false,
   onSelectStyle,
@@ -34,7 +36,7 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   return (
     <div className={`${s.productStyleItem} ${isActive ? s.activeItem : ""} ${!isClickable ? s.disabled : ""}`}>
       <div className={s.image} onClick={handleClick}>
-        <img src={none_img} alt="image" />
+        <img src={imageSrc ?? none_img} alt="image" />
       </div>
       <div className={s.title}>{title}</div>
 

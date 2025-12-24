@@ -68,6 +68,7 @@ export const CabinetBuilderPage = () => {
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
+
   const { pathname } = useLocation();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
@@ -147,9 +148,15 @@ export const CabinetBuilderPage = () => {
     }
   };
 
-  const setActiveCabinet = (id: number) => {
+  const setActiveCabinet = (id: number, name?: string) => {
+    console.log("name", name);
+
     dispatch(setActiveCabinetType(id));
     setAccordionValue(CABINET_STYLE_ID);
+
+    if (name === "Open-Shelf" || name === "Side-Shelf") {
+      dispatch(setOpenStyleSidebar(true));
+    }
   };
 
   const resolveCabinetTypeId = useCallback((productType?: string | null) => {
@@ -300,16 +307,25 @@ export const CabinetBuilderPage = () => {
     {
       id: CABINET_STYLE_ID,
       title: "Cabinet Style",
-      content: (
-        <ProductStyleGrid
-          handleOpenStyleSidebar={handleOpenStyleSidebar}
-          data={cabinetStyleOptions}
-          requiresActiveCabinet
-          isActive={isStyleDrawerActive}
-          activeStyleId={activeStyleId}
-          onSelectStyle={handleSelectDrawerStyle}
-        />
-      ),
+      content: (() => {
+        const activeCabinet = optionsMockData.find((option) => option.id === activeCabinetType);
+        const drawersBlocked = activeCabinet?.name === "Open-Shelf" || activeCabinet?.name === "Side-Shelf";
+
+        if (drawersBlocked) {
+          return <div className={s.message}>Drawers are not available for this cabinet type.</div>;
+        }
+
+        return (
+          <ProductStyleGrid
+            handleOpenStyleSidebar={handleOpenStyleSidebar}
+            data={cabinetStyleOptions}
+            requiresActiveCabinet
+            isActive={isStyleDrawerActive}
+            activeStyleId={activeStyleId}
+            onSelectStyle={handleSelectDrawerStyle}
+          />
+        );
+      })(),
     },
   ];
 

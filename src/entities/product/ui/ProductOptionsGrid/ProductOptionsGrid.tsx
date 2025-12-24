@@ -29,7 +29,7 @@ interface ProductOptionsGridI {
   data: ProductOptionData[];
   handleAdd?: (name: string) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
-  setActiveCabinet?: (id: number) => void;
+  setActiveCabinet?: (id: number, name?: string) => void;
   activeValue?: string | number | null;
   activeValueSecondary?: string | number | null;
 }
@@ -70,7 +70,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
 
         const handleSetActive =
           typeof i.id === "number" && setActiveCabinet
-            ? (id: string | number) => setActiveCabinet(id as number)
+            ? (id: string | number) => setActiveCabinet(id as number, i.name)
             : undefined;
 
         return (

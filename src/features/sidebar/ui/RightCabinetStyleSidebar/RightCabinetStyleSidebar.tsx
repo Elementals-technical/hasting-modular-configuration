@@ -4,6 +4,9 @@ import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import image from "../../../../shared/assets/images/png/img_png.png";
+import upperHandleImage from "../../../../shared/assets/images/png/UpperGHandle.png";
+import centralHandleImage from "../../../../shared/assets/images/png/CentralGHandle.png";
+import ptoHandleImage from "../../../../shared/assets/images/png/PTOHandle.png";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
@@ -14,6 +17,7 @@ import {
   getCabinetColor,
   getHandleGrooveColor,
   getActiveCountertopColor,
+  getActiveCabinetType,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedProductConfig,
@@ -29,6 +33,8 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
+import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
+
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
@@ -40,9 +46,13 @@ export const RightCabinetStyleSidebar = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+
+  const activeCabinet = optionsMockData.find((o) => o.id === activeCabinetType);
+  const handlesDisabled = activeCabinet?.name === "Open-Shelf" || activeCabinet?.name === "Side-Shelf";
 
   const handleOptions = useMemo(
     () =>
@@ -55,6 +65,14 @@ export const RightCabinetStyleSidebar = () => {
           ],
     [dimensionOptions.handles],
   );
+
+  const handleImage = useMemo(() => {
+    const value = selectedProductConfig?.Handle;
+    if (value === "handle_urban_topcut") return upperHandleImage;
+    if (value === "handle_urban_botcut") return centralHandleImage;
+    if (value === "handle_pto") return ptoHandleImage;
+    return image;
+  }, [selectedProductConfig?.Handle]);
 
   const productConfig = useMemo(
     () => ({
@@ -110,6 +128,17 @@ export const RightCabinetStyleSidebar = () => {
       Depth: selectedDimensions.depth,
     });
   }, [selectedDimensions, selectedProducts]);
+
+  useEffect(() => {
+    if (!selectedProductConfig?.Handle) {
+      dispatch(
+        setSelectedProductConfig({
+          ...(selectedProductConfig ?? {}),
+          Handle: "handle_urban_topcut",
+        }),
+      );
+    }
+  }, [dispatch, selectedProductConfig]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
@@ -199,19 +228,23 @@ export const RightCabinetStyleSidebar = () => {
           />
         </div>
 
-        <div className={s.contentItem}>
-          <div>Handle</div>
-          <FilterSelection
-            label={"Handle"}
-            options={handleOptions}
-            value={selectedProductConfig?.Handle as string | undefined}
-            onSelect={(value) => handleSetHandleType(String(value))}
-          />
-        </div>
+        {!handlesDisabled && (
+          <div className={s.contentItem}>
+            <div>Handle</div>
+            <FilterSelection
+              label={"Handle"}
+              options={handleOptions}
+              value={selectedProductConfig?.Handle as string | undefined}
+              onSelect={(value) => handleSetHandleType(String(value))}
+            />
+          </div>
+        )}
 
-        <div className={s.image}>
-          <img src={image} alt="image" />
-        </div>
+        {!handlesDisabled && (
+          <div className={s.image}>
+            <img src={handleImage} alt="handle preview" />
+          </div>
+        )}
       </div>
 
       {/* <div className={s.tempButtons}>
