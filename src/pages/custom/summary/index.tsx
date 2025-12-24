@@ -137,7 +137,12 @@ export const CustomSummaryPage = () => {
 
             const dims = [width, depth, height].every((v) => v !== undefined) ? `${width}x${depth}x${height}` : "";
             const subtitle = [drawers, dims].filter(Boolean).join(" | ");
-            const name = typeof config.ProductType === "string" ? config.ProductType : config.name;
+            const name =
+              typeof config.ProductType === "string"
+                ? config.ProductType
+                : typeof config.name === "string"
+                  ? config.name
+                  : undefined;
             const swatchValue =
               typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
             const swatch = resolveSwatch(swatchValue);
@@ -146,7 +151,7 @@ export const CustomSummaryPage = () => {
 
             return {
               id: `cabinet-${index}`,
-              title: (typeof name === "string" && name) || "Cabinet",
+              title: name ?? "Cabinet",
               subtitle,
               swatch: {
                 label: "Cabinet",
@@ -185,8 +190,8 @@ export const CustomSummaryPage = () => {
           : [
               {
                 id: "cabinet-1",
-                title: selectedProductConfig?.name ?? "Cabinet",
-                subtitle: `${selectedProductConfig?.Drawers ?? ""} | ${selectedDimensions.width}x${selectedDimensions.depth}x${selectedDimensions.height}`,
+                title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
+                subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width}x${selectedDimensions.depth}x${selectedDimensions.height}`,
                 swatch: {
                   ...resolveSwatch(cabinetColor),
                   label: "Cabinet",
