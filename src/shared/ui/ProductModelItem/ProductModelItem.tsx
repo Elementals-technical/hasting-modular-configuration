@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
@@ -15,7 +16,8 @@ interface ProductModelGridI {
   isProductModel: boolean;
   price: string;
   presetProducts?: PresetProduct[];
-  onClick: (presetProducts?: PresetProduct[]) => void;
+  onSelect: (presetProducts?: PresetProduct[]) => void;
+  onCustomize?: (presetProducts?: PresetProduct[]) => void;
   isActive?: boolean;
 }
 
@@ -26,38 +28,40 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
   img,
   isProductModel,
   price,
-  onClick,
+  onSelect,
+  onCustomize,
   presetProducts,
   isActive,
 }) => {
   const className = [s.productModelItem, isActive ? s.active : ""].filter(Boolean).join(" ");
+  const handleSelect = () => onSelect(presetProducts);
+  const handleCustomize = (event: MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+
+    if (onCustomize) {
+      onCustomize(presetProducts);
+      return;
+    }
+
+    onSelect(presetProducts);
+  };
 
   return (
     <div className={className}>
-      <div
-        className={s.optionImage}
-        onClick={() => {
-          onClick(presetProducts);
-        }}
-      >
+      <div className={s.optionImage} onClick={handleSelect}>
         <Hint
           content="Take this pre-built model into custom mode for full design control. Use our drag-n-drop editor to add/remove/reposition cabinets and more."
           placement="top"
           trigger="hover"
         >
-          <div className={s.innerButton}>
+          <div className={s.innerButton} onClick={handleCustomize}>
             Customize
             <ArrowTopRight />
           </div>
         </Hint>
         <img src={img} alt="image" />
       </div>
-      <div
-        onClick={() => {
-          onClick(presetProducts);
-        }}
-        className={s.title}
-      >
+      <div onClick={handleSelect} className={s.title}>
         {title}
       </div>
       <div className={s.desc}>{desc}</div>

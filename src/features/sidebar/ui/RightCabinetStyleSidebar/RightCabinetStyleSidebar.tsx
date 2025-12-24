@@ -27,6 +27,7 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -152,6 +153,10 @@ export const RightCabinetStyleSidebar = () => {
       if (!productId) return;
 
       await setConfig(productId, productConfig);
+
+      const storedConfig = await getConfig(productId);
+      console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
+
       dispatch(addProductId(productId));
     };
 

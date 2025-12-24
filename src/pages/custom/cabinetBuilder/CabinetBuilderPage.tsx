@@ -19,6 +19,7 @@ import {
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
+  setSelectedDimensions,
   setSelectedProductConfig,
   setDrawerProduct,
 } from "@/entities/product/model/store/slice";
@@ -34,12 +35,17 @@ import {
   getSelectedProductConfig,
   getSelectedDimensions,
   getSinkType,
+  getProductsPresets,
 } from "@/entities/product/model/store/selectors";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useSearchParams } from "react-router-dom";
+import { addPreset } from "@/utils/functions/playcanvas/addPreset";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 type AccordionConfig = {
   id: string;
@@ -77,6 +83,7 @@ export const CabinetBuilderPage = () => {
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
+  const productsPresets = useAppSelector(getProductsPresets);
 
   console.log("selectedProductConfig", selectedProductConfig);
 
@@ -145,8 +152,18 @@ export const CabinetBuilderPage = () => {
     setAccordionValue(CABINET_STYLE_ID);
   };
 
+  const resolveCabinetTypeId = useCallback((productType?: string | null) => {
+    if (!productType) return null;
+
+    const normalized = productType.toLowerCase();
+    const match = typeCabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+
+    return match?.id ?? null;
+  }, []);
+
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
+    if (productsPresets.length) return;
 
     bootstrappedRef.current = false;
     if (hasBootstrappedOnceRef.current) return;
@@ -155,7 +172,66 @@ export const CabinetBuilderPage = () => {
     if (canvasReady) {
       removeAllProducts();
     }
-  }, [canvasReady, dispatch, pathname]);
+  }, [canvasReady, dispatch, pathname, productsPresets.length]);
+
+  useEffect(() => {
+    if (!canvasReady || !productsPresets.length || bootstrappedRef.current) return;
+
+    bootstrappedRef.current = true;
+    hasBootstrappedOnceRef.current = true;
+
+    const run = async () => {
+      dispatch(resetProducts());
+
+      const existingIds = getOrderedProductIds();
+
+      if (!existingIds.length) {
+        const mergedPresets = productsPresets.map((preset) => ({
+          ...preset,
+          CabinetColor: preset.CabinetColor ?? cabinetColor,
+          sinkType: preset.sinkType ?? sinkType,
+          CountertopColor: preset.CountertopColor ?? countertopColor,
+          HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
+        }));
+
+        removeAllProducts();
+        await addPreset(mergedPresets);
+      } else {
+        setConfigBatch(existingIds, {
+          CabinetColor: cabinetColor,
+          sinkType,
+          CountertopColor: countertopColor,
+          HandleGrooveColor: handleGrooveColor,
+        });
+      }
+
+      const orderedIds = existingIds.length ? existingIds : getOrderedProductIds();
+      orderedIds.forEach((id) => dispatch(addProductId(id)));
+
+      const [firstPreset] = productsPresets;
+      if (firstPreset?.name) {
+        dispatch(setDrawerProduct(firstPreset.name));
+      }
+
+      dispatch(setSelectedProductConfig(firstPreset ?? null));
+
+      const nextDimensions: Partial<typeof selectedDimensions> = {};
+      if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+      if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+      if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+
+      if (Object.keys(nextDimensions).length) {
+        dispatch(setSelectedDimensions(nextDimensions));
+      }
+
+      const cabinetTypeId = resolveCabinetTypeId(firstPreset?.name);
+      if (cabinetTypeId !== null) {
+        dispatch(setActiveCabinetType(cabinetTypeId));
+      }
+    };
+
+    run();
+  }, [canvasReady, dispatch, productsPresets, resolveCabinetTypeId, selectedDimensions]);
 
   useEffect(() => {
     if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
