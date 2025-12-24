@@ -4,6 +4,9 @@ import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import image from "../../../../shared/assets/images/png/img_png.png";
+import upperHandleImage from "../../../../shared/assets/images/png/UpperGHandle.png";
+import centralHandleImage from "../../../../shared/assets/images/png/CentralGHandle.png";
+import ptoHandleImage from "../../../../shared/assets/images/png/PTOHandle.png";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
@@ -63,6 +66,14 @@ export const RightCabinetStyleSidebar = () => {
     [dimensionOptions.handles],
   );
 
+  const handleImage = useMemo(() => {
+    const value = selectedProductConfig?.Handle;
+    if (value === "handle_urban_topcut") return upperHandleImage;
+    if (value === "handle_urban_botcut") return centralHandleImage;
+    if (value === "handle_pto") return ptoHandleImage;
+    return image;
+  }, [selectedProductConfig?.Handle]);
+
   const productConfig = useMemo(
     () => ({
       ...(selectedProductConfig ?? {}),
@@ -117,6 +128,17 @@ export const RightCabinetStyleSidebar = () => {
       Depth: selectedDimensions.depth,
     });
   }, [selectedDimensions, selectedProducts]);
+
+  useEffect(() => {
+    if (!selectedProductConfig?.Handle) {
+      dispatch(
+        setSelectedProductConfig({
+          ...(selectedProductConfig ?? {}),
+          Handle: "handle_urban_topcut",
+        }),
+      );
+    }
+  }, [dispatch, selectedProductConfig]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
@@ -218,9 +240,11 @@ export const RightCabinetStyleSidebar = () => {
           </div>
         )}
 
-        <div className={s.image}>
-          <img src={image} alt="image" />
-        </div>
+        {!handlesDisabled && (
+          <div className={s.image}>
+            <img src={handleImage} alt="handle preview" />
+          </div>
+        )}
       </div>
 
       {/* <div className={s.tempButtons}>
