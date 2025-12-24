@@ -1,7 +1,21 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
+import { useAppSelector } from "@/shared/hooks/store/redux";
+import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getCabinetColor,
+  getHandleGrooveColor,
+  getProductsPresets,
+  getSelectedProducts,
+  getSelectedDimensions,
+  getSelectedProductConfig,
+  getSinkType,
+} from "@/entities/product/model/store/selectors";
+import dataMaterial from "@/shared/constants/DataMaterial.json";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 import s from "./SummaryPage.module.scss";
 
@@ -13,6 +27,7 @@ type SummaryItem = {
     label: string;
     value: string;
     color: string;
+    image?: string;
   };
   price: string;
   copyable?: boolean;
@@ -24,108 +39,6 @@ type SummarySection = {
   items: SummaryItem[];
   copyLabel?: string;
 };
-
-const summarySections: SummarySection[] = [
-  {
-    id: "cabinet",
-    title: "Cabinet",
-    copyLabel: "Copy sku and description",
-    items: [
-      {
-        id: "cabinet-1",
-        title: "Sink Base",
-        subtitle: " 2-Drawer | 60x50x46 Central Groove",
-        swatch: {
-          label: "Colortech",
-          value: "Bianco 10B",
-          color: "#dcdcd2",
-        },
-        price: "$199.00",
-        copyable: true,
-      },
-      {
-        id: "cabinet-2",
-        title: "Sink Base",
-        subtitle: "2-Drawer | 60x50x46 Central Groove",
-        swatch: {
-          label: "Colortech",
-          value: "Bianco 10B",
-          color: "#dcdcd2",
-        },
-        price: "$199.00",
-      },
-    ],
-  },
-  {
-    id: "countertop",
-    title: "Countertop",
-    items: [
-      {
-        id: "countertop-1",
-        title: "Mineralmarmo",
-        subtitle: "½”",
-        swatch: {
-          label: "Colortech",
-          value: "Grigio fume 10F",
-          color: "#4c4543",
-        },
-        price: "$199.00",
-      },
-    ],
-  },
-  {
-    id: "basin",
-    title: "Basin",
-    items: [
-      {
-        id: "basin-1",
-        title: "Vessel",
-        subtitle: "Diamond",
-        price: "$199.00",
-      },
-    ],
-  },
-  {
-    id: "accessories",
-    title: "Accessories",
-    items: [
-      {
-        id: "accessories-1",
-        title: "Side Panels",
-        subtitle: "No groove",
-        swatch: {
-          label: "Colortech",
-          value: "Bianco 10B",
-          color: "#dcdcd2",
-        },
-        price: "$199.00",
-      },
-      {
-        id: "accessories-2",
-        title: "LED Lights",
-        subtitle: "Auto",
-        price: "$199.00",
-      },
-      {
-        id: "accessories-3",
-        title: "Dividers",
-        subtitle: "Bento Grid",
-        price: "$199.00",
-      },
-      {
-        id: "accessories-4",
-        title: "Towel Bar",
-        subtitle: "Left",
-        swatch: {
-          label: "Colortech",
-          value: "Bianco 10B",
-          color: "#dcdcd2",
-        },
-        price: "$199.00",
-      },
-    ],
-  },
-];
 
 const swatches = [
   { id: "sw-1", name: "Bianco", color: "#d9d7cd" },
@@ -139,6 +52,21 @@ const swatches = [
 export const CustomSummaryPage = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const productsPresets = useAppSelector(getProductsPresets);
+  const selectedProducts = useAppSelector(getSelectedProducts);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
+
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
+
+  const sinkType = useAppSelector(getSinkType);
+
+  const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
+
   const handleCopy = (text: string, id: string) => {
     if (!navigator.clipboard) {
       return;
@@ -149,6 +77,200 @@ export const CustomSummaryPage = () => {
       setTimeout(() => setCopiedId(null), 1500);
     });
   };
+
+  const materialLookup = useMemo(() => {
+    const values = (dataMaterial as { materials?: any[] }).materials ?? [];
+    const map = new Map<string, { hex?: string; image?: string; label?: string }>();
+
+    values.forEach((option) => {
+      (option.valuesArray ?? []).forEach((entry: any) => {
+        const key = entry.metadata?.value ?? entry.value;
+        if (!key || map.has(key)) return;
+        map.set(key, { hex: entry.metadata?.hex, image: entry.metadata?.image, label: entry.label });
+      });
+    });
+
+    return map;
+  }, []);
+
+  const resolveSwatch = (value: string) => {
+    const entry = materialLookup.get(value);
+    return {
+      color: entry?.hex ?? "#dcdcdc",
+      image: entry?.image,
+      label: entry?.label ?? value,
+      value,
+    };
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadConfigs = async () => {
+      if (!selectedProducts.length) {
+        if (isMounted) setProductConfigs([]);
+        return;
+      }
+
+      const configs = await Promise.all(selectedProducts.map((id) => getConfig(id)));
+      const cleaned = configs.filter((config): config is Record<string, unknown> => Boolean(config));
+      if (isMounted) setProductConfigs(cleaned);
+    };
+
+    loadConfigs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProducts]);
+
+  const summarySections: SummarySection[] = useMemo(() => {
+    const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
+
+    const cabinetItems =
+      cabinetConfigs.length > 0
+        ? cabinetConfigs.map((config, index) => {
+            const width = typeof config.Width === "number" ? config.Width : undefined;
+            const depth = typeof config.Depth === "number" ? config.Depth : undefined;
+            const height = typeof config.Height === "number" ? config.Height : undefined;
+            const drawers = typeof config.Drawers === "string" ? config.Drawers : "";
+
+            const dims = [width, depth, height].every((v) => v !== undefined) ? `${width}x${depth}x${height}` : "";
+            const subtitle = [drawers, dims].filter(Boolean).join(" | ");
+            const name = typeof config.ProductType === "string" ? config.ProductType : config.name;
+            const swatchValue =
+              typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
+            const swatch = resolveSwatch(swatchValue);
+
+            console.log("config", productConfigs);
+
+            return {
+              id: `cabinet-${index}`,
+              title: (typeof name === "string" && name) || "Cabinet",
+              subtitle,
+              swatch: {
+                label: "Cabinet",
+                value: swatch.value,
+                color: swatch.color,
+                image: swatch.image,
+              },
+              price: "$—",
+              copyable: index === 0,
+            };
+          })
+        : productsPresets.length > 0
+          ? productsPresets.map((preset, index) => {
+              const drawers = preset.Drawers ? `${preset.Drawers}` : "";
+              const dims = [preset.Width, preset.Depth, preset.Height].every((v) => v !== undefined)
+                ? `${preset.Width}x${preset.Depth}x${preset.Height}`
+                : "";
+              const subtitle = [drawers, dims].filter(Boolean).join(" | ");
+              const swatchValue = preset.CabinetColor ?? cabinetColor;
+              const swatch = resolveSwatch(swatchValue);
+
+              return {
+                id: `cabinet-${index}`,
+                title: preset.name ?? "Cabinet",
+                subtitle,
+                swatch: {
+                  label: "Cabinet",
+                  value: swatch.value,
+                  color: swatch.color,
+                  image: swatch.image,
+                },
+                price: "$—",
+                copyable: index === 0,
+              };
+            })
+          : [
+              {
+                id: "cabinet-1",
+                title: selectedProductConfig?.name ?? "Cabinet",
+                subtitle: `${selectedProductConfig?.Drawers ?? ""} | ${selectedDimensions.width}x${selectedDimensions.depth}x${selectedDimensions.height}`,
+                swatch: {
+                  ...resolveSwatch(cabinetColor),
+                  label: "Cabinet",
+                  value: cabinetColor,
+                },
+                price: "$—",
+                copyable: true,
+              },
+            ];
+
+    const grooveSwatch = resolveSwatch(handleGrooveColor);
+    const countertopSwatch = resolveSwatch(countertopColor);
+
+    return [
+      {
+        id: "cabinet",
+        title: "Cabinet",
+        copyLabel: "Copy sku and description",
+        items: cabinetItems,
+      },
+      {
+        id: "countertop",
+        title: "Countertop",
+        items: [
+          {
+            id: "countertop-1",
+            title: "Countertop",
+            subtitle: countertopThickness ? `${countertopThickness}` : undefined,
+            swatch: {
+              label: "Countertop",
+              value: countertopColor,
+              color: countertopSwatch.color,
+              image: countertopSwatch.image,
+            },
+            price: "$—",
+          },
+        ],
+      },
+      {
+        id: "basin",
+        title: "Basin",
+        items: [
+          {
+            id: "basin-1",
+            title: "Basin",
+            subtitle: sinkType || undefined,
+            price: "$—",
+          },
+        ],
+      },
+      {
+        id: "accessories",
+        title: "Accessories",
+        items: [
+          {
+            id: "accessories-1",
+            title: "Handle Groove",
+            subtitle: "Groove color",
+            swatch: {
+              label: "Groove",
+              value: handleGrooveColor,
+              color: grooveSwatch.color,
+              image: grooveSwatch.image,
+            },
+            price: "$—",
+          },
+        ],
+      },
+    ];
+  }, [
+    cabinetColor,
+    countertopColor,
+    countertopThickness,
+    handleGrooveColor,
+    materialLookup,
+    productsPresets,
+    productConfigs,
+    selectedDimensions.depth,
+    selectedDimensions.height,
+    selectedDimensions.width,
+    selectedProductConfig?.Drawers,
+    selectedProductConfig?.name,
+    sinkType,
+  ]);
 
   return (
     <div className={s.summaryPage}>
@@ -191,7 +313,15 @@ export const CustomSummaryPage = () => {
 
                   {item.swatch && (
                     <div className={s.swatch}>
-                      <span className={s.swatchColor} style={{ backgroundColor: item.swatch.color }} />
+                      <span
+                        className={s.swatchColor}
+                        style={{
+                          backgroundColor: item.swatch.color,
+                          backgroundImage: item.swatch.image ? `url(${item.swatch.image})` : undefined,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                      />
                       <div>
                         <div className={s.swatchLabel}>{item.swatch.label}</div>
                         <div className={s.swatchValue}>{item.swatch.value}</div>
