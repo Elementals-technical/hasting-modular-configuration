@@ -7,12 +7,21 @@ import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getCabinetColor,
+  getCountertopStyle,
+  getDividersOption,
+  getDrawerPanelFluting,
+  getFaucetHolesAmount,
+  getFaucetHolesSpacing,
+  getGrainDirection,
   getHandleGrooveColor,
+  getLedOption,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
   getSelectedProductConfig,
+  getSidePanelsOption,
   getSinkType,
+  getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -64,6 +73,15 @@ export const SummaryPage = () => {
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
 
   const sinkType = useAppSelector(getSinkType);
+  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+  const grainDirection = useAppSelector(getGrainDirection);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const ledOption = useAppSelector(getLedOption);
+  const dividersOption = useAppSelector(getDividersOption);
+  const towelBarOption = useAppSelector(getTowelBarOption);
+  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
+  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
 
@@ -203,6 +221,114 @@ export const SummaryPage = () => {
     const grooveSwatch = resolveSwatch(handleGrooveColor);
     const countertopSwatch = resolveSwatch(countertopColor);
 
+    const cabinetOptionItems: SummaryItem[] = [
+      drawerPanelFluting
+        ? {
+            id: "cabinet-option-drawer-panel",
+            title: "Drawer Panel Fluting",
+            subtitle: drawerPanelFluting,
+            price: "$—",
+          }
+        : null,
+      grainDirection
+        ? {
+            id: "cabinet-option-grain-direction",
+            title: "Grain Direction",
+            subtitle: grainDirection,
+            price: "$—",
+          }
+        : null,
+    ].filter(Boolean) as SummaryItem[];
+
+    const countertopItems: SummaryItem[] = [
+      {
+        id: "countertop-1",
+        title: "Countertop",
+        subtitle: countertopThickness ? `${countertopThickness}` : undefined,
+        swatch: {
+          label: "Countertop",
+          value: countertopColor,
+          color: countertopSwatch.color,
+          image: countertopSwatch.image,
+        },
+        price: "$—",
+      },
+      countertopStyle
+        ? {
+            id: "countertop-style",
+            title: "Countertop Style",
+            subtitle: countertopStyle,
+            price: "$—",
+          }
+        : null,
+    ].filter(Boolean) as SummaryItem[];
+
+    const accessoriesItems: SummaryItem[] = [
+      sidePanelsOption
+        ? {
+            id: "accessories-side-panels",
+            title: "Side Panels",
+            subtitle: sidePanelsOption,
+            price: "$—",
+          }
+        : null,
+      ledOption
+        ? {
+            id: "accessories-led",
+            title: "LED",
+            subtitle: ledOption,
+            price: "$—",
+          }
+        : null,
+      dividersOption
+        ? {
+            id: "accessories-dividers",
+            title: "Dividers",
+            subtitle: dividersOption,
+            price: "$—",
+          }
+        : null,
+      towelBarOption
+        ? {
+            id: "accessories-towel-bar",
+            title: "Towel Bar",
+            subtitle: towelBarOption,
+            price: "$—",
+          }
+        : null,
+      {
+        id: "accessories-1",
+        title: "Handle Groove",
+        subtitle: "Groove color",
+        swatch: {
+          label: "Groove",
+          value: handleGrooveColor,
+          color: grooveSwatch.color,
+          image: grooveSwatch.image,
+        },
+        price: "$—",
+      },
+    ].filter(Boolean) as SummaryItem[];
+
+    const faucetItems: SummaryItem[] = [
+      faucetHolesAmount
+        ? {
+            id: "faucet-holes-amount",
+            title: "Faucet Holes Amount",
+            subtitle: faucetHolesAmount,
+            price: "$—",
+          }
+        : null,
+      faucetHolesSpacing
+        ? {
+            id: "faucet-holes-spacing",
+            title: "Faucet Holes Spacing",
+            subtitle: faucetHolesSpacing,
+            price: "$—",
+          }
+        : null,
+    ].filter(Boolean) as SummaryItem[];
+
     return [
       {
         id: "cabinet",
@@ -210,23 +336,19 @@ export const SummaryPage = () => {
         copyLabel: "Copy sku and description",
         items: cabinetItems,
       },
+      ...(cabinetOptionItems.length
+        ? [
+            {
+              id: "cabinet-options",
+              title: "Cabinet Options",
+              items: cabinetOptionItems,
+            },
+          ]
+        : []),
       {
         id: "countertop",
         title: "Countertop",
-        items: [
-          {
-            id: "countertop-1",
-            title: "Countertop",
-            subtitle: countertopThickness ? `${countertopThickness}` : undefined,
-            swatch: {
-              label: "Countertop",
-              value: countertopColor,
-              color: countertopSwatch.color,
-              image: countertopSwatch.image,
-            },
-            price: "$—",
-          },
-        ],
+        items: countertopItems,
       },
       {
         id: "basin",
@@ -243,27 +365,30 @@ export const SummaryPage = () => {
       {
         id: "accessories",
         title: "Accessories",
-        items: [
-          {
-            id: "accessories-1",
-            title: "Handle Groove",
-            subtitle: "Groove color",
-            swatch: {
-              label: "Groove",
-              value: handleGrooveColor,
-              color: grooveSwatch.color,
-              image: grooveSwatch.image,
-            },
-            price: "$—",
-          },
-        ],
+        items: accessoriesItems,
       },
+      ...(faucetItems.length
+        ? [
+            {
+              id: "faucet",
+              title: "Faucet",
+              items: faucetItems,
+            },
+          ]
+        : []),
     ];
   }, [
     cabinetColor,
     countertopColor,
     countertopThickness,
+    countertopStyle,
+    dividersOption,
+    drawerPanelFluting,
+    faucetHolesAmount,
+    faucetHolesSpacing,
+    grainDirection,
     handleGrooveColor,
+    ledOption,
     materialLookup,
     productsPresets,
     productConfigs,
@@ -271,7 +396,9 @@ export const SummaryPage = () => {
     selectedDimensions.height,
     selectedDimensions.width,
     selectedProductConfig,
+    sidePanelsOption,
     sinkType,
+    towelBarOption,
   ]);
 
   return (
