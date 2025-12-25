@@ -15,10 +15,21 @@ import { optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { getCabinetColor, getHandleGrooveColor, getSelectedProducts } from "@/entities/product/model/store/selectors";
+import {
+  getCabinetColor,
+  getDrawerPanelFluting,
+  getGrainDirection,
+  getHandleGrooveColor,
+  getSelectedProducts,
+} from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
+import {
+  setCabinetColor,
+  setDrawerPanelFluting,
+  setGrainDirection,
+  setHandleGrooveColor,
+} from "@/entities/product/model/store/slice";
 
 const BASE_PANEL_OPTION = "Base Panel";
 
@@ -27,6 +38,8 @@ export const CustomCabinetColorsPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
+  const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+  const activeGrainDirection = useAppSelector(getGrainDirection);
   const isPlayCanvasReady = usePlayCanvasReady();
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
@@ -109,6 +122,16 @@ export const CustomCabinetColorsPage = () => {
     dispatch(setHandleGrooveColor(colorName));
   };
 
+  const handleChangeDrawerPanelFluting = (value: string) => {
+    if (!value) return;
+    dispatch(setDrawerPanelFluting(value));
+  };
+
+  const handleChangeGrainDirection = (value: string) => {
+    if (!value) return;
+    dispatch(setGrainDirection(value));
+  };
+
   // Fill all products.
   useEffect(() => {
     if (!isPlayCanvasReady || !activeCabinetColor) return;
@@ -161,12 +184,24 @@ export const CustomCabinetColorsPage = () => {
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
-      content: <ProductOptionsGrid data={optionsMockData3} />,
+      content: (
+        <ProductOptionsGrid
+          data={optionsMockData3}
+          handleAdd={handleChangeDrawerPanelFluting}
+          activeValue={activeDrawerPanelFluting}
+        />
+      ),
     },
     {
       id: "grain-direction",
       title: "Grain Direction",
-      content: <ProductOptionsGrid data={optionsMockData4} />,
+      content: (
+        <ProductOptionsGrid
+          data={optionsMockData4}
+          handleAdd={handleChangeGrainDirection}
+          activeValue={activeGrainDirection}
+        />
+      ),
     },
   ];
 

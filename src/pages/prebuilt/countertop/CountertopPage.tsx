@@ -2,11 +2,17 @@ import { useMemo, useState } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
-import { getActiveCountertopColor, getProductsPresets } from "@/entities/product/model/store/selectors.ts";
+import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getCountertopStyle,
+  getProductsPresets,
+} from "@/entities/product/model/store/selectors.ts";
 import {
   setActiveBasinStyle,
   setActiveCountertopColor,
   setActiveCountertopThickness,
+  setCountertopStyle,
 } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -28,6 +34,8 @@ export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const activeThickness = useAppSelector(getActiveCountertopThickness);
+  const activeCountertopStyle = useAppSelector(getCountertopStyle);
 
   const materialFilters = useMemo(() => buildMaterialFilters("Counertops materials"), []);
   const countertopOptions = useMemo(() => getMaterialOptionsGridData("Counertops materials"), []);
@@ -91,6 +99,11 @@ export const CountertopPage = () => {
     dispatch(setActiveCountertopThickness(thickness));
   };
 
+  const handleCountertopStyle = (style: string) => {
+    if (!style) return;
+    dispatch(setCountertopStyle(style));
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -141,14 +154,24 @@ export const CountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsMockData4} onSelectChange={(value) => value && handleAddThickness(value)} />
+          <ProductSwatchesGrid
+            data={optionsMockData4}
+            onSelectChange={(value) => value && handleAddThickness(value)}
+            selectedValue={activeThickness}
+          />
         </>
       ),
     },
     {
       id: "countertop-styles",
       title: "Countertop Style",
-      content: <ProductOptionsGrid data={optionsMockData2} />,
+      content: (
+        <ProductOptionsGrid
+          data={optionsMockData2}
+          handleAdd={handleCountertopStyle}
+          activeValue={activeCountertopStyle}
+        />
+      ),
     },
     {
       id: "basin-style",

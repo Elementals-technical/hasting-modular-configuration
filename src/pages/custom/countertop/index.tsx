@@ -9,6 +9,7 @@ import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constant
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
+  getCountertopStyle,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -17,6 +18,7 @@ import {
   setActiveBasinStyle,
   setActiveCountertopColor,
   setActiveCountertopThickness,
+  setCountertopStyle,
 } from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 
@@ -27,6 +29,7 @@ export const CustomCountertopPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const activeCountertopStyle = useAppSelector(getCountertopStyle);
 
   const countertopOptions = useMemo(
     () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -65,6 +68,11 @@ export const CustomCountertopPage = () => {
     dispatch(setActiveCountertopThickness(thickness));
   };
 
+  const handleCountertopStyle = (style: string) => {
+    if (!style) return;
+    dispatch(setCountertopStyle(style));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "counter-top-color",
@@ -96,7 +104,13 @@ export const CustomCountertopPage = () => {
     {
       id: "countertop-style",
       title: "Countertop Style",
-      content: <ProductOptionsGrid data={optionsMockData2} />,
+      content: (
+        <ProductOptionsGrid
+          data={optionsMockData2}
+          handleAdd={handleCountertopStyle}
+          activeValue={activeCountertopStyle}
+        />
+      ),
     },
     {
       id: "basin-style",

@@ -1,10 +1,11 @@
-import { useState } from "react";
-
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { faucetHolesAmountData } from "./constants";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { getFaucetHolesAmount, getFaucetHolesSpacing } from "@/entities/product/model/store/selectors";
+import { setFaucetHolesAmount, setFaucetHolesSpacing } from "@/entities/product/model/store/slice";
 
 const faucetHolesSpacingOptions = [
   {
@@ -14,7 +15,18 @@ const faucetHolesSpacingOptions = [
 ];
 
 export const CustomFaucetHolesPage = () => {
-  const [faucetSpacing, setFaucetSpacing] = useState('4"');
+  const dispatch = useAppDispatch();
+  const faucetSpacing = useAppSelector(getFaucetHolesSpacing);
+  const faucetAmount = useAppSelector(getFaucetHolesAmount);
+
+  const handleFaucetAmountChange = (value: string | null) => {
+    if (!value) return;
+    dispatch(setFaucetHolesAmount(value));
+  };
+
+  const handleFaucetSpacingChange = (value: string | number) => {
+    dispatch(setFaucetHolesSpacing(String(value)));
+  };
 
   const ACCORDIONS: AccordionConfig[] = [
     {
@@ -23,7 +35,11 @@ export const CustomFaucetHolesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductSwatchesGrid data={faucetHolesAmountData} />
+          <ProductSwatchesGrid
+            data={faucetHolesAmountData}
+            selectedValue={faucetAmount}
+            onSelectChange={handleFaucetAmountChange}
+          />
         </>
       ),
     },
@@ -36,7 +52,7 @@ export const CustomFaucetHolesPage = () => {
             label="Spacing"
             options={faucetHolesSpacingOptions}
             value={faucetSpacing}
-            onSelect={(value) => setFaucetSpacing(String(value))}
+            onSelect={handleFaucetSpacingChange}
           />
         </>
       ),
