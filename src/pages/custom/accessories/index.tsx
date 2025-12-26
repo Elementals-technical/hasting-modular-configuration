@@ -5,6 +5,7 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import {
   getDividersOption,
   getLedOption,
+  getSelectedProducts,
   getSidePanelsOption,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
@@ -17,6 +18,7 @@ import {
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import {
   dividersMockData,
@@ -33,9 +35,12 @@ export const CustomAccessoriesPage = () => {
   const towelSelection = useAppSelector(getTowelBarOption);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const activeLed = useAppSelector(getLedOption);
+  const selectedProducts = useAppSelector(getSelectedProducts);
 
-  const handleSidePanelsChange = (value: string) => {
+  const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
+
+    await setConfigBatch(selectedProducts, { SidePanel: value });
     dispatch(setSidePanelsOption(value));
   };
 

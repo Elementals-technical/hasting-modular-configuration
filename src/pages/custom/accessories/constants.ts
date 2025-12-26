@@ -54,26 +54,41 @@ export const optionsSidePanelsData = [
     id: 9001,
     title: "None",
     isShortDesc: false,
+    metadata: {
+      value: "None",
+    },
   },
   {
     id: 9002,
     title: "No groove",
     isShortDesc: false,
+    metadata: {
+      value: "NoG",
+    },
   },
   {
     id: 9003,
     title: "1 groove (upper)",
     isShortDesc: false,
+    metadata: {
+      value: "CenterG",
+    },
   },
   {
     id: 9004,
     title: "1 groove (central)",
     isShortDesc: false,
+    metadata: {
+      value: "CenterG",
+    },
   },
   {
     id: 9005,
     title: "2 groove",
     isShortDesc: false,
+    metadata: {
+      value: "DoubleG",
+    },
   },
 ];
 

@@ -17,6 +17,7 @@ import {
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import {
   optionsSidePanelsData,
@@ -33,8 +34,10 @@ export const AccessoriesPage = () => {
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const activeLed = useAppSelector(getLedOption);
 
-  const handleSidePanelsChange = (value: string) => {
+  const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
+
+    await setConfigBatch({}, { SidePanel: value });
     dispatch(setSidePanelsOption(value));
   };
 
