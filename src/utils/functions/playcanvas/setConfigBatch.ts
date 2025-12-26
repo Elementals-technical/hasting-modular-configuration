@@ -1,4 +1,6 @@
-export function setConfigBatch(ids: string[] | { productType: string }, config: any) {
+type ConfigBatchIds = string[] | { productType?: string; productIds?: string[] };
+
+export function setConfigBatch(ids: ConfigBatchIds, config: any) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;

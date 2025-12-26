@@ -1,10 +1,23 @@
-import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
+import {
+  getDividersOption,
+  getLedOption,
+  getSidePanelsOption,
+  getTowelBarOption,
+} from "@/entities/product/model/store/selectors";
+import {
+  setDividersOption,
+  setLedOption,
+  setSidePanelsOption,
+  setTowelBarOption,
+} from "@/entities/product/model/store/slice";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import {
   optionsSidePanelsData,
@@ -15,7 +28,33 @@ import {
 } from "./constants";
 
 export const AccessoriesPage = () => {
-  const [towelSelection, setTowelSelection] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const towelSelection = useAppSelector(getTowelBarOption);
+  const dividerSelection = useAppSelector(getDividersOption);
+  const activeSidePanels = useAppSelector(getSidePanelsOption);
+  const activeLed = useAppSelector(getLedOption);
+
+  const handleSidePanelsChange = async (value: string) => {
+    if (!value) return;
+
+    await setConfigBatch({}, { SidePanel: value });
+    dispatch(setSidePanelsOption(value));
+  };
+
+  const handleLedChange = (value: string | null) => {
+    if (!value) return;
+    dispatch(setLedOption(value));
+  };
+
+  const handleDividersChange = (value: string | null) => {
+    if (!value) return;
+    dispatch(setDividersOption(value));
+  };
+
+  const handleTowelBarChange = (value: string | null) => {
+    if (!value) return;
+    dispatch(setTowelBarOption(value));
+  };
 
   const ACCORDIONS: AccordionConfig[] = [
     {
@@ -24,7 +63,11 @@ export const AccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid data={optionsSidePanelsData} />
+          <ProductOptionsGrid
+            data={optionsSidePanelsData}
+            handleAdd={handleSidePanelsChange}
+            activeValue={activeSidePanels}
+          />
         </>
       ),
     },
@@ -33,7 +76,12 @@ export const AccessoriesPage = () => {
       title: "LED",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsSwatchData} isLedSection={true} />
+          <ProductSwatchesGrid
+            data={optionsSwatchData}
+            isLedSection={true}
+            selectedValue={activeLed}
+            onSelectChange={handleLedChange}
+          />
         </>
       ),
     },
@@ -42,7 +90,11 @@ export const AccessoriesPage = () => {
       title: "Dividers",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsSwatchData2} />
+          <ProductSwatchesGrid
+            data={optionsSwatchData2}
+            onSelectChange={handleDividersChange}
+            selectedValue={dividerSelection}
+          />
         </>
       ),
     },
@@ -51,7 +103,11 @@ export const AccessoriesPage = () => {
       title: "Towel Bar",
       content: (
         <>
-          <ProductSwatchesGrid data={optionsSwatchDataTowel} onSelectChange={setTowelSelection} />
+          <ProductSwatchesGrid
+            data={optionsSwatchDataTowel}
+            onSelectChange={handleTowelBarChange}
+            selectedValue={towelSelection}
+          />
           {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsTowelData} />}
         </>
       ),

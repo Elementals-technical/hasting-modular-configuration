@@ -37,6 +37,15 @@ type ProductState = {
     HandleGrooveColor: string;
     Handle: HandleOption;
     Thickness: string;
+    DrawerPanelFluting: string;
+    GrainDirection: string;
+    CountertopStyle: string;
+    SidePanels: string;
+    LedOption: string;
+    DividersOption: string;
+    TowelBarOption: string;
+    FaucetHolesAmount: string;
+    FaucetHolesSpacing: string;
   };
 
   productsPresets: PresetProduct[];
@@ -139,6 +148,15 @@ const createInitialState = (): ProductState => {
       HandleGrooveColor: "Blu Pavone A6 MT",
       Handle: "",
       Thickness: "",
+      DrawerPanelFluting: "",
+      GrainDirection: "",
+      CountertopStyle: "",
+      SidePanels: "",
+      LedOption: "",
+      DividersOption: "",
+      TowelBarOption: "",
+      FaucetHolesAmount: "",
+      FaucetHolesSpacing: '4"',
     },
 
     productsPresets: [],
@@ -252,6 +270,33 @@ const productSlice = createSlice({
     setActiveCountertopThickness(state, action: PayloadAction<string>) {
       state.productOptions.Thickness = action.payload;
     },
+    setDrawerPanelFluting(state, action: PayloadAction<string>) {
+      state.productOptions.DrawerPanelFluting = action.payload;
+    },
+    setGrainDirection(state, action: PayloadAction<string>) {
+      state.productOptions.GrainDirection = action.payload;
+    },
+    setCountertopStyle(state, action: PayloadAction<string>) {
+      state.productOptions.CountertopStyle = action.payload;
+    },
+    setSidePanelsOption(state, action: PayloadAction<string>) {
+      state.productOptions.SidePanels = action.payload;
+    },
+    setLedOption(state, action: PayloadAction<string>) {
+      state.productOptions.LedOption = action.payload;
+    },
+    setDividersOption(state, action: PayloadAction<string>) {
+      state.productOptions.DividersOption = action.payload;
+    },
+    setTowelBarOption(state, action: PayloadAction<string>) {
+      state.productOptions.TowelBarOption = action.payload;
+    },
+    setFaucetHolesAmount(state, action: PayloadAction<string>) {
+      state.productOptions.FaucetHolesAmount = action.payload;
+    },
+    setFaucetHolesSpacing(state, action: PayloadAction<string>) {
+      state.productOptions.FaucetHolesSpacing = action.payload;
+    },
 
     setSelectedSceneProduct(state, action: PayloadAction<string>) {
       state.selectedSceneProduct = action.payload;
@@ -276,6 +321,15 @@ export const {
   setActiveBasinStyle,
   setActiveCountertopColor,
   setActiveCountertopThickness,
+  setDrawerPanelFluting,
+  setGrainDirection,
+  setCountertopStyle,
+  setSidePanelsOption,
+  setLedOption,
+  setDividersOption,
+  setTowelBarOption,
+  setFaucetHolesAmount,
+  setFaucetHolesSpacing,
   resetPrebuiltProducts,
   setSelectedSceneProduct,
 } = productSlice.actions;

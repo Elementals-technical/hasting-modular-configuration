@@ -1,9 +1,10 @@
-import { useState } from "react";
-
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { getFaucetHolesAmount, getFaucetHolesSpacing } from "@/entities/product/model/store/selectors";
+import { setFaucetHolesAmount, setFaucetHolesSpacing } from "@/entities/product/model/store/slice";
 
 const faucetHolesAmountData = [
   {
@@ -32,7 +33,18 @@ const faucetHolesSpacingOptions = [
 ];
 
 export const FaucetPage = () => {
-  const [faucetSpacing, setFaucetSpacing] = useState('4"');
+  const dispatch = useAppDispatch();
+  const faucetSpacing = useAppSelector(getFaucetHolesSpacing);
+  const faucetAmount = useAppSelector(getFaucetHolesAmount);
+
+  const handleFaucetAmountChange = (value: string | null) => {
+    if (!value) return;
+    dispatch(setFaucetHolesAmount(value));
+  };
+
+  const handleFaucetSpacingChange = (value: string | number) => {
+    dispatch(setFaucetHolesSpacing(String(value)));
+  };
 
   const ACCORDIONS: AccordionConfig[] = [
     {
@@ -41,7 +53,11 @@ export const FaucetPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductSwatchesGrid data={faucetHolesAmountData} />
+          <ProductSwatchesGrid
+            data={faucetHolesAmountData}
+            selectedValue={faucetAmount}
+            onSelectChange={handleFaucetAmountChange}
+          />
         </>
       ),
     },
@@ -54,7 +70,7 @@ export const FaucetPage = () => {
             label="Spacing"
             options={faucetHolesSpacingOptions}
             value={faucetSpacing}
-            onSelect={(value) => setFaucetSpacing(String(value))}
+            onSelect={handleFaucetSpacingChange}
           />
         </>
       ),

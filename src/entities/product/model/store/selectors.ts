@@ -25,3 +25,24 @@ export const getSelectedSceneProduct = (state: RootState) => state.rootStateUI.p
 export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColor;
 
 export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;
+
+export const getDrawerPanelFluting = (state: RootState) =>
+  state.rootStateUI.product.productOptions.DrawerPanelFluting;
+
+export const getGrainDirection = (state: RootState) => state.rootStateUI.product.productOptions.GrainDirection;
+
+export const getCountertopStyle = (state: RootState) => state.rootStateUI.product.productOptions.CountertopStyle;
+
+export const getSidePanelsOption = (state: RootState) => state.rootStateUI.product.productOptions.SidePanels;
+
+export const getLedOption = (state: RootState) => state.rootStateUI.product.productOptions.LedOption;
+
+export const getDividersOption = (state: RootState) => state.rootStateUI.product.productOptions.DividersOption;
+
+export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
+
+export const getFaucetHolesAmount = (state: RootState) =>
+  state.rootStateUI.product.productOptions.FaucetHolesAmount;
+
+export const getFaucetHolesSpacing = (state: RootState) =>
+  state.rootStateUI.product.productOptions.FaucetHolesSpacing;

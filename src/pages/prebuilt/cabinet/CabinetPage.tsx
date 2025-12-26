@@ -12,11 +12,18 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
+import {
+  setCabinetColor,
+  setDrawerPanelFluting,
+  setGrainDirection,
+  setHandleGrooveColor,
+} from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getCabinetColor,
+  getDrawerPanelFluting,
+  getGrainDirection,
   getHandleGrooveColor,
   getProductsPresets,
 } from "@/entities/product/model/store/selectors";
@@ -29,6 +36,8 @@ export const CabinetPage = () => {
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
+  const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+  const activeGrainDirection = useAppSelector(getGrainDirection);
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
@@ -112,6 +121,16 @@ export const CabinetPage = () => {
     dispatch(setHandleGrooveColor(colorName));
   };
 
+  const handleChangeDrawerPanelFluting = (value: string) => {
+    if (!value) return;
+    dispatch(setDrawerPanelFluting(value));
+  };
+
+  const handleChangeGrainDirection = (value: string) => {
+    if (!value) return;
+    dispatch(setGrainDirection(value));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -147,12 +166,24 @@ export const CabinetPage = () => {
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
-      content: <ProductOptionsGrid data={optionsMockData3} />,
+      content: (
+        <ProductOptionsGrid
+          data={optionsMockData3}
+          handleAdd={handleChangeDrawerPanelFluting}
+          activeValue={activeDrawerPanelFluting}
+        />
+      ),
     },
     {
       id: "grain-direction",
       title: "Grain Direction",
-      content: <ProductOptionsGrid data={optionsMockData4} />,
+      content: (
+        <ProductOptionsGrid
+          data={optionsMockData4}
+          handleAdd={handleChangeGrainDirection}
+          activeValue={activeGrainDirection}
+        />
+      ),
     },
   ];
 
