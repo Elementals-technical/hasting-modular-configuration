@@ -29,6 +29,7 @@ type ProductState = {
   activeDrawerProduct: string;
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
+  heightBeforePto: number | null;
   dimensionOptions: DimensionOptionGroup;
   productOptions: {
     CabinetColor: string;
@@ -135,6 +136,7 @@ const createInitialState = (): ProductState => {
     activeDrawerProduct: "",
     selectedProductConfig: null,
     selectedDimensions: DEFAULT_DIMENSIONS,
+    heightBeforePto: null,
     dimensionOptions: {
       width: [],
       height: [],
@@ -254,7 +256,19 @@ const productSlice = createSlice({
       }
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
+      const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
+      const nextHandle = mapHandleConfigToRule(action.payload?.Handle);
+
       state.selectedProductConfig = action.payload;
+
+      if (prevHandle !== "handle_pto" && nextHandle === "handle_pto") {
+        state.heightBeforePto = state.selectedDimensions.height;
+      }
+
+      if (prevHandle === "handle_pto" && nextHandle !== "handle_pto" && state.heightBeforePto !== null) {
+        state.selectedDimensions.height = state.heightBeforePto;
+      }
+
       applyRulesToState(state);
     },
     setCabinetColor(state, action: PayloadAction<string>) {
