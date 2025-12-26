@@ -111,13 +111,17 @@ export const RightCabinetStyleSidebar = () => {
   //   dispatch(setSelectedDimensions({ height: Number(value) }));
   // };
 
-  const handleSetHandleType = (handleType: string) => {
+  const handleSetHandleType = async (handleType: string) => {
     dispatch(
       setSelectedProductConfig({
         ...(selectedProductConfig ?? {}),
         Handle: handleType,
       }),
     );
+
+    if (selectedProducts.length) {
+      await setConfigBatch(selectedProducts, { Handle: handleType });
+    }
   };
 
   useEffect(() => {

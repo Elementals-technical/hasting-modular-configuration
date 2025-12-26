@@ -186,10 +186,7 @@ const productSlice = createSlice({
       const next = [...state.productIds.filter((pid) => pid !== id), id];
       state.productIds = next;
     },
-    insertProductIdRelative(
-      state,
-      action: PayloadAction<{ id: string; prevId: string; side: "left" | "right" }>,
-    ) {
+    insertProductIdRelative(state, action: PayloadAction<{ id: string; prevId: string; side: "left" | "right" }>) {
       const { id, prevId, side } = action.payload;
       if (!id) return;
 
