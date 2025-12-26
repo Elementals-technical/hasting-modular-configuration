@@ -51,10 +51,13 @@ export const CustomAccessoriesPage = () => {
   useEffect(() => {
     if (towelSelection !== "None") return;
 
-    setConfigBatch({}, {
-      TowelBar: "None",
-      TowelBarSide: "both",
-    });
+    setConfigBatch(
+      {},
+      {
+        TowelBar: "None",
+        TowelBarSide: "both",
+      },
+    );
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
@@ -92,10 +95,13 @@ export const CustomAccessoriesPage = () => {
     const isNone = value === "None";
     const side = value.toLowerCase() as "left" | "right" | "both";
 
-    await setConfigBatch({}, {
-      TowelBar: isNone ? "None" : "TowelBar40_R",
-      TowelBarSide: isNone ? "both" : side,
-    });
+    await setConfigBatch(
+      {},
+      {
+        TowelBar: isNone ? "None" : "TowelBar40_R",
+        TowelBarSide: isNone ? "both" : side,
+      },
+    );
 
     if (isNone) {
       dispatch(setTowelBarColor(""));
@@ -107,9 +113,12 @@ export const CustomAccessoriesPage = () => {
   const handleTowelBarColorChange = (value?: string) => {
     if (!value) return;
 
-    setConfigBatch({}, {
-      TowelBarColor: value,
-    });
+    setConfigBatch(
+      {},
+      {
+        TowelBarColor: value,
+      },
+    );
 
     dispatch(setTowelBarColor(value));
   };
