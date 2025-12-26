@@ -4,6 +4,7 @@ import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/Pro
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getDividersOption,
+  getDividersStyle,
   getLedOption,
   getSelectedProductConfig,
   getSelectedProducts,
@@ -12,6 +13,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import {
   setDividersOption,
+  setDividersStyle,
   setLedOption,
   setSidePanelsOption,
   setTowelBarOption,
@@ -33,6 +35,7 @@ import {
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
   const dividerSelection = useAppSelector(getDividersOption);
+  const dividerStyle = useAppSelector(getDividersStyle);
   const towelSelection = useAppSelector(getTowelBarOption);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const activeLed = useAppSelector(getLedOption);
@@ -59,6 +62,14 @@ export const CustomAccessoriesPage = () => {
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
     dispatch(setDividersOption(value));
+    if (value !== "Customize") {
+      dispatch(setDividersStyle(""));
+    }
+  };
+
+  const handleDividerStyleChange = (value: string) => {
+    if (!value) return;
+    dispatch(setDividersStyle(value));
   };
 
   const handleTowelBarChange = (value: string | null) => {
@@ -105,7 +116,13 @@ export const CustomAccessoriesPage = () => {
             onSelectChange={handleDividersChange}
             selectedValue={dividerSelection}
           />
-          {dividerSelection === "Customize" && <ProductOptionsGrid data={dividersMockData} />}
+          {dividerSelection === "Customize" && (
+            <ProductOptionsGrid
+              data={dividersMockData}
+              handleAdd={handleDividerStyleChange}
+              activeValue={dividerStyle}
+            />
+          )}
         </>
       ),
     },

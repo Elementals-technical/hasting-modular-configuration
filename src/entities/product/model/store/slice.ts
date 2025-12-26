@@ -43,6 +43,7 @@ type ProductState = {
     SidePanels: string;
     LedOption: string;
     DividersOption: string;
+    DividersStyle: string;
     TowelBarOption: string;
     FaucetHolesAmount: string;
     FaucetHolesSpacing: string;
@@ -154,6 +155,7 @@ const createInitialState = (): ProductState => {
       SidePanels: "",
       LedOption: "",
       DividersOption: "",
+      DividersStyle: "",
       TowelBarOption: "",
       FaucetHolesAmount: "",
       FaucetHolesSpacing: '4"',
@@ -288,6 +290,9 @@ const productSlice = createSlice({
     setDividersOption(state, action: PayloadAction<string>) {
       state.productOptions.DividersOption = action.payload;
     },
+    setDividersStyle(state, action: PayloadAction<string>) {
+      state.productOptions.DividersStyle = action.payload;
+    },
     setTowelBarOption(state, action: PayloadAction<string>) {
       state.productOptions.TowelBarOption = action.payload;
     },
@@ -327,6 +332,7 @@ export const {
   setSidePanelsOption,
   setLedOption,
   setDividersOption,
+  setDividersStyle,
   setTowelBarOption,
   setFaucetHolesAmount,
   setFaucetHolesSpacing,
