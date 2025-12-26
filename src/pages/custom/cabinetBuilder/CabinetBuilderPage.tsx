@@ -57,14 +57,13 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
-const hasBootstrappedOnceRef = { current: false };
-
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
   const [accordionValue, setAccordionValue] = useState(defaultValue);
   const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
 
   const bootstrappedRef = useRef(false);
+  const hasBootstrappedOnceRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
