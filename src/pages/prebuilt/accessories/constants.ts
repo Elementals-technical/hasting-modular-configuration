@@ -5,6 +5,7 @@ import noGrooveImage from "@/shared/assets/images/jpeg/no_groove.jpg";
 import dividerOptionAImage from "@/shared/assets/images/jpeg/varA.jpg";
 import dividerOptionBImage from "@/shared/assets/images/jpeg/varB.jpg";
 import dividerOptionCImage from "@/shared/assets/images/jpeg/varC.jpg";
+import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 export const optionsMockData = [
   {
@@ -176,41 +177,4 @@ export const dividersMockData = [
   },
 ];
 
-export const optionsTowelData = [
-  {
-    id: 1001,
-    title: "Color 1",
-    desc: "Bianco 10B",
-    isShortDesc: false,
-    metadata: {
-      value: "Bianco 10B",
-    },
-  },
-  {
-    id: 1002,
-    title: "Color 2",
-    desc: "Grigio fume 10F",
-    isShortDesc: false,
-    metadata: {
-      value: "Grigio fume 10F",
-    },
-  },
-  {
-    id: 1003,
-    title: "Color 3",
-    desc: "Centre 1A1",
-    isShortDesc: false,
-    metadata: {
-      value: "Centre 1A1",
-    },
-  },
-  {
-    id: 1004,
-    title: "Color 4",
-    desc: "Tortora 1A2",
-    isShortDesc: false,
-    metadata: {
-      value: "Tortora 1A2",
-    },
-  },
-];
+export const optionsTowelData = getMaterialOptionsGridData("Base Panel");
