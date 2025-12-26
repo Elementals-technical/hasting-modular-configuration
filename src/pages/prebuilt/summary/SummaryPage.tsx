@@ -42,9 +42,7 @@ const buildImageSrc = (imagePath?: string) => {
 
 const resolveDividerImage = (selection?: string) => {
   if (!selection) return undefined;
-  const match = dividersMockData.find(
-    (option) => option.metadata?.value === selection || option.title === selection,
-  );
+  const match = dividersMockData.find((option) => option.title === selection);
   return match?.metadata?.image;
 };
 
