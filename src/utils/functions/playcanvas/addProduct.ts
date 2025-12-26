@@ -3,6 +3,7 @@ export interface addProductConfigI {
   Depth: number;
   CabinetColor: string;
   Width: number;
+  SidePanel?: string;
   sinkType?: string;
   [key: string]: unknown;
 }

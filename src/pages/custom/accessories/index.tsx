@@ -5,6 +5,7 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import {
   getDividersOption,
   getLedOption,
+  getSelectedProductConfig,
   getSelectedProducts,
   getSidePanelsOption,
   getTowelBarOption,
@@ -37,10 +38,16 @@ export const CustomAccessoriesPage = () => {
   const activeLed = useAppSelector(getLedOption);
   const selectedProducts = useAppSelector(getSelectedProducts);
 
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+
   const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
 
-    await setConfigBatch(selectedProducts, { SidePanel: value });
+    await setConfigBatch(selectedProducts, {
+      ...selectedProductConfig,
+      SidePanel: value,
+    });
+
     dispatch(setSidePanelsOption(value));
   };
 
