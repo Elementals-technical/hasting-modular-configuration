@@ -37,7 +37,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "010";
+const PLAYCANVAS_VERSION = "013";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 // const RIGHT_BUTTON = 2;
 // const HOLD_MS = 250;

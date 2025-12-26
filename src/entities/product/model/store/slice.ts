@@ -29,6 +29,7 @@ type ProductState = {
   activeDrawerProduct: string;
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
+  heightBeforePto: number | null;
   dimensionOptions: DimensionOptionGroup;
   productOptions: {
     CabinetColor: string;
@@ -43,7 +44,9 @@ type ProductState = {
     SidePanels: string;
     LedOption: string;
     DividersOption: string;
+    DividersStyle: string;
     TowelBarOption: string;
+    TowelBarColor: string;
     FaucetHolesAmount: string;
     FaucetHolesSpacing: string;
   };
@@ -134,6 +137,7 @@ const createInitialState = (): ProductState => {
     activeDrawerProduct: "",
     selectedProductConfig: null,
     selectedDimensions: DEFAULT_DIMENSIONS,
+    heightBeforePto: null,
     dimensionOptions: {
       width: [],
       height: [],
@@ -154,7 +158,9 @@ const createInitialState = (): ProductState => {
       SidePanels: "",
       LedOption: "",
       DividersOption: "",
-      TowelBarOption: "",
+      DividersStyle: "",
+      TowelBarOption: "None",
+      TowelBarColor: "",
       FaucetHolesAmount: "",
       FaucetHolesSpacing: '4"',
     },
@@ -252,7 +258,19 @@ const productSlice = createSlice({
       }
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
+      const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
+      const nextHandle = mapHandleConfigToRule(action.payload?.Handle);
+
       state.selectedProductConfig = action.payload;
+
+      if (prevHandle !== "handle_pto" && nextHandle === "handle_pto") {
+        state.heightBeforePto = state.selectedDimensions.height;
+      }
+
+      if (prevHandle === "handle_pto" && nextHandle !== "handle_pto" && state.heightBeforePto !== null) {
+        state.selectedDimensions.height = state.heightBeforePto;
+      }
+
       applyRulesToState(state);
     },
     setCabinetColor(state, action: PayloadAction<string>) {
@@ -288,8 +306,14 @@ const productSlice = createSlice({
     setDividersOption(state, action: PayloadAction<string>) {
       state.productOptions.DividersOption = action.payload;
     },
+    setDividersStyle(state, action: PayloadAction<string>) {
+      state.productOptions.DividersStyle = action.payload;
+    },
     setTowelBarOption(state, action: PayloadAction<string>) {
       state.productOptions.TowelBarOption = action.payload;
+    },
+    setTowelBarColor(state, action: PayloadAction<string>) {
+      state.productOptions.TowelBarColor = action.payload;
     },
     setFaucetHolesAmount(state, action: PayloadAction<string>) {
       state.productOptions.FaucetHolesAmount = action.payload;
@@ -327,7 +351,9 @@ export const {
   setSidePanelsOption,
   setLedOption,
   setDividersOption,
+  setDividersStyle,
   setTowelBarOption,
+  setTowelBarColor,
   setFaucetHolesAmount,
   setFaucetHolesSpacing,
   resetPrebuiltProducts,

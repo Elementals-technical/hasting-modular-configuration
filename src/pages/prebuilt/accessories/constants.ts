@@ -1,3 +1,12 @@
+import oneGrooveCenterImage from "@/shared/assets/images/jpeg/1_groove_cent.jpg";
+import oneGrooveUpperImage from "@/shared/assets/images/jpeg/1_groove_upper.jpg";
+import twoGrooveImage from "@/shared/assets/images/jpeg/2_groove.jpg";
+import noGrooveImage from "@/shared/assets/images/jpeg/no_groove.jpg";
+import dividerOptionAImage from "@/shared/assets/images/jpeg/varA.jpg";
+import dividerOptionBImage from "@/shared/assets/images/jpeg/varB.jpg";
+import dividerOptionCImage from "@/shared/assets/images/jpeg/varC.jpg";
+import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+
 export const optionsMockData = [
   {
     id: 1,
@@ -64,6 +73,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "NoG",
+      image: noGrooveImage,
     },
   },
   {
@@ -72,6 +82,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "CenterG",
+      image: oneGrooveUpperImage,
     },
   },
   {
@@ -80,6 +91,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "CenterG",
+      image: oneGrooveCenterImage,
     },
   },
   {
@@ -88,6 +100,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "DoubleG",
+      image: twoGrooveImage,
     },
   },
 ];
@@ -137,29 +150,31 @@ export const optionsSwatchDataTowel = [
   },
 ];
 
-export const optionsTowelData = [
+export const dividersMockData = [
   {
-    id: 1001,
-    title: "Color 1",
-    desc: "Bianco 10B",
+    id: 5000,
+    title: "Option A",
     isShortDesc: false,
+    metadata: {
+      image: dividerOptionAImage,
+    },
   },
   {
-    id: 1002,
-    title: "Color 2",
-    desc: "Grigio fume 10F",
+    id: 5001,
+    title: "Option B",
     isShortDesc: false,
+    metadata: {
+      image: dividerOptionBImage,
+    },
   },
   {
-    id: 1003,
-    title: "Color 3",
-    desc: "Centre 1A1",
+    id: 5002,
+    title: "Option C",
     isShortDesc: false,
-  },
-  {
-    id: 1004,
-    title: "Color 4",
-    desc: "Tortora 1A2",
-    isShortDesc: false,
+    metadata: {
+      image: dividerOptionCImage,
+    },
   },
 ];
+
+export const optionsTowelData = getMaterialOptionsGridData("Base Panel");

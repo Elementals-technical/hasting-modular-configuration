@@ -107,9 +107,9 @@ export const RightCabinetStyleSidebar = () => {
     dispatch(setSelectedDimensions({ depth: Number(value) }));
   };
 
-  const handleChangeHeight = (value: string | number) => {
-    dispatch(setSelectedDimensions({ height: Number(value) }));
-  };
+  // const handleChangeHeight = (value: string | number) => {
+  //   dispatch(setSelectedDimensions({ height: Number(value) }));
+  // };
 
   const handleSetHandleType = (handleType: string) => {
     dispatch(
@@ -218,7 +218,7 @@ export const RightCabinetStyleSidebar = () => {
           />
         </div>
 
-        <div className={s.contentItem}>
+        {/* <div className={s.contentItem}>
           <div>Height</div>
           <FilterSelection
             label={"Height"}
@@ -226,7 +226,7 @@ export const RightCabinetStyleSidebar = () => {
             value={selectedDimensions.height}
             onSelect={(value) => handleChangeHeight(value)}
           />
-        </div>
+        </div> */}
 
         {!handlesDisabled && (
           <div className={s.contentItem}>

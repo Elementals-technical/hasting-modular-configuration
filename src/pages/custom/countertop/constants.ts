@@ -1,3 +1,8 @@
+import prismaImage from "@/shared/assets/images/jpeg/prisma.jpg";
+import quadraImage from "@/shared/assets/images/jpeg/quadro.jpg";
+import coverImage from "@/shared/assets/images/jpeg/cover.jpg";
+import stripImage from "@/shared/assets/images/jpeg/strip.jpg";
+
 export const optionsMockData = [
   {
     id: 1001,
@@ -76,24 +81,36 @@ export const optionsMockData3 = [
     title: "Prisma",
     name: "Top_HPLPrisma",
     isShortDesc: true,
+    metadata: {
+      image: prismaImage,
+    },
   },
   {
     id: 3002,
     title: "Quadra",
     name: "Top_HPLQuadra",
     isShortDesc: false,
+    metadata: {
+      image: quadraImage,
+    },
   },
   {
     id: 3003,
     title: "Cover",
     name: "Top_HPLCover",
     isShortDesc: false,
+    metadata: {
+      image: coverImage,
+    },
   },
   {
     id: 3004,
     title: "Strip",
     name: "Top_HPLStrip",
     isShortDesc: false,
+    metadata: {
+      image: stripImage,
+    },
   },
   {
     id: 3005,

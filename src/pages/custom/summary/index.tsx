@@ -9,6 +9,7 @@ import {
   getCabinetColor,
   getCountertopStyle,
   getDividersOption,
+  getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
@@ -23,10 +24,27 @@ import {
   getSinkType,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 import s from "./SummaryPage.module.scss";
+
+const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
+
+const buildImageSrc = (imagePath?: string) => {
+  if (!imagePath) return undefined;
+  if (imagePath.startsWith("http")) return imagePath;
+  if (imagePath.startsWith("/api/")) return `${THREEKIT_PREVIEW_BASE_URL}${imagePath}`;
+
+  return imagePath;
+};
+
+const resolveDividerImage = (selection?: string) => {
+  if (!selection) return undefined;
+  const match = dividersMockData.find((option) => option.title === selection);
+  return match?.metadata?.image;
+};
 
 type SummaryItem = {
   id: string;
@@ -79,6 +97,7 @@ export const CustomSummaryPage = () => {
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const ledOption = useAppSelector(getLedOption);
   const dividersOption = useAppSelector(getDividersOption);
+  const dividerStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
@@ -99,12 +118,20 @@ export const CustomSummaryPage = () => {
   const materialLookup = useMemo(() => {
     const values = (dataMaterial as { materials?: any[] }).materials ?? [];
     const map = new Map<string, { hex?: string; image?: string; label?: string }>();
+    const scoreEntry = (entry?: { hex?: string; image?: string; label?: string }) => {
+      if (!entry) return 0;
+      return (entry.image ? 2 : 0) + (entry.hex ? 1 : 0) + (entry.label ? 1 : 0);
+    };
 
     values.forEach((option) => {
       (option.valuesArray ?? []).forEach((entry: any) => {
         const key = entry.metadata?.value ?? entry.value;
-        if (!key || map.has(key)) return;
-        map.set(key, { hex: entry.metadata?.hex, image: entry.metadata?.image, label: entry.label });
+        if (!key) return;
+        const next = { hex: entry.metadata?.hex, image: entry.metadata?.image, label: entry.label };
+        const existing = map.get(key);
+        if (!existing || scoreEntry(next) > scoreEntry(existing)) {
+          map.set(key, next);
+        }
       });
     });
 
@@ -115,7 +142,7 @@ export const CustomSummaryPage = () => {
     const entry = materialLookup.get(value);
     return {
       color: entry?.hex ?? "#dcdcdc",
-      image: entry?.image,
+      image: buildImageSrc(entry?.image),
       label: entry?.label ?? value,
       value,
     };
@@ -265,6 +292,8 @@ export const CustomSummaryPage = () => {
         : null,
     ].filter(Boolean) as SummaryItem[];
 
+    const dividerImage = buildImageSrc(resolveDividerImage(dividerStyle));
+
     const accessoriesItems: SummaryItem[] = [
       sidePanelsOption
         ? {
@@ -286,7 +315,16 @@ export const CustomSummaryPage = () => {
         ? {
             id: "accessories-dividers",
             title: "Dividers",
-            subtitle: dividersOption,
+            subtitle: dividerStyle || dividersOption,
+            swatch:
+              dividerStyle && dividerImage
+                ? {
+                    label: "Divider",
+                    value: dividerStyle,
+                    color: "#ffffff",
+                    image: dividerImage,
+                  }
+                : undefined,
             price: "$—",
           }
         : null,

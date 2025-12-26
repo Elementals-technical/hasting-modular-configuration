@@ -1,17 +1,23 @@
+import { useEffect } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getDividersOption,
+  getDividersStyle,
   getLedOption,
   getSidePanelsOption,
+  getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import {
   setDividersOption,
+  setDividersStyle,
   setLedOption,
   setSidePanelsOption,
+  setTowelBarColor,
   setTowelBarOption,
 } from "@/entities/product/model/store/slice";
 
@@ -20,6 +26,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import {
+  dividersMockData,
   optionsSidePanelsData,
   optionsSwatchData,
   optionsSwatchData2,
@@ -31,8 +38,19 @@ export const AccessoriesPage = () => {
   const dispatch = useAppDispatch();
   const towelSelection = useAppSelector(getTowelBarOption);
   const dividerSelection = useAppSelector(getDividersOption);
+  const dividerStyle = useAppSelector(getDividersStyle);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const activeLed = useAppSelector(getLedOption);
+  const towelBarColor = useAppSelector(getTowelBarColor);
+
+  useEffect(() => {
+    if (towelSelection !== "None") return;
+
+    setConfigBatch({}, {
+      TowelBar: "None",
+      TowelBarSide: "both",
+    });
+  }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
@@ -49,11 +67,42 @@ export const AccessoriesPage = () => {
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
     dispatch(setDividersOption(value));
+    if (value !== "Customize") {
+      dispatch(setDividersStyle(""));
+    }
   };
 
-  const handleTowelBarChange = (value: string | null) => {
+  const handleDividerStyleChange = (value: string) => {
     if (!value) return;
+    dispatch(setDividersStyle(value));
+  };
+
+  const handleTowelBarChange = async (value: string | null) => {
+    if (!value) return;
+
+    const isNone = value === "None";
+    const side = value.toLowerCase() as "left" | "right" | "both";
+
+    await setConfigBatch({}, {
+      TowelBar: isNone ? "None" : "TowelBar40_R",
+      TowelBarSide: isNone ? "both" : side,
+    });
+
+    if (isNone) {
+      dispatch(setTowelBarColor(""));
+    }
+
     dispatch(setTowelBarOption(value));
+  };
+
+  const handleTowelBarColorChange = (value?: string) => {
+    if (!value) return;
+
+    setConfigBatch({}, {
+      TowelBarColor: value,
+    });
+
+    dispatch(setTowelBarColor(value));
   };
 
   const ACCORDIONS: AccordionConfig[] = [
@@ -95,6 +144,13 @@ export const AccessoriesPage = () => {
             onSelectChange={handleDividersChange}
             selectedValue={dividerSelection}
           />
+          {dividerSelection === "Customize" && (
+            <ProductOptionsGrid
+              data={dividersMockData}
+              handleAdd={handleDividerStyleChange}
+              activeValue={dividerStyle}
+            />
+          )}
         </>
       ),
     },
@@ -108,7 +164,13 @@ export const AccessoriesPage = () => {
             onSelectChange={handleTowelBarChange}
             selectedValue={towelSelection}
           />
-          {towelSelection && towelSelection !== "None" && <ProductOptionsGrid data={optionsTowelData} />}
+          {towelSelection && towelSelection !== "None" && (
+            <ProductOptionsGrid
+              data={optionsTowelData}
+              handleAdd={handleTowelBarColorChange}
+              activeValue={towelBarColor}
+            />
+          )}
         </>
       ),
     },
