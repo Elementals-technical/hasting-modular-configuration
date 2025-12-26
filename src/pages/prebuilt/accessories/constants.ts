@@ -1,3 +1,8 @@
+import oneGrooveCenterImage from "@/shared/assets/images/jpeg/1_groove_cent.jpg";
+import oneGrooveUpperImage from "@/shared/assets/images/jpeg/1_groove_upper.jpg";
+import twoGrooveImage from "@/shared/assets/images/jpeg/2_groove.jpg";
+import noGrooveImage from "@/shared/assets/images/jpeg/no_groove.jpg";
+
 export const optionsMockData = [
   {
     id: 1,
@@ -64,6 +69,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "NoG",
+      image: noGrooveImage,
     },
   },
   {
@@ -72,6 +78,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "CenterG",
+      image: oneGrooveUpperImage,
     },
   },
   {
@@ -80,6 +87,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "CenterG",
+      image: oneGrooveCenterImage,
     },
   },
   {
@@ -88,6 +96,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "DoubleG",
+      image: twoGrooveImage,
     },
   },
 ];
