@@ -261,6 +261,7 @@ export const CabinetBuilderPage = () => {
           sinkType,
           CountertopColor: countertopColor,
           HandleGrooveColor: handleGrooveColor,
+          Handle: "handle_urban_topcut",
           ...(selectedProductConfig ?? {}),
         };
 
