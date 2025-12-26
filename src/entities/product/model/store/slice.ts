@@ -46,6 +46,7 @@ type ProductState = {
     DividersOption: string;
     DividersStyle: string;
     TowelBarOption: string;
+    TowelBarColor: string;
     FaucetHolesAmount: string;
     FaucetHolesSpacing: string;
   };
@@ -158,7 +159,8 @@ const createInitialState = (): ProductState => {
       LedOption: "",
       DividersOption: "",
       DividersStyle: "",
-      TowelBarOption: "",
+      TowelBarOption: "None",
+      TowelBarColor: "",
       FaucetHolesAmount: "",
       FaucetHolesSpacing: '4"',
     },
@@ -310,6 +312,9 @@ const productSlice = createSlice({
     setTowelBarOption(state, action: PayloadAction<string>) {
       state.productOptions.TowelBarOption = action.payload;
     },
+    setTowelBarColor(state, action: PayloadAction<string>) {
+      state.productOptions.TowelBarColor = action.payload;
+    },
     setFaucetHolesAmount(state, action: PayloadAction<string>) {
       state.productOptions.FaucetHolesAmount = action.payload;
     },
@@ -348,6 +353,7 @@ export const {
   setDividersOption,
   setDividersStyle,
   setTowelBarOption,
+  setTowelBarColor,
   setFaucetHolesAmount,
   setFaucetHolesSpacing,
   resetPrebuiltProducts,

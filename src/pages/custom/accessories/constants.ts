@@ -182,23 +182,35 @@ export const optionsTowelData = [
     title: "Color 1",
     desc: "Bianco 10B",
     isShortDesc: false,
+    metadata: {
+      value: "Bianco 10B",
+    },
   },
   {
     id: 11002,
     title: "Color 2",
     desc: "Grigio fume 10F",
     isShortDesc: false,
+    metadata: {
+      value: "Grigio fume 10F",
+    },
   },
   {
     id: 11003,
     title: "Color 3",
     desc: "Centre 1A1",
     isShortDesc: false,
+    metadata: {
+      value: "Centre 1A1",
+    },
   },
   {
     id: 11004,
     title: "Color 4",
     desc: "Tortora 1A2",
     isShortDesc: false,
+    metadata: {
+      value: "Tortora 1A2",
+    },
   },
 ];

@@ -43,6 +43,8 @@ export const getDividersStyle = (state: RootState) => state.rootStateUI.product.
 
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 
+export const getTowelBarColor = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarColor;
+
 export const getFaucetHolesAmount = (state: RootState) =>
   state.rootStateUI.product.productOptions.FaucetHolesAmount;
 
