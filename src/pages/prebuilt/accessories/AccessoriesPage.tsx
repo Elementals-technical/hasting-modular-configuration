@@ -20,6 +20,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import {
+  dividersMockData,
   optionsSidePanelsData,
   optionsSwatchData,
   optionsSwatchData2,
@@ -95,6 +96,7 @@ export const AccessoriesPage = () => {
             onSelectChange={handleDividersChange}
             selectedValue={dividerSelection}
           />
+          {dividerSelection === "Customize" && <ProductOptionsGrid data={dividersMockData} />}
         </>
       ),
     },

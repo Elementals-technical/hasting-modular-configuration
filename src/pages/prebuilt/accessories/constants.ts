@@ -2,6 +2,9 @@ import oneGrooveCenterImage from "@/shared/assets/images/jpeg/1_groove_cent.jpg"
 import oneGrooveUpperImage from "@/shared/assets/images/jpeg/1_groove_upper.jpg";
 import twoGrooveImage from "@/shared/assets/images/jpeg/2_groove.jpg";
 import noGrooveImage from "@/shared/assets/images/jpeg/no_groove.jpg";
+import dividerOptionAImage from "@/shared/assets/images/jpeg/varA.jpg";
+import dividerOptionBImage from "@/shared/assets/images/jpeg/varB.jpg";
+import dividerOptionCImage from "@/shared/assets/images/jpeg/varC.jpg";
 
 export const optionsMockData = [
   {
@@ -143,6 +146,33 @@ export const optionsSwatchDataTowel = [
   {
     id: 104,
     title: "Both",
+  },
+];
+
+export const dividersMockData = [
+  {
+    id: 5000,
+    title: "Option A",
+    isShortDesc: false,
+    metadata: {
+      image: dividerOptionAImage,
+    },
+  },
+  {
+    id: 5001,
+    title: "Option B",
+    isShortDesc: false,
+    metadata: {
+      image: dividerOptionBImage,
+    },
+  },
+  {
+    id: 5002,
+    title: "Option C",
+    isShortDesc: false,
+    metadata: {
+      image: dividerOptionCImage,
+    },
   },
 ];
 
