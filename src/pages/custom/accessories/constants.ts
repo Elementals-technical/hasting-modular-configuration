@@ -81,7 +81,7 @@ export const optionsSidePanelsData = [
     title: "1 groove (upper)",
     isShortDesc: false,
     metadata: {
-      value: "CenterG",
+      value: "UpperG",
       image: oneGrooveUpperImage,
     },
   },
