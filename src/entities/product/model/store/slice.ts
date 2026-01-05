@@ -113,7 +113,9 @@ const toSelection = (state: ProductState): Selection => ({
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
-  const ruleResult = applyConfiguratorRules(toSelection(state), intent);
+  const ruleResult = applyConfiguratorRules(toSelection(state), intent, {
+    selectedProductIds: state.productIds,
+  });
 
   state.dimensionOptions = {
     width: ruleResult.availableOptions.width.map(mapOptionState),

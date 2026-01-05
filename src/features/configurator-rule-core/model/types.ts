@@ -55,4 +55,5 @@ export type AutoChangeResult = {
 
 export type RuleContext = {
   selection: Selection;
+  selectedProductIds?: string[];
 };
