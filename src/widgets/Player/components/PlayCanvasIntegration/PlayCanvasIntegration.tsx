@@ -476,10 +476,14 @@ export const PlayCanvasIntegration = () => {
             const dataDimentions = {
               productId: firstSelected.name ?? "",
               ...(typeof config.Height === "number"
-                ? { Height: { [String(config.Height)]: String(config.Height) } }
+                ? { Height: { [String(config.Height)]: String(config.Height) + " cm" } }
                 : {}),
-              ...(typeof config.Width === "number" ? { Width: { [String(config.Width)]: String(config.Width) } } : {}),
-              ...(typeof config.Depth === "number" ? { Depth: { [String(config.Depth)]: String(config.Depth) } } : {}),
+              ...(typeof config.Width === "number"
+                ? { Width: { [String(config.Width)]: String(config.Width) + " cm" } }
+                : {}),
+              ...(typeof config.Depth === "number"
+                ? { Depth: { [String(config.Depth)]: String(config.Depth) + " cm" } }
+                : {}),
             };
 
             dimensionTool.setDimensionData(dataDimentions);
