@@ -66,6 +66,18 @@ export const CabinetPage = () => {
     () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
     [filteredBasePanelOptions],
   );
+  const grooveColorOptions = useMemo(
+    () => [
+      {
+        id: "groove-color-none",
+        title: "None",
+        isShortDesc: false,
+        metadata: { value: "None" },
+      },
+      ...sortedBasePanelOptions,
+    ],
+    [sortedBasePanelOptions],
+  );
 
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
@@ -156,7 +168,7 @@ export const CabinetPage = () => {
           <ViewModePanel />
           {renderFilters()}
           <ProductOptionsGrid
-            data={sortedBasePanelOptions}
+            data={grooveColorOptions}
             handleAdd={handleChangeGrooveColor}
             activeValue={activeGrooveColor}
           />

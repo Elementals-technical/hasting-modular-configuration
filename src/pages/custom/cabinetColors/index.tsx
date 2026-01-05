@@ -70,6 +70,19 @@ export const CustomCabinetColorsPage = () => {
     [filteredBasePanelOptions],
   );
 
+  const grooveColorOptions = useMemo(
+    () => [
+      {
+        id: "groove-color-none",
+        title: "None",
+        isShortDesc: false,
+        metadata: { value: "None" },
+      },
+      ...sortedBasePanelOptions,
+    ],
+    [sortedBasePanelOptions],
+  );
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -174,7 +187,7 @@ export const CustomCabinetColorsPage = () => {
           <ViewModePanel />
           {renderFilters()}
           <ProductOptionsGrid
-            data={sortedBasePanelOptions}
+            data={grooveColorOptions}
             handleAdd={handleChangeGrooveColor}
             activeValue={activeGrooveColor}
           />
