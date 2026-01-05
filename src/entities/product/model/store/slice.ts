@@ -5,6 +5,7 @@ import {
   type OptionState,
   type Selection,
 } from "@/features/configurator-rule-core";
+import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
@@ -248,8 +249,29 @@ const productSlice = createSlice({
       state.activeDrawerProduct = action.payload;
     },
     setActiveCabinetType(state, action: PayloadAction<number>) {
-      state.activeCabinetType = action.payload;
-      applyRulesToState(state, { field: "cabinetTypeId", value: action.payload });
+      const previousCabinetType = state.activeCabinetType;
+      const newCabinetTypeId = action.payload;
+
+      state.activeCabinetType = newCabinetTypeId;
+
+      // When switching to a new cabinet type, set a default height if current height is invalid
+      if (newCabinetTypeId !== previousCabinetType && newCabinetTypeId !== null) {
+        const cabinetRule = typeCabinetCatalog.typeCabinetRules.find((rule) => rule.id === newCabinetTypeId);
+
+        if (cabinetRule && cabinetRule.heights.length > 0) {
+          const currentHeight = state.selectedDimensions.height;
+          const isCurrentHeightValid = cabinetRule.heights.includes(currentHeight);
+
+          // If current height is not valid for the new cabinet type, use the last available height
+          // (typically the default/preferred height for that cabinet type)
+          if (!isCurrentHeightValid) {
+            const defaultHeight = cabinetRule.heights[cabinetRule.heights.length - 1];
+            state.selectedDimensions.height = defaultHeight;
+          }
+        }
+      }
+
+      applyRulesToState(state, { field: "cabinetTypeId", value: newCabinetTypeId });
     },
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
@@ -265,12 +287,9 @@ const productSlice = createSlice({
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
-      
+
       // Preserve Handle from previous config if new config doesn't have one
-      const preservedHandle = 
-        action.payload?.Handle 
-          ? action.payload.Handle 
-          : state.selectedProductConfig?.Handle;
+      const preservedHandle = action.payload?.Handle ? action.payload.Handle : state.selectedProductConfig?.Handle;
 
       state.selectedProductConfig = action.payload
         ? {
