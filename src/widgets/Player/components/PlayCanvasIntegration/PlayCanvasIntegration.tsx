@@ -35,10 +35,27 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "018";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
+
+const DIMENSION_LABELS = {
+  Height: {
+    "50": '50 cm (19.69")',
+    "60": '60 cm (23.62")',
+  },
+  Width: {
+    "56": '56 cm (70.87")',
+    "200": '200 cm (78.74")',
+    "220": '220 cm (86.61")',
+  },
+  Depth: {
+    "46": '46 cm (18.11")',
+    "50.5": '50.5 cm (23.62")',
+  },
+};
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
@@ -462,6 +479,18 @@ export const PlayCanvasIntegration = () => {
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
         dispatch(setSelectedSceneProduct(firstSelected.name!));
+
+        // Get dimention on the model when selection it on the scene.
+        const dimensionTool = getDimensionTool();
+
+        if (dimensionTool) {
+          dimensionTool.setEnabled(true);
+          dimensionTool.setDimensionData({
+            productId: firstSelected.name ?? "",
+            ...DIMENSION_LABELS,
+          });
+        }
+
         const lastPos = lastPointerPosRef.current;
 
         if (lastPos) {
