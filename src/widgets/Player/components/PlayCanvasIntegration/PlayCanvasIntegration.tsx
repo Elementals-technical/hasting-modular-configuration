@@ -41,22 +41,6 @@ import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool"
 const PLAYCANVAS_VERSION = "018";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
-const DIMENSION_LABELS = {
-  Height: {
-    "50": '50 cm (19.69")',
-    "60": '60 cm (23.62")',
-  },
-  Width: {
-    "56": '56 cm (70.87")',
-    "200": '200 cm (78.74")',
-    "220": '220 cm (86.61")',
-  },
-  Depth: {
-    "46": '46 cm (18.11")',
-    "50.5": '50.5 cm (23.62")',
-  },
-};
-
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const [dropdownState, setDropdownState] = useState<{ visible: boolean; x: number; y: number }>({
@@ -479,16 +463,27 @@ export const PlayCanvasIntegration = () => {
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
         dispatch(setSelectedSceneProduct(firstSelected.name!));
-
         // Get dimention on the model when selection it on the scene.
         const dimensionTool = getDimensionTool();
 
         if (dimensionTool) {
           dimensionTool.setEnabled(true);
-          dimensionTool.setDimensionData({
-            productId: firstSelected.name ?? "",
-            ...DIMENSION_LABELS,
-          });
+
+          (async () => {
+            const config = await getConfig(firstSelected.name ?? "");
+            if (!config) return;
+
+            const dataDimentions = {
+              productId: firstSelected.name ?? "",
+              ...(typeof config.Height === "number"
+                ? { Height: { [String(config.Height)]: String(config.Height) } }
+                : {}),
+              ...(typeof config.Width === "number" ? { Width: { [String(config.Width)]: String(config.Width) } } : {}),
+              ...(typeof config.Depth === "number" ? { Depth: { [String(config.Depth)]: String(config.Depth) } } : {}),
+            };
+
+            dimensionTool.setDimensionData(dataDimentions);
+          })();
         }
 
         const lastPos = lastPointerPosRef.current;
