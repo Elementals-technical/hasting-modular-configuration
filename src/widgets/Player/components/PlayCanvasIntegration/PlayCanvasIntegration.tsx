@@ -455,6 +455,7 @@ export const PlayCanvasIntegration = () => {
 
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
+
     selectTool.on("select", (selectedEntity) => {
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
 
