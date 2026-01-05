@@ -37,7 +37,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "017";
+const PLAYCANVAS_VERSION = "018";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -450,6 +450,8 @@ export const PlayCanvasIntegration = () => {
 
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
+
+  console.log("selectTool", selectTool);
 
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
