@@ -1,4 +1,4 @@
-import oneGrooveCenterImage from "@/shared/assets/images/jpeg/1_groove_cent.jpg";
+import oneGrooveCentralImage from "@/shared/assets/images/jpeg/1_groove_central.jpg";
 import oneGrooveUpperImage from "@/shared/assets/images/jpeg/1_groove_upper.jpg";
 import twoGrooveImage from "@/shared/assets/images/jpeg/2_groove.jpg";
 import noGrooveImage from "@/shared/assets/images/jpeg/no_groove.jpg";
@@ -91,7 +91,7 @@ export const optionsSidePanelsData = [
     isShortDesc: false,
     metadata: {
       value: "CenterG",
-      image: oneGrooveCenterImage,
+      image: oneGrooveCentralImage,
     },
   },
   {
