@@ -134,10 +134,11 @@ export const RightCabinetStyleSidebar = () => {
   }, [selectedDimensions, selectedProducts]);
 
   useEffect(() => {
-    if (!selectedProductConfig?.Handle) {
+    // Only set default Handle if it's completely missing (first time, no previous selection)
+    if (!selectedProductConfig?.Handle && selectedProductConfig !== null) {
       dispatch(
         setSelectedProductConfig({
-          ...(selectedProductConfig ?? {}),
+          ...selectedProductConfig,
           Handle: "handle_urban_topcut",
         }),
       );

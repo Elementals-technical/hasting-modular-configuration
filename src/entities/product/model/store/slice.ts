@@ -265,9 +265,21 @@ const productSlice = createSlice({
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
-      const nextHandle = mapHandleConfigToRule(action.payload?.Handle);
+      
+      // Preserve Handle from previous config if new config doesn't have one
+      const preservedHandle = 
+        action.payload?.Handle 
+          ? action.payload.Handle 
+          : state.selectedProductConfig?.Handle;
 
-      state.selectedProductConfig = action.payload;
+      state.selectedProductConfig = action.payload
+        ? {
+            ...action.payload,
+            ...(preservedHandle && !action.payload.Handle ? { Handle: preservedHandle } : {}),
+          }
+        : null;
+
+      const nextHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
 
       if (prevHandle !== "handle_pto" && nextHandle === "handle_pto") {
         state.heightBeforePto = state.selectedDimensions.height;
