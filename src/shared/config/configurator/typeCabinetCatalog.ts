@@ -25,7 +25,7 @@ const typeCabinetRules: TypeCabinetRuleConfig[] = [
     code: "Sink-Cabinet",
     widths: [60, 70, 80, 90, 105, 120],
     depths: [50.5, 46],
-    heights: [53],
+    heights: [50, 53],
     drawers: ["2"],
   },
   {

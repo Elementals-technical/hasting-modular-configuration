@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
@@ -50,6 +50,12 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
+import sinkBasePto50WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_PTO_with_50_height_withbasin.jpg";
+import sinkBaseCentral53WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height_withbasin.jpg";
+import sinkCabinetPto50 from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
+import sinkCabinetCentral53 from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
+import sinkCabinetDefault56 from "@/shared/assets/images/jpeg/SideCabinet2D_default_without_basin.jpg";
+
 type AccordionConfig = {
   id: string;
   title: string;
@@ -60,6 +66,24 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
+
+const resolveCabinetTypeImage = (name: string | undefined, height: number, fallback?: string) => {
+  if (name === "Sink-Base") {
+    if (height === 50) return sinkBasePto50WithBasin;
+    if (height === 53) return sinkBaseCentral53WithBasin;
+    return fallback;
+  }
+
+  if (name === "Sink-Cabinet") {
+    if (height === 50) return sinkCabinetPto50;
+    if (height === 53) return sinkCabinetCentral53;
+    if (height === 56) return sinkCabinetDefault56;
+    return fallback;
+  }
+
+  return fallback;
+};
+
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
   const [accordionValue, setAccordionValue] = useState(defaultValue);
@@ -103,6 +127,18 @@ export const CabinetBuilderPage = () => {
       isAvailable: ruleOption ? !ruleOption.disabled : option.isAvailable,
     };
   });
+
+  const cabinetTypeOptions = useMemo(
+    () =>
+      optionsMockData.map((option) => ({
+        ...option,
+        metadata: {
+          ...option.metadata,
+          image: resolveCabinetTypeImage(option.name, selectedDimensions.height, option.metadata?.image),
+        },
+      })),
+    [selectedDimensions.height],
+  );
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -304,7 +340,7 @@ export const CabinetBuilderPage = () => {
       content: (
         <ProductOptionsGrid
           handleAdd={handleSelectCabinetConfig}
-          data={optionsMockData}
+          data={cabinetTypeOptions}
           setActiveCabinet={setActiveCabinet}
         />
       ),

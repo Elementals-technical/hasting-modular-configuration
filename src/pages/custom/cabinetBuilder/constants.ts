@@ -35,7 +35,7 @@ export const optionsMockData = [
       image: sinkCabinetImage,
     },
     config: {
-      Height: 56,
+      Height: 53,
       Depth: 50.5,
       CabinetColor: "Ardesia DD GL",
       Width: 120,
