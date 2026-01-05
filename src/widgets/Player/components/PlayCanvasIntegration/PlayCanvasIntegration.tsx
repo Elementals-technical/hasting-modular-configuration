@@ -533,6 +533,24 @@ export const PlayCanvasIntegration = () => {
 
     const items: DropdownItem[] = [
       {
+        id: "color",
+        label: "Color",
+        children: [
+          {
+            id: "cabinet-color",
+            label: "Cabinet Color",
+            children: [
+              {
+                id: "cabinet-select-color",
+                label: "Select Color",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleOpenCabinetColor,
+              },
+            ],
+          },
+        ],
+      },
+      {
         id: "cabinet-style",
         label: "Cabinet Style",
         children: [
@@ -541,18 +559,6 @@ export const PlayCanvasIntegration = () => {
             label: "Select Style",
             trailing: <ArrowTopRight color={"#333"} />,
             onClick: handleOpenCabinetStyle,
-          },
-        ],
-      },
-      {
-        id: "cabinet-color",
-        label: "Cabinet Color",
-        children: [
-          {
-            id: "cabinet-select-color",
-            label: "Select Color",
-            trailing: <ArrowTopRight color={"#333"} />,
-            onClick: handleOpenCabinetColor,
           },
         ],
       },
