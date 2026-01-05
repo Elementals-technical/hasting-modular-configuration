@@ -30,6 +30,7 @@ type ProductState = {
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
   heightBeforePto: number | null;
+  hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
   productOptions: {
     CabinetColor: string;
@@ -140,6 +141,9 @@ const createInitialState = (): ProductState => {
     selectedProductConfig: null,
     selectedDimensions: DEFAULT_DIMENSIONS,
     heightBeforePto: null,
+
+    hasBootstrappedCabinetBuilder: false,
+
     dimensionOptions: {
       width: [],
       height: [],
@@ -229,6 +233,9 @@ const productSlice = createSlice({
     },
     resetProducts(state) {
       state.productIds = [];
+    },
+    resetCabinetBuilderBootstrap(state) {
+      state.hasBootstrappedCabinetBuilder = false;
     },
     resetPrebuiltProducts(state) {
       state.productsPresets = [];
@@ -324,6 +331,9 @@ const productSlice = createSlice({
     setSelectedSceneProduct(state, action: PayloadAction<string>) {
       state.selectedSceneProduct = action.payload;
     },
+    setHasBootstrappedCabinetBuilder(state, action: PayloadAction<boolean>) {
+      state.hasBootstrappedCabinetBuilder = action.payload;
+    },
   },
 });
 
@@ -357,5 +367,7 @@ export const {
   setFaucetHolesSpacing,
   resetPrebuiltProducts,
   setSelectedSceneProduct,
+  resetCabinetBuilderBootstrap,
+  setHasBootstrappedCabinetBuilder,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;

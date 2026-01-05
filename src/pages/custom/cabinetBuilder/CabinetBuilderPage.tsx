@@ -16,9 +16,11 @@ import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProduct
 import {
   addProductId,
   reset,
+  resetCabinetBuilderBootstrap,
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
+  setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
   setSelectedProductConfig,
   setDrawerProduct,
@@ -36,6 +38,7 @@ import {
   getSelectedDimensions,
   getSinkType,
   getProductsPresets,
+  getHasBootstrappedCabinetBuilder,
 } from "@/entities/product/model/store/selectors";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -63,7 +66,6 @@ export const CabinetBuilderPage = () => {
   const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
 
   const bootstrappedRef = useRef(false);
-  const hasBootstrappedOnceRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
@@ -84,6 +86,7 @@ export const CabinetBuilderPage = () => {
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
   const productsPresets = useAppSelector(getProductsPresets);
+  const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
 
   console.log("selectedProductConfig", selectedProductConfig);
 
@@ -170,21 +173,23 @@ export const CabinetBuilderPage = () => {
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
     if (productsPresets.length) return;
+    if (hasBootstrappedCabinetBuilder) return;
 
     bootstrappedRef.current = false;
-    if (hasBootstrappedOnceRef.current) return;
     dispatch(reset());
+    dispatch(resetCabinetBuilderBootstrap());
 
     if (canvasReady) {
       removeAllProducts();
     }
-  }, [canvasReady, dispatch, pathname, productsPresets.length]);
+  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, pathname, productsPresets.length]);
 
   useEffect(() => {
     if (!canvasReady || !productsPresets.length || bootstrappedRef.current) return;
+    if (hasBootstrappedCabinetBuilder) return;
 
     bootstrappedRef.current = true;
-    hasBootstrappedOnceRef.current = true;
+    dispatch(setHasBootstrappedCabinetBuilder(true));
 
     const run = async () => {
       dispatch(resetProducts());
@@ -237,11 +242,11 @@ export const CabinetBuilderPage = () => {
     };
 
     run();
-  }, [canvasReady, dispatch, productsPresets, resolveCabinetTypeId, selectedDimensions]);
+  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, resolveCabinetTypeId, selectedDimensions]);
 
   useEffect(() => {
     if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
-    if (hasBootstrappedOnceRef.current) return;
+    if (hasBootstrappedCabinetBuilder) return;
 
     bootstrappedRef.current = true;
 
@@ -276,14 +281,14 @@ export const CabinetBuilderPage = () => {
           }
         }
 
-        hasBootstrappedOnceRef.current = true;
+        dispatch(setHasBootstrappedCabinetBuilder(true));
       } catch (error) {
         console.log(error);
       }
     }
 
     resetAndBootstrapFirstProduct();
-  }, [canvasReady, dispatch, handleSelectCabinetConfig, hasActiveCabinet, hasProducts]);
+  }, [canvasReady, dispatch, handleSelectCabinetConfig, hasActiveCabinet, hasBootstrappedCabinetBuilder, hasProducts]);
 
   const [searchParams] = useSearchParams();
   useEffect(() => {
