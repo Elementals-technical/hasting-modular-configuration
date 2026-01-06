@@ -35,9 +35,10 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "017";
+const PLAYCANVAS_VERSION = "018";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -451,14 +452,44 @@ export const PlayCanvasIntegration = () => {
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
 
+  console.log("selectTool", selectTool);
+
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
+
     selectTool.on("select", (selectedEntity) => {
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
 
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
         dispatch(setSelectedSceneProduct(firstSelected.name!));
+        // Get dimention on the model when selection it on the scene.
+        const dimensionTool = getDimensionTool();
+
+        if (dimensionTool) {
+          dimensionTool.setEnabled(true);
+
+          (async () => {
+            const config = await getConfig(firstSelected.name ?? "");
+            if (!config) return;
+
+            const dataDimentions = {
+              productId: firstSelected.name ?? "",
+              ...(typeof config.Height === "number"
+                ? { Height: { [String(config.Height)]: String(config.Height) + " cm" } }
+                : {}),
+              ...(typeof config.Width === "number"
+                ? { Width: { [String(config.Width)]: String(config.Width) + " cm" } }
+                : {}),
+              ...(typeof config.Depth === "number"
+                ? { Depth: { [String(config.Depth)]: String(config.Depth) + " cm" } }
+                : {}),
+            };
+
+            dimensionTool.setDimensionData(dataDimentions);
+          })();
+        }
+
         const lastPos = lastPointerPosRef.current;
 
         if (lastPos) {

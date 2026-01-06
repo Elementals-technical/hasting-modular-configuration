@@ -6,6 +6,9 @@ export const getDimensionOptions = (state: RootState) => state.rootStateUI.produ
 
 export const getSelectedDimensions = (state: RootState) => state.rootStateUI.product.selectedDimensions;
 
+export const getHasBootstrappedCabinetBuilder = (state: RootState) =>
+  state.rootStateUI.product.hasBootstrappedCabinetBuilder;
+
 export const getSelectedProducts = (state: RootState) => state.rootStateUI.product.productIds;
 
 export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.activeDrawerProduct;
@@ -26,8 +29,7 @@ export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.
 
 export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;
 
-export const getDrawerPanelFluting = (state: RootState) =>
-  state.rootStateUI.product.productOptions.DrawerPanelFluting;
+export const getDrawerPanelFluting = (state: RootState) => state.rootStateUI.product.productOptions.DrawerPanelFluting;
 
 export const getGrainDirection = (state: RootState) => state.rootStateUI.product.productOptions.GrainDirection;
 
@@ -45,8 +47,6 @@ export const getTowelBarOption = (state: RootState) => state.rootStateUI.product
 
 export const getTowelBarColor = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarColor;
 
-export const getFaucetHolesAmount = (state: RootState) =>
-  state.rootStateUI.product.productOptions.FaucetHolesAmount;
+export const getFaucetHolesAmount = (state: RootState) => state.rootStateUI.product.productOptions.FaucetHolesAmount;
 
-export const getFaucetHolesSpacing = (state: RootState) =>
-  state.rootStateUI.product.productOptions.FaucetHolesSpacing;
+export const getFaucetHolesSpacing = (state: RootState) => state.rootStateUI.product.productOptions.FaucetHolesSpacing;

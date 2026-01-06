@@ -17,8 +17,8 @@ export const optionsMockData = [
     },
     config: {
       Height: 56,
-      Depth: 50.5,
-      Width: 120,
+      Depth: 46,
+      Width: 60,
       CabinetColor: "Ardesia DD GL",
       sinkType: "Top_HPLPrisma",
       HandleGrooveColor: "Ardesia DD GL",
@@ -35,10 +35,10 @@ export const optionsMockData = [
       image: sinkCabinetImage,
     },
     config: {
-      Height: 56,
-      Depth: 50.5,
+      Height: 53,
+      Depth: 46,
       CabinetColor: "Ardesia DD GL",
-      Width: 120,
+      Width: 60,
     },
   },
   {
@@ -51,9 +51,9 @@ export const optionsMockData = [
     },
     config: {
       Height: 56,
-      Depth: 50.5,
+      Depth: 46,
       CabinetColor: "Ardesia DD GL",
-      Width: 120,
+      Width: 60,
     },
   },
   {
@@ -66,9 +66,9 @@ export const optionsMockData = [
     },
     config: {
       Height: 56,
-      Depth: 50.5,
+      Depth: 46,
       CabinetColor: "Ardesia DD GL",
-      Width: 120,
+      Width: 60,
     },
   },
 ];

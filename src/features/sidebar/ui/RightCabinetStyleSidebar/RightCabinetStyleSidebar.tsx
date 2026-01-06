@@ -4,9 +4,9 @@ import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import image from "../../../../shared/assets/images/png/img_png.png";
-import upperHandleImage from "../../../../shared/assets/images/png/UpperGHandle.png";
-import centralHandleImage from "../../../../shared/assets/images/png/CentralGHandle.png";
-import ptoHandleImage from "../../../../shared/assets/images/png/PTOHandle.png";
+import upperHandleImage from "@/shared/assets/images/jpeg/UpperGHandle.jpg";
+import centralHandleImage from "@/shared/assets/images/jpeg/CentralGHandle.jpg";
+import ptoHandleImage from "@/shared/assets/images/jpeg/PTOHandle.jpg";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
@@ -134,10 +134,11 @@ export const RightCabinetStyleSidebar = () => {
   }, [selectedDimensions, selectedProducts]);
 
   useEffect(() => {
-    if (!selectedProductConfig?.Handle) {
+    // Only set default Handle if it's completely missing (first time, no previous selection)
+    if (!selectedProductConfig?.Handle && selectedProductConfig !== null) {
       dispatch(
         setSelectedProductConfig({
-          ...(selectedProductConfig ?? {}),
+          ...selectedProductConfig,
           Handle: "handle_urban_topcut",
         }),
       );
