@@ -36,6 +36,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
+import { formatCmWithInches } from "@/utils/units";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "019";
@@ -479,13 +480,13 @@ export const PlayCanvasIntegration = () => {
             const dataDimentions = {
               productId: firstSelected.name ?? "",
               ...(typeof config.Height === "number"
-                ? { Height: { [String(config.Height)]: String(config.Height) + " cm" } }
+                ? { Height: { [String(config.Height)]: formatCmWithInches(config.Height) } }
                 : {}),
               ...(typeof config.Width === "number"
-                ? { Width: { [String(config.Width)]: String(config.Width) + " cm" } }
+                ? { Width: { [String(config.Width)]: formatCmWithInches(config.Width) } }
                 : {}),
               ...(typeof config.Depth === "number"
-                ? { Depth: { [String(config.Depth)]: String(config.Depth) + " cm" } }
+                ? { Depth: { [String(config.Depth)]: formatCmWithInches(config.Depth) } }
                 : {}),
             };
 
