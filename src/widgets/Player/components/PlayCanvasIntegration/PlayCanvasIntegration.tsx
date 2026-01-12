@@ -38,7 +38,7 @@ import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCata
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "018";
+const PLAYCANVAS_VERSION = "019";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
