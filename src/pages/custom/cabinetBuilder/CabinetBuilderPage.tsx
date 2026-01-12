@@ -371,6 +371,10 @@ export const CabinetBuilderPage = () => {
     if (target) setAccordionValue(target);
   }, [searchParams]);
 
+  const handleResetToDefaultState = useCallback(() => {
+    setAccordionValue(CABINET_TYPE_ID);
+  }, []);
+
   const accordions: AccordionConfig[] = [
     {
       id: CABINET_TYPE_ID,
@@ -421,7 +425,7 @@ export const CabinetBuilderPage = () => {
         ))}
       </ConfiguratorAccordionGroup>
 
-      <RightCabinetStyleSidebar />
+      <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
     </div>
   );
 };

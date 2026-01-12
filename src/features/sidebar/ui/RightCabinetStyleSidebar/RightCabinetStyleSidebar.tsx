@@ -34,9 +34,12 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
-import { PlusButtonIcon } from "@/shared/assets/images/svg/PlusButtonIcon";
 
-export const RightCabinetStyleSidebar = () => {
+interface RightCabinetStyleSidebarProps {
+  onProductAdded?: () => void;
+}
+
+export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
@@ -193,10 +196,16 @@ export const RightCabinetStyleSidebar = () => {
       console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
 
       dispatch(addProductId(productId));
+
+      // Close sidebar and reset accordion to default state
+      dispatch(setOpenStyleSidebar(false));
+      if (onProductAdded) {
+        onProductAdded();
+      }
     };
 
     setHandleButtonClick(onPlusClick);
-  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch]);
+  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch, onProductAdded]);
 
   return (
     <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
