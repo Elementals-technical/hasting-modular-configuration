@@ -462,7 +462,7 @@ export const PlayCanvasIntegration = () => {
 
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
-        dispatch(setSelectedSceneProduct(firstSelected.name!));
+        // dispatch(setSelectedSceneProduct(firstSelected.name!));
         // Get dimention on the model when selection it on the scene.
         const dimensionTool = getDimensionTool();
 
@@ -472,6 +472,8 @@ export const PlayCanvasIntegration = () => {
           (async () => {
             const config = await getConfig(firstSelected.name ?? "");
             if (!config) return;
+
+            dispatch(setSelectedSceneProduct(firstSelected.name!));
 
             const dataDimentions = {
               productId: firstSelected.name ?? "",
@@ -503,7 +505,7 @@ export const PlayCanvasIntegration = () => {
         }
       } else {
         console.log("клик в пустоту");
-        dispatch(setSelectedSceneProduct(""));
+        // dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     });
