@@ -551,18 +551,6 @@ export const PlayCanvasIntegration = () => {
     const widthOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const depthOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
 
-    const drawerOptions = [
-      { id: "drawer-1d", label: "1 Drawer", value: "1D" },
-      { id: "drawer-2d", label: "2 Drawer", value: "2D" },
-      { id: "drawer-1dwid", label: "1 Drawer with Inner Drawer", value: "1DWID" },
-    ];
-
-    const handleOptions = [
-      { id: "handle-pto", label: "Pto handle", value: "handle_pto" },
-      { id: "handle-urban-topcut", label: "Urban Handle Top Cut", value: "handle_urban_topcut" },
-      { id: "handle-urban-botcut", label: "Urban Handle Bot Cut", value: "handle_urban_botcut" },
-    ];
-
     const items: DropdownItem[] = [
       {
         id: "color",
