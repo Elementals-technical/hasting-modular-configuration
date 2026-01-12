@@ -419,35 +419,35 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   };
 
-  const handleSetDrawers = useCallback(
-    async (drawers: string) => {
-      if (!selectedSceneProduct) return;
+  // const handleSetDrawers = useCallback(
+  //   async (drawers: string) => {
+  //     if (!selectedSceneProduct) return;
 
-      try {
-        await setConfig(selectedSceneProduct, { Drawers: drawers });
-      } catch (error) {
-        console.error("[PlayCanvasIntegration] Failed to set drawers", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [selectedSceneProduct],
-  );
+  //     try {
+  //       await setConfig(selectedSceneProduct, { Drawers: drawers });
+  //     } catch (error) {
+  //       console.error("[PlayCanvasIntegration] Failed to set drawers", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [selectedSceneProduct],
+  // );
 
-  const handleSetHandleType = useCallback(
-    async (handleType: string) => {
-      if (!selectedSceneProduct) return;
+  // const handleSetHandleType = useCallback(
+  //   async (handleType: string) => {
+  //     if (!selectedSceneProduct) return;
 
-      try {
-        await setConfig(selectedSceneProduct, { Handle: handleType });
-      } catch (error) {
-        console.error("[PlayCanvasIntegration] Failed to set handle type", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [selectedSceneProduct],
-  );
+  //     try {
+  //       await setConfig(selectedSceneProduct, { Handle: handleType });
+  //     } catch (error) {
+  //       console.error("[PlayCanvasIntegration] Failed to set handle type", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [selectedSceneProduct],
+  // );
 
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
@@ -616,28 +616,28 @@ export const PlayCanvasIntegration = () => {
       },
     ];
 
-    if (selectedSceneProduct) {
-      items.unshift(
-        {
-          id: "drawer-style",
-          label: "Drawer Style",
-          children: drawerOptions.map((option) => ({
-            id: option.id,
-            label: option.label,
-            onClick: () => handleSetDrawers(option.value),
-          })),
-        },
-        {
-          id: "handle-style",
-          label: "Handle Style",
-          children: handleOptions.map((option) => ({
-            id: option.id,
-            label: option.label,
-            onClick: () => handleSetHandleType(option.value),
-          })),
-        },
-      );
-    }
+    // if (selectedSceneProduct) {
+    //   items.unshift(
+    //     {
+    //       id: "drawer-style",
+    //       label: "Drawer Style",
+    //       children: drawerOptions.map((option) => ({
+    //         id: option.id,
+    //         label: option.label,
+    //         onClick: () => handleSetDrawers(option.value),
+    //       })),
+    //     },
+    //     {
+    //       id: "handle-style",
+    //       label: "Handle Style",
+    //       children: handleOptions.map((option) => ({
+    //         id: option.id,
+    //         label: option.label,
+    //         onClick: () => handleSetHandleType(option.value),
+    //       })),
+    //     },
+    //   );
+    // }
 
     const canAddDrawerProduct = Boolean(activeDrawerProduct);
 
@@ -684,8 +684,6 @@ export const PlayCanvasIntegration = () => {
     handleAddLeft,
     handleAddRight,
     handleRemoveProducts,
-    handleSetDrawers,
-    handleSetHandleType,
     handleSetWidth,
     handleSetDepth,
     activeDrawerProduct,
@@ -694,6 +692,8 @@ export const PlayCanvasIntegration = () => {
     productIds.length,
     selectedSceneProduct,
     handleMoveProduct,
+    handleOpenCabinetColor,
+    handleOpenCabinetStyle,
   ]);
 
   return (
