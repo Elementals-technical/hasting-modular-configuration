@@ -40,6 +40,8 @@ import {
   getProductsPresets,
   getHasBootstrappedCabinetBuilder,
 } from "@/entities/product/model/store/selectors";
+import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
+
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { optionsMockData, optionsMockData2 } from "./constants";
@@ -49,18 +51,6 @@ import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-
-import sinkBasePto50WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_PTO_with_50_height_withbasin.jpg";
-import sinkBaseCentral53WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height_withbasin.jpg";
-import sinkCabinetPto50 from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
-import sinkCabinetCentral53 from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
-import sinkCabinetDefault56 from "@/shared/assets/images/jpeg/SideCabinet2D_default_without_basin.jpg";
-
-import oneDrawer50Height from "@/shared/assets/images/jpeg/1_drawer_50_height.jpg";
-import oneDrawerDefault from "@/shared/assets/images/jpeg/1_drawer_default.jpg";
-import twoDrawer50Height from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
-import twoDrawer53Height from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
-import twoDrawer56Height from "@/shared/assets/images/jpeg/SideCabinet2D_default_without_basin.jpg";
 
 type AccordionConfig = {
   id: string;
@@ -72,42 +62,6 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
-
-const resolveCabinetTypeImage = (name: string | undefined, height: number, fallback?: string) => {
-  if (name === "Sink-Base") {
-    if (height === 50) return sinkBasePto50WithBasin;
-    if (height === 53) return sinkBaseCentral53WithBasin;
-    return fallback;
-  }
-
-  if (name === "Sink-Cabinet") {
-    if (height === 50) return sinkCabinetPto50;
-    if (height === 53) return sinkCabinetCentral53;
-    if (height === 56) return sinkCabinetDefault56;
-    return fallback;
-  }
-
-  return fallback;
-};
-
-const resolveCabinetStyleImage = (value: string | undefined, height: number, fallback?: string) => {
-  if (value === "1") {
-    // 1 Drawer
-    if (height === 50) return oneDrawer50Height;
-    if (height === 53 || height === 56) return oneDrawerDefault;
-    return fallback;
-  }
-
-  if (value === "2") {
-    // 2 Drawer
-    if (height === 50) return twoDrawer50Height;
-    if (height === 53) return twoDrawer53Height;
-    if (height === 56) return twoDrawer56Height;
-    return fallback;
-  }
-
-  return fallback;
-};
 
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
@@ -139,7 +93,6 @@ export const CabinetBuilderPage = () => {
 
   console.log("selectedProductConfig", selectedProductConfig);
 
-  const hasActiveCabinet = Boolean(activeCabinetType);
   const hasProducts = selectedProducts.length > 0;
 
   const cabinetStyleOptions = useMemo(() => {
@@ -309,59 +262,118 @@ export const CabinetBuilderPage = () => {
     };
 
     run();
-  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, resolveCabinetTypeId, selectedDimensions]);
+  }, [
+    canvasReady,
+    dispatch,
+    hasBootstrappedCabinetBuilder,
+    productsPresets,
+    resolveCabinetTypeId,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    sinkType,
+  ]);
 
+  // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {
-    if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
-    if (hasBootstrappedCabinetBuilder) return;
+    // Only work on custom/cabinet-builder route
+    if (!pathname.includes("/custom/cabinet-builder")) return;
 
-    bootstrappedRef.current = true;
+    // Don't proceed if already bootstrapped, canvas is not ready, or scene already has products
+    if (hasBootstrappedCabinetBuilder || !canvasReady || hasProducts) return;
 
-    async function resetAndBootstrapFirstProduct() {
+    // Need at least a cabinet type selected
+    if (!activeCabinetType) return;
+
+    const selectedCabinetOption = optionsMockData.find((option) => option.id === activeCabinetType);
+    if (!selectedCabinetOption) return;
+
+    const isOpenOrSideShelf =
+      selectedCabinetOption.name === "Open-Shelf" || selectedCabinetOption.name === "Side-Shelf";
+
+    // For Open-Shelf and Side-Shelf, add product immediately when cabinet type is selected
+    // For other types, wait for drawer style to be selected
+    if (!isOpenOrSideShelf && !activeStyleId) return;
+
+    // Capture values for async function
+    const productName = selectedCabinetOption.name || "Sink-Base";
+    const cabinetConfig = selectedCabinetOption.config ?? {};
+    const currentSelectedConfig = selectedProductConfig ?? {};
+
+    async function addProductToScene() {
       try {
-        removeAllProducts();
-        dispatch(resetProducts());
-
-        const firstCabinetOption = optionsMockData[0];
-
-        const defaultProductName = "Sink-Base";
-        const defaultProductConfig: addProductConfigI = {
+        // Build product config: start with cabinet option config, then override with selected config and current values
+        const productConfig: addProductConfigI = {
+          ...cabinetConfig,
           Height: selectedDimensions.height,
           Depth: selectedDimensions.depth,
           Width: selectedDimensions.width,
           CabinetColor: cabinetColor,
-          sinkType,
           CountertopColor: countertopColor,
           HandleGrooveColor: handleGrooveColor,
-          Handle: "handle_urban_topcut",
-          ...(selectedProductConfig ?? {}),
+          Handle: currentSelectedConfig.Handle || "handle_urban_topcut",
+          ...currentSelectedConfig,
         };
 
-        if (firstCabinetOption) {
-          dispatch(setActiveCabinetType(firstCabinetOption.id));
-
-          const productId = await addProduct(defaultProductName, defaultProductConfig);
-          handleSelectCabinetConfig(defaultProductName, defaultProductConfig);
-
-          if (productId) {
-            dispatch(addProductId(productId));
-          }
+        // Add sinkType if it's a Sink-Base
+        if (productName === "Sink-Base" && sinkType) {
+          productConfig.sinkType = sinkType;
         }
 
-        dispatch(setHasBootstrappedCabinetBuilder(true));
+        const productId = await addProduct(productName, productConfig);
+
+        if (productId) {
+          dispatch(addProductId(productId));
+          handleSelectCabinetConfig(productName, productConfig);
+
+          // Update dimensions if they were set from the cabinet option
+          if (cabinetConfig.Width || cabinetConfig.Height || cabinetConfig.Depth) {
+            const nextDimensions: Partial<typeof selectedDimensions> = {};
+            if (cabinetConfig.Width) nextDimensions.width = cabinetConfig.Width;
+            if (cabinetConfig.Height) nextDimensions.height = cabinetConfig.Height;
+            if (cabinetConfig.Depth) nextDimensions.depth = cabinetConfig.Depth;
+
+            if (Object.keys(nextDimensions).length) {
+              dispatch(setSelectedDimensions(nextDimensions));
+            }
+          }
+
+          // Mark as bootstrapped to save configuration when navigating back
+          dispatch(setHasBootstrappedCabinetBuilder(true));
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Failed to add product to scene:", error);
       }
     }
 
-    resetAndBootstrapFirstProduct();
-  }, [canvasReady, dispatch, handleSelectCabinetConfig, hasActiveCabinet, hasBootstrappedCabinetBuilder, hasProducts]);
+    addProductToScene();
+  }, [
+    pathname,
+    canvasReady,
+    hasProducts,
+    hasBootstrappedCabinetBuilder,
+    activeCabinetType,
+    activeStyleId,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    sinkType,
+    selectedProductConfig,
+    handleSelectCabinetConfig,
+    dispatch,
+  ]);
 
   const [searchParams] = useSearchParams();
   useEffect(() => {
     const target = searchParams.get("accordion");
     if (target) setAccordionValue(target);
   }, [searchParams]);
+
+  const handleResetToDefaultState = useCallback(() => {
+    setAccordionValue(CABINET_TYPE_ID);
+  }, []);
 
   const accordions: AccordionConfig[] = [
     {
@@ -413,7 +425,7 @@ export const CabinetBuilderPage = () => {
         ))}
       </ConfiguratorAccordionGroup>
 
-      <RightCabinetStyleSidebar />
+      <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
     </div>
   );
 };

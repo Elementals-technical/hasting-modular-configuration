@@ -25,6 +25,7 @@ import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
+import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
 
 export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
@@ -100,7 +101,12 @@ export const BottomCanvasButtons = () => {
         <ZoomOutIcon />
       </BaseButton>
 
-      <BaseButton variant="ghost">
+      <BaseButton
+        variant="ghost"
+        onClick={() => {
+          downloadArFiles();
+        }}
+      >
         <ArIcon />
       </BaseButton>
 

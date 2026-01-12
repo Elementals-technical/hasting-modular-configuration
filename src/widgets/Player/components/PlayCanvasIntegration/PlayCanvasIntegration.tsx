@@ -36,9 +36,10 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
+import { formatCmWithInches } from "@/utils/units";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "018";
+const PLAYCANVAS_VERSION = "019";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -419,41 +420,42 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   };
 
-  const handleSetDrawers = useCallback(
-    async (drawers: string) => {
-      if (!selectedSceneProduct) return;
+  // const handleSetDrawers = useCallback(
+  //   async (drawers: string) => {
+  //     if (!selectedSceneProduct) return;
 
-      try {
-        await setConfig(selectedSceneProduct, { Drawers: drawers });
-      } catch (error) {
-        console.error("[PlayCanvasIntegration] Failed to set drawers", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [selectedSceneProduct],
-  );
+  //     try {
+  //       await setConfig(selectedSceneProduct, { Drawers: drawers });
+  //     } catch (error) {
+  //       console.error("[PlayCanvasIntegration] Failed to set drawers", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [selectedSceneProduct],
+  // );
 
-  const handleSetHandleType = useCallback(
-    async (handleType: string) => {
-      if (!selectedSceneProduct) return;
+  // const handleSetHandleType = useCallback(
+  //   async (handleType: string) => {
+  //     if (!selectedSceneProduct) return;
 
-      try {
-        await setConfig(selectedSceneProduct, { Handle: handleType });
-      } catch (error) {
-        console.error("[PlayCanvasIntegration] Failed to set handle type", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [selectedSceneProduct],
-  );
+  //     try {
+  //       await setConfig(selectedSceneProduct, { Handle: handleType });
+  //     } catch (error) {
+  //       console.error("[PlayCanvasIntegration] Failed to set handle type", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [selectedSceneProduct],
+  // );
 
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
 
   console.log("selectTool", selectTool);
 
+  // TODO: Improve select tool handling.
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
 
@@ -462,7 +464,7 @@ export const PlayCanvasIntegration = () => {
 
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
-        dispatch(setSelectedSceneProduct(firstSelected.name!));
+        // dispatch(setSelectedSceneProduct(firstSelected.name!));
         // Get dimention on the model when selection it on the scene.
         const dimensionTool = getDimensionTool();
 
@@ -473,16 +475,18 @@ export const PlayCanvasIntegration = () => {
             const config = await getConfig(firstSelected.name ?? "");
             if (!config) return;
 
+            dispatch(setSelectedSceneProduct(firstSelected.name!));
+
             const dataDimentions = {
               productId: firstSelected.name ?? "",
               ...(typeof config.Height === "number"
-                ? { Height: { [String(config.Height)]: String(config.Height) + " cm" } }
+                ? { Height: { [String(config.Height)]: formatCmWithInches(config.Height) } }
                 : {}),
               ...(typeof config.Width === "number"
-                ? { Width: { [String(config.Width)]: String(config.Width) + " cm" } }
+                ? { Width: { [String(config.Width)]: formatCmWithInches(config.Width) } }
                 : {}),
               ...(typeof config.Depth === "number"
-                ? { Depth: { [String(config.Depth)]: String(config.Depth) + " cm" } }
+                ? { Depth: { [String(config.Depth)]: formatCmWithInches(config.Depth) } }
                 : {}),
             };
 
@@ -503,7 +507,7 @@ export const PlayCanvasIntegration = () => {
         }
       } else {
         console.log("клик в пустоту");
-        dispatch(setSelectedSceneProduct(""));
+        // dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     });
@@ -546,18 +550,6 @@ export const PlayCanvasIntegration = () => {
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const widthOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const depthOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
-
-    const drawerOptions = [
-      { id: "drawer-1d", label: "1 Drawer", value: "1D" },
-      { id: "drawer-2d", label: "2 Drawer", value: "2D" },
-      { id: "drawer-1dwid", label: "1 Drawer with Inner Drawer", value: "1DWID" },
-    ];
-
-    const handleOptions = [
-      { id: "handle-pto", label: "Pto handle", value: "handle_pto" },
-      { id: "handle-urban-topcut", label: "Urban Handle Top Cut", value: "handle_urban_topcut" },
-      { id: "handle-urban-botcut", label: "Urban Handle Bot Cut", value: "handle_urban_botcut" },
-    ];
 
     const items: DropdownItem[] = [
       {
@@ -616,28 +608,28 @@ export const PlayCanvasIntegration = () => {
       },
     ];
 
-    if (selectedSceneProduct) {
-      items.unshift(
-        {
-          id: "drawer-style",
-          label: "Drawer Style",
-          children: drawerOptions.map((option) => ({
-            id: option.id,
-            label: option.label,
-            onClick: () => handleSetDrawers(option.value),
-          })),
-        },
-        {
-          id: "handle-style",
-          label: "Handle Style",
-          children: handleOptions.map((option) => ({
-            id: option.id,
-            label: option.label,
-            onClick: () => handleSetHandleType(option.value),
-          })),
-        },
-      );
-    }
+    // if (selectedSceneProduct) {
+    //   items.unshift(
+    //     {
+    //       id: "drawer-style",
+    //       label: "Drawer Style",
+    //       children: drawerOptions.map((option) => ({
+    //         id: option.id,
+    //         label: option.label,
+    //         onClick: () => handleSetDrawers(option.value),
+    //       })),
+    //     },
+    //     {
+    //       id: "handle-style",
+    //       label: "Handle Style",
+    //       children: handleOptions.map((option) => ({
+    //         id: option.id,
+    //         label: option.label,
+    //         onClick: () => handleSetHandleType(option.value),
+    //       })),
+    //     },
+    //   );
+    // }
 
     const canAddDrawerProduct = Boolean(activeDrawerProduct);
 
@@ -684,8 +676,6 @@ export const PlayCanvasIntegration = () => {
     handleAddLeft,
     handleAddRight,
     handleRemoveProducts,
-    handleSetDrawers,
-    handleSetHandleType,
     handleSetWidth,
     handleSetDepth,
     activeDrawerProduct,
@@ -694,6 +684,8 @@ export const PlayCanvasIntegration = () => {
     productIds.length,
     selectedSceneProduct,
     handleMoveProduct,
+    handleOpenCabinetColor,
+    handleOpenCabinetStyle,
   ]);
 
   return (
