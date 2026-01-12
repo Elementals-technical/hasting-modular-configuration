@@ -2,14 +2,19 @@
 .modeSwitcher {
   display: flex;
   align-items: center;
+
+  margin-right: -20px;
+  margin-left: -20px;
 }
 
 .modeSwitcher_tabItem {
   padding: 20px;
   width: 100%;
 
-  background-color: #f1ebe6;
+  background-color: #fff;
   border-bottom: 1px solid #e5e6ea;
+
+  transition: all 0.2s linear;
 
   .title {
     color: #282828;
@@ -39,8 +44,9 @@
     gap: 4px;
   }
 
-  &.active {
-    background-color: #fff;
+  &.active,
+  &:hover {
+    background-color: #f1ebe6;
   }
 
   &:last-child {
