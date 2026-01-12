@@ -1,5 +1,12 @@
 export type DimensionLabelMap = Record<string, string>;
 
+export type DimensionConfig = {
+  Height?: DimensionLabelMap;
+  Width?: DimensionLabelMap;
+  Depth?: DimensionLabelMap;
+  [key: string]: DimensionLabelMap | undefined;
+};
+
 export type DimensionData = {
   productId: string;
   Height?: DimensionLabelMap;
@@ -11,6 +18,7 @@ export type DimensionData = {
 export type DimensionTool = {
   setEnabled: (enabled: boolean) => void;
   setDimensionData: (data: DimensionData) => void;
+  getDimensionData?: (productId: string) => DimensionConfig | null;
 };
 
 export function getDimensionTool(): DimensionTool | null {

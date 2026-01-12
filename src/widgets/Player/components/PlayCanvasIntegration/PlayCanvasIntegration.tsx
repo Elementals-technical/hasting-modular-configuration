@@ -36,7 +36,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
-import { formatCmWithInches } from "@/utils/units";
+import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "019";
@@ -338,6 +338,11 @@ export const PlayCanvasIntegration = () => {
 
         if (productId) {
           dispatch(addProductId(productId));
+
+          const config = await getConfig(productId);
+          if (config) {
+            updateDimensionDataForProduct(productId, config);
+          }
         }
       } catch (error) {
         console.error("[ProductModelItem] Failed to add product", error);
@@ -464,7 +469,6 @@ export const PlayCanvasIntegration = () => {
 
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
-        // dispatch(setSelectedSceneProduct(firstSelected.name!));
         // Get dimention on the model when selection it on the scene.
         const dimensionTool = getDimensionTool();
 
@@ -473,24 +477,14 @@ export const PlayCanvasIntegration = () => {
 
           (async () => {
             const config = await getConfig(firstSelected.name ?? "");
+
             if (!config) return;
 
             dispatch(setSelectedSceneProduct(firstSelected.name!));
+            // replace any previous selection
+            selectTool?.setSelectedByName(firstSelected.name ?? "", { mode: "replace" });
 
-            const dataDimentions = {
-              productId: firstSelected.name ?? "",
-              ...(typeof config.Height === "number"
-                ? { Height: { [String(config.Height)]: formatCmWithInches(config.Height) } }
-                : {}),
-              ...(typeof config.Width === "number"
-                ? { Width: { [String(config.Width)]: formatCmWithInches(config.Width) } }
-                : {}),
-              ...(typeof config.Depth === "number"
-                ? { Depth: { [String(config.Depth)]: formatCmWithInches(config.Depth) } }
-                : {}),
-            };
-
-            dimensionTool.setDimensionData(dataDimentions);
+            updateDimensionDataForProduct(firstSelected.name ?? "", config);
           })();
         }
 
@@ -515,6 +509,7 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     if (!selectedSceneProduct) return;
+    return;
 
     const loadConfig = async () => {
       const config = await getConfig(selectedSceneProduct);
