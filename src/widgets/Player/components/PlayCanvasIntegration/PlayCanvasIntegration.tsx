@@ -454,6 +454,7 @@ export const PlayCanvasIntegration = () => {
 
   console.log("selectTool", selectTool);
 
+  // TODO: Improve select tool handling.
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
 
