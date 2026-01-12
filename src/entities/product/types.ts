@@ -14,8 +14,8 @@ export type ProductModel = {
   id: number;
   img: string;
   title: string;
-  desc: string;
+  desc?: string;
   isProductModel: boolean;
-  price: string;
+  price?: string;
   presetProducts: PresetProduct[];
 };

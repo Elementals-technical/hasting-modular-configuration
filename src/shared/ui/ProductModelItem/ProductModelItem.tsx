@@ -12,9 +12,9 @@ interface ProductModelGridI {
   id: number;
   title: string;
   img: string;
-  desc: string;
+  desc?: string;
   isProductModel: boolean;
-  price: string;
+  price?: string;
   presetProducts?: PresetProduct[];
   onSelect: (presetProducts?: PresetProduct[]) => void;
   onCustomize?: (presetProducts?: PresetProduct[]) => void;
@@ -64,7 +64,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
       <div onClick={handleSelect} className={s.title}>
         {title}
       </div>
-      <div className={s.desc}>{desc}</div>
+      {desc && <div className={s.desc}>{desc}</div>}
 
       {isProductModel && (
         <Link className={s.link} to={`/prebuilt/model/${id}`}>
@@ -74,7 +74,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
           </span>
         </Link>
       )}
-      <div className={s.price}>{price}</div>
+      {price && <div className={s.price}>{price}</div>}
     </div>
   );
 };
