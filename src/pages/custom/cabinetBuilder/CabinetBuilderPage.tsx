@@ -93,7 +93,6 @@ export const CabinetBuilderPage = () => {
 
   console.log("selectedProductConfig", selectedProductConfig);
 
-  const hasActiveCabinet = Boolean(activeCabinetType);
   const hasProducts = selectedProducts.length > 0;
 
   const cabinetStyleOptions = useMemo(() => {
@@ -263,53 +262,108 @@ export const CabinetBuilderPage = () => {
     };
 
     run();
-  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, resolveCabinetTypeId, selectedDimensions]);
+  }, [
+    canvasReady,
+    dispatch,
+    hasBootstrappedCabinetBuilder,
+    productsPresets,
+    resolveCabinetTypeId,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    sinkType,
+  ]);
 
+  // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {
-    if (!canvasReady || hasProducts || hasActiveCabinet || bootstrappedRef.current) return;
-    if (hasBootstrappedCabinetBuilder) return;
+    // Only work on custom/cabinet-builder route
+    if (!pathname.includes("/custom/cabinet-builder")) return;
 
-    bootstrappedRef.current = true;
+    // Don't proceed if already bootstrapped, canvas is not ready, or scene already has products
+    if (hasBootstrappedCabinetBuilder || !canvasReady || hasProducts) return;
 
-    async function resetAndBootstrapFirstProduct() {
+    // Need at least a cabinet type selected
+    if (!activeCabinetType) return;
+
+    const selectedCabinetOption = optionsMockData.find((option) => option.id === activeCabinetType);
+    if (!selectedCabinetOption) return;
+
+    const isOpenOrSideShelf =
+      selectedCabinetOption.name === "Open-Shelf" || selectedCabinetOption.name === "Side-Shelf";
+
+    // For Open-Shelf and Side-Shelf, add product immediately when cabinet type is selected
+    // For other types, wait for drawer style to be selected
+    if (!isOpenOrSideShelf && !activeStyleId) return;
+
+    // Capture values for async function
+    const productName = selectedCabinetOption.name || "Sink-Base";
+    const cabinetConfig = selectedCabinetOption.config ?? {};
+    const currentSelectedConfig = selectedProductConfig ?? {};
+
+    async function addProductToScene() {
       try {
-        removeAllProducts();
-        dispatch(resetProducts());
-
-        const firstCabinetOption = optionsMockData[0];
-
-        const defaultProductName = "Sink-Base";
-        const defaultProductConfig: addProductConfigI = {
+        // Build product config: start with cabinet option config, then override with selected config and current values
+        const productConfig: addProductConfigI = {
+          ...cabinetConfig,
           Height: selectedDimensions.height,
           Depth: selectedDimensions.depth,
           Width: selectedDimensions.width,
           CabinetColor: cabinetColor,
-          sinkType,
           CountertopColor: countertopColor,
           HandleGrooveColor: handleGrooveColor,
-          Handle: "handle_urban_topcut",
-          ...(selectedProductConfig ?? {}),
+          Handle: currentSelectedConfig.Handle || "handle_urban_topcut",
+          ...currentSelectedConfig,
         };
 
-        if (firstCabinetOption) {
-          dispatch(setActiveCabinetType(firstCabinetOption.id));
-
-          const productId = await addProduct(defaultProductName, defaultProductConfig);
-          handleSelectCabinetConfig(defaultProductName, defaultProductConfig);
-
-          if (productId) {
-            dispatch(addProductId(productId));
-          }
+        // Add sinkType if it's a Sink-Base
+        if (productName === "Sink-Base" && sinkType) {
+          productConfig.sinkType = sinkType;
         }
 
-        dispatch(setHasBootstrappedCabinetBuilder(true));
+        const productId = await addProduct(productName, productConfig);
+
+        if (productId) {
+          dispatch(addProductId(productId));
+          handleSelectCabinetConfig(productName, productConfig);
+
+          // Update dimensions if they were set from the cabinet option
+          if (cabinetConfig.Width || cabinetConfig.Height || cabinetConfig.Depth) {
+            const nextDimensions: Partial<typeof selectedDimensions> = {};
+            if (cabinetConfig.Width) nextDimensions.width = cabinetConfig.Width;
+            if (cabinetConfig.Height) nextDimensions.height = cabinetConfig.Height;
+            if (cabinetConfig.Depth) nextDimensions.depth = cabinetConfig.Depth;
+
+            if (Object.keys(nextDimensions).length) {
+              dispatch(setSelectedDimensions(nextDimensions));
+            }
+          }
+
+          // Mark as bootstrapped to save configuration when navigating back
+          dispatch(setHasBootstrappedCabinetBuilder(true));
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Failed to add product to scene:", error);
       }
     }
 
-    resetAndBootstrapFirstProduct();
-  }, [canvasReady, dispatch, handleSelectCabinetConfig, hasActiveCabinet, hasBootstrappedCabinetBuilder, hasProducts]);
+    addProductToScene();
+  }, [
+    pathname,
+    canvasReady,
+    hasProducts,
+    hasBootstrappedCabinetBuilder,
+    activeCabinetType,
+    activeStyleId,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    sinkType,
+    selectedProductConfig,
+    handleSelectCabinetConfig,
+    dispatch,
+  ]);
 
   const [searchParams] = useSearchParams();
   useEffect(() => {

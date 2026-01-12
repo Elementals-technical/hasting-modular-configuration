@@ -34,6 +34,7 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
+import { PlusButtonIcon } from "@/shared/assets/images/svg/PlusButtonIcon";
 
 export const RightCabinetStyleSidebar = () => {
   const dispatch = useAppDispatch();
@@ -256,7 +257,9 @@ export const RightCabinetStyleSidebar = () => {
         <BaseButton onClick={addToLeft}>Left</BaseButton>
         <BaseButton onClick={addToRight}>Right</BaseButton>
       </div> */}
-      <div className={s.bottomText}>Click the + button to place your cabinet</div>
+      <div className={s.bottomText}>
+        Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
+      </div>
     </div>
   );
 };
