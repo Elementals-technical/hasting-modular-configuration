@@ -44,6 +44,7 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
         }}
       >
         <ArrowLeft width="25" height="25" fill="#333" />
+        <div className={s.mode}>{flow === "custom" ? "Custom" : "Pre-Built"}</div>
       </div>
 
       <ul className={s.navList}>
