@@ -1,0 +1,13 @@
+.player {
+  position: relative;
+}
+
+.rotateBlock {
+  position: absolute;
+  bottom: 15%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
