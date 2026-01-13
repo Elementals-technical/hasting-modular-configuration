@@ -2,6 +2,9 @@ import prismaImage from "@/shared/assets/images/jpeg/prisma.jpg";
 import quadraImage from "@/shared/assets/images/jpeg/quadro.jpg";
 import coverImage from "@/shared/assets/images/jpeg/cover.jpg";
 import stripImage from "@/shared/assets/images/jpeg/strip.jpg";
+import integratedImage from "@/shared/assets/images/png/integrated.png";
+import vesselImage from "@/shared/assets/images/png/vessel.png";
+import undermountImage from "@/shared/assets/images/png/undermount.png";
 
 export const optionsMockData = [
   {
@@ -105,18 +108,27 @@ export const optionsMockData2 = [
     title: "Integrated",
     isAvailable: false,
     isShortDesc: false,
+    metadata: {
+      image: integratedImage,
+    },
   },
   {
     id: 2,
     title: "Vessel",
     isAvailable: true,
     isShortDesc: false,
+    metadata: {
+      image: vesselImage,
+    },
   },
   {
     id: 3,
     title: "Undermount",
     isAvailable: false,
     isShortDesc: false,
+    metadata: {
+      image: undermountImage,
+    },
   },
 ];
 
