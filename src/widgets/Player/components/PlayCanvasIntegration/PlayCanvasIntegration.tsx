@@ -14,22 +14,14 @@ import {
   swapProductIds,
 } from "@/entities/product/model/store/slice";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
-import { addProductByLeft } from "@/utils/functions/playcanvas/addProductByLeft";
-import { addProductByRight } from "@/utils/functions/playcanvas/addProductByRight";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import {
-  getActiveCountertopColor,
-  getCabinetColor,
   getDimensionOptions,
   getDrawerProduct,
-  getHandleGrooveColor,
-  getSelectedDimensions,
-  getSelectedProductConfig,
   getSelectedSceneProduct,
-  getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -60,12 +52,12 @@ export const PlayCanvasIntegration = () => {
 
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
-  const selectedDimensions = useAppSelector(getSelectedDimensions);
-  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  const cabinetColor = useAppSelector(getCabinetColor);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
-  const countertopColor = useAppSelector(getActiveCountertopColor);
-  const sinkType = useAppSelector(getSinkType);
+  // const selectedDimensions = useAppSelector(getSelectedDimensions);
+  // const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  // const cabinetColor = useAppSelector(getCabinetColor);
+  // const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  // const countertopColor = useAppSelector(getActiveCountertopColor);
+  // const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
@@ -294,42 +286,42 @@ export const PlayCanvasIntegration = () => {
     }
   }, [dispatch, selectedSceneProduct]);
 
-  const handleAddLeft = useCallback(
-    async (name: string) => {
-      try {
-        const productId = await addProductByLeft(name);
+  // const handleAddLeft = useCallback(
+  //   async (name: string) => {
+  //     try {
+  //       const productId = await addProductByLeft(name);
 
-        if (productId) {
-          await setConfig(productId, {
-            ...(selectedProductConfig ?? {}),
-            Width: selectedDimensions.width,
-            Height: selectedDimensions.height,
-            Depth: selectedDimensions.depth,
-            CabinetColor: cabinetColor,
-            CountertopColor: countertopColor,
-            HandleGrooveColor: handleGrooveColor,
-            sinkType,
-          });
-          dispatch(addProductId(productId));
-        }
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to add product to the left", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [
-      cabinetColor,
-      countertopColor,
-      dispatch,
-      handleGrooveColor,
-      selectedDimensions.depth,
-      selectedDimensions.height,
-      selectedDimensions.width,
-      selectedProductConfig,
-      sinkType,
-    ],
-  );
+  //       if (productId) {
+  //         await setConfig(productId, {
+  //           ...(selectedProductConfig ?? {}),
+  //           Width: selectedDimensions.width,
+  //           Height: selectedDimensions.height,
+  //           Depth: selectedDimensions.depth,
+  //           CabinetColor: cabinetColor,
+  //           CountertopColor: countertopColor,
+  //           HandleGrooveColor: handleGrooveColor,
+  //           sinkType,
+  //         });
+  //         dispatch(addProductId(productId));
+  //       }
+  //     } catch (error) {
+  //       console.error("[ProductModelItem] Failed to add product to the left", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [
+  //     cabinetColor,
+  //     countertopColor,
+  //     dispatch,
+  //     handleGrooveColor,
+  //     selectedDimensions.depth,
+  //     selectedDimensions.height,
+  //     selectedDimensions.width,
+  //     selectedProductConfig,
+  //     sinkType,
+  //   ],
+  // );
 
   const handleAdd = useCallback(
     async (name: string) => {
@@ -353,42 +345,48 @@ export const PlayCanvasIntegration = () => {
     [dispatch],
   );
 
-  const handleAddRight = useCallback(
-    async (name: string) => {
-      try {
-        const productId = await addProductByRight(name);
+  // const handleAddRight = useCallback(
+  //   async (name: string) => {
+  //     try {
+  //       const productId = await addProductByRight(name);
 
-        if (productId) {
-          await setConfig(productId, {
-            ...(selectedProductConfig ?? {}),
-            Width: selectedDimensions.width,
-            Height: selectedDimensions.height,
-            Depth: selectedDimensions.depth,
-            CabinetColor: cabinetColor,
-            CountertopColor: countertopColor,
-            HandleGrooveColor: handleGrooveColor,
-            sinkType,
-          });
-          dispatch(addProductId(productId));
-        }
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to add product to the right", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [
-      cabinetColor,
-      countertopColor,
-      dispatch,
-      handleGrooveColor,
-      selectedDimensions.depth,
-      selectedDimensions.height,
-      selectedDimensions.width,
-      selectedProductConfig,
-      sinkType,
-    ],
-  );
+  //       if (productId) {
+  //         await setConfig(productId, {
+  //           ...(selectedProductConfig ?? {}),
+  //           Width: selectedDimensions.width,
+  //           Height: selectedDimensions.height,
+  //           Depth: selectedDimensions.depth,
+  //           CabinetColor: cabinetColor,
+  //           CountertopColor: countertopColor,
+  //           HandleGrooveColor: handleGrooveColor,
+  //           sinkType,
+  //         });
+  //         dispatch(addProductId(productId));
+  //       }
+  //     } catch (error) {
+  //       console.error("[ProductModelItem] Failed to add product to the right", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [
+  //     cabinetColor,
+  //     countertopColor,
+  //     dispatch,
+  //     handleGrooveColor,
+  //     selectedDimensions.depth,
+  //     selectedDimensions.height,
+  //     selectedDimensions.width,
+  //     selectedProductConfig,
+  //     sinkType,
+  //   ],
+  // );
+
+  // Navigate to the Cabinet builder page with the enabled Right sidebar.
+  const handleAddAdditionalProduct = useCallback(() => {
+    navigate("/custom/cabinet-builder?accordion=cabinet-type");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleSwapProducts = useCallback(
     (idA: string, idB: string) => {
@@ -636,8 +634,13 @@ export const PlayCanvasIntegration = () => {
             trailing: "",
             children: canAddDrawerProduct
               ? [
-                  { id: "add-left", label: "Add to left", onClick: () => handleAddLeft(activeDrawerProduct) },
-                  { id: "add-right", label: "Add to right", onClick: () => handleAddRight(activeDrawerProduct) },
+                  // { id: "add-left", label: "Add to left", onClick: () => handleAddLeft(activeDrawerProduct) },
+                  // { id: "add-right", label: "Add to right", onClick: () => handleAddRight(activeDrawerProduct) },
+                  {
+                    id: "add-right",
+                    label: "Add additional product",
+                    onClick: () => handleAddAdditionalProduct(),
+                  },
                 ]
               : [],
           }
@@ -668,8 +671,6 @@ export const PlayCanvasIntegration = () => {
     return items;
   }, [
     handleAdd,
-    handleAddLeft,
-    handleAddRight,
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
@@ -681,6 +682,7 @@ export const PlayCanvasIntegration = () => {
     handleMoveProduct,
     handleOpenCabinetColor,
     handleOpenCabinetStyle,
+    handleAddAdditionalProduct,
   ]);
 
   return (
