@@ -1,3 +1,5 @@
+import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
+
 export async function setConfig(id: string | null, config: any) {
   // @ts-ignore
   const containerRef = window.containerRef;
@@ -16,6 +18,10 @@ export async function setConfig(id: string | null, config: any) {
 
   try {
     await setConfig(id, config);
+
+    if (typeof id === "string") {
+      updateDimensionDataForProduct(id, config ?? {});
+    }
   } catch (error) {
     console.error("[PlayCanvas] Failed to set setConfig", error);
     return null;
