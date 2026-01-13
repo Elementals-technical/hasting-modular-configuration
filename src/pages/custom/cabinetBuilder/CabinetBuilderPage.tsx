@@ -275,14 +275,15 @@ export const CabinetBuilderPage = () => {
     sinkType,
   ]);
 
+  const handleResetToDefaultState = useCallback(() => {
+    setAccordionValue(CABINET_TYPE_ID);
+  }, []);
+
   // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {
-    // Only work on custom/cabinet-builder route
     if (!pathname.includes("/custom/cabinet-builder")) return;
-
     // Don't proceed if already bootstrapped, canvas is not ready, or scene already has products
     if (hasBootstrappedCabinetBuilder || !canvasReady || hasProducts) return;
-
     // Need at least a cabinet type selected
     if (!activeCabinetType) return;
 
@@ -313,7 +314,7 @@ export const CabinetBuilderPage = () => {
           CountertopColor: countertopColor,
           HandleGrooveColor: handleGrooveColor,
           Handle: currentSelectedConfig.Handle || "handle_urban_topcut",
-          ...currentSelectedConfig,
+          // ...currentSelectedConfig,
         };
 
         // Add sinkType if it's a Sink-Base
@@ -341,6 +342,10 @@ export const CabinetBuilderPage = () => {
 
           // Mark as bootstrapped to save configuration when navigating back
           dispatch(setHasBootstrappedCabinetBuilder(true));
+
+          // Close sidebar and reset accordion to default state
+          handleResetToDefaultState();
+          dispatch(setOpenStyleSidebar(false));
         }
       } catch (error) {
         console.error("Failed to add product to scene:", error);
@@ -363,6 +368,7 @@ export const CabinetBuilderPage = () => {
     selectedProductConfig,
     handleSelectCabinetConfig,
     dispatch,
+    handleResetToDefaultState,
   ]);
 
   const [searchParams] = useSearchParams();
@@ -370,10 +376,6 @@ export const CabinetBuilderPage = () => {
     const target = searchParams.get("accordion");
     if (target) setAccordionValue(target);
   }, [searchParams]);
-
-  const handleResetToDefaultState = useCallback(() => {
-    setAccordionValue(CABINET_TYPE_ID);
-  }, []);
 
   const accordions: AccordionConfig[] = [
     {
