@@ -63,6 +63,9 @@
     width: 100%;
     list-style: none;
 
+    border-radius: 10px;
+    transition: all 0.2s linear;
+
     a {
       display: flex;
       align-items: center;
@@ -74,6 +77,10 @@
       border: 1px solid #e5e6ea;
 
       text-decoration: none;
+    }
+
+    &:hover {
+      background-color: #f6edede5;
     }
   }
 }
