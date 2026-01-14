@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { BaseButton } from "@/shared";
 import { DimentionsIcon } from "@/shared/assets/images/svg/DimentionsIcon";
 import { ZoomInIcon } from "@/shared/assets/images/svg/ZoomInIcon";
@@ -7,7 +9,6 @@ import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
 import { useLocation } from "react-router-dom";
 
-import s from "./BottomCanvasButtons.module.scss";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import {
   addProductId,
@@ -29,8 +30,13 @@ import { productMockData } from "@/entities/product/ui/ProductModelsGrid/Product
 import { useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
+
+import s from "./BottomCanvasButtons.module.scss";
 
 export const BottomCanvasButtons = () => {
+  const [isOpening, setIsOpening] = useState(false);
+
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
   const isCustomRoute = pathname.includes("/custom");
@@ -138,10 +144,13 @@ export const BottomCanvasButtons = () => {
         onClick={() => {
           // downloadArFiles();
           // handleSaveConfiguration();
+          setIsOpening(true);
         }}
       >
         <ArIcon />
       </BaseButton>
+
+      <ArPopup isOpening={isOpening} setIsOpening={setIsOpening} />
 
       <BaseButton variant="ghost">
         <ShareIcon />

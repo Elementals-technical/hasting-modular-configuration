@@ -1,0 +1,69 @@
+.instrPopup {
+  width: 380px;
+  background-color: #fff;
+
+  border-radius: 10px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-bottom: 1px solid #e5e6ea;
+
+    .title {
+      color: #282828;
+      font-family: Poppins;
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 26px;
+    }
+
+    .button {
+      display: flex;
+      align-items: center;
+
+      cursor: pointer;
+    }
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .contentBlock {
+    .contentBlock_img {
+      text-align: center;
+    }
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.header,
+.content {
+  padding: 20px;
+}
+
+.footerInner {
+  border-top: 1px solid #e5e6ea;
+
+  width: 100%;
+  padding: 20px;
+
+  button {
+    width: 100%;
+  }
+}
+
+.arImage {
+  padding-bottom: 20px;
+  text-align: center;
+}
