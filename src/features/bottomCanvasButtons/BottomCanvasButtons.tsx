@@ -7,7 +7,7 @@ import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import {
@@ -42,11 +42,13 @@ export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
 
   const dispatch = useAppDispatch();
+
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const isCustomRoute = pathname.includes("/custom");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
-  const [restore, { data, isFetching, error }] = useLazyRestoreConfigurationQuery();
+  const [restore, { data, isFetching }] = useLazyRestoreConfigurationQuery();
 
   console.log(data);
 
@@ -120,7 +122,7 @@ export const BottomCanvasButtons = () => {
     }, {});
 
     const metadata = {
-      path: pathname,
+      path: "custom/cabinet-builder",
       savedAt: new Date().toISOString(),
     };
 
@@ -135,6 +137,13 @@ export const BottomCanvasButtons = () => {
   const handleRestoreConfiguration = async () => {
     try {
       const result = await restore(5).unwrap();
+
+      // Set default path in which the configuration will be restored.
+      const path = result?.metadata?.path;
+      if (typeof path === "string" && path.startsWith("/")) {
+        navigate(path);
+      }
+
       const configuration = result?.configuration || {};
       const presetProducts = buildPresetFromConfiguration(configuration);
 
