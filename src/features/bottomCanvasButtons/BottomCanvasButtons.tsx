@@ -25,12 +25,17 @@ import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
-import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
+// import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
+import { useSaveConfigurationMutation } from "@/entities";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
   const isCustomRoute = pathname.includes("/custom");
+
+  const [saveConfiguration] = useSaveConfigurationMutation();
 
   const resetCustomBuilderScene = async () => {
     removeAllProducts();
@@ -87,6 +92,33 @@ export const BottomCanvasButtons = () => {
     }
   };
 
+  const handleSaveConfiguration = async () => {
+    const ids = getOrderedProductIds();
+
+    if (!ids.length) {
+      console.warn("[Configurations] No products to save");
+      return;
+    }
+
+    const configs = await Promise.all(ids.map((id) => getConfig(id)));
+    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+      acc[id] = configs[index];
+      return acc;
+    }, {});
+
+    const metadata = {
+      path: pathname,
+      savedAt: new Date().toISOString(),
+    };
+
+    try {
+      await saveConfiguration({ configuration, metadata }).unwrap();
+      console.log("[Configurations] Saved");
+    } catch (error) {
+      console.error("[Configurations] Save failed", error);
+    }
+  };
+
   return (
     <div className={s.bottomCanvasButtons}>
       <BaseButton variant="ghost">
@@ -104,7 +136,8 @@ export const BottomCanvasButtons = () => {
       <BaseButton
         variant="ghost"
         onClick={() => {
-          downloadArFiles();
+          // downloadArFiles();
+          // handleSaveConfiguration();
         }}
       >
         <ArIcon />
