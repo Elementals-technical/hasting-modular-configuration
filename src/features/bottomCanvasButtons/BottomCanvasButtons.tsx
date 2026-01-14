@@ -31,6 +31,7 @@ import { useLazyRestoreConfigurationQuery, useSaveConfigurationMutation } from "
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
+import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import type { PresetProduct } from "@/entities/product/types";
@@ -202,52 +203,56 @@ export const BottomCanvasButtons = () => {
   };
 
   return (
-    <div className={s.bottomCanvasButtons}>
-      <BaseButton variant="ghost">
-        <DimentionsIcon />
-      </BaseButton>
+    <>
+      {isFetching && <LoaderBlock />}
 
-      <BaseButton variant="ghost">
-        <ZoomInIcon />
-      </BaseButton>
+      <div className={s.bottomCanvasButtons}>
+        <BaseButton variant="ghost">
+          <DimentionsIcon />
+        </BaseButton>
 
-      <BaseButton variant="ghost">
-        <ZoomOutIcon />
-      </BaseButton>
+        <BaseButton variant="ghost">
+          <ZoomInIcon />
+        </BaseButton>
 
-      <BaseButton
-        variant="ghost"
-        onClick={() => {
-          // downloadArFiles();
-          // handleSaveConfiguration();
-          setIsOpening(true);
-        }}
-      >
-        <ArIcon />
-      </BaseButton>
+        <BaseButton variant="ghost">
+          <ZoomOutIcon />
+        </BaseButton>
 
-      {/* <BaseButton variant="ghost" onClick={handleRestoreConfiguration}>
-        Restore
-      </BaseButton> */}
+        <BaseButton
+          variant="ghost"
+          onClick={() => {
+            // downloadArFiles();
+            // handleSaveConfiguration();
+            setIsOpening(true);
+          }}
+        >
+          <ArIcon />
+        </BaseButton>
 
-      <BaseButton variant="ghost">
-        <ShareIcon />
-      </BaseButton>
+        <BaseButton variant="ghost" onClick={handleRestoreConfiguration}>
+          Restore
+        </BaseButton>
 
-      <BaseButton
-        variant="ghost"
-        onClick={() => {
-          if (isCustomRoute) {
-            resetCustomBuilderScene();
-          } else {
-            resetPrebuiltScene();
-          }
-        }}
-      >
-        <RotateIcon />
-      </BaseButton>
+        <BaseButton variant="ghost">
+          <ShareIcon />
+        </BaseButton>
 
-      <ArPopup isOpening={isOpening} setIsOpening={setIsOpening} />
-    </div>
+        <BaseButton
+          variant="ghost"
+          onClick={() => {
+            if (isCustomRoute) {
+              resetCustomBuilderScene();
+            } else {
+              resetPrebuiltScene();
+            }
+          }}
+        >
+          <RotateIcon />
+        </BaseButton>
+
+        <ArPopup isOpening={isOpening} setIsOpening={setIsOpening} />
+      </div>
+    </>
   );
 };
