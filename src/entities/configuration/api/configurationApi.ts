@@ -1,6 +1,8 @@
 import { baseApi } from "@/shared";
 import { CONFIGURATIONS_TAG } from "@/shared/api/tags";
+
 import { routes } from "./routes";
+
 import type { ConfigurationPayload, ConfigurationRecord } from "./types";
 
 export const configurationApi = baseApi.injectEndpoints({
@@ -39,5 +41,6 @@ export const {
   useSaveConfigurationMutation,
   // useListConfigurationsQuery,
   useRestoreConfigurationQuery,
+  useLazyRestoreConfigurationQuery,
   // useDeleteConfigurationMutation,
 } = configurationApi;

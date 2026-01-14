@@ -27,10 +27,13 @@ import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 // import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
-import { useSaveConfigurationMutation } from "@/entities";
+import { useLazyRestoreConfigurationQuery, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
+import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import type { PresetProduct } from "@/entities/product/types";
 
 import s from "./BottomCanvasButtons.module.scss";
 
@@ -42,6 +45,9 @@ export const BottomCanvasButtons = () => {
   const isCustomRoute = pathname.includes("/custom");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
+  const [restore, { data, isFetching, error }] = useLazyRestoreConfigurationQuery();
+
+  console.log(data);
 
   const resetCustomBuilderScene = async () => {
     removeAllProducts();
@@ -125,6 +131,76 @@ export const BottomCanvasButtons = () => {
     }
   };
 
+  const handleRestoreConfiguration = async () => {
+    try {
+      const result = await restore(5).unwrap();
+      const configuration = result?.configuration || {};
+      const presetProducts = buildPresetFromConfiguration(configuration);
+
+      console.log(":presetProducts", presetProducts);
+
+      dispatch(resetProducts());
+      removeAllProducts();
+
+      const createdIds = await addPreset(presetProducts);
+      dispatch(addProductPreset(presetProducts));
+
+      const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
+      orderedIds.forEach((id) => dispatch(addProductId(id)));
+
+      const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
+        const key = item.name;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+      }, {});
+
+      Object.entries(groupByName).forEach(([name, items]) => {
+        const [first] = items;
+        if (!first) return;
+
+        if (name.startsWith("Top_")) {
+          if (first.CountertopColor) {
+            setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
+          }
+          return;
+        }
+
+        const config: Record<string, unknown> = {};
+        if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
+        if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
+        if (first.sinkType) config.sinkType = first.sinkType;
+        if (first.Drawers) config.Drawers = first.Drawers;
+
+        if (Object.keys(config).length) {
+          setConfigBatch({ productType: name }, config);
+        }
+      });
+
+      const [firstPreset] = presetProducts;
+      if (firstPreset?.name) {
+        dispatch(setDrawerProduct(firstPreset.name));
+      }
+
+      dispatch(setSelectedProductConfig(firstPreset ?? null));
+
+      const nextDimensions: Partial<{
+        width: number;
+        height: number;
+        depth: number;
+      }> = {};
+      if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+      if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+      if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+
+      if (Object.keys(nextDimensions).length) {
+        dispatch(setSelectedDimensions(nextDimensions));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className={s.bottomCanvasButtons}>
       <BaseButton variant="ghost">
@@ -150,7 +226,9 @@ export const BottomCanvasButtons = () => {
         <ArIcon />
       </BaseButton>
 
-      <ArPopup isOpening={isOpening} setIsOpening={setIsOpening} />
+      {/* <BaseButton variant="ghost" onClick={handleRestoreConfiguration}>
+        Restore
+      </BaseButton> */}
 
       <BaseButton variant="ghost">
         <ShareIcon />
@@ -168,6 +246,8 @@ export const BottomCanvasButtons = () => {
       >
         <RotateIcon />
       </BaseButton>
+
+      <ArPopup isOpening={isOpening} setIsOpening={setIsOpening} />
     </div>
   );
 };
