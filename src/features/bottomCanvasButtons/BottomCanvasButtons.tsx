@@ -30,7 +30,7 @@ import { productMockData } from "@/entities/product/ui/ProductModelsGrid/Product
 import {
   useCreateArConfigurationMutation,
   useLazyRestoreConfigurationQuery,
-  useSaveConfigurationMutation,
+  // useSaveConfigurationMutation,
 } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -53,7 +53,7 @@ export const BottomCanvasButtons = () => {
   const navigate = useNavigate();
   const isCustomRoute = pathname.includes("/custom");
 
-  const [saveConfiguration] = useSaveConfigurationMutation();
+  // const [saveConfiguration] = useSaveConfigurationMutation();
   const [restore, { data, isFetching }] = useLazyRestoreConfigurationQuery();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
@@ -293,7 +293,7 @@ export const BottomCanvasButtons = () => {
         </BaseButton>
 
         <BaseButton variant="ghost" onClick={handleRestoreConfiguration}>
-          Restore
+          R
         </BaseButton>
 
         <BaseButton variant="ghost">
