@@ -374,6 +374,7 @@ export const CabinetBuilderPage = () => {
   const [searchParams] = useSearchParams();
   useEffect(() => {
     const target = searchParams.get("accordion");
+
     if (target) setAccordionValue(target);
   }, [searchParams]);
 

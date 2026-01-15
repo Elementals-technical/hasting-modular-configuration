@@ -1,10 +1,12 @@
+import { Link } from "react-router-dom";
+
 import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
+import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
+
 import { PopupRightContent } from "../../PopupRightContent/PopupRightContent";
 
 import s from "./HelpPopup.module.scss";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 interface HelpPopupI {
   isOpening: boolean;
@@ -18,6 +20,7 @@ export const HelpPopup: React.FC<HelpPopupI> = ({ isOpening, setIsOpening }) => 
         setIsOpening(false);
       }}
       isOpening={isOpening}
+      animationDurationMs={400}
     >
       <div className={s.instrPopup}>
         <div className={s.header}>
