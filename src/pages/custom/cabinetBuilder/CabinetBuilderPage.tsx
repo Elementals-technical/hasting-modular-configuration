@@ -24,6 +24,7 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
   setDrawerProduct,
+  addProductPreset,
 } from "@/entities/product/model/store/slice";
 
 import {
@@ -46,7 +47,7 @@ import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selector
 
 import { optionsMockData, optionsMockData2 } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -77,6 +78,7 @@ export const CabinetBuilderPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
   const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
@@ -198,7 +200,6 @@ export const CabinetBuilderPage = () => {
 
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
-    if (configId) return;
     if (productsPresets.length) return;
     if (hasBootstrappedCabinetBuilder) return;
 
@@ -284,15 +285,16 @@ export const CabinetBuilderPage = () => {
     configId,
   ]);
 
-  useEffect(() => {
-    if (!canvasReady || !configId || bootstrappedRef.current) return;
-
-    bootstrappedRef.current = true;
-    dispatch(setHasBootstrappedCabinetBuilder(true));
-
-    const run = async () => {
+  const handleRestoreConfiguration = useCallback(
+    async (id: string | number) => {
       try {
-        const result = await restoreConfiguration(configId).unwrap();
+        const result = await restoreConfiguration(id).unwrap();
+
+        const path = result?.metadata?.path;
+        if (typeof path === "string" && path.startsWith("/")) {
+          navigate(path);
+        }
+
         const configuration = result?.configuration || {};
         const presetProducts = buildPresetFromConfiguration(configuration);
 
@@ -303,7 +305,7 @@ export const CabinetBuilderPage = () => {
         dispatch(addProductPreset(presetProducts));
 
         const orderedIds = Array.isArray(createdIds) && createdIds.length ? createdIds : getOrderedProductIds();
-        orderedIds.forEach((id) => dispatch(addProductId(id)));
+        orderedIds.forEach((productId) => dispatch(addProductId(productId)));
 
         const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
           const key = item.name;
@@ -329,6 +331,8 @@ export const CabinetBuilderPage = () => {
           if (first.sinkType) config.sinkType = first.sinkType;
           if (first.Drawers) config.Drawers = first.Drawers;
 
+          console.log("config", config);
+
           if (Object.keys(config).length) {
             setConfigBatch({ productType: name }, config);
           }
@@ -340,6 +344,8 @@ export const CabinetBuilderPage = () => {
         }
 
         dispatch(setSelectedProductConfig(firstPreset ?? null));
+
+        console.log("config firstPreset", firstPreset);
 
         const nextDimensions: Partial<typeof selectedDimensions> = {};
         if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
@@ -357,10 +363,18 @@ export const CabinetBuilderPage = () => {
       } catch (error) {
         console.error("[Configurations] Restore failed", error);
       }
-    };
+    },
+    [dispatch, navigate, resolveCabinetTypeId, restoreConfiguration],
+  );
 
-    run();
-  }, [canvasReady, configId, dispatch, restoreConfiguration, resolveCabinetTypeId, selectedDimensions]);
+  useEffect(() => {
+    if (!canvasReady || !configId || bootstrappedRef.current) return;
+
+    bootstrappedRef.current = true;
+    dispatch(setHasBootstrappedCabinetBuilder(true));
+
+    handleRestoreConfiguration(configId);
+  }, [canvasReady, configId, dispatch, handleRestoreConfiguration]);
 
   const handleResetToDefaultState = useCallback(() => {
     setAccordionValue(CABINET_TYPE_ID);

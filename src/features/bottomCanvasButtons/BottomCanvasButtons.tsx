@@ -38,9 +38,6 @@ import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
-import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import type { PresetProduct } from "@/entities/product/types";
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 
 import s from "./BottomCanvasButtons.module.scss";
@@ -55,7 +52,6 @@ export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
 
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const isCustomRoute = pathname.includes("/custom");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
@@ -205,83 +201,83 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  const handleRestoreConfiguration = async () => {
-    try {
-      const result = await restore(5).unwrap();
+  // const handleRestoreConfiguration = async () => {
+  //   try {
+  //     const result = await restore(5).unwrap();
 
-      // Set default path in which the configuration will be restored.
-      const path = result?.metadata?.path;
-      if (typeof path === "string" && path.startsWith("/")) {
-        navigate(path);
-      }
+  //     // Set default path in which the configuration will be restored.
+  //     const path = result?.metadata?.path;
+  //     if (typeof path === "string" && path.startsWith("/")) {
+  //       navigate(path);
+  //     }
 
-      const configuration = result?.configuration || {};
-      const presetProducts = buildPresetFromConfiguration(configuration);
+  //     const configuration = result?.configuration || {};
+  //     const presetProducts = buildPresetFromConfiguration(configuration);
 
-      console.log(":presetProducts", presetProducts);
+  //     console.log(":presetProducts", presetProducts);
 
-      dispatch(resetProducts());
-      removeAllProducts();
+  //     dispatch(resetProducts());
+  //     removeAllProducts();
 
-      const createdIds = await addPreset(presetProducts);
-      dispatch(addProductPreset(presetProducts));
+  //     const createdIds = await addPreset(presetProducts);
+  //     dispatch(addProductPreset(presetProducts));
 
-      // @ts-ignore
-      const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
-      orderedIds.forEach((id) => dispatch(addProductId(id)));
+  //     // @ts-ignore
+  //     const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
+  //     orderedIds.forEach((id) => dispatch(addProductId(id)));
 
-      const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
-        const key = item.name;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(item);
-        return acc;
-      }, {});
+  //     const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
+  //       const key = item.name;
+  //       if (!acc[key]) acc[key] = [];
+  //       acc[key].push(item);
+  //       return acc;
+  //     }, {});
 
-      Object.entries(groupByName).forEach(([name, items]) => {
-        const [first] = items;
-        if (!first) return;
+  //     Object.entries(groupByName).forEach(([name, items]) => {
+  //       const [first] = items;
+  //       if (!first) return;
 
-        if (name.startsWith("Top_")) {
-          if (first.CountertopColor) {
-            setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
-          }
-          return;
-        }
+  //       if (name.startsWith("Top_")) {
+  //         if (first.CountertopColor) {
+  //           setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
+  //         }
+  //         return;
+  //       }
 
-        const config: Record<string, unknown> = {};
-        if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
-        if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
-        if (first.sinkType) config.sinkType = first.sinkType;
-        if (first.Drawers) config.Drawers = first.Drawers;
+  //       const config: Record<string, unknown> = {};
+  //       if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
+  //       if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
+  //       if (first.sinkType) config.sinkType = first.sinkType;
+  //       if (first.Drawers) config.Drawers = first.Drawers;
 
-        if (Object.keys(config).length) {
-          setConfigBatch({ productType: name }, config);
-        }
-      });
+  //       if (Object.keys(config).length) {
+  //         setConfigBatch({ productType: name }, config);
+  //       }
+  //     });
 
-      const [firstPreset] = presetProducts;
-      if (firstPreset?.name) {
-        dispatch(setDrawerProduct(firstPreset.name));
-      }
+  //     const [firstPreset] = presetProducts;
+  //     if (firstPreset?.name) {
+  //       dispatch(setDrawerProduct(firstPreset.name));
+  //     }
 
-      dispatch(setSelectedProductConfig(firstPreset ?? null));
+  //     dispatch(setSelectedProductConfig(firstPreset ?? null));
 
-      const nextDimensions: Partial<{
-        width: number;
-        height: number;
-        depth: number;
-      }> = {};
-      if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
-      if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
-      if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+  //     const nextDimensions: Partial<{
+  //       width: number;
+  //       height: number;
+  //       depth: number;
+  //     }> = {};
+  //     if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+  //     if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+  //     if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
 
-      if (Object.keys(nextDimensions).length) {
-        dispatch(setSelectedDimensions(nextDimensions));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  //     if (Object.keys(nextDimensions).length) {
+  //       dispatch(setSelectedDimensions(nextDimensions));
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   return (
     <>
@@ -308,10 +304,6 @@ export const BottomCanvasButtons = () => {
           }}
         >
           <ArIcon />
-        </BaseButton>
-
-        <BaseButton style={{ display: "none" }} variant="ghost" onClick={handleRestoreConfiguration}>
-          R
         </BaseButton>
 
         <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
