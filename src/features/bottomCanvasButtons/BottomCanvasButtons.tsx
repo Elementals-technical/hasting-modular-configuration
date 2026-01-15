@@ -30,7 +30,7 @@ import { productMockData } from "@/entities/product/ui/ProductModelsGrid/Product
 import {
   useCreateArConfigurationMutation,
   useLazyRestoreConfigurationQuery,
-  // useSaveConfigurationMutation,
+  useSaveConfigurationMutation,
 } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -47,8 +47,10 @@ import s from "./BottomCanvasButtons.module.scss";
 
 export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
-  const [isShareOpening, setIsShareOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
+
+  const [isShareOpening, setIsShareOpening] = useState(false);
+  const [shareValue, setShareValue] = useState("");
 
   const dispatch = useAppDispatch();
 
@@ -56,7 +58,7 @@ export const BottomCanvasButtons = () => {
   const navigate = useNavigate();
   const isCustomRoute = pathname.includes("/custom");
 
-  // const [saveConfiguration] = useSaveConfigurationMutation();
+  const [saveConfiguration] = useSaveConfigurationMutation();
   const [restore, { data, isFetching }] = useLazyRestoreConfigurationQuery();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
@@ -117,32 +119,40 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  // const handleSaveConfiguration = async () => {
-  //   const ids = getOrderedProductIds();
+  const handleSaveConfiguration = async () => {
+    const ids = getOrderedProductIds();
 
-  //   if (!ids.length) {
-  //     console.warn("[Configurations] No products to save");
-  //     return;
-  //   }
+    if (!ids.length) {
+      console.warn("[Configurations] No products to save");
+      return;
+    }
 
-  //   const configs = await Promise.all(ids.map((id) => getConfig(id)));
-  //   const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-  //     acc[id] = configs[index];
-  //     return acc;
-  //   }, {});
+    const configs = await Promise.all(ids.map((id) => getConfig(id)));
+    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+      acc[id] = configs[index];
+      return acc;
+    }, {});
 
-  //   const metadata = {
-  //     path: "custom/cabinet-builder",
-  //     savedAt: new Date().toISOString(),
-  //   };
+    const metadata = {
+      path: pathname,
+      savedAt: new Date().toISOString(),
+    };
 
-  //   try {
-  //     await saveConfiguration({ configuration, metadata }).unwrap();
-  //     console.log("[Configurations] Saved");
-  //   } catch (error) {
-  //     console.error("[Configurations] Save failed", error);
-  //   }
-  // };
+    try {
+      const result = await saveConfiguration({ configuration, metadata }).unwrap();
+
+      const configId = result?.id;
+
+      if (configId !== undefined && configId !== null) {
+        const url = `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(String(configId))}`;
+
+        setShareValue(url);
+        setIsShareOpening(true);
+      }
+    } catch (error) {
+      console.error("[Configurations] Save failed", error);
+    }
+  };
 
   const handleCreateArConfiguration = async () => {
     const ids = getOrderedProductIds();
@@ -304,7 +314,7 @@ export const BottomCanvasButtons = () => {
           R
         </BaseButton>
 
-        <BaseButton variant="ghost" onClick={() => setIsShareOpening(true)}>
+        <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
           <ShareIcon />
         </BaseButton>
 
@@ -329,7 +339,18 @@ export const BottomCanvasButtons = () => {
           setIsOpening={setIsOpening}
         />
 
-        <SharePopup isOpening={isShareOpening} setIsOpening={setIsShareOpening} />
+        <SharePopup
+          isOpening={isShareOpening}
+          setIsOpening={setIsShareOpening}
+          shareValue={shareValue}
+          onCopy={() => {
+            if (!shareValue) return;
+
+            navigator.clipboard.writeText(shareValue).catch((err) => {
+              console.error("[Share] Failed to copy", err);
+            });
+          }}
+        />
       </div>
     </>
   );

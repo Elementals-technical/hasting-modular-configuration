@@ -51,6 +51,9 @@ import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useLazyRestoreConfigurationQuery } from "@/entities";
+import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
+import type { PresetProduct } from "@/entities/product/types";
 
 type AccordionConfig = {
   id: string;
@@ -74,6 +77,9 @@ export const CabinetBuilderPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  const configId = searchParams.get("configId");
+  const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedProducts = useAppSelector(getSelectedProducts);
@@ -192,6 +198,7 @@ export const CabinetBuilderPage = () => {
 
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
+    if (configId) return;
     if (productsPresets.length) return;
     if (hasBootstrappedCabinetBuilder) return;
 
@@ -207,6 +214,7 @@ export const CabinetBuilderPage = () => {
   useEffect(() => {
     if (!canvasReady || !productsPresets.length || bootstrappedRef.current) return;
     if (hasBootstrappedCabinetBuilder) return;
+    if (configId) return;
 
     bootstrappedRef.current = true;
     dispatch(setHasBootstrappedCabinetBuilder(true));
@@ -273,7 +281,86 @@ export const CabinetBuilderPage = () => {
     countertopColor,
     handleGrooveColor,
     sinkType,
+    configId,
   ]);
+
+  useEffect(() => {
+    if (!canvasReady || !configId || bootstrappedRef.current) return;
+
+    bootstrappedRef.current = true;
+    dispatch(setHasBootstrappedCabinetBuilder(true));
+
+    const run = async () => {
+      try {
+        const result = await restoreConfiguration(configId).unwrap();
+        const configuration = result?.configuration || {};
+        const presetProducts = buildPresetFromConfiguration(configuration);
+
+        dispatch(resetProducts());
+        removeAllProducts();
+
+        const createdIds = await addPreset(presetProducts);
+        dispatch(addProductPreset(presetProducts));
+
+        const orderedIds = Array.isArray(createdIds) && createdIds.length ? createdIds : getOrderedProductIds();
+        orderedIds.forEach((id) => dispatch(addProductId(id)));
+
+        const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
+          const key = item.name;
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(item);
+          return acc;
+        }, {});
+
+        Object.entries(groupByName).forEach(([name, items]) => {
+          const [first] = items;
+          if (!first) return;
+
+          if (name.startsWith("Top_")) {
+            if (first.CountertopColor) {
+              setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
+            }
+            return;
+          }
+
+          const config: Record<string, unknown> = {};
+          if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
+          if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
+          if (first.sinkType) config.sinkType = first.sinkType;
+          if (first.Drawers) config.Drawers = first.Drawers;
+
+          if (Object.keys(config).length) {
+            setConfigBatch({ productType: name }, config);
+          }
+        });
+
+        const [firstPreset] = presetProducts;
+        if (firstPreset?.name) {
+          dispatch(setDrawerProduct(firstPreset.name));
+        }
+
+        dispatch(setSelectedProductConfig(firstPreset ?? null));
+
+        const nextDimensions: Partial<typeof selectedDimensions> = {};
+        if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+        if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+        if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+
+        if (Object.keys(nextDimensions).length) {
+          dispatch(setSelectedDimensions(nextDimensions));
+        }
+
+        const cabinetTypeId = resolveCabinetTypeId(firstPreset?.name);
+        if (cabinetTypeId !== null) {
+          dispatch(setActiveCabinetType(cabinetTypeId));
+        }
+      } catch (error) {
+        console.error("[Configurations] Restore failed", error);
+      }
+    };
+
+    run();
+  }, [canvasReady, configId, dispatch, restoreConfiguration, resolveCabinetTypeId, selectedDimensions]);
 
   const handleResetToDefaultState = useCallback(() => {
     setAccordionValue(CABINET_TYPE_ID);
@@ -371,7 +458,6 @@ export const CabinetBuilderPage = () => {
     handleResetToDefaultState,
   ]);
 
-  const [searchParams] = useSearchParams();
   useEffect(() => {
     const target = searchParams.get("accordion");
 
