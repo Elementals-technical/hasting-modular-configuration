@@ -177,9 +177,14 @@ export const BottomCanvasButtons = () => {
         usdz: usdzFile,
       }).unwrap();
 
-      const fileUrl = result?.usdzUrl || result?.glbUrl || "";
-
-      const qrValue = fileUrl ? `${window.location.origin}/ar-download?url=${encodeURIComponent(fileUrl)}` : "";
+      const glbUrl = result?.glbUrl || "";
+      const usdzUrl = result?.usdzUrl || "";
+      const qrValue =
+        glbUrl || usdzUrl
+          ? `${window.location.origin}/ar-download?glb=${encodeURIComponent(glbUrl)}&usdz=${encodeURIComponent(
+              usdzUrl,
+            )}`
+          : "";
 
       setQRValue(qrValue);
     } catch (err) {
@@ -292,7 +297,7 @@ export const BottomCanvasButtons = () => {
           <ArIcon />
         </BaseButton>
 
-        <BaseButton variant="ghost" onClick={handleRestoreConfiguration}>
+        <BaseButton style={{ display: "none" }} variant="ghost" onClick={handleRestoreConfiguration}>
           R
         </BaseButton>
 
