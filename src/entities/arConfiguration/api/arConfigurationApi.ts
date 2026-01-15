@@ -7,14 +7,15 @@ import type { ArConfigurationPayload, ArConfigurationRecord } from "./types";
 
 const buildFormData = (payload: ArConfigurationPayload) => {
   const formData = new FormData();
+
   formData.append("configuration", JSON.stringify(payload.configuration));
 
   if (payload.glb) {
-    formData.append("glb", payload.glb);
+    formData.append("glb", payload.glb, payload.glb.name);
   }
 
   if (payload.usdz) {
-    formData.append("usdz", payload.usdz);
+    formData.append("usdz", payload.usdz, payload.usdz.name);
   }
 
   return formData;

@@ -27,7 +27,11 @@ import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 // import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
-import { useLazyRestoreConfigurationQuery, useSaveConfigurationMutation } from "@/entities";
+import {
+  useCreateArConfigurationMutation,
+  useLazyRestoreConfigurationQuery,
+  useSaveConfigurationMutation,
+} from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
@@ -35,11 +39,13 @@ import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import type { PresetProduct } from "@/entities/product/types";
+import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 
 import s from "./BottomCanvasButtons.module.scss";
 
 export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
+  const [QRValue, setQRValue] = useState("");
 
   const dispatch = useAppDispatch();
 
@@ -49,6 +55,7 @@ export const BottomCanvasButtons = () => {
 
   const [saveConfiguration] = useSaveConfigurationMutation();
   const [restore, { data, isFetching }] = useLazyRestoreConfigurationQuery();
+  const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
   console.log(data);
 
@@ -131,6 +138,50 @@ export const BottomCanvasButtons = () => {
       console.log("[Configurations] Saved");
     } catch (error) {
       console.error("[Configurations] Save failed", error);
+    }
+  };
+
+  const handleCreateArConfiguration = async () => {
+    const ids = getOrderedProductIds();
+
+    if (!ids.length) {
+      console.warn("[AR] No products to export");
+      return;
+    }
+
+    const configs = await Promise.all(ids.map((id) => getConfig(id)));
+    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+      acc[id] = configs[index];
+      return acc;
+    }, {});
+
+    const arExport = await exportToAR("both");
+    if (!arExport) {
+      console.warn("[AR] Export failed");
+      return;
+    }
+
+    const timestamp = Date.now();
+    const glbFile = arExport.glb
+      ? new File([arExport.glb], `configuration_${timestamp}.glb`, { type: arExport.glb.type })
+      : undefined;
+
+    const usdzFile = arExport.usdz
+      ? new File([arExport.usdz], `configuration_${timestamp}.usdz`, { type: arExport.usdz.type })
+      : undefined;
+
+    try {
+      const result = await createArConfiguration({
+        configuration,
+        glb: glbFile,
+        usdz: usdzFile,
+      }).unwrap();
+
+      const qrValue = result?.usdzUrl || result?.glbUrl || "";
+
+      setQRValue(qrValue);
+    } catch (err) {
+      console.error("[AR] Failed to create AR configuration", err);
     }
   };
 
@@ -231,9 +282,8 @@ export const BottomCanvasButtons = () => {
         <BaseButton
           variant="ghost"
           onClick={() => {
-            // downloadArFiles();
-            // handleSaveConfiguration();
             setIsOpening(true);
+            handleCreateArConfiguration();
           }}
         >
           <ArIcon />
@@ -260,7 +310,13 @@ export const BottomCanvasButtons = () => {
           <RotateIcon />
         </BaseButton>
 
-        <ArPopup isOpening={isOpening} setIsOpening={setIsOpening} />
+        <ArPopup
+          isLoadingAr={isFetchingArConfig}
+          qrValue={QRValue}
+          qrSize={200}
+          isOpening={isOpening}
+          setIsOpening={setIsOpening}
+        />
       </div>
     </>
   );

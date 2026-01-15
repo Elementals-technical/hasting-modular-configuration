@@ -1,18 +1,22 @@
+import QRCode from "react-qr-code";
+
 import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
 import { PopupCenterContent } from "../../PopupCenterContent/PopupCenterContent";
 
-import ar_image from "@/shared/assets/images/png/ar_image.png";
-
 import s from "./ArPopup.module.scss";
+import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 
 interface ArPopupI {
   isOpening: boolean;
   setIsOpening: (isOpening: boolean) => void;
+  qrValue?: string;
+  qrSize?: number;
+  isLoadingAr: boolean;
 }
 
-export const ArPopup: React.FC<ArPopupI> = ({ isOpening, setIsOpening }) => {
+export const ArPopup: React.FC<ArPopupI> = ({ isLoadingAr, isOpening, setIsOpening, qrValue, qrSize = 180 }) => {
   return (
     <PopupCenterContent
       onClose={() => {
@@ -38,7 +42,7 @@ export const ArPopup: React.FC<ArPopupI> = ({ isOpening, setIsOpening }) => {
         </div>
 
         <div className={s.arImage}>
-          <img src={ar_image} alt="QR image" />
+          {isLoadingAr ? <LoaderBlock /> : qrValue ? <QRCode value={qrValue} size={qrSize} /> : null}
         </div>
 
         <div className={s.footer}>
