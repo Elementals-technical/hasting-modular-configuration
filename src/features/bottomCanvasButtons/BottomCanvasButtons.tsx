@@ -114,32 +114,32 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  const handleSaveConfiguration = async () => {
-    const ids = getOrderedProductIds();
+  // const handleSaveConfiguration = async () => {
+  //   const ids = getOrderedProductIds();
 
-    if (!ids.length) {
-      console.warn("[Configurations] No products to save");
-      return;
-    }
+  //   if (!ids.length) {
+  //     console.warn("[Configurations] No products to save");
+  //     return;
+  //   }
 
-    const configs = await Promise.all(ids.map((id) => getConfig(id)));
-    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-      acc[id] = configs[index];
-      return acc;
-    }, {});
+  //   const configs = await Promise.all(ids.map((id) => getConfig(id)));
+  //   const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+  //     acc[id] = configs[index];
+  //     return acc;
+  //   }, {});
 
-    const metadata = {
-      path: "custom/cabinet-builder",
-      savedAt: new Date().toISOString(),
-    };
+  //   const metadata = {
+  //     path: "custom/cabinet-builder",
+  //     savedAt: new Date().toISOString(),
+  //   };
 
-    try {
-      await saveConfiguration({ configuration, metadata }).unwrap();
-      console.log("[Configurations] Saved");
-    } catch (error) {
-      console.error("[Configurations] Save failed", error);
-    }
-  };
+  //   try {
+  //     await saveConfiguration({ configuration, metadata }).unwrap();
+  //     console.log("[Configurations] Saved");
+  //   } catch (error) {
+  //     console.error("[Configurations] Save failed", error);
+  //   }
+  // };
 
   const handleCreateArConfiguration = async () => {
     const ids = getOrderedProductIds();
@@ -208,6 +208,7 @@ export const BottomCanvasButtons = () => {
       const createdIds = await addPreset(presetProducts);
       dispatch(addProductPreset(presetProducts));
 
+      // @ts-ignore
       const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
       orderedIds.forEach((id) => dispatch(addProductId(id)));
 
