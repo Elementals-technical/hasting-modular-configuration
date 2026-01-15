@@ -35,6 +35,8 @@ import {
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
+import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
+
 import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -45,6 +47,7 @@ import s from "./BottomCanvasButtons.module.scss";
 
 export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
+  const [isShareOpening, setIsShareOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
 
   const dispatch = useAppDispatch();
@@ -301,7 +304,7 @@ export const BottomCanvasButtons = () => {
           R
         </BaseButton>
 
-        <BaseButton variant="ghost">
+        <BaseButton variant="ghost" onClick={() => setIsShareOpening(true)}>
           <ShareIcon />
         </BaseButton>
 
@@ -325,6 +328,8 @@ export const BottomCanvasButtons = () => {
           isOpening={isOpening}
           setIsOpening={setIsOpening}
         />
+
+        <SharePopup isOpening={isShareOpening} setIsOpening={setIsShareOpening} />
       </div>
     </>
   );
