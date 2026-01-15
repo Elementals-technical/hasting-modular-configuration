@@ -177,7 +177,9 @@ export const BottomCanvasButtons = () => {
         usdz: usdzFile,
       }).unwrap();
 
-      const qrValue = result?.usdzUrl || result?.glbUrl || "";
+      const fileUrl = result?.usdzUrl || result?.glbUrl || "";
+
+      const qrValue = fileUrl ? `${window.location.origin}/ar-download?url=${encodeURIComponent(fileUrl)}` : "";
 
       setQRValue(qrValue);
     } catch (err) {

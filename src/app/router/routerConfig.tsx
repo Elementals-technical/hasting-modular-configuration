@@ -14,6 +14,7 @@ import {
   CabinetBuilderPage,
   CabinetPage,
   ModelDetailsPage,
+  ArDownloadPage,
 } from "@/pages";
 
 import { ROUTES } from "@/shared";
@@ -61,5 +62,9 @@ export const routerConfig = createBrowserRouter([
   {
     path: ROUTES.NOT_FOUND,
     element: <Navigate to={ROUTES.HOME} replace />,
+  },
+  {
+    path: ROUTES.AR_DOWNLOAD,
+    element: <ArDownloadPage />,
   },
 ]);
