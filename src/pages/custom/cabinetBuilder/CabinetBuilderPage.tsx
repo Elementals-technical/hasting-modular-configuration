@@ -679,18 +679,25 @@ export const CabinetBuilderPage = () => {
   ];
 
   return (
-    <div className={s.cabinetBuilder}>
-      {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
+    <>
+      <div className={s.cabinetBuilder}>
+        {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
 
-      <ConfiguratorAccordionGroup defaultValue={defaultValue} value={accordionValue} onValueChange={setAccordionValue}>
-        {accordions.map(({ id, title, content }) => (
-          <ConfiguratorAccordionItem key={id} value={id} title={title}>
-            {content}
-          </ConfiguratorAccordionItem>
-        ))}
-      </ConfiguratorAccordionGroup>
+        <ConfiguratorAccordionGroup
+          defaultValue={defaultValue}
+          value={accordionValue}
+          onValueChange={setAccordionValue}
+        >
+          {accordions.map(({ id, title, content }) => (
+            <ConfiguratorAccordionItem key={id} value={id} title={title}>
+              {content}
+            </ConfiguratorAccordionItem>
+          ))}
+        </ConfiguratorAccordionGroup>
 
-      <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
-    </div>
+        <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
+      </div>
+
+    </>
   );
 };

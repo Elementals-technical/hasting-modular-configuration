@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
@@ -7,8 +5,23 @@ import { PopupCenterContent } from "../../PopupCenterContent/PopupCenterContent"
 
 import s from "./AttentionPopup.module.scss";
 
-export const AttentionPopup = () => {
-  const [isOpening, setIsOpening] = useState(true);
+interface AttentionPopupI {
+  isOpening: boolean;
+  setIsOpening: (isOpening: boolean) => void;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+}
+
+export const AttentionPopup: React.FC<AttentionPopupI> = ({ isOpening, setIsOpening, onConfirm, onCancel }) => {
+  const handleCancel = () => {
+    setIsOpening(false);
+    onCancel?.();
+  };
+
+  const handleConfirm = () => {
+    setIsOpening(false);
+    onConfirm?.();
+  };
 
   return (
     <PopupCenterContent
@@ -37,23 +50,13 @@ export const AttentionPopup = () => {
 
         <div className={s.footer}>
           <div>
-            <BaseButton
-              onClick={() => {
-                setIsOpening(false);
-              }}
-              fullWidth={true}
-            >
+            <BaseButton onClick={handleCancel} fullWidth={true}>
               Cancel
             </BaseButton>
           </div>
 
           <div>
-            <BaseButton
-              onClick={() => {
-                setIsOpening(false);
-              }}
-              fullWidth={true}
-            >
+            <BaseButton onClick={handleConfirm} fullWidth={true}>
               Accept
             </BaseButton>
           </div>
