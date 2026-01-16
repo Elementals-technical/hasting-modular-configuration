@@ -1,10 +1,11 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
 import { getActiveStep, getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { toggle } from "@/features/sidebar/model/store/slice";
+import { reset } from "@/entities/product/model/store/slice";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
@@ -21,6 +22,20 @@ export const HomePage = () => {
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
   const activeStep = useAppSelector(getActiveStep);
+
+  // restore default preset when navigate from custom route.
+  const prevPathRef = useRef(pathname);
+
+  useEffect(() => {
+    const prevPath = prevPathRef.current;
+
+    if (prevPath.startsWith("/custom") && pathname.startsWith("/prebuilt/model")) {
+      sessionStorage.setItem("prebuiltModelInitialized", "0");
+      dispatch(reset());
+    }
+
+    prevPathRef.current = pathname;
+  }, [dispatch, pathname]);
 
   const handleClose = () => {
     sessionStorage.setItem("howToBuildSeen", "1");

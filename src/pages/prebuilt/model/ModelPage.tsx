@@ -110,7 +110,10 @@ export const ModelPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
+    const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";
+
     if (!canvasReady || isDefinedProductsRef.current) return;
+    if (hasInitialized) return;
 
     isDefinedProductsRef.current = true;
 
@@ -123,6 +126,8 @@ export const ModelPage = () => {
         if (!productsPresets.length) {
           dispatch(addProductPreset(presetProducts));
         }
+
+        sessionStorage.setItem("prebuiltModelInitialized", "1");
       } catch (error) {
         console.log(error);
       }
