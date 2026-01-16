@@ -7,7 +7,9 @@ import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPo
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/store/slice";
+
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import s from "./StepNavigationBar.module.scss";
 
@@ -53,8 +55,11 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
     }
   };
 
-  const handleConfirmLeave = () => {
+  const handleConfirmLeave = async () => {
     removeAllProducts();
+
+    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
 
