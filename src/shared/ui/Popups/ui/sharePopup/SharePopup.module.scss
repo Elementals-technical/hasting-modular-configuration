@@ -1,5 +1,5 @@
 .instrPopup {
-  width: 380px;
+  width: 520px;
   background-color: #fff;
 
   border-radius: 10px;
@@ -67,20 +67,18 @@
   position: relative;
   height: 223px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .message {
-    display: flex;
-    align-items: center;
-
-    color: red;
-    padding: 10px;
-
-    height: 100%;
-  }
-
   padding-bottom: 20px;
   text-align: center;
+}
+
+.inputWrap {
+  width: 100%;
+
+  input {
+    padding: 16px 20px;
+    width: 100%;
+
+    border-radius: 5px;
+    border: 1px solid #ac5331;
+  }
 }

@@ -3,7 +3,7 @@ import { useState } from "react";
 import s from "./ModeSwitcher.module.scss";
 
 interface ModeSwitcherI {
-  onClick: () => void;
+  onClick: (tab: "prebuilt" | "custom") => void;
 }
 
 export const ModeSwitcher: React.FC<ModeSwitcherI> = ({ onClick }) => {
@@ -11,7 +11,7 @@ export const ModeSwitcher: React.FC<ModeSwitcherI> = ({ onClick }) => {
 
   const handleClickTab = (tab: "prebuilt" | "custom") => {
     setActiveTab(tab);
-    onClick();
+    onClick(tab);
   };
 
   return (

@@ -50,3 +50,28 @@ export const getTowelBarColor = (state: RootState) => state.rootStateUI.product.
 export const getFaucetHolesAmount = (state: RootState) => state.rootStateUI.product.productOptions.FaucetHolesAmount;
 
 export const getFaucetHolesSpacing = (state: RootState) => state.rootStateUI.product.productOptions.FaucetHolesSpacing;
+
+// For attention popup in the prebuilt path.
+export const getHasPrebuiltSelections = (state: RootState) => {
+  const options = state.rootStateUI.product.productOptions;
+
+  return (
+    options.CabinetColor !== "Ardesia DD GL" ||
+    options.sinkType !== "Top_HPLPrisma" ||
+    options.CountertopColor !== "Rosso Rubino 19 MT" ||
+    options.HandleGrooveColor !== "Blu Pavone A6 MT" ||
+    options.Handle !== "" ||
+    options.Thickness !== "" ||
+    options.DrawerPanelFluting !== "" ||
+    options.GrainDirection !== "" ||
+    options.CountertopStyle !== "" ||
+    options.SidePanels !== "" ||
+    options.LedOption !== "" ||
+    options.DividersOption !== "" ||
+    options.DividersStyle !== "" ||
+    options.TowelBarOption !== "None" ||
+    options.TowelBarColor !== "" ||
+    options.FaucetHolesAmount !== "" ||
+    options.FaucetHolesSpacing !== '4"'
+  );
+};

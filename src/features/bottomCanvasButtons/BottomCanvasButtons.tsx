@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import { BaseButton } from "@/shared";
 import { DimentionsIcon } from "@/shared/assets/images/svg/DimentionsIcon";
@@ -7,9 +8,12 @@ import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
+import { addPreset } from "@/utils/functions/playcanvas/addPreset";
+
 import {
   addProductId,
   addProductPreset,
@@ -21,43 +25,71 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
-import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
-import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
-// import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
-import {
-  useCreateArConfigurationMutation,
-  useLazyRestoreConfigurationQuery,
-  // useSaveConfigurationMutation,
-} from "@/entities";
+
+import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
+
+import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
-import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
-import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import type { PresetProduct } from "@/entities/product/types";
+import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
+
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
+import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getCabinetColor,
+  getCountertopStyle,
+  getDividersOption,
+  getDividersStyle,
+  getDrawerPanelFluting,
+  getFaucetHolesAmount,
+  getFaucetHolesSpacing,
+  getGrainDirection,
+  getHandleGrooveColor,
+  getLedOption,
+  getSidePanelsOption,
+  getSinkType,
+  getTowelBarColor,
+  getTowelBarOption,
+} from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
 
 export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
+  const [isArGenerating, setIsArGenerating] = useState(false);
+
+  const { pathname } = useLocation();
+
+  const [isShareOpening, setIsShareOpening] = useState(false);
+  const [shareValue, setShareValue] = useState("");
 
   const dispatch = useAppDispatch();
 
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const sinkType = useAppSelector(getSinkType);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
+  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+  const grainDirection = useAppSelector(getGrainDirection);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const ledOption = useAppSelector(getLedOption);
+  const dividersOption = useAppSelector(getDividersOption);
+  const dividersStyle = useAppSelector(getDividersStyle);
+  const towelBarOption = useAppSelector(getTowelBarOption);
+  const towelBarColor = useAppSelector(getTowelBarColor);
+  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
+  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
+
   const isCustomRoute = pathname.includes("/custom");
 
-  // const [saveConfiguration] = useSaveConfigurationMutation();
-  const [restore, { data, isFetching }] = useLazyRestoreConfigurationQuery();
+  const [saveConfiguration] = useSaveConfigurationMutation();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
-
-  console.log(data);
 
   const resetCustomBuilderScene = async () => {
     removeAllProducts();
@@ -114,38 +146,70 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  // const handleSaveConfiguration = async () => {
-  //   const ids = getOrderedProductIds();
+  const handleSaveConfiguration = async () => {
+    const ids = getOrderedProductIds();
 
-  //   if (!ids.length) {
-  //     console.warn("[Configurations] No products to save");
-  //     return;
-  //   }
+    if (!ids.length) {
+      console.warn("[Configurations] No products to save");
 
-  //   const configs = await Promise.all(ids.map((id) => getConfig(id)));
-  //   const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-  //     acc[id] = configs[index];
-  //     return acc;
-  //   }, {});
+      setShareValue("No products to save");
+      setIsShareOpening(true);
+    }
 
-  //   const metadata = {
-  //     path: "custom/cabinet-builder",
-  //     savedAt: new Date().toISOString(),
-  //   };
+    const configs = await Promise.all(ids.map((id) => getConfig(id)));
+    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+      acc[id] = configs[index];
+      return acc;
+    }, {});
 
-  //   try {
-  //     await saveConfiguration({ configuration, metadata }).unwrap();
-  //     console.log("[Configurations] Saved");
-  //   } catch (error) {
-  //     console.error("[Configurations] Save failed", error);
-  //   }
-  // };
+    const metadata = {
+      path: pathname,
+      savedAt: new Date().toISOString(),
+      orderedProductIds: ids,
+      uiState: {
+        CabinetColor: cabinetColor,
+        HandleGrooveColor: handleGrooveColor,
+        sinkType,
+        CountertopColor: countertopColor,
+        Thickness: countertopThickness,
+        DrawerPanelFluting: drawerPanelFluting,
+        GrainDirection: grainDirection,
+        CountertopStyle: countertopStyle,
+        SidePanels: sidePanelsOption,
+        LedOption: ledOption,
+        DividersOption: dividersOption,
+        DividersStyle: dividersStyle,
+        TowelBarOption: towelBarOption,
+        TowelBarColor: towelBarColor,
+        FaucetHolesAmount: faucetHolesAmount,
+        FaucetHolesSpacing: faucetHolesSpacing,
+      },
+    };
+
+    try {
+      const result = await saveConfiguration({ configuration, metadata }).unwrap();
+
+      const configId = result?.id;
+
+      if (configId !== undefined && configId !== null) {
+        const url = `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(String(configId))}`;
+
+        setShareValue(url);
+        setIsShareOpening(true);
+      }
+    } catch (error) {
+      console.error("[Configurations] Save failed", error);
+    }
+  };
 
   const handleCreateArConfiguration = async () => {
+    setQRValue("");
+    setIsArGenerating(true);
     const ids = getOrderedProductIds();
 
     if (!ids.length) {
       console.warn("[AR] No products to export");
+      setIsArGenerating(false);
       return;
     }
 
@@ -158,6 +222,7 @@ export const BottomCanvasButtons = () => {
     const arExport = await exportToAR("both");
     if (!arExport) {
       console.warn("[AR] Export failed");
+      setIsArGenerating(false);
       return;
     }
 
@@ -189,91 +254,104 @@ export const BottomCanvasButtons = () => {
       setQRValue(qrValue);
     } catch (err) {
       console.error("[AR] Failed to create AR configuration", err);
+    } finally {
+      setIsArGenerating(false);
     }
   };
 
-  const handleRestoreConfiguration = async () => {
+  const handleCopyShareValue = async () => {
+    if (!shareValue) return;
+
     try {
-      const result = await restore(5).unwrap();
-
-      // Set default path in which the configuration will be restored.
-      const path = result?.metadata?.path;
-      if (typeof path === "string" && path.startsWith("/")) {
-        navigate(path);
-      }
-
-      const configuration = result?.configuration || {};
-      const presetProducts = buildPresetFromConfiguration(configuration);
-
-      console.log(":presetProducts", presetProducts);
-
-      dispatch(resetProducts());
-      removeAllProducts();
-
-      const createdIds = await addPreset(presetProducts);
-      dispatch(addProductPreset(presetProducts));
-
-      // @ts-ignore
-      const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
-      orderedIds.forEach((id) => dispatch(addProductId(id)));
-
-      const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
-        const key = item.name;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(item);
-        return acc;
-      }, {});
-
-      Object.entries(groupByName).forEach(([name, items]) => {
-        const [first] = items;
-        if (!first) return;
-
-        if (name.startsWith("Top_")) {
-          if (first.CountertopColor) {
-            setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
-          }
-          return;
-        }
-
-        const config: Record<string, unknown> = {};
-        if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
-        if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
-        if (first.sinkType) config.sinkType = first.sinkType;
-        if (first.Drawers) config.Drawers = first.Drawers;
-
-        if (Object.keys(config).length) {
-          setConfigBatch({ productType: name }, config);
-        }
-      });
-
-      const [firstPreset] = presetProducts;
-      if (firstPreset?.name) {
-        dispatch(setDrawerProduct(firstPreset.name));
-      }
-
-      dispatch(setSelectedProductConfig(firstPreset ?? null));
-
-      const nextDimensions: Partial<{
-        width: number;
-        height: number;
-        depth: number;
-      }> = {};
-      if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
-      if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
-      if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
-
-      if (Object.keys(nextDimensions).length) {
-        dispatch(setSelectedDimensions(nextDimensions));
+      if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareValue);
+        return;
       }
     } catch (err) {
-      console.error(err);
+      console.error("[Share] Failed to copy via clipboard API", err);
     }
   };
+
+  // const handleRestoreConfiguration = async () => {
+  //   try {
+  //     const result = await restore(5).unwrap();
+
+  //     // Set default path in which the configuration will be restored.
+  //     const path = result?.metadata?.path;
+  //     if (typeof path === "string" && path.startsWith("/")) {
+  //       navigate(path);
+  //     }
+
+  //     const configuration = result?.configuration || {};
+  //     const presetProducts = buildPresetFromConfiguration(configuration);
+
+  //     console.log(":presetProducts", presetProducts);
+
+  //     dispatch(resetProducts());
+  //     removeAllProducts();
+
+  //     const createdIds = await addPreset(presetProducts);
+  //     dispatch(addProductPreset(presetProducts));
+
+  //     // @ts-ignore
+  //     const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
+  //     orderedIds.forEach((id) => dispatch(addProductId(id)));
+
+  //     const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
+  //       const key = item.name;
+  //       if (!acc[key]) acc[key] = [];
+  //       acc[key].push(item);
+  //       return acc;
+  //     }, {});
+
+  //     Object.entries(groupByName).forEach(([name, items]) => {
+  //       const [first] = items;
+  //       if (!first) return;
+
+  //       if (name.startsWith("Top_")) {
+  //         if (first.CountertopColor) {
+  //           setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
+  //         }
+  //         return;
+  //       }
+
+  //       const config: Record<string, unknown> = {};
+  //       if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
+  //       if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
+  //       if (first.sinkType) config.sinkType = first.sinkType;
+  //       if (first.Drawers) config.Drawers = first.Drawers;
+
+  //       if (Object.keys(config).length) {
+  //         setConfigBatch({ productType: name }, config);
+  //       }
+  //     });
+
+  //     const [firstPreset] = presetProducts;
+  //     if (firstPreset?.name) {
+  //       dispatch(setDrawerProduct(firstPreset.name));
+  //     }
+
+  //     dispatch(setSelectedProductConfig(firstPreset ?? null));
+
+  //     const nextDimensions: Partial<{
+  //       width: number;
+  //       height: number;
+  //       depth: number;
+  //     }> = {};
+  //     if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+  //     if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+  //     if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+
+  //     if (Object.keys(nextDimensions).length) {
+  //       dispatch(setSelectedDimensions(nextDimensions));
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   return (
     <>
-      {isFetching && <LoaderBlock />}
-
       <div className={s.bottomCanvasButtons}>
         <BaseButton variant="ghost">
           <DimentionsIcon />
@@ -297,11 +375,7 @@ export const BottomCanvasButtons = () => {
           <ArIcon />
         </BaseButton>
 
-        <BaseButton style={{ display: "none" }} variant="ghost" onClick={handleRestoreConfiguration}>
-          R
-        </BaseButton>
-
-        <BaseButton variant="ghost">
+        <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
           <ShareIcon />
         </BaseButton>
 
@@ -319,11 +393,18 @@ export const BottomCanvasButtons = () => {
         </BaseButton>
 
         <ArPopup
-          isLoadingAr={isFetchingArConfig}
+          isLoadingAr={isFetchingArConfig || isArGenerating}
           qrValue={QRValue}
           qrSize={200}
           isOpening={isOpening}
           setIsOpening={setIsOpening}
+        />
+
+        <SharePopup
+          isOpening={isShareOpening}
+          setIsOpening={setIsShareOpening}
+          shareValue={shareValue}
+          onCopy={handleCopyShareValue}
         />
       </div>
     </>

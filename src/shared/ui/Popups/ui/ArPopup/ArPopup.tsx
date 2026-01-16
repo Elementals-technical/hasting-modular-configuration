@@ -42,7 +42,13 @@ export const ArPopup: React.FC<ArPopupI> = ({ isLoadingAr, isOpening, setIsOpeni
         </div>
 
         <div className={s.arImage}>
-          {isLoadingAr ? <LoaderBlock /> : qrValue ? <QRCode value={qrValue} size={qrSize} /> : null}
+          {isLoadingAr ? (
+            <LoaderBlock />
+          ) : qrValue ? (
+            <QRCode value={qrValue} size={qrSize} />
+          ) : (
+            <div className={s.message}>No products to share</div>
+          )}
         </div>
 
         <div className={s.footer}>
