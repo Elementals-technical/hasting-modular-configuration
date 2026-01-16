@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
@@ -9,10 +11,42 @@ interface SharePopupI {
   isOpening: boolean;
   setIsOpening: (isOpening: boolean) => void;
   shareValue?: string;
-  onCopy?: () => void;
+  onCopy?: () => void | Promise<void>;
 }
 
 export const SharePopup: React.FC<SharePopupI> = ({ isOpening, setIsOpening, shareValue = "", onCopy }) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const resetTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isOpening) {
+      setIsCopied(false);
+    }
+
+    return () => {
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = null;
+      }
+    };
+  }, [isOpening]);
+
+  const handleCopy = async () => {
+    if (!shareValue) return;
+
+    await onCopy?.();
+    setIsCopied(true);
+
+    if (resetTimerRef.current !== null) {
+      window.clearTimeout(resetTimerRef.current);
+    }
+
+    resetTimerRef.current = window.setTimeout(() => {
+      setIsCopied(false);
+      resetTimerRef.current = null;
+    }, 2000);
+  };
+
   return (
     <PopupCenterContent
       onClose={() => {
@@ -42,7 +76,9 @@ export const SharePopup: React.FC<SharePopupI> = ({ isOpening, setIsOpening, sha
 
         <div className={s.footer}>
           <div className={s.footerInner}>
-            <BaseButton fullWidth={true}>Copy to clipboard</BaseButton>
+            <BaseButton onClick={handleCopy} fullWidth={true} disabled={!shareValue}>
+              {isCopied ? "Copied" : "Copy to clipboard"}
+            </BaseButton>
           </div>
         </div>
       </div>

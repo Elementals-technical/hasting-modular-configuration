@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import { BaseButton } from "@/shared";
 import { DimentionsIcon } from "@/shared/assets/images/svg/DimentionsIcon";
@@ -7,9 +8,12 @@ import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
+import { addPreset } from "@/utils/functions/playcanvas/addPreset";
+
 import {
   addProductId,
   addProductPreset,
@@ -21,12 +25,10 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
-import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
-import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
-// import { downloadArFiles } from "@/utils/functions/playcanvas/downloadArFiles";
+
+import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
+
 import {
   useCreateArConfigurationMutation,
   useLazyRestoreConfigurationQuery,
@@ -39,6 +41,24 @@ import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
+import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getCabinetColor,
+  getCountertopStyle,
+  getDividersOption,
+  getDividersStyle,
+  getDrawerPanelFluting,
+  getFaucetHolesAmount,
+  getFaucetHolesSpacing,
+  getGrainDirection,
+  getHandleGrooveColor,
+  getLedOption,
+  getSidePanelsOption,
+  getSinkType,
+  getTowelBarColor,
+  getTowelBarOption,
+} from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
 
@@ -46,12 +66,30 @@ export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
 
+  const { pathname } = useLocation();
+
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
 
   const dispatch = useAppDispatch();
 
-  const { pathname } = useLocation();
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const sinkType = useAppSelector(getSinkType);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
+  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+  const grainDirection = useAppSelector(getGrainDirection);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const ledOption = useAppSelector(getLedOption);
+  const dividersOption = useAppSelector(getDividersOption);
+  const dividersStyle = useAppSelector(getDividersStyle);
+  const towelBarOption = useAppSelector(getTowelBarOption);
+  const towelBarColor = useAppSelector(getTowelBarColor);
+  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
+  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
+
   const isCustomRoute = pathname.includes("/custom");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
@@ -132,6 +170,24 @@ export const BottomCanvasButtons = () => {
     const metadata = {
       path: pathname,
       savedAt: new Date().toISOString(),
+      uiState: {
+        CabinetColor: cabinetColor,
+        HandleGrooveColor: handleGrooveColor,
+        sinkType,
+        CountertopColor: countertopColor,
+        Thickness: countertopThickness,
+        DrawerPanelFluting: drawerPanelFluting,
+        GrainDirection: grainDirection,
+        CountertopStyle: countertopStyle,
+        SidePanels: sidePanelsOption,
+        LedOption: ledOption,
+        DividersOption: dividersOption,
+        DividersStyle: dividersStyle,
+        TowelBarOption: towelBarOption,
+        TowelBarColor: towelBarColor,
+        FaucetHolesAmount: faucetHolesAmount,
+        FaucetHolesSpacing: faucetHolesSpacing,
+      },
     };
 
     try {
@@ -198,6 +254,19 @@ export const BottomCanvasButtons = () => {
       setQRValue(qrValue);
     } catch (err) {
       console.error("[AR] Failed to create AR configuration", err);
+    }
+  };
+
+  const handleCopyShareValue = async () => {
+    if (!shareValue) return;
+
+    try {
+      if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareValue);
+        return;
+      }
+    } catch (err) {
+      console.error("[Share] Failed to copy via clipboard API", err);
     }
   };
 
@@ -335,13 +404,7 @@ export const BottomCanvasButtons = () => {
           isOpening={isShareOpening}
           setIsOpening={setIsShareOpening}
           shareValue={shareValue}
-          onCopy={() => {
-            if (!shareValue) return;
-
-            navigator.clipboard.writeText(shareValue).catch((err) => {
-              console.error("[Share] Failed to copy", err);
-            });
-          }}
+          onCopy={handleCopyShareValue}
         />
       </div>
     </>
