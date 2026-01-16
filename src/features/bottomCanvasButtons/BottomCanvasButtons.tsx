@@ -29,17 +29,12 @@ import { productMockData } from "@/entities/product/ui/ProductModelsGrid/Product
 
 import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 
-import {
-  useCreateArConfigurationMutation,
-  useLazyRestoreConfigurationQuery,
-  useSaveConfigurationMutation,
-} from "@/entities";
+import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
-import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import {
   getActiveCountertopColor,
@@ -65,6 +60,7 @@ import s from "./BottomCanvasButtons.module.scss";
 export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
+  const [isArGenerating, setIsArGenerating] = useState(false);
 
   const { pathname } = useLocation();
 
@@ -93,10 +89,7 @@ export const BottomCanvasButtons = () => {
   const isCustomRoute = pathname.includes("/custom");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
-  const [restore, { data, isFetching }] = useLazyRestoreConfigurationQuery();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
-
-  console.log(data);
 
   const resetCustomBuilderScene = async () => {
     removeAllProducts();
@@ -158,7 +151,9 @@ export const BottomCanvasButtons = () => {
 
     if (!ids.length) {
       console.warn("[Configurations] No products to save");
-      return;
+
+      setShareValue("No products to save");
+      setIsShareOpening(true);
     }
 
     const configs = await Promise.all(ids.map((id) => getConfig(id)));
@@ -207,10 +202,13 @@ export const BottomCanvasButtons = () => {
   };
 
   const handleCreateArConfiguration = async () => {
+    setQRValue("");
+    setIsArGenerating(true);
     const ids = getOrderedProductIds();
 
     if (!ids.length) {
       console.warn("[AR] No products to export");
+      setIsArGenerating(false);
       return;
     }
 
@@ -223,6 +221,7 @@ export const BottomCanvasButtons = () => {
     const arExport = await exportToAR("both");
     if (!arExport) {
       console.warn("[AR] Export failed");
+      setIsArGenerating(false);
       return;
     }
 
@@ -254,6 +253,8 @@ export const BottomCanvasButtons = () => {
       setQRValue(qrValue);
     } catch (err) {
       console.error("[AR] Failed to create AR configuration", err);
+    } finally {
+      setIsArGenerating(false);
     }
   };
 
@@ -350,8 +351,6 @@ export const BottomCanvasButtons = () => {
 
   return (
     <>
-      {isFetching && <LoaderBlock />}
-
       <div className={s.bottomCanvasButtons}>
         <BaseButton variant="ghost">
           <DimentionsIcon />
@@ -393,7 +392,7 @@ export const BottomCanvasButtons = () => {
         </BaseButton>
 
         <ArPopup
-          isLoadingAr={isFetchingArConfig}
+          isLoadingAr={isFetchingArConfig || isArGenerating}
           qrValue={QRValue}
           qrSize={200}
           isOpening={isOpening}
