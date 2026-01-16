@@ -312,10 +312,31 @@ export const CabinetBuilderPage = () => {
 
         const configuration = result?.configuration || {};
 
+        const orderedIdsFromMeta = result?.metadata?.orderedProductIds;
+        const sourceIds = Array.isArray(orderedIdsFromMeta)
+          ? orderedIdsFromMeta.filter((id) => typeof id === "string")
+          : [];
+
+        const isTopConfig = (id: string, value: unknown) => {
+          if (!value || typeof value !== "object") return false;
+
+          const record = value as Record<string, unknown>;
+          const name =
+            (typeof record.productType === "string" && record.productType) ||
+            (typeof record.entityName === "string" && record.entityName) ||
+            id;
+
+          return name.startsWith("Top_");
+        };
+
+        const configIdsRaw = sourceIds.length ? sourceIds : Object.keys(configuration);
+        const productConfigIds = configIdsRaw.filter((id) => !isTopConfig(id, configuration[id]));
+        const topConfigIds = configIdsRaw.filter((id) => isTopConfig(id, configuration[id]));
+
         const uiState = result?.metadata?.uiState;
         const uiStateValues = uiState && typeof uiState === "object" ? (uiState as Record<string, unknown>) : null;
 
-        const presetProducts = buildPresetFromConfiguration(configuration);
+        const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
 
         dispatch(resetProducts());
         removeAllProducts();
@@ -327,7 +348,7 @@ export const CabinetBuilderPage = () => {
         const orderedIds = Array.isArray(createdIds) && createdIds.length ? createdIds : getOrderedProductIds();
         orderedIds.forEach((productId) => dispatch(addProductId(productId)));
 
-        const configIds = Object.keys(configuration);
+        const configIds = productConfigIds;
         let sidePanelValue: string | undefined;
         let towelBarValue: string | undefined;
         let towelBarSideValue: string | undefined;
@@ -360,6 +381,22 @@ export const CabinetBuilderPage = () => {
             }
 
             await setConfig(orderedIds[i], configValue);
+          }
+        }
+
+        for (const topId of topConfigIds) {
+          const configValue = configuration[topId];
+
+          if (!configValue || typeof configValue !== "object") continue;
+
+          const record = configValue as Record<string, unknown>;
+          const name =
+            (typeof record.productType === "string" && record.productType) ||
+            (typeof record.entityName === "string" && record.entityName) ||
+            topId;
+
+          if (name.startsWith("Top_")) {
+            await setConfigBatch({ productType: name }, configValue);
           }
         }
 

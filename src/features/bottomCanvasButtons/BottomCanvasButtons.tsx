@@ -165,6 +165,7 @@ export const BottomCanvasButtons = () => {
     const metadata = {
       path: pathname,
       savedAt: new Date().toISOString(),
+      orderedProductIds: ids,
       uiState: {
         CabinetColor: cabinetColor,
         HandleGrooveColor: handleGrooveColor,
