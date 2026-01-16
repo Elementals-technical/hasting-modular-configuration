@@ -697,7 +697,6 @@ export const CabinetBuilderPage = () => {
 
         <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
       </div>
-
     </>
   );
 };

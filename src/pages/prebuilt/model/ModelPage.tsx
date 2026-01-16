@@ -83,6 +83,7 @@ export const ModelPage = () => {
   const handleConfirmLeave = async () => {
     removeAllProducts();
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await setConfigBatch({}, { SidePanel: "None" });
 
     dispatch(reset());
     dispatch(resetPrebuiltProducts());
@@ -113,7 +114,7 @@ export const ModelPage = () => {
     const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";
 
     if (!canvasReady || isDefinedProductsRef.current) return;
-    if (hasInitialized) return;
+    if (hasInitialized && productsPresets.length) return;
 
     isDefinedProductsRef.current = true;
 

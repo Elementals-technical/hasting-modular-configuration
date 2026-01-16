@@ -59,6 +59,7 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
     removeAllProducts();
 
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await setConfigBatch({}, { SidePanel: "None" });
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
