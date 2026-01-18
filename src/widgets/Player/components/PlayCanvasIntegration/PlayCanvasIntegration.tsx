@@ -23,12 +23,12 @@ import {
   getDrawerProduct,
   getSelectedSceneProduct,
 } from "@/entities/product/model/store/selectors";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "019";
@@ -285,6 +285,69 @@ export const PlayCanvasIntegration = () => {
       setDropdownState((prev) => ({ ...prev, visible: false }));
     }
   }, [dispatch, selectedSceneProduct]);
+
+  const normalizeProductType = useCallback((value: string, productId: string) => {
+    const lastDash = value.lastIndexOf("-");
+    if (lastDash > 0) {
+      const suffix = value.slice(lastDash + 1);
+      if (suffix.length >= 6) {
+        return value.slice(0, lastDash);
+      }
+    }
+
+    if (value === productId) {
+      const idLastDash = productId.lastIndexOf("-");
+      if (idLastDash > 0) {
+        const idSuffix = productId.slice(idLastDash + 1);
+        if (idSuffix.length >= 6) {
+          return productId.slice(0, idLastDash);
+        }
+      }
+    }
+
+    return value;
+  }, []);
+  const resolveProductTypeFromId = useCallback(
+    (productId: string, config?: Record<string, unknown>) => {
+      const configProductType = typeof config?.productType === "string" ? config.productType : null;
+      if (configProductType) return normalizeProductType(configProductType, productId);
+
+      const configEntityName = typeof config?.entityName === "string" ? config.entityName : null;
+      if (configEntityName) return normalizeProductType(configEntityName, productId);
+
+      const lastDash = productId.lastIndexOf("-");
+      if (lastDash > 0) {
+        return productId.slice(0, lastDash);
+      }
+
+      return productId;
+    },
+    [normalizeProductType],
+  );
+
+  const handleDuplicateProduct = useCallback(async () => {
+    if (!selectedSceneProduct) return;
+
+    try {
+      const config = await getConfig(selectedSceneProduct);
+      if (!config) return;
+
+      const productType = resolveProductTypeFromId(selectedSceneProduct, config);
+
+      console.log("productType", productType);
+
+      const productId = await addProduct(productType, config);
+
+      if (productId) {
+        dispatch(addProductId(productId));
+        updateDimensionDataForProduct(productId, config);
+      }
+    } catch (error) {
+      console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
+    } finally {
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+    }
+  }, [dispatch, selectedSceneProduct, resolveProductTypeFromId]);
 
   // const handleAddLeft = useCallback(
   //   async (name: string) => {
@@ -665,6 +728,10 @@ export const PlayCanvasIntegration = () => {
     }
 
     if (productIds.length) {
+      if (selectedSceneProduct) {
+        items.push({ id: "duplicate", label: "Duplicate", trailing: "", onClick: handleDuplicateProduct });
+      }
+
       items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
     }
 
@@ -683,6 +750,7 @@ export const PlayCanvasIntegration = () => {
     handleOpenCabinetColor,
     handleOpenCabinetStyle,
     handleAddAdditionalProduct,
+    handleDuplicateProduct,
   ]);
 
   return (
