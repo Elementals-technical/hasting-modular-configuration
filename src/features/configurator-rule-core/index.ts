@@ -1,4 +1,4 @@
-import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { typeCabinetCatalog, type ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { autoChange } from "./lib/autoChange";
 import { ruleCore } from "./lib/ruleCore";
@@ -13,6 +13,7 @@ export const applyConfiguratorRules = (
   selection: Selection,
   intent?: Intent,
   extraContext?: Omit<RuleContext, "selection">,
+  catalog: ConfiguratorCatalog = typeCabinetCatalog,
 ): ApplyRulesResult => {
   const context: RuleContext = {
     selection: { ...selection, width: Number(selection.width) },
@@ -22,7 +23,7 @@ export const applyConfiguratorRules = (
   // Placeholder for intent-aware rules in future; currently we rely on the context only.
   void intent;
 
-  const rulesResult = ruleCore(typeCabinetCatalog, context);
+  const rulesResult = ruleCore(catalog, context);
   const autoChangeResult = autoChange(rulesResult, context);
 
   return {

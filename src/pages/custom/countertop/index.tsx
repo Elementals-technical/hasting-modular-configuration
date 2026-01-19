@@ -9,6 +9,7 @@ import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constant
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
+  getActiveCabinetRule,
   getCountertopStyle,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
@@ -30,6 +31,8 @@ export const CustomCountertopPage = () => {
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
+  const activeCabinetRule = useAppSelector(getActiveCabinetRule);
+  const isSinkDisabled = Boolean(activeCabinetRule) && !activeCabinetRule?.hasSink;
 
   const countertopOptions = useMemo(
     () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -115,7 +118,11 @@ export const CustomCountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: <ProductOptionsGrid data={optionsMockData3} handleAdd={handleAddbasinStyle} />,
+      content: isSinkDisabled ? (
+        <div>Select a cabinet type with sink support to enable basin styles.</div>
+      ) : (
+        <ProductOptionsGrid data={optionsMockData3} handleAdd={handleAddbasinStyle} />
+      ),
     },
   ];
 

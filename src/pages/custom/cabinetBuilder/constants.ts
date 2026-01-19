@@ -5,6 +5,39 @@ import sideShelfImage from "@/shared/assets/images/png/side_shelf.png";
 import oneDrawerImage from "@/shared/assets/images/png/1_drawer.png";
 import twoDrawerImage from "@/shared/assets/images/png/2_drawer.png";
 
+export const cabinetTypeMetadataByCode: Record<
+  string,
+  { title?: string; desc?: string; isShortDesc?: boolean; image?: string }
+> = {
+  "Sink-Base": {
+    title: "Sink Base",
+    desc: "Cabinet with a basin",
+    isShortDesc: false,
+    image: sinkBaseImage,
+  },
+  "Sink-Cabinet": {
+    title: "Sink Cabinet",
+    desc: "Cabinet without a basin",
+    isShortDesc: false,
+    image: sinkCabinetImage,
+  },
+  "Open-Shelf": {
+    title: "Open Shelf",
+    isShortDesc: false,
+    image: openShelfImage,
+  },
+  "Side-Cabinet": {
+    title: "Side Cabinet",
+    isShortDesc: false,
+    image: sideShelfImage,
+  },
+  "Side-Shelf": {
+    title: "Side Shelf",
+    isShortDesc: false,
+    image: sideShelfImage,
+  },
+};
+
 export const optionsMockData = [
   {
     id: 101,
@@ -94,11 +127,11 @@ export const optionsMockData2 = [
       image: twoDrawerImage,
     },
   },
-  // {
-  //   id: 203,
-  //   title: "1 Drawer With Inner Drawer",
-  //   value: "1+inner",
-  //   isAvailable: true,
-  //   isShortDesc: false,
-  // },
+  {
+    id: 203,
+    title: "1 Drawer With Inner Drawer",
+    value: "1+inner",
+    isAvailable: true,
+    isShortDesc: false,
+  },
 ];

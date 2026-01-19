@@ -1,5 +1,4 @@
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
-import { typeCabinetDimensionUniverse } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import type { RuleContext, RuleResult } from "../model/types";
 import type { OptionState, Violation } from "../model/types";
@@ -26,10 +25,24 @@ const buildOptions = <T>(
   return { options };
 };
 
+const uniqueNumbers = (values: number[]) => Array.from(new Set(values)).sort((a, b) => a - b);
+
+const buildDimensionUniverse = (catalog: ConfiguratorCatalog) => {
+  const flatten = (items: number[][]) => items.reduce<number[]>((acc, item) => acc.concat(item), []);
+  const width = uniqueNumbers(flatten(catalog.typeCabinetRules.map((rule) => rule.widths)));
+  const depth = uniqueNumbers(flatten(catalog.typeCabinetRules.map((rule) => rule.depths)));
+  const height = uniqueNumbers(flatten(catalog.typeCabinetRules.map((rule) => rule.heights)));
+  const drawers = Array.from(new Set(catalog.typeCabinetRules.flatMap((rule) => rule.drawers)));
+
+  return { width, depth, height, drawers };
+};
+
 export const typeCabinetRule = (catalog: ConfiguratorCatalog, context: RuleContext): RuleResult => {
   const { selection } = context;
   const ruleForType = catalog.typeCabinetRules.find((rule) => rule.id === selection.cabinetTypeId);
   const hasActiveRule = Boolean(ruleForType);
+
+  const dimensionUniverse = buildDimensionUniverse(catalog);
 
   const allowedWidths = new Set(ruleForType?.widths ?? []);
   const allowedDepths = new Set(ruleForType?.depths ?? []);
@@ -38,10 +51,10 @@ export const typeCabinetRule = (catalog: ConfiguratorCatalog, context: RuleConte
 
   const reason = "Not available for selected cabinet type";
 
-  const widths = buildOptions(typeCabinetDimensionUniverse.width, allowedWidths, reason, !hasActiveRule);
-  const depths = buildOptions(typeCabinetDimensionUniverse.depth, allowedDepths, reason, !hasActiveRule);
-  const heights = buildOptions(typeCabinetDimensionUniverse.height, allowedHeights, reason, !hasActiveRule);
-  const drawers = buildOptions(typeCabinetDimensionUniverse.drawers, allowedDrawers, reason, !hasActiveRule);
+  const widths = buildOptions(dimensionUniverse.width, allowedWidths, reason, !hasActiveRule);
+  const depths = buildOptions(dimensionUniverse.depth, allowedDepths, reason, !hasActiveRule);
+  const heights = buildOptions(dimensionUniverse.height, allowedHeights, reason, !hasActiveRule);
+  const drawers = buildOptions(dimensionUniverse.drawers, allowedDrawers, reason, !hasActiveRule);
 
   const violations: Violation[] = [];
 

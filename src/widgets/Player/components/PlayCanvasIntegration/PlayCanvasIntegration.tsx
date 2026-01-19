@@ -21,11 +21,11 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import {
   getDimensionOptions,
   getDrawerProduct,
+  getCabinetCatalog,
   getSelectedSceneProduct,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -59,6 +59,7 @@ export const PlayCanvasIntegration = () => {
   // const countertopColor = useAppSelector(getActiveCountertopColor);
   // const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
 
@@ -66,10 +67,10 @@ export const PlayCanvasIntegration = () => {
     if (!productType) return null;
 
     const normalized = productType.toLowerCase();
-    const match = typeCabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+    const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
     return match?.id ?? null;
-  }, []);
+  }, [cabinetCatalog.typeCabinetRules]);
 
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {
     const iframeEl = containerRef.current;

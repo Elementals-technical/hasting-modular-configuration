@@ -5,7 +5,7 @@ import {
   type OptionState,
   type Selection,
 } from "@/features/configurator-rule-core";
-import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
@@ -33,6 +33,7 @@ type ProductState = {
   heightBeforePto: number | null;
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
+  cabinetCatalog: ConfiguratorCatalog;
   productOptions: {
     CabinetColor: string;
     sinkType: string;
@@ -115,9 +116,12 @@ const toSelection = (state: ProductState): Selection => ({
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
-  const ruleResult = applyConfiguratorRules(toSelection(state), intent, {
-    selectedProductIds: state.productIds,
-  });
+  const ruleResult = applyConfiguratorRules(
+    toSelection(state),
+    intent,
+    { selectedProductIds: state.productIds },
+    state.cabinetCatalog,
+  );
 
   state.dimensionOptions = {
     width: ruleResult.availableOptions.width.map(mapOptionState),
@@ -152,6 +156,7 @@ const createInitialState = (): ProductState => {
       drawers: [],
       handles: [],
     },
+    cabinetCatalog: { typeCabinetRules: [] },
     productOptions: {
       CabinetColor: "Ardesia DD GL",
       sinkType: "Top_HPLPrisma",
@@ -229,8 +234,11 @@ const productSlice = createSlice({
       next[indexB] = idA;
       state.productIds = next;
     },
-    reset() {
-      return createInitialState();
+    reset(state) {
+      return {
+        ...createInitialState(),
+        cabinetCatalog: state.cabinetCatalog,
+      };
     },
     resetProducts(state) {
       state.productIds = [];
@@ -240,6 +248,10 @@ const productSlice = createSlice({
     },
     resetPrebuiltProducts(state) {
       state.productsPresets = [];
+    },
+    setCabinetCatalog(state, action: PayloadAction<ConfiguratorCatalog>) {
+      state.cabinetCatalog = action.payload;
+      applyRulesToState(state);
     },
     addProductPreset(state, action: PayloadAction<PresetProduct[]>) {
       state.productsPresets = action.payload;
@@ -256,7 +268,7 @@ const productSlice = createSlice({
 
       // When switching to a new cabinet type, set a default height if current height is invalid
       if (newCabinetTypeId !== previousCabinetType && newCabinetTypeId !== null) {
-        const cabinetRule = typeCabinetCatalog.typeCabinetRules.find((rule) => rule.id === newCabinetTypeId);
+        const cabinetRule = state.cabinetCatalog.typeCabinetRules.find((rule) => rule.id === newCabinetTypeId);
 
         if (cabinetRule && cabinetRule.heights.length > 0) {
           const currentHeight = state.selectedDimensions.height;
@@ -397,6 +409,7 @@ export const {
   setFaucetHolesAmount,
   setFaucetHolesSpacing,
   resetPrebuiltProducts,
+  setCabinetCatalog,
   setSelectedSceneProduct,
   resetCabinetBuilderBootstrap,
   setHasBootstrappedCabinetBuilder,

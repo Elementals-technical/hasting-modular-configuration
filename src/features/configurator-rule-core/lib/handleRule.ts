@@ -8,12 +8,8 @@ const HANDLE_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "handle_urban_botcut", label: "Central Groove" },
 ];
 
-const CENTRAL_GROOVE_REQUIRED_DRAWERS = "2";
-const PTO_HEIGHT = 50;
-const CENTRAL_GROOVE_HEIGHT = 53;
-const UPPER_GROOVE_HEIGHT = 56;
-
-const CENTRAL_GROOVE_REASON = "Available only for 2 drawers";
+const DEFAULT_ALLOWED_HANDLES = HANDLE_OPTIONS.map((option) => option.value);
+const CENTRAL_GROOVE_REASON = "Available only for selected drawers";
 const HANDLE_HEIGHT_REASON = "Required for selected handle";
 const DEFAULT_HANDLE_HEIGHT_REASON = "Required for selected handle and all products";
 
@@ -30,7 +26,8 @@ const supportsHeightForAllProducts = (
 
     if (!rule) return false;
 
-    return rule.heights.includes(requiredHeight);
+    const supported = rule.supportsHeight?.length ? rule.supportsHeight : rule.heights;
+    return supported.includes(requiredHeight);
   });
 };
 
@@ -57,34 +54,55 @@ export const handleRule = (
   catalog: ConfiguratorCatalog,
 ): RuleResult => {
   const { selection } = context;
+  const activeRule = catalog.typeCabinetRules.find((rule) => rule.id === selection.cabinetTypeId);
+  const allowedHandles = activeRule?.handlesAllowed?.length ? activeRule.handlesAllowed : DEFAULT_ALLOWED_HANDLES;
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;
-  const isDrawerTwo = selection.drawers === CENTRAL_GROOVE_REQUIRED_DRAWERS;
+  const requiresDrawers = activeRule?.handleUrbanBotcutRequiresDrawers ?? [];
+  const isDrawerAllowed = !hasDrawerSelection || requiresDrawers.length === 0 || requiresDrawers.includes(selection.drawers as string);
 
-  const handles: OptionState<string>[] = HANDLE_OPTIONS.map((option) => {
+  const handles: OptionState<string>[] = allowedHandles.length
+    ? HANDLE_OPTIONS.map((option) => {
+        if (!allowedHandles.includes(option.value)) {
+          return { ...option, enabled: false, reason: "Not available for selected cabinet type" };
+        }
+
     if (option.value !== "handle_urban_botcut") {
       return { ...option, enabled: true };
     }
 
-    if (hasDrawerSelection && !isDrawerTwo) {
+    if (!isDrawerAllowed) {
       return { ...option, enabled: false, reason: CENTRAL_GROOVE_REASON };
     }
 
-    return { ...option, enabled: true };
-  });
+        return { ...option, enabled: true };
+      })
+    : [];
 
   let heightOptions = ruleResult.availableOptions.height;
 
-  if (selection.handle === "handle_pto") {
-    heightOptions = constrainHeightOptions(heightOptions, PTO_HEIGHT, HANDLE_HEIGHT_REASON);
-  } else if (
-    selection.handle === "handle_urban_topcut" &&
-    heightOptions.some((option) => option.value === UPPER_GROOVE_HEIGHT && option.enabled) &&
-    supportsHeightForAllProducts(context.selectedProductIds, catalog, UPPER_GROOVE_HEIGHT)
-  ) {
-    heightOptions = constrainHeightOptions(heightOptions, UPPER_GROOVE_HEIGHT, DEFAULT_HANDLE_HEIGHT_REASON);
-  } else if (selection.handle === "handle_urban_botcut" && isDrawerTwo) {
-    heightOptions = constrainHeightOptions(heightOptions, CENTRAL_GROOVE_HEIGHT, HANDLE_HEIGHT_REASON);
+  const resolveForcedHeight = (handleValue: string) => {
+    if (!activeRule) return null;
+
+    if (handleValue === "handle_pto") return activeRule.handlePtoForcedHeightCm ?? null;
+    if (handleValue === "handle_urban_topcut") return activeRule.handleUrbanTopcutForcedHeightCm ?? null;
+    if (handleValue === "handle_urban_botcut") return activeRule.handleUrbanBotcutForcedHeightCm ?? null;
+    return null;
+  };
+
+  const handleIsAllowed = selection.handle ? allowedHandles.includes(selection.handle) : false;
+  const forcedHeight = selection.handle && handleIsAllowed ? resolveForcedHeight(selection.handle) : null;
+  const hasForcedHeight =
+    typeof forcedHeight === "number" &&
+    heightOptions.some((option) => option.value === forcedHeight && option.enabled) &&
+    supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
+
+  if (selection.handle === "handle_pto" && hasForcedHeight) {
+    heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
+  } else if (selection.handle === "handle_urban_topcut" && hasForcedHeight) {
+    heightOptions = constrainHeightOptions(heightOptions, forcedHeight, DEFAULT_HANDLE_HEIGHT_REASON);
+  } else if (selection.handle === "handle_urban_botcut" && hasForcedHeight && isDrawerAllowed) {
+    heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
   }
 
   return {
