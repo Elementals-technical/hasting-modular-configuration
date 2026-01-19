@@ -129,13 +129,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   useEffect(() => {
+    if (!isOpenedStyleSidebar) return;
     if (!selectedProducts.length) return;
 
     setConfigBatch(selectedProducts, {
       Height: selectedDimensions.height,
       Depth: selectedDimensions.depth,
     });
-  }, [selectedDimensions, selectedProducts]);
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
