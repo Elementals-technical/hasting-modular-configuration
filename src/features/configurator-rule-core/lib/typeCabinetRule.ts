@@ -39,7 +39,7 @@ const buildDimensionUniverse = (catalog: ConfiguratorCatalog) => {
 
 export const typeCabinetRule = (catalog: ConfiguratorCatalog, context: RuleContext): RuleResult => {
   const { selection } = context;
-  const ruleForType = catalog.typeCabinetRules.find((rule) => rule.id === selection.cabinetTypeId);
+  const ruleForType = catalog.typeCabinetRules.find((rule) => rule.code === selection.cabinetType);
   const hasActiveRule = Boolean(ruleForType);
 
   const dimensionUniverse = buildDimensionUniverse(catalog);

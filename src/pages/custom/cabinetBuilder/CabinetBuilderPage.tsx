@@ -154,7 +154,7 @@ export const CabinetBuilderPage = () => {
         const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
 
         return {
-          id: rule.id,
+          id: rule.code,
           title: meta.title ?? rule.code.replace(/-/g, " "),
           name: rule.code,
           desc: meta.desc,
@@ -213,13 +213,13 @@ export const CabinetBuilderPage = () => {
     }
   };
 
-  const setActiveCabinet = (id: number, name?: string) => {
+  const setActiveCabinet = (id: string, name?: string) => {
     console.log("name", name);
 
     dispatch(setActiveCabinetType(id));
     setAccordionValue(CABINET_STYLE_ID);
 
-    const isOpen = cabinetCatalog.typeCabinetRules.find((rule) => rule.id === id)?.isOpen;
+    const isOpen = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id)?.isOpen;
     if (isOpen) {
       dispatch(setOpenStyleSidebar(true));
     }
@@ -232,7 +232,7 @@ export const CabinetBuilderPage = () => {
       const normalized = productType.toLowerCase();
       const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
-      return match?.id ?? null;
+      return match?.code ?? null;
     },
     [cabinetCatalog.typeCabinetRules],
   );
@@ -240,12 +240,6 @@ export const CabinetBuilderPage = () => {
   useEffect(() => {
     if (!matrixCabinetTable) return;
     const catalog = buildCabinetCatalogFromMatrix(matrixCabinetTable);
-    console.log(
-      "[CabinetBuilder] matrix rows",
-      matrixCabinetTable.rows?.length,
-      "rules",
-      catalog.typeCabinetRules.length,
-    );
     if (catalog.typeCabinetRules.length) {
       dispatch(setCabinetCatalog(catalog));
     }
@@ -588,7 +582,7 @@ export const CabinetBuilderPage = () => {
     // Need at least a cabinet type selected
     if (!activeCabinetType) return;
 
-    const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.id === activeCabinetType);
+    const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCabinetType);
     if (!selectedCabinetRule) return;
 
     // For Open-Shelf and Side-Shelf, add product immediately when cabinet type is selected
@@ -721,7 +715,7 @@ export const CabinetBuilderPage = () => {
         {isMatrixLoading ? (
           <div>Loading cabinet rules...</div>
         ) : isMatrixError || cabinetCatalog.typeCabinetRules.length === 0 ? (
-          <div>Cabinet rules are unavailable. Matrix rows: {matrixCabinetTable?.rows?.length ?? 0}</div>
+          <div>Cabinet rules are unavailable.</div>
         ) : (
           <ConfiguratorAccordionGroup
             defaultValue={defaultValue}

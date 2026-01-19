@@ -69,7 +69,7 @@ export const PlayCanvasIntegration = () => {
     const normalized = productType.toLowerCase();
     const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
-    return match?.id ?? null;
+    return match?.code ?? null;
   }, [cabinetCatalog.typeCabinetRules]);
 
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {

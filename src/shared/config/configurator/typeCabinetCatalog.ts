@@ -1,5 +1,4 @@
 export type TypeCabinetRuleConfig = {
-  id: number;
   code: string;
   widths: number[];
   depths: number[];

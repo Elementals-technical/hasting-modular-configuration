@@ -111,7 +111,7 @@ export const BottomCanvasButtons = () => {
       HandleGrooveColor: "Blu Pavone A6 MT",
     };
 
-    dispatch(setActiveCabinetType(defaultRule.id));
+    dispatch(setActiveCabinetType(defaultRule.code));
 
     const productId = await addProduct(defaultProductName, defaultProductConfig);
 

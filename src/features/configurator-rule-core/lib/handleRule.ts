@@ -54,7 +54,7 @@ export const handleRule = (
   catalog: ConfiguratorCatalog,
 ): RuleResult => {
   const { selection } = context;
-  const activeRule = catalog.typeCabinetRules.find((rule) => rule.id === selection.cabinetTypeId);
+  const activeRule = catalog.typeCabinetRules.find((rule) => rule.code === selection.cabinetType);
   const allowedHandles = activeRule?.handlesAllowed?.length ? activeRule.handlesAllowed : DEFAULT_ALLOWED_HANDLES;
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;

@@ -1,10 +1,10 @@
 export type DimensionField = "width" | "depth" | "height";
 export type DrawerField = "drawers";
 export type HandleField = "handle";
-export type IntentField = DimensionField | DrawerField | HandleField | "cabinetTypeId";
+export type IntentField = DimensionField | DrawerField | HandleField | "cabinetType";
 
 export type Selection = {
-  cabinetTypeId: number | null;
+  cabinetType: string | null;
   width: number;
   depth: number;
   height: number;

@@ -5,10 +5,10 @@ export const getActiveCabinetType = (state: RootState) => state.rootStateUI.prod
 export const getCabinetCatalog = (state: RootState) => state.rootStateUI.product.cabinetCatalog;
 
 export const getActiveCabinetRule = (state: RootState) => {
-  const activeId = state.rootStateUI.product.activeCabinetType;
-  if (activeId === null) return null;
+  const activeCode = state.rootStateUI.product.activeCabinetType;
+  if (!activeCode) return null;
 
-  return state.rootStateUI.product.cabinetCatalog.typeCabinetRules.find((rule) => rule.id === activeId) ?? null;
+  return state.rootStateUI.product.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCode) ?? null;
 };
 
 export const getDimensionOptions = (state: RootState) => state.rootStateUI.product.dimensionOptions;

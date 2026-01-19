@@ -26,7 +26,7 @@ type DimensionOptionGroup = {
 
 type ProductState = {
   productIds: string[];
-  activeCabinetType: number | null;
+  activeCabinetType: string | null;
   activeDrawerProduct: string;
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
@@ -107,7 +107,7 @@ const mapHandleConfigToRule = (value: unknown): string | null => {
 };
 
 const toSelection = (state: ProductState): Selection => ({
-  cabinetTypeId: state.activeCabinetType,
+  cabinetType: state.activeCabinetType,
   width: state.selectedDimensions.width,
   depth: state.selectedDimensions.depth,
   height: state.selectedDimensions.height,
@@ -260,7 +260,7 @@ const productSlice = createSlice({
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
     },
-    setActiveCabinetType(state, action: PayloadAction<number>) {
+    setActiveCabinetType(state, action: PayloadAction<string>) {
       const previousCabinetType = state.activeCabinetType;
       const newCabinetTypeId = action.payload;
 
@@ -268,7 +268,7 @@ const productSlice = createSlice({
 
       // When switching to a new cabinet type, set a default height if current height is invalid
       if (newCabinetTypeId !== previousCabinetType && newCabinetTypeId !== null) {
-        const cabinetRule = state.cabinetCatalog.typeCabinetRules.find((rule) => rule.id === newCabinetTypeId);
+        const cabinetRule = state.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === newCabinetTypeId);
 
         if (cabinetRule && cabinetRule.heights.length > 0) {
           const currentHeight = state.selectedDimensions.height;
@@ -283,7 +283,7 @@ const productSlice = createSlice({
         }
       }
 
-      applyRulesToState(state, { field: "cabinetTypeId", value: newCabinetTypeId });
+      applyRulesToState(state, { field: "cabinetType", value: newCabinetTypeId });
     },
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };

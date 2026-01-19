@@ -1,14 +1,6 @@
 import type { ProductDatatable, ProductDatatableRow } from "@/entities/product/api";
 import type { ConfiguratorCatalog, TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
-const KNOWN_TYPE_IDS: Record<string, number> = {
-  "Sink-Base": 101,
-  "Sink-Cabinet": 102,
-  "Open-Shelf": 103,
-  // "Side-Cabinet": 104,
-  "Side-Shelf": 104,
-};
-
 const parseDelimitedList = (value?: unknown): string[] => {
   if (value === null || value === undefined) return [];
 
@@ -20,7 +12,6 @@ const parseDelimitedList = (value?: unknown): string[] => {
     .map((entry) => entry.trim())
     .filter(Boolean);
 };
-// parseNumberList берет строку вида "50|53|56" (или любое значение), разбивает по |, приводит к Number, и возвращает массив чисел, отбрасывая всё, что не число.
 const parseNumberList = (value?: unknown): number[] =>
   parseDelimitedList(value)
     .map((entry) => Number(entry))
@@ -41,23 +32,6 @@ const normalizeDrawerConfig = (value: string): string => {
   return normalized;
 };
 
-const resolveStableId = (cabinetType: string, usedIds: Set<number>): number => {
-  const knownId = KNOWN_TYPE_IDS[cabinetType];
-  if (knownId && !usedIds.has(knownId)) return knownId;
-
-  let hash = 0;
-  for (let i = 0; i < cabinetType.length; i += 1) {
-    hash = (hash * 31 + cabinetType.charCodeAt(i)) | 0;
-  }
-
-  let id = 1000 + Math.abs(hash % 9000);
-  while (usedIds.has(id)) {
-    id += 1;
-  }
-
-  return id;
-};
-
 const normalizeKey = (key: string) => key.trim().toLowerCase().replace(/\s+/g, "_");
 
 const normalizeRow = (row: ProductDatatableRow): Record<string, string> =>
@@ -66,7 +40,7 @@ const normalizeRow = (row: ProductDatatableRow): Record<string, string> =>
     return acc;
   }, {});
 
-const toRule = (row: ProductDatatableRow, usedIds: Set<number>): TypeCabinetRuleConfig | null => {
+const toRule = (row: ProductDatatableRow): TypeCabinetRuleConfig | null => {
   const normalizedRow = normalizeRow(row);
   const code = String(normalizedRow.cabinet_type ?? "").trim();
   if (!code) return null;
@@ -76,7 +50,6 @@ const toRule = (row: ProductDatatableRow, usedIds: Set<number>): TypeCabinetRule
   const supportsHeight = parseNumberList(normalizedRow.supports_height);
 
   const rule: TypeCabinetRuleConfig = {
-    id: resolveStableId(code, usedIds),
     code,
     widths: parseNumberList(normalizedRow.widths_cm),
     depths: parseNumberList(normalizedRow.depths_cm),
@@ -94,14 +67,12 @@ const toRule = (row: ProductDatatableRow, usedIds: Set<number>): TypeCabinetRule
     supportsHeight: supportsHeight.length ? supportsHeight : undefined,
   };
 
-  usedIds.add(rule.id);
   return rule;
 };
 
 export const buildCabinetCatalogFromMatrix = (datatable: ProductDatatable): ConfiguratorCatalog => {
-  const usedIds = new Set<number>();
   const rows = Array.isArray(datatable.rows) ? datatable.rows : [];
-  const rules = rows.map((row) => toRule(row, usedIds)).filter((rule): rule is TypeCabinetRuleConfig => Boolean(rule));
+  const rules = rows.map((row) => toRule(row)).filter((rule): rule is TypeCabinetRuleConfig => Boolean(rule));
 
   return { typeCabinetRules: rules };
 };
