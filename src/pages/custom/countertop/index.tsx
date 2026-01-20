@@ -22,6 +22,7 @@ import {
   setCountertopStyle,
 } from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -33,6 +34,9 @@ export const CustomCountertopPage = () => {
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const isSinkDisabled = Boolean(activeCabinetRule) && !activeCabinetRule?.hasSink;
+
+  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+  console.log("counterTopData", counterTopData);
 
   const countertopOptions = useMemo(
     () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
