@@ -137,28 +137,26 @@ export const CabinetBuilderPage = () => {
     const activeDrawerValues = Array.from(drawerOptionMap.keys());
     const heightValue = selectedDimensions.height ?? 0;
 
-    return activeDrawerValues
-      .filter(Boolean)
-      .map((value, index) => {
-        const ruleOption = drawerOptionMap.get(String(value));
-        const meta = drawerMetaByValue[String(value)] ?? {
-          id: 200 + index + 1,
-          title: String(value),
-          isShortDesc: false,
-        };
+    return activeDrawerValues.filter(Boolean).map((value, index) => {
+      const ruleOption = drawerOptionMap.get(String(value));
+      const meta = drawerMetaByValue[String(value)] ?? {
+        id: 200 + index + 1,
+        title: String(value),
+        isShortDesc: false,
+      };
 
-        return {
-          id: meta.id,
-          title: meta.title,
-          value: String(value),
-          isAvailable: ruleOption ? !ruleOption.disabled : true,
-          isShortDesc: meta.isShortDesc ?? false,
-          metadata: {
-            ...(meta.metadata ?? {}),
-            image: resolveCabinetStyleImage(String(value), heightValue, meta.metadata?.image),
-          },
-        };
-      });
+      return {
+        id: meta.id,
+        title: meta.title,
+        value: String(value),
+        isAvailable: ruleOption ? !ruleOption.disabled : true,
+        isShortDesc: meta.isShortDesc ?? false,
+        metadata: {
+          ...(meta.metadata ?? {}),
+          image: resolveCabinetStyleImage(String(value), heightValue, meta.metadata?.image),
+        },
+      };
+    });
   }, [selectedDimensions.height, dimensionOptions.drawers]);
 
   const cabinetTypeOptions = useMemo(
