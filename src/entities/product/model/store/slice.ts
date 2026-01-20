@@ -59,9 +59,9 @@ type ProductState = {
 };
 
 type ProductDimensions = {
-  width: number;
-  height: number;
-  depth: number;
+  width: number | null;
+  height: number | null;
+  depth: number | null;
 };
 
 type ProductConfig = {
@@ -71,9 +71,9 @@ type ProductConfig = {
 type HandleOption = "" | "handle_pto" | "handle_urban_topcut" | "handle_urban_botcut";
 
 const DEFAULT_DIMENSIONS: ProductDimensions = {
-  width: 60,
-  height: 56,
-  depth: 46,
+  width: null,
+  height: null,
+  depth: null,
 };
 
 const mapOptionState = <T extends string | number>(option: OptionState<T>): DimensionOption => ({
@@ -108,14 +108,25 @@ const mapHandleConfigToRule = (value: unknown): string | null => {
 
 const toSelection = (state: ProductState): Selection => ({
   cabinetType: state.activeCabinetType,
-  width: state.selectedDimensions.width,
-  depth: state.selectedDimensions.depth,
-  height: state.selectedDimensions.height,
+  width: state.selectedDimensions.width ?? 0,
+  depth: state.selectedDimensions.depth ?? 0,
+  height: state.selectedDimensions.height ?? 0,
   drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers),
   handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle),
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
+  if (!state.activeCabinetType) {
+    state.dimensionOptions = {
+      width: [],
+      depth: [],
+      height: [],
+      drawers: [],
+      handles: [],
+    };
+    return;
+  }
+
   const ruleResult = applyConfiguratorRules(
     toSelection(state),
     intent,
@@ -272,7 +283,8 @@ const productSlice = createSlice({
 
         if (cabinetRule && cabinetRule.heights.length > 0) {
           const currentHeight = state.selectedDimensions.height;
-          const isCurrentHeightValid = cabinetRule.heights.includes(currentHeight);
+          const isCurrentHeightValid =
+            typeof currentHeight === "number" && cabinetRule.heights.includes(currentHeight);
 
           // If current height is not valid for the new cabinet type, use the last available height
           // (typically the default/preferred height for that cabinet type)
@@ -290,7 +302,7 @@ const productSlice = createSlice({
       const [intentField, intentValue] = Object.entries(action.payload)[0] ?? [];
 
       if (intentField) {
-        const intent: Intent = { field: intentField as Intent["field"], value: intentValue as number };
+        const intent: Intent = { field: intentField as Intent["field"], value: intentValue as Intent["value"] };
 
         applyRulesToState(state, intent);
       } else {

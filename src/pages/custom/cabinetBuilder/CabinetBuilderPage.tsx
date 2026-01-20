@@ -64,7 +64,7 @@ import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabi
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
-import { cabinetTypeMetadataByCode, optionsMockData2 } from "./constants";
+import { cabinetTypeMetadataByCode, drawerMetaByValue } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
@@ -93,6 +93,7 @@ export const CabinetBuilderPage = () => {
   const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
 
   const bootstrappedRef = useRef(false);
+  const autoAddSignatureRef = useRef<string | null>(null);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
@@ -133,25 +134,38 @@ export const CabinetBuilderPage = () => {
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
+    const activeDrawerValues = Array.from(drawerOptionMap.keys());
+    const heightValue = selectedDimensions.height ?? 0;
 
-    return optionsMockData2.map((option) => {
-      const ruleOption = option.value ? drawerOptionMap.get(option.value) : undefined;
+    return activeDrawerValues
+      .filter(Boolean)
+      .map((value, index) => {
+        const ruleOption = drawerOptionMap.get(String(value));
+        const meta = drawerMetaByValue[String(value)] ?? {
+          id: 200 + index + 1,
+          title: String(value),
+          isShortDesc: false,
+        };
 
-      return {
-        ...option,
-        isAvailable: ruleOption ? !ruleOption.disabled : option.isAvailable,
-        metadata: {
-          ...option.metadata,
-          image: resolveCabinetStyleImage(option.value, selectedDimensions.height, option.metadata?.image),
-        },
-      };
-    });
+        return {
+          id: meta.id,
+          title: meta.title,
+          value: String(value),
+          isAvailable: ruleOption ? !ruleOption.disabled : true,
+          isShortDesc: meta.isShortDesc ?? false,
+          metadata: {
+            ...(meta.metadata ?? {}),
+            image: resolveCabinetStyleImage(String(value), heightValue, meta.metadata?.image),
+          },
+        };
+      });
   }, [selectedDimensions.height, dimensionOptions.drawers]);
 
   const cabinetTypeOptions = useMemo(
     () =>
       cabinetCatalog.typeCabinetRules.map((rule) => {
         const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
+        const heightValue = selectedDimensions.height ?? 0;
 
         return {
           id: rule.code,
@@ -160,7 +174,7 @@ export const CabinetBuilderPage = () => {
           desc: meta.desc,
           isShortDesc: meta.isShortDesc ?? false,
           metadata: {
-            image: resolveCabinetTypeImage(rule.code, selectedDimensions.height, meta.image),
+            image: resolveCabinetTypeImage(rule.code, heightValue, meta.image),
           },
         };
       }),
@@ -200,7 +214,7 @@ export const CabinetBuilderPage = () => {
   const handleSelectDrawerStyle = (id: number) => {
     setActiveStyleId(id);
 
-    const option = optionsMockData2.find((item) => item.id === id);
+    const option = cabinetStyleOptions.find((item) => item.id === id);
     const mappedValue = mapDrawerValueToConfig(option?.value);
 
     if (mappedValue) {
@@ -589,6 +603,10 @@ export const CabinetBuilderPage = () => {
     // For other types, wait for drawer style to be selected
     if (!selectedCabinetRule.isOpen && !activeStyleId) return;
 
+    const signature = `${activeCabinetType ?? ""}|${activeStyleId ?? ""}`;
+    if (autoAddSignatureRef.current === signature) return;
+    autoAddSignatureRef.current = signature;
+
     // Capture values for async function
     const productName = selectedCabinetRule.code || "Sink-Base";
     const cabinetConfig: addProductConfigI = {};
@@ -596,6 +614,14 @@ export const CabinetBuilderPage = () => {
 
     async function addProductToScene() {
       try {
+        if (
+          selectedDimensions.height === null ||
+          selectedDimensions.depth === null ||
+          selectedDimensions.width === null
+        ) {
+          return;
+        }
+
         // Build product config: start with cabinet option config, then override with selected config and current values
         const productConfig: addProductConfigI = {
           ...cabinetConfig,
@@ -640,6 +666,7 @@ export const CabinetBuilderPage = () => {
           dispatch(setOpenStyleSidebar(false));
         }
       } catch (error) {
+        autoAddSignatureRef.current = null;
         console.error("Failed to add product to scene:", error);
       }
     }

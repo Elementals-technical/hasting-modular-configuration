@@ -78,15 +78,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   }, [selectedProductConfig?.Handle]);
 
   const productConfig = useMemo(
-    () => ({
-      ...(selectedProductConfig ?? {}),
-      Width: selectedDimensions.width,
-      Height: selectedDimensions.height,
-      Depth: selectedDimensions.depth,
-      CabinetColor: cabinetColor,
-      CountertopColor: countertopColor,
-      HandleGrooveColor: handleGrooveColor,
-    }),
+    () => {
+      if (
+        selectedDimensions.width === null ||
+        selectedDimensions.height === null ||
+        selectedDimensions.depth === null
+      ) {
+        return null;
+      }
+
+      return {
+        ...(selectedProductConfig ?? {}),
+        Width: selectedDimensions.width,
+        Height: selectedDimensions.height,
+        Depth: selectedDimensions.depth,
+        CabinetColor: cabinetColor,
+        CountertopColor: countertopColor,
+        HandleGrooveColor: handleGrooveColor,
+      };
+    },
     [
       cabinetColor,
       countertopColor,
@@ -130,6 +140,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   useEffect(() => {
     if (!isOpenedStyleSidebar) return;
     if (!selectedProducts.length) return;
+    if (
+      selectedDimensions.height === null ||
+      selectedDimensions.depth === null ||
+      selectedDimensions.width === null
+    ) {
+      return;
+    }
 
     setConfigBatch(selectedProducts, {
       Height: selectedDimensions.height,
@@ -190,7 +207,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!productId) return;
 
-      await setConfig(productId, productConfig);
+      if (productConfig) {
+        await setConfig(productId, productConfig);
+      }
 
       const storedConfig = await getConfig(productId);
       console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
@@ -218,7 +237,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           <FilterSelection
             label={"Width"}
             options={dimensionOptions.width}
-            value={selectedDimensions.width}
+            value={selectedDimensions.width ?? ""}
             onSelect={(value) => handleChangeWidth(value)}
           />
         </div>
@@ -228,7 +247,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           <FilterSelection
             label={"Depth"}
             options={dimensionOptions.depth}
-            value={selectedDimensions.depth}
+            value={selectedDimensions.depth ?? ""}
             onSelect={(value) => handleChangeDepth(value)}
           />
         </div>

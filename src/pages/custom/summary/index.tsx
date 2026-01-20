@@ -236,7 +236,7 @@ export const CustomSummaryPage = () => {
               {
                 id: "cabinet-1",
                 title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
-                subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width}x${selectedDimensions.depth}x${selectedDimensions.height}`,
+                subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
                 swatch: {
                   ...resolveSwatch(cabinetColor),
                   label: "Cabinet",
@@ -429,7 +429,6 @@ export const CustomSummaryPage = () => {
     grainDirection,
     handleGrooveColor,
     ledOption,
-    materialLookup,
     productsPresets,
     productConfigs,
     selectedDimensions.depth,
@@ -439,6 +438,8 @@ export const CustomSummaryPage = () => {
     sidePanelsOption,
     sinkType,
     towelBarOption,
+    dividerStyle,
+    resolveSwatch,
   ]);
 
   return (

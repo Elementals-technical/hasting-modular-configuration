@@ -106,32 +106,30 @@ export const optionsMockData = [
   },
 ];
 
-export const optionsMockData2 = [
+export const drawerMetaByValue: Record<
+  string,
   {
+    title: string;
+    id: number;
+    metadata?: { image?: string };
+    isShortDesc?: boolean;
+  }
+> = {
+  "1": {
     id: 201,
     title: "1 Drawer",
-    value: "1",
-    isAvailable: true,
+    metadata: { image: oneDrawerImage },
     isShortDesc: false,
-    metadata: {
-      image: oneDrawerImage,
-    },
   },
-  {
+  "2": {
     id: 202,
     title: "2 Drawer",
-    value: "2",
-    isAvailable: true,
+    metadata: { image: twoDrawerImage },
     isShortDesc: false,
-    metadata: {
-      image: twoDrawerImage,
-    },
   },
-  {
+  "1+inner": {
     id: 203,
     title: "1 Drawer With Inner Drawer",
-    value: "1+inner",
-    isAvailable: true,
     isShortDesc: false,
   },
-];
+};
