@@ -18,6 +18,8 @@ import {
   getHandleGrooveColor,
   getActiveCountertopColor,
   getActiveCabinetRule,
+  getDrawerPanelFluting,
+  getGrainDirection,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedProductConfig,
@@ -52,6 +54,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+  const grainDirection = useAppSelector(getGrainDirection);
 
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
 
@@ -95,12 +99,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         CabinetColor: cabinetColor,
         CountertopColor: countertopColor,
         HandleGrooveColor: handleGrooveColor,
+        DrawerPanelFluting: drawerPanelFluting,
+        GrainDirection: grainDirection,
       };
     },
     [
       cabinetColor,
       countertopColor,
       handleGrooveColor,
+      drawerPanelFluting,
+      grainDirection,
       selectedDimensions.depth,
       selectedDimensions.height,
       selectedDimensions.width,
