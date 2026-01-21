@@ -2,13 +2,13 @@ import sinkBasePto50WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_PTO_w
 import sinkBaseCentral53WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height_withbasin.jpg";
 import sinkCabinetPto50 from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
 import sinkCabinetCentral53 from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
-import sinkCabinetDefault56 from "@/shared/assets/images/jpeg/SideCabinet2D_default_without_basin.jpg";
 
 import oneDrawer50Height from "@/shared/assets/images/jpeg/1_drawer_50_height.jpg";
 import oneDrawerDefault from "@/shared/assets/images/jpeg/1_drawer_default.jpg";
 import twoDrawer50Height from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
 import twoDrawer53Height from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
 import twoDrawer56Height from "@/shared/assets/images/jpeg/SideCabinet2D_default_without_basin.jpg";
+import sideCabinet56Height from "@/shared/assets/images/jpeg/sinkBase56_default.jpg";
 
 export const resolveCabinetTypeImage = (name: string | undefined, height: number, fallback?: string) => {
   if (name === "Sink-Base") {
@@ -20,7 +20,7 @@ export const resolveCabinetTypeImage = (name: string | undefined, height: number
   if (name === "Sink-Cabinet") {
     if (height === 50) return sinkCabinetPto50;
     if (height === 53) return sinkCabinetCentral53;
-    if (height === 56) return sinkCabinetDefault56;
+    if (height === 56) return sideCabinet56Height;
     return fallback;
   }
 

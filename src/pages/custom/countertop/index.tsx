@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 import {
@@ -11,6 +11,8 @@ import {
   getActiveCountertopThickness,
   getCountertopStyle,
   getSelectedProducts,
+  getSelectedDimensions,
+  getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -21,6 +23,21 @@ import {
   setCountertopStyle,
 } from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import { FilterRow } from "@/shared/ui/Filter/FilterRow";
+import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import {
+  buildCountertopRuleState,
+  getMaterialAliases,
+  normalizeBasinToken,
+  normalizeMaterialToken,
+  parseCountertopMatrix,
+} from "@/features/configurator-rule-core/countertop";
+
+import s from "./Countertop.module.scss";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -30,11 +47,158 @@ export const CustomCountertopPage = () => {
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
+  const activeBasinStyle = useAppSelector(getSinkType);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const [hasSinkBase, setHasSinkBase] = useState(false);
+  const isSinkDisabled = !hasSinkBase;
 
-  const countertopOptions = useMemo(
-    () => getMaterialOptionsGridData(COUNTERTOP_OPTION).sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
-    [],
+  const [selectedFilter, setSelectedFilter] = useState<{
+    material?: string;
+    color?: string;
+    look?: string;
+    hex?: string;
+  }>({});
+  const materialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
+
+  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+
+  const countertopOptions = useMemo(() => getMaterialOptionsGridData(COUNTERTOP_OPTION), []);
+  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+
+  const activeMaterialTokens = useMemo(() => {
+    if (!activeCountertopColor) return [];
+    const match = countertopOptions.find((option) => {
+      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
+      return candidate === activeCountertopColor;
+    });
+    return match?.metadata?.materials ?? [];
+  }, [activeCountertopColor, countertopOptions]);
+
+  const ruleState = useMemo(
+    () =>
+      buildCountertopRuleState({
+        rules: countertopRules,
+        activeMaterialTokens,
+        width: selectedDimensions.width,
+        depth: selectedDimensions.depth,
+        activeBasinStyle,
+      }),
+    [activeBasinStyle, activeMaterialTokens, countertopRules, selectedDimensions.depth, selectedDimensions.width],
   );
+
+  const allowedMaterials = ruleState.allowedMaterials;
+
+  const filteredMaterialFilters = useMemo(() => {
+    if (!allowedMaterials.size) return materialFilters;
+
+    return {
+      ...materialFilters,
+      materials: materialFilters.materials.filter((item) => allowedMaterials.has(normalizeMaterialToken(item.value))),
+    };
+  }, [allowedMaterials, materialFilters]);
+
+  const filteredCountertopOptions = useMemo(() => {
+    const filteredByUi = countertopOptions.filter((option) => {
+      const { materials, colors, looks, hex } = option.metadata ?? {};
+
+      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
+      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
+      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
+      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
+
+      return materialMatch && colorMatch && lookMatch && hexMatch;
+    });
+
+    if (!allowedMaterials.size) return filteredByUi;
+
+    return filteredByUi.filter((option) => {
+      const materials = option.metadata?.materials ?? [];
+      return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
+    });
+  }, [allowedMaterials, countertopOptions, selectedFilter]);
+
+  const filteredThicknessOptions = useMemo(() => {
+    const allowed = ruleState.allowedThicknesses;
+    if (!allowed.size) return optionsMockData4;
+
+    return optionsMockData4.filter((option) => {
+      const rawValue = option.value ?? option.title;
+      const numeric = Number.parseFloat(rawValue);
+      if (!Number.isFinite(numeric)) return false;
+      return Array.from(allowed).some((value) => Math.abs(value - numeric) < 0.001);
+    });
+  }, [ruleState.allowedThicknesses]);
+
+  const allowedBasinTokens = useMemo(() => {
+    return ruleState.allowedBasinTokens;
+  }, [ruleState.allowedBasinTokens]);
+
+  const filteredBasinOptions = useMemo(() => {
+    if (!allowedBasinTokens.size) return optionsMockData3;
+    return optionsMockData3.filter((option) => {
+      const composite = `${option.title ?? ""} ${option.name ?? ""}`.trim();
+      const normalized = normalizeBasinToken(composite);
+      return Array.from(allowedBasinTokens).some((token) => normalized.includes(token) || token.includes(normalized));
+    });
+  }, [allowedBasinTokens]);
+
+  const filteredStyleOptions = useMemo(() => {
+    const allowed = ruleState.allowedStyles;
+    if (!allowed.size) return optionsMockData2;
+
+    return optionsMockData2.map((option) => ({
+      ...option,
+      isAvailable: allowed.has(option.title.toLowerCase()),
+    }));
+  }, [ruleState.allowedStyles]);
+
+  const sortedCountertopOptions = useMemo(
+    () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [filteredCountertopOptions],
+  );
+
+  // Check whether we have the product with the Sink on the scene.
+  const containsSinkBase = useCallback((value: unknown, visited = new Set<unknown>()): boolean => {
+    if (!value || visited.has(value)) return false;
+
+    if (typeof value === "string") {
+      const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+      return normalized.includes("sinkbase");
+    }
+
+    if (typeof value !== "object") return false;
+
+    visited.add(value);
+
+    if (Array.isArray(value)) {
+      return value.some((entry) => containsSinkBase(entry, visited));
+    }
+
+    return Object.values(value as Record<string, unknown>).some((entry) => containsSinkBase(entry, visited));
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadConfigs = async () => {
+      const orderedIds = getOrderedProductIds(selectedProducts);
+      if (!orderedIds.length) {
+        if (isMounted) setHasSinkBase(false);
+        return;
+      }
+
+      const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
+      const hasSink = configs.some((config) => (config ? containsSinkBase(config) : false));
+
+      if (isMounted) setHasSinkBase(hasSink);
+    };
+
+    loadConfigs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProducts, containsSinkBase]);
 
   const handleChangeCountertopColor = (colorName: string) => {
     if (!colorName) return;
@@ -73,6 +237,34 @@ export const CustomCountertopPage = () => {
     dispatch(setCountertopStyle(style));
   };
 
+  const renderFilters = () => (
+    <FilterRow className={s.innerRow}>
+      <FilterItem
+        label="Material"
+        options={filteredMaterialFilters.materials}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, material: value as string }))}
+      />
+
+      <FilterItem
+        label="Color"
+        options={materialFilters.colors}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, color: value as string }))}
+      />
+
+      <FilterItem
+        label="Look"
+        options={materialFilters.looks}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, look: value as string }))}
+      />
+
+      <FilterItem
+        label="Price"
+        options={materialFilters.hex}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
+      />
+    </FilterRow>
+  );
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "counter-top-color",
@@ -80,8 +272,10 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
+          <ViewModePanel />
+          {renderFilters()}
           <ProductOptionsGrid
-            data={countertopOptions}
+            data={sortedCountertopOptions}
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
           />
@@ -94,7 +288,7 @@ export const CustomCountertopPage = () => {
       content: (
         <>
           <ProductSwatchesGrid
-            data={optionsMockData4}
+            data={filteredThicknessOptions}
             onSelectChange={(value) => value && handleAddThickness(value)}
             selectedValue={activeThickness}
           />
@@ -106,7 +300,7 @@ export const CustomCountertopPage = () => {
       title: "Countertop Style",
       content: (
         <ProductOptionsGrid
-          data={optionsMockData2}
+          data={filteredStyleOptions}
           handleAdd={handleCountertopStyle}
           activeValue={activeCountertopStyle}
         />
@@ -115,7 +309,11 @@ export const CustomCountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: <ProductOptionsGrid data={optionsMockData3} handleAdd={handleAddbasinStyle} />,
+      content: isSinkDisabled ? (
+        <div>Select a cabinet type with sink support to enable basin styles.</div>
+      ) : (
+        <ProductOptionsGrid data={filteredBasinOptions} handleAdd={handleAddbasinStyle} />
+      ),
     },
   ];
 

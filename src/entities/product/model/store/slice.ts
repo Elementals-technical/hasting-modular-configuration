@@ -4,8 +4,8 @@ import {
   type Intent,
   type OptionState,
   type Selection,
-} from "@/features/configurator-rule-core";
-import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+} from "@/features/configurator-rule-core/cabinetBuilder";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
@@ -26,13 +26,14 @@ type DimensionOptionGroup = {
 
 type ProductState = {
   productIds: string[];
-  activeCabinetType: number | null;
+  activeCabinetType: string | null;
   activeDrawerProduct: string;
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
   heightBeforePto: number | null;
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
+  cabinetCatalog: ConfiguratorCatalog;
   productOptions: {
     CabinetColor: string;
     sinkType: string;
@@ -58,9 +59,9 @@ type ProductState = {
 };
 
 type ProductDimensions = {
-  width: number;
-  height: number;
-  depth: number;
+  width: number | null;
+  height: number | null;
+  depth: number | null;
 };
 
 type ProductConfig = {
@@ -70,9 +71,9 @@ type ProductConfig = {
 type HandleOption = "" | "handle_pto" | "handle_urban_topcut" | "handle_urban_botcut";
 
 const DEFAULT_DIMENSIONS: ProductDimensions = {
-  width: 60,
-  height: 56,
-  depth: 46,
+  width: null,
+  height: null,
+  depth: null,
 };
 
 const mapOptionState = <T extends string | number>(option: OptionState<T>): DimensionOption => ({
@@ -106,18 +107,32 @@ const mapHandleConfigToRule = (value: unknown): string | null => {
 };
 
 const toSelection = (state: ProductState): Selection => ({
-  cabinetTypeId: state.activeCabinetType,
-  width: state.selectedDimensions.width,
-  depth: state.selectedDimensions.depth,
-  height: state.selectedDimensions.height,
+  cabinetType: state.activeCabinetType,
+  width: state.selectedDimensions.width ?? 0,
+  depth: state.selectedDimensions.depth ?? 0,
+  height: state.selectedDimensions.height ?? 0,
   drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers),
   handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle),
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
-  const ruleResult = applyConfiguratorRules(toSelection(state), intent, {
-    selectedProductIds: state.productIds,
-  });
+  if (!state.activeCabinetType) {
+    state.dimensionOptions = {
+      width: [],
+      depth: [],
+      height: [],
+      drawers: [],
+      handles: [],
+    };
+    return;
+  }
+
+  const ruleResult = applyConfiguratorRules(
+    toSelection(state),
+    intent,
+    { selectedProductIds: state.productIds },
+    state.cabinetCatalog,
+  );
 
   state.dimensionOptions = {
     width: ruleResult.availableOptions.width.map(mapOptionState),
@@ -152,6 +167,7 @@ const createInitialState = (): ProductState => {
       drawers: [],
       handles: [],
     },
+    cabinetCatalog: { typeCabinetRules: [] },
     productOptions: {
       CabinetColor: "Ardesia DD GL",
       sinkType: "Top_HPLPrisma",
@@ -229,8 +245,11 @@ const productSlice = createSlice({
       next[indexB] = idA;
       state.productIds = next;
     },
-    reset() {
-      return createInitialState();
+    reset(state) {
+      return {
+        ...createInitialState(),
+        cabinetCatalog: state.cabinetCatalog,
+      };
     },
     resetProducts(state) {
       state.productIds = [];
@@ -241,6 +260,10 @@ const productSlice = createSlice({
     resetPrebuiltProducts(state) {
       state.productsPresets = [];
     },
+    setCabinetCatalog(state, action: PayloadAction<ConfiguratorCatalog>) {
+      state.cabinetCatalog = action.payload;
+      applyRulesToState(state);
+    },
     addProductPreset(state, action: PayloadAction<PresetProduct[]>) {
       state.productsPresets = action.payload;
     },
@@ -248,7 +271,7 @@ const productSlice = createSlice({
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
     },
-    setActiveCabinetType(state, action: PayloadAction<number>) {
+    setActiveCabinetType(state, action: PayloadAction<string>) {
       const previousCabinetType = state.activeCabinetType;
       const newCabinetTypeId = action.payload;
 
@@ -256,11 +279,12 @@ const productSlice = createSlice({
 
       // When switching to a new cabinet type, set a default height if current height is invalid
       if (newCabinetTypeId !== previousCabinetType && newCabinetTypeId !== null) {
-        const cabinetRule = typeCabinetCatalog.typeCabinetRules.find((rule) => rule.id === newCabinetTypeId);
+        const cabinetRule = state.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === newCabinetTypeId);
 
         if (cabinetRule && cabinetRule.heights.length > 0) {
           const currentHeight = state.selectedDimensions.height;
-          const isCurrentHeightValid = cabinetRule.heights.includes(currentHeight);
+          const isCurrentHeightValid =
+            typeof currentHeight === "number" && cabinetRule.heights.includes(currentHeight);
 
           // If current height is not valid for the new cabinet type, use the last available height
           // (typically the default/preferred height for that cabinet type)
@@ -271,14 +295,14 @@ const productSlice = createSlice({
         }
       }
 
-      applyRulesToState(state, { field: "cabinetTypeId", value: newCabinetTypeId });
+      applyRulesToState(state, { field: "cabinetType", value: newCabinetTypeId });
     },
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
       const [intentField, intentValue] = Object.entries(action.payload)[0] ?? [];
 
       if (intentField) {
-        const intent: Intent = { field: intentField as Intent["field"], value: intentValue as number };
+        const intent: Intent = { field: intentField as Intent["field"], value: intentValue as Intent["value"] };
 
         applyRulesToState(state, intent);
       } else {
@@ -397,6 +421,7 @@ export const {
   setFaucetHolesAmount,
   setFaucetHolesSpacing,
   resetPrebuiltProducts,
+  setCabinetCatalog,
   setSelectedSceneProduct,
   resetCabinetBuilderBootstrap,
   setHasBootstrappedCabinetBuilder,

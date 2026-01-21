@@ -27,8 +27,6 @@ import {
 } from "@/entities/product/model/store/slice";
 import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
-import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
-
 import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -40,6 +38,7 @@ import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getCabinetColor,
+  getCabinetCatalog,
   getCountertopStyle,
   getDividersOption,
   getDividersStyle,
@@ -70,6 +69,7 @@ export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
 
   const cabinetColor = useAppSelector(getCabinetColor);
+  const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const sinkType = useAppSelector(getSinkType);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -95,41 +95,42 @@ export const BottomCanvasButtons = () => {
     removeAllProducts();
     dispatch(resetProducts());
 
-    const firstCabinetOption = optionsMockData[0];
+    const defaultRule =
+      cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ??
+      cabinetCatalog.typeCabinetRules[0];
+    if (!defaultRule) return;
 
-    const defaultProductName = "Sink-Base";
+    const defaultProductName = defaultRule?.code ?? "Sink-Base";
     const defaultProductConfig: addProductConfigI = {
-      Height: 56,
-      Depth: 46,
+      Height: defaultRule?.heights[defaultRule.heights.length - 1] ?? 56,
+      Depth: defaultRule?.depths[0] ?? 46,
       CabinetColor: "Ardesia DD GL",
-      Width: 60,
-      sinkType: "Top_HPLPrisma",
+      Width: defaultRule?.widths[0] ?? 60,
+      sinkType: defaultRule?.hasSink ? "Top_HPLPrisma" : undefined,
       CountertopColor: "Rosso Rubino 19 MT",
       HandleGrooveColor: "Blu Pavone A6 MT",
     };
 
-    if (firstCabinetOption) {
-      dispatch(setActiveCabinetType(firstCabinetOption.id));
+    dispatch(setActiveCabinetType(defaultRule.code));
 
-      const productId = await addProduct(defaultProductName, defaultProductConfig);
+    const productId = await addProduct(defaultProductName, defaultProductConfig);
 
-      dispatch(setDrawerProduct(defaultProductName));
-      dispatch(setSelectedProductConfig(defaultProductConfig));
-      dispatch(
-        setSelectedDimensions({
-          width: defaultProductConfig.Width,
-          height: defaultProductConfig.Height,
-          depth: defaultProductConfig.Depth,
-        }),
-      );
+    dispatch(setDrawerProduct(defaultProductName));
+    dispatch(setSelectedProductConfig(defaultProductConfig));
+    dispatch(
+      setSelectedDimensions({
+        width: defaultProductConfig.Width,
+        height: defaultProductConfig.Height,
+        depth: defaultProductConfig.Depth,
+      }),
+    );
 
-      if (defaultProductConfig.sinkType) {
-        dispatch(setActiveBasinStyle(defaultProductConfig.sinkType));
-      }
+    if (defaultProductConfig.sinkType) {
+      dispatch(setActiveBasinStyle(defaultProductConfig.sinkType));
+    }
 
-      if (productId) {
-        dispatch(addProductId(productId));
-      }
+    if (productId) {
+      dispatch(addProductId(productId));
     }
   };
 

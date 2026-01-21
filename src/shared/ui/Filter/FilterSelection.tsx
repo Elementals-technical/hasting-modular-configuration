@@ -70,7 +70,6 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
 
     const rect = buttonEl.getBoundingClientRect();
     setMenuStyle({
-      position: "fixed",
       top: rect.bottom + 6,
       left: rect.left,
       width: rect.width,

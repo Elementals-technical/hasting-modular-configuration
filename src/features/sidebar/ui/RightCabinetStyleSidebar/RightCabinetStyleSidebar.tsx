@@ -17,7 +17,7 @@ import {
   getCabinetColor,
   getHandleGrooveColor,
   getActiveCountertopColor,
-  getActiveCabinetType,
+  getActiveCabinetRule,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedProductConfig,
@@ -32,8 +32,6 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-
-import { optionsMockData } from "@/pages/custom/cabinetBuilder/constants";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -50,24 +48,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  const activeCabinetType = useAppSelector(getActiveCabinetType);
+  const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
 
-  const activeCabinet = optionsMockData.find((o) => o.id === activeCabinetType);
-  const handlesDisabled = activeCabinet?.name === "Open-Shelf" || activeCabinet?.name === "Side-Shelf";
+  const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
 
   const handleOptions = useMemo(
     () =>
       dimensionOptions.handles?.length
         ? dimensionOptions.handles
-        : [
-            { label: "Push to open", value: "handle_pto" },
-            { label: "Upper Groove", value: "handle_urban_topcut" },
-            { label: "Central Groove", value: "handle_urban_botcut" },
-          ],
-    [dimensionOptions.handles],
+        : handlesDisabled
+          ? []
+          : [
+              { label: "Push to open", value: "handle_pto" },
+              { label: "Upper Groove", value: "handle_urban_topcut" },
+              { label: "Central Groove", value: "handle_urban_botcut" },
+            ],
+    [dimensionOptions.handles, handlesDisabled],
   );
 
   const handleImage = useMemo(() => {
@@ -79,15 +78,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   }, [selectedProductConfig?.Handle]);
 
   const productConfig = useMemo(
-    () => ({
-      ...(selectedProductConfig ?? {}),
-      Width: selectedDimensions.width,
-      Height: selectedDimensions.height,
-      Depth: selectedDimensions.depth,
-      CabinetColor: cabinetColor,
-      CountertopColor: countertopColor,
-      HandleGrooveColor: handleGrooveColor,
-    }),
+    () => {
+      if (
+        selectedDimensions.width === null ||
+        selectedDimensions.height === null ||
+        selectedDimensions.depth === null
+      ) {
+        return null;
+      }
+
+      return {
+        ...(selectedProductConfig ?? {}),
+        Width: selectedDimensions.width,
+        Height: selectedDimensions.height,
+        Depth: selectedDimensions.depth,
+        CabinetColor: cabinetColor,
+        CountertopColor: countertopColor,
+        HandleGrooveColor: handleGrooveColor,
+      };
+    },
     [
       cabinetColor,
       countertopColor,
@@ -129,17 +138,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   useEffect(() => {
+    if (!isOpenedStyleSidebar) return;
     if (!selectedProducts.length) return;
+    if (
+      selectedDimensions.height === null ||
+      selectedDimensions.depth === null ||
+      selectedDimensions.width === null
+    ) {
+      return;
+    }
 
     setConfigBatch(selectedProducts, {
       Height: selectedDimensions.height,
       Depth: selectedDimensions.depth,
     });
-  }, [selectedDimensions, selectedProducts]);
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
-    if (!selectedProductConfig?.Handle && selectedProductConfig !== null) {
+    if (!handlesDisabled && !selectedProductConfig?.Handle && selectedProductConfig !== null) {
       dispatch(
         setSelectedProductConfig({
           ...selectedProductConfig,
@@ -190,7 +207,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!productId) return;
 
-      await setConfig(productId, productConfig);
+      if (productConfig) {
+        await setConfig(productId, productConfig);
+      }
 
       const storedConfig = await getConfig(productId);
       console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
@@ -218,7 +237,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           <FilterSelection
             label={"Width"}
             options={dimensionOptions.width}
-            value={selectedDimensions.width}
+            value={selectedDimensions.width ?? ""}
             onSelect={(value) => handleChangeWidth(value)}
           />
         </div>
@@ -228,7 +247,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           <FilterSelection
             label={"Depth"}
             options={dimensionOptions.depth}
-            value={selectedDimensions.depth}
+            value={selectedDimensions.depth ?? ""}
             onSelect={(value) => handleChangeDepth(value)}
           />
         </div>

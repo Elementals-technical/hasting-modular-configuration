@@ -40,10 +40,13 @@ import {
   setTowelBarOption,
   setDrawerProduct,
   addProductPreset,
+  setCabinetCatalog,
 } from "@/entities/product/model/store/slice";
 
 import {
   getActiveCabinetType,
+  getActiveCabinetRule,
+  getCabinetCatalog,
   getCabinetColor,
   getHandleGrooveColor,
   getActiveCountertopColor,
@@ -57,19 +60,20 @@ import {
   getHasBootstrappedCabinetBuilder,
 } from "@/entities/product/model/store/selectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
-import { optionsMockData, optionsMockData2 } from "./constants";
+import { cabinetTypeMetadataByCode, drawerMetaByValue } from "./constants";
 import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
-import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
+import { useGetProductDatatableQuery } from "@/entities/product/api";
 
 type AccordionConfig = {
   id: string;
@@ -81,6 +85,7 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
+const MATRIX_CABINET_DATATABLE_ID = 439;
 
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
@@ -88,6 +93,7 @@ export const CabinetBuilderPage = () => {
   const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
 
   const bootstrappedRef = useRef(false);
+  const autoAddSignatureRef = useRef<string | null>(null);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
@@ -99,11 +105,13 @@ export const CabinetBuilderPage = () => {
   const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
+  const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const selectedProducts = useAppSelector(getSelectedProducts);
 
   const drawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -114,22 +122,38 @@ export const CabinetBuilderPage = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
 
+  const {
+    data: matrixCabinetTable,
+    isLoading: isMatrixLoading,
+    isError: isMatrixError,
+  } = useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
+
   console.log("selectedProductConfig", selectedProductConfig);
 
   const hasProducts = selectedProducts.length > 0;
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
+    const activeDrawerValues = Array.from(drawerOptionMap.keys());
+    const heightValue = selectedDimensions.height ?? 0;
 
-    return optionsMockData2.map((option) => {
-      const ruleOption = option.value ? drawerOptionMap.get(option.value) : undefined;
+    return activeDrawerValues.filter(Boolean).map((value, index) => {
+      const ruleOption = drawerOptionMap.get(String(value));
+      const meta = drawerMetaByValue[String(value)] ?? {
+        id: 200 + index + 1,
+        title: String(value),
+        isShortDesc: false,
+      };
 
       return {
-        ...option,
-        isAvailable: ruleOption ? !ruleOption.disabled : option.isAvailable,
+        id: meta.id,
+        title: meta.title,
+        value: String(value),
+        isAvailable: ruleOption ? !ruleOption.disabled : true,
+        isShortDesc: meta.isShortDesc ?? false,
         metadata: {
-          ...option.metadata,
-          image: resolveCabinetStyleImage(option.value, selectedDimensions.height, option.metadata?.image),
+          ...(meta.metadata ?? {}),
+          image: resolveCabinetStyleImage(String(value), heightValue, meta.metadata?.image),
         },
       };
     });
@@ -137,14 +161,22 @@ export const CabinetBuilderPage = () => {
 
   const cabinetTypeOptions = useMemo(
     () =>
-      optionsMockData.map((option) => ({
-        ...option,
-        metadata: {
-          ...option.metadata,
-          image: resolveCabinetTypeImage(option.name, selectedDimensions.height, option.metadata?.image),
-        },
-      })),
-    [selectedDimensions.height],
+      cabinetCatalog.typeCabinetRules.map((rule) => {
+        const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
+        const heightValue = selectedDimensions.height ?? 0;
+
+        return {
+          id: rule.code,
+          title: meta.title ?? rule.code.replace(/-/g, " "),
+          name: rule.code,
+          desc: meta.desc,
+          isShortDesc: meta.isShortDesc ?? false,
+          metadata: {
+            image: resolveCabinetTypeImage(rule.code, heightValue, meta.image),
+          },
+        };
+      }),
+    [cabinetCatalog.typeCabinetRules, selectedDimensions.height],
   );
 
   const handleClose = () => {
@@ -180,7 +212,7 @@ export const CabinetBuilderPage = () => {
   const handleSelectDrawerStyle = (id: number) => {
     setActiveStyleId(id);
 
-    const option = optionsMockData2.find((item) => item.id === id);
+    const option = cabinetStyleOptions.find((item) => item.id === id);
     const mappedValue = mapDrawerValueToConfig(option?.value);
 
     if (mappedValue) {
@@ -193,25 +225,37 @@ export const CabinetBuilderPage = () => {
     }
   };
 
-  const setActiveCabinet = (id: number, name?: string) => {
+  const setActiveCabinet = (id: string, name?: string) => {
     console.log("name", name);
 
     dispatch(setActiveCabinetType(id));
     setAccordionValue(CABINET_STYLE_ID);
 
-    if (name === "Open-Shelf" || name === "Side-Shelf") {
+    const isOpen = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id)?.isOpen;
+    if (isOpen) {
       dispatch(setOpenStyleSidebar(true));
     }
   };
 
-  const resolveCabinetTypeId = useCallback((productType?: string | null) => {
-    if (!productType) return null;
+  const resolveCabinetTypeId = useCallback(
+    (productType?: string | null) => {
+      if (!productType) return null;
 
-    const normalized = productType.toLowerCase();
-    const match = typeCabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+      const normalized = productType.toLowerCase();
+      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
-    return match?.id ?? null;
-  }, []);
+      return match?.code ?? null;
+    },
+    [cabinetCatalog.typeCabinetRules],
+  );
+
+  useEffect(() => {
+    if (!matrixCabinetTable) return;
+    const catalog = buildCabinetCatalogFromMatrix(matrixCabinetTable);
+    if (catalog.typeCabinetRules.length) {
+      dispatch(setCabinetCatalog(catalog));
+    }
+  }, [dispatch, matrixCabinetTable]);
 
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
@@ -550,23 +594,32 @@ export const CabinetBuilderPage = () => {
     // Need at least a cabinet type selected
     if (!activeCabinetType) return;
 
-    const selectedCabinetOption = optionsMockData.find((option) => option.id === activeCabinetType);
-    if (!selectedCabinetOption) return;
-
-    const isOpenOrSideShelf =
-      selectedCabinetOption.name === "Open-Shelf" || selectedCabinetOption.name === "Side-Shelf";
+    const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCabinetType);
+    if (!selectedCabinetRule) return;
 
     // For Open-Shelf and Side-Shelf, add product immediately when cabinet type is selected
     // For other types, wait for drawer style to be selected
-    if (!isOpenOrSideShelf && !activeStyleId) return;
+    if (!selectedCabinetRule.isOpen && !activeStyleId) return;
+
+    const signature = `${activeCabinetType ?? ""}|${activeStyleId ?? ""}`;
+    if (autoAddSignatureRef.current === signature) return;
+    autoAddSignatureRef.current = signature;
 
     // Capture values for async function
-    const productName = selectedCabinetOption.name || "Sink-Base";
-    const cabinetConfig = selectedCabinetOption.config ?? {};
+    const productName = selectedCabinetRule.code || "Sink-Base";
+    const cabinetConfig: Partial<addProductConfigI> = {};
     const currentSelectedConfig = selectedProductConfig ?? {};
 
     async function addProductToScene() {
       try {
+        if (
+          selectedDimensions.height === null ||
+          selectedDimensions.depth === null ||
+          selectedDimensions.width === null
+        ) {
+          return;
+        }
+
         // Build product config: start with cabinet option config, then override with selected config and current values
         const productConfig: addProductConfigI = {
           ...cabinetConfig,
@@ -577,11 +630,11 @@ export const CabinetBuilderPage = () => {
           CountertopColor: countertopColor,
           HandleGrooveColor: handleGrooveColor,
           Handle: currentSelectedConfig.Handle || "handle_urban_topcut",
-          // ...currentSelectedConfig,
+          Drawers: currentSelectedConfig.Drawers,
         };
 
         // Add sinkType if it's a Sink-Base
-        if (productName === "Sink-Base" && sinkType) {
+        if (selectedCabinetRule?.hasSink && sinkType) {
           productConfig.sinkType = sinkType;
         }
 
@@ -611,6 +664,7 @@ export const CabinetBuilderPage = () => {
           dispatch(setOpenStyleSidebar(false));
         }
       } catch (error) {
+        autoAddSignatureRef.current = null;
         console.error("Failed to add product to scene:", error);
       }
     }
@@ -629,6 +683,7 @@ export const CabinetBuilderPage = () => {
     handleGrooveColor,
     sinkType,
     selectedProductConfig,
+    cabinetCatalog.typeCabinetRules,
     handleSelectCabinetConfig,
     dispatch,
     handleResetToDefaultState,
@@ -657,8 +712,7 @@ export const CabinetBuilderPage = () => {
       id: CABINET_STYLE_ID,
       title: "Cabinet Style",
       content: (() => {
-        const activeCabinet = optionsMockData.find((option) => option.id === activeCabinetType);
-        const drawersBlocked = activeCabinet?.name === "Open-Shelf" || activeCabinet?.name === "Side-Shelf";
+        const drawersBlocked = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.drawers.length === 0;
 
         if (drawersBlocked) {
           return <div className={s.message}>Drawers are not available for this cabinet type.</div>;
@@ -683,17 +737,23 @@ export const CabinetBuilderPage = () => {
       <div className={s.cabinetBuilder}>
         {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
 
-        <ConfiguratorAccordionGroup
-          defaultValue={defaultValue}
-          value={accordionValue}
-          onValueChange={setAccordionValue}
-        >
-          {accordions.map(({ id, title, content }) => (
-            <ConfiguratorAccordionItem key={id} value={id} title={title}>
-              {content}
-            </ConfiguratorAccordionItem>
-          ))}
-        </ConfiguratorAccordionGroup>
+        {isMatrixLoading ? (
+          <div>Loading cabinet rules...</div>
+        ) : isMatrixError || cabinetCatalog.typeCabinetRules.length === 0 ? (
+          <div>Cabinet rules are unavailable.</div>
+        ) : (
+          <ConfiguratorAccordionGroup
+            defaultValue={defaultValue}
+            value={accordionValue}
+            onValueChange={setAccordionValue}
+          >
+            {accordions.map(({ id, title, content }) => (
+              <ConfiguratorAccordionItem key={id} value={id} title={title}>
+                {content}
+              </ConfiguratorAccordionItem>
+            ))}
+          </ConfiguratorAccordionGroup>
+        )}
 
         <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
       </div>

@@ -29,7 +29,7 @@ interface ProductOptionsGridI {
   data: ProductOptionData[];
   handleAdd?: (name: string) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
-  setActiveCabinet?: (id: number, name?: string) => void;
+  setActiveCabinet?: (code: string, name?: string) => void;
   activeValue?: string | number | null;
   activeValueSecondary?: string | number | null;
 }
@@ -58,7 +58,11 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
     <div className={s.optionsGrid}>
       {data.map((i) => {
         const playcanvasValue = i.metadata?.value ?? i.name ?? i.title ?? i.desc;
-        const matchesCabinet = typeof i.id === "number" && activeCabinet === i.id;
+        const matchesCabinet =
+          Boolean(setActiveCabinet) &&
+          typeof activeCabinet === "string" &&
+          activeCabinet.length > 0 &&
+          activeCabinet === String(playcanvasValue);
 
         const hasExplicitActive = activeValue !== undefined || activeValueSecondary !== undefined;
 
@@ -68,10 +72,9 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
 
         const isActive = matchesCabinet || (hasExplicitActive ? matchesExplicit : matchesDefault);
 
-        const handleSetActive =
-          typeof i.id === "number" && setActiveCabinet
-            ? (id: string | number) => setActiveCabinet(id as number, i.name)
-            : undefined;
+        const handleSetActive = setActiveCabinet
+          ? () => setActiveCabinet(String(playcanvasValue), i.name)
+          : undefined;
 
         return (
           <ProductOptionItem

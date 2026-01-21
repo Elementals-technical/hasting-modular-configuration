@@ -20,18 +20,17 @@ import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import {
   getDimensionOptions,
-  getDrawerProduct,
+  getCabinetCatalog,
   getSelectedSceneProduct,
 } from "@/entities/product/model/store/selectors";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { typeCabinetCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "019";
+const PLAYCANVAS_VERSION = "021";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -51,7 +50,6 @@ export const PlayCanvasIntegration = () => {
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
-  const activeDrawerProduct = useAppSelector(getDrawerProduct);
   // const selectedDimensions = useAppSelector(getSelectedDimensions);
   // const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   // const cabinetColor = useAppSelector(getCabinetColor);
@@ -59,17 +57,21 @@ export const PlayCanvasIntegration = () => {
   // const countertopColor = useAppSelector(getActiveCountertopColor);
   // const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
 
-  const resolveCabinetTypeId = useCallback((productType: string | null) => {
-    if (!productType) return null;
+  const resolveCabinetTypeId = useCallback(
+    (productType: string | null) => {
+      if (!productType) return null;
 
-    const normalized = productType.toLowerCase();
-    const match = typeCabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+      const normalized = productType.toLowerCase();
+      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
-    return match?.id ?? null;
-  }, []);
+      return match?.code ?? null;
+    },
+    [cabinetCatalog.typeCabinetRules],
+  );
 
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {
     const iframeEl = containerRef.current;
@@ -139,108 +141,6 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
-  // Toggle dropdown on short right click; allow orbit/drag on long-press or drag with right button
-  // useEffect(() => {
-  //   const iframeEl = containerRef.current;
-  //   if (!iframeEl) return;
-
-  //   const holdTimer = { current: null as number | null };
-  //   const rightDown = { current: false };
-  //   const orbitMode = { current: false };
-  //   const startPos = { current: { x: 0, y: 0 } };
-
-  //   const clearHold = () => {
-  //     if (holdTimer.current !== null) {
-  //       window.clearTimeout(holdTimer.current);
-  //       holdTimer.current = null;
-  //     }
-  //   };
-
-  //   let iframeDoc: Document | null = null;
-
-  //   const handlePointerDown = (event: PointerEvent) => {
-  //     if (event.button === 0) {
-  //       lastPointerPosRef.current = { x: event.clientX, y: event.clientY };
-  //       return;
-  //     }
-
-  //     if (event.button !== RIGHT_BUTTON) {
-  //       setDropdownState((prev) => ({ ...prev, visible: false }));
-  //       return;
-  //     }
-
-  //     rightDown.current = true;
-  //     orbitMode.current = false;
-  //     startPos.current = { x: event.clientX, y: event.clientY };
-  //     setDropdownState((prev) => ({ ...prev, visible: false }));
-
-  //     clearHold();
-  //     holdTimer.current = window.setTimeout(() => {
-  //       orbitMode.current = true;
-  //     }, HOLD_MS);
-  //   };
-
-  //   const handlePointerMove = (event: PointerEvent) => {
-  //     if (!rightDown.current) return;
-  //     const dx = event.clientX - startPos.current.x;
-  //     const dy = event.clientY - startPos.current.y;
-  //     if (Math.hypot(dx, dy) > MOVE_THRESHOLD) {
-  //       orbitMode.current = true;
-  //       clearHold();
-  //     }
-  //   };
-
-  //   const handlePointerUp = (event: PointerEvent) => {
-  //     if (event.button !== RIGHT_BUTTON) return;
-
-  //     clearHold();
-  //     rightDown.current = false;
-
-  //     if (orbitMode.current) {
-  //       orbitMode.current = false;
-  //       return;
-  //     }
-
-  //     event.preventDefault();
-  //     showDropdownAt(event.clientX, event.clientY);
-  //   };
-
-  //   const handleContextMenu = (event: MouseEvent) => {
-  //     if (orbitMode.current || rightDown.current) {
-  //       event.preventDefault();
-  //     }
-  //   };
-
-  //   const attachPointerListener = () => {
-  //     iframeDoc = iframeEl.contentDocument || iframeEl.contentWindow?.document || null;
-  //     if (!iframeDoc) return;
-
-  //     iframeDoc.addEventListener("pointerdown", handlePointerDown, true);
-  //     iframeDoc.addEventListener("pointermove", handlePointerMove, true);
-  //     iframeDoc.addEventListener("pointerup", handlePointerUp, true);
-  //     iframeDoc.addEventListener("contextmenu", handleContextMenu, true);
-  //   };
-
-  //   const detachPointerListener = () => {
-  //     if (iframeDoc) {
-  //       iframeDoc.removeEventListener("pointerdown", handlePointerDown, true);
-  //       iframeDoc.removeEventListener("pointermove", handlePointerMove, true);
-  //       iframeDoc.removeEventListener("pointerup", handlePointerUp, true);
-  //       iframeDoc.removeEventListener("contextmenu", handleContextMenu, true);
-  //     }
-
-  //     iframeDoc = null;
-  //   };
-
-  //   iframeEl.addEventListener("load", attachPointerListener);
-  //   attachPointerListener();
-
-  //   return () => {
-  //     iframeEl.removeEventListener("load", attachPointerListener);
-  //     detachPointerListener();
-  //   };
-  // }, [showDropdownAt]);
-
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
   const handleSetWidth = useCallback(
@@ -286,6 +186,69 @@ export const PlayCanvasIntegration = () => {
     }
   }, [dispatch, selectedSceneProduct]);
 
+  const normalizeProductType = useCallback((value: string, productId: string) => {
+    const lastDash = value.lastIndexOf("-");
+    if (lastDash > 0) {
+      const suffix = value.slice(lastDash + 1);
+      if (suffix.length >= 6) {
+        return value.slice(0, lastDash);
+      }
+    }
+
+    if (value === productId) {
+      const idLastDash = productId.lastIndexOf("-");
+      if (idLastDash > 0) {
+        const idSuffix = productId.slice(idLastDash + 1);
+        if (idSuffix.length >= 6) {
+          return productId.slice(0, idLastDash);
+        }
+      }
+    }
+
+    return value;
+  }, []);
+  const resolveProductTypeFromId = useCallback(
+    (productId: string, config?: Record<string, unknown>) => {
+      const configProductType = typeof config?.productType === "string" ? config.productType : null;
+      if (configProductType) return normalizeProductType(configProductType, productId);
+
+      const configEntityName = typeof config?.entityName === "string" ? config.entityName : null;
+      if (configEntityName) return normalizeProductType(configEntityName, productId);
+
+      const lastDash = productId.lastIndexOf("-");
+      if (lastDash > 0) {
+        return productId.slice(0, lastDash);
+      }
+
+      return productId;
+    },
+    [normalizeProductType],
+  );
+
+  const handleDuplicateProduct = useCallback(async () => {
+    if (!selectedSceneProduct) return;
+
+    try {
+      const config = await getConfig(selectedSceneProduct);
+      if (!config) return;
+
+      const productType = resolveProductTypeFromId(selectedSceneProduct, config);
+
+      console.log("productType", productType);
+
+      const productId = await addProduct(productType, config);
+
+      if (productId) {
+        dispatch(addProductId(productId));
+        updateDimensionDataForProduct(productId, config);
+      }
+    } catch (error) {
+      console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
+    } finally {
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+    }
+  }, [dispatch, selectedSceneProduct, resolveProductTypeFromId]);
+
   // const handleAddLeft = useCallback(
   //   async (name: string) => {
   //     try {
@@ -323,27 +286,27 @@ export const PlayCanvasIntegration = () => {
   //   ],
   // );
 
-  const handleAdd = useCallback(
-    async (name: string) => {
-      try {
-        const productId = await addProduct(name);
+  // const handleAdd = useCallback(
+  //   async (name: string) => {
+  //     try {
+  //       const productId = await addProduct(name);
 
-        if (productId) {
-          dispatch(addProductId(productId));
+  //       if (productId) {
+  //         dispatch(addProductId(productId));
 
-          const config = await getConfig(productId);
-          if (config) {
-            updateDimensionDataForProduct(productId, config);
-          }
-        }
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to add product", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [dispatch],
-  );
+  //         const config = await getConfig(productId);
+  //         if (config) {
+  //           updateDimensionDataForProduct(productId, config);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("[ProductModelItem] Failed to add product", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [dispatch],
+  // );
 
   // const handleAddRight = useCallback(
   //   async (name: string) => {
@@ -413,10 +376,10 @@ export const PlayCanvasIntegration = () => {
     [handleSwapProducts, productIds, selectedSceneProduct],
   );
 
-  const handleOpenCabinetStyle = () => {
-    navigate("/custom/cabinet-builder?accordion=cabinet-style");
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-  };
+  // const handleOpenCabinetStyle = () => {
+  //   navigate("/custom/cabinet-builder?accordion=cabinet-style");
+  //   setDropdownState((prev) => ({ ...prev, visible: false }));
+  // };
 
   const handleOpenCabinetColor = () => {
     navigate("/custom/cabinet-colors?accordion=cabinet-color");
@@ -546,36 +509,6 @@ export const PlayCanvasIntegration = () => {
 
     const items: DropdownItem[] = [
       {
-        id: "color",
-        label: "Color",
-        children: [
-          {
-            id: "cabinet-color",
-            label: "Cabinet Color",
-            children: [
-              {
-                id: "cabinet-select-color",
-                label: "Select Color",
-                trailing: <ArrowTopRight color={"#333"} />,
-                onClick: handleOpenCabinetColor,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: "cabinet-style",
-        label: "Cabinet Style",
-        children: [
-          {
-            id: "cabinet-select-style",
-            label: "Select Style",
-            trailing: <ArrowTopRight color={"#333"} />,
-            onClick: handleOpenCabinetStyle,
-          },
-        ],
-      },
-      {
         id: "resize",
         label: "Resize",
         children: [
@@ -599,70 +532,55 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-    ];
-
-    // if (selectedSceneProduct) {
-    //   items.unshift(
-    //     {
-    //       id: "drawer-style",
-    //       label: "Drawer Style",
-    //       children: drawerOptions.map((option) => ({
-    //         id: option.id,
-    //         label: option.label,
-    //         onClick: () => handleSetDrawers(option.value),
-    //       })),
-    //     },
-    //     {
-    //       id: "handle-style",
-    //       label: "Handle Style",
-    //       children: handleOptions.map((option) => ({
-    //         id: option.id,
-    //         label: option.label,
-    //         onClick: () => handleSetHandleType(option.value),
-    //       })),
-    //     },
-    //   );
-    // }
-
-    const canAddDrawerProduct = Boolean(activeDrawerProduct);
-
-    const addItem: DropdownItem =
-      productIds.length > 0
-        ? {
-            id: "add",
-            label: "Add",
-            trailing: "",
-            children: canAddDrawerProduct
-              ? [
-                  // { id: "add-left", label: "Add to left", onClick: () => handleAddLeft(activeDrawerProduct) },
-                  // { id: "add-right", label: "Add to right", onClick: () => handleAddRight(activeDrawerProduct) },
-                  {
-                    id: "add-right",
-                    label: "Add additional product",
-                    onClick: () => handleAddAdditionalProduct(),
-                  },
-                ]
-              : [],
-          }
-        : {
-            id: "add",
-            label: "Add",
-            trailing: "",
-            onClick: () => handleAdd("UniOpenShelves"),
-          };
-
-    items.push(addItem);
-
-    if (selectedSceneProduct) {
-      items.unshift({
+      {
         id: "reposition",
         label: "Reposition",
         children: [
           { id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") },
           { id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") },
         ],
-      });
-    }
+      },
+      {
+        id: "color",
+        label: "Color",
+        children: [
+          {
+            id: "cabinet-select-color",
+            label: "Select Color",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCabinetColor,
+          },
+        ],
+      },
+      {
+        id: "add",
+        label: "Add",
+        trailing: "",
+        children: [
+          // { id: "add-left", label: "Add to left", onClick: () => handleAddLeft(activeDrawerProduct) },
+          // { id: "add-right", label: "Add to right", onClick: () => handleAddRight(activeDrawerProduct) },
+          {
+            id: "add-right",
+            label: "Add Cabinet",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: () => handleAddAdditionalProduct(),
+          },
+        ],
+      },
+      { id: "duplicate", label: "Duplicate", trailing: "", onClick: handleDuplicateProduct },
+      // {
+      //   id: "cabinet-style",
+      //   label: "Cabinet Style",
+      //   children: [
+      //     {
+      //       id: "cabinet-select-style",
+      //       label: "Select Style",
+      //       trailing: <ArrowTopRight color={"#333"} />,
+      //       onClick: handleOpenCabinetStyle,
+      //     },
+      //   ],
+      // },
+    ];
 
     if (productIds.length) {
       items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
@@ -670,19 +588,16 @@ export const PlayCanvasIntegration = () => {
 
     return items;
   }, [
-    handleAdd,
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
-    activeDrawerProduct,
     dimensionOptions.depth,
     dimensionOptions.width,
     productIds.length,
-    selectedSceneProduct,
     handleMoveProduct,
     handleOpenCabinetColor,
-    handleOpenCabinetStyle,
     handleAddAdditionalProduct,
+    handleDuplicateProduct,
   ]);
 
   return (

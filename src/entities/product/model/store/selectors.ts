@@ -2,6 +2,15 @@ import type { RootState } from "@/app/store";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
 
+export const getCabinetCatalog = (state: RootState) => state.rootStateUI.product.cabinetCatalog;
+
+export const getActiveCabinetRule = (state: RootState) => {
+  const activeCode = state.rootStateUI.product.activeCabinetType;
+  if (!activeCode) return null;
+
+  return state.rootStateUI.product.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCode) ?? null;
+};
+
 export const getDimensionOptions = (state: RootState) => state.rootStateUI.product.dimensionOptions;
 
 export const getSelectedDimensions = (state: RootState) => state.rootStateUI.product.selectedDimensions;

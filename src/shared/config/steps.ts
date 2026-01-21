@@ -9,7 +9,7 @@ export const PREBUILT_STEPS = [
 
 export const CUSTOM_STEPS = [
   { id: "cabinet-builder", label: "Cabinet Builder", path: "/custom/cabinet-builder" },
-  { id: "cabinet-colors", label: "Cabinet Colors", path: "/custom/cabinet-colors" },
+  { id: "cabinet-colors", label: "Color", path: "/custom/cabinet-colors" },
   { id: "countertop", label: "Countertop & Basin", path: "/custom/countertop" },
   { id: "accessories", label: "Accessories", path: "/custom/accessories" },
   { id: "faucet-holes", label: "Faucet Holes", path: "/custom/faucet-holes" },
