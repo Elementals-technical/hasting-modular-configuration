@@ -137,11 +137,17 @@ export const CustomCabinetColorsPage = () => {
 
   const handleChangeDrawerPanelFluting = (value: string) => {
     if (!value) return;
+    setConfigBatch(selectedProducts, {
+      DrawerPanelFluting: value,
+    });
     dispatch(setDrawerPanelFluting(value));
   };
 
   const handleChangeGrainDirection = (value: string) => {
     if (!value) return;
+    setConfigBatch(selectedProducts, {
+      GrainDirection: value,
+    });
     dispatch(setGrainDirection(value));
   };
 
@@ -161,6 +167,22 @@ export const CustomCabinetColorsPage = () => {
       HandleGrooveColor: activeGrooveColor,
     });
   }, [activeGrooveColor, isPlayCanvasReady, selectedProducts]);
+
+  // useEffect(() => {
+  //   if (!isPlayCanvasReady || !activeDrawerPanelFluting) return;
+
+  //   setConfigBatch(selectedProducts, {
+  //     DrawerPanelFluting: activeDrawerPanelFluting,
+  //   });
+  // }, [activeDrawerPanelFluting, isPlayCanvasReady, selectedProducts]);
+
+  // useEffect(() => {
+  //   if (!isPlayCanvasReady || !activeGrainDirection) return;
+
+  //   setConfigBatch(selectedProducts, {
+  //     GrainDirection: activeGrainDirection,
+  //   });
+  // }, [activeGrainDirection, isPlayCanvasReady, selectedProducts]);
 
   const ACCORDIONS: AccordionConfig[] = [
     {

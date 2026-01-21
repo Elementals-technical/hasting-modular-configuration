@@ -57,26 +57,31 @@ export const optionsMockData3 = [
     id: 3001,
     title: "None",
     isShortDesc: false,
+    metadata: { value: "None" },
   },
   {
     id: 3002,
-    title: "Uniform",
+    title: "Fluting Vertical A",
     isShortDesc: false,
+    metadata: { value: "FlutingVerticalA" },
   },
   {
     id: 3003,
-    title: "Staggered",
+    title: "Fluting Vertical B",
     isShortDesc: false,
+    metadata: { value: "FlutingVerticalB" },
   },
   {
     id: 3004,
-    title: "Cannete",
+    title: "Fluting Horizontal A",
     isShortDesc: false,
+    metadata: { value: "FlutingHorizontalA" },
   },
   {
     id: 3005,
-    title: "Rigatino",
+    title: "Fluting Horizontal B",
     isShortDesc: false,
+    metadata: { value: "FlutingHorizontalB" },
   },
 ];
 
@@ -85,10 +90,12 @@ export const optionsMockData4 = [
     id: 4001,
     title: "Horizontal",
     isShortDesc: false,
+    metadata: { value: "GrainHorizontal" },
   },
   {
     id: 4002,
     title: "Vertical",
     isShortDesc: false,
+    metadata: { value: "GrainVertical" },
   },
 ];

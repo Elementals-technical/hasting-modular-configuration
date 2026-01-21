@@ -141,6 +141,13 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
+  // useEffect(() => {
+  //   if (!playCanvasReady) return;
+
+  //   const tool = getDimensionTool();
+  //   tool?.setEnabled(true);
+  // }, [playCanvasReady]);
+
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
   const handleSetWidth = useCallback(
@@ -425,29 +432,27 @@ export const PlayCanvasIntegration = () => {
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
 
+    const dimensionTool = getDimensionTool();
+    dimensionTool?.setEnabled(true);
+
     selectTool.on("select", (selectedEntity) => {
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
 
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
         // Get dimention on the model when selection it on the scene.
-        const dimensionTool = getDimensionTool();
 
-        if (dimensionTool) {
-          dimensionTool.setEnabled(true);
+        (async () => {
+          const config = await getConfig(firstSelected.name ?? "");
 
-          (async () => {
-            const config = await getConfig(firstSelected.name ?? "");
+          if (!config) return;
 
-            if (!config) return;
+          dispatch(setSelectedSceneProduct(firstSelected.name!));
+          // replace any previous selection
+          selectTool?.setSelectedByName(firstSelected.name ?? "", { mode: "replace" });
 
-            dispatch(setSelectedSceneProduct(firstSelected.name!));
-            // replace any previous selection
-            selectTool?.setSelectedByName(firstSelected.name ?? "", { mode: "replace" });
-
-            updateDimensionDataForProduct(firstSelected.name ?? "", config);
-          })();
-        }
+          updateDimensionDataForProduct(firstSelected.name ?? "", config);
+        })();
 
         const lastPos = lastPointerPosRef.current;
 
