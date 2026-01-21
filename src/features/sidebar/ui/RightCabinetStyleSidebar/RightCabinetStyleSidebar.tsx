@@ -81,40 +81,33 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     return image;
   }, [selectedProductConfig?.Handle]);
 
-  const productConfig = useMemo(
-    () => {
-      if (
-        selectedDimensions.width === null ||
-        selectedDimensions.height === null ||
-        selectedDimensions.depth === null
-      ) {
-        return null;
-      }
+  const productConfig = useMemo(() => {
+    if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {
+      return null;
+    }
 
-      return {
-        ...(selectedProductConfig ?? {}),
-        Width: selectedDimensions.width,
-        Height: selectedDimensions.height,
-        Depth: selectedDimensions.depth,
-        CabinetColor: cabinetColor,
-        CountertopColor: countertopColor,
-        HandleGrooveColor: handleGrooveColor,
-        DrawerPanelFluting: drawerPanelFluting,
-        GrainDirection: grainDirection,
-      };
-    },
-    [
-      cabinetColor,
-      countertopColor,
-      handleGrooveColor,
-      drawerPanelFluting,
-      grainDirection,
-      selectedDimensions.depth,
-      selectedDimensions.height,
-      selectedDimensions.width,
-      selectedProductConfig,
-    ],
-  );
+    return {
+      ...selectedProductConfig,
+      Width: selectedDimensions.width,
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+      CabinetColor: cabinetColor,
+      CountertopColor: countertopColor,
+      HandleGrooveColor: handleGrooveColor,
+      DrawerPanelFluting: drawerPanelFluting,
+      GrainDirection: grainDirection,
+    };
+  }, [
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    drawerPanelFluting,
+    grainDirection,
+    selectedDimensions.depth,
+    selectedDimensions.height,
+    selectedDimensions.width,
+    selectedProductConfig,
+  ]);
 
   const handleCloseSidebar = () => {
     dispatch(setOpenStyleSidebar(false));
@@ -148,11 +141,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   useEffect(() => {
     if (!isOpenedStyleSidebar) return;
     if (!selectedProducts.length) return;
-    if (
-      selectedDimensions.height === null ||
-      selectedDimensions.depth === null ||
-      selectedDimensions.width === null
-    ) {
+    if (selectedDimensions.height === null || selectedDimensions.depth === null || selectedDimensions.width === null) {
       return;
     }
 
@@ -172,7 +161,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         }),
       );
     }
-  }, [dispatch, selectedProductConfig]);
+  }, [dispatch, selectedProductConfig, handlesDisabled]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
@@ -289,10 +278,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         )}
       </div>
 
-      {/* <div className={s.tempButtons}>
-        <BaseButton onClick={addToLeft}>Left</BaseButton>
-        <BaseButton onClick={addToRight}>Right</BaseButton>
-      </div> */}
       <div className={s.bottomText}>
         Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
       </div>
