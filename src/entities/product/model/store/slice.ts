@@ -4,7 +4,7 @@ import {
   type Intent,
   type OptionState,
   type Selection,
-} from "@/features/configurator-rule-core";
+} from "@/features/configurator-rule-core/cabinetBuilder";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
@@ -9,7 +9,6 @@ import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constant
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
-  getActiveCabinetRule,
   getCountertopStyle,
   getSelectedProducts,
   getSelectedDimensions,
@@ -28,6 +27,8 @@ import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
   buildCountertopRuleState,
   getMaterialAliases,
@@ -47,9 +48,9 @@ export const CustomCountertopPage = () => {
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
-  const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
-  const isSinkDisabled = Boolean(activeCabinetRule) && !activeCabinetRule?.hasSink;
+  const [hasSinkBase, setHasSinkBase] = useState(false);
+  const isSinkDisabled = !hasSinkBase;
 
   const [selectedFilter, setSelectedFilter] = useState<{
     material?: string;
@@ -155,6 +156,49 @@ export const CustomCountertopPage = () => {
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [filteredCountertopOptions],
   );
+
+  // Check whether we have the product with the Sink on the scene.
+  const containsSinkBase = useCallback((value: unknown, visited = new Set<unknown>()): boolean => {
+    if (!value || visited.has(value)) return false;
+
+    if (typeof value === "string") {
+      const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+      return normalized.includes("sinkbase");
+    }
+
+    if (typeof value !== "object") return false;
+
+    visited.add(value);
+
+    if (Array.isArray(value)) {
+      return value.some((entry) => containsSinkBase(entry, visited));
+    }
+
+    return Object.values(value as Record<string, unknown>).some((entry) => containsSinkBase(entry, visited));
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadConfigs = async () => {
+      const orderedIds = getOrderedProductIds(selectedProducts);
+      if (!orderedIds.length) {
+        if (isMounted) setHasSinkBase(false);
+        return;
+      }
+
+      const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
+      const hasSink = configs.some((config) => (config ? containsSinkBase(config) : false));
+
+      if (isMounted) setHasSinkBase(hasSink);
+    };
+
+    loadConfigs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProducts, containsSinkBase]);
 
   const handleChangeCountertopColor = (colorName: string) => {
     if (!colorName) return;
