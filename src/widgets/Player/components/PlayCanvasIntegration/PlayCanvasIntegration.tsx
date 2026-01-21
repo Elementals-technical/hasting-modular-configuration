@@ -20,7 +20,6 @@ import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import {
   getDimensionOptions,
-  getDrawerProduct,
   getCabinetCatalog,
   getSelectedSceneProduct,
 } from "@/entities/product/model/store/selectors";
@@ -31,7 +30,7 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "020";
+const PLAYCANVAS_VERSION = "021";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
