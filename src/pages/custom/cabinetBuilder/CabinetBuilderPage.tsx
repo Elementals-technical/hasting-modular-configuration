@@ -607,7 +607,7 @@ export const CabinetBuilderPage = () => {
 
     // Capture values for async function
     const productName = selectedCabinetRule.code || "Sink-Base";
-    const cabinetConfig: addProductConfigI = {};
+    const cabinetConfig: Partial<addProductConfigI> = {};
     const currentSelectedConfig = selectedProductConfig ?? {};
 
     async function addProductToScene() {
@@ -634,7 +634,7 @@ export const CabinetBuilderPage = () => {
         };
 
         // Add sinkType if it's a Sink-Base
-        if (selectedCabinetRule.hasSink && sinkType) {
+        if (selectedCabinetRule?.hasSink && sinkType) {
           productConfig.sinkType = sinkType;
         }
 

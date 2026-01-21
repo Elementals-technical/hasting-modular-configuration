@@ -286,27 +286,27 @@ export const PlayCanvasIntegration = () => {
   //   ],
   // );
 
-  const handleAdd = useCallback(
-    async (name: string) => {
-      try {
-        const productId = await addProduct(name);
+  // const handleAdd = useCallback(
+  //   async (name: string) => {
+  //     try {
+  //       const productId = await addProduct(name);
 
-        if (productId) {
-          dispatch(addProductId(productId));
+  //       if (productId) {
+  //         dispatch(addProductId(productId));
 
-          const config = await getConfig(productId);
-          if (config) {
-            updateDimensionDataForProduct(productId, config);
-          }
-        }
-      } catch (error) {
-        console.error("[ProductModelItem] Failed to add product", error);
-      } finally {
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-      }
-    },
-    [dispatch],
-  );
+  //         const config = await getConfig(productId);
+  //         if (config) {
+  //           updateDimensionDataForProduct(productId, config);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("[ProductModelItem] Failed to add product", error);
+  //     } finally {
+  //       setDropdownState((prev) => ({ ...prev, visible: false }));
+  //     }
+  //   },
+  //   [dispatch],
+  // );
 
   // const handleAddRight = useCallback(
   //   async (name: string) => {
@@ -376,10 +376,10 @@ export const PlayCanvasIntegration = () => {
     [handleSwapProducts, productIds, selectedSceneProduct],
   );
 
-  const handleOpenCabinetStyle = () => {
-    navigate("/custom/cabinet-builder?accordion=cabinet-style");
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-  };
+  // const handleOpenCabinetStyle = () => {
+  //   navigate("/custom/cabinet-builder?accordion=cabinet-style");
+  //   setDropdownState((prev) => ({ ...prev, visible: false }));
+  // };
 
   const handleOpenCabinetColor = () => {
     navigate("/custom/cabinet-colors?accordion=cabinet-color");
