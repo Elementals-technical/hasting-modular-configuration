@@ -110,6 +110,8 @@
     visibility: hidden;
     z-index: 3;
 
+    font-size: 11px;
+
     &:hover {
       background-color: #ac5431dd;
     }
@@ -122,11 +124,11 @@
   }
 }
 
-@container (max-width: 1390px) {
-  .optionImage {
-    width: auto;
+// @container (max-width: 1390px) {
+//   .optionImage {
+//     width: auto;
 
-    height: 100%;
-    overflow: hidden;
-  }
-}
+//     height: 100%;
+//     overflow: hidden;
+//   }
+// }

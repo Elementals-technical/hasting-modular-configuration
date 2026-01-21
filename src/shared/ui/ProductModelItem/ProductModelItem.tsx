@@ -50,7 +50,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
     <div className={className}>
       <div className={s.optionImage} onClick={handleSelect}>
         <Hint
-          content="Take this pre-built model into custom mode for full design control. Use our drag-n-drop editor to add/remove/reposition cabinets and more."
+          content="Switch to custom mode for full cabinet design control—add, remove, reposition cabinets and more"
           placement="top"
           trigger="hover"
         >

@@ -105,7 +105,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 11,
     img: temp_img,
-    title: 'Urban Standard · 42" 1-Drawer Sink Base',
+    title: 'Urban Standard · 42" 1-Drawer',
     // desc: "105W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -116,7 +116,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 12,
     img: temp_img,
-    title: 'Urban Standard · 42" 2-Drawer Sink Base',
+    title: 'Urban Standard · 42" 2-Drawer',
     // desc: "105W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -127,7 +127,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 13,
     img: temp_img,
-    title: 'Urban Standard · 42" 1-Drawer + Side Cabinet',
+    title: 'Urban Standard · 42" 1-Drawer',
     // desc: "Sink Base 70 + Side Cabinet 35 · 105W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -139,7 +139,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 14,
     img: temp_img,
-    title: 'Urban Standard · 42" 2-Drawer + Side Cabinet',
+    title: 'Urban Standard · 42" 2-Drawer',
     // desc: "Sink Base 70 + Side Cabinet 35 · 105W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -151,7 +151,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 15,
     img: temp_img,
-    title: 'Urban Standard · 46" 1-Drawer + Side Cabinet',
+    title: 'Urban Standard · 46" 1-Drawer',
     // desc: "Sink Base 80 + Side Cabinet 35 · 115W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -163,7 +163,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 16,
     img: temp_img,
-    title: 'Urban Standard · 46" 2-Drawer + Side Cabinet',
+    title: 'Urban Standard · 46" 2-Drawer',
     // desc: "Sink Base 80 + Side Cabinet 35 · 115W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -175,7 +175,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 17,
     img: temp_img,
-    title: 'Urban Standard · 48" 1-Drawer + Side Cabinet',
+    title: 'Urban Standard · 48" 1-Drawer',
     // desc: "Sink Base 70 + Side Cabinet 50 · 120W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -187,7 +187,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 18,
     img: temp_img,
-    title: 'Urban Standard · 48" 2-Drawer + Side Cabinet',
+    title: 'Urban Standard · 48" 2-Drawer',
     // desc: "Sink Base 70 + Side Cabinet 50 · 120W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -199,7 +199,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 19,
     img: temp_img,
-    title: 'Urban Standard · 48" 1-Drawer Double Sink Base',
+    title: 'Urban Standard · 48" 1-Drawer',
     // desc: "Sink Base 60 + Sink Base 60 · 120W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -211,7 +211,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 20,
     img: temp_img,
-    title: 'Urban Standard · 48" 2-Drawer Double Sink Base',
+    title: 'Urban Standard · 48" 2-Drawer',
     // desc: "Sink Base 60 + Sink Base 60 · 120W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -261,7 +261,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 24,
     img: temp_img,
-    title: 'Urban Standard · 59" 2-Drawer 1',
+    title: 'Urban Standard · 59" 2-Drawer',
     // desc: "Sink Base 90 (2-Drawer) + Side Cabinet 60 (2-Drawer) · 150W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -285,7 +285,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 26,
     img: temp_img,
-    title: 'Urban Standard · 63" 1-Drawer 1',
+    title: 'Urban Standard · 63" 1-Drawer',
     // desc: "Sink Base 90 (1-Drawer) + Open Shelf 35 + Side Cabinet 35 (1-Drawer) · 160W × 50.5D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -298,7 +298,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 27,
     img: temp_img,
-    title: 'Urban Standard · 63" 1-Drawer 2',
+    title: 'Urban Standard · 63" 1-Drawer',
     // desc: "Side Cabinet 35 (1-Drawer) + Sink Base 90 (1-Drawer) + Side Cabinet 35 (1-Drawer) · 160W × 50.5D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -323,7 +323,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 29,
     img: temp_img,
-    title: 'Urban Standard · 63" 2-Drawer Double',
+    title: 'Urban Standard · 63" 2-Drawer',
     // desc: "Sink Base 80 (2-Drawer) + Sink Base 80 (2-Drawer) · 160W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -360,7 +360,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 32,
     img: temp_img,
-    title: 'Urban Standard · 69" 2-Drawer 1',
+    title: 'Urban Standard · 69" 2-Drawer',
     // desc: "Sink Base 105 (2-Drawer) + Side Cabinet 70 (2-Drawer) · 175W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -385,7 +385,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 34,
     img: temp_img,
-    title: 'Urban Standard · 71" 2-Drawer Double',
+    title: 'Urban Standard · 71" 2-Drawer',
     // desc: "Sink Base 90 (2-Drawer) + Sink Base 90 (2-Drawer) · 180W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -423,7 +423,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 37,
     img: temp_img,
-    title: 'Urban Standard · 75" 2-Drawer 1',
+    title: 'Urban Standard · 75" 2-Drawer',
     // desc: "Sink Base 120 (2-Drawer) + Side Cabinet 70 (2-Drawer) · 190W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -435,7 +435,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 38,
     img: temp_img,
-    title: 'Urban Standard · 75" 2-Drawer 2',
+    title: 'Urban Standard · 75" 2-Drawer',
     // desc: "Side Cabinet 50 (2-Drawer) + Sink Base 90 (2-Drawer) + Side Cabinet 50 (2-Drawer) · 190W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -461,7 +461,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 40,
     img: temp_img,
-    title: 'Urban Standard · 79" 1-Drawer Double',
+    title: 'Urban Standard · 79" 1-Drawer',
     // desc: "Sink Base 70 (1-Drawer) + Side Cabinet 60 (1-Drawer) + Sink Base 70 (1-Drawer) · 200W × 50.5D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -487,7 +487,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 42,
     img: temp_img,
-    title: 'Urban Standard · 83" 2-Drawer Double 1',
+    title: 'Urban Standard · 83" 2-Drawer',
     // desc: "Sink Base 70 (2-Drawer) + Side Cabinet 70 (2-Drawer) + Sink Base 70 (2-Drawer) · 210W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -500,7 +500,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 43,
     img: temp_img,
-    title: 'Urban Standard · 83" 2-Drawer Double 2',
+    title: 'Urban Standard · 83" 2-Drawer',
     // desc: "Sink Base 105 (2-Drawer) + Sink Base 105 (2-Drawer) · 210W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -512,7 +512,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 44,
     img: temp_img,
-    title: 'Urban Standard · 83" 2-Drawer Double',
+    title: 'Urban Standard · 83" 2-Drawer',
     // desc: "Sink Base 80 (2-Drawer) + Side Cabinet 50 (2-Drawer) + Sink Base 80 (2-Drawer) · 210W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -525,7 +525,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 45,
     img: temp_img,
-    title: 'Urban Standard · 87" 1-Drawer Double',
+    title: 'Urban Standard · 87" 1-Drawer',
     // desc: "Sink Base 80 (1-Drawer) + Open Shelf 60 + Sink Base 80 (1-Drawer) · 220W × 50.5D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -538,7 +538,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 46,
     img: temp_img,
-    title: 'Urban Standard · 89" 2-Drawer 1',
+    title: 'Urban Standard · 89" 2-Drawer',
     // desc: "Side Cabinet 105 (2-Drawer) + Sink Base 120 (2-Drawer) · 225W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -576,7 +576,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 49,
     img: temp_img,
-    title: 'Urban Standard · 95" 1-Drawer Double 2',
+    title: 'Urban Standard · 95" 1-Drawer',
     // desc: "Sink Base 90 (1-Drawer) + Side Cabinet 60 (1-Drawer) + Sink Base 90 (1-Drawer) · 240W × 50.5D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -589,7 +589,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 50,
     img: temp_img,
-    title: 'Urban Standard · 95" 1-Drawer Double',
+    title: 'Urban Standard · 95" 1-Drawer',
     // desc: "Sink Base 80 (1-Drawer) + Side Cabinet 80 (1-Drawer) + Sink Base 80 (1-Drawer) · 240W × 50.5D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -602,7 +602,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 51,
     img: temp_img,
-    title: 'Urban Standard · 95" 2-Drawer Double',
+    title: 'Urban Standard · 95" 2-Drawer',
     // desc: "Sink Base 120 (2-Drawer) + Sink Base 120 (2-Drawer) · 240W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
@@ -641,7 +641,7 @@ export const productMockData: ProductModel[] = [
   {
     id: 54,
     img: temp_img,
-    title: 'Urban Standard · 103" 2-Drawer Double',
+    title: 'Urban Standard · 103" 2-Drawer',
     // desc: "Sink Base 80 (2-Drawer) + Open Shelf 25 + Side Cabinet 50 (2-Drawer) + Open Shelf 25 + Sink Base 80 (2-Drawer) · 260W × 50.5D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
