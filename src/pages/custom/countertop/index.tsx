@@ -3,7 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+import {
+  buildMaterialFilters,
+  filterOptionsByMaterialSelection,
+  getMaterialOptionsGridData,
+  type MaterialFilterSelection,
+} from "@/shared/constants/materialFilters";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 import {
@@ -52,12 +57,7 @@ export const CustomCountertopPage = () => {
   const [hasSinkBase, setHasSinkBase] = useState(false);
   const isSinkDisabled = !hasSinkBase;
 
-  const [selectedFilter, setSelectedFilter] = useState<{
-    material?: string;
-    color?: string;
-    look?: string;
-    hex?: string;
-  }>({});
+  const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const materialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
@@ -98,16 +98,7 @@ export const CustomCountertopPage = () => {
   }, [allowedMaterials, materialFilters]);
 
   const filteredCountertopOptions = useMemo(() => {
-    const filteredByUi = countertopOptions.filter((option) => {
-      const { materials, colors, looks, hex } = option.metadata ?? {};
-
-      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
-      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
-      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
-      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
-
-      return materialMatch && colorMatch && lookMatch && hexMatch;
-    });
+    const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
 
     if (!allowedMaterials.size) return filteredByUi;
 

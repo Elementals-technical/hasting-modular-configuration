@@ -32,6 +32,13 @@ type FiltersSet = {
   hex: FilterOption[];
 };
 
+export type MaterialFilterSelection = {
+  material?: string;
+  color?: string;
+  look?: string;
+  hex?: string;
+};
+
 const isMaterialOption = (item: MaterialOption, optionName: string) =>
   item.option === optionName && item.typeComponent === "material";
 
@@ -108,4 +115,20 @@ export const getMaterialOptionsGridData = (optionName: string): ProductOptionDat
         image: metadata?.image,
       },
     }));
+};
+
+export const filterOptionsByMaterialSelection = (
+  options: ProductOptionData[],
+  selectedFilter: MaterialFilterSelection,
+): ProductOptionData[] => {
+  return options.filter((option) => {
+    const { materials, colors, looks, hex } = option.metadata ?? {};
+
+    const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
+    const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
+    const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
+    const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
+
+    return materialMatch && colorMatch && lookMatch && hexMatch;
+  });
 };

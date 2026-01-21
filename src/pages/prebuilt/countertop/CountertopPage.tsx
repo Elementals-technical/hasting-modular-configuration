@@ -24,7 +24,12 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
-import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+import {
+  buildMaterialFilters,
+  filterOptionsByMaterialSelection,
+  getMaterialOptionsGridData,
+  type MaterialFilterSelection,
+} from "@/shared/constants/materialFilters";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -54,12 +59,7 @@ export const CountertopPage = () => {
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
 
-  const [selectedFilter, setSelectedFilter] = useState<{
-    material?: string;
-    color?: string;
-    look?: string;
-    hex?: string;
-  }>({});
+  const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];
@@ -96,16 +96,7 @@ export const CountertopPage = () => {
   }, [allowedMaterials, materialFilters]);
 
   const filteredCountertopOptions = useMemo(() => {
-    const filteredByUi = countertopOptions.filter((option) => {
-      const { materials, colors, looks, hex } = option.metadata ?? {};
-
-      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
-      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
-      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
-      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
-
-      return materialMatch && colorMatch && lookMatch && hexMatch;
-    });
+    const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
 
     if (!allowedMaterials.size) return filteredByUi;
 

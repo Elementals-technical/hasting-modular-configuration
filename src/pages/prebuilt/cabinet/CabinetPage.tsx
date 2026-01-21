@@ -27,7 +27,12 @@ import {
   getHandleGrooveColor,
   getProductsPresets,
 } from "@/entities/product/model/store/selectors";
-import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+import {
+  buildMaterialFilters,
+  filterOptionsByMaterialSelection,
+  getMaterialOptionsGridData,
+  type MaterialFilterSelection,
+} from "@/shared/constants/materialFilters";
 
 const BASE_PANEL_OPTION = "Base Panel";
 
@@ -42,25 +47,12 @@ export const CabinetPage = () => {
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
 
-  const [selectedFilter, setSelectedFilter] = useState<{
-    material?: string;
-    color?: string;
-    look?: string;
-    hex?: string;
-  }>({});
+  const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
 
-  const filteredBasePanelOptions = useMemo(() => {
-    return basePanelOptions.filter((option) => {
-      const { materials, colors, looks, hex } = option.metadata ?? {};
-
-      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
-      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
-      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
-      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
-
-      return materialMatch && colorMatch && lookMatch && hexMatch;
-    });
-  }, [basePanelOptions, selectedFilter]);
+  const filteredBasePanelOptions = useMemo(
+    () => filterOptionsByMaterialSelection(basePanelOptions, selectedFilter),
+    [basePanelOptions, selectedFilter],
+  );
 
   const sortedBasePanelOptions = useMemo(
     () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
