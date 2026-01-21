@@ -1,17 +1,26 @@
 uniform sampler2D tri_diffuseTex;
+uniform float tri_hasDiffuse;
 
-// --- COMMON LOGIC GUARD ---
+uniform sampler2D tri_aoTex;
+uniform float tri_hasAO;
+uniform float tri_aoIntensity;
+
+#ifndef TRI_DETAIL_PARAMS
+#define TRI_DETAIL_PARAMS
+    uniform float tri_detailTiling;
+#endif
+
 #ifndef TRI_PLANAR_COMMON
 #define TRI_PLANAR_COMMON
 
     uniform float tri_scale;
     uniform float tri_rotation;
+    uniform vec3 material_diffuse;
     
     #ifndef MATRIX_MODEL_DEFINED
     uniform mat4 matrix_model;
     #endif
 
-    // Helper to rotate UV coordinates
     vec2 rotateUV(vec2 uv, float rotation) {
         float s = sin(rotation);
         float c = cos(rotation);
@@ -19,12 +28,10 @@ uniform sampler2D tri_diffuseTex;
     }
 
 #endif
-// --------------------------
 
 void getAlbedo() {
-    dAlbedo = vec3(1.0);
+    dAlbedo = material_diffuse;
 
-    // 1. Calculate Local Coordinates (ignoring object scale)
     vec3 offset = matrix_model[3].xyz;
     vec3 axisX = normalize(matrix_model[0].xyz);
     vec3 axisY = normalize(matrix_model[1].xyz);
@@ -32,34 +39,43 @@ void getAlbedo() {
     mat3 rotationMatrix = mat3(axisX, axisY, axisZ);
     vec3 localPos = (vPositionW - offset) * rotationMatrix;
 
-    // 2. Calculate Normals & Blending Weights
-    vec3 fdx = dFdx(vPositionW);
-    vec3 fdy = dFdy(vPositionW);
-    dNormalW = normalize(cross(fdx, fdy)); 
-
     vec3 lFdx = dFdx(localPos);
     vec3 lFdy = dFdy(localPos);
     vec3 localNormal = normalize(cross(lFdx, lFdy));
     vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
     blend /= (dot(blend, vec3(1.0)) + 0.0001);
 
-    // 3. Prepare UVs
     float sX = (tri_scale > 0.001) ? tri_scale : 1.0;
+    
+    vec2 uvX = -vec2(localPos.z, localPos.y) / sX;
+    vec2 uvY = -vec2(localPos.x, localPos.z) / sX;
+    vec2 uvZ = -vec2(localPos.x, localPos.y) / sX;
 
-    vec2 uvX = vec2(localPos.z, localPos.y) / sX;
-    vec2 uvY = vec2(localPos.x, localPos.z) / sX;
-    vec2 uvZ = vec2(localPos.x, localPos.y) / sX;
+    vec2 r_uvX = rotateUV(uvX, tri_rotation);
+    vec2 r_uvY = rotateUV(uvY, tri_rotation);
+    vec2 r_uvZ = rotateUV(uvZ, tri_rotation);
 
-    uvX = rotateUV(uvX, tri_rotation);
-    uvY = rotateUV(uvY, tri_rotation);
-    uvZ = rotateUV(uvZ, tri_rotation);
+    if (tri_hasDiffuse > 0.5) {
+        vec3 cx = texture2D(tri_diffuseTex, r_uvX).rgb;
+        vec3 cy = texture2D(tri_diffuseTex, r_uvY).rgb;
+        vec3 cz = texture2D(tri_diffuseTex, r_uvZ).rgb;
 
-    // 4. Sample Texture (No fract to fix mipmap artifacts)
-    vec3 cx = texture2D(tri_diffuseTex, uvX).rgb;
-    vec3 cy = texture2D(tri_diffuseTex, uvY).rgb;
-    vec3 cz = texture2D(tri_diffuseTex, uvZ).rgb;
+        vec3 triColor = cx * blend.x + cy * blend.y + cz * blend.z;
+        dAlbedo *= triColor;
+    }
 
-    // 5. Blend
-    vec3 triColor = cx * blend.x + cy * blend.y + cz * blend.z;
-    dAlbedo *= triColor;
+    if (tri_hasAO > 0.5) {
+        vec2 aoUVX = r_uvX * tri_detailTiling;
+        vec2 aoUVY = r_uvY * tri_detailTiling;
+        vec2 aoUVZ = r_uvZ * tri_detailTiling;
+
+        float aoX = texture2D(tri_aoTex, aoUVX).r;
+        float aoY = texture2D(tri_aoTex, aoUVY).r;
+        float aoZ = texture2D(tri_aoTex, aoUVZ).r;
+
+        float combinedAO = aoX * blend.x + aoY * blend.y + aoZ * blend.z;
+        float finalAO = mix(1.0, combinedAO, tri_aoIntensity);
+
+        dAlbedo *= vec3(finalAO);
+    }
 }

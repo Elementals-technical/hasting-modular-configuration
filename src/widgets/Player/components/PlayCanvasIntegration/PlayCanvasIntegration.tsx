@@ -31,7 +31,7 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "019";
+const PLAYCANVAS_VERSION = "020";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -63,14 +63,17 @@ export const PlayCanvasIntegration = () => {
 
   console.log("selectedSceneProduct", selectedSceneProduct);
 
-  const resolveCabinetTypeId = useCallback((productType: string | null) => {
-    if (!productType) return null;
+  const resolveCabinetTypeId = useCallback(
+    (productType: string | null) => {
+      if (!productType) return null;
 
-    const normalized = productType.toLowerCase();
-    const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+      const normalized = productType.toLowerCase();
+      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
 
-    return match?.code ?? null;
-  }, [cabinetCatalog.typeCabinetRules]);
+      return match?.code ?? null;
+    },
+    [cabinetCatalog.typeCabinetRules],
+  );
 
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {
     const iframeEl = containerRef.current;

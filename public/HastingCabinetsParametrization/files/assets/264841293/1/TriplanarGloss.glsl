@@ -1,7 +1,7 @@
 uniform sampler2D tri_glossTex;
 uniform float tri_glossiness;
-
-// --- COMMON LOGIC GUARD ---
+uniform float tri_glossInvert;
+// --- COMMON LOGIC ---
 #ifndef TRI_PLANAR_COMMON
 #define TRI_PLANAR_COMMON
     uniform float tri_scale;
@@ -15,25 +15,23 @@ uniform float tri_glossiness;
         return vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
     }
 #endif
-// --------------------------
+// --------------------
 
 void getGlossiness() {
-    // 1. Local Coordinates
     vec3 offset = matrix_model[3].xyz;
     vec3 axisX = normalize(matrix_model[0].xyz);
     vec3 axisY = normalize(matrix_model[1].xyz);
     vec3 axisZ = normalize(matrix_model[2].xyz);
     mat3 rotationMatrix = mat3(axisX, axisY, axisZ);
+    
     vec3 localPos = (vPositionW - offset) * rotationMatrix;
 
-    // 2. Weights
     vec3 lFdx = dFdx(localPos);
     vec3 lFdy = dFdy(localPos);
     vec3 localNormal = normalize(cross(lFdx, lFdy));
     vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
     blend /= (dot(blend, vec3(1.0)) + 0.0001);
 
-    // 3. UVs
     float sX = (tri_scale > 0.001) ? tri_scale : 1.0;
 
     vec2 uvX = vec2(localPos.z, localPos.y) / sX;
@@ -44,19 +42,15 @@ void getGlossiness() {
     uvY = rotateUV(uvY, tri_rotation);
     uvZ = rotateUV(uvZ, tri_rotation);
 
-    // 4. Sample (Red Channel)
     float gX = texture2D(tri_glossTex, uvX).r;
     float gY = texture2D(tri_glossTex, uvY).r;
     float gZ = texture2D(tri_glossTex, uvZ).r;
 
-    float finalGloss = gX * blend.x + gY * blend.y + gZ * blend.z;
-    
-    // 5. Invert & Apply
-    // finalGloss = 1.0 - finalGloss;
+    float textureVal = gX * blend.x + gY * blend.y + gZ * blend.z;
 
-    // dGlossiness = finalGloss * tri_glossiness;
-    // dGlossiness = tri_glossiness * 2.0;
+    if (tri_glossInvert > 0.5) {
+        textureVal = 1.0 - textureVal;
+    }
 
-    dGlossiness = finalGloss * (tri_glossiness * 2.0);
-    dSpecularity = vec3(0.5);
+    dGlossiness = textureVal * tri_glossiness * 5.0;
 }
