@@ -29,14 +29,12 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import {
+  buildCountertopRuleState,
   getMaterialAliases,
-  materialMatchesRule,
-  matchesDepth,
   normalizeBasinToken,
   normalizeMaterialToken,
   parseCountertopMatrix,
-  parseThicknessValue,
-} from "@/entities/countertop/lib/matrixCountertop";
+} from "@/features/configurator-rule-core/countertop";
 
 import s from "./Countertop.module.scss";
 
@@ -75,12 +73,19 @@ export const CustomCountertopPage = () => {
     return match?.metadata?.materials ?? [];
   }, [activeCountertopColor, countertopOptions]);
 
-  const allowedMaterials = useMemo(() => {
-    if (!countertopRules.length) return new Set<string>();
-    const depth = selectedDimensions.depth;
-    const matches = countertopRules.filter((rule) => matchesDepth(rule, depth));
-    return new Set(matches.map((rule) => normalizeMaterialToken(rule.material)));
-  }, [countertopRules, selectedDimensions.depth]);
+  const ruleState = useMemo(
+    () =>
+      buildCountertopRuleState({
+        rules: countertopRules,
+        activeMaterialTokens,
+        width: selectedDimensions.width,
+        depth: selectedDimensions.depth,
+        activeBasinStyle,
+      }),
+    [activeBasinStyle, activeMaterialTokens, countertopRules, selectedDimensions.depth, selectedDimensions.width],
+  );
+
+  const allowedMaterials = ruleState.allowedMaterials;
 
   const filteredMaterialFilters = useMemo(() => {
     if (!allowedMaterials.size) return materialFilters;
@@ -111,26 +116,8 @@ export const CustomCountertopPage = () => {
     });
   }, [allowedMaterials, countertopOptions, selectedFilter]);
 
-  const matchingRules = useMemo(() => {
-    if (!countertopRules.length) return [];
-    const depth = selectedDimensions.depth;
-    return countertopRules.filter((rule) => {
-      if (!matchesDepth(rule, depth)) return false;
-      if (!activeMaterialTokens.length) return true;
-      return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
-    });
-  }, [activeMaterialTokens, countertopRules, selectedDimensions.depth]);
-
   const filteredThicknessOptions = useMemo(() => {
-    if (!matchingRules.length) return optionsMockData4;
-    const allowed = new Set<number>();
-    matchingRules.forEach((rule) => {
-      rule.topThicknesses.forEach((value) => {
-        const parsed = parseThicknessValue(value);
-        if (parsed !== null) allowed.add(parsed);
-      });
-    });
-
+    const allowed = ruleState.allowedThicknesses;
     if (!allowed.size) return optionsMockData4;
 
     return optionsMockData4.filter((option) => {
@@ -139,18 +126,11 @@ export const CustomCountertopPage = () => {
       if (!Number.isFinite(numeric)) return false;
       return Array.from(allowed).some((value) => Math.abs(value - numeric) < 0.001);
     });
-  }, [matchingRules]);
+  }, [ruleState.allowedThicknesses]);
 
   const allowedBasinTokens = useMemo(() => {
-    if (!matchingRules.length) return new Set<string>();
-    const width = selectedDimensions.width;
-    const tokens = new Set<string>();
-    matchingRules.forEach((rule) => {
-      if (width && rule.minSbCm && width < rule.minSbCm) return;
-      tokens.add(normalizeBasinToken(rule.basinStyle));
-    });
-    return tokens;
-  }, [matchingRules, selectedDimensions.width]);
+    return ruleState.allowedBasinTokens;
+  }, [ruleState.allowedBasinTokens]);
 
   const filteredBasinOptions = useMemo(() => {
     if (!allowedBasinTokens.size) return optionsMockData3;
@@ -162,42 +142,14 @@ export const CustomCountertopPage = () => {
   }, [allowedBasinTokens]);
 
   const filteredStyleOptions = useMemo(() => {
-    if (!matchingRules.length) return optionsMockData2;
-    const width = selectedDimensions.width;
-    const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : null;
-    const allowed = new Set<string>();
-
-    matchingRules.forEach((rule) => {
-      if (activeBasinToken && normalizeBasinToken(rule.basinStyle) !== activeBasinToken) return;
-
-      const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
-
-      if (isWidthValid(rule.maxIntegratedCm)) {
-        if (
-          rule.integratedAllowedSizesOnly.length === 0 ||
-          !width ||
-          rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
-        ) {
-          allowed.add("integrated");
-        }
-      }
-
-      if (isWidthValid(rule.maxVesselCm)) {
-        allowed.add("vessel");
-      }
-
-      if (isWidthValid(rule.maxUndermountCm)) {
-        allowed.add("undermount");
-      }
-    });
-
+    const allowed = ruleState.allowedStyles;
     if (!allowed.size) return optionsMockData2;
 
     return optionsMockData2.map((option) => ({
       ...option,
       isAvailable: allowed.has(option.title.toLowerCase()),
     }));
-  }, [activeBasinStyle, matchingRules, selectedDimensions.width]);
+  }, [ruleState.allowedStyles]);
 
   const sortedCountertopOptions = useMemo(
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),

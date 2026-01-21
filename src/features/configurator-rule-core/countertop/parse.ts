@@ -1,21 +1,6 @@
-import type { CountertopDatatable } from "../api/types";
+import type { CountertopDatatable } from "@/entities/countertop/api/types";
 
-export type CountertopMatrixRule = {
-  material: string;
-  topThicknesses: string[];
-  depths: number[];
-  basinStyle: string;
-  minSbCm: number | null;
-  maxIntegratedCm: number | null;
-  maxVesselCm: number | null;
-  maxUndermountCm: number | null;
-  faucetHoles: string[];
-  depthOnlyCm: number[];
-  allowedFinishes: string[];
-  allowMultiCabinet: boolean | null;
-  sidePanelsAction: string | null;
-  integratedAllowedSizesOnly: number[];
-};
+import type { CountertopMatrixRule } from "./types";
 
 const MATERIAL_ALIASES: Record<string, string[]> = {};
 
