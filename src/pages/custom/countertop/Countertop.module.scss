@@ -1,0 +1,17 @@
+.innerRow {
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: 20px;
+
+  padding-top: 0 !important;
+
+  div {
+    button {
+      min-width: auto !important;
+    }
+
+    &:nth-child(3) {
+      flex-grow: 1;
+    }
+  }
+}
