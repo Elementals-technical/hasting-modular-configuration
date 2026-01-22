@@ -90,7 +90,7 @@ export const optionsMockData2 = [
 export const optionsMockData3 = [
   {
     id: 3001,
-    title: "Prisma",
+    title: "HPL Prisma 50",
     name: "Top_HPLPrisma",
     isShortDesc: true,
     metadata: {
@@ -99,7 +99,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3002,
-    title: "Quadra",
+    title: "HPL Quadra 50",
     name: "Top_HPLQuadra",
     isShortDesc: false,
     metadata: {
@@ -108,7 +108,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3003,
-    title: "Cover",
+    title: "HPL Cover 50",
     name: "Top_HPLCover",
     isShortDesc: false,
     metadata: {
@@ -117,7 +117,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3004,
-    title: "Strip",
+    title: "HPL Strip 48",
     name: "Top_HPLStrip",
     isShortDesc: false,
     metadata: {
@@ -126,25 +126,25 @@ export const optionsMockData3 = [
   },
   {
     id: 3005,
-    title: "HPL/Fenix Cover Gres",
+    title: "Fenix Cover 50",
     name: "Top_HPL/Fenix_Cover_Gres",
     isShortDesc: false,
   },
   {
     id: 3006,
-    title: "HPL/Fenix Prisma Gres",
+    title: "Fenix Prisma 50",
     name: "Top_HPL/Fenix_Prisma_Gres",
     isShortDesc: false,
   },
   {
     id: 3007,
-    title: "HPL/Fenix Quadra Gres",
+    title: "Fenix Quadra 50",
     name: "Top_HPL/Fenix_Quadra_Gres",
     isShortDesc: false,
   },
   {
     id: 3008,
-    title: "HPL/Fenix Strip Gres",
+    title: "Fenix Strip 48",
     name: "Top_HPL/Fenix_Strip_Gres",
     isShortDesc: false,
   },
@@ -162,13 +162,13 @@ export const optionsMockData3 = [
   },
   {
     id: 3011,
-    title: "Ocritech Oly55",
+    title: "Ocritech Oly 55",
     name: "Top_Ocritech_Oly55",
     isShortDesc: false,
   },
   {
     id: 3012,
-    title: "Ocritech Oly56",
+    title: "Ocritech Oly 56",
     name: "Top_Ocritech_Oly56",
     isShortDesc: false,
   },
@@ -198,61 +198,61 @@ export const optionsMockData3 = [
   },
   {
     id: 3017,
-    title: "Porcelain Cover",
+    title: "Porcelain Cover 48",
     name: "Top_Porcelain_Cover",
     isShortDesc: false,
   },
   {
     id: 3018,
-    title: "Porcelain Prisma",
+    title: "Porcelain Prisma 48",
     name: "Top_Porcelain_Prisma",
     isShortDesc: false,
   },
   {
     id: 3019,
-    title: "Porcelain Quadra",
+    title: "Porcelain Quadra 48",
     name: "Top_Porcelain_Quadra",
     isShortDesc: false,
   },
   {
     id: 3020,
-    title: "Porcelain Strip",
+    title: "Porcelain Strip 48",
     name: "Top_Porcelain_Strip",
     isShortDesc: false,
   },
   {
     id: 3021,
-    title: "Syntesi",
+    title: "HPL Syntesi 48",
     name: "Top_Syntesi",
     isShortDesc: false,
   },
   {
     id: 3022,
-    title: "Tekorlux Quadra",
+    title: "Tekorlux Quadra 50",
     name: "Top_Tekorlux_Quadra",
     isShortDesc: false,
   },
   {
     id: 3023,
-    title: "Tekorlux Rectangular",
+    title: "Tekorlux Rectangular 50",
     name: "Top_Tekorlux_Rectangular",
     isShortDesc: false,
   },
   {
     id: 3024,
-    title: "Tekorlux Ron",
+    title: "Tekorlux Ron 50",
     name: "Top_Tekorlux_Ron",
     isShortDesc: false,
   },
   {
     id: 3025,
-    title: "Tekorlux Trip",
+    title: "Tekorlux Trip 50",
     name: "Top_Tekorlux_Trip",
     isShortDesc: false,
   },
   {
     id: 3026,
-    title: "Tekormud Tivi",
+    title: "Tekorund TIVI",
     name: "Top_Tekormud_Tivi",
     isShortDesc: false,
   },

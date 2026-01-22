@@ -133,13 +133,30 @@ export const CustomCountertopPage = () => {
   }, [ruleState.allowedBasinTokens]);
 
   const filteredBasinOptions = useMemo(() => {
-    if (!allowedBasinTokens.size) return optionsMockData3;
+    if (!allowedBasinTokens.size) return [];
+    const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+
     return optionsMockData3.filter((option) => {
-      const composite = `${option.title ?? ""} ${option.name ?? ""}`.trim();
-      const normalized = normalizeBasinToken(composite);
-      return Array.from(allowedBasinTokens).some((token) => normalized.includes(token) || token.includes(normalized));
+      const label = option.title ?? option.name ?? "";
+      if (!label) return false;
+
+      const [firstToken, ...restTokens] = label.trim().split(/\s+/);
+      const materialTokens = firstToken
+        ? firstToken.split("/").map((token) => normalizeMaterialToken(token)).filter(Boolean)
+        : [];
+      const isMaterialSpecific = materialTokens.some((token) => allowedMaterials.has(token));
+
+      if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
+        const matchesMaterial = materialTokens.some((token) => normalizedActiveMaterials.includes(token));
+        if (!matchesMaterial) return false;
+      }
+
+      const basinLabel = isMaterialSpecific ? restTokens.join(" ") : label;
+      const normalized = normalizeBasinToken(basinLabel);
+
+      return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [allowedBasinTokens]);
+  }, [activeMaterialTokens, allowedBasinTokens, allowedMaterials]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;

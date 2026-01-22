@@ -16,7 +16,11 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { setFaucetHolesAmount, setFaucetHolesSpacing } from "@/entities/product/model/store/slice";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
-import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import {
+  buildCountertopRuleState,
+  normalizeFaucetHoleToken,
+  parseCountertopMatrix,
+} from "@/features/configurator-rule-core/countertop";
 import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 const COUNTERTOP_OPTION = "Counertops materials";
@@ -81,7 +85,10 @@ export const CustomFaucetHolesPage = () => {
 
     if (!allowed.size) return faucetHolesAmountData;
 
-    return faucetHolesAmountData.filter((option) => allowed.has(String(option.title ?? option.id)));
+    return faucetHolesAmountData.filter((option) => {
+      const candidate = String(option.title ?? option.id);
+      return allowed.has(normalizeFaucetHoleToken(candidate));
+    });
   }, [ruleState.allowedFaucetHoles]);
 
   const handleFaucetAmountChange = (value: string | null) => {

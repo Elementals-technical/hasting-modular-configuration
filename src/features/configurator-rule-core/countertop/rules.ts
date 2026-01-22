@@ -3,6 +3,7 @@ import {
   materialMatchesRule,
   matchesDepth,
   normalizeBasinToken,
+  normalizeFaucetHoleToken,
   normalizeMaterialToken,
   parseThicknessValue,
 } from "./parse";
@@ -114,7 +115,7 @@ export const buildCountertopRuleState = ({
     }
 
     rule.faucetHoles.forEach((value) => {
-      if (value) allowedFaucetHoles.add(value);
+      if (value) allowedFaucetHoles.add(normalizeFaucetHoleToken(value));
     });
   });
 

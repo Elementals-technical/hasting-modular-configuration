@@ -36,6 +36,11 @@ const parseNullableNumber = (raw?: string): number | null => {
 };
 
 export const normalizeMaterialToken = (value: string): string => normalizeToken(value);
+export const normalizeFaucetHoleToken = (value: string): string => {
+  const normalized = normalizeToken(value);
+  const digitsOnly = normalized.replace(/[^0-9]+/g, "");
+  return digitsOnly.length > 0 ? digitsOnly : normalized;
+};
 
 export const getMaterialAliases = (material: string): string[] => {
   const normalized = normalizeMaterialToken(material);
