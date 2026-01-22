@@ -28,6 +28,8 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
+import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "021";
@@ -572,7 +574,8 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      { id: "duplicate", label: "Duplicate", trailing: "", onClick: handleDuplicateProduct },
+      { id: "duplicate", label: "Duplicate", trailing: "+", onClick: handleDuplicateProduct },
+      { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
       // {
       //   id: "cabinet-style",
       //   label: "Cabinet Style",
@@ -588,7 +591,7 @@ export const PlayCanvasIntegration = () => {
     ];
 
     if (productIds.length) {
-      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
+      items.push({ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts });
     }
 
     return items;
