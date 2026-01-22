@@ -712,9 +712,9 @@ export const CabinetBuilderPage = () => {
       id: CABINET_STYLE_ID,
       title: "Cabinet Style",
       content: (() => {
-        const drawersBlocked = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.drawers.length === 0;
+        const isOpenShelfCabinet = Boolean(activeCabinetRule?.isOpen);
 
-        if (drawersBlocked) {
+        if (isOpenShelfCabinet) {
           return <div className={s.message}>Drawers are not available for this cabinet type.</div>;
         }
 
