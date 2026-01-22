@@ -1,11 +1,25 @@
+import { useMemo } from "react";
+
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { faucetHolesAmountData } from "./constants";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { getFaucetHolesAmount, getFaucetHolesSpacing } from "@/entities/product/model/store/selectors";
+import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getFaucetHolesAmount,
+  getFaucetHolesSpacing,
+  getSelectedDimensions,
+  getSinkType,
+} from "@/entities/product/model/store/selectors";
 import { setFaucetHolesAmount, setFaucetHolesSpacing } from "@/entities/product/model/store/slice";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+
+const COUNTERTOP_OPTION = "Counertops materials";
 
 const faucetHolesSpacingOptions = [
   {
@@ -18,6 +32,57 @@ export const CustomFaucetHolesPage = () => {
   const dispatch = useAppDispatch();
   const faucetSpacing = useAppSelector(getFaucetHolesSpacing);
   const faucetAmount = useAppSelector(getFaucetHolesAmount);
+
+  const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const activeThickness = useAppSelector(getActiveCountertopThickness);
+  const activeBasinStyle = useAppSelector(getSinkType);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
+
+  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+
+  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+  const countertopOptions = useMemo(() => getMaterialOptionsGridData(COUNTERTOP_OPTION), []);
+
+  const activeMaterialTokens = useMemo(() => {
+    if (!activeCountertopColor) return [];
+
+    const match = countertopOptions.find((option) => {
+      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
+      return candidate === activeCountertopColor;
+    });
+
+    return match?.metadata?.materials ?? [];
+  }, [activeCountertopColor, countertopOptions]);
+
+  const ruleState = useMemo(
+    () =>
+      buildCountertopRuleState({
+        rules: countertopRules,
+        activeMaterialTokens,
+        width: selectedDimensions.width,
+        depth: selectedDimensions.depth,
+        activeBasinStyle,
+        activeThickness,
+      }),
+    [
+      activeBasinStyle,
+      activeMaterialTokens,
+      activeThickness,
+      countertopRules,
+      selectedDimensions.depth,
+      selectedDimensions.width,
+    ],
+  );
+
+  const filteredFaucetHolesAmountData = useMemo(() => {
+    const allowed = ruleState.allowedFaucetHoles;
+
+    console.log("allowed", allowed);
+
+    if (!allowed.size) return faucetHolesAmountData;
+
+    return faucetHolesAmountData.filter((option) => allowed.has(String(option.title ?? option.id)));
+  }, [ruleState.allowedFaucetHoles]);
 
   const handleFaucetAmountChange = (value: string | null) => {
     if (!value) return;
@@ -36,7 +101,7 @@ export const CustomFaucetHolesPage = () => {
       content: (
         <>
           <ProductSwatchesGrid
-            data={faucetHolesAmountData}
+            data={filteredFaucetHolesAmountData}
             selectedValue={faucetAmount}
             onSelectChange={handleFaucetAmountChange}
           />

@@ -21,6 +21,7 @@ export type CountertopRuleResult = {
   allowedMaterials: Set<string>;
   allowedThicknesses: Set<number>;
   allowedBasinTokens: Set<string>;
+  allowedFaucetHoles: Set<string>;
   allowedStyles: Set<string>;
 };
 
@@ -35,6 +36,7 @@ export const buildCountertopRuleState = ({
   const allowedMaterials = new Set<string>();
   const allowedThicknesses = new Set<number>();
   const allowedBasinTokens = new Set<string>();
+  const allowedFaucetHoles = new Set<string>();
   const allowedStyles = new Set<string>();
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
 
@@ -44,6 +46,7 @@ export const buildCountertopRuleState = ({
       allowedMaterials,
       allowedThicknesses,
       allowedBasinTokens,
+      allowedFaucetHoles,
       allowedStyles,
     };
   }
@@ -59,21 +62,21 @@ export const buildCountertopRuleState = ({
     return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
   });
 
+  const matchesActiveThickness = (rule: CountertopMatrixRule): boolean => {
+    if (activeThicknessValue === null) return true;
+    const parsedThicknesses = rule.topThicknesses
+      .map((value) => parseThicknessValue(value))
+      .filter((value): value is number => value !== null);
+
+    return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+  };
+
   matchingRules.forEach((rule) => {
     if (width && rule.minSbCm && width < rule.minSbCm) {
       return;
     }
 
-    const matchesActiveThickness = (() => {
-      if (activeThicknessValue === null) return true;
-      const parsedThicknesses = rule.topThicknesses
-        .map((value) => parseThicknessValue(value))
-        .filter((value): value is number => value !== null);
-
-      return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
-    })();
-
-    if (matchesActiveThickness) {
+    if (matchesActiveThickness(rule)) {
       allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
     }
 
@@ -86,6 +89,8 @@ export const buildCountertopRuleState = ({
   const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : null;
 
   matchingRules.forEach((rule) => {
+    if (width && rule.minSbCm && width < rule.minSbCm) return;
+    if (!matchesActiveThickness(rule)) return;
     if (activeBasinToken && normalizeBasinToken(rule.basinStyle) !== activeBasinToken) return;
 
     const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
@@ -107,6 +112,10 @@ export const buildCountertopRuleState = ({
     if (isWidthValid(rule.maxUndermountCm)) {
       allowedStyles.add("undermount");
     }
+
+    rule.faucetHoles.forEach((value) => {
+      if (value) allowedFaucetHoles.add(value);
+    });
   });
 
   return {
@@ -114,6 +123,7 @@ export const buildCountertopRuleState = ({
     allowedMaterials,
     allowedThicknesses,
     allowedBasinTokens,
+    allowedFaucetHoles,
     allowedStyles,
   };
 };
