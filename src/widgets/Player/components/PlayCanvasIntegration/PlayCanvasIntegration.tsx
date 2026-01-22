@@ -49,7 +49,6 @@ export const PlayCanvasIntegration = () => {
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const dispatch = useAppDispatch();
-
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -57,12 +56,6 @@ export const PlayCanvasIntegration = () => {
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
-  // const selectedDimensions = useAppSelector(getSelectedDimensions);
-  // const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  // const cabinetColor = useAppSelector(getCabinetColor);
-  // const handleGrooveColor = useAppSelector(getHandleGrooveColor);
-  // const countertopColor = useAppSelector(getActiveCountertopColor);
-  // const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
@@ -279,102 +272,6 @@ export const PlayCanvasIntegration = () => {
     };
   }, [dispatch, duplicateSourceId, resolveProductTypeFromId, selectedProductConfig]);
 
-  // const handleAddLeft = useCallback(
-  //   async (name: string) => {
-  //     try {
-  //       const productId = await addProductByLeft(name);
-
-  //       if (productId) {
-  //         await setConfig(productId, {
-  //           ...(selectedProductConfig ?? {}),
-  //           Width: selectedDimensions.width,
-  //           Height: selectedDimensions.height,
-  //           Depth: selectedDimensions.depth,
-  //           CabinetColor: cabinetColor,
-  //           CountertopColor: countertopColor,
-  //           HandleGrooveColor: handleGrooveColor,
-  //           sinkType,
-  //         });
-  //         dispatch(addProductId(productId));
-  //       }
-  //     } catch (error) {
-  //       console.error("[ProductModelItem] Failed to add product to the left", error);
-  //     } finally {
-  //       setDropdownState((prev) => ({ ...prev, visible: false }));
-  //     }
-  //   },
-  //   [
-  //     cabinetColor,
-  //     countertopColor,
-  //     dispatch,
-  //     handleGrooveColor,
-  //     selectedDimensions.depth,
-  //     selectedDimensions.height,
-  //     selectedDimensions.width,
-  //     selectedProductConfig,
-  //     sinkType,
-  //   ],
-  // );
-
-  // const handleAdd = useCallback(
-  //   async (name: string) => {
-  //     try {
-  //       const productId = await addProduct(name);
-
-  //       if (productId) {
-  //         dispatch(addProductId(productId));
-
-  //         const config = await getConfig(productId);
-  //         if (config) {
-  //           updateDimensionDataForProduct(productId, config);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("[ProductModelItem] Failed to add product", error);
-  //     } finally {
-  //       setDropdownState((prev) => ({ ...prev, visible: false }));
-  //     }
-  //   },
-  //   [dispatch],
-  // );
-
-  // const handleAddRight = useCallback(
-  //   async (name: string) => {
-  //     try {
-  //       const productId = await addProductByRight(name);
-
-  //       if (productId) {
-  //         await setConfig(productId, {
-  //           ...(selectedProductConfig ?? {}),
-  //           Width: selectedDimensions.width,
-  //           Height: selectedDimensions.height,
-  //           Depth: selectedDimensions.depth,
-  //           CabinetColor: cabinetColor,
-  //           CountertopColor: countertopColor,
-  //           HandleGrooveColor: handleGrooveColor,
-  //           sinkType,
-  //         });
-  //         dispatch(addProductId(productId));
-  //       }
-  //     } catch (error) {
-  //       console.error("[ProductModelItem] Failed to add product to the right", error);
-  //     } finally {
-  //       setDropdownState((prev) => ({ ...prev, visible: false }));
-  //     }
-  //   },
-  //   [
-  //     cabinetColor,
-  //     countertopColor,
-  //     dispatch,
-  //     handleGrooveColor,
-  //     selectedDimensions.depth,
-  //     selectedDimensions.height,
-  //     selectedDimensions.width,
-  //     selectedProductConfig,
-  //     sinkType,
-  //   ],
-  // );
-
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
   const handleAddAdditionalProduct = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
@@ -406,52 +303,14 @@ export const PlayCanvasIntegration = () => {
     [handleSwapProducts, productIds, selectedSceneProduct],
   );
 
-  // const handleOpenCabinetStyle = () => {
-  //   navigate("/custom/cabinet-builder?accordion=cabinet-style");
-  //   setDropdownState((prev) => ({ ...prev, visible: false }));
-  // };
-
-  const handleOpenCabinetColor = () => {
+  const handleOpenCabinetColor = useCallback(() => {
     navigate("/custom/cabinet-colors?accordion=cabinet-color");
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  };
-
-  // const handleSetDrawers = useCallback(
-  //   async (drawers: string) => {
-  //     if (!selectedSceneProduct) return;
-
-  //     try {
-  //       await setConfig(selectedSceneProduct, { Drawers: drawers });
-  //     } catch (error) {
-  //       console.error("[PlayCanvasIntegration] Failed to set drawers", error);
-  //     } finally {
-  //       setDropdownState((prev) => ({ ...prev, visible: false }));
-  //     }
-  //   },
-  //   [selectedSceneProduct],
-  // );
-
-  // const handleSetHandleType = useCallback(
-  //   async (handleType: string) => {
-  //     if (!selectedSceneProduct) return;
-
-  //     try {
-  //       await setConfig(selectedSceneProduct, { Handle: handleType });
-  //     } catch (error) {
-  //       console.error("[PlayCanvasIntegration] Failed to set handle type", error);
-  //     } finally {
-  //       setDropdownState((prev) => ({ ...prev, visible: false }));
-  //     }
-  //   },
-  //   [selectedSceneProduct],
-  // );
+  }, [navigate]);
 
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
 
-  console.log("selectTool", selectTool);
-
-  // TODO: Improve select tool handling.
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
 
@@ -463,7 +322,6 @@ export const PlayCanvasIntegration = () => {
 
       if (firstSelected) {
         console.log(`Выбран объект: ${firstSelected.name}`);
-        // Get dimention on the model when selection it on the scene.
 
         (async () => {
           const config = await getConfig(firstSelected.name ?? "");
