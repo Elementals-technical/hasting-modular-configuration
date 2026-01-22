@@ -17,6 +17,13 @@
   line-height: 24px;
 }
 
+.stepForward,
 .stepBack {
   cursor: pointer;
+}
+
+.stepForward,
+.stepBack {
+  display: flex;
+  align-items: center;
 }

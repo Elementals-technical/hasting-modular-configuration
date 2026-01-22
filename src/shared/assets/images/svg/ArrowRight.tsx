@@ -3,13 +3,16 @@ interface ArrowRightI {
   height?: string;
 }
 
-export const ArrowRight: React.FC<ArrowRightI> = ({ width = "14", height = "14" }) => {
+export const ArrowRight: React.FC<ArrowRightI> = ({ width = "20", height = "20" }) => {
   return (
-    <svg width={width} height={height} viewBox="0 0 5 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={width} height={height} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M2.64334 4.20774e-07L5 2L2.64334 4L2.14286 3.57938L3.64189 2.30722L-3.3749e-07 2.30722L-2.83774e-07 1.69278L3.64189 1.69278L2.14286 0.422681L2.64334 4.20774e-07Z"
-        fill="black"
-      ></path>
+        d="M10 4.16634L15.8333 9.99967M15.8333 9.99967L10 15.833M15.8333 9.99967L4.16667 9.99968"
+        stroke="#AC5331"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 };
