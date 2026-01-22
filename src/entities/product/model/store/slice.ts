@@ -271,7 +271,7 @@ const productSlice = createSlice({
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
     },
-    setActiveCabinetType(state, action: PayloadAction<string>) {
+    setActiveCabinetType(state, action: PayloadAction<string | null>) {
       const previousCabinetType = state.activeCabinetType;
       const newCabinetTypeId = action.payload;
 

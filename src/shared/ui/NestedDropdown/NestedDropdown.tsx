@@ -32,11 +32,7 @@ export const NestedDropdown = ({ items, className, style }: NestedDropdownProps)
       {list.map((item) => {
         const hasChildren = Boolean(item.children?.length);
         return (
-          <div
-            key={item.id}
-            className={clsx(s.item, hasChildren && s.hasChildren)}
-            onClick={() => handleClick(item)}
-          >
+          <div key={item.id} className={clsx(s.item, hasChildren && s.hasChildren)} onClick={() => handleClick(item)}>
             <div className={s.left}>
               {item.icon && <span className={s.icon}>{item.icon}</span>}
               <span className={s.label}>{item.label}</span>

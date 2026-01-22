@@ -2,6 +2,22 @@ import prismaImage from "@/shared/assets/images/jpeg/prisma.jpg";
 import quadraImage from "@/shared/assets/images/jpeg/quadro.jpg";
 import coverImage from "@/shared/assets/images/jpeg/cover.jpg";
 import stripImage from "@/shared/assets/images/jpeg/strip.jpg";
+import fenixCoverImage from "@/shared/assets/images/jpeg/basin/fenix/fenix_Cover.jpg";
+import fenixPrismaImage from "@/shared/assets/images/jpeg/basin/fenix/fenix_Prisma.jpg";
+import fenixQuadraImage from "@/shared/assets/images/jpeg/basin/fenix/fenix_Quadra.jpg";
+import fenixStripImage from "@/shared/assets/images/jpeg/basin/fenix/fenix_Strip.jpg";
+import diamondImage from "@/shared/assets/images/jpeg/basin/Diamond.jpg";
+import olly55Image from "@/shared/assets/images/jpeg/basin/Olly_55.jpg";
+import olly56Image from "@/shared/assets/images/jpeg/basin/Olly_56.jpg";
+import orionImage from "@/shared/assets/images/jpeg/basin/Orion.jpg";
+import ocritechQuadraImage from "@/shared/assets/images/jpeg/basin/Quadra.jpg";
+import rayoImage from "@/shared/assets/images/jpeg/basin/Rayo.jpg";
+import rectangularImage from "@/shared/assets/images/jpeg/basin/Rectangular.jpg";
+import rollImage from "@/shared/assets/images/jpeg/basin/Roll.jpg";
+import ronImage from "@/shared/assets/images/jpeg/basin/Ron.jpg";
+import syntesiImage from "@/shared/assets/images/jpeg/basin/Syntesi.jpg";
+import tiviImage from "@/shared/assets/images/jpeg/basin/Tivi.jpg";
+import tripImage from "@/shared/assets/images/jpeg/basin/Trip.jpg";
 import integratedImage from "@/shared/assets/images/png/integrated.png";
 import vesselImage from "@/shared/assets/images/png/vessel.png";
 import undermountImage from "@/shared/assets/images/png/undermount.png";
@@ -90,7 +106,7 @@ export const optionsMockData2 = [
 export const optionsMockData3 = [
   {
     id: 3001,
-    title: "Prisma",
+    title: "HPL Prisma 50",
     name: "Top_HPLPrisma",
     isShortDesc: true,
     metadata: {
@@ -99,7 +115,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3002,
-    title: "Quadra",
+    title: "HPL Quadra 50",
     name: "Top_HPLQuadra",
     isShortDesc: false,
     metadata: {
@@ -108,7 +124,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3003,
-    title: "Cover",
+    title: "HPL Cover 50",
     name: "Top_HPLCover",
     isShortDesc: false,
     metadata: {
@@ -117,7 +133,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3004,
-    title: "Strip",
+    title: "HPL Strip 48",
     name: "Top_HPLStrip",
     isShortDesc: false,
     metadata: {
@@ -126,27 +142,39 @@ export const optionsMockData3 = [
   },
   {
     id: 3005,
-    title: "HPL/Fenix Cover Gres",
+    title: "Fenix Cover 50",
     name: "Top_HPL/Fenix_Cover_Gres",
     isShortDesc: false,
+    metadata: {
+      image: fenixCoverImage,
+    },
   },
   {
     id: 3006,
-    title: "HPL/Fenix Prisma Gres",
+    title: "Fenix Prisma 50",
     name: "Top_HPL/Fenix_Prisma_Gres",
     isShortDesc: false,
+    metadata: {
+      image: fenixPrismaImage,
+    },
   },
   {
     id: 3007,
-    title: "HPL/Fenix Quadra Gres",
+    title: "Fenix Quadra 50",
     name: "Top_HPL/Fenix_Quadra_Gres",
     isShortDesc: false,
+    metadata: {
+      image: fenixQuadraImage,
+    },
   },
   {
     id: 3008,
-    title: "HPL/Fenix Strip Gres",
+    title: "Fenix Strip 48",
     name: "Top_HPL/Fenix_Strip_Gres",
     isShortDesc: false,
+    metadata: {
+      image: fenixStripImage,
+    },
   },
   {
     id: 3009,
@@ -159,102 +187,153 @@ export const optionsMockData3 = [
     title: "Mineralmarmo Diamond",
     name: "Top_Mineralmarmo_Diamond",
     isShortDesc: false,
+    metadata: {
+      image: diamondImage,
+    },
   },
   {
     id: 3011,
-    title: "Ocritech Oly55",
+    title: "Ocritech Oly 55",
     name: "Top_Ocritech_Oly55",
     isShortDesc: false,
+    metadata: {
+      image: olly55Image,
+    },
   },
   {
     id: 3012,
-    title: "Ocritech Oly56",
+    title: "Ocritech Oly 56",
     name: "Top_Ocritech_Oly56",
     isShortDesc: false,
+    metadata: {
+      image: olly56Image,
+    },
   },
   {
     id: 3013,
     title: "Ocritech Orion",
     name: "Top_Ocritech_Orion",
     isShortDesc: false,
+    metadata: {
+      image: orionImage,
+    },
   },
   {
     id: 3014,
     title: "Ocritech Quadra",
     name: "Top_Ocritech_Quadra",
     isShortDesc: false,
+    metadata: {
+      image: ocritechQuadraImage,
+    },
   },
   {
     id: 3015,
     title: "Ocritech Rayo",
     name: "Top_Ocritech_Rayo",
     isShortDesc: false,
+    metadata: {
+      image: rayoImage,
+    },
   },
   {
     id: 3016,
     title: "Ocritech Roll",
     name: "Top_Ocritech_Roll",
     isShortDesc: false,
+    metadata: {
+      image: rollImage,
+    },
   },
   {
     id: 3017,
-    title: "Porcelain Cover",
+    title: "Porcelain Cover 48",
     name: "Top_Porcelain_Cover",
     isShortDesc: false,
+    metadata: {
+      image: coverImage,
+    },
   },
   {
     id: 3018,
-    title: "Porcelain Prisma",
+    title: "Porcelain Prisma 48",
     name: "Top_Porcelain_Prisma",
     isShortDesc: false,
+    metadata: {
+      image: prismaImage,
+    },
   },
   {
     id: 3019,
-    title: "Porcelain Quadra",
+    title: "Porcelain Quadra 48",
     name: "Top_Porcelain_Quadra",
     isShortDesc: false,
+    metadata: {
+      image: quadraImage,
+    },
   },
   {
     id: 3020,
-    title: "Porcelain Strip",
+    title: "Porcelain Strip 48",
     name: "Top_Porcelain_Strip",
     isShortDesc: false,
+    metadata: {
+      image: stripImage,
+    },
   },
   {
     id: 3021,
-    title: "Syntesi",
+    title: "HPL Syntesi 48",
     name: "Top_Syntesi",
     isShortDesc: false,
+    metadata: {
+      image: syntesiImage,
+    },
   },
   {
     id: 3022,
-    title: "Tekorlux Quadra",
+    title: "Tekorlux Quadra 50",
     name: "Top_Tekorlux_Quadra",
     isShortDesc: false,
+    metadata: {
+      image: ocritechQuadraImage,
+    },
   },
   {
     id: 3023,
-    title: "Tekorlux Rectangular",
+    title: "Tekorlux Rectangular 50",
     name: "Top_Tekorlux_Rectangular",
     isShortDesc: false,
+    metadata: {
+      image: rectangularImage,
+    },
   },
   {
     id: 3024,
-    title: "Tekorlux Ron",
+    title: "Tekorlux Ron 50",
     name: "Top_Tekorlux_Ron",
     isShortDesc: false,
+    metadata: {
+      image: ronImage,
+    },
   },
   {
     id: 3025,
-    title: "Tekorlux Trip",
+    title: "Tekorlux Trip 50",
     name: "Top_Tekorlux_Trip",
     isShortDesc: false,
+    metadata: {
+      image: tripImage,
+    },
   },
   {
     id: 3026,
-    title: "Tekormud Tivi",
+    title: "Tekorund TIVI",
     name: "Top_Tekormud_Tivi",
     isShortDesc: false,
+    metadata: {
+      image: tiviImage,
+    },
   },
 ];
 
@@ -277,6 +356,13 @@ export const optionsMockData4 = [
     id: 12,
     title: "2⅜”",
     value: "2.375",
+    isShortDesc: false,
+    isSwatchWithHint: false,
+  },
+  {
+    id: 16,
+    title: "2¾”",
+    value: "2.75",
     isShortDesc: false,
     isSwatchWithHint: false,
   },

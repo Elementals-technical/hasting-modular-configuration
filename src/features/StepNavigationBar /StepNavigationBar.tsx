@@ -11,6 +11,8 @@ import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/st
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
+import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
+
 import s from "./StepNavigationBar.module.scss";
 
 interface StepNavigationBarI {
@@ -31,7 +33,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
 
   const isModelDetails = !!useMatch("/prebuilt/model/:modelId");
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
+
   const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
+  const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
 
   const handleNavigate = () => {
     if (location.pathname.startsWith("/custom/cabinet-builder")) {
@@ -55,6 +59,10 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
     }
   };
 
+  const handleNavigateForward = () => {
+    if (nextStep) navigate(nextStep.path);
+  };
+
   const handleConfirmLeave = async () => {
     removeAllProducts();
 
@@ -74,7 +82,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
           <ArrowLeft />
         </div>
         <div className={s.stepNavigationBar_title}>Select {title}</div>
-        <div></div>
+        <div className={s.stepForward} onClick={handleNavigateForward}>
+          <ArrowRight />
+        </div>
       </div>
 
       <AttentionPopup

@@ -9,7 +9,12 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
-import { buildMaterialFilters, getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
+import {
+  buildMaterialFilters,
+  filterOptionsByMaterialSelection,
+  getMaterialOptionsGridData,
+  type MaterialFilterSelection,
+} from "@/shared/constants/materialFilters";
 
 import { optionsMockData3, optionsMockData4 } from "./constants";
 
@@ -20,6 +25,7 @@ import {
   getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
+  getSelectedProductConfig,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -29,6 +35,7 @@ import {
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
+  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
 const BASE_PANEL_OPTION = "Base Panel";
@@ -40,30 +47,18 @@ export const CustomCabinetColorsPage = () => {
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const activeGrainDirection = useAppSelector(getGrainDirection);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const isPlayCanvasReady = usePlayCanvasReady();
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
 
-  const [selectedFilter, setSelectedFilter] = useState<{
-    material?: string;
-    color?: string;
-    look?: string;
-    hex?: string;
-  }>({});
+  const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
 
-  const filteredBasePanelOptions = useMemo(() => {
-    return basePanelOptions.filter((option) => {
-      const { materials, colors, looks, hex } = option.metadata ?? {};
-
-      const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
-      const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
-      const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
-      const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
-
-      return materialMatch && colorMatch && lookMatch && hexMatch;
-    });
-  }, [basePanelOptions, selectedFilter]);
+  const filteredBasePanelOptions = useMemo(
+    () => filterOptionsByMaterialSelection(basePanelOptions, selectedFilter),
+    [basePanelOptions, selectedFilter],
+  );
 
   const sortedBasePanelOptions = useMemo(
     () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
@@ -132,6 +127,12 @@ export const CustomCabinetColorsPage = () => {
       HandleGrooveColor: colorName,
     });
 
+    dispatch(
+      setSelectedProductConfig({
+        ...selectedProductConfig,
+        HandleGrooveColor: colorName,
+      }),
+    );
     dispatch(setHandleGrooveColor(colorName));
   };
 

@@ -218,7 +218,7 @@ export const CabinetBuilderPage = () => {
     if (mappedValue) {
       dispatch(
         setSelectedProductConfig({
-          ...(selectedProductConfig ?? {}),
+          ...selectedProductConfig,
           Drawers: mappedValue,
         }),
       );
@@ -659,6 +659,9 @@ export const CabinetBuilderPage = () => {
           // Mark as bootstrapped to save configuration when navigating back
           dispatch(setHasBootstrappedCabinetBuilder(true));
 
+          // Clear active cabinet type after adding product to the scene
+          dispatch(setActiveCabinetType(null));
+
           // Close sidebar and reset accordion to default state
           handleResetToDefaultState();
           dispatch(setOpenStyleSidebar(false));
@@ -712,9 +715,9 @@ export const CabinetBuilderPage = () => {
       id: CABINET_STYLE_ID,
       title: "Cabinet Style",
       content: (() => {
-        const drawersBlocked = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.drawers.length === 0;
+        const isOpenShelfCabinet = Boolean(activeCabinetRule?.isOpen);
 
-        if (drawersBlocked) {
+        if (isOpenShelfCabinet) {
           return <div className={s.message}>Drawers are not available for this cabinet type.</div>;
         }
 

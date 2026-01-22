@@ -66,4 +66,12 @@ export const faucetHolesAmountData = [
     id: 3,
     title: "3",
   },
+  {
+    id: 4,
+    title: "4",
+  },
+  {
+    id: 5,
+    title: "5",
+  },
 ];

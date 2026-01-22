@@ -1,6 +1,8 @@
 .dropdown {
   position: relative;
   display: inline-block;
+
+  width: 160px;
 }
 
 .menu {
@@ -33,8 +35,6 @@
   transition:
     background-color 0.15s ease,
     box-shadow 0.15s ease;
-
-
 }
 
 .item:hover {

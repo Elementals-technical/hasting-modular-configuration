@@ -13,24 +13,29 @@ import {
   setSelectedSceneProduct,
   swapProductIds,
 } from "@/entities/product/model/store/slice";
-import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
+import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
+import { setProductByParams } from "@/utils/functions/playcanvas/setProductByParams";
+import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import {
   getDimensionOptions,
   getCabinetCatalog,
   getSelectedSceneProduct,
+  getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
+import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "021";
+const PLAYCANVAS_VERSION = "022";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -40,6 +45,7 @@ export const PlayCanvasIntegration = () => {
     x: 0,
     y: 0,
   });
+  const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const dispatch = useAppDispatch();
@@ -49,6 +55,7 @@ export const PlayCanvasIntegration = () => {
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
 
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   // const selectedDimensions = useAppSelector(getSelectedDimensions);
   // const selectedProductConfig = useAppSelector(getSelectedProductConfig);
@@ -232,29 +239,45 @@ export const PlayCanvasIntegration = () => {
     [normalizeProductType],
   );
 
-  const handleDuplicateProduct = useCallback(async () => {
+  const handleDuplicateProduct = useCallback(() => {
     if (!selectedSceneProduct) return;
+    setDuplicateSourceId(selectedSceneProduct);
+    setVisibleButtons(true);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [selectedSceneProduct]);
 
-    try {
-      const config = await getConfig(selectedSceneProduct);
-      if (!config) return;
+  useEffect(() => {
+    if (!duplicateSourceId) return;
 
-      const productType = resolveProductTypeFromId(selectedSceneProduct, config);
+    const onPlusClick = async (entityId: string, side: "left" | "right") => {
+      try {
+        const config = await getConfig(duplicateSourceId);
+        if (!config) return;
+        const mergedConfig = { ...config, ...selectedProductConfig };
 
-      console.log("productType", productType);
+        console.log("mergedConfig", mergedConfig);
 
-      const productId = await addProduct(productType, config);
+        const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
+        const productId = await setProductByParams(productType, entityId, side);
+        if (!productId) return;
 
-      if (productId) {
+        await setConfig(productId, mergedConfig);
         dispatch(addProductId(productId));
-        updateDimensionDataForProduct(productId, config);
+        updateDimensionDataForProduct(productId, mergedConfig);
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
+      } finally {
+        setVisibleButtons(false);
+        setDuplicateSourceId(null);
       }
-    } catch (error) {
-      console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
-    } finally {
-      setDropdownState((prev) => ({ ...prev, visible: false }));
-    }
-  }, [dispatch, selectedSceneProduct, resolveProductTypeFromId]);
+    };
+
+    setHandleButtonClick(onPlusClick);
+
+    return () => {
+      setVisibleButtons(false);
+    };
+  }, [dispatch, duplicateSourceId, resolveProductTypeFromId, selectedProductConfig]);
 
   // const handleAddLeft = useCallback(
   //   async (name: string) => {
@@ -572,23 +595,12 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      { id: "duplicate", label: "Duplicate", trailing: "", onClick: handleDuplicateProduct },
-      // {
-      //   id: "cabinet-style",
-      //   label: "Cabinet Style",
-      //   children: [
-      //     {
-      //       id: "cabinet-select-style",
-      //       label: "Select Style",
-      //       trailing: <ArrowTopRight color={"#333"} />,
-      //       onClick: handleOpenCabinetStyle,
-      //     },
-      //   ],
-      // },
+      { id: "duplicate", label: "Duplicate", trailing: "+", onClick: handleDuplicateProduct },
+      { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
     ];
 
     if (productIds.length) {
-      items.push({ id: "delete", label: "Delete", trailing: "", onClick: handleRemoveProducts });
+      items.push({ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts });
     }
 
     return items;
