@@ -14,6 +14,8 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
 import s from "./StepNavigationBar.module.scss";
+import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown";
+import { toggle } from "../sidebar/model/store/slice";
 
 interface StepNavigationBarI {
   title: string | null;
@@ -81,7 +83,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
         <div className={s.stepBack} onClick={handleNavigate}>
           <ArrowLeft />
         </div>
-        <div className={s.stepNavigationBar_title}>Select {title}</div>
+        <div className={s.stepNavigationBar_title}>
+          Select {title} <span onClick={() => dispatch(toggle())}>{<ArrowDown width="12" height="12" />}</span>
+        </div>
         <div className={s.stepForward} onClick={handleNavigateForward}>
           <ArrowRight />
         </div>

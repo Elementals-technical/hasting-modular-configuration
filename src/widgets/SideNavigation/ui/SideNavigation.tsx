@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 import { close, toggle } from "@/features/sidebar/model/store/slice";
 
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
-import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight.tsx";
+
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 
 import s from "./SideNavigation.module.scss";
@@ -43,7 +44,7 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
           dispatch(toggle());
         }}
       >
-        <ArrowLeft width="25" height="25" fill="#333" />
+        <ArrowRight width="25" height="25" stroke={"#333"} />
         <div className={s.mode}>{flow === "custom" ? "Custom" : "Pre-Built"}</div>
       </div>
 
