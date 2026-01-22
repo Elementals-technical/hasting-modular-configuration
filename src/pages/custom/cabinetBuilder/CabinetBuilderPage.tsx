@@ -128,8 +128,6 @@ export const CabinetBuilderPage = () => {
     isError: isMatrixError,
   } = useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
 
-  console.log("selectedProductConfig", selectedProductConfig);
-
   const hasProducts = selectedProducts.length > 0;
 
   const cabinetStyleOptions = useMemo(() => {
@@ -293,10 +291,10 @@ export const CabinetBuilderPage = () => {
           HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
         }));
 
-        removeAllProducts();
+        await removeAllProducts();
         await addPreset(mergedPresets);
       } else {
-        setConfigBatch(existingIds, {
+        await setConfigBatch(existingIds, {
           CabinetColor: cabinetColor,
           sinkType,
           CountertopColor: countertopColor,
@@ -315,6 +313,7 @@ export const CabinetBuilderPage = () => {
       dispatch(setSelectedProductConfig(firstPreset ?? null));
 
       const nextDimensions: Partial<typeof selectedDimensions> = {};
+
       if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
       if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
       if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
@@ -383,7 +382,7 @@ export const CabinetBuilderPage = () => {
         const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
 
         dispatch(resetProducts());
-        removeAllProducts();
+        await removeAllProducts();
 
         const createdIds = await addPreset(presetProducts);
         dispatch(addProductPreset(presetProducts));

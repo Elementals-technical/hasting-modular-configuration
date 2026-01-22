@@ -31,25 +31,12 @@ export const arConfigurationApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [AR_CONFIGURATIONS_TAG],
     }),
-    // listArConfigurations: builder.query<ArConfigurationRecord[], void>({
-    //   query: () => ({
-    //     url: routes.list(),
-    //   }),
-    //   providesTags: [AR_CONFIGURATIONS_TAG],
-    // }),
     getArConfiguration: builder.query<ArConfigurationRecord, string | number>({
       query: (id) => ({
         url: routes.byId(id),
       }),
       providesTags: (_result, _error, id) => [{ type: AR_CONFIGURATIONS_TAG, id }],
     }),
-    // deleteArConfiguration: builder.mutation<{ success?: boolean }, string | number>({
-    //   query: (id) => ({
-    //     url: routes.byId(id),
-    //     method: "DELETE",
-    //   }),
-    //   invalidatesTags: [AR_CONFIGURATIONS_TAG],
-    // }),
     queryArConfiguration: builder.query<ArConfigurationRecord, Record<string, unknown>>({
       query: (configuration) => ({
         url: routes.query(),
@@ -62,9 +49,7 @@ export const arConfigurationApi = baseApi.injectEndpoints({
 
 export const {
   useCreateArConfigurationMutation,
-  // useListArConfigurationsQuery,
   useGetArConfigurationQuery,
-  // useDeleteArConfigurationMutation,
   useQueryArConfigurationQuery,
   useLazyQueryArConfigurationQuery,
 } = arConfigurationApi;
