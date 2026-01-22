@@ -24,7 +24,12 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
-import { addProductId, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
+import {
+  addProductId,
+  setActiveCabinetType,
+  setSelectedDimensions,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -218,6 +223,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       if (onProductAdded) {
         onProductAdded();
       }
+      // Clear active cabinet type after adding product to the scene
+      dispatch(setActiveCabinetType(null));
     };
 
     setHandleButtonClick(onPlusClick);

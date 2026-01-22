@@ -218,7 +218,7 @@ export const CabinetBuilderPage = () => {
     if (mappedValue) {
       dispatch(
         setSelectedProductConfig({
-          ...(selectedProductConfig ?? {}),
+          ...selectedProductConfig,
           Drawers: mappedValue,
         }),
       );
@@ -658,6 +658,9 @@ export const CabinetBuilderPage = () => {
 
           // Mark as bootstrapped to save configuration when navigating back
           dispatch(setHasBootstrappedCabinetBuilder(true));
+
+          // Clear active cabinet type after adding product to the scene
+          dispatch(setActiveCabinetType(null));
 
           // Close sidebar and reset accordion to default state
           handleResetToDefaultState();
