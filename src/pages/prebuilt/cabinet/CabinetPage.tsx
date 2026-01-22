@@ -17,6 +17,7 @@ import {
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
+  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -26,6 +27,7 @@ import {
   getGrainDirection,
   getHandleGrooveColor,
   getProductsPresets,
+  getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
 import {
   buildMaterialFilters,
@@ -43,6 +45,7 @@ export const CabinetPage = () => {
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const activeGrainDirection = useAppSelector(getGrainDirection);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
   const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
@@ -122,6 +125,12 @@ export const CabinetPage = () => {
       setConfigBatch({ productType: productName }, { HandleGrooveColor: colorName });
     });
 
+    dispatch(
+      setSelectedProductConfig({
+        ...selectedProductConfig,
+        HandleGrooveColor: colorName,
+      }),
+    );
     dispatch(setHandleGrooveColor(colorName));
   };
 

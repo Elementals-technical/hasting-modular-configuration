@@ -25,6 +25,7 @@ import {
   getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
+  getSelectedProductConfig,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -34,6 +35,7 @@ import {
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
+  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
 const BASE_PANEL_OPTION = "Base Panel";
@@ -45,6 +47,7 @@ export const CustomCabinetColorsPage = () => {
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const activeGrainDirection = useAppSelector(getGrainDirection);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const isPlayCanvasReady = usePlayCanvasReady();
 
   const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
@@ -124,6 +127,12 @@ export const CustomCabinetColorsPage = () => {
       HandleGrooveColor: colorName,
     });
 
+    dispatch(
+      setSelectedProductConfig({
+        ...selectedProductConfig,
+        HandleGrooveColor: colorName,
+      }),
+    );
     dispatch(setHandleGrooveColor(colorName));
   };
 
