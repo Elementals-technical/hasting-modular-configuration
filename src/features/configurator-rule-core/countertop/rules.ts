@@ -13,6 +13,7 @@ export type CountertopRuleInput = {
   width: number | null;
   depth: number | null;
   activeBasinStyle: string | null;
+  activeThickness: string | null;
 };
 
 export type CountertopRuleResult = {
@@ -29,11 +30,13 @@ export const buildCountertopRuleState = ({
   width,
   depth,
   activeBasinStyle,
+  activeThickness,
 }: CountertopRuleInput): CountertopRuleResult => {
   const allowedMaterials = new Set<string>();
   const allowedThicknesses = new Set<number>();
   const allowedBasinTokens = new Set<string>();
   const allowedStyles = new Set<string>();
+  const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
 
   if (!rules.length) {
     return {
@@ -61,7 +64,18 @@ export const buildCountertopRuleState = ({
       return;
     }
 
-    allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
+    const matchesActiveThickness = (() => {
+      if (activeThicknessValue === null) return true;
+      const parsedThicknesses = rule.topThicknesses
+        .map((value) => parseThicknessValue(value))
+        .filter((value): value is number => value !== null);
+
+      return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+    })();
+
+    if (matchesActiveThickness) {
+      allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
+    }
 
     rule.topThicknesses.forEach((value) => {
       const parsed = parseThicknessValue(value);

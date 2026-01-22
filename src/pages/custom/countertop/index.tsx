@@ -82,8 +82,16 @@ export const CustomCountertopPage = () => {
         width: selectedDimensions.width,
         depth: selectedDimensions.depth,
         activeBasinStyle,
+        activeThickness,
       }),
-    [activeBasinStyle, activeMaterialTokens, countertopRules, selectedDimensions.depth, selectedDimensions.width],
+    [
+      activeBasinStyle,
+      activeMaterialTokens,
+      activeThickness,
+      countertopRules,
+      selectedDimensions.depth,
+      selectedDimensions.width,
+    ],
   );
 
   const allowedMaterials = ruleState.allowedMaterials;
