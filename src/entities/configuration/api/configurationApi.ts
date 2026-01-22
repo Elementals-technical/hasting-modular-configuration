@@ -21,26 +21,8 @@ export const configurationApi = baseApi.injectEndpoints({
       }),
       providesTags: (_result, _error, id) => [{ type: CONFIGURATIONS_TAG, id }],
     }),
-    // listConfigurations: builder.query<ConfigurationRecord[], void>({
-    //   query: () => ({
-    //     url: routes.list(),
-    //   }),
-    //   providesTags: [CONFIGURATIONS_TAG],
-    // }),
-    // deleteConfiguration: builder.mutation<{ success?: boolean }, string | number>({
-    //   query: (id) => ({
-    //     url: routes.byId(id),
-    //     method: "DELETE",
-    //   }),
-    //   invalidatesTags: [CONFIGURATIONS_TAG],
-    // }),
   }),
 });
 
-export const {
-  useSaveConfigurationMutation,
-  // useListConfigurationsQuery,
-  useRestoreConfigurationQuery,
-  useLazyRestoreConfigurationQuery,
-  // useDeleteConfigurationMutation,
-} = configurationApi;
+export const { useSaveConfigurationMutation, useRestoreConfigurationQuery, useLazyRestoreConfigurationQuery } =
+  configurationApi;

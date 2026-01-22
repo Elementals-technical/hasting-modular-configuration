@@ -9,12 +9,29 @@
 }
 
 .stepNavigationBar_title {
+  display: flex;
+  align-items: center;
+
   color: #282828;
   font-family: Poppins;
   font-size: 16px;
   font-style: normal;
   font-weight: 500;
   line-height: 24px;
+
+  span {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+
+    cursor: pointer;
+
+    &:hover {
+      svg {
+        fill: c2826d;
+      }
+    }
+  }
 }
 
 .stepForward,

@@ -3,12 +3,10 @@ import { useEffect, useRef, useState } from "react";
 
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
-import { getActiveStep, getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
-import { toggle } from "@/features/sidebar/model/store/slice";
+import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { reset } from "@/entities/product/model/store/slice";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 
 import s from "./HomePage.module.scss";
@@ -21,7 +19,6 @@ export const HomePage = () => {
 
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
-  const activeStep = useAppSelector(getActiveStep);
 
   // restore default preset when navigate from custom route.
   const prevPathRef = useRef(pathname);
@@ -47,14 +44,6 @@ export const HomePage = () => {
       <div className={s.content}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
           <SideNavigation flow={flow} />
-        </div>
-
-        <div className={s.currentStep}>
-          <div>Step :</div>
-          <div className={s.title} onClick={() => dispatch(toggle())}>
-            {activeStep}
-            <ArrowRight />
-          </div>
         </div>
 
         <Player />
