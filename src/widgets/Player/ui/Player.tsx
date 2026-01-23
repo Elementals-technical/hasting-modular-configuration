@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
@@ -14,7 +15,9 @@ import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 import s from "./Player.module.scss";
 
 export function Player() {
-  const [isOpening, setIsOpening] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const ready = usePlayCanvasReady();
   const [showRotateHint, setShowRotateHint] = useState(() => !sessionStorage.getItem("rotateHintSeen"));
@@ -27,8 +30,40 @@ export function Player() {
     return () => cleanup?.();
   }, [ready]);
 
+  const isOpening = searchParams.get("help") === "1";
+  const hasHelpState = Boolean((location.state as { helpModal?: boolean } | null)?.helpModal);
+
   const handleOpenPopup = () => {
-    setIsOpening(true);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("help", "1");
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: `?${nextParams.toString()}`,
+      },
+      { state: { helpModal: true } },
+    );
+  };
+
+  const handleClosePopup = () => {
+    if (hasHelpState) {
+      navigate(-1);
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("help");
+    nextParams.delete("step");
+    const search = nextParams.toString();
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: search ? `?${search}` : "",
+      },
+      { replace: true },
+    );
   };
 
   return (
@@ -48,7 +83,7 @@ export function Player() {
           className={s.hintIconInner}
           onClick={() => {
             if (isOpening) {
-              setIsOpening(false);
+              handleClosePopup();
             } else {
               handleOpenPopup();
             }
@@ -57,7 +92,7 @@ export function Player() {
           <HintIcon fill="#fff" />
           <div>Help</div>
         </div>
-        <HelpPopup isOpening={isOpening} setIsOpening={setIsOpening} />
+        <HelpPopup isOpening={isOpening} onClose={handleClosePopup} />
       </div>
     </div>
   );

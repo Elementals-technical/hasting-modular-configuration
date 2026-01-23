@@ -71,7 +71,7 @@ export const CustomCabinetColorsPage = () => {
         id: "groove-color-none",
         title: "None",
         isShortDesc: false,
-        metadata: { value: "None" },
+        metadata: { value: "Blu Pavone A6 MT" },
       },
       ...sortedBasePanelOptions,
     ],

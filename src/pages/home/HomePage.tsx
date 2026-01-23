@@ -52,7 +52,7 @@ export const HomePage = () => {
           <Outlet />
         </ConfiguratorSidebar>
 
-        {isOpenedBuildInfo && <HowToStart handleClose={handleClose} />}
+        {isOpenedBuildInfo && flow !== "custom" && <HowToStart handleClose={handleClose} />}
       </div>
     </div>
   );

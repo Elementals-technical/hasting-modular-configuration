@@ -6,7 +6,6 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import {
   buildMaterialFilters,
   filterOptionsByMaterialSelection,
-  getMaterialOptionsGridData,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 
@@ -43,6 +42,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 
 import s from "./Countertop.module.scss";
+import { useGetConfiguratorQuery } from "@/entities";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -58,12 +58,71 @@ export const CustomCountertopPage = () => {
   const isSinkDisabled = !hasSinkBase;
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
-  const materialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
+  const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
-  const countertopOptions = useMemo(() => getMaterialOptionsGridData(COUNTERTOP_OPTION), []);
+  const { data: counterTopMaterials, isFetching: isFetchingcounterTopMaterials } = useGetConfiguratorQuery({
+    id: 1,
+    view: "full",
+    serialize: true,
+  });
+
+  const { data: counterTopFilterValues } = useGetConfiguratorQuery({ id: 1, view: "short", serialize: true });
+
+  console.log("materials", counterTopMaterials);
+  console.log("materials counterTopFilterValues", counterTopFilterValues);
+
+  // Remove unrelated text before ":" in the title
+  const normalizeMaterialLabel = (value: string) => {
+    const parts = value
+      .split(":")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : value;
+  };
+
+  const countertopOptionsFromApi = useMemo(() => {
+    const group = counterTopMaterials?.availableOptions?.[0];
+    console.log("group", group);
+
+    if (!group) return [];
+
+    const buildMaterialTokens = (name: string) => {
+      const tokens = new Set<string>([name]);
+
+      const parts = name
+        .split(":")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length > 1) tokens.add(parts[parts.length - 1]);
+      return Array.from(tokens);
+    };
+
+    return group.options.flatMap((option) =>
+      option.variants
+        .filter((variant) => variant.enabled)
+        .map((variant) => ({
+          id: variant.id,
+          title: variant.name,
+          name: variant.name,
+          desc: normalizeMaterialLabel(option.name),
+          isShortDesc: false,
+          metadata: {
+            image: variant.image,
+            value: variant.name,
+            materials: buildMaterialTokens(option.name),
+          },
+        })),
+    );
+  }, [counterTopMaterials]);
+
+  console.log("countertopOptionsFromApi", countertopOptionsFromApi);
+
+  const countertopOptions = useMemo(() => countertopOptionsFromApi, [countertopOptionsFromApi]);
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+
+  console.log("countertopOptions", countertopOptions);
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];
@@ -73,6 +132,8 @@ export const CustomCountertopPage = () => {
     });
     return match?.metadata?.materials ?? [];
   }, [activeCountertopColor, countertopOptions]);
+
+  console.log("activeMaterialTokens", activeMaterialTokens);
 
   const ruleState = useMemo(
     () =>
@@ -96,25 +157,41 @@ export const CustomCountertopPage = () => {
 
   const allowedMaterials = ruleState.allowedMaterials;
 
-  const filteredMaterialFilters = useMemo(() => {
-    if (!allowedMaterials.size) return materialFilters;
+  const materialFilters = useMemo(() => {
+    const group = counterTopMaterials?.availableOptions?.[0];
+    if (!group) return defaultMaterialFilters;
 
-    return {
-      ...materialFilters,
-      materials: materialFilters.materials.filter((item) => allowedMaterials.has(normalizeMaterialToken(item.value))),
-    };
-  }, [allowedMaterials, materialFilters]);
+    const materialOptions = group.options
+      .map((option) => normalizeMaterialLabel(option.name))
+      .sort((a, b) => a.localeCompare(b))
+      .map((value) => ({ label: value, value }));
+
+    return { ...defaultMaterialFilters, materials: materialOptions };
+  }, [counterTopMaterials, defaultMaterialFilters]);
+
+  const hasApiOptions = countertopOptionsFromApi.length > 0;
+  const hasAllowedOptionMatch = useMemo(() => {
+    if (!allowedMaterials.size) return true;
+    if (!hasApiOptions) return true;
+
+    return countertopOptionsFromApi.some((option) => {
+      const materials = option.metadata?.materials ?? [];
+      return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
+    });
+  }, [allowedMaterials, countertopOptionsFromApi, hasApiOptions]);
+
+  const filteredMaterialFilters = useMemo(() => materialFilters, [materialFilters]);
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
 
-    if (!allowedMaterials.size) return filteredByUi;
+    if (!allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)) return filteredByUi;
 
     return filteredByUi.filter((option) => {
       const materials = option.metadata?.materials ?? [];
       return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
     });
-  }, [allowedMaterials, countertopOptions, selectedFilter]);
+  }, [allowedMaterials, countertopOptions, hasAllowedOptionMatch, hasApiOptions, selectedFilter]);
 
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;
@@ -141,9 +218,14 @@ export const CustomCountertopPage = () => {
       if (!label) return false;
 
       const [firstToken, ...restTokens] = label.trim().split(/\s+/);
+
       const materialTokens = firstToken
-        ? firstToken.split("/").map((token) => normalizeMaterialToken(token)).filter(Boolean)
+        ? firstToken
+            .split("/")
+            .map((token) => normalizeMaterialToken(token))
+            .filter(Boolean)
         : [];
+
       const isMaterialSpecific = materialTokens.some((token) => allowedMaterials.has(token));
 
       if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
@@ -253,6 +335,8 @@ export const CustomCountertopPage = () => {
     dispatch(setCountertopStyle(style));
   };
 
+  console.log("materials filter options", filteredMaterialFilters.materials);
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -294,6 +378,7 @@ export const CustomCountertopPage = () => {
             data={sortedCountertopOptions}
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
+            isLoading={isFetchingcounterTopMaterials}
           />
         </>
       ),
