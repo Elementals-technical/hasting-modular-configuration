@@ -35,6 +35,7 @@ import {
   optionsSwatchDataTowel,
   optionsTowelData,
 } from "./constants";
+import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -78,6 +79,12 @@ export const CustomAccessoriesPage = () => {
 
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
+
+    if (value === "Customize") {
+      setVisibleDrawerButtons(true);
+    } else {
+      setVisibleDrawerButtons(false);
+    }
 
     dispatch(setDividersOption(value));
 
