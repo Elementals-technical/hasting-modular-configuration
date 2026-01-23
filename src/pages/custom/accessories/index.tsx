@@ -78,7 +78,9 @@ export const CustomAccessoriesPage = () => {
 
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
+
     dispatch(setDividersOption(value));
+
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
     }
