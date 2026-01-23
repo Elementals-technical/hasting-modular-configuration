@@ -74,6 +74,15 @@ export const CustomCountertopPage = () => {
   console.log("materials", counterTopMaterials);
   console.log("materials counterTopFilterValues", counterTopFilterValues);
 
+  // Remove unrelated text before ":" in the title
+  const normalizeMaterialLabel = (value: string) => {
+    const parts = value
+      .split(":")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : value;
+  };
+
   const countertopOptionsFromApi = useMemo(() => {
     const group = counterTopMaterials?.availableOptions?.[0];
     console.log("group", group);
@@ -98,7 +107,7 @@ export const CustomCountertopPage = () => {
           id: variant.id,
           title: variant.name,
           name: variant.name,
-          desc: option.name,
+          desc: normalizeMaterialLabel(option.name),
           isShortDesc: false,
           metadata: {
             image: variant.image,
@@ -154,7 +163,7 @@ export const CustomCountertopPage = () => {
     if (!group) return defaultMaterialFilters;
 
     const materialOptions = group.options
-      .map((option) => option.name)
+      .map((option) => normalizeMaterialLabel(option.name))
       .sort((a, b) => a.localeCompare(b))
       .map((value) => ({ label: value, value }));
 
@@ -172,14 +181,7 @@ export const CustomCountertopPage = () => {
     });
   }, [allowedMaterials, countertopOptionsFromApi, hasApiOptions]);
 
-  const filteredMaterialFilters = useMemo(() => {
-    if (!allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)) return materialFilters;
-
-    return {
-      ...materialFilters,
-      materials: materialFilters.materials.filter((item) => allowedMaterials.has(normalizeMaterialToken(item.value))),
-    };
-  }, [allowedMaterials, hasAllowedOptionMatch, hasApiOptions, materialFilters]);
+  const filteredMaterialFilters = useMemo(() => materialFilters, [materialFilters]);
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
