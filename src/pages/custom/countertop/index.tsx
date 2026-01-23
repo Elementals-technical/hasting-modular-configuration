@@ -6,7 +6,6 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import {
   buildMaterialFilters,
   filterOptionsByMaterialSelection,
-  getMaterialOptionsGridData,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 
