@@ -134,13 +134,25 @@ export const CabinetPage = () => {
     dispatch(setHandleGrooveColor(colorName));
   };
 
-  const handleChangeDrawerPanelFluting = (value: string) => {
+  const handleChangeDrawerPanelFluting = async (value: string) => {
     if (!value) return;
+    await setConfigBatch(
+      {},
+      {
+        DrawerPanelFluting: value,
+      },
+    );
     dispatch(setDrawerPanelFluting(value));
   };
 
-  const handleChangeGrainDirection = (value: string) => {
+  const handleChangeGrainDirection = async (value: string) => {
     if (!value) return;
+    await setConfigBatch(
+      {},
+      {
+        GrainDirection: value,
+      },
+    );
     dispatch(setGrainDirection(value));
   };
 
