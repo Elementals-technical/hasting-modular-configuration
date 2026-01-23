@@ -4,6 +4,7 @@ import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionIt
 import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor, getSinkType } from "../../model/store/selectors";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
+import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
 
 export type ProductOptionMetadata = {
   colors?: string[];
@@ -32,6 +33,7 @@ interface ProductOptionsGridI {
   setActiveCabinet?: (code: string, name?: string) => void;
   activeValue?: string | number | null;
   activeValueSecondary?: string | number | null;
+  isLoading?: boolean;
 }
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
@@ -41,6 +43,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   setActiveCabinet,
   activeValue,
   activeValueSecondary,
+  isLoading,
 }) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const activeColor = useAppSelector(getCabinetColor);
@@ -56,6 +59,8 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
 
   return (
     <div className={s.optionsGrid}>
+      {isLoading && <LoaderBlock />}
+
       {data.map((i) => {
         const playcanvasValue = i.metadata?.value ?? i.name ?? i.title ?? i.desc;
         const matchesCabinet =
@@ -72,9 +77,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
 
         const isActive = matchesCabinet || (hasExplicitActive ? matchesExplicit : matchesDefault);
 
-        const handleSetActive = setActiveCabinet
-          ? () => setActiveCabinet(String(playcanvasValue), i.name)
-          : undefined;
+        const handleSetActive = setActiveCabinet ? () => setActiveCabinet(String(playcanvasValue), i.name) : undefined;
 
         return (
           <ProductOptionItem

@@ -45,3 +45,5 @@ export type GetConfiguratorArgs = {
   view?: ConfiguratorView;
   serialize?: boolean;
 };
+
+export type GetConfiguratorQueryArg = GetConfiguratorArgs | string | number;
