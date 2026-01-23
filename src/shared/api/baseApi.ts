@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { AR_CONFIGURATIONS_TAG, CONFIGURATIONS_TAG } from "./tags";
+import { AR_CONFIGURATIONS_TAG, CONFIGURATIONS_TAG, CONFIGURATOR_TAG } from "./tags";
 
 export const baseApi = createApi({
   reducerPath: "api",
@@ -13,7 +13,7 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: [CONFIGURATIONS_TAG, AR_CONFIGURATIONS_TAG],
+  tagTypes: [CONFIGURATIONS_TAG, AR_CONFIGURATIONS_TAG, CONFIGURATOR_TAG],
   endpoints: () => ({}),
 });
 
