@@ -33,6 +33,7 @@ import {
   optionsSwatchDataTowel,
   optionsTowelData,
 } from "./constants";
+import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 
 export const AccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -46,10 +47,13 @@ export const AccessoriesPage = () => {
   useEffect(() => {
     if (towelSelection !== "None") return;
 
-    setConfigBatch({}, {
-      TowelBar: "None",
-      TowelBarSide: "both",
-    });
+    setConfigBatch(
+      {},
+      {
+        TowelBar: "None",
+        TowelBarSide: "both",
+      },
+    );
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
@@ -66,6 +70,13 @@ export const AccessoriesPage = () => {
 
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
+
+    if (value === "Customize") {
+      setVisibleDrawerButtons(true);
+    } else {
+      setVisibleDrawerButtons(false);
+    }
+
     dispatch(setDividersOption(value));
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
@@ -83,10 +94,13 @@ export const AccessoriesPage = () => {
     const isNone = value === "None";
     const side = value.toLowerCase() as "left" | "right" | "both";
 
-    await setConfigBatch({}, {
-      TowelBar: isNone ? "None" : "TowelBar40_R",
-      TowelBarSide: isNone ? "both" : side,
-    });
+    await setConfigBatch(
+      {},
+      {
+        TowelBar: isNone ? "None" : "TowelBar40_R",
+        TowelBarSide: isNone ? "both" : side,
+      },
+    );
 
     if (isNone) {
       dispatch(setTowelBarColor(""));
@@ -98,9 +112,12 @@ export const AccessoriesPage = () => {
   const handleTowelBarColorChange = (value?: string) => {
     if (!value) return;
 
-    setConfigBatch({}, {
-      TowelBarColor: value,
-    });
+    setConfigBatch(
+      {},
+      {
+        TowelBarColor: value,
+      },
+    );
 
     dispatch(setTowelBarColor(value));
   };
