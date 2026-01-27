@@ -59,6 +59,7 @@ export const CustomCountertopPage = () => {
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
+  const hasSelectedMaterial = Boolean(activeCountertopColor);
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
@@ -425,11 +426,15 @@ export const CustomCountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductSwatchesGrid
-            data={filteredThicknessOptions}
-            onSelectChange={(value) => value && handleAddThickness(value)}
-            selectedValue={activeThickness}
-          />
+          {hasSelectedMaterial ? (
+            <ProductSwatchesGrid
+              data={filteredThicknessOptions}
+              onSelectChange={(value) => value && handleAddThickness(value)}
+              selectedValue={activeThickness}
+            />
+          ) : (
+            <div>Select a material first to enable thickness options.</div>
+          )}
         </>
       ),
     },
@@ -447,7 +452,11 @@ export const CustomCountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: isSinkDisabled ? (
+      content: !hasSelectedMaterial ? (
+        <div>Select a material first to enable basin styles.</div>
+      ) : !activeThickness ? (
+        <div>Select a thickness first to enable basin styles.</div>
+      ) : isSinkDisabled ? (
         <div>Select a cabinet type with sink support to enable basin styles.</div>
       ) : (
         <ProductOptionsGrid data={filteredBasinOptions} handleAdd={handleAddbasinStyle} />
