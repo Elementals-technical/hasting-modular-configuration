@@ -33,6 +33,7 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
+import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "022";
@@ -453,7 +454,7 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      { id: "duplicate", label: "Duplicate", trailing: "+", onClick: handleDuplicateProduct },
+      { id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct },
       { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
     ];
 
