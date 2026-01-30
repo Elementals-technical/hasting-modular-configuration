@@ -59,6 +59,7 @@ export const CustomCountertopPage = () => {
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
+  const hasSelectedMaterial = Boolean(activeCountertopColor);
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
@@ -68,10 +69,7 @@ export const CustomCountertopPage = () => {
     serialize: true,
   });
 
-  const { data: counterTopFilterValues } = useGetConfiguratorQuery({ id: 1, view: "short", serialize: true });
-
   console.log("materials", counterTopMaterials);
-  console.log("materials counterTopFilterValues", counterTopFilterValues);
 
   // Remove unrelated text before ":" in the title
   const normalizeMaterialLabel = (value: string) => {
@@ -88,8 +86,16 @@ export const CustomCountertopPage = () => {
 
     if (!group) return [];
 
-    const buildMaterialTokens = (name: string) => {
-      const tokens = new Set<string>([name]);
+    const buildMaterialTokens = (name: string, metaMaterial?: string) => {
+      const tokens = new Set<string>();
+      if (metaMaterial) {
+        metaMaterial
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .forEach((token) => tokens.add(token));
+      }
+      if (name) tokens.add(name);
 
       const parts = name
         .split(":")
@@ -111,7 +117,10 @@ export const CustomCountertopPage = () => {
           metadata: {
             image: variant.image,
             value: variant.name,
-            materials: buildMaterialTokens(option.name),
+            materials: buildMaterialTokens(option.name, variant.metadata?.Material),
+            colors: variant.metadata?.Color ? [variant.metadata.Color] : [],
+            looks: variant.metadata?.Look ? [variant.metadata.Look] : [],
+            hex: variant.metadata?.hex?.trim(),
           },
         })),
     );
@@ -161,12 +170,41 @@ export const CustomCountertopPage = () => {
     const group = counterTopMaterials?.availableOptions?.[0];
     if (!group) return defaultMaterialFilters;
 
-    const materialOptions = group.options
-      .map((option) => normalizeMaterialLabel(option.name))
-      .sort((a, b) => a.localeCompare(b))
-      .map((value) => ({ label: value, value }));
+    const materialSet = new Set<string>();
+    const colorSet = new Set<string>();
+    const lookSet = new Set<string>();
+    const hexSet = new Set<string>();
 
-    return { ...defaultMaterialFilters, materials: materialOptions };
+    group.options.forEach((option) => {
+      materialSet.add(normalizeMaterialLabel(option.name));
+
+      option.variants?.forEach((variant) => {
+        if (!variant.enabled) return;
+
+        if (variant.metadata?.Material) {
+          variant.metadata.Material.split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+            .forEach((value) => materialSet.add(value));
+        }
+
+        if (variant.metadata?.Color) colorSet.add(variant.metadata.Color);
+        if (variant.metadata?.Look) lookSet.add(variant.metadata.Look);
+        if (variant.metadata?.hex) hexSet.add(variant.metadata.hex.trim());
+      });
+    });
+
+    const toOptions = (set: Set<string>) =>
+      Array.from(set)
+        .sort((a, b) => a.localeCompare(b))
+        .map((value) => ({ label: value, value }));
+
+    return {
+      materials: toOptions(materialSet),
+      colors: toOptions(colorSet),
+      looks: toOptions(lookSet),
+      hex: toOptions(hexSet),
+    };
   }, [counterTopMaterials, defaultMaterialFilters]);
 
   const hasApiOptions = countertopOptionsFromApi.length > 0;
@@ -388,11 +426,15 @@ export const CustomCountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductSwatchesGrid
-            data={filteredThicknessOptions}
-            onSelectChange={(value) => value && handleAddThickness(value)}
-            selectedValue={activeThickness}
-          />
+          {hasSelectedMaterial ? (
+            <ProductSwatchesGrid
+              data={filteredThicknessOptions}
+              onSelectChange={(value) => value && handleAddThickness(value)}
+              selectedValue={activeThickness}
+            />
+          ) : (
+            <div>Select a material first to enable thickness options.</div>
+          )}
         </>
       ),
     },
@@ -410,7 +452,11 @@ export const CustomCountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: isSinkDisabled ? (
+      content: !hasSelectedMaterial ? (
+        <div>Select a material first to enable basin styles.</div>
+      ) : !activeThickness ? (
+        <div>Select a thickness first to enable basin styles.</div>
+      ) : isSinkDisabled ? (
         <div>Select a cabinet type with sink support to enable basin styles.</div>
       ) : (
         <ProductOptionsGrid data={filteredBasinOptions} handleAdd={handleAddbasinStyle} />

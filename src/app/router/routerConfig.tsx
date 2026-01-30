@@ -38,7 +38,7 @@ export const routerConfig = createBrowserRouter([
             element: <ModelPage />,
             children: [{ path: ":modelId", element: <ModelDetailsPage /> }],
           },
-          { path: "cabinet", element: <CabinetPage /> },
+          { path: "color", element: <CabinetPage /> },
           { path: "countertop", element: <CountertopPage /> },
           { path: "accessories", element: <AccessoriesPage /> },
           { path: "faucet-holes", element: <FaucetPage /> },

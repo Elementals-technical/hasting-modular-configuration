@@ -1,6 +1,6 @@
 export const PREBUILT_STEPS = [
   { id: "model", label: "Model", path: "/prebuilt/model" },
-  { id: "cabinet", label: "Cabinet", path: "/prebuilt/cabinet" },
+  { id: "cabinet", label: "Color", path: "/prebuilt/color" },
   { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
   { id: "accessories", label: "Accessories", path: "/prebuilt/accessories" },
   { id: "faucet-holes", label: "Faucet Holes", path: "/prebuilt/faucet-holes" },

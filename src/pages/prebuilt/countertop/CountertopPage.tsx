@@ -53,6 +53,7 @@ export const CountertopPage = () => {
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const hasSelectedMaterial = Boolean(activeCountertopColor);
 
   const materialFilters = useMemo(() => buildMaterialFilters("Counertops materials"), []);
   const countertopOptions = useMemo(() => getMaterialOptionsGridData("Counertops materials"), []);
@@ -262,11 +263,15 @@ export const CountertopPage = () => {
       title: "Thickness",
       content: (
         <>
-          <ProductSwatchesGrid
-            data={filteredThicknessOptions}
-            onSelectChange={(value) => value && handleAddThickness(value)}
-            selectedValue={activeThickness}
-          />
+          {hasSelectedMaterial ? (
+            <ProductSwatchesGrid
+              data={filteredThicknessOptions}
+              onSelectChange={(value) => value && handleAddThickness(value)}
+              selectedValue={activeThickness}
+            />
+          ) : (
+            <div>Select a material first to enable thickness options.</div>
+          )}
         </>
       ),
     },
@@ -284,7 +289,13 @@ export const CountertopPage = () => {
     {
       id: "basin-style",
       title: "Basin style",
-      content: <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />,
+      content: !hasSelectedMaterial ? (
+        <div>Select a material first to enable basin styles.</div>
+      ) : !activeThickness ? (
+        <div>Select a thickness first to enable basin styles.</div>
+      ) : (
+        <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />
+      ),
     },
   ];
 
