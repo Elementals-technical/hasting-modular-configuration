@@ -80,6 +80,16 @@ export const CustomCountertopPage = () => {
     return parts.length > 1 ? parts[parts.length - 1] : value;
   };
 
+  const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+
+  const toStringArrayFromCsv = (value: unknown): string[] => {
+    if (typeof value !== "string") return [];
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  };
+
   const countertopOptionsFromApi = useMemo(() => {
     const group = counterTopMaterials?.availableOptions?.[0];
     console.log("group", group);
@@ -89,11 +99,7 @@ export const CustomCountertopPage = () => {
     const buildMaterialTokens = (name: string, metaMaterial?: string) => {
       const tokens = new Set<string>();
       if (metaMaterial) {
-        metaMaterial
-          .split(",")
-          .map((part) => part.trim())
-          .filter(Boolean)
-          .forEach((token) => tokens.add(token));
+        toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(token));
       }
       if (name) tokens.add(name);
 
@@ -108,21 +114,29 @@ export const CustomCountertopPage = () => {
     return group.options.flatMap((option) =>
       option.variants
         .filter((variant) => variant.enabled)
-        .map((variant) => ({
-          id: variant.id,
-          title: variant.name,
-          name: variant.name,
-          desc: normalizeMaterialLabel(option.name),
-          isShortDesc: false,
-          metadata: {
-            image: variant.image,
-            value: variant.name,
-            materials: buildMaterialTokens(option.name, variant.metadata?.Material),
-            colors: variant.metadata?.Color ? [variant.metadata.Color] : [],
-            looks: variant.metadata?.Look ? [variant.metadata.Look] : [],
-            hex: variant.metadata?.hex?.trim(),
-          },
-        })),
+        .map((variant) => {
+          const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+          const metaMaterial = toOptionalString(meta.Material);
+          const metaColor = toOptionalString(meta.Color);
+          const metaLook = toOptionalString(meta.Look);
+          const metaHex = toOptionalString(meta.hex);
+
+          return {
+            id: variant.id,
+            title: variant.name,
+            name: variant.name,
+            desc: normalizeMaterialLabel(option.name),
+            isShortDesc: false,
+            metadata: {
+              image: variant.image,
+              value: variant.name,
+              materials: buildMaterialTokens(option.name, metaMaterial),
+              colors: metaColor ? [metaColor] : [],
+              looks: metaLook ? [metaLook] : [],
+              hex: metaHex?.trim(),
+            },
+          };
+        }),
     );
   }, [counterTopMaterials]);
 
@@ -181,16 +195,19 @@ export const CustomCountertopPage = () => {
       option.variants?.forEach((variant) => {
         if (!variant.enabled) return;
 
-        if (variant.metadata?.Material) {
-          variant.metadata.Material.split(",")
-            .map((value) => value.trim())
-            .filter(Boolean)
-            .forEach((value) => materialSet.add(value));
+        const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+        const metaMaterial = toOptionalString(meta.Material);
+        const metaColor = toOptionalString(meta.Color);
+        const metaLook = toOptionalString(meta.Look);
+        const metaHex = toOptionalString(meta.hex);
+
+        if (metaMaterial) {
+          toStringArrayFromCsv(metaMaterial).forEach((value) => materialSet.add(value));
         }
 
-        if (variant.metadata?.Color) colorSet.add(variant.metadata.Color);
-        if (variant.metadata?.Look) lookSet.add(variant.metadata.Look);
-        if (variant.metadata?.hex) hexSet.add(variant.metadata.hex.trim());
+        if (metaColor) colorSet.add(metaColor);
+        if (metaLook) lookSet.add(metaLook);
+        if (metaHex) hexSet.add(metaHex.trim());
       });
     });
 
