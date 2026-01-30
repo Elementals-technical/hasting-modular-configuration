@@ -28,8 +28,8 @@ export const resolveCabinetTypeImage = (name: string | undefined, height: number
 };
 
 export const resolveCabinetStyleImage = (value: string | undefined, height: number, fallback?: string) => {
-  if (value === "1") {
-    // 1 Drawer
+  if (value === "1" || value === "1+inner") {
+    // 1 Drawer / 1 Drawer With Inner Drawer
     if (height === 50) return oneDrawer50Height;
     if (height === 53 || height === 56) return oneDrawerDefault;
     return fallback;
