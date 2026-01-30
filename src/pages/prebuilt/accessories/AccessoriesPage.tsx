@@ -7,7 +7,6 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import {
   getDividersOption,
   getDividersStyle,
-  getLedOption,
   getSidePanelsOption,
   getTowelBarColor,
   getTowelBarOption,
@@ -15,7 +14,6 @@ import {
 import {
   setDividersOption,
   setDividersStyle,
-  setLedOption,
   setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
@@ -28,7 +26,6 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import {
   dividersMockData,
   optionsSidePanelsData,
-  optionsSwatchData,
   optionsSwatchData2,
   optionsSwatchDataTowel,
   optionsTowelData,
@@ -41,7 +38,6 @@ export const AccessoriesPage = () => {
   const dividerSelection = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
-  const activeLed = useAppSelector(getLedOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
 
   useEffect(() => {
@@ -61,11 +57,6 @@ export const AccessoriesPage = () => {
 
     await setConfigBatch({}, { SidePanel: value });
     dispatch(setSidePanelsOption(value));
-  };
-
-  const handleLedChange = (value: string | null) => {
-    if (!value) return;
-    dispatch(setLedOption(value));
   };
 
   const handleDividersChange = (value: string | null) => {
@@ -133,20 +124,6 @@ export const AccessoriesPage = () => {
             data={optionsSidePanelsData}
             handleAdd={handleSidePanelsChange}
             activeValue={activeSidePanels}
-          />
-        </>
-      ),
-    },
-    {
-      id: "led",
-      title: "LED",
-      content: (
-        <>
-          <ProductSwatchesGrid
-            data={optionsSwatchData}
-            isLedSection={true}
-            selectedValue={activeLed}
-            onSelectChange={handleLedChange}
           />
         </>
       ),
