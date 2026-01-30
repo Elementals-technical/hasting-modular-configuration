@@ -5,6 +5,7 @@ export type PresetProduct = {
   Depth?: number;
   CabinetColor?: string;
   Drawers?: string;
+  Handle?: string;
   sinkType?: string;
   CountertopColor?: string;
   HandleGrooveColor?: string;
