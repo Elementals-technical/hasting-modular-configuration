@@ -357,7 +357,6 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     if (!selectedSceneProduct) return;
-    return;
 
     const loadConfig = async () => {
       const config = await getConfig(selectedSceneProduct);
