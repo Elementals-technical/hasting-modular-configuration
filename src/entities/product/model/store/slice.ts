@@ -283,8 +283,7 @@ const productSlice = createSlice({
 
         if (cabinetRule && cabinetRule.heights.length > 0) {
           const currentHeight = state.selectedDimensions.height;
-          const isCurrentHeightValid =
-            typeof currentHeight === "number" && cabinetRule.heights.includes(currentHeight);
+          const isCurrentHeightValid = typeof currentHeight === "number" && cabinetRule.heights.includes(currentHeight);
 
           // If current height is not valid for the new cabinet type, use the last available height
           // (typically the default/preferred height for that cabinet type)
