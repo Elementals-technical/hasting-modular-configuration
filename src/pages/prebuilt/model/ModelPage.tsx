@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
-import { CreateModelBtn } from "@/features/product/ui/createModelBtn/CreateModelBtn";
+import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
 
 import { ROUTES } from "@/shared";
 import { type PresetProduct } from "@/entities/product/types";
