@@ -100,7 +100,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
       >
         <span className={s.label}>{selectedLabel}</span>
         <span>
-          <ArrowDown />
+          <ArrowDown width="10" />
         </span>
       </button>
 
