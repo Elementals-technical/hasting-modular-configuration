@@ -18,6 +18,7 @@ import {
 import {
   setDividersOption,
   setDividersStyle,
+  setIsDrawerOpen,
   setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
@@ -91,6 +92,7 @@ export const CustomAccessoriesPage = () => {
         console.log("[Drawer] selected", { cabinetId, drawerType });
 
         setActiveDrawerType(drawerType);
+        dispatch(setIsDrawerOpen(true));
       },
 
       onAfterSelect: (cabinetId, drawerType) => {
@@ -106,7 +108,22 @@ export const CustomAccessoriesPage = () => {
     if (!wrapped) {
       console.log("[Drawer] showTopView not ready or already wrapped");
     }
-  }, [isPlayCanvasReady, dividerSelection]);
+  }, [dispatch, isPlayCanvasReady, dividerSelection]);
+
+  useEffect(() => {
+    const exitTopView = wrapExitTopView({
+      onExit: () => {
+        console.log("[Drawer] exitTopView triggered by Close");
+
+        setActiveDrawerType(null);
+        dispatch(setIsDrawerOpen(false));
+      },
+    });
+
+    if (!exitTopView) {
+      console.warn("[Drawer] exitTopView not ready");
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     if (!isPlayCanvasReady) return;
@@ -297,6 +314,7 @@ export const CustomAccessoriesPage = () => {
         onExit: () => {
           console.log("[Drawer] exitTopView triggered by Dividers None");
           setActiveDrawerType(null);
+          dispatch(setIsDrawerOpen(false));
         },
       });
 
@@ -312,6 +330,8 @@ export const CustomAccessoriesPage = () => {
     } else {
       setVisibleDrawerButtons(false);
       setVisibleDividerSlotButtons(false);
+
+      dispatch(setIsDrawerOpen(false));
     }
 
     dispatch(setDividersOption(value));

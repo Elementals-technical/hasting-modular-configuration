@@ -23,6 +23,7 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import {
   getDimensionOptions,
   getCabinetCatalog,
+  getIsDrawerOpen,
   getSelectedSceneProduct,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
@@ -59,6 +60,7 @@ export const PlayCanvasIntegration = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
+  const isDrawerOpen = useAppSelector(getIsDrawerOpen);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
 
@@ -180,6 +182,12 @@ export const PlayCanvasIntegration = () => {
     },
     [productIds],
   );
+
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [isDrawerOpen]);
 
   const handleRemoveProducts = useCallback(async () => {
     if (!selectedSceneProduct) return;
@@ -493,7 +501,7 @@ export const PlayCanvasIntegration = () => {
         }}
       />
 
-      {dropdownState.visible && (
+      {dropdownState.visible && !isDrawerOpen && (
         <div
           style={{
             position: "absolute",

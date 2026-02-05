@@ -11,15 +11,20 @@ export function wrapExitTopView({ onExit }: WrapExitTopViewOptions): ExitTopView
     | {
         exitTopView?: ExitTopView;
         __wrappedExitTopView?: boolean;
+        __exitTopViewOnExit?: (() => void) | null;
       }
     | undefined;
 
   if (!api?.exitTopView) return null;
 
+  if (onExit) {
+    api.__exitTopViewOnExit = onExit;
+  }
+
   if (!api.__wrappedExitTopView) {
     const originalExitTopView = api.exitTopView.bind(api);
     api.exitTopView = () => {
-      if (onExit) onExit();
+      api.__exitTopViewOnExit?.();
       return originalExitTopView();
     };
     api.__wrappedExitTopView = true;
