@@ -6,10 +6,11 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
+  getCabinetColor,
   getDividersOption,
   getDividersStyle,
   getSelectedProductConfig,
-  getSelectedProducts,
+  // getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
   getTowelBarColor,
@@ -56,8 +57,11 @@ export const CustomAccessoriesPage = () => {
   const towelSelection = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
-  const selectedProducts = useAppSelector(getSelectedProducts);
+  // const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+
+  const getActiveCabinetColor = useAppSelector(getCabinetColor);
+
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
 
@@ -298,10 +302,14 @@ export const CustomAccessoriesPage = () => {
   const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
 
-    await setConfigBatch(selectedProducts, {
-      ...selectedProductConfig,
-      SidePanel: value,
-    });
+    await setConfigBatch(
+      {},
+      {
+        ...selectedProductConfig,
+        CabinetColor: getActiveCabinetColor,
+        SidePanel: value,
+      },
+    );
 
     dispatch(setSidePanelsOption(value));
   };
