@@ -360,6 +360,17 @@ export const CustomAccessoriesPage = () => {
     dispatch(setTowelBarColor(value));
   };
 
+  const handleAccordionChange = (value: string) => {
+    if (!value) return;
+
+    if (value === "dividers") {
+      setVisibleDrawerButtons(dividerSelection === "Customize");
+      return;
+    }
+
+    setVisibleDrawerButtons(false);
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "side-panels",
@@ -419,7 +430,10 @@ export const CustomAccessoriesPage = () => {
 
   return (
     <div className="accessoriesPage">
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup
+        defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}
+        onValueChange={handleAccordionChange}
+      >
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}
