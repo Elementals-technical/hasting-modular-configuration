@@ -12,3 +12,4 @@ export { getAvailableDividerTypes } from "./getAvailableDividerTypes";
 export type { DividerSlotKey } from "./getAvailableDividerTypes";
 export { wrapShowTopView } from "./wrapShowTopView";
 export type { DrawerType } from "./wrapShowTopView";
+export { wrapExitTopView } from "./wrapExitTopView";

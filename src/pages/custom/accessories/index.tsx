@@ -35,6 +35,7 @@ import {
   setOnOccupiedSlotClick,
   setVisibleDividerSlotButtons,
   showIconDividerSlots,
+  wrapExitTopView,
   wrapShowTopView,
 } from "@/utils/functions/playcanvas/dividers";
 
@@ -290,6 +291,21 @@ export const CustomAccessoriesPage = () => {
 
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
+
+    if (value === "None") {
+      const exitTopView = wrapExitTopView({
+        onExit: () => {
+          console.log("[Drawer] exitTopView triggered by Dividers None");
+          setActiveDrawerType(null);
+        },
+      });
+
+      if (exitTopView) {
+        exitTopView();
+      } else {
+        console.warn("[Drawer] exitTopView not ready");
+      }
+    }
 
     if (value === "Customize") {
       setVisibleDrawerButtons(true);
