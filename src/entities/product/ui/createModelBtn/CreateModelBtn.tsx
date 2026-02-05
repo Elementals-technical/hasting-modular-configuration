@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 
-import { PlusIcon } from "@/shared/assets/images/svg/PlusIcon";
+import { PlusIcon } from "@/shared/assets/images/svg/PlusIcon.tsx";
 import { ROUTES } from "@/shared";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { resetPrebuiltProducts } from "@/entities/product/model/store/slice";
+import { useAppDispatch } from "@/shared/hooks/store/redux.ts";
+import { resetPrebuiltProducts } from "@/entities/product/model/store/slice.ts";
 
 import s from "./CreateModelBtn.module.scss";
 
@@ -13,7 +13,6 @@ export const CreateModelBtn = () => {
 
   const handleNavigate = () => {
     dispatch(resetPrebuiltProducts());
-    // removeAllProducts();
 
     navigate(ROUTES.CUSTOM);
   };

@@ -56,6 +56,7 @@ type ProductState = {
 
   productsPresets: PresetProduct[];
   selectedSceneProduct: string;
+  isDrawerOpen: boolean;
 };
 
 type ProductDimensions = {
@@ -190,6 +191,7 @@ const createInitialState = (): ProductState => {
 
     productsPresets: [],
     selectedSceneProduct: "",
+    isDrawerOpen: false,
   };
 
   applyRulesToState(baseState);
@@ -385,6 +387,9 @@ const productSlice = createSlice({
     setSelectedSceneProduct(state, action: PayloadAction<string>) {
       state.selectedSceneProduct = action.payload;
     },
+    setIsDrawerOpen(state, action: PayloadAction<boolean>) {
+      state.isDrawerOpen = action.payload;
+    },
     setHasBootstrappedCabinetBuilder(state, action: PayloadAction<boolean>) {
       state.hasBootstrappedCabinetBuilder = action.payload;
     },
@@ -422,6 +427,7 @@ export const {
   resetPrebuiltProducts,
   setCabinetCatalog,
   setSelectedSceneProduct,
+  setIsDrawerOpen,
   resetCabinetBuilderBootstrap,
   setHasBootstrappedCabinetBuilder,
 } = productSlice.actions;
