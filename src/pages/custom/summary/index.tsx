@@ -629,7 +629,7 @@ export const CustomSummaryPage = () => {
           <div className={s.sectionList}>
             {section.items.map((item) => {
               const textToCopy = item.sku
-                ? `${item.sku}\n${[item.title, item.subtitle, item.swatch?.label, item.swatch?.value].filter(Boolean).join(" - ")}`
+                ? item.sku
                 : [item.title, item.subtitle, item.swatch?.label, item.swatch?.value].filter(Boolean).join(" - ");
 
               return (
