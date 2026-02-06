@@ -25,6 +25,7 @@ import {
   setActiveCountertopColor,
   setActiveCountertopThickness,
   setCountertopStyle,
+  setCountertopColorSku,
 } from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
@@ -64,7 +65,7 @@ export const CustomCountertopPage = () => {
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
   const { data: counterTopMaterials, isFetching: isFetchingcounterTopMaterials } = useGetConfiguratorQuery({
-    id: 1,
+    id: 3,
     view: "full",
     serialize: true,
   });
@@ -82,6 +83,32 @@ export const CustomCountertopPage = () => {
 
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
+  const getVariantMeta = (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
+    const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+    const nested =
+      typeof meta.metadata === "object" && meta.metadata
+        ? (meta.metadata as Record<string, unknown>)
+        : ({} as Record<string, unknown>);
+
+    const pick = (...values: unknown[]): string | undefined => {
+      for (const value of values) {
+        const str = toOptionalString(value);
+        if (str) return str;
+      }
+      return undefined;
+    };
+
+    return {
+      material: pick(nested.Material, meta.Material),
+      color: pick(nested.Color, meta.Color),
+      look: pick(nested.Look, meta.Look),
+      hex: pick(nested.hex, meta.hex),
+      image: pick(nested.image, meta.image, variant.image),
+      value: pick(meta.value, nested.value, variant.name),
+      label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
+    };
+  };
+
   const toStringArrayFromCsv = (value: unknown): string[] => {
     if (typeof value !== "string") return [];
     return value
@@ -91,17 +118,19 @@ export const CustomCountertopPage = () => {
   };
 
   const countertopOptionsFromApi = useMemo(() => {
-    const group = counterTopMaterials?.availableOptions?.[0];
-    console.log("group", group);
+    const groups = counterTopMaterials?.availableOptions ?? [];
 
-    if (!group) return [];
+    if (!groups.length) return [];
 
-    const buildMaterialTokens = (name: string, metaMaterial?: string) => {
+    const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
       const tokens = new Set<string>();
       if (metaMaterial) {
         toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(token));
       }
       if (name) tokens.add(name);
+      extraTokens.forEach((token) => {
+        if (token) tokens.add(token);
+      });
 
       const parts = name
         .split(":")
@@ -111,41 +140,78 @@ export const CustomCountertopPage = () => {
       return Array.from(tokens);
     };
 
-    return group.options.flatMap((option) =>
-      option.variants
-        .filter((variant) => variant.enabled)
-        .map((variant) => {
-          const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-          const metaMaterial = toOptionalString(meta.Material);
-          const metaColor = toOptionalString(meta.Color);
-          const metaLook = toOptionalString(meta.Look);
-          const metaHex = toOptionalString(meta.hex);
+    return groups.flatMap((group) =>
+      group.options.flatMap((option) =>
+        option.variants
+          .filter((variant) => variant.enabled)
+          .map((variant) => {
+            const meta = getVariantMeta(variant);
+            const metaMaterial = meta.material;
+            const metaColor = meta.color;
+            const metaLook = meta.look;
+            const metaHex = meta.hex;
+            const descSource = option.name || group.proxyName || variant.name;
 
-          return {
-            id: variant.id,
-            title: variant.name,
-            name: variant.name,
-            desc: normalizeMaterialLabel(option.name),
-            isShortDesc: false,
-            metadata: {
-              image: variant.image,
-              value: variant.name,
-              materials: buildMaterialTokens(option.name, metaMaterial),
-              colors: metaColor ? [metaColor] : [],
-              looks: metaLook ? [metaLook] : [],
-              hex: metaHex?.trim(),
-            },
-          };
-        }),
+            return {
+              id: variant.id,
+              title: meta.label ?? variant.name,
+              name: variant.name,
+              desc: normalizeMaterialLabel(descSource),
+              isShortDesc: false,
+              metadata: {
+                image: meta.image,
+                value: meta.value ?? variant.name,
+                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                materials: buildMaterialTokens(
+                  option.name || variant.name,
+                  metaMaterial,
+                  group.proxyName ? [group.proxyName] : [],
+                ),
+                colors: toStringArrayFromCsv(metaColor),
+                looks: toStringArrayFromCsv(metaLook),
+                hex: metaHex?.trim(),
+              },
+            };
+          }),
+      ),
     );
   }, [counterTopMaterials]);
 
   console.log("countertopOptionsFromApi", countertopOptionsFromApi);
 
   const countertopOptions = useMemo(() => countertopOptionsFromApi, [countertopOptionsFromApi]);
+
+  const findSkuByColorName = useCallback(
+    (colorName: string): string => {
+      for (const option of countertopOptionsFromApi) {
+        if (option.metadata?.value === colorName || option.name === colorName) {
+          return option.metadata?.sku ?? "";
+        }
+      }
+      return "";
+    },
+    [countertopOptionsFromApi],
+  );
+
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
 
   console.log("countertopOptions", countertopOptions);
+
+  const matrixMaterials = useMemo(() => {
+    const set = new Set<string>();
+
+    counterTopData?.rows?.forEach((row) => {
+      const value = row.material?.trim();
+      if (value) set.add(value);
+    });
+
+    return set;
+  }, [counterTopData]);
+
+  const normalizedMatrixMaterials = useMemo(
+    () => new Set(Array.from(matrixMaterials).map((value) => normalizeMaterialToken(value))),
+    [matrixMaterials],
+  );
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];
@@ -181,33 +247,47 @@ export const CustomCountertopPage = () => {
   const allowedMaterials = ruleState.allowedMaterials;
 
   const materialFilters = useMemo(() => {
-    const group = counterTopMaterials?.availableOptions?.[0];
-    if (!group) return defaultMaterialFilters;
+    const groups = counterTopMaterials?.availableOptions ?? [];
+    if (!groups.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();
     const colorSet = new Set<string>();
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
 
-    group.options.forEach((option) => {
-      materialSet.add(normalizeMaterialLabel(option.name));
+    matrixMaterials.forEach((material) => materialSet.add(material));
 
-      option.variants?.forEach((variant) => {
-        if (!variant.enabled) return;
+    groups.forEach((group) => {
+      group.options.forEach((option) => {
+        option.variants?.forEach((variant) => {
+          if (!variant.enabled) return;
 
-        const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-        const metaMaterial = toOptionalString(meta.Material);
-        const metaColor = toOptionalString(meta.Color);
-        const metaLook = toOptionalString(meta.Look);
-        const metaHex = toOptionalString(meta.hex);
+          const meta = getVariantMeta(variant);
+          const metaMaterial = meta.material;
+          const metaColor = meta.color;
+          const metaLook = meta.look;
+          const metaHex = meta.hex;
 
-        if (metaMaterial) {
-          toStringArrayFromCsv(metaMaterial).forEach((value) => materialSet.add(value));
-        }
+          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)].filter(
+            Boolean,
+          ) as string[];
 
-        if (metaColor) colorSet.add(metaColor);
-        if (metaLook) lookSet.add(metaLook);
-        if (metaHex) hexSet.add(metaHex.trim());
+          const matchesMatrix =
+            normalizedMatrixMaterials.size === 0 ||
+            candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
+
+          if (!matchesMatrix) return;
+
+          candidateMaterials.forEach((value) => {
+            if (normalizedMatrixMaterials.size === 0 || normalizedMatrixMaterials.has(normalizeMaterialToken(value))) {
+              materialSet.add(value);
+            }
+          });
+
+          toStringArrayFromCsv(metaColor).forEach((value) => colorSet.add(value));
+          toStringArrayFromCsv(metaLook).forEach((value) => lookSet.add(value));
+          if (metaHex) hexSet.add(metaHex.trim());
+        });
       });
     });
 
@@ -222,7 +302,7 @@ export const CustomCountertopPage = () => {
       looks: toOptions(lookSet),
       hex: toOptions(hexSet),
     };
-  }, [counterTopMaterials, defaultMaterialFilters]);
+  }, [counterTopMaterials, defaultMaterialFilters, matrixMaterials, normalizedMatrixMaterials, getVariantMeta]);
 
   const hasApiOptions = countertopOptionsFromApi.length > 0;
   const hasAllowedOptionMatch = useMemo(() => {
@@ -363,6 +443,7 @@ export const CustomCountertopPage = () => {
     });
 
     dispatch(setActiveCountertopColor(colorName));
+    dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
   const handleAddbasinStyle = (basinStyle: string) => {

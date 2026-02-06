@@ -1,20 +1,42 @@
 export type ConfiguratorView = "short" | "full";
 
+export type ConfiguratorMaterialMetadata = {
+  Look?: string;
+  Color?: string;
+  Material?: string;
+  image?: string;
+  hex?: string;
+  label?: string;
+  value?: string;
+  Label?: string;
+  zoomIconColor?: string;
+  [key: string]: unknown;
+};
+
+export type ConfiguratorVariantMetadata = {
+  sku?: string;
+  value?: string;
+  label?: string;
+  Label?: string;
+  metadata?: ConfiguratorMaterialMetadata;
+  [key: string]: unknown;
+};
+
 export type ConfiguratorVariant = {
   id: number;
   name: string;
-  image: string;
+  image: string | null;
   enabled: boolean;
   description: string;
-  metadata: Record<string, unknown>;
+  metadata: ConfiguratorVariantMetadata;
 };
 
 export type ConfiguratorOption = {
   id: number;
   name: string;
-  resource: string;
-  paramString: string;
-  playcanvasString: string;
+  resource: string | null;
+  paramString: string | null;
+  playcanvasString: string | null;
   variants: ConfiguratorVariant[];
 };
 

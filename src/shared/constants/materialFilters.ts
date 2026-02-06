@@ -121,13 +121,22 @@ export const filterOptionsByMaterialSelection = (
   options: ProductOptionData[],
   selectedFilter: MaterialFilterSelection,
 ): ProductOptionData[] => {
+  const normalizeToken = (value?: string) => (value ?? "").trim().toLowerCase();
+
   return options.filter((option) => {
     const { materials, colors, looks, hex } = option.metadata ?? {};
 
-    const materialMatch = selectedFilter.material ? materials?.includes(selectedFilter.material) : true;
-    const colorMatch = selectedFilter.color ? colors?.includes(selectedFilter.color) : true;
-    const lookMatch = selectedFilter.look ? looks?.includes(selectedFilter.look) : true;
-    const hexMatch = selectedFilter.hex ? hex === selectedFilter.hex : true;
+    const normalizedMaterials = (materials ?? []).map(normalizeToken);
+    const normalizedColors = (colors ?? []).map(normalizeToken);
+    const normalizedLooks = (looks ?? []).map(normalizeToken);
+    const normalizedHex = normalizeToken(hex);
+
+    const materialMatch = selectedFilter.material
+      ? normalizedMaterials.includes(normalizeToken(selectedFilter.material))
+      : true;
+    const colorMatch = selectedFilter.color ? normalizedColors.includes(normalizeToken(selectedFilter.color)) : true;
+    const lookMatch = selectedFilter.look ? normalizedLooks.includes(normalizeToken(selectedFilter.look)) : true;
+    const hexMatch = selectedFilter.hex ? normalizedHex === normalizeToken(selectedFilter.hex) : true;
 
     return materialMatch && colorMatch && lookMatch && hexMatch;
   });
