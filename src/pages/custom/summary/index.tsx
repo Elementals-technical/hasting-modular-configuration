@@ -27,6 +27,8 @@ import {
 import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { buildCabinetSku } from "@/shared/lib/sku";
+import { getActiveCabinetType } from "@/entities/product/model/store/selectors";
 
 import s from "./SummaryPage.module.scss";
 
@@ -50,6 +52,7 @@ type SummaryItem = {
   id: string;
   title: string;
   subtitle?: string;
+  sku?: string;
   swatch?: {
     label: string;
     value: string;
@@ -85,6 +88,7 @@ export const CustomSummaryPage = () => {
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
+  const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -192,12 +196,32 @@ export const CustomSummaryPage = () => {
               typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
             const swatch = resolveSwatch(swatchValue);
 
-            console.log("config", productConfigs);
+            const productCabinetType = name ?? activeCabinetType;
+
+            const sku = buildCabinetSku({
+              cabinetType: productCabinetType,
+              drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+              handle: typeof config.Handle === "string" ? config.Handle : null,
+              pattern:
+                typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+              width: width ?? null,
+              height: height ?? null,
+              depth: depth ?? null,
+              grainDirection:
+                typeof config.GrainDirection === "string" ? config.GrainDirection : grainDirection || null,
+              sidePanel: typeof config.SidePanels === "string" ? config.SidePanels : sidePanelsOption || null,
+              divider:
+                typeof config.DividersStyle === "string"
+                  ? config.DividersStyle
+                  : dividerStyle || dividersOption || null,
+              towelBar: typeof config.TowelBarOption === "string" ? config.TowelBarOption : towelBarOption || null,
+            });
 
             return {
               id: `cabinet-${index}`,
               title: name ?? "Cabinet",
               subtitle,
+              sku,
               swatch: {
                 label: "Cabinet",
                 value: swatch.value,
@@ -205,7 +229,7 @@ export const CustomSummaryPage = () => {
                 image: swatch.image,
               },
               price: "$—",
-              copyable: index === 0,
+              copyable: true,
             };
           })
         : productsPresets.length > 0
@@ -218,10 +242,25 @@ export const CustomSummaryPage = () => {
               const swatchValue = preset.CabinetColor ?? cabinetColor;
               const swatch = resolveSwatch(swatchValue);
 
+              const sku = buildCabinetSku({
+                cabinetType: preset.name ?? activeCabinetType,
+                drawers: preset.Drawers ?? null,
+                handle: preset.Handle ?? null,
+                pattern: drawerPanelFluting || null,
+                width: preset.Width ?? null,
+                height: preset.Height ?? null,
+                depth: preset.Depth ?? null,
+                grainDirection: grainDirection || null,
+                sidePanel: sidePanelsOption || null,
+                divider: dividerStyle || dividersOption || null,
+                towelBar: towelBarOption || null,
+              });
+
               return {
                 id: `cabinet-${index}`,
                 title: preset.name ?? "Cabinet",
                 subtitle,
+                sku,
                 swatch: {
                   label: "Cabinet",
                   value: swatch.value,
@@ -229,22 +268,39 @@ export const CustomSummaryPage = () => {
                   image: swatch.image,
                 },
                 price: "$—",
-                copyable: index === 0,
+                copyable: true,
               };
             })
           : [
-              {
-                id: "cabinet-1",
-                title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
-                subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
-                swatch: {
-                  ...resolveSwatch(cabinetColor),
-                  label: "Cabinet",
-                  value: cabinetColor,
-                },
-                price: "$—",
-                copyable: true,
-              },
+              (() => {
+                const sku = buildCabinetSku({
+                  cabinetType: activeCabinetType,
+                  drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+                  handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+                  pattern: drawerPanelFluting || null,
+                  width: selectedDimensions.width,
+                  height: selectedDimensions.height,
+                  depth: selectedDimensions.depth,
+                  grainDirection: grainDirection || null,
+                  sidePanel: sidePanelsOption || null,
+                  divider: dividerStyle || dividersOption || null,
+                  towelBar: towelBarOption || null,
+                });
+
+                return {
+                  id: "cabinet-1",
+                  title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
+                  subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
+                  sku,
+                  swatch: {
+                    ...resolveSwatch(cabinetColor),
+                    label: "Cabinet",
+                    value: cabinetColor,
+                  },
+                  price: "$—",
+                  copyable: true,
+                };
+              })(),
             ];
 
     const grooveSwatch = resolveSwatch(handleGrooveColor);
@@ -418,6 +474,7 @@ export const CustomSummaryPage = () => {
         : []),
     ];
   }, [
+    activeCabinetType,
     cabinetColor,
     countertopColor,
     countertopThickness,
@@ -452,9 +509,9 @@ export const CustomSummaryPage = () => {
 
           <div className={s.sectionList}>
             {section.items.map((item) => {
-              const textToCopy = [item.title, item.subtitle, item.swatch?.label, item.swatch?.value]
-                .filter(Boolean)
-                .join(" - ");
+              const textToCopy = item.sku
+                ? `${item.sku}\n${[item.title, item.subtitle, item.swatch?.label, item.swatch?.value].filter(Boolean).join(" - ")}`
+                : [item.title, item.subtitle, item.swatch?.label, item.swatch?.value].filter(Boolean).join(" - ");
 
               return (
                 <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
