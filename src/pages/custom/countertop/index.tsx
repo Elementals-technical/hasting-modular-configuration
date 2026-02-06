@@ -160,7 +160,11 @@ export const CustomCountertopPage = () => {
               metadata: {
                 image: meta.image,
                 value: meta.value ?? variant.name,
-                materials: buildMaterialTokens(option.name || variant.name, metaMaterial, group.proxyName ? [group.proxyName] : []),
+                materials: buildMaterialTokens(
+                  option.name || variant.name,
+                  metaMaterial,
+                  group.proxyName ? [group.proxyName] : [],
+                ),
                 colors: toStringArrayFromCsv(metaColor),
                 looks: toStringArrayFromCsv(metaLook),
                 hex: metaHex?.trim(),
@@ -177,6 +181,22 @@ export const CustomCountertopPage = () => {
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
 
   console.log("countertopOptions", countertopOptions);
+
+  const matrixMaterials = useMemo(() => {
+    const set = new Set<string>();
+
+    counterTopData?.rows?.forEach((row) => {
+      const value = row.material?.trim();
+      if (value) set.add(value);
+    });
+
+    return set;
+  }, [counterTopData]);
+
+  const normalizedMatrixMaterials = useMemo(
+    () => new Set(Array.from(matrixMaterials).map((value) => normalizeMaterialToken(value))),
+    [matrixMaterials],
+  );
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];
@@ -220,12 +240,10 @@ export const CustomCountertopPage = () => {
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
 
+    matrixMaterials.forEach((material) => materialSet.add(material));
+
     groups.forEach((group) => {
-      materialSet.add(normalizeMaterialLabel(group.proxyName));
-
       group.options.forEach((option) => {
-        if (option.name) materialSet.add(normalizeMaterialLabel(option.name));
-
         option.variants?.forEach((variant) => {
           if (!variant.enabled) return;
 
@@ -235,9 +253,21 @@ export const CustomCountertopPage = () => {
           const metaLook = meta.look;
           const metaHex = meta.hex;
 
-          if (metaMaterial) {
-            toStringArrayFromCsv(metaMaterial).forEach((value) => materialSet.add(value));
-          }
+          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)].filter(
+            Boolean,
+          ) as string[];
+
+          const matchesMatrix =
+            normalizedMatrixMaterials.size === 0 ||
+            candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
+
+          if (!matchesMatrix) return;
+
+          candidateMaterials.forEach((value) => {
+            if (normalizedMatrixMaterials.size === 0 || normalizedMatrixMaterials.has(normalizeMaterialToken(value))) {
+              materialSet.add(value);
+            }
+          });
 
           toStringArrayFromCsv(metaColor).forEach((value) => colorSet.add(value));
           toStringArrayFromCsv(metaLook).forEach((value) => lookSet.add(value));
@@ -257,7 +287,7 @@ export const CustomCountertopPage = () => {
       looks: toOptions(lookSet),
       hex: toOptions(hexSet),
     };
-  }, [counterTopMaterials, defaultMaterialFilters]);
+  }, [counterTopMaterials, defaultMaterialFilters, matrixMaterials, normalizedMatrixMaterials, getVariantMeta]);
 
   const hasApiOptions = countertopOptionsFromApi.length > 0;
   const hasAllowedOptionMatch = useMemo(() => {
