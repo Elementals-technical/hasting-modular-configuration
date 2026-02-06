@@ -28,9 +28,11 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import {
   setCabinetColor,
+  setCabinetColorSku,
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
+  setHandleGrooveColorSku,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
@@ -165,6 +167,7 @@ export const CustomCabinetColorsPage = () => {
               metadata: {
                 image: meta.image,
                 value: meta.value ?? variant.name,
+                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
                 materials: [
                   ...new Set([group.proxyName, option.name, ...toStringArrayFromCsv(meta.material)].filter(Boolean)),
                 ],
@@ -231,6 +234,18 @@ export const CustomCabinetColorsPage = () => {
     </FilterRow>
   );
 
+  const findSkuByColorName = useCallback(
+    (colorName: string): string => {
+      for (const option of basePanelOptionsFromApi) {
+        if (option.metadata?.value === colorName || option.name === colorName) {
+          return option.metadata?.sku ?? "";
+        }
+      }
+      return "";
+    },
+    [basePanelOptionsFromApi],
+  );
+
   const handleChangeColor = (colorName: string) => {
     if (!colorName) return;
 
@@ -241,6 +256,7 @@ export const CustomCabinetColorsPage = () => {
     });
 
     dispatch(setCabinetColor(colorName));
+    dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
   };
 
   const handleChangeGrooveColor = (colorName: string) => {
@@ -259,6 +275,7 @@ export const CustomCabinetColorsPage = () => {
       }),
     );
     dispatch(setHandleGrooveColor(colorName));
+    dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
   };
 
   const handleChangeDrawerPanelFluting = async (value: string) => {

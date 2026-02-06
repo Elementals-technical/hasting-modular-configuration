@@ -21,6 +21,8 @@ export type CabinetSkuInput = {
   sidePanel: string | null;
   divider: string | null;
   towelBar: string | null;
+  /** Material SKU for cabinet body (e.g. "3D", "LACM", "LACG") */
+  cabinetMaterialSku: string | null;
 };
 
 const FALLBACK = "X";
@@ -48,7 +50,7 @@ export function buildCabinetSku(input: CabinetSkuInput): string {
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
   const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
 
-  // Product elements (MSP, divider, towel bar — placeholders until material/color is available)
+  // Product elements
   const sidePanel = resolve(sidePanelSkuMap, input.sidePanel);
   const divider = resolve(dividerSkuMap, input.divider);
   const towelBar = resolve(towelBarSkuMap, input.towelBar);
@@ -56,5 +58,9 @@ export function buildCabinetSku(input: CabinetSkuInput): string {
   const elements = [sidePanel, divider, towelBar].filter((v) => v !== FALLBACK);
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
-  return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}${elementsSuffix}`;
+  // Material block: CAB-{MaterialSKU} (color code will be added later)
+  const cabMaterial = input.cabinetMaterialSku?.trim() || null;
+  const cabBlock = cabMaterial ? `-CAB-${cabMaterial}` : "";
+
+  return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}${elementsSuffix}${cabBlock}`;
 }

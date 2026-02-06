@@ -13,6 +13,7 @@ export type ProductOptionMetadata = {
   hex?: string;
   value?: string;
   image?: string;
+  sku?: string;
 };
 
 export type ProductOptionData = {

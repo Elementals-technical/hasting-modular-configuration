@@ -26,7 +26,12 @@ export const getSelectedProductConfig = (state: RootState) => state.rootStateUI.
 
 export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
 
+export const getCabinetColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColorSku;
+
 export const getHandleGrooveColor = (state: RootState) => state.rootStateUI.product.productOptions.HandleGrooveColor;
+
+export const getHandleGrooveColorSku = (state: RootState) =>
+  state.rootStateUI.product.productOptions.HandleGrooveColorSku;
 
 export const getSinkType = (state: RootState) => state.rootStateUI.product.productOptions.sinkType;
 
@@ -37,6 +42,8 @@ export const getSelectedSceneProduct = (state: RootState) => state.rootStateUI.p
 export const getIsDrawerOpen = (state: RootState) => state.rootStateUI.product.isDrawerOpen;
 
 export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColor;
+
+export const getCountertopColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColorSku;
 
 export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;
 

@@ -36,9 +36,12 @@ type ProductState = {
   cabinetCatalog: ConfiguratorCatalog;
   productOptions: {
     CabinetColor: string;
+    CabinetColorSku: string;
     sinkType: string;
     CountertopColor: string;
+    CountertopColorSku: string;
     HandleGrooveColor: string;
+    HandleGrooveColorSku: string;
     Handle: HandleOption;
     Thickness: string;
     DrawerPanelFluting: string;
@@ -171,9 +174,12 @@ const createInitialState = (): ProductState => {
     cabinetCatalog: { typeCabinetRules: [] },
     productOptions: {
       CabinetColor: "Ardesia DD GL",
+      CabinetColorSku: "",
       sinkType: "Top_HPLPrisma",
       CountertopColor: "Rosso Rubino 19 MT",
+      CountertopColorSku: "",
       HandleGrooveColor: "Blu Pavone A6 MT",
+      HandleGrooveColorSku: "",
       Handle: "",
       Thickness: "",
       DrawerPanelFluting: "",
@@ -338,14 +344,23 @@ const productSlice = createSlice({
     setCabinetColor(state, action: PayloadAction<string>) {
       state.productOptions.CabinetColor = action.payload;
     },
+    setCabinetColorSku(state, action: PayloadAction<string>) {
+      state.productOptions.CabinetColorSku = action.payload;
+    },
     setHandleGrooveColor(state, action: PayloadAction<string>) {
       state.productOptions.HandleGrooveColor = action.payload;
+    },
+    setHandleGrooveColorSku(state, action: PayloadAction<string>) {
+      state.productOptions.HandleGrooveColorSku = action.payload;
     },
     setActiveBasinStyle(state, action: PayloadAction<string>) {
       state.productOptions.sinkType = action.payload;
     },
     setActiveCountertopColor(state, action: PayloadAction<string>) {
       state.productOptions.CountertopColor = action.payload;
+    },
+    setCountertopColorSku(state, action: PayloadAction<string>) {
+      state.productOptions.CountertopColorSku = action.payload;
     },
     setActiveCountertopThickness(state, action: PayloadAction<string>) {
       state.productOptions.Thickness = action.payload;
@@ -408,10 +423,13 @@ export const {
   setDrawerProduct,
   setSelectedProductConfig,
   setCabinetColor,
+  setCabinetColorSku,
   setHandleGrooveColor,
+  setHandleGrooveColorSku,
   resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setCountertopColorSku,
   setActiveCountertopThickness,
   setDrawerPanelFluting,
   setGrainDirection,

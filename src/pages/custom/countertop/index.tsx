@@ -25,6 +25,7 @@ import {
   setActiveCountertopColor,
   setActiveCountertopThickness,
   setCountertopStyle,
+  setCountertopColorSku,
 } from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
@@ -160,6 +161,7 @@ export const CustomCountertopPage = () => {
               metadata: {
                 image: meta.image,
                 value: meta.value ?? variant.name,
+                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
                 materials: buildMaterialTokens(
                   option.name || variant.name,
                   metaMaterial,
@@ -178,6 +180,19 @@ export const CustomCountertopPage = () => {
   console.log("countertopOptionsFromApi", countertopOptionsFromApi);
 
   const countertopOptions = useMemo(() => countertopOptionsFromApi, [countertopOptionsFromApi]);
+
+  const findSkuByColorName = useCallback(
+    (colorName: string): string => {
+      for (const option of countertopOptionsFromApi) {
+        if (option.metadata?.value === colorName || option.name === colorName) {
+          return option.metadata?.sku ?? "";
+        }
+      }
+      return "";
+    },
+    [countertopOptionsFromApi],
+  );
+
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
 
   console.log("countertopOptions", countertopOptions);
@@ -428,6 +443,7 @@ export const CustomCountertopPage = () => {
     });
 
     dispatch(setActiveCountertopColor(colorName));
+    dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
   const handleAddbasinStyle = (basinStyle: string) => {
