@@ -71,10 +71,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         : handlesDisabled
           ? []
           : [
-              { label: "Push to open", value: "handle_pto" },
-              { label: "Upper Groove", value: "handle_urban_topcut" },
-              { label: "Central Groove", value: "handle_urban_botcut" },
-            ],
+            { label: "Push to open", value: "handle_pto" },
+            { label: "Upper Groove", value: "handle_urban_topcut" },
+            { label: "Central Groove", value: "handle_urban_botcut" },
+          ],
     [dimensionOptions.handles, handlesDisabled],
   );
 
@@ -150,7 +150,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    setConfigBatch(selectedProducts, {
+    setConfigBatch({}, {
       Height: selectedDimensions.height,
       Depth: selectedDimensions.depth,
     });
