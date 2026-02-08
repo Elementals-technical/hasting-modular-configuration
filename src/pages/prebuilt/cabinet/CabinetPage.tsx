@@ -110,7 +110,7 @@ export const CabinetPage = () => {
     if (!colorName) return;
 
     presetNames.forEach((productName) => {
-      setConfigBatch({ productType: productName }, { CabinetColor: colorName });
+      setConfigBatch({}, { CabinetColor: colorName });
     });
 
     dispatch(setCabinetColor(colorName));
@@ -124,6 +124,7 @@ export const CabinetPage = () => {
     presetNames.forEach((productName) => {
       setConfigBatch({ productType: productName }, { HandleGrooveColor: colorName });
     });
+    
 
     dispatch(
       setSelectedProductConfig({

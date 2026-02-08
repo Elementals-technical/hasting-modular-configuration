@@ -251,7 +251,7 @@ export const CustomCabinetColorsPage = () => {
 
     console.log("colorName", colorName);
 
-    setConfigBatch(selectedProducts, {
+    setConfigBatch({}, {
       CabinetColor: colorName,
     });
 
@@ -298,7 +298,7 @@ export const CustomCabinetColorsPage = () => {
   useEffect(() => {
     if (!isPlayCanvasReady || !activeCabinetColor) return;
 
-    setConfigBatch(selectedProducts, {
+    setConfigBatch({}, {
       CabinetColor: activeCabinetColor,
     });
   }, [activeCabinetColor, isPlayCanvasReady, selectedProducts]);
