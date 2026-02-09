@@ -1,0 +1,24 @@
+export const GRAIN_HORIZONTAL = "GrainHorizontal";
+export const GRAIN_VERTICAL = "GrainVertical";
+
+export const HPL_NO_GRAIN_FINISHES = new Set(["TKP", "TKQ", "TKN"]);
+export const THREE_D_NO_GRAIN_FINISHES = new Set(["10B", "10G", "10N", "1PE"]);
+
+export const HPL_NO_GRAIN_LABEL = "TKP, TKQ, TKN (Cepp Stone, Rox Black, Brera Brown)";
+export const THREE_D_NO_GRAIN_LABEL = "10B, 10G, 10N, 1PE (Colortech Bianco, Colortech Grigio, Colortech Nero, Pelle Pecari Tortora)";
+
+export const GRAIN_DIRECTION_VALUES = [
+  { value: GRAIN_HORIZONTAL, label: "Horizontal" },
+  { value: GRAIN_VERTICAL, label: "Vertical" },
+];
+
+export const FLUTING_VALUES = [
+  { value: "None", label: "None" },
+  { value: "FlutingVerticalA", label: "Fluting Vertical A" },
+  { value: "FlutingVerticalB", label: "Fluting Vertical B" },
+  { value: "FlutingHorizontalA", label: "Fluting Horizontal A" },
+  { value: "FlutingHorizontalB", label: "Fluting Horizontal B" },
+];
+
+export const SIDE_PANELS_NONE = "None";
+export const SYNTESI_MATERIAL_TOKEN = "Syntesi";
