@@ -14,6 +14,9 @@ import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
   setCabinetColor,
+  setCabinetColorFinish,
+  setCabinetColorMaterial,
+  setBookMatching,
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
@@ -23,12 +26,18 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getCabinetColor,
+  getBookMatching,
   getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
   getProductsPresets,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
+import {
+  selectBookMatchingState,
+  selectFlutingState,
+  selectGrainDirectionState,
+} from "@/entities/product/model/store/derivedSelectors";
 import {
   filterOptionsByMaterialSelection,
   type MaterialFilterSelection,
@@ -42,7 +51,11 @@ export const CabinetPage = () => {
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const activeGrainDirection = useAppSelector(getGrainDirection);
+  const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const grainDirectionState = useAppSelector(selectGrainDirectionState);
+  const bookMatchingState = useAppSelector(selectBookMatchingState);
+  const flutingState = useAppSelector(selectFlutingState);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -211,6 +224,23 @@ export const CabinetPage = () => {
     [sortedGrooveOptions],
   );
 
+  const findOptionByColorName = useCallback(
+    (colorName: string) =>
+      basePanelOptions.find((option) => option.metadata?.value === colorName || option.name === colorName),
+    [basePanelOptions],
+  );
+
+  const resolveMaterialToken = useCallback((option?: { metadata?: { materials?: string[] } }) => {
+    const materials = option?.metadata?.materials ?? [];
+    const known = ["Essenze", "HPL", "3D"];
+    return materials.find((token) => known.includes(token)) ?? materials[0] ?? "";
+  }, []);
+
+  const extractFinishToken = useCallback((value: string) => {
+    const match = value.match(/\b(TKP|TKQ|TKN|10B|10G|10N|1PE)\b/);
+    return match?.[1] ?? "";
+  }, []);
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -274,11 +304,18 @@ export const CabinetPage = () => {
   const handleChangeColor = (colorName?: string) => {
     if (!colorName) return;
 
-    presetNames.forEach((productName) => {
+    presetNames.forEach(() => {
       setConfigBatch({}, { CabinetColor: colorName });
     });
 
     dispatch(setCabinetColor(colorName));
+
+    const option = findOptionByColorName(colorName);
+    const materialToken = resolveMaterialToken(option);
+    const finishToken = extractFinishToken(`${colorName} ${option?.title ?? ""} ${option?.desc ?? ""}`);
+
+    dispatch(setCabinetColorMaterial(materialToken));
+    dispatch(setCabinetColorFinish(finishToken));
   };
 
   const handleChangeGrooveColor = (colorName: string) => {
@@ -322,6 +359,10 @@ export const CabinetPage = () => {
     dispatch(setGrainDirection(value));
   };
 
+  const handleToggleBookMatching = (checked: boolean) => {
+    dispatch(setBookMatching(checked ? "enabled" : ""));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -357,23 +398,39 @@ export const CabinetPage = () => {
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
-      content: (
+      content: flutingState.available ? (
         <ProductOptionsGrid
           data={optionsMockData3}
           handleAdd={handleChangeDrawerPanelFluting}
           activeValue={activeDrawerPanelFluting}
         />
+      ) : (
+        <div className={s.disabledMessage}>{flutingState.reason ?? "Not available."}</div>
       ),
     },
     {
       id: "grain-direction",
       title: "Grain Direction",
-      content: (
-        <ProductOptionsGrid
-          data={optionsMockData4}
-          handleAdd={handleChangeGrainDirection}
-          activeValue={activeGrainDirection}
-        />
+      content: grainDirectionState.available ? (
+        <>
+          <ProductOptionsGrid
+            data={optionsMockData4}
+            handleAdd={handleChangeGrainDirection}
+            activeValue={activeGrainDirection}
+          />
+          <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
+            <input
+              type="checkbox"
+              disabled={!bookMatchingState.enabled}
+              checked={activeBookMatching === "enabled"}
+              onChange={(event) => handleToggleBookMatching(event.target.checked)}
+            />
+            <span>Book Matching</span>
+          </label>
+          <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
+        </>
+      ) : (
+        <div className={s.disabledMessage}>{grainDirectionState.reason ?? "Not available."}</div>
       ),
     },
   ];

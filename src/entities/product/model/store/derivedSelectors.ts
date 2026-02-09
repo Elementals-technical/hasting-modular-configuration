@@ -43,8 +43,7 @@ export const selectSidePanelSpecs = createSelector(
 
 export const selectCountertopAdjustedLength = createSelector(
   [getSidePanelsOption, getSelectedDimensions],
-  (sidePanels, dimensions) =>
-    sidePanelCountertopLengthRule({ sidePanels, vanityLength: dimensions.width }),
+  (sidePanels, dimensions) => sidePanelCountertopLengthRule({ sidePanels, vanityLength: dimensions.width }),
 );
 
 export const selectSyntesiConstraint = createSelector(
