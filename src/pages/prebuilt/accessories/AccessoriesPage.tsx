@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
@@ -28,8 +28,8 @@ import {
   optionsSidePanelsData,
   optionsSwatchData2,
   optionsSwatchDataTowel,
-  optionsTowelData,
 } from "./constants";
+import { useGetConfiguratorQuery } from "@/entities";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 
 export const AccessoriesPage = () => {
@@ -39,6 +39,44 @@ export const AccessoriesPage = () => {
   const dividerStyle = useAppSelector(getDividersStyle);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
+
+  const { data: configuratorData } = useGetConfiguratorQuery({
+    id: 4,
+    view: "full",
+    serialize: true,
+  });
+
+  const towelBarOptionsFromApi = useMemo(() => {
+    const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
+    if (!groups.length) return [];
+
+    return groups.flatMap((group) =>
+      group.options.flatMap((option) =>
+        option.variants
+          .filter((variant) => variant.enabled)
+          .map((variant) => {
+            const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+            const label = (meta.label as string) || (meta.Label as string) || variant.name;
+            const value = (meta.value as string) || variant.name;
+            const image = (meta.image as string) || variant.image || undefined;
+            const hex = (meta.hex as string) || undefined;
+
+            return {
+              id: variant.id,
+              title: label,
+              name: variant.name,
+              desc: option.name ?? group.proxyName,
+              isShortDesc: false,
+              metadata: {
+                image,
+                value,
+                hex,
+              },
+            };
+          }),
+      ),
+    );
+  }, [configuratorData]);
 
   useEffect(() => {
     if (towelSelection !== "None") return;
@@ -160,7 +198,7 @@ export const AccessoriesPage = () => {
           />
           {towelSelection && towelSelection !== "None" && (
             <ProductOptionsGrid
-              data={optionsTowelData}
+              data={towelBarOptionsFromApi}
               handleAdd={handleTowelBarColorChange}
               activeValue={towelBarColor}
             />

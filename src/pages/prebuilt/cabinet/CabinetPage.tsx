@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -30,13 +30,10 @@ import {
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
 import {
-  buildMaterialFilters,
   filterOptionsByMaterialSelection,
-  getMaterialOptionsGridData,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
-
-const BASE_PANEL_OPTION = "Base Panel";
+import { useGetConfiguratorQuery } from "@/entities";
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
@@ -47,10 +44,139 @@ export const CabinetPage = () => {
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
-  const materialFilters = useMemo(() => buildMaterialFilters(BASE_PANEL_OPTION), []);
-  const basePanelOptions = useMemo(() => getMaterialOptionsGridData(BASE_PANEL_OPTION), []);
+  const { data: configuratorData } = useGetConfiguratorQuery({
+    id: 4,
+    view: "full",
+    serialize: true,
+  });
+
+  const cabinetColorGroups = useMemo(
+    () => (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Cabinet Color"),
+    [configuratorData],
+  );
+
+  const grooveColorGroups = useMemo(
+    () => (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Handle Groove Color"),
+    [configuratorData],
+  );
+
+  const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+
+  const toStringArrayFromCsv = (value: unknown): string[] => {
+    if (typeof value !== "string") return [];
+    return value.split(",").map((part) => part.trim()).filter(Boolean);
+  };
+
+  const getVariantMeta = useCallback(
+    (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
+      const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+      const pick = (...values: unknown[]): string | undefined => {
+        for (const v of values) {
+          const str = toOptionalString(v);
+          if (str) return str;
+        }
+        return undefined;
+      };
+      return {
+        material: pick(meta.Material),
+        color: pick(meta.Color),
+        look: pick(meta.Look),
+        hex: pick(meta.hex),
+        image: pick(meta.image, variant.image),
+        value: pick(meta.value, variant.name),
+        label: pick(meta.label, meta.Label, variant.name),
+      };
+    },
+    [],
+  );
+
+  const buildOptionsFromGroups = useCallback(
+    (groups: typeof cabinetColorGroups) => {
+      if (!groups.length) return [];
+      return groups.flatMap((group) =>
+        group.options.flatMap((option) =>
+          option.variants
+            .filter((variant) => variant.enabled)
+            .map((variant) => {
+              const meta = getVariantMeta(variant);
+              return {
+                id: variant.id,
+                title: meta.label ?? variant.name,
+                name: variant.name,
+                desc: option.name ?? group.proxyName,
+                isShortDesc: false,
+                metadata: {
+                  image: meta.image,
+                  value: meta.value ?? variant.name,
+                  sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                  materials: [
+                    ...new Set([group.proxyName, option.name, ...toStringArrayFromCsv(meta.material)].filter(Boolean)),
+                  ],
+                  colors: toStringArrayFromCsv(meta.color),
+                  looks: toStringArrayFromCsv(meta.look),
+                  hex: meta.hex?.trim(),
+                },
+              };
+            }),
+        ),
+      );
+    },
+    [getVariantMeta],
+  );
+
+  const buildFiltersFromGroups = useCallback(
+    (groups: typeof cabinetColorGroups) => {
+      if (!groups.length) return { materials: [], colors: [], looks: [], hex: [] };
+      const materialSet = new Set<string>();
+      const colorSet = new Set<string>();
+      const lookSet = new Set<string>();
+      const hexSet = new Set<string>();
+
+      groups.forEach((group) => {
+        if (group.proxyName) materialSet.add(group.proxyName);
+        group.options.forEach((option) => {
+          if (option.name) materialSet.add(option.name);
+          option.variants?.forEach((variant) => {
+            if (!variant.enabled) return;
+            const meta = getVariantMeta(variant);
+            if (meta.material) toStringArrayFromCsv(meta.material).forEach((v) => materialSet.add(v));
+            toStringArrayFromCsv(meta.color).forEach((v) => colorSet.add(v));
+            toStringArrayFromCsv(meta.look).forEach((v) => lookSet.add(v));
+            if (meta.hex) hexSet.add(meta.hex.trim());
+          });
+        });
+      });
+
+      const toOptions = (set: Set<string>) =>
+        Array.from(set).sort((a, b) => a.localeCompare(b)).map((value) => ({ label: value, value }));
+
+      return { materials: toOptions(materialSet), colors: toOptions(colorSet), looks: toOptions(lookSet), hex: toOptions(hexSet) };
+    },
+    [getVariantMeta],
+  );
+
+  const basePanelOptions = useMemo(
+    () => buildOptionsFromGroups(cabinetColorGroups),
+    [buildOptionsFromGroups, cabinetColorGroups],
+  );
+
+  const grooveOptionsFromApi = useMemo(
+    () => buildOptionsFromGroups(grooveColorGroups),
+    [buildOptionsFromGroups, grooveColorGroups],
+  );
+
+  const materialFilters = useMemo(
+    () => buildFiltersFromGroups(cabinetColorGroups),
+    [buildFiltersFromGroups, cabinetColorGroups],
+  );
+
+  const grooveMaterialFilters = useMemo(
+    () => buildFiltersFromGroups(grooveColorGroups),
+    [buildFiltersFromGroups, grooveColorGroups],
+  );
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
+  const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});
 
   const filteredBasePanelOptions = useMemo(
     () => filterOptionsByMaterialSelection(basePanelOptions, selectedFilter),
@@ -61,6 +187,17 @@ export const CabinetPage = () => {
     () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
     [filteredBasePanelOptions],
   );
+
+  const filteredGrooveOptions = useMemo(
+    () => filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter),
+    [grooveOptionsFromApi, selectedGrooveFilter],
+  );
+
+  const sortedGrooveOptions = useMemo(
+    () => [...filteredGrooveOptions].sort((a, b) => a.title.localeCompare(b.title)),
+    [filteredGrooveOptions],
+  );
+
   const grooveColorOptions = useMemo(
     () => [
       {
@@ -69,9 +206,9 @@ export const CabinetPage = () => {
         isShortDesc: false,
         metadata: { value: "None" },
       },
-      ...sortedBasePanelOptions,
+      ...sortedGrooveOptions,
     ],
-    [sortedBasePanelOptions],
+    [sortedGrooveOptions],
   );
 
   const renderFilters = () => (
@@ -98,6 +235,34 @@ export const CabinetPage = () => {
         label="Price"
         options={materialFilters.hex}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
+      />
+    </FilterRow>
+  );
+
+  const renderGrooveFilters = () => (
+    <FilterRow className={s.innerRow}>
+      <FilterItem
+        label="Material"
+        options={grooveMaterialFilters.materials}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, material: value as string }))}
+      />
+
+      <FilterItem
+        label="Color"
+        options={grooveMaterialFilters.colors}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, color: value as string }))}
+      />
+
+      <FilterItem
+        label="Look"
+        options={grooveMaterialFilters.looks}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, look: value as string }))}
+      />
+
+      <FilterItem
+        label="Price"
+        options={grooveMaterialFilters.hex}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
   );
@@ -179,7 +344,7 @@ export const CabinetPage = () => {
       content: (
         <>
           <ViewModePanel />
-          {renderFilters()}
+          {renderGrooveFilters()}
           <ProductOptionsGrid
             data={grooveColorOptions}
             handleAdd={handleChangeGrooveColor}
