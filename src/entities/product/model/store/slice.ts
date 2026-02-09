@@ -37,6 +37,8 @@ type ProductState = {
   productOptions: {
     CabinetColor: string;
     CabinetColorSku: string;
+    CabinetColorMaterial: string;
+    CabinetColorFinish: string;
     sinkType: string;
     CountertopColor: string;
     CountertopColorSku: string;
@@ -46,6 +48,7 @@ type ProductState = {
     Thickness: string;
     DrawerPanelFluting: string;
     GrainDirection: string;
+    BookMatching: string;
     CountertopStyle: string;
     SidePanels: string;
     LedOption: string;
@@ -175,6 +178,8 @@ const createInitialState = (): ProductState => {
     productOptions: {
       CabinetColor: "Ardesia DD GL",
       CabinetColorSku: "",
+      CabinetColorMaterial: "",
+      CabinetColorFinish: "",
       sinkType: "Top_HPLPrisma",
       CountertopColor: "Rosso Rubino 19 MT",
       CountertopColorSku: "",
@@ -184,6 +189,7 @@ const createInitialState = (): ProductState => {
       Thickness: "",
       DrawerPanelFluting: "",
       GrainDirection: "",
+      BookMatching: "",
       CountertopStyle: "",
       SidePanels: "",
       LedOption: "",
@@ -347,6 +353,12 @@ const productSlice = createSlice({
     setCabinetColorSku(state, action: PayloadAction<string>) {
       state.productOptions.CabinetColorSku = action.payload;
     },
+    setCabinetColorMaterial(state, action: PayloadAction<string>) {
+      state.productOptions.CabinetColorMaterial = action.payload;
+    },
+    setCabinetColorFinish(state, action: PayloadAction<string>) {
+      state.productOptions.CabinetColorFinish = action.payload;
+    },
     setHandleGrooveColor(state, action: PayloadAction<string>) {
       state.productOptions.HandleGrooveColor = action.payload;
     },
@@ -370,6 +382,9 @@ const productSlice = createSlice({
     },
     setGrainDirection(state, action: PayloadAction<string>) {
       state.productOptions.GrainDirection = action.payload;
+    },
+    setBookMatching(state, action: PayloadAction<string>) {
+      state.productOptions.BookMatching = action.payload;
     },
     setCountertopStyle(state, action: PayloadAction<string>) {
       state.productOptions.CountertopStyle = action.payload;
@@ -424,6 +439,8 @@ export const {
   setSelectedProductConfig,
   setCabinetColor,
   setCabinetColorSku,
+  setCabinetColorMaterial,
+  setCabinetColorFinish,
   setHandleGrooveColor,
   setHandleGrooveColorSku,
   resetProducts,
@@ -433,6 +450,7 @@ export const {
   setActiveCountertopThickness,
   setDrawerPanelFluting,
   setGrainDirection,
+  setBookMatching,
   setCountertopStyle,
   setSidePanelsOption,
   setLedOption,

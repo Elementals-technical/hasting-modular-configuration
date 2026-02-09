@@ -40,3 +40,39 @@
     }
   }
 }
+
+.disabledMessage {
+  padding: 12px 0;
+  color: #6b6b6b;
+  font-family: Poppins;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.checkboxOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-family: Poppins;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1f1f1f;
+
+  input {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.checkboxOptionDisabled {
+  color: #9a9a9a;
+}
+
+.checkboxHelper {
+  margin-top: 6px;
+  color: #b67c3c;
+  font-family: Poppins;
+  font-size: 12px;
+  line-height: 18px;
+}

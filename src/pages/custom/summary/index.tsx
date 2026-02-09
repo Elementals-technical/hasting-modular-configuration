@@ -19,7 +19,6 @@ import {
   getGrainDirection,
   getHandleGrooveColor,
   getHandleGrooveColorSku,
-  getLedOption,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
@@ -107,7 +106,6 @@ export const CustomSummaryPage = () => {
   const grainDirection = useAppSelector(getGrainDirection);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const ledOption = useAppSelector(getLedOption);
   const dividersOption = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
   const towelBarColor = useAppSelector(getTowelBarColor);
@@ -162,7 +160,7 @@ export const CustomSummaryPage = () => {
   };
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
-    id: 3,
+    id: 4,
     view: "full",
     serialize: true,
   });
@@ -473,14 +471,6 @@ export const CustomSummaryPage = () => {
             price: "$—",
           }
         : null,
-      ledOption
-        ? {
-            id: "accessories-led",
-            title: "LED",
-            subtitle: ledOption,
-            price: "$—",
-          }
-        : null,
       dividersOption
         ? {
             id: "accessories-dividers",
@@ -602,7 +592,6 @@ export const CustomSummaryPage = () => {
     grainDirection,
     handleGrooveColor,
     handleGrooveColorSku,
-    ledOption,
     productsPresets,
     productConfigs,
     colorSkuByName,

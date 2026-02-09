@@ -65,7 +65,7 @@ export const CustomCountertopPage = () => {
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
   const { data: counterTopMaterials, isFetching: isFetchingcounterTopMaterials } = useGetConfiguratorQuery({
-    id: 3,
+    id: 4,
     view: "full",
     serialize: true,
   });
@@ -118,7 +118,7 @@ export const CustomCountertopPage = () => {
   };
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = counterTopMaterials?.availableOptions ?? [];
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
 
     if (!groups.length) return [];
 
@@ -247,7 +247,7 @@ export const CustomCountertopPage = () => {
   const allowedMaterials = ruleState.allowedMaterials;
 
   const materialFilters = useMemo(() => {
-    const groups = counterTopMaterials?.availableOptions ?? [];
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
     if (!groups.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();

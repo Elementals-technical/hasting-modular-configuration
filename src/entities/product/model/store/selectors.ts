@@ -28,6 +28,11 @@ export const getCabinetColor = (state: RootState) => state.rootStateUI.product.p
 
 export const getCabinetColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColorSku;
 
+export const getCabinetColorMaterial = (state: RootState) =>
+  state.rootStateUI.product.productOptions.CabinetColorMaterial;
+
+export const getCabinetColorFinish = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColorFinish;
+
 export const getHandleGrooveColor = (state: RootState) => state.rootStateUI.product.productOptions.HandleGrooveColor;
 
 export const getHandleGrooveColorSku = (state: RootState) =>
@@ -50,6 +55,8 @@ export const getActiveCountertopThickness = (state: RootState) => state.rootStat
 export const getDrawerPanelFluting = (state: RootState) => state.rootStateUI.product.productOptions.DrawerPanelFluting;
 
 export const getGrainDirection = (state: RootState) => state.rootStateUI.product.productOptions.GrainDirection;
+
+export const getBookMatching = (state: RootState) => state.rootStateUI.product.productOptions.BookMatching;
 
 export const getCountertopStyle = (state: RootState) => state.rootStateUI.product.productOptions.CountertopStyle;
 
@@ -82,6 +89,7 @@ export const getHasPrebuiltSelections = (state: RootState) => {
     options.Thickness !== "" ||
     options.DrawerPanelFluting !== "" ||
     options.GrainDirection !== "" ||
+    options.BookMatching !== "" ||
     options.CountertopStyle !== "" ||
     options.SidePanels !== "" ||
     options.LedOption !== "" ||

@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { baseApi } from "@/shared";
 
 import { rootReducer } from "./reducer";
+import { optionsListenerMiddleware } from "./optionsListener";
 
 export const store = configureStore({
   reducer: rootReducer,
@@ -11,7 +12,9 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
       },
-    }).concat(baseApi.middleware),
+    })
+      .prepend(optionsListenerMiddleware.middleware)
+      .concat(baseApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
