@@ -13,7 +13,7 @@ export const productMockData: ProductModel[] = [
     // desc: "60W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ export const productMockData: ProductModel[] = [
     // desc: "60W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 3,
@@ -31,7 +31,7 @@ export const productMockData: ProductModel[] = [
     // desc: "70W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 4,
@@ -40,7 +40,7 @@ export const productMockData: ProductModel[] = [
     // desc: "70W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 5,
@@ -49,7 +49,7 @@ export const productMockData: ProductModel[] = [
     // desc: "80W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 6,
@@ -58,7 +58,7 @@ export const productMockData: ProductModel[] = [
     // desc: "80W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 7,
@@ -68,8 +68,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 25, Depth: 51, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 25, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -80,8 +80,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 25, Depth: 51, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 25, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -91,7 +91,7 @@ export const productMockData: ProductModel[] = [
     // desc: "90W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 90, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 10,
@@ -100,7 +100,7 @@ export const productMockData: ProductModel[] = [
     // desc: "90W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 90, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 11,
@@ -110,7 +110,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 105, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -121,7 +121,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 105, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -132,8 +132,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 51, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -144,8 +144,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 51, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -156,8 +156,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 51, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -168,8 +168,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 51, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -180,8 +180,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 50, Depth: 51, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -192,8 +192,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 50, Depth: 51, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -204,8 +204,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -216,8 +216,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 51, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Castagno Malto", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {

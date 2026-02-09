@@ -356,9 +356,9 @@ export const CustomCountertopPage = () => {
 
       const materialTokens = firstToken
         ? firstToken
-            .split("/")
-            .map((token) => normalizeMaterialToken(token))
-            .filter(Boolean)
+          .split("/")
+          .map((token) => normalizeMaterialToken(token))
+          .filter(Boolean)
         : [];
 
       const isMaterialSpecific = materialTokens.some((token) => allowedMaterials.has(token));
@@ -459,9 +459,11 @@ export const CustomCountertopPage = () => {
   const handleAddThickness = (thickness: string) => {
     console.log("thickness", thickness);
 
-    setConfigBatch(selectedProducts, {
+    debugger
+    setConfigBatch({}, {
       Thickness: thickness,
     });
+    debugger
 
     dispatch(setActiveCountertopThickness(thickness));
   };
