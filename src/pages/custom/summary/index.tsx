@@ -160,7 +160,7 @@ export const CustomSummaryPage = () => {
   };
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
-    id: 3,
+    id: 4,
     view: "full",
     serialize: true,
   });

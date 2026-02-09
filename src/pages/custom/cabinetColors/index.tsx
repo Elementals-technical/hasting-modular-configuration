@@ -47,7 +47,7 @@ export const CustomCabinetColorsPage = () => {
   const isPlayCanvasReady = usePlayCanvasReady();
 
   const { data: cabinetColors, isFetching: isFetchingCabinetColors } = useGetConfiguratorQuery({
-    id: 3,
+    id: 4,
     view: "full",
     serialize: true,
   });
@@ -91,97 +91,122 @@ export const CustomCabinetColorsPage = () => {
     [],
   );
 
-  const apiMaterialFilters = useMemo(() => {
-    const groups = cabinetColors?.availableOptions ?? [];
+  const cabinetColorGroups = useMemo(
+    () => (cabinetColors?.availableOptions ?? []).filter((g) => g.proxyName === "Cabinet Color"),
+    [cabinetColors],
+  );
 
-    if (!groups.length) {
-      return {
-        materials: [],
-        colors: [],
-        looks: [],
-        hex: [],
-      };
-    }
+  const grooveColorGroups = useMemo(
+    () => (cabinetColors?.availableOptions ?? []).filter((g) => g.proxyName === "Handle Groove Color"),
+    [cabinetColors],
+  );
 
-    const materialSet = new Set<string>();
-    const colorSet = new Set<string>();
-    const lookSet = new Set<string>();
-    const hexSet = new Set<string>();
+  const buildFiltersFromGroups = useCallback(
+    (groups: typeof cabinetColorGroups) => {
+      if (!groups.length) {
+        return { materials: [], colors: [], looks: [], hex: [] };
+      }
 
-    groups.forEach((group) => {
-      if (group.proxyName) materialSet.add(group.proxyName);
+      const materialSet = new Set<string>();
+      const colorSet = new Set<string>();
+      const lookSet = new Set<string>();
+      const hexSet = new Set<string>();
 
-      group.options.forEach((option) => {
-        if (option.name) materialSet.add(option.name);
+      groups.forEach((group) => {
+        if (group.proxyName) materialSet.add(group.proxyName);
 
-        option.variants?.forEach((variant) => {
-          if (!variant.enabled) return;
+        group.options.forEach((option) => {
+          if (option.name) materialSet.add(option.name);
 
-          const meta = getVariantMeta(variant);
-          const metaMaterial = meta.material;
-          const metaColor = meta.color;
-          const metaLook = meta.look;
-          const metaHex = meta.hex;
+          option.variants?.forEach((variant) => {
+            if (!variant.enabled) return;
 
-          if (metaMaterial) {
-            toStringArrayFromCsv(metaMaterial).forEach((value) => materialSet.add(value));
-          }
-
-          toStringArrayFromCsv(metaColor).forEach((value) => colorSet.add(value));
-          toStringArrayFromCsv(metaLook).forEach((value) => lookSet.add(value));
-          if (metaHex) hexSet.add(metaHex.trim());
-        });
-      });
-    });
-
-    const toOptions = (set: Set<string>) =>
-      Array.from(set)
-        .sort((a, b) => a.localeCompare(b))
-        .map((value) => ({ label: value, value }));
-
-    return {
-      materials: toOptions(materialSet),
-      colors: toOptions(colorSet),
-      looks: toOptions(lookSet),
-      hex: toOptions(hexSet),
-    };
-  }, [cabinetColors, getVariantMeta]);
-
-  const basePanelOptionsFromApi = useMemo(() => {
-    const groups = cabinetColors?.availableOptions ?? [];
-    if (!groups.length) return [];
-
-    return groups.flatMap((group) =>
-      group.options.flatMap((option) =>
-        option.variants
-          .filter((variant) => variant.enabled)
-          .map((variant) => {
             const meta = getVariantMeta(variant);
 
-            return {
-              id: variant.id,
-              title: meta.label ?? variant.name,
-              name: variant.name,
-              desc: option.name ?? group.proxyName,
-              isShortDesc: false,
-              metadata: {
-                image: meta.image,
-                value: meta.value ?? variant.name,
-                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
-                materials: [
-                  ...new Set([group.proxyName, option.name, ...toStringArrayFromCsv(meta.material)].filter(Boolean)),
-                ],
-                colors: toStringArrayFromCsv(meta.color),
-                looks: toStringArrayFromCsv(meta.look),
-                hex: meta.hex?.trim(),
-              },
-            };
-          }),
-      ),
-    );
-  }, [cabinetColors, getVariantMeta]);
+            if (meta.material) {
+              toStringArrayFromCsv(meta.material).forEach((value) => materialSet.add(value));
+            }
+
+            toStringArrayFromCsv(meta.color).forEach((value) => colorSet.add(value));
+            toStringArrayFromCsv(meta.look).forEach((value) => lookSet.add(value));
+            if (meta.hex) hexSet.add(meta.hex.trim());
+          });
+        });
+      });
+
+      const toOptions = (set: Set<string>) =>
+        Array.from(set)
+          .sort((a, b) => a.localeCompare(b))
+          .map((value) => ({ label: value, value }));
+
+      return {
+        materials: toOptions(materialSet),
+        colors: toOptions(colorSet),
+        looks: toOptions(lookSet),
+        hex: toOptions(hexSet),
+      };
+    },
+    [getVariantMeta],
+  );
+
+  const apiMaterialFilters = useMemo(
+    () => buildFiltersFromGroups(cabinetColorGroups),
+    [buildFiltersFromGroups, cabinetColorGroups],
+  );
+
+  const grooveMaterialFilters = useMemo(
+    () => buildFiltersFromGroups(grooveColorGroups),
+    [buildFiltersFromGroups, grooveColorGroups],
+  );
+
+  const buildOptionsFromGroups = useCallback(
+    (groups: typeof cabinetColorGroups) => {
+      if (!groups.length) return [];
+
+      return groups.flatMap((group) =>
+        group.options.flatMap((option) =>
+          option.variants
+            .filter((variant) => variant.enabled)
+            .map((variant) => {
+              const meta = getVariantMeta(variant);
+
+              return {
+                id: variant.id,
+                title: meta.label ?? variant.name,
+                name: variant.name,
+                desc: option.name ?? group.proxyName,
+                isShortDesc: false,
+                metadata: {
+                  image: meta.image,
+                  value: meta.value ?? variant.name,
+                  sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                  materials: [
+                    ...new Set([group.proxyName, option.name, ...toStringArrayFromCsv(meta.material)].filter(Boolean)),
+                  ],
+                  colors: toStringArrayFromCsv(meta.color),
+                  looks: toStringArrayFromCsv(meta.look),
+                  hex: meta.hex?.trim(),
+                },
+              };
+            }),
+        ),
+      );
+    },
+    [getVariantMeta],
+  );
+
+  const basePanelOptionsFromApi = useMemo(
+    () => buildOptionsFromGroups(cabinetColorGroups),
+    [buildOptionsFromGroups, cabinetColorGroups],
+  );
+
+  const grooveOptionsFromApi = useMemo(
+    () => buildOptionsFromGroups(grooveColorGroups),
+    [buildOptionsFromGroups, grooveColorGroups],
+  );
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
+  const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});
 
   const filteredBasePanelOptions = useMemo(
     () => filterOptionsByMaterialSelection(basePanelOptionsFromApi, selectedFilter),
@@ -193,6 +218,16 @@ export const CustomCabinetColorsPage = () => {
     [filteredBasePanelOptions],
   );
 
+  const filteredGrooveOptions = useMemo(
+    () => filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter),
+    [grooveOptionsFromApi, selectedGrooveFilter],
+  );
+
+  const sortedGrooveOptions = useMemo(
+    () => [...filteredGrooveOptions].sort((a, b) => a.title.localeCompare(b.title)),
+    [filteredGrooveOptions],
+  );
+
   const grooveColorOptions = useMemo(
     () => [
       {
@@ -201,9 +236,9 @@ export const CustomCabinetColorsPage = () => {
         isShortDesc: false,
         metadata: { value: "Blu Pavone A6 MT" },
       },
-      ...sortedBasePanelOptions,
+      ...sortedGrooveOptions,
     ],
-    [sortedBasePanelOptions],
+    [sortedGrooveOptions],
   );
 
   const renderFilters = () => (
@@ -230,6 +265,34 @@ export const CustomCabinetColorsPage = () => {
         label="Price"
         options={apiMaterialFilters.hex}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
+      />
+    </FilterRow>
+  );
+
+  const renderGrooveFilters = () => (
+    <FilterRow className={s.innerRow}>
+      <FilterItem
+        label="Material"
+        options={grooveMaterialFilters.materials}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, material: value as string }))}
+      />
+
+      <FilterItem
+        label="Color"
+        options={grooveMaterialFilters.colors}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, color: value as string }))}
+      />
+
+      <FilterItem
+        label="Look"
+        options={grooveMaterialFilters.looks}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, look: value as string }))}
+      />
+
+      <FilterItem
+        label="Price"
+        options={grooveMaterialFilters.hex}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
   );
@@ -351,7 +414,7 @@ export const CustomCabinetColorsPage = () => {
       content: (
         <>
           <ViewModePanel />
-          {renderFilters()}
+          {renderGrooveFilters()}
           <ProductOptionsGrid
             data={grooveColorOptions}
             handleAdd={handleChangeGrooveColor}
