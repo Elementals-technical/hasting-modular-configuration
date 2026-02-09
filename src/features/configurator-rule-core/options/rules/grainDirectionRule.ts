@@ -39,7 +39,7 @@ export const grainDirectionRule = ({ material, finish }: GrainDirectionRuleInput
     return {
       available: false,
       options: [],
-      reason: `Grain direction is not available for ${normalizedMaterial}.`,
+      reason: "Grain direction is available only for Essenze, HPL, and 3D materials.",
     };
   }
 
