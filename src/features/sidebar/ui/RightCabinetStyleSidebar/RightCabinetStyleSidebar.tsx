@@ -223,8 +223,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       if (onProductAdded) {
         onProductAdded();
       }
-      // Clear active cabinet type after adding product to the scene
-      dispatch(setActiveCabinetType(null));
+      // Keep last active cabinet type for downstream UI rules (e.g., side panels).
     };
 
     setHandleButtonClick(onPlusClick);

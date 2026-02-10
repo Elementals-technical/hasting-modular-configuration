@@ -16,6 +16,7 @@ import {
   getCabinetColorFinish,
   getCabinetColorMaterial,
   getGrainDirection,
+  getSelectedSceneProduct,
   getSelectedProductConfig,
   getSelectedDimensions,
   getSelectedProducts,
@@ -81,10 +82,10 @@ const mapDrawersToHandleType = (drawers?: string | null) => {
 };
 
 export const selectSidePanelAvailability = createSelector(
-  [getActiveCabinetType, getSelectedProductConfig, getSelectedDimensions],
-  (cabinetType, selectedProductConfig, dimensions) => {
+  [getActiveCabinetType, getSelectedProductConfig, getSelectedDimensions, getSelectedSceneProduct],
+  (cabinetType, selectedProductConfig, dimensions, selectedSceneProduct) => {
     const configName = typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : null;
-    const cabinetGroup = mapCabinetTypeToGroup(cabinetType ?? configName);
+    const cabinetGroup = mapCabinetTypeToGroup(cabinetType ?? configName ?? selectedSceneProduct ?? null);
     const drawers = typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
     const handleType = mapDrawersToHandleType(drawers);
     const height =
@@ -93,7 +94,18 @@ export const selectSidePanelAvailability = createSelector(
         : typeof selectedProductConfig?.Height === "number"
           ? selectedProductConfig.Height
           : null;
-    return sidePanelAvailabilityRule({ height, handleType, cabinetType: cabinetGroup });
+    console.log("[SidePanels] availability inputs", {
+      cabinetType,
+      configName,
+      selectedSceneProduct,
+      cabinetGroup,
+      drawers,
+      handleType,
+      height,
+    });
+    const result = sidePanelAvailabilityRule({ height, handleType, cabinetType: cabinetGroup });
+    console.log("[SidePanels] availability result", Array.from(result.allowed.values()));
+    return result;
   },
 );
 
