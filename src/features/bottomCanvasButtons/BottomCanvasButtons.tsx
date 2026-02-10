@@ -34,6 +34,7 @@ import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
+import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -358,11 +359,11 @@ export const BottomCanvasButtons = () => {
           <DimentionsIcon />
         </BaseButton>
 
-        <BaseButton variant="ghost">
+        <BaseButton variant="ghost" onClick={() => zoomIn()}>
           <ZoomInIcon />
         </BaseButton>
 
-        <BaseButton variant="ghost">
+        <BaseButton variant="ghost" onClick={() => zoomOut()}>
           <ZoomOutIcon />
         </BaseButton>
 
