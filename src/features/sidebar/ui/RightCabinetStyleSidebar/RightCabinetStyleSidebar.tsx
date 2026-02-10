@@ -24,12 +24,7 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
-import {
-  addProductId,
-  setActiveCabinetType,
-  setSelectedDimensions,
-  setSelectedProductConfig,
-} from "@/entities/product/model/store/slice";
+import { addProductId, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -71,10 +66,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         : handlesDisabled
           ? []
           : [
-            { label: "Push to open", value: "handle_pto" },
-            { label: "Upper Groove", value: "handle_urban_topcut" },
-            { label: "Central Groove", value: "handle_urban_botcut" },
-          ],
+              { label: "Push to open", value: "handle_pto" },
+              { label: "Upper Groove", value: "handle_urban_topcut" },
+              { label: "Central Groove", value: "handle_urban_botcut" },
+            ],
     [dimensionOptions.handles, handlesDisabled],
   );
 
@@ -150,10 +145,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    setConfigBatch({}, {
-      Height: selectedDimensions.height,
-      Depth: selectedDimensions.depth,
-    });
+    setConfigBatch(
+      {},
+      {
+        Height: selectedDimensions.height,
+        Depth: selectedDimensions.depth,
+      },
+    );
   }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
 
   useEffect(() => {
@@ -223,8 +221,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       if (onProductAdded) {
         onProductAdded();
       }
-      // Clear active cabinet type after adding product to the scene
-      dispatch(setActiveCabinetType(null));
+      // Keep last active cabinet type for downstream UI rules (e.g., side panels).
     };
 
     setHandleButtonClick(onPlusClick);

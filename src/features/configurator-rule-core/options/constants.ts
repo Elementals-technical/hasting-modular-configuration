@@ -22,3 +22,48 @@ export const FLUTING_VALUES = [
 
 export const SIDE_PANELS_NONE = "None";
 export const SYNTESI_MATERIAL_TOKEN = "Syntesi";
+
+export const SIDE_PANEL_AVAILABILITY = [
+  {
+    height: "50H",
+    handleType: "1D",
+    cabinetType: "SBSC",
+    allowed: { upperGroove: false, centerGroove: false, doubleGroove: false, noGroove: true },
+  },
+  {
+    height: "50H",
+    handleType: "2D",
+    cabinetType: "SBSC",
+    allowed: { upperGroove: false, centerGroove: false, doubleGroove: false, noGroove: true },
+  },
+  {
+    height: "50H",
+    handleType: "1D",
+    cabinetType: "OS",
+    allowed: { upperGroove: false, centerGroove: false, doubleGroove: false, noGroove: true },
+  },
+  {
+    height: "50H",
+    handleType: "2D",
+    cabinetType: "OS",
+    allowed: { upperGroove: false, centerGroove: false, doubleGroove: false, noGroove: true },
+  },
+  {
+    height: "53H",
+    handleType: "1D",
+    cabinetType: "SBSC",
+    allowed: { upperGroove: true, centerGroove: false, doubleGroove: false, noGroove: false },
+  },
+  {
+    height: "53H",
+    handleType: "2D",
+    cabinetType: "SBSC",
+    allowed: { upperGroove: false, centerGroove: true, doubleGroove: false, noGroove: false },
+  },
+  {
+    height: "56H",
+    handleType: "2D",
+    cabinetType: "SBSC",
+    allowed: { upperGroove: false, centerGroove: false, doubleGroove: true, noGroove: false },
+  },
+] as const;

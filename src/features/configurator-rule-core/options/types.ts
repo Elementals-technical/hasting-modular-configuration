@@ -27,6 +27,8 @@ export type FlutingRuleInput = {
   targetPart?: "CABINET" | "SIDE_PANEL" | null;
   cabinetType?: string | null;
   isOpenShelf?: boolean;
+  material?: string | null;
+  drawers?: string | null;
 };
 
 export type FlutingRuleResult = {
@@ -67,5 +69,16 @@ export type SyntesiSidePanelRuleInput = {
 
 export type SyntesiSidePanelRuleResult = {
   allowed: boolean;
+  reason?: string;
+};
+
+export type SidePanelAvailabilityInput = {
+  height?: number | null;
+  handleType?: "1D" | "2D" | null;
+  cabinetType?: "SBSC" | "OS" | null;
+};
+
+export type SidePanelAvailabilityResult = {
+  allowed: Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">;
   reason?: string;
 };

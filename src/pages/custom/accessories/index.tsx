@@ -16,6 +16,7 @@ import {
   getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import {
   setDividersOption,
   setDividersStyle,
@@ -41,12 +42,7 @@ import {
   wrapShowTopView,
 } from "@/utils/functions/playcanvas/dividers";
 
-import {
-  dividersMockData,
-  optionsSidePanelsData,
-  optionsSwatchData2,
-  optionsSwatchDataTowel,
-} from "./constants";
+import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 
@@ -73,6 +69,19 @@ export const CustomAccessoriesPage = () => {
     view: "full",
     serialize: true,
   });
+
+  const sidePanelAvailability = useAppSelector(selectSidePanelAvailability);
+
+  const sidePanelOptions = useMemo(() => {
+    const allowed = new Set<string>(["None"]);
+    sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
+
+    return optionsSidePanelsData.filter((option) => {
+      const value = option.metadata?.value;
+      if (!value) return true;
+      return allowed.has(value);
+    });
+  }, [sidePanelAvailability.allowed]);
 
   const towelBarOptionsFromApi = useMemo(() => {
     const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
@@ -166,6 +175,8 @@ export const CustomAccessoriesPage = () => {
       console.warn("[Drawer] exitTopView not ready");
     }
   }, [dispatch]);
+
+  // Side panel invalidation is handled by global listener middleware.
 
   useEffect(() => {
     if (!isPlayCanvasReady) return;
@@ -445,7 +456,7 @@ export const CustomAccessoriesPage = () => {
       content: (
         <>
           <ProductOptionsGrid
-            data={optionsSidePanelsData}
+            data={sidePanelOptions}
             handleAdd={handleSidePanelsChange}
             activeValue={activeSidePanels}
           />

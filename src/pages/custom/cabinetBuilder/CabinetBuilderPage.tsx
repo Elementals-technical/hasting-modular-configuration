@@ -658,8 +658,7 @@ export const CabinetBuilderPage = () => {
           // Mark as bootstrapped to save configuration when navigating back
           dispatch(setHasBootstrappedCabinetBuilder(true));
 
-          // Clear active cabinet type after adding product to the scene
-          dispatch(setActiveCabinetType(null));
+          // Keep last active cabinet type for downstream UI rules (e.g., side panels).
 
           // Close sidebar and reset accordion to default state
           handleResetToDefaultState();
