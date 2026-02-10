@@ -13,6 +13,8 @@
 
   transition: all 0.1s linear;
 
+  cursor: pointer;
+
   .title {
     color: #282828;
     font-family: Poppins;
@@ -47,9 +49,5 @@
 
   &:hover {
     background-color: #dadad9e3;
-  }
-
-  &:last-child {
-    cursor: pointer;
   }
 }

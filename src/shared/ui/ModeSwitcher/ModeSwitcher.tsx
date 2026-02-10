@@ -4,11 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import s from "./ModeSwitcher.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getHasPrebuiltSelections, getSelectedProducts } from "@/entities/product/model/store/selectors";
-import {
-  reset,
-  resetCabinetBuilderBootstrap,
-  resetPrebuiltProducts,
-} from "@/entities/product/model/store/slice";
+import { reset, resetCabinetBuilderBootstrap, resetPrebuiltProducts } from "@/entities/product/model/store/slice";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { ROUTES } from "@/shared";
@@ -95,24 +91,24 @@ export const ModeSwitcher = () => {
   return (
     <>
       <div className={s.modeSwitcher}>
-      <div
-        className={`${s.modeSwitcher_tabItem} ${activeTab === "prebuilt" ? s.active : ""}`}
-        onClick={() => handleClickTab("prebuilt")}
-      >
-        <div className={s.wrap}>
-          <div className={s.title}>Pre-Built Models</div>
-          <p className={s.description}>Customize your design from pre-made solutions</p>
+        <div
+          className={`${s.modeSwitcher_tabItem} ${activeTab === "prebuilt" ? s.active : ""}`}
+          onClick={() => handleClickTab("prebuilt")}
+        >
+          <div className={s.wrap}>
+            <div className={s.title}>Pre-Built Models</div>
+            <p className={s.description}>Customize your design from pre-made solutions</p>
+          </div>
         </div>
-      </div>
-      <div
-        className={`${s.modeSwitcher_tabItem} ${activeTab === "custom" ? s.active : ""}`}
-        onClick={() => handleClickTab("custom")}
-      >
-        <div className={s.wrap}>
-          <div className={s.title}>Create Your Own</div>
-          <p className={s.description}> Build your own custom, tailored concept</p>
+        <div
+          className={`${s.modeSwitcher_tabItem} ${activeTab === "custom" ? s.active : ""}`}
+          onClick={() => handleClickTab("custom")}
+        >
+          <div className={s.wrap}>
+            <div className={s.title}>Create Your Own</div>
+            <p className={s.description}> Build your own custom, tailored concept</p>
+          </div>
         </div>
-      </div>
       </div>
 
       <AttentionPopup
