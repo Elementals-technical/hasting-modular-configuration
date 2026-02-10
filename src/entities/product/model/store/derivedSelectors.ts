@@ -38,6 +38,12 @@ export const selectFlutingState = createSelector(
   (activeCabinetType, cabinetMaterial, selectedProductConfig) => {
     const isOpenShelf = activeCabinetType === "Open-Shelf" || activeCabinetType === "Side-Shelf";
     const drawers = typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
+    console.log("[Fluting] inputs", {
+      cabinetType: activeCabinetType,
+      material: cabinetMaterial,
+      drawers,
+      isOpenShelf,
+    });
     return flutingRule({
       targetPart: "CABINET",
       cabinetType: activeCabinetType,
