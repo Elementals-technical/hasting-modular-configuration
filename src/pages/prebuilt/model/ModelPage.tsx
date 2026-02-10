@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -6,14 +6,23 @@ import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModel
 
 import { type PresetProduct } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
+import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { productMockData, ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { addProductPreset } from "@/entities/product/model/store/slice";
-import { getProductsPresets } from "@/entities/product/model/store/selectors";
+import {
+  addProductPreset,
+  reset,
+  resetCabinetBuilderBootstrap,
+  resetPrebuiltProducts,
+} from "@/entities/product/model/store/slice";
+import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
 import { ROUTES } from "@/shared";
+import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
+import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 const presetKeys: Array<keyof PresetProduct> = [
   "name",
@@ -42,6 +51,9 @@ export const ModelPage = () => {
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
+  const hasPrebuiltSelections = useAppSelector(getHasPrebuiltSelections);
+
+  const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
 
   const activePresetId = useMemo(() => {
     const target = productsPresets.length ? productsPresets : (productMockData[0]?.presetProducts ?? []);
@@ -65,6 +77,34 @@ export const ModelPage = () => {
     if (!presetProducts?.length) return;
 
     dispatch(addProductPreset(presetProducts));
+    navigate(ROUTES.CUSTOM);
+  };
+
+  const handleNavigate = async (tab: "prebuilt" | "custom") => {
+    if (tab !== "custom") return;
+
+    if (hasPrebuiltSelections) {
+      setIsAttentionPopupOpen(true);
+      return;
+    }
+
+    removeAllProducts();
+    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+
+    dispatch(reset());
+    dispatch(resetPrebuiltProducts());
+    dispatch(resetCabinetBuilderBootstrap());
+    navigate(ROUTES.CUSTOM);
+  };
+
+  const handleConfirmLeave = async () => {
+    removeAllProducts();
+    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await setConfigBatch({}, { SidePanel: "None" });
+
+    dispatch(reset());
+    dispatch(resetPrebuiltProducts());
+    dispatch(resetCabinetBuilderBootstrap());
     navigate(ROUTES.CUSTOM);
   };
 
@@ -100,6 +140,8 @@ export const ModelPage = () => {
     <div>
       {!isDetail && (
         <>
+          <ModeSwitcher onClick={handleNavigate} />
+
           <FilterRow>
             <FilterItem
               label="Size"
@@ -131,6 +173,11 @@ export const ModelPage = () => {
 
       <Outlet />
 
+      <AttentionPopup
+        isOpening={isAttentionPopupOpen}
+        setIsOpening={setIsAttentionPopupOpen}
+        onConfirm={handleConfirmLeave}
+      />
     </div>
   );
 };

@@ -12,7 +12,6 @@ import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProduct
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
-import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import s from "./StepNavigationBar.module.scss";
 import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown";
@@ -91,8 +90,6 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
           <ArrowRight />
         </div>
       </div>
-      <ModeSwitcher />
-
       <AttentionPopup
         isOpening={isAttentionPopupOpen}
         setIsOpening={setIsAttentionPopupOpen}
