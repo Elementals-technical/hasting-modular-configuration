@@ -459,11 +459,9 @@ export const CustomCountertopPage = () => {
   const handleAddThickness = (thickness: string) => {
     console.log("thickness", thickness);
 
-    debugger
     setConfigBatch({}, {
       Thickness: thickness,
     });
-    debugger
 
     dispatch(setActiveCountertopThickness(thickness));
   };
