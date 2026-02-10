@@ -132,7 +132,17 @@ export const CabinetBuilderPage = () => {
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
-    const activeDrawerValues = Array.from(drawerOptionMap.keys());
+
+    const activeDrawerValues = Array.from(drawerOptionMap.keys()).sort((a, b) => {
+      const aNum = Number.parseFloat(a);
+      const bNum = Number.parseFloat(b);
+      const aIsNum = Number.isFinite(aNum);
+      const bIsNum = Number.isFinite(bNum);
+
+      if (aIsNum && bIsNum && aNum !== bNum) return bNum - aNum;
+      if (aIsNum !== bIsNum) return aIsNum ? -1 : 1;
+      return a.localeCompare(b);
+    });
     const heightValue = selectedDimensions.height ?? 0;
 
     return activeDrawerValues.filter(Boolean).map((value, index) => {

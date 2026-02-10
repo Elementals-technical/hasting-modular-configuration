@@ -90,7 +90,6 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
           <ArrowRight />
         </div>
       </div>
-
       <AttentionPopup
         isOpening={isAttentionPopupOpen}
         setIsOpening={setIsAttentionPopupOpen}

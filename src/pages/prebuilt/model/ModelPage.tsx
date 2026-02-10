@@ -4,7 +4,6 @@ import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
 
-import { ROUTES } from "@/shared";
 import { type PresetProduct } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
@@ -20,6 +19,7 @@ import {
   resetPrebuiltProducts,
 } from "@/entities/product/model/store/slice";
 import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
+import { ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -63,6 +63,23 @@ export const ModelPage = () => {
     return match?.id ?? productMockData[0]?.id ?? null;
   }, [productsPresets]);
 
+  const handleAddPreset = async (presetProducts?: PresetProduct[]) => {
+    try {
+      await addPreset(presetProducts);
+
+      if (presetProducts) dispatch(addProductPreset(presetProducts));
+    } catch (error) {
+      console.error("[ProductModelItem] Failed to apply preset", error);
+    }
+  };
+
+  const handleCustomizePreset = (presetProducts?: PresetProduct[]) => {
+    if (!presetProducts?.length) return;
+
+    dispatch(addProductPreset(presetProducts));
+    navigate(ROUTES.CUSTOM);
+  };
+
   const handleNavigate = async (tab: "prebuilt" | "custom") => {
     if (tab !== "custom") return;
 
@@ -88,23 +105,6 @@ export const ModelPage = () => {
     dispatch(reset());
     dispatch(resetPrebuiltProducts());
     dispatch(resetCabinetBuilderBootstrap());
-    navigate(ROUTES.CUSTOM);
-  };
-
-  const handleAddPreset = async (presetProducts?: PresetProduct[]) => {
-    try {
-      await addPreset(presetProducts);
-
-      if (presetProducts) dispatch(addProductPreset(presetProducts));
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to apply preset", error);
-    }
-  };
-
-  const handleCustomizePreset = (presetProducts?: PresetProduct[]) => {
-    if (!presetProducts?.length) return;
-
-    dispatch(addProductPreset(presetProducts));
     navigate(ROUTES.CUSTOM);
   };
 

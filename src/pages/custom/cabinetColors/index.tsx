@@ -328,10 +328,21 @@ export const CustomCabinetColorsPage = () => {
     [basePanelOptionsFromApi],
   );
 
-  const resolveMaterialToken = useCallback((option?: { metadata?: { materials?: string[] } }) => {
+  const resolveMaterialToken = useCallback((option?: { metadata?: { materials?: string[]; sku?: string } }) => {
+    const sku = option?.metadata?.sku?.trim().toUpperCase();
+    if (sku === "ESS") return "Essenze";
+    if (sku === "HPL") return "HPL";
+    if (sku === "3D") return "3D";
+    if (sku === "LACM") return "LACM";
+    if (sku === "LACG") return "LACG";
+    if (sku === "ST") return "ST";
+    if (sku === "BM") return "BM";
+
     const materials = option?.metadata?.materials ?? [];
     const known = ["Essenze", "HPL", "3D"];
-    return materials.find((token) => known.includes(token)) ?? materials[0] ?? "";
+    const preferred = materials.filter((token) => token !== "Cabinet Color");
+
+    return preferred.find((token) => known.includes(token)) ?? preferred[0] ?? materials[0] ?? "";
   }, []);
 
   const extractFinishToken = useCallback((value: string) => {

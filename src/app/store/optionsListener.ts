@@ -69,6 +69,19 @@ optionsListenerMiddleware.startListening({
 });
 
 optionsListenerMiddleware.startListening({
+  matcher: isAnyOf(setCabinetColorMaterial, setSelectedProductConfig),
+  effect: async (_, listenerApi) => {
+    const state = listenerApi.getState() as RootState;
+    const flutingState = selectFlutingState(state);
+    const currentFluting = getDrawerPanelFluting(state);
+
+    if (!flutingState.available && currentFluting) {
+      listenerApi.dispatch(setDrawerPanelFluting(""));
+    }
+  },
+});
+
+optionsListenerMiddleware.startListening({
   matcher: isAnyOf(setSelectedDimensions, setSelectedProductConfig, setActiveCabinetType),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;

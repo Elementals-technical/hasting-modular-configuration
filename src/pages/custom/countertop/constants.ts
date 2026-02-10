@@ -18,9 +18,9 @@ import ronImage from "@/shared/assets/images/jpeg/basin/Ron.jpg";
 import syntesiImage from "@/shared/assets/images/jpeg/basin/Syntesi.jpg";
 import tiviImage from "@/shared/assets/images/jpeg/basin/Tivi.jpg";
 import tripImage from "@/shared/assets/images/jpeg/basin/Trip.jpg";
-import integratedImage from "@/shared/assets/images/png/integrated.png";
-import vesselImage from "@/shared/assets/images/png/vessel.png";
-import undermountImage from "@/shared/assets/images/png/undermount.png";
+import integratedImage from "@/shared/assets/images/png/countertop/Integrated.png";
+import vesselImage from "@/shared/assets/images/png/countertop/Vessel.png";
+import undermountImage from "@/shared/assets/images/png/countertop/Undermount.png";
 
 export const optionsMockData = [
   {

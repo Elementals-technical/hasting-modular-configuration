@@ -12,6 +12,14 @@ export const ModelDetailsPage = () => {
   const presetProducts = selectedModel?.presetProducts ?? [];
   const stepLabels = ["A", "B", "C", "D", "E"];
 
+  const hasPresetProducts = presetProducts.length > 0;
+
+  const totalWidthCm = presetProducts.reduce((acc, item) => acc + (item.Width ?? 0), 0);
+  const maxDepthCm = presetProducts.reduce((acc, item) => Math.max(acc, item.Depth ?? 0), 0);
+  const maxHeightCm = presetProducts.reduce((acc, item) => Math.max(acc, item.Height ?? 0), 0);
+  const cmToIn = (value: number) => value / 2.54;
+  const formatInches = (value: number) => `${Math.round(value)}"`;
+
   return (
     <div className={s.modelDetails}>
       <div className={s.detailsDimensions}>
@@ -21,8 +29,19 @@ export const ModelDetailsPage = () => {
         <div className={s.dimensions}>
           <div className={s.dimensions_titleBlock}>
             <h4 className={s.title}>Dimensions</h4>
-            <p>51" Wide</p>
-            <p>31" Deep</p>
+            {hasPresetProducts ? (
+              <>
+                <p>{formatInches(cmToIn(totalWidthCm))} Wide</p>
+                <p>{formatInches(cmToIn(maxDepthCm))} Deep</p>
+                <p>{formatInches(cmToIn(maxHeightCm))} High</p>
+              </>
+            ) : (
+              <>
+                <p>— Wide</p>
+                <p>— Deep</p>
+                <p>— High</p>
+              </>
+            )}
           </div>
 
           <div className={s.dimensionsBreakdown}>
