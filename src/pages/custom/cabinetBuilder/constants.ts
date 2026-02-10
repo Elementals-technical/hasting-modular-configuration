@@ -16,7 +16,7 @@ export const cabinetTypeMetadataByCode: Record<
     image: sinkBaseImage,
   },
   "Sink-Cabinet": {
-    title: "Sink Cabinet",
+    title: "Side Cabinet",
     desc: "Cabinet without a basin",
     isShortDesc: false,
     image: sinkCabinetImage,
