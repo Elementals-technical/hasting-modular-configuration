@@ -27,6 +27,8 @@ export type FlutingRuleInput = {
   targetPart?: "CABINET" | "SIDE_PANEL" | null;
   cabinetType?: string | null;
   isOpenShelf?: boolean;
+  material?: string | null;
+  drawers?: string | null;
 };
 
 export type FlutingRuleResult = {
