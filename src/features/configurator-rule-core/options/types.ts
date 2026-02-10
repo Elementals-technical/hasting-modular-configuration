@@ -69,3 +69,14 @@ export type SyntesiSidePanelRuleResult = {
   allowed: boolean;
   reason?: string;
 };
+
+export type SidePanelAvailabilityInput = {
+  height?: number | null;
+  handleType?: "1D" | "2D" | null;
+  cabinetType?: "SBSC" | "OS" | null;
+};
+
+export type SidePanelAvailabilityResult = {
+  allowed: Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">;
+  reason?: string;
+};

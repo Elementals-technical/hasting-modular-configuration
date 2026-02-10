@@ -1,5 +1,7 @@
-import { SIDE_PANELS_NONE, SYNTESI_MATERIAL_TOKEN } from "../constants";
+import { SIDE_PANEL_AVAILABILITY, SIDE_PANELS_NONE, SYNTESI_MATERIAL_TOKEN } from "../constants";
 import type {
+  SidePanelAvailabilityInput,
+  SidePanelAvailabilityResult,
   SidePanelCountertopLengthInput,
   SidePanelCountertopLengthResult,
   SidePanelSpecInput,
@@ -52,4 +54,40 @@ export const syntesiSidePanelRule = ({
   }
 
   return { allowed: true };
+};
+
+const mapHeightToken = (height?: number | null) => {
+  if (typeof height !== "number") return null;
+  if (height === 50) return "50H";
+  if (height === 53) return "53H";
+  if (height === 56) return "56H";
+  return null;
+};
+
+export const sidePanelAvailabilityRule = ({
+  height,
+  handleType,
+  cabinetType,
+}: SidePanelAvailabilityInput): SidePanelAvailabilityResult => {
+  const allowed = new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">();
+
+  const heightToken = mapHeightToken(height);
+  if (!heightToken || !handleType || !cabinetType) {
+    return { allowed };
+  }
+
+  const match = SIDE_PANEL_AVAILABILITY.find(
+    (row) => row.height === heightToken && row.handleType === handleType && row.cabinetType === cabinetType,
+  );
+
+  if (!match) {
+    return { allowed };
+  }
+
+  if (match.allowed.noGroove) allowed.add("NoG");
+  if (match.allowed.upperGroove) allowed.add("UpperG");
+  if (match.allowed.centerGroove) allowed.add("CenterG");
+  if (match.allowed.doubleGroove) allowed.add("DoubleG");
+
+  return { allowed };
 };
