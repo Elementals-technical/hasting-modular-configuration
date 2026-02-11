@@ -300,6 +300,26 @@ export const CountertopPage = () => {
     ],
   );
 
+  useEffect(() => {
+    console.log("[prebuilt][countertop][rules]", {
+      selectedDimensions,
+      activeCountertopColor,
+      activeMaterialTokens,
+      activeThickness,
+      activeBasinStyle,
+      allowedMaterials: Array.from(ruleState.allowedMaterials),
+      allowedBasinTokens: Array.from(ruleState.allowedBasinTokens),
+    });
+  }, [
+    selectedDimensions,
+    activeCountertopColor,
+    activeMaterialTokens,
+    activeThickness,
+    activeBasinStyle,
+    ruleState.allowedMaterials,
+    ruleState.allowedBasinTokens,
+  ]);
+
   const allowedMaterials = ruleState.allowedMaterials;
 
   const hasApiOptions = countertopOptionsFromApi.length > 0;
