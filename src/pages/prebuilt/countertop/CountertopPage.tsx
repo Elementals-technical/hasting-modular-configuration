@@ -343,15 +343,31 @@ export const CountertopPage = () => {
     dispatch(setActiveBasinStyle(basinStyle));
   };
 
-  const handleAddThickness = (thickness: string) => {
-    console.log("thickness prebuilt", thickness);
+  const handleAddThickness = useCallback(
+    (thickness: string) => {
+      console.log("thickness prebuilt", thickness);
 
-    presetNames.forEach((productName) => {
-      setConfigBatch({ productType: productName }, { Thickness: thickness });
-    });
+      presetNames.forEach((productName) => {
+        setConfigBatch({ productType: productName }, { Thickness: thickness });
+      });
 
-    dispatch(setActiveCountertopThickness(thickness));
-  };
+      dispatch(setActiveCountertopThickness(thickness));
+    },
+    [dispatch, presetNames],
+  );
+
+  useEffect(() => {
+    if (!filteredThicknessOptions.length) return;
+
+    const currentStillValid =
+      activeThickness && filteredThicknessOptions.some((o) => (o.value ?? o.title) === activeThickness);
+
+    if (!currentStillValid) {
+      const first = filteredThicknessOptions[0];
+      const value = first.value ?? first.title;
+      handleAddThickness(value);
+    }
+  }, [filteredThicknessOptions, activeThickness, handleAddThickness]);
 
   const handleCountertopStyle = (style: string) => {
     if (!style) return;
