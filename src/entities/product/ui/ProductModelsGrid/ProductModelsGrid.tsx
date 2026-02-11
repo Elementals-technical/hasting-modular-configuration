@@ -126,7 +126,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -146,7 +146,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -166,7 +166,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -186,7 +186,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -206,7 +206,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -226,7 +226,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -246,7 +246,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -256,7 +256,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 25,
           Depth: 50.5,
@@ -275,7 +275,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 25,
           Depth: 50.5,
@@ -284,7 +284,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -304,7 +304,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -324,7 +324,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -344,7 +344,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -364,7 +364,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -384,7 +384,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -394,7 +394,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -413,7 +413,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -423,7 +423,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -442,7 +442,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -452,7 +452,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -471,7 +471,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -481,7 +481,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -500,7 +500,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -510,7 +510,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -529,7 +529,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -539,7 +539,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -558,7 +558,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -568,7 +568,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -588,7 +588,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -598,7 +598,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -618,7 +618,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -626,10 +626,10 @@ export const productMockData: ProductModel[] = (
           Drawers: "2D",
           sinkType: "Top_HPLPrisma",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 35, Depth: 50.5, Height: 56 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 56 },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -646,10 +646,10 @@ export const productMockData: ProductModel[] = (
       isProductModel: true,
       // price: "Price on request",
       presetProducts: [
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 35, Depth: 50.5, Height: 56 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 56 },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -658,7 +658,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -678,7 +678,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -687,7 +687,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -707,7 +707,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -717,7 +717,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -736,7 +736,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -746,7 +746,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -765,7 +765,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -773,10 +773,10 @@ export const productMockData: ProductModel[] = (
           Drawers: "1D",
           sinkType: "Top_HPLPrisma",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 35, Depth: 50.5, Height: 53 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 53 },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -795,7 +795,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -804,7 +804,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -814,7 +814,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -833,7 +833,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -843,7 +843,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -862,7 +862,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -872,7 +872,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -892,7 +892,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -901,7 +901,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -921,7 +921,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -930,7 +930,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -938,7 +938,7 @@ export const productMockData: ProductModel[] = (
           Drawers: "2D",
           sinkType: "Top_HPLPrisma",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 50, Depth: 50.5, Height: 56 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 50, Depth: 50.5, Height: 56 },
       ],
     },
     {
@@ -951,7 +951,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -961,7 +961,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -980,7 +980,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -990,7 +990,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -999,7 +999,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -1018,7 +1018,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1028,7 +1028,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1048,17 +1048,17 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
           Height: 53,
           Drawers: "1D",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 35, Depth: 50.5, Height: 53 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 53 },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1078,7 +1078,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1088,7 +1088,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1097,7 +1097,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -1116,7 +1116,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 120,
           Depth: 50.5,
@@ -1126,7 +1126,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1145,7 +1145,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -1154,7 +1154,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1164,7 +1164,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -1183,7 +1183,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1193,14 +1193,14 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
           Height: 56,
           Drawers: "2D",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 35, Depth: 50.5, Height: 56 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 56 },
       ],
     },
     {
@@ -1213,7 +1213,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1223,7 +1223,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1232,7 +1232,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1252,7 +1252,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1262,7 +1262,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1271,7 +1271,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1290,7 +1290,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1300,7 +1300,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1309,7 +1309,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1329,7 +1329,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1339,7 +1339,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1359,7 +1359,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1369,7 +1369,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -1378,7 +1378,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1398,7 +1398,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1406,10 +1406,10 @@ export const productMockData: ProductModel[] = (
           Drawers: "1D",
           sinkType: "Top_HPLPrisma",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 60, Depth: 50.5, Height: 53 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 60, Depth: 50.5, Height: 53 },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1429,7 +1429,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1438,7 +1438,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 120,
           Depth: 50.5,
@@ -1458,7 +1458,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1467,7 +1467,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1477,7 +1477,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1496,7 +1496,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1505,7 +1505,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
@@ -1514,7 +1514,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1534,7 +1534,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1544,7 +1544,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1553,7 +1553,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 90,
           Depth: 50.5,
@@ -1573,7 +1573,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1583,7 +1583,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1592,7 +1592,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1612,7 +1612,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 120,
           Depth: 50.5,
@@ -1622,7 +1622,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 120,
           Depth: 50.5,
@@ -1642,7 +1642,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1651,7 +1651,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 120,
           Depth: 50.5,
@@ -1661,7 +1661,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 60,
           Depth: 50.5,
@@ -1680,7 +1680,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
@@ -1689,7 +1689,7 @@ export const productMockData: ProductModel[] = (
         },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 105,
           Depth: 50.5,
@@ -1697,10 +1697,10 @@ export const productMockData: ProductModel[] = (
           Drawers: "1D",
           sinkType: "Top_HPLPrisma",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 35, Depth: 50.5, Height: 53 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 53 },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
@@ -1719,7 +1719,7 @@ export const productMockData: ProductModel[] = (
       presetProducts: [
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
@@ -1727,20 +1727,20 @@ export const productMockData: ProductModel[] = (
           Drawers: "2D",
           sinkType: "Top_HPLPrisma",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 25, Depth: 50.5, Height: 56 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 25, Depth: 50.5, Height: 56 },
         {
           name: "Sink-Cabinet",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 50,
           Depth: 50.5,
           Height: 56,
           Drawers: "2D",
         },
-        { name: "Open-Shelf", CabinetColor: "Castagno Malto", Width: 25, Depth: 50.5, Height: 56 },
+        { name: "Open-Shelf", CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6", Width: 25, Depth: 50.5, Height: 56 },
         {
           name: "Sink-Base",
-          CabinetColor: "Castagno Malto",
+          CabinetColor: "Pulpis Chiaro TKH", CountertopColor: "Pietra Di Savoia Antracite TQ6",
           Handle: "handle_urban_topcut",
           Width: 80,
           Depth: 50.5,
