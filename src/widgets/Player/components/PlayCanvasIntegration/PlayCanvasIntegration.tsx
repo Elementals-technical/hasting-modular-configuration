@@ -35,7 +35,7 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
-import { getEntityScreenBounds } from "@/utils/functions/playcanvas/getEntityScreenBounds";
+import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "024";
@@ -77,35 +77,12 @@ export const PlayCanvasIntegration = () => {
     [cabinetCatalog.typeCabinetRules],
   );
 
-  const DROPDOWN_OFFSET_X = 12;
-
-  const showDropdownAt = useCallback((clientX: number, clientY: number) => {
+  const showDropdownForEntity = useCallback((entityName: string) => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
-    const containerWidth = iframeEl.offsetWidth;
-    const containerHeight = iframeEl.offsetHeight;
-
-    // Estimated dropdown dimensions for boundary clamping
-    const dropdownWidth = 200;
-    const dropdownHeight = 300;
-
-    // clientX/clientY are relative to the iframe which fills the container.
-    // Shift right so the menu opens beside the click, not on top of it.
-    let x = clientX + DROPDOWN_OFFSET_X;
-    let y = clientY;
-
-    // Clamp so the dropdown stays within the container
-    if (x + dropdownWidth > containerWidth) {
-      x = clientX - dropdownWidth - DROPDOWN_OFFSET_X;
-    }
-    if (y + dropdownHeight > containerHeight) {
-      y = containerHeight - dropdownHeight;
-    }
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-
-    setDropdownState({ visible: true, x, y });
+    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current);
+    setDropdownState({ visible: true, x: pos.x, y: pos.y });
   }, []);
 
   // Track pointer position so we know where the user clicked inside the iframe.
@@ -397,23 +374,7 @@ export const PlayCanvasIntegration = () => {
           updateDimensionDataForProduct(firstSelected.name ?? "", config);
         })();
 
-        // Position dropdown at the right edge of the product's screen bounds
-        const bounds = getEntityScreenBounds(firstSelected.name ?? "");
-
-        if (bounds) {
-          showDropdownAt(bounds.right, bounds.centerY);
-        } else {
-          // Fallback: use last known pointer position or center of iframe
-          const lastPos = lastPointerPosRef.current;
-          if (lastPos) {
-            showDropdownAt(lastPos.x, lastPos.y);
-          } else {
-            const iframeEl = containerRef.current;
-            if (iframeEl) {
-              showDropdownAt(iframeEl.offsetWidth / 2, iframeEl.offsetHeight / 2);
-            }
-          }
-        }
+        showDropdownForEntity(firstSelected.name ?? "");
       } else {
         console.log("клик в пустоту");
         // dispatch(setSelectedSceneProduct(""));
