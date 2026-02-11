@@ -6,7 +6,10 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
+  getActiveCabinetType,
   getCabinetColor,
+  getCabinetColorSku,
+  getCountertopColorSku,
   getCountertopStyle,
   getDividersOption,
   getDividersStyle,
@@ -15,6 +18,7 @@ import {
   getFaucetHolesSpacing,
   getGrainDirection,
   getHandleGrooveColor,
+  getHandleGrooveColorSku,
   getLedOption,
   getProductsPresets,
   getSelectedProducts,
@@ -22,11 +26,14 @@ import {
   getSelectedProductConfig,
   getSidePanelsOption,
   getSinkType,
+  getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { buildProductSku, buildCountertopSku, extractColorCode } from "@/shared/lib/sku";
+import { useGetConfiguratorQuery } from "@/entities";
 
 import s from "./SummaryPage.module.scss";
 
@@ -50,6 +57,7 @@ type SummaryItem = {
   id: string;
   title: string;
   subtitle?: string;
+  sku?: string;
   swatch?: {
     label: string;
     value: string;
@@ -85,10 +93,15 @@ export const SummaryPage = () => {
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
+  const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
+  const cabinetColorSku = useAppSelector(getCabinetColorSku);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const handleGrooveColorSku = useAppSelector(getHandleGrooveColorSku);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
+  const towelBarColor = useAppSelector(getTowelBarColor);
 
   const sinkType = useAppSelector(getSinkType);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
@@ -148,6 +161,33 @@ export const SummaryPage = () => {
     };
   };
 
+  const { data: cabinetColors } = useGetConfiguratorQuery({
+    id: 4,
+    view: "full",
+    serialize: true,
+  });
+
+  const colorSkuByName = useMemo(() => {
+    const map = new Map<string, string>();
+    const groups = cabinetColors?.availableOptions ?? [];
+
+    groups.forEach((group) => {
+      group.options.forEach((option) => {
+        option.variants?.forEach((variant) => {
+          if (!variant.enabled) return;
+          const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+          const value = (meta.value as string) || variant.name;
+          const sku = (meta.sku as string) || "";
+          if (value && sku) {
+            map.set(value, sku);
+          }
+        });
+      });
+    });
+
+    return map;
+  }, [cabinetColors]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -192,10 +232,46 @@ export const SummaryPage = () => {
               typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
             const swatch = resolveSwatch(swatchValue);
 
+            const productCabinetType = name ?? activeCabinetType;
+
+            const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+            const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
+            const hasTowel = towelBarOption && towelBarOption !== "None";
+            const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
+            const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
+
+            const sku = buildProductSku({
+              cabinetType: productCabinetType,
+              drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+              handle: typeof config.Handle === "string" ? config.Handle : null,
+              pattern:
+                typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+              width: width ?? null,
+              height: height ?? null,
+              depth: depth ?? null,
+              grainDirection:
+                typeof config.GrainDirection === "string" ? config.GrainDirection : grainDirection || null,
+              cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
+              hdl: handleMaterialSku
+                ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                : null,
+              msp: null,
+              bkpl: null,
+              tbr:
+                hasTowel && hasRight && towelMaterialSku
+                  ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
+                  : null,
+              tbl:
+                hasTowel && hasLeft && towelMaterialSku
+                  ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
+                  : null,
+            });
+
             return {
               id: `cabinet-${index}`,
               title: name ?? "Cabinet",
               subtitle,
+              sku,
               swatch: {
                 label: "Cabinet",
                 value: swatch.value,
@@ -203,7 +279,7 @@ export const SummaryPage = () => {
                 image: swatch.image,
               },
               price: "$—",
-              copyable: index === 0,
+              copyable: true,
             };
           })
         : productsPresets.length > 0
@@ -216,10 +292,44 @@ export const SummaryPage = () => {
               const swatchValue = preset.CabinetColor ?? cabinetColor;
               const swatch = resolveSwatch(swatchValue);
 
+              const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+              const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
+              const hasTowel = towelBarOption && towelBarOption !== "None";
+              const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
+              const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
+
+              const sku = buildProductSku({
+                cabinetType: preset.name ?? activeCabinetType,
+                drawers: preset.Drawers ?? null,
+                handle: preset.Handle ?? null,
+                pattern: drawerPanelFluting || null,
+                width: preset.Width ?? null,
+                height: preset.Height ?? null,
+                depth: preset.Depth ?? null,
+                grainDirection: grainDirection || null,
+                cab: cabinetColorSku
+                  ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) }
+                  : null,
+                hdl: handleMaterialSku
+                  ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                  : null,
+                msp: null,
+                bkpl: null,
+                tbr:
+                  hasTowel && hasRight && towelMaterialSku
+                    ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
+                    : null,
+                tbl:
+                  hasTowel && hasLeft && towelMaterialSku
+                    ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
+                    : null,
+              });
+
               return {
                 id: `cabinet-${index}`,
                 title: preset.name ?? "Cabinet",
                 subtitle,
+                sku,
                 swatch: {
                   label: "Cabinet",
                   value: swatch.value,
@@ -227,22 +337,58 @@ export const SummaryPage = () => {
                   image: swatch.image,
                 },
                 price: "$—",
-                copyable: index === 0,
+                copyable: true,
               };
             })
           : [
-              {
-                id: "cabinet-1",
-                title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
-                subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
-                swatch: {
-                  ...resolveSwatch(cabinetColor),
-                  label: "Cabinet",
-                  value: cabinetColor,
-                },
-                price: "$—",
-                copyable: true,
-              },
+              (() => {
+                const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+                const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
+                const hasTowel = towelBarOption && towelBarOption !== "None";
+                const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
+                const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
+
+                const sku = buildProductSku({
+                  cabinetType: activeCabinetType,
+                  drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+                  handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+                  pattern: drawerPanelFluting || null,
+                  width: selectedDimensions.width,
+                  height: selectedDimensions.height,
+                  depth: selectedDimensions.depth,
+                  grainDirection: grainDirection || null,
+                  cab: cabinetColorSku
+                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
+                    : null,
+                  hdl: handleMaterialSku
+                    ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                    : null,
+                  msp: null,
+                  bkpl: null,
+                  tbr:
+                    hasTowel && hasRight && towelMaterialSku
+                      ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
+                      : null,
+                  tbl:
+                    hasTowel && hasLeft && towelMaterialSku
+                      ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
+                      : null,
+                });
+
+                return {
+                  id: "cabinet-1",
+                  title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
+                  subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
+                  sku,
+                  swatch: {
+                    ...resolveSwatch(cabinetColor),
+                    label: "Cabinet",
+                    value: cabinetColor,
+                  },
+                  price: "$—",
+                  copyable: true,
+                };
+              })(),
             ];
 
     const grooveSwatch = resolveSwatch(handleGrooveColor);
@@ -267,11 +413,26 @@ export const SummaryPage = () => {
         : null,
     ].filter(Boolean) as SummaryItem[];
 
+    const countertopSkuLines = buildCountertopSku({
+      style: countertopStyle || null,
+      width: selectedDimensions.width,
+      depth: selectedDimensions.depth,
+      thickness: countertopThickness || null,
+      basinType: sinkType || null,
+      faucetHolesAmount: faucetHolesAmount || null,
+      faucetHolesSpacing: faucetHolesSpacing || null,
+      countertopMaterialSku: countertopColorSku || null,
+      countertopColorCode: extractColorCode(countertopColor),
+    });
+
+    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Hole Quantity", "Faucet Hole Spacing", "Hole Cutout"];
+
     const countertopItems: SummaryItem[] = [
       {
         id: "countertop-1",
         title: "Countertop",
         subtitle: countertopThickness ? `${countertopThickness}` : undefined,
+        sku: countertopSkuLines[0],
         swatch: {
           label: "Countertop",
           value: countertopColor,
@@ -279,6 +440,7 @@ export const SummaryPage = () => {
           image: countertopSwatch.image,
         },
         price: "$—",
+        copyable: true,
       },
       countertopStyle
         ? {
@@ -288,6 +450,14 @@ export const SummaryPage = () => {
             price: "$—",
           }
         : null,
+      ...countertopSkuLines.slice(1).map((line, i) => ({
+        id: `countertop-sku-${i + 1}`,
+        title: countertopSkuLabels[i + 1] ?? `Countertop Element`,
+        subtitle: line,
+        sku: line,
+        price: "$—",
+        copyable: true,
+      })),
     ].filter(Boolean) as SummaryItem[];
 
     const dividerImage = buildImageSrc(resolveDividerImage(dividerStyle));
@@ -416,7 +586,10 @@ export const SummaryPage = () => {
         : []),
     ];
   }, [
+    activeCabinetType,
     cabinetColor,
+    cabinetColorSku,
+    countertopColorSku,
     countertopColor,
     countertopThickness,
     countertopStyle,
@@ -426,17 +599,21 @@ export const SummaryPage = () => {
     faucetHolesSpacing,
     grainDirection,
     handleGrooveColor,
+    handleGrooveColorSku,
     ledOption,
-    materialLookup,
     productsPresets,
     productConfigs,
+    colorSkuByName,
     selectedDimensions.depth,
     selectedDimensions.height,
     selectedDimensions.width,
     selectedProductConfig,
     sidePanelsOption,
     sinkType,
+    towelBarColor,
     towelBarOption,
+    dividerStyle,
+    resolveSwatch,
   ]);
 
   return (
@@ -449,9 +626,9 @@ export const SummaryPage = () => {
 
           <div className={s.sectionList}>
             {section.items.map((item) => {
-              const textToCopy = [item.title, item.subtitle, item.swatch?.label, item.swatch?.value]
-                .filter(Boolean)
-                .join(" - ");
+              const textToCopy = item.sku
+                ? item.sku
+                : [item.title, item.subtitle, item.swatch?.label, item.swatch?.value].filter(Boolean).join(" - ");
 
               return (
                 <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>

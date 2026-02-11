@@ -17,12 +17,14 @@ import {
   reset,
   resetCabinetBuilderBootstrap,
   resetPrebuiltProducts,
+  setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
 import { ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 const presetKeys: Array<keyof PresetProduct> = [
   "name",
@@ -73,6 +75,49 @@ export const ModelPage = () => {
     setStyleFilter(value === "all" ? "all" : (value as ProductStyle));
   }, []);
 
+  // Define Selected dimentions for the countertop logic.
+  const updateSelectedDimensionsFromScene = useCallback(
+    async (presetProducts?: PresetProduct[]) => {
+      if (!presetProducts?.length) return;
+
+      const entries = await Promise.all(
+        presetProducts.map(async (preset) => {
+          const name = preset.name;
+          if (!name) return null;
+
+          const config = await getConfig(name);
+          const width =
+            typeof config?.Width === "number" ? config.Width : typeof preset.Width === "number" ? preset.Width : null;
+          const depth =
+            typeof config?.Depth === "number" ? config.Depth : typeof preset.Depth === "number" ? preset.Depth : null;
+          const height =
+            typeof config?.Height === "number"
+              ? config.Height
+              : typeof preset.Height === "number"
+                ? preset.Height
+                : null;
+
+          return { width, depth, height };
+        }),
+      );
+
+      const first = entries.find(
+        (entry) => entry && (entry.width !== null || entry.depth !== null || entry.height !== null),
+      );
+      if (!first) return;
+
+      const next: { width?: number; depth?: number; height?: number } = {};
+      if (first.width !== null) next.width = first.width;
+      if (first.depth !== null) next.depth = first.depth;
+      if (first.height !== null) next.height = first.height;
+
+      if (Object.keys(next).length) {
+        dispatch(setSelectedDimensions(next));
+      }
+    },
+    [dispatch],
+  );
+
   const activePresetId = useMemo(() => {
     const target = productsPresets.length ? productsPresets : (productMockData[0]?.presetProducts ?? []);
 
@@ -86,6 +131,7 @@ export const ModelPage = () => {
       await addPreset(presetProducts);
 
       if (presetProducts) dispatch(addProductPreset(presetProducts));
+      await updateSelectedDimensionsFromScene(presetProducts);
     } catch (error) {
       console.error("[ProductModelItem] Failed to apply preset", error);
     }
@@ -146,6 +192,7 @@ export const ModelPage = () => {
           dispatch(addProductPreset(presetProducts));
         }
 
+        await updateSelectedDimensionsFromScene(presetProducts);
         sessionStorage.setItem("prebuiltModelInitialized", "1");
       } catch (error) {
         console.log(error);
