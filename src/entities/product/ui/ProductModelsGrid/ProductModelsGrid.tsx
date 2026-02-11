@@ -13,7 +13,7 @@ export const productMockData: ProductModel[] = [
     // desc: "60W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ export const productMockData: ProductModel[] = [
     // desc: "60W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 3,
@@ -31,7 +31,7 @@ export const productMockData: ProductModel[] = [
     // desc: "70W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 4,
@@ -40,7 +40,7 @@ export const productMockData: ProductModel[] = [
     // desc: "70W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 5,
@@ -49,7 +49,7 @@ export const productMockData: ProductModel[] = [
     // desc: "80W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 6,
@@ -58,7 +58,7 @@ export const productMockData: ProductModel[] = [
     // desc: "80W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 7,
@@ -68,8 +68,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 25, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 25, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -80,8 +80,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 25, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 25, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -91,7 +91,7 @@ export const productMockData: ProductModel[] = [
     // desc: "90W × 51D × 53H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 10,
@@ -100,7 +100,7 @@ export const productMockData: ProductModel[] = [
     // desc: "90W × 51D × 56H cm",
     isProductModel: true,
     // price: "Price on request",
-    presetProducts: [{ name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
+    presetProducts: [{ name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" }],
   },
   {
     id: 11,
@@ -110,7 +110,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -121,7 +121,7 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -132,8 +132,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -144,8 +144,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -156,8 +156,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -168,8 +168,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -180,8 +180,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -192,8 +192,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -204,8 +204,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -216,8 +216,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -228,9 +228,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 35, Depth: 50.5, Height: 56 },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 56 },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -241,9 +241,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 35, Depth: 50.5, Height: 56 },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 56 },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -254,8 +254,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -266,8 +266,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -278,8 +278,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -290,9 +290,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 35, Depth: 50.5, Height: 53 },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 53 },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -303,9 +303,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -316,8 +316,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -328,8 +328,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -340,8 +340,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -352,9 +352,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 50, Depth: 50.5, Height: 56 },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 50, Depth: 50.5, Height: 56 },
     ],
   },
   {
@@ -365,8 +365,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -377,9 +377,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -390,8 +390,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -402,9 +402,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 35, Depth: 50.5, Height: 53 },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 53 },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -415,9 +415,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -428,8 +428,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -440,9 +440,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -453,9 +453,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 35, Depth: 50.5, Height: 56 },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 56 },
     ],
   },
   {
@@ -466,9 +466,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -479,9 +479,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -492,9 +492,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -505,8 +505,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -517,9 +517,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -530,9 +530,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 60, Depth: 50.5, Height: 53 },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 60, Depth: 50.5, Height: 53 },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -543,8 +543,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -555,9 +555,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -568,9 +568,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -581,9 +581,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 90, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -594,9 +594,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -607,8 +607,8 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
   {
@@ -619,9 +619,9 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 120, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 60, Depth: 50.5, Height: 56, Drawers: "2D" },
     ],
   },
   {
@@ -632,10 +632,10 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D" },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 35, Depth: 50.5, Height: 53 },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 70, Depth: 50.5, Height: 53, Drawers: "1D" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 105, Depth: 50.5, Height: 53, Drawers: "1D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 35, Depth: 50.5, Height: 53 },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 35, Depth: 50.5, Height: 53, Drawers: "1D" },
     ],
   },
   {
@@ -646,11 +646,11 @@ export const productMockData: ProductModel[] = [
     isProductModel: true,
     // price: "Price on request",
     presetProducts: [
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 25, Depth: 50.5, Height: 56 },
-      { name: "Sink-Cabinet", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
-      { name: "Open-Shelf", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Width: 25, Depth: 50.5, Height: 56 },
-      { name: "Sink-Base", CabinetColor:"Castagno Malto", CountertopColor:"Limestone Deep TRG", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 25, Depth: 50.5, Height: 56 },
+      { name: "Sink-Cabinet", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 50, Depth: 50.5, Height: 56, Drawers: "2D" },
+      { name: "Open-Shelf", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Width: 25, Depth: 50.5, Height: 56 },
+      { name: "Sink-Base", CabinetColor:"Pulpis Chiaro TKH", CountertopColor:"Pietra Di Savoia Antracite TQ6", Handle: 'handle_urban_topcut', Width: 80, Depth: 50.5, Height: 56, Drawers: "2D", sinkType: "Top_HPLPrisma" },
     ],
   },
 ];
