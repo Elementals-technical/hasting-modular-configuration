@@ -1,10 +1,4 @@
-import {
-  cabinetTypeSkuMap,
-  drawerSkuMap,
-  grainDirectionSkuMap,
-  handleSkuMap,
-  patternSkuMap,
-} from "./cabinetSkuMaps";
+import { cabinetTypeSkuMap, drawerSkuMap, grainDirectionSkuMap, handleSkuMap, patternSkuMap } from "./cabinetSkuMaps";
 
 export type ElementMaterial = {
   materialSku: string | null;
@@ -73,9 +67,9 @@ export function buildProductSku(input: ProductSkuInput): string {
   const configBlock = [type, drawers, handle, pattern, grain].join("/");
 
   // Dimensions (plain numbers, no W/H/D suffixes)
-  const w = input.width != null ? `${input.width}` : FALLBACK;
-  const h = input.height != null ? `${input.height}` : FALLBACK;
-  const d = input.depth != null ? `${input.depth}` : FALLBACK;
+  const w = input.width != null ? `${input.width}W` : FALLBACK;
+  const h = input.height != null ? `${input.height}H` : FALLBACK;
+  const d = input.depth != null ? `${input.depth}D` : FALLBACK;
 
   // Element triplets (order matches spec)
   const triplets = [
