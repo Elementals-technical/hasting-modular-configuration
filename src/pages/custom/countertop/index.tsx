@@ -83,31 +83,34 @@ export const CustomCountertopPage = () => {
 
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
-  const getVariantMeta = (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
-    const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-    const nested =
-      typeof meta.metadata === "object" && meta.metadata
-        ? (meta.metadata as Record<string, unknown>)
-        : ({} as Record<string, unknown>);
+  const getVariantMeta = useCallback(
+    (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
+      const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+      const nested =
+        typeof meta.metadata === "object" && meta.metadata
+          ? (meta.metadata as Record<string, unknown>)
+          : ({} as Record<string, unknown>);
 
-    const pick = (...values: unknown[]): string | undefined => {
-      for (const value of values) {
-        const str = toOptionalString(value);
-        if (str) return str;
-      }
-      return undefined;
-    };
+      const pick = (...values: unknown[]): string | undefined => {
+        for (const value of values) {
+          const str = toOptionalString(value);
+          if (str) return str;
+        }
+        return undefined;
+      };
 
-    return {
-      material: pick(nested.Material, meta.Material),
-      color: pick(nested.Color, meta.Color),
-      look: pick(nested.Look, meta.Look),
-      hex: pick(nested.hex, meta.hex),
-      image: pick(nested.image, meta.image, variant.image),
-      value: pick(meta.value, nested.value, variant.name),
-      label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
-    };
-  };
+      return {
+        material: pick(nested.Material, meta.Material),
+        color: pick(nested.Color, meta.Color),
+        look: pick(nested.Look, meta.Look),
+        hex: pick(nested.hex, meta.hex),
+        image: pick(nested.image, meta.image, variant.image),
+        value: pick(meta.value, nested.value, variant.name),
+        label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
+      };
+    },
+    [],
+  );
 
   const toStringArrayFromCsv = (value: unknown): string[] => {
     if (typeof value !== "string") return [];
@@ -175,7 +178,7 @@ export const CustomCountertopPage = () => {
           }),
       ),
     );
-  }, [counterTopMaterials]);
+  }, [counterTopMaterials, getVariantMeta]);
 
   console.log("countertopOptionsFromApi", countertopOptionsFromApi);
 
@@ -356,9 +359,9 @@ export const CustomCountertopPage = () => {
 
       const materialTokens = firstToken
         ? firstToken
-          .split("/")
-          .map((token) => normalizeMaterialToken(token))
-          .filter(Boolean)
+            .split("/")
+            .map((token) => normalizeMaterialToken(token))
+            .filter(Boolean)
         : [];
 
       const isMaterialSpecific = materialTokens.some((token) => allowedMaterials.has(token));
@@ -456,17 +459,34 @@ export const CustomCountertopPage = () => {
     dispatch(setActiveBasinStyle(basinStyle));
   };
 
-  const handleAddThickness = (thickness: string) => {
-    console.log("thickness", thickness);
+  const handleAddThickness = useCallback(
+    (thickness: string) => {
+      console.log("thickness", thickness);
 
-    debugger
-    setConfigBatch({}, {
-      Thickness: thickness,
-    });
-    debugger
+      setConfigBatch(
+        {},
+        {
+          Thickness: thickness,
+        },
+      );
 
-    dispatch(setActiveCountertopThickness(thickness));
-  };
+      dispatch(setActiveCountertopThickness(thickness));
+    },
+    [dispatch],
+  );
+
+  useEffect(() => {
+    if (!filteredThicknessOptions.length) return;
+
+    const currentStillValid =
+      activeThickness && filteredThicknessOptions.some((o) => (o.value ?? o.title) === activeThickness);
+
+    if (!currentStillValid) {
+      const first = filteredThicknessOptions[0];
+      const value = first.value ?? first.title;
+      handleAddThickness(value);
+    }
+  }, [filteredThicknessOptions, activeThickness, handleAddThickness]);
 
   const handleCountertopStyle = (style: string) => {
     if (!style) return;
@@ -525,17 +545,11 @@ export const CustomCountertopPage = () => {
       id: "thickness",
       title: "Thickness",
       content: (
-        <>
-          {hasSelectedMaterial ? (
-            <ProductSwatchesGrid
-              data={filteredThicknessOptions}
-              onSelectChange={(value) => value && handleAddThickness(value)}
-              selectedValue={activeThickness}
-            />
-          ) : (
-            <div>Select a material first to enable thickness options.</div>
-          )}
-        </>
+        <ProductSwatchesGrid
+          data={filteredThicknessOptions}
+          onSelectChange={(value) => value && handleAddThickness(value)}
+          selectedValue={activeThickness}
+        />
       ),
     },
     {

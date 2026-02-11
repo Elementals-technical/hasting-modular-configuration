@@ -35,9 +35,10 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
+import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "024";
+const PLAYCANVAS_VERSION = "025";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -76,14 +77,43 @@ export const PlayCanvasIntegration = () => {
     [cabinetCatalog.typeCabinetRules],
   );
 
-  const showDropdownAt = useCallback((clientX: number, clientY: number) => {
+  const showDropdownForEntity = useCallback((entityName: string) => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
-    const rect = iframeEl.getBoundingClientRect();
-    const x = rect.left + clientX;
-    const y = rect.top + clientY - 120;
-    setDropdownState({ visible: true, x, y });
+    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current);
+    setDropdownState({ visible: true, x: pos.x, y: pos.y });
+  }, []);
+
+  // Track pointer position so we know where the user clicked inside the iframe.
+  // We listen on both: postMessage from the iframe (preferred) and mousemove on
+  // the parent window (fallback — gives the last known position before the
+  // cursor enters the iframe).
+  useEffect(() => {
+    const iframeEl = containerRef.current;
+
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === "pointer-position") {
+        lastPointerPosRef.current = { x: e.data.x, y: e.data.y };
+      }
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!iframeEl) return;
+
+      const rect = iframeEl.getBoundingClientRect();
+      lastPointerPosRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
+    };
+
+    window.addEventListener("message", onMessage);
+    window.addEventListener("mousemove", onMouseMove);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.removeEventListener("mousemove", onMouseMove);
+    };
   }, []);
 
   // Bridge PlayCanvas Configurator API
@@ -344,17 +374,7 @@ export const PlayCanvasIntegration = () => {
           updateDimensionDataForProduct(firstSelected.name ?? "", config);
         })();
 
-        const lastPos = lastPointerPosRef.current;
-
-        if (lastPos) {
-          showDropdownAt(lastPos.x, lastPos.y);
-        } else {
-          const iframeEl = containerRef.current;
-          if (iframeEl) {
-            const rect = iframeEl.getBoundingClientRect();
-            showDropdownAt(rect.width / 2, rect.height / 2);
-          }
-        }
+        showDropdownForEntity(firstSelected.name ?? "");
       } else {
         console.log("клик в пустоту");
         // dispatch(setSelectedSceneProduct(""));

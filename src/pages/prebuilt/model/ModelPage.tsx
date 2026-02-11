@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
 
-import { type PresetProduct } from "@/entities/product/types";
+import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
@@ -54,6 +54,24 @@ export const ModelPage = () => {
   const hasPrebuiltSelections = useAppSelector(getHasPrebuiltSelections);
 
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
+  const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
+  const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
+
+  const filteredData = useMemo(() => {
+    return productMockData.filter((item) => {
+      if (sizeFilter !== "all" && item.size !== sizeFilter) return false;
+      if (styleFilter !== "all" && !item.style.includes(styleFilter)) return false;
+      return true;
+    });
+  }, [sizeFilter, styleFilter]);
+
+  const handleSizeFilter = useCallback((value: string | number) => {
+    setSizeFilter(value === "all" ? "all" : (value as ProductSize));
+  }, []);
+
+  const handleStyleFilter = useCallback((value: string | number) => {
+    setStyleFilter(value === "all" ? "all" : (value as ProductStyle));
+  }, []);
 
   const activePresetId = useMemo(() => {
     const target = productsPresets.length ? productsPresets : (productMockData[0]?.presetProducts ?? []);
@@ -145,24 +163,39 @@ export const ModelPage = () => {
           <FilterRow>
             <FilterItem
               label="Size"
+              value={sizeFilter === "all" ? undefined : sizeFilter}
               options={[
-                { label: "Small", value: "s" },
-                { label: "Medium", value: "m" },
-                { label: "Large", value: "l" },
+                { label: "All", value: "all" },
+                { label: "24–29″", value: "24_29" },
+                { label: "30–39″", value: "30_39" },
+                { label: "40–49″", value: "40_49" },
+                { label: "50–59″", value: "50_59" },
+                { label: "60–69″", value: "60_69" },
+                { label: "70–79″", value: "70_79" },
+                { label: "80–89″", value: "80_89" },
+                { label: "90″+", value: "90_plus" },
               ]}
+              onSelect={handleSizeFilter}
             />
 
             <FilterItem
               label="Style"
+              value={styleFilter === "all" ? undefined : styleFilter}
               options={[
-                { label: "Style 1", value: "s" },
-                { label: "Style 2", value: "m" },
-                { label: "Style 3", value: "l" },
+                { label: "All", value: "all" },
+                { label: "1 Drawer", value: "1_drawer" },
+                { label: "2 Drawer", value: "2_drawer" },
+                { label: "Single Basin", value: "single_basin" },
+                { label: "Double Basin", value: "double_basin" },
+                { label: "Asymmetrical", value: "asymmetrical" },
+                { label: "Open Shelving", value: "open_shelving" },
               ]}
+              onSelect={handleStyleFilter}
             />
           </FilterRow>
 
           <ProductModelsGrid
+            data={filteredData}
             handleAddPreset={handleAddPreset}
             handleCustomizePreset={handleCustomizePreset}
             createModelBtn={<CreateModelBtn />}
