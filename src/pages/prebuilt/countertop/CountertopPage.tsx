@@ -16,6 +16,7 @@ import {
   setActiveCountertopColor,
   setActiveCountertopThickness,
   setCountertopStyle,
+  setCountertopColorSku,
 } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -26,6 +27,7 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
 import {
+  buildMaterialFilters,
   filterOptionsByMaterialSelection,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
@@ -47,6 +49,8 @@ import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constant
 
 import s from "./CountertopPage.module.scss";
 
+const COUNTERTOP_OPTION = "Counertops materials";
+
 export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
@@ -60,7 +64,10 @@ export const CountertopPage = () => {
   const [hasSinkBase, setHasSinkBase] = useState(false);
   const isSinkDisabled = !hasSinkBase;
 
-  const { data: configuratorData } = useGetConfiguratorQuery({
+  const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
+  const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
+
+  const { data: counterTopMaterials } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
     serialize: true,
@@ -68,16 +75,33 @@ export const CountertopPage = () => {
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
+  // Remove unrelated text before ":" in the title
+  const normalizeMaterialLabel = (value: string) => {
+    const parts = value
+      .split(":")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : value;
+  };
+
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
   const toStringArrayFromCsv = (value: unknown): string[] => {
     if (typeof value !== "string") return [];
-    return value.split(",").map((part) => part.trim()).filter(Boolean);
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
   };
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
       const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+      const nested =
+        typeof meta.metadata === "object" && meta.metadata
+          ? (meta.metadata as Record<string, unknown>)
+          : ({} as Record<string, unknown>);
+
       const pick = (...values: unknown[]): string | undefined => {
         for (const v of values) {
           const str = toOptionalString(v);
@@ -86,84 +110,166 @@ export const CountertopPage = () => {
         return undefined;
       };
       return {
-        material: pick(meta.Material),
-        color: pick(meta.Color),
-        look: pick(meta.Look),
-        hex: pick(meta.hex),
-        image: pick(meta.image, variant.image),
-        value: pick(meta.value, variant.name),
-        label: pick(meta.label, meta.Label, variant.name),
+        material: pick(nested.Material, meta.Material),
+        color: pick(nested.Color, meta.Color),
+        look: pick(nested.Look, meta.Look),
+        hex: pick(nested.hex, meta.hex),
+        image: pick(nested.image, meta.image, variant.image),
+        value: pick(meta.value, nested.value, variant.name),
+        label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
       };
     },
     [],
   );
 
-  const countertopGroups = useMemo(
-    () => (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color"),
-    [configuratorData],
-  );
+  const countertopOptionsFromApi = useMemo(() => {
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    if (!groups.length) return [];
 
-  const countertopOptions = useMemo(() => {
-    if (!countertopGroups.length) return [];
-    return countertopGroups.flatMap((group) =>
+    const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
+      const tokens = new Set<string>();
+      if (metaMaterial) {
+        toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(token));
+      }
+      if (name) tokens.add(name);
+      extraTokens.forEach((token) => {
+        if (token) tokens.add(token);
+      });
+
+      const parts = name
+        .split(":")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length > 1) tokens.add(parts[parts.length - 1]);
+      return Array.from(tokens);
+    };
+
+    return groups.flatMap((group) =>
       group.options.flatMap((option) =>
         option.variants
           .filter((variant) => variant.enabled)
           .map((variant) => {
             const meta = getVariantMeta(variant);
+            const metaMaterial = meta.material;
+            const metaColor = meta.color;
+            const metaLook = meta.look;
+            const metaHex = meta.hex;
+            const descSource = option.name || group.proxyName || variant.name;
+
             return {
               id: variant.id,
               title: meta.label ?? variant.name,
               name: variant.name,
-              desc: option.name ?? group.proxyName,
+              desc: normalizeMaterialLabel(descSource),
               isShortDesc: false,
               metadata: {
                 image: meta.image,
                 value: meta.value ?? variant.name,
                 sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
-                materials: [
-                  ...new Set([group.proxyName, option.name, ...toStringArrayFromCsv(meta.material)].filter(Boolean)),
-                ],
-                colors: toStringArrayFromCsv(meta.color),
-                looks: toStringArrayFromCsv(meta.look),
-                hex: meta.hex?.trim(),
+                materials: buildMaterialTokens(
+                  option.name || variant.name,
+                  metaMaterial,
+                  group.proxyName ? [group.proxyName] : [],
+                ),
+                colors: toStringArrayFromCsv(metaColor),
+                looks: toStringArrayFromCsv(metaLook),
+                hex: metaHex?.trim(),
               },
             };
           }),
       ),
     );
-  }, [countertopGroups, getVariantMeta]);
+  }, [counterTopMaterials, getVariantMeta]);
+
+  const countertopOptions = useMemo(() => countertopOptionsFromApi, [countertopOptionsFromApi]);
+
+  const findSkuByColorName = useCallback(
+    (colorName: string): string => {
+      for (const option of countertopOptionsFromApi) {
+        if (option.metadata?.value === colorName || option.name === colorName) {
+          return option.metadata?.sku ?? "";
+        }
+      }
+      return "";
+    },
+    [countertopOptionsFromApi],
+  );
+
+  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+
+  const matrixMaterials = useMemo(() => {
+    const set = new Set<string>();
+
+    counterTopData?.rows?.forEach((row) => {
+      const value = row.material?.trim();
+      if (value) set.add(value);
+    });
+
+    return set;
+  }, [counterTopData]);
+
+  const normalizedMatrixMaterials = useMemo(
+    () => new Set(Array.from(matrixMaterials).map((value) => normalizeMaterialToken(value))),
+    [matrixMaterials],
+  );
 
   const materialFilters = useMemo(() => {
-    if (!countertopGroups.length) return { materials: [], colors: [], looks: [], hex: [] };
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    if (!groups.length) return defaultMaterialFilters;
+
     const materialSet = new Set<string>();
     const colorSet = new Set<string>();
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
 
-    countertopGroups.forEach((group) => {
-      if (group.proxyName) materialSet.add(group.proxyName);
+    matrixMaterials.forEach((material) => materialSet.add(material));
+
+    groups.forEach((group) => {
       group.options.forEach((option) => {
-        if (option.name) materialSet.add(option.name);
         option.variants?.forEach((variant) => {
           if (!variant.enabled) return;
+
           const meta = getVariantMeta(variant);
-          if (meta.material) toStringArrayFromCsv(meta.material).forEach((v) => materialSet.add(v));
-          toStringArrayFromCsv(meta.color).forEach((v) => colorSet.add(v));
-          toStringArrayFromCsv(meta.look).forEach((v) => lookSet.add(v));
-          if (meta.hex) hexSet.add(meta.hex.trim());
+          const metaMaterial = meta.material;
+          const metaColor = meta.color;
+          const metaLook = meta.look;
+          const metaHex = meta.hex;
+
+          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)].filter(
+            Boolean,
+          ) as string[];
+
+          const matchesMatrix =
+            normalizedMatrixMaterials.size === 0 ||
+            candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
+
+          if (!matchesMatrix) return;
+
+          candidateMaterials.forEach((value) => {
+            if (normalizedMatrixMaterials.size === 0 || normalizedMatrixMaterials.has(normalizeMaterialToken(value))) {
+              materialSet.add(value);
+            }
+          });
+
+          toStringArrayFromCsv(metaColor).forEach((value) => colorSet.add(value));
+          toStringArrayFromCsv(metaLook).forEach((value) => lookSet.add(value));
+          if (metaHex) hexSet.add(metaHex.trim());
         });
       });
     });
 
     const toOptions = (set: Set<string>) =>
-      Array.from(set).sort((a, b) => a.localeCompare(b)).map((value) => ({ label: value, value }));
+      Array.from(set)
+        .sort((a, b) => a.localeCompare(b))
+        .map((value) => ({ label: value, value }));
 
-    return { materials: toOptions(materialSet), colors: toOptions(colorSet), looks: toOptions(lookSet), hex: toOptions(hexSet) };
-  }, [countertopGroups, getVariantMeta]);
-  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
-
-  const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
+    return {
+      materials: toOptions(materialSet),
+      colors: toOptions(colorSet),
+      looks: toOptions(lookSet),
+      hex: toOptions(hexSet),
+    };
+  }, [counterTopMaterials, defaultMaterialFilters, matrixMaterials, normalizedMatrixMaterials, getVariantMeta]);
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];
@@ -196,29 +302,29 @@ export const CountertopPage = () => {
 
   const allowedMaterials = ruleState.allowedMaterials;
 
-  const filteredMaterialFilters = useMemo(() => {
-    if (!allowedMaterials.size) return materialFilters;
+  const hasApiOptions = countertopOptionsFromApi.length > 0;
+  const hasAllowedOptionMatch = useMemo(() => {
+    if (!allowedMaterials.size) return true;
+    if (!hasApiOptions) return true;
 
-    return {
-      ...materialFilters,
-      materials: materialFilters.materials.filter((item) =>
-        allowedMaterials.has(normalizeMaterialToken(item.value)),
-      ),
-    };
-  }, [allowedMaterials, materialFilters]);
+    return countertopOptionsFromApi.some((option) => {
+      const materials = option.metadata?.materials ?? [];
+      return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
+    });
+  }, [allowedMaterials, countertopOptionsFromApi, hasApiOptions]);
+
+  const filteredMaterialFilters = useMemo(() => materialFilters, [materialFilters]);
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
 
-    if (!allowedMaterials.size) return filteredByUi;
+    if (!allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)) return filteredByUi;
 
     return filteredByUi.filter((option) => {
       const materials = option.metadata?.materials ?? [];
-      return materials.some((material) =>
-        getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)),
-      );
+      return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
     });
-  }, [allowedMaterials, countertopOptions, selectedFilter]);
+  }, [allowedMaterials, countertopOptions, hasAllowedOptionMatch, hasApiOptions, selectedFilter]);
 
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;
@@ -246,7 +352,10 @@ export const CountertopPage = () => {
 
       const [firstToken, ...restTokens] = label.trim().split(/\s+/);
       const materialTokens = firstToken
-        ? firstToken.split("/").map((token) => normalizeMaterialToken(token)).filter(Boolean)
+        ? firstToken
+            .split("/")
+            .map((token) => normalizeMaterialToken(token))
+            .filter(Boolean)
         : [];
       const isMaterialSpecific = materialTokens.some((token) => allowedMaterials.has(token));
 
@@ -333,6 +442,7 @@ export const CountertopPage = () => {
     });
 
     dispatch(setActiveCountertopColor(colorName));
+    dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
   const handleAddBasinStyle = (basinStyle: string) => {
@@ -347,13 +457,11 @@ export const CountertopPage = () => {
     (thickness: string) => {
       console.log("thickness prebuilt", thickness);
 
-      presetNames.forEach((productName) => {
-        setConfigBatch({ productType: productName }, { Thickness: thickness });
-      });
+      setConfigBatch({}, { Thickness: thickness });
 
       dispatch(setActiveCountertopThickness(thickness));
     },
-    [dispatch, presetNames],
+    [dispatch],
   );
 
   useEffect(() => {
@@ -423,17 +531,11 @@ export const CountertopPage = () => {
       id: "thickness",
       title: "Thickness",
       content: (
-        <>
-          {hasSelectedMaterial ? (
-            <ProductSwatchesGrid
-              data={filteredThicknessOptions}
-              onSelectChange={(value) => value && handleAddThickness(value)}
-              selectedValue={activeThickness}
-            />
-          ) : (
-            <div>Select a material first to enable thickness options.</div>
-          )}
-        </>
+        <ProductSwatchesGrid
+          data={filteredThicknessOptions}
+          onSelectChange={(value) => value && handleAddThickness(value)}
+          selectedValue={activeThickness}
+        />
       ),
     },
     {
