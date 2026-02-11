@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -7,6 +7,7 @@ import {
   getActiveCountertopThickness,
   getCountertopStyle,
   getProductsPresets,
+  getSelectedProducts,
   getSelectedDimensions,
   getSinkType,
 } from "@/entities/product/model/store/selectors.ts";
@@ -39,6 +40,8 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
@@ -47,12 +50,15 @@ import s from "./CountertopPage.module.scss";
 export const CountertopPage = () => {
   const dispatch = useAppDispatch();
   const presetsProducts = useAppSelector(getProductsPresets);
+  const selectedProducts = useAppSelector(getSelectedProducts);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const hasSelectedMaterial = Boolean(activeCountertopColor);
+  const [hasSinkBase, setHasSinkBase] = useState(false);
+  const isSinkDisabled = !hasSinkBase;
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -271,6 +277,48 @@ export const CountertopPage = () => {
     [filteredCountertopOptions],
   );
 
+  const containsSinkBase = useCallback((value: unknown, visited = new Set<unknown>()): boolean => {
+    if (!value || visited.has(value)) return false;
+
+    if (typeof value === "string") {
+      const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+      return normalized.includes("sinkbase");
+    }
+
+    if (typeof value !== "object") return false;
+
+    visited.add(value);
+
+    if (Array.isArray(value)) {
+      return value.some((entry) => containsSinkBase(entry, visited));
+    }
+
+    return Object.values(value as Record<string, unknown>).some((entry) => containsSinkBase(entry, visited));
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadConfigs = async () => {
+      const orderedIds = getOrderedProductIds(selectedProducts);
+      if (!orderedIds.length) {
+        if (isMounted) setHasSinkBase(false);
+        return;
+      }
+
+      const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
+      const hasSink = configs.some((config) => (config ? containsSinkBase(config) : false));
+
+      if (isMounted) setHasSinkBase(hasSink);
+    };
+
+    loadConfigs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProducts, containsSinkBase]);
+
   const presetNames = presetsProducts.map((i) => {
     return i.name;
   });
@@ -390,6 +438,8 @@ export const CountertopPage = () => {
         <div>Select a material first to enable basin styles.</div>
       ) : !activeThickness ? (
         <div>Select a thickness first to enable basin styles.</div>
+      ) : isSinkDisabled ? (
+        <div>Select a cabinet type with sink support to enable basin styles.</div>
       ) : (
         <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />
       ),

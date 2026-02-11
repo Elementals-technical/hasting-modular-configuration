@@ -203,7 +203,7 @@ export const SummaryPage = () => {
                 image: swatch.image,
               },
               price: "$—",
-              copyable: index === 0,
+              copyable: true,
             };
           })
         : productsPresets.length > 0
@@ -227,7 +227,7 @@ export const SummaryPage = () => {
                   image: swatch.image,
                 },
                 price: "$—",
-                copyable: index === 0,
+                copyable: true,
               };
             })
           : [
