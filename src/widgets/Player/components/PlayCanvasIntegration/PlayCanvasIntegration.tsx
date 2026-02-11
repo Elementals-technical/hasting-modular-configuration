@@ -35,6 +35,7 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
+import { getEntityScreenBounds } from "@/utils/functions/playcanvas/getEntityScreenBounds";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "024";
@@ -76,14 +77,66 @@ export const PlayCanvasIntegration = () => {
     [cabinetCatalog.typeCabinetRules],
   );
 
+  const DROPDOWN_OFFSET_X = 12;
+
   const showDropdownAt = useCallback((clientX: number, clientY: number) => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
-    const rect = iframeEl.getBoundingClientRect();
-    const x = rect.left + clientX;
-    const y = rect.top + clientY - 120;
+    const containerWidth = iframeEl.offsetWidth;
+    const containerHeight = iframeEl.offsetHeight;
+
+    // Estimated dropdown dimensions for boundary clamping
+    const dropdownWidth = 200;
+    const dropdownHeight = 300;
+
+    // clientX/clientY are relative to the iframe which fills the container.
+    // Shift right so the menu opens beside the click, not on top of it.
+    let x = clientX + DROPDOWN_OFFSET_X;
+    let y = clientY;
+
+    // Clamp so the dropdown stays within the container
+    if (x + dropdownWidth > containerWidth) {
+      x = clientX - dropdownWidth - DROPDOWN_OFFSET_X;
+    }
+    if (y + dropdownHeight > containerHeight) {
+      y = containerHeight - dropdownHeight;
+    }
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+
     setDropdownState({ visible: true, x, y });
+  }, []);
+
+  // Track pointer position so we know where the user clicked inside the iframe.
+  // We listen on both: postMessage from the iframe (preferred) and mousemove on
+  // the parent window (fallback — gives the last known position before the
+  // cursor enters the iframe).
+  useEffect(() => {
+    const iframeEl = containerRef.current;
+
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === "pointer-position") {
+        lastPointerPosRef.current = { x: e.data.x, y: e.data.y };
+      }
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!iframeEl) return;
+
+      const rect = iframeEl.getBoundingClientRect();
+      lastPointerPosRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
+    };
+
+    window.addEventListener("message", onMessage);
+    window.addEventListener("mousemove", onMouseMove);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.removeEventListener("mousemove", onMouseMove);
+    };
   }, []);
 
   // Bridge PlayCanvas Configurator API
@@ -344,15 +397,21 @@ export const PlayCanvasIntegration = () => {
           updateDimensionDataForProduct(firstSelected.name ?? "", config);
         })();
 
-        const lastPos = lastPointerPosRef.current;
+        // Position dropdown at the right edge of the product's screen bounds
+        const bounds = getEntityScreenBounds(firstSelected.name ?? "");
 
-        if (lastPos) {
-          showDropdownAt(lastPos.x, lastPos.y);
+        if (bounds) {
+          showDropdownAt(bounds.right, bounds.centerY);
         } else {
-          const iframeEl = containerRef.current;
-          if (iframeEl) {
-            const rect = iframeEl.getBoundingClientRect();
-            showDropdownAt(rect.width / 2, rect.height / 2);
+          // Fallback: use last known pointer position or center of iframe
+          const lastPos = lastPointerPosRef.current;
+          if (lastPos) {
+            showDropdownAt(lastPos.x, lastPos.y);
+          } else {
+            const iframeEl = containerRef.current;
+            if (iframeEl) {
+              showDropdownAt(iframeEl.offsetWidth / 2, iframeEl.offsetHeight / 2);
+            }
           }
         }
       } else {
