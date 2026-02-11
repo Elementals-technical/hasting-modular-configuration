@@ -20,7 +20,6 @@ import tiviImage from "@/shared/assets/images/jpeg/basin/Tivi.jpg";
 import tripImage from "@/shared/assets/images/jpeg/basin/Trip.jpg";
 import integratedImage from "@/shared/assets/images/png/countertop/Integrated.png";
 import vesselImage from "@/shared/assets/images/png/countertop/Vessel.png";
-import undermountImage from "@/shared/assets/images/png/countertop/Undermount.png";
 
 export const optionsMockData = [
   {
@@ -135,15 +134,6 @@ export const optionsMockData2 = [
     isShortDesc: false,
     metadata: {
       image: vesselImage,
-    },
-  },
-  {
-    id: 3,
-    title: "Undermount",
-    isAvailable: false,
-    isShortDesc: false,
-    metadata: {
-      image: undermountImage,
     },
   },
 ];
