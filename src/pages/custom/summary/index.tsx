@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
-import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -19,6 +19,7 @@ import {
   getGrainDirection,
   getHandleGrooveColor,
   getHandleGrooveColorSku,
+  getPriceBySku,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
@@ -33,6 +34,8 @@ import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { buildProductSku, buildCountertopSku, extractColorCode } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
+import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
+import { setActiveSkus, setSkuPrices } from "@/entities/product/model/store/priceStore";
 
 import s from "./SummaryPage.module.scss";
 
@@ -50,6 +53,31 @@ const resolveDividerImage = (selection?: string) => {
   if (!selection) return undefined;
   const match = dividersMockData.find((option) => option.title === selection);
   return match?.metadata?.image;
+};
+
+const parsePriceValue = (value: string | number) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const normalized = value.replace(/[^0-9.-]+/g, "");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
+  if (!data) return null;
+
+  const candidates = ["price", "Price", "total", "Total", "amount", "Amount", "value", "Value"];
+
+  for (const key of candidates) {
+    const value = data[key];
+    if (typeof value === "number") return parsePriceValue(value);
+    if (typeof value === "string" && value.trim()) return parsePriceValue(value);
+  }
+  return null;
+};
+
+const formatPrice = (value?: number | null) => {
+  if (typeof value !== "number") return "$—";
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
 
 type SummaryItem = {
@@ -84,8 +112,12 @@ const swatches = [
 ];
 
 export const CustomSummaryPage = () => {
+  const dispatch = useAppDispatch();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
+
+  const priceBySku = useAppSelector(getPriceBySku);
   const productsPresets = useAppSelector(getProductsPresets);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -125,6 +157,7 @@ export const CustomSummaryPage = () => {
       setTimeout(() => setCopiedId(null), 1500);
     });
   };
+  const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$—"), [priceBySku]);
 
   const materialLookup = useMemo(() => {
     const values = (dataMaterial as { materials?: any[] }).materials ?? [];
@@ -276,7 +309,7 @@ export const CustomSummaryPage = () => {
                 color: swatch.color,
                 image: swatch.image,
               },
-              price: "$—",
+              price: resolveItemPrice(sku),
               copyable: true,
             };
           })
@@ -334,7 +367,7 @@ export const CustomSummaryPage = () => {
                   color: swatch.color,
                   image: swatch.image,
                 },
-                price: "$—",
+                price: resolveItemPrice(sku),
                 copyable: true,
               };
             })
@@ -383,7 +416,7 @@ export const CustomSummaryPage = () => {
                     label: "Cabinet",
                     value: cabinetColor,
                   },
-                  price: "$—",
+                  price: resolveItemPrice(sku),
                   copyable: true,
                 };
               })(),
@@ -438,7 +471,7 @@ export const CustomSummaryPage = () => {
           color: countertopSwatch.color,
           image: countertopSwatch.image,
         },
-        price: "$—",
+        price: resolveItemPrice(countertopSkuLines[0]),
         copyable: true,
       },
       countertopStyle
@@ -455,7 +488,7 @@ export const CustomSummaryPage = () => {
         title: countertopSkuLabels[i + 1] ?? `Countertop Element`,
         subtitle: line,
         sku: line,
-        price: "$—",
+        price: resolveItemPrice(line),
         copyable: true,
       })),
     ].filter(Boolean) as SummaryItem[];
@@ -605,7 +638,65 @@ export const CustomSummaryPage = () => {
     towelBarOption,
     dividerStyle,
     resolveSwatch,
+    resolveItemPrice,
   ]);
+
+  const skuList = useMemo(() => {
+    const set = new Set<string>();
+
+    summarySections.forEach((section) => {
+      section.items.forEach((item) => {
+        if (item.sku) set.add(item.sku);
+      });
+    });
+
+    return Array.from(set);
+  }, [summarySections]);
+
+  const skuSequence = useMemo(() => {
+    const list: string[] = [];
+
+    summarySections.forEach((section) => {
+      section.items.forEach((item) => {
+        if (item.sku) list.push(item.sku);
+      });
+    });
+
+    return list;
+  }, [summarySections]);
+
+  useEffect(() => {
+    let isMounted = true;
+    dispatch(setActiveSkus(skuSequence));
+    const pending = skuList.filter((sku) => !priceBySku[sku]);
+    if (!pending.length) return undefined;
+
+    const loadPrices = async () => {
+      const next: Record<string, number> = {};
+
+      await Promise.all(
+        pending.map(async (sku) => {
+          try {
+            const data = await triggerPriceBySku(sku).unwrap();
+
+            const price = resolvePriceFromResponse(data);
+
+            if (typeof price === "number") next[sku] = price;
+          } catch {
+            // Ignore price errors; keep placeholder
+          }
+        }),
+      );
+
+      if (isMounted && Object.keys(next).length) dispatch(setSkuPrices(next));
+    };
+
+    loadPrices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch, skuList, skuSequence, priceBySku, triggerPriceBySku]);
 
   return (
     <div className={s.summaryPage}>

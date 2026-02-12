@@ -302,8 +302,13 @@ const productSlice = createSlice({
           // If current height is not valid for the new cabinet type, use the last available height
           // (typically the default/preferred height for that cabinet type)
           if (!isCurrentHeightValid) {
+            // const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
+            // const hasForcedHandle = currentHandle === "handle_pto" || currentHandle === "handle_urban_topcut" || currentHandle === "handle_urban_botcut";
+
+            // if (!hasForcedHandle) {
             const defaultHeight = cabinetRule.heights[cabinetRule.heights.length - 1];
             state.selectedDimensions.height = defaultHeight;
+            // }
           }
         }
       }
@@ -333,7 +338,9 @@ const productSlice = createSlice({
             ...action.payload,
             ...(preservedHandle && !action.payload.Handle ? { Handle: preservedHandle } : {}),
           }
-        : null;
+        : preservedHandle
+          ? { Handle: preservedHandle }
+          : null;
 
       const nextHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
 

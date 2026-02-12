@@ -2,7 +2,7 @@ import { baseApi } from "@/shared";
 
 import { routes } from "./routes";
 
-import type { ProductDatatable } from "./types";
+import type { ProductDatatable, ProductSkuPriceResponse } from "./types";
 
 export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -11,7 +11,17 @@ export const productApi = baseApi.injectEndpoints({
         url: routes.datatableById(id),
       }),
     }),
+    getProductPriceBySku: builder.query<ProductSkuPriceResponse, string>({
+      query: (sku) => ({
+        url: routes.priceBySku(sku),
+      }),
+    }),
   }),
 });
 
-export const { useGetProductDatatableQuery, useLazyGetProductDatatableQuery } = productApi;
+export const {
+  useGetProductDatatableQuery,
+  useLazyGetProductDatatableQuery,
+  useGetProductPriceBySkuQuery,
+  useLazyGetProductPriceBySkuQuery,
+} = productApi;

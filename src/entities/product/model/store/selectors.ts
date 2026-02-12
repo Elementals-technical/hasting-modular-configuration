@@ -76,6 +76,10 @@ export const getFaucetHolesAmount = (state: RootState) => state.rootStateUI.prod
 
 export const getFaucetHolesSpacing = (state: RootState) => state.rootStateUI.product.productOptions.FaucetHolesSpacing;
 
+export const getPriceBySku = (state: RootState) => state.rootStateUI.priceStore.skuPrices;
+
+export const getPriceTotal = (state: RootState) => state.rootStateUI.priceStore.total;
+
 // For attention popup in the prebuilt path.
 export const getHasPrebuiltSelections = (state: RootState) => {
   const options = state.rootStateUI.product.productOptions;

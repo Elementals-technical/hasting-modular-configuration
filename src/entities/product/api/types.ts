@@ -15,3 +15,5 @@ export type ProductDatatable = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type ProductSkuPriceResponse = Record<string, unknown>;
