@@ -72,13 +72,16 @@ export const sidePanelAvailabilityRule = ({
   const allowed = new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">();
 
   const heightToken = mapHeightToken(height);
-  if (!heightToken || !handleType || !cabinetType) {
+  if (!heightToken || !cabinetType) {
     return { allowed };
   }
 
-  const match = SIDE_PANEL_AVAILABILITY.find(
-    (row) => row.height === heightToken && row.handleType === handleType && row.cabinetType === cabinetType,
-  );
+  // OS cabinets don't have drawers, so handleType may be null — match by height+cabinetType only
+  const match = handleType
+    ? SIDE_PANEL_AVAILABILITY.find(
+        (row) => row.height === heightToken && row.handleType === handleType && row.cabinetType === cabinetType,
+      )
+    : SIDE_PANEL_AVAILABILITY.find((row) => row.height === heightToken && row.cabinetType === cabinetType);
 
   if (!match) {
     return { allowed };
