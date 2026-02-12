@@ -298,17 +298,17 @@ export const CabinetBuilderPage = () => {
           CabinetColor: preset.CabinetColor ?? cabinetColor,
           sinkType: preset.sinkType ?? sinkType,
           CountertopColor: preset.CountertopColor ?? countertopColor,
-          HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
+          // HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
         }));
 
         await removeAllProducts();
         await addPreset(mergedPresets);
       } else {
         await setConfigBatch(existingIds, {
-          CabinetColor: cabinetColor,
-          sinkType,
-          CountertopColor: countertopColor,
-          HandleGrooveColor: handleGrooveColor,
+          CabinetColor: "Pulpis Chiaro TKH",
+          sinkType: "Top_HPLPrisma",
+          CountertopColor: "Pietra Di Savoia Antracite TQ6",
+          // HandleGrooveColor: handleGrooveColor,
         });
       }
 
