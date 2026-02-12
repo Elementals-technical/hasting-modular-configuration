@@ -38,7 +38,7 @@ import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
 import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "026";
+const PLAYCANVAS_VERSION = "027";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
