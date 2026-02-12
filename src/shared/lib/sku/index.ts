@@ -1,5 +1,6 @@
 export { buildProductSku, type ProductSkuInput, type ElementMaterial } from "./buildProductSku";
 export { buildCountertopSku, type CountertopSkuInput } from "./buildCountertopSku";
+export { buildTowelBarSku, TOWEL_BAR_DEFAULTS, type TowelBarSkuInput } from "./buildTowelBarSku";
 export { extractColorCode } from "./extractColorCode";
 export {
   cabinetTypeSkuMap,
