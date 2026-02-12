@@ -350,20 +350,21 @@ export const CustomAccessoriesPage = () => {
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
-    if (!value) return;
+    if (!value || !activeCabinetId) return;
 
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const config = {
-      ...selectedProductConfig,
-      CabinetColor: getActiveCabinetColor,
-      SidePanel: value,
-    };
+    const isEdge = activeCabinetId === leftCabinetId || activeCabinetId === rightCabinetId;
 
-    const promises: Promise<unknown>[] = [];
-    if (leftCabinetId) promises.push(setConfigBatch({ cabinetId: leftCabinetId }, config));
+    if (!isEdge) return;
 
-    if (rightCabinetId) promises.push(setConfigBatch({ cabinetId: rightCabinetId }, config));
-    await Promise.all(promises);
+    await setConfigBatch(
+      { cabinetId: activeCabinetId },
+      {
+        ...selectedProductConfig,
+        CabinetColor: getActiveCabinetColor,
+        SidePanel: value,
+      },
+    );
 
     dispatch(setSidePanelsOption(value));
   };
