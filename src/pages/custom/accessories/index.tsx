@@ -29,6 +29,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
   placeDividerToSlot,
@@ -351,14 +352,18 @@ export const CustomAccessoriesPage = () => {
   const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
 
-    await setConfigBatch(
-      {},
-      {
-        ...selectedProductConfig,
-        CabinetColor: getActiveCabinetColor,
-        SidePanel: value,
-      },
-    );
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    const config = {
+      ...selectedProductConfig,
+      CabinetColor: getActiveCabinetColor,
+      SidePanel: value,
+    };
+
+    const promises: Promise<unknown>[] = [];
+    if (leftCabinetId) promises.push(setConfigBatch({ cabinetId: leftCabinetId }, config));
+
+    if (rightCabinetId) promises.push(setConfigBatch({ cabinetId: rightCabinetId }, config));
+    await Promise.all(promises);
 
     dispatch(setSidePanelsOption(value));
   };

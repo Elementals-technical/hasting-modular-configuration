@@ -25,6 +25,7 @@ import {
   selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -90,10 +91,17 @@ optionsListenerMiddleware.startListening({
 
     if (!currentSidePanels || currentSidePanels === "None") return;
 
-    if (availability.allowed.size === 0) {
-      await setConfigBatch({}, { SidePanel: "None" });
+    const resetSidePanels = async () => {
+      const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+      const promises: Promise<unknown>[] = [];
+      if (leftCabinetId) promises.push(setConfigBatch({ cabinetId: leftCabinetId }, { SidePanel: "None" }));
+      if (rightCabinetId) promises.push(setConfigBatch({ cabinetId: rightCabinetId }, { SidePanel: "None" }));
+      await Promise.all(promises);
       listenerApi.dispatch(setSidePanelsOption("None"));
+    };
 
+    if (availability.allowed.size === 0) {
+      await resetSidePanels();
       return;
     }
 
@@ -101,7 +109,6 @@ optionsListenerMiddleware.startListening({
       return;
     }
 
-    await setConfigBatch({}, { SidePanel: "None" });
-    listenerApi.dispatch(setSidePanelsOption("None"));
+    await resetSidePanels();
   },
 });
