@@ -63,15 +63,17 @@ export const selectSidePanelSpecs = createSelector(
 const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
   if (!cabinetType) return null;
 
-  if (cabinetType === "Open-Shelf" || cabinetType === "Side-Shelf" || cabinetType === "OS") return "OS";
+  const val = cabinetType.toLowerCase();
+
+  if (val.includes("open-shelf") || val.includes("side-shelf") || val === "os") return "OS";
 
   if (
-    cabinetType === "Sink-Base" ||
-    cabinetType === "Sink-Cabinet" ||
-    cabinetType === "Side-Cabinet" ||
-    cabinetType === "SB" ||
-    cabinetType === "SC" ||
-    cabinetType === "SBSC"
+    val.includes("sink-base") ||
+    val.includes("sink-cabinet") ||
+    val.includes("side-cabinet") ||
+    val === "sb" ||
+    val === "sc" ||
+    val === "sbsc"
   ) {
     return "SBSC";
   }
@@ -90,7 +92,11 @@ const mapDrawersToHandleType = (drawers?: string | null) => {
 export const selectSidePanelAvailability = createSelector(
   [getActiveCabinetType, getSelectedProductConfig, getSelectedDimensions, getSelectedSceneProduct],
   (cabinetType, selectedProductConfig, dimensions, selectedSceneProduct) => {
-    const configName = typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : null;
+    const configName =
+      (typeof selectedProductConfig?.name === "string" && selectedProductConfig.name) ||
+      (typeof selectedProductConfig?.ProductType === "string" && selectedProductConfig.ProductType) ||
+      (typeof selectedProductConfig?.productType === "string" && selectedProductConfig.productType) ||
+      null;
     const cabinetGroup = mapCabinetTypeToGroup(cabinetType ?? configName ?? selectedSceneProduct ?? null);
     const drawers = typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
     const handleType = mapDrawersToHandleType(drawers);
