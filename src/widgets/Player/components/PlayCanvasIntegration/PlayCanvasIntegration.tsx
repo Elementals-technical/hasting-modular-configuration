@@ -36,13 +36,13 @@ import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
 import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
+import { usePlayCanvasVersion } from "@/shared/hooks/usePlayCanvasVersion";
 
-// 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "026";
-const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
+  const playCanvasVersion = usePlayCanvasVersion();
+  const playCanvasSrc = `/HastingCabinetsParametrization/index.html?v=${playCanvasVersion}`;
   const [dropdownState, setDropdownState] = useState<{ visible: boolean; x: number; y: number }>({
     visible: false,
     x: 0,
@@ -511,7 +511,7 @@ export const PlayCanvasIntegration = () => {
         id="demo"
         width="100%"
         height="100%"
-        src={PLAYCANVAS_SRC}
+        src={playCanvasSrc}
         style={{
           width: "100%",
           height: "100%",
