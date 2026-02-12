@@ -363,10 +363,62 @@ export const CountertopPage = () => {
   }, [ruleState.allowedBasinTokens]);
 
   const filteredBasinOptions = useMemo(() => {
-    if (!allowedBasinTokens.size) return [];
+    if (!optionsMockData3.length) return [];
+
+    const normalizedStyle = activeCountertopStyle ? activeCountertopStyle.trim().toLowerCase() : "";
+    const allowedStyles = ruleState.allowedStyles;
     const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
 
+    const vesselSinkNames = new Set([
+      "Vessel_Blade11",
+      "Vessel_Blade18",
+      "Vessel_Frame",
+      "Vessel_Iris",
+      "Vessel_UrbanModo",
+      "Vessel_UrbanMorris",
+      "Vessel_Aquarius",
+    ]);
+
+    const integratedSinkNames = new Set([
+      "Top_HPLPrisma",
+      "Top_Glass_Nettuno",
+      "Top_HPLQuadra",
+      "Top_HPLCover",
+      "Top_HPLStrip",
+      "Top_HPL/Fenix_Cover_Gres",
+      "Top_HPL/Fenix_Prisma_Gres",
+      "Top_HPL/Fenix_Quadra_Gres",
+      "Top_HPL/Fenix_Strip_Gres",
+      "Fenix_Strip_Gres",
+      "Top_Glass_Ovale",
+      "Top_Mineralmarmo_Diamond",
+      "Top_Ocritech_Oly55",
+      "Top_Ocritech_Oly56",
+      "Top_Ocritech_Orion",
+      "Top_Ocritech_Quadra",
+      "Top_Ocritech_Rayo",
+      "Top_Ocritech_Roll",
+      "Top_Porcelain_Cover",
+      "Top_Porcelain_Prisma",
+      "Top_Porcelain_Quadra",
+      "Top_Porcelain_Strip",
+      "Top_Syntesi",
+      "Top_Tekorlux_Quadra",
+      "Top_Tekorlux_Rectangular",
+      "Top_Tekorlux_Ron",
+      "Top_Tekorlux_Trip",
+      "Top_Tekormud_Tivi",
+    ]);
+
+    if (normalizedStyle === "vessel") {
+      if (allowedStyles.size && !allowedStyles.has("vessel")) return [];
+      return optionsMockData3.filter((option) => vesselSinkNames.has(option.name ?? ""));
+    }
+
+    if (!allowedBasinTokens.size) return [];
+
     return optionsMockData3.filter((option) => {
+      if (!integratedSinkNames.has(option.name ?? "")) return false;
       const label = option.title ?? option.name ?? "";
       if (!label) return false;
 
@@ -389,7 +441,13 @@ export const CountertopPage = () => {
 
       return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [activeMaterialTokens, allowedBasinTokens, allowedMaterials]);
+  }, [
+    activeCountertopStyle,
+    activeMaterialTokens,
+    allowedBasinTokens,
+    allowedMaterials,
+    ruleState.allowedStyles,
+  ]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
