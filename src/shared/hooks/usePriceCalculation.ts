@@ -16,6 +16,7 @@ import {
   getSinkType,
   getDrawerPanelFluting,
   getGrainDirection,
+  getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
   getFaucetHolesAmount,
@@ -79,6 +80,8 @@ export function usePriceCalculation(flow: "prebuilt" | "custom") {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sinkType = useAppSelector(getSinkType);
 
+  const productsPresets = useAppSelector(getProductsPresets);
+
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
 
@@ -119,7 +122,10 @@ export function usePriceCalculation(flow: "prebuilt" | "custom") {
 
   // ── Guard: minimum data required ──────────────────────
 
-  const canCalculate = selectedDimensions.width !== null && cabinetColorSku !== "";
+  const hasPresets = productsPresets.length > 0;
+  const canCalculate = hasPresets
+    ? cabinetColorSku !== ""
+    : selectedDimensions.width !== null && cabinetColorSku !== "";
 
   // ── Build all current SKUs ────────────────────────────
 
@@ -127,29 +133,53 @@ export function usePriceCalculation(flow: "prebuilt" | "custom") {
     if (!canCalculate) return [];
 
     const skus: string[] = [];
-
-    // 1) Cabinet SKU
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-    const cabinetSku = buildProductSku({
-      cabinetType: activeCabinetType,
-      drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-      handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
-      pattern: drawerPanelFluting || null,
-      width: selectedDimensions.width,
-      height: selectedDimensions.height,
-      depth: selectedDimensions.depth,
-      grainDirection: grainDirection || null,
-      cab: cabinetColorSku
-        ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
-        : null,
-      hdl: handleMaterialSku
-        ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-        : null,
-      msp: null,
-      bkpl: null,
-    });
-    skus.push(cabinetSku);
+    // 1) Cabinet SKU(s) — from presets (prebuilt) or single config (custom)
+    if (hasPresets) {
+      productsPresets.forEach((preset) => {
+        const swatchValue = preset.CabinetColor ?? cabinetColor;
+        const sku = buildProductSku({
+          cabinetType: preset.name ?? activeCabinetType,
+          drawers: preset.Drawers ?? null,
+          handle: preset.Handle ?? null,
+          pattern: drawerPanelFluting || null,
+          width: preset.Width ?? null,
+          height: preset.Height ?? null,
+          depth: preset.Depth ?? null,
+          grainDirection: grainDirection || null,
+          cab: cabinetColorSku
+            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) }
+            : null,
+          hdl: handleMaterialSku
+            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            : null,
+          msp: null,
+          bkpl: null,
+        });
+        skus.push(sku);
+      });
+    } else {
+      const cabinetSku = buildProductSku({
+        cabinetType: activeCabinetType,
+        drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+        handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+        pattern: drawerPanelFluting || null,
+        width: selectedDimensions.width,
+        height: selectedDimensions.height,
+        depth: selectedDimensions.depth,
+        grainDirection: grainDirection || null,
+        cab: cabinetColorSku
+          ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
+          : null,
+        hdl: handleMaterialSku
+          ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+          : null,
+        msp: null,
+        bkpl: null,
+      });
+      skus.push(cabinetSku);
+    }
 
     // 2) Countertop SKUs
     const countertopSkuLines = buildCountertopSku({
@@ -199,6 +229,8 @@ export function usePriceCalculation(flow: "prebuilt" | "custom") {
     return skus;
   }, [
     canCalculate,
+    hasPresets,
+    productsPresets,
     activeCabinetType,
     selectedDimensions.width,
     selectedDimensions.height,
