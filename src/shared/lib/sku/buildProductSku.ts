@@ -13,7 +13,7 @@ export type ProductSkuInput = {
   pattern: string | null;
   grainDirection: string | null;
 
-  // ── Dimensions ──
+  // ── Dimensions (W-H-D order with suffixes: 60W-53H-50D) ──
   width: number | null;
   height: number | null;
   depth: number | null;
@@ -21,16 +21,12 @@ export type ProductSkuInput = {
   // ── Element triplets: ELEMENT-MATERIAL-COLOR ──
   /** CAB — Cabinet body */
   cab: ElementMaterial | null;
-  /** HDL — Handle */
+  /** HDL — Handle groove */
   hdl: ElementMaterial | null;
   /** MSP — Metal Side Panel */
   msp: ElementMaterial | null;
   /** BKPL — Back Panel */
   bkpl: ElementMaterial | null;
-  /** TBR — Towel Bar */
-  tbr: ElementMaterial | null;
-  /** TBL — Table / Countertop */
-  tbl: ElementMaterial | null;
 };
 
 const FALLBACK = "X";
@@ -51,13 +47,16 @@ function buildTriplet(code: string, el: ElementMaterial | null): string | null {
 }
 
 /**
- * Builds a single unified product SKU.
+ * Builds a single unified cabinet product SKU.
+ *
+ * Towel-bar accessories are **not** included here — they have their own
+ * full product SKUs built by `buildTowelBarSku`.
  *
  * Example output:
- * VAN-URSTD-SB/1D/PTO/NRF-60-50-53-CAB-LACG-37GL-HDL-GL-77GL-TBR-LACM-FEMT-TBL-LACM-FEMT
+ * VAN-URSTD-SB/1DW/PTO/X-60W-53H-50D-CAB-LACG-37-HDL-LACG-77
  */
 export function buildProductSku(input: ProductSkuInput): string {
-  // Config block
+  // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting/GrainDirection
   const type = resolve(cabinetTypeSkuMap, input.cabinetType);
   const drawers = resolve(drawerSkuMap, input.drawers);
   const handle = resolve(handleSkuMap, input.handle);
@@ -66,7 +65,7 @@ export function buildProductSku(input: ProductSkuInput): string {
 
   const configBlock = [type, drawers, handle, pattern, grain].join("/");
 
-  // Dimensions (plain numbers, no W/H/D suffixes)
+  // Dimensions: W-H-D order with suffixes
   const w = input.width != null ? `${input.width}W` : FALLBACK;
   const h = input.height != null ? `${input.height}H` : FALLBACK;
   const d = input.depth != null ? `${input.depth}D` : FALLBACK;
@@ -77,8 +76,6 @@ export function buildProductSku(input: ProductSkuInput): string {
     buildTriplet("HDL", input.hdl),
     buildTriplet("MSP", input.msp),
     buildTriplet("BKPL", input.bkpl),
-    buildTriplet("TBR", input.tbr),
-    buildTriplet("TBL", input.tbl),
   ].filter(Boolean) as string[];
 
   const elementsSuffix = triplets.length ? `-${triplets.join("-")}` : "";

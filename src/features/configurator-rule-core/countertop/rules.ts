@@ -73,14 +73,6 @@ export const buildCountertopRuleState = ({
   };
 
   matchingRules.forEach((rule) => {
-    if (width && rule.minSbCm && width < rule.minSbCm) {
-      return;
-    }
-
-    if (matchesActiveThickness(rule)) {
-      allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
-    }
-
     rule.topThicknesses.forEach((value) => {
       const parsed = parseThicknessValue(value);
       if (parsed !== null) allowedThicknesses.add(parsed);
@@ -89,12 +81,35 @@ export const buildCountertopRuleState = ({
 
   const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : null;
 
+  const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
+  const meetsMinSb = (rule: CountertopMatrixRule) => !width || !rule.minSbCm || width >= rule.minSbCm;
+
   matchingRules.forEach((rule) => {
-    if (width && rule.minSbCm && width < rule.minSbCm) return;
+    if (!matchesActiveThickness(rule)) return;
+
+    if (meetsMinSb(rule)) {
+      allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
+    }
+  });
+
+  // Countertop-style constraints (Vessel / Undermount) should not depend on basin rules.
+  matchingRules.forEach((rule) => {
+    if (!matchesActiveThickness(rule)) return;
+
+    if (isWidthValid(rule.maxVesselCm)) {
+      allowedStyles.add("vessel");
+    }
+
+    if (isWidthValid(rule.maxUndermountCm)) {
+      allowedStyles.add("undermount");
+    }
+  });
+
+  // Integrated rules are basin-driven.
+  matchingRules.forEach((rule) => {
+    if (!meetsMinSb(rule)) return;
     if (!matchesActiveThickness(rule)) return;
     if (activeBasinToken && normalizeBasinToken(rule.basinStyle) !== activeBasinToken) return;
-
-    const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
 
     if (isWidthValid(rule.maxIntegratedCm)) {
       if (
@@ -105,15 +120,9 @@ export const buildCountertopRuleState = ({
         allowedStyles.add("integrated");
       }
     }
+  });
 
-    if (isWidthValid(rule.maxVesselCm)) {
-      allowedStyles.add("vessel");
-    }
-
-    if (isWidthValid(rule.maxUndermountCm)) {
-      allowedStyles.add("undermount");
-    }
-
+  matchingRules.forEach((rule) => {
     rule.faucetHoles.forEach((value) => {
       if (value) allowedFaucetHoles.add(normalizeFaucetHoleToken(value));
     });

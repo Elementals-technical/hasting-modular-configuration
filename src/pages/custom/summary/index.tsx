@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
@@ -32,7 +32,13 @@ import {
 import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { buildProductSku, buildCountertopSku, extractColorCode } from "@/shared/lib/sku";
+import {
+  buildProductSku,
+  buildCountertopSku,
+  buildTowelBarSku,
+  TOWEL_BAR_DEFAULTS,
+  extractColorCode,
+} from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
 import { setActiveSkus, setSkuPrices } from "@/entities/product/model/store/priceStore";
@@ -182,15 +188,18 @@ export const CustomSummaryPage = () => {
     return map;
   }, []);
 
-  const resolveSwatch = (value: string) => {
-    const entry = materialLookup.get(value);
-    return {
-      color: entry?.hex ?? "#dcdcdc",
-      image: buildImageSrc(entry?.image),
-      label: entry?.label ?? value,
-      value,
-    };
-  };
+  const resolveSwatch = useCallback(
+    (value: string) => {
+      const entry = materialLookup.get(value);
+      return {
+        color: entry?.hex ?? "#dcdcdc",
+        image: buildImageSrc(entry?.image),
+        label: entry?.label ?? value,
+        value,
+      };
+    },
+    [materialLookup],
+  );
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
     id: 4,
@@ -266,10 +275,6 @@ export const CustomSummaryPage = () => {
             const productCabinetType = name ?? activeCabinetType;
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
-            const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
-            const hasTowel = towelBarOption && towelBarOption !== "None";
-            const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
-            const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
 
             const sku = buildProductSku({
               cabinetType: productCabinetType,
@@ -288,14 +293,6 @@ export const CustomSummaryPage = () => {
                 : null,
               msp: null,
               bkpl: null,
-              tbr:
-                hasTowel && hasRight && towelMaterialSku
-                  ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
-                  : null,
-              tbl:
-                hasTowel && hasLeft && towelMaterialSku
-                  ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
-                  : null,
             });
 
             return {
@@ -324,10 +321,6 @@ export const CustomSummaryPage = () => {
               const swatch = resolveSwatch(swatchValue);
 
               const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
-              const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
-              const hasTowel = towelBarOption && towelBarOption !== "None";
-              const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
-              const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
 
               const sku = buildProductSku({
                 cabinetType: preset.name ?? activeCabinetType,
@@ -346,14 +339,6 @@ export const CustomSummaryPage = () => {
                   : null,
                 msp: null,
                 bkpl: null,
-                tbr:
-                  hasTowel && hasRight && towelMaterialSku
-                    ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
-                    : null,
-                tbl:
-                  hasTowel && hasLeft && towelMaterialSku
-                    ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
-                    : null,
               });
 
               return {
@@ -374,10 +359,6 @@ export const CustomSummaryPage = () => {
           : [
               (() => {
                 const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
-                const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
-                const hasTowel = towelBarOption && towelBarOption !== "None";
-                const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
-                const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
 
                 const sku = buildProductSku({
                   cabinetType: activeCabinetType,
@@ -396,14 +377,6 @@ export const CustomSummaryPage = () => {
                     : null,
                   msp: null,
                   bkpl: null,
-                  tbr:
-                    hasTowel && hasRight && towelMaterialSku
-                      ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
-                      : null,
-                  tbl:
-                    hasTowel && hasLeft && towelMaterialSku
-                      ? { materialSku: towelMaterialSku, colorCode: extractColorCode(towelBarColor) }
-                      : null,
                 });
 
                 return {
@@ -495,6 +468,37 @@ export const CustomSummaryPage = () => {
 
     const dividerImage = buildImageSrc(resolveDividerImage(dividerStyle));
 
+    // Towel bar full product SKUs
+    const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
+    const towelColorCode = extractColorCode(towelBarColor);
+    const hasTowel = towelBarOption && towelBarOption !== "None";
+    const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
+    const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
+
+    const towelBarRightSku =
+      hasTowel && hasRight && towelMaterialSku
+        ? buildTowelBarSku({
+            side: "R",
+            width: TOWEL_BAR_DEFAULTS.width,
+            height: TOWEL_BAR_DEFAULTS.height,
+            depth: TOWEL_BAR_DEFAULTS.depth,
+            materialSku: towelMaterialSku,
+            colorCode: towelColorCode,
+          })
+        : null;
+
+    const towelBarLeftSku =
+      hasTowel && hasLeft && towelMaterialSku
+        ? buildTowelBarSku({
+            side: "L",
+            width: TOWEL_BAR_DEFAULTS.width,
+            height: TOWEL_BAR_DEFAULTS.height,
+            depth: TOWEL_BAR_DEFAULTS.depth,
+            materialSku: towelMaterialSku,
+            colorCode: towelColorCode,
+          })
+        : null;
+
     const accessoriesItems: SummaryItem[] = [
       sidePanelsOption
         ? {
@@ -521,12 +525,24 @@ export const CustomSummaryPage = () => {
             price: "$—",
           }
         : null,
-      towelBarOption
+      towelBarRightSku
         ? {
-            id: "accessories-towel-bar",
-            title: "Towel Bar",
-            subtitle: towelBarOption,
-            price: "$—",
+            id: "accessories-towel-bar-right",
+            title: "Towel Bar Right",
+            subtitle: towelBarRightSku,
+            sku: towelBarRightSku,
+            price: resolveItemPrice(towelBarRightSku),
+            copyable: true,
+          }
+        : null,
+      towelBarLeftSku
+        ? {
+            id: "accessories-towel-bar-left",
+            title: "Towel Bar Left",
+            subtitle: towelBarLeftSku,
+            sku: towelBarLeftSku,
+            price: resolveItemPrice(towelBarLeftSku),
+            copyable: true,
           }
         : null,
       {
@@ -665,11 +681,18 @@ export const CustomSummaryPage = () => {
     return list;
   }, [summarySections]);
 
+  const fetchedSkusRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     let isMounted = true;
+
     dispatch(setActiveSkus(skuSequence));
-    const pending = skuList.filter((sku) => !priceBySku[sku]);
+    const pending = skuList.filter((sku) => !fetchedSkusRef.current.has(sku));
+
     if (!pending.length) return undefined;
+
+    // Mark as requested immediately to prevent duplicate fetches
+    pending.forEach((sku) => fetchedSkusRef.current.add(sku));
 
     const loadPrices = async () => {
       const next: Record<string, number> = {};
@@ -696,7 +719,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, skuList, skuSequence, priceBySku, triggerPriceBySku]);
+  }, [dispatch, skuList, skuSequence, triggerPriceBySku]);
 
   return (
     <div className={s.summaryPage}>

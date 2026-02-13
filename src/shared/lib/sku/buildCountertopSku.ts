@@ -30,7 +30,7 @@ const resolve = (map: Record<string, string>, value: string | null): string => {
 
 /**
  * Returns an array of SKU lines for the countertop:
- *  [0] Top        — always present  CT-URFX-{STYLE}-{W}W-{THICKNESS}-{D}D-CT-{MatSKU}-{Color}
+ *  [0] Top        — always present  CT-URFX-{STYLE}-{W}W-{THICKNESS}H-{D}D-CT-{MatSKU}-{Color}
  *  [1] Basin      — if style is integrated or vessel  CT-URFX-{BASIN}
  *  [2] Faucet Qty — if faucet holes > 0  CT-URFX-FAHO/{QTY}
  *  [3] Faucet Spc — if faucet holes > 0  CT-URFX-FAHOS/{SPACING}
@@ -40,9 +40,10 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const styleValue = (input.style?.trim() || "plain").toLowerCase();
   const styleSku = resolve(countertopStyleSkuMap, styleValue);
 
-  // Dimensions
+  // Dimensions (W-H-D format; thickness uses H suffix)
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
-  const t = input.thickness?.trim() || FALLBACK;
+  const rawT = input.thickness?.trim();
+  const t = rawT ? `${rawT}H` : FALLBACK;
   const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
 
   // Material block: -CT-{MaterialSKU}-{ColorCode}

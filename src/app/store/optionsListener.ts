@@ -8,23 +8,14 @@ import {
   setDrawerPanelFluting,
   setGrainDirection,
   setActiveCabinetType,
-  setSelectedDimensions,
   setSelectedProductConfig,
-  setSidePanelsOption,
 } from "@/entities/product/model/store/slice";
-import {
-  getBookMatching,
-  getDrawerPanelFluting,
-  getGrainDirection,
-  getSidePanelsOption,
-} from "@/entities/product/model/store/selectors";
+import { getBookMatching, getDrawerPanelFluting, getGrainDirection } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
-  selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -81,27 +72,3 @@ optionsListenerMiddleware.startListening({
   },
 });
 
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setSelectedDimensions, setSelectedProductConfig, setActiveCabinetType),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const availability = selectSidePanelAvailability(state);
-    const currentSidePanels = getSidePanelsOption(state);
-
-    if (!currentSidePanels || currentSidePanels === "None") return;
-
-    if (availability.allowed.size === 0) {
-      await setConfigBatch({}, { SidePanel: "None" });
-      listenerApi.dispatch(setSidePanelsOption("None"));
-
-      return;
-    }
-
-    if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) {
-      return;
-    }
-
-    await setConfigBatch({}, { SidePanel: "None" });
-    listenerApi.dispatch(setSidePanelsOption("None"));
-  },
-});

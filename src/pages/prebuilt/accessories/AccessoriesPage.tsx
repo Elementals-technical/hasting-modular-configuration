@@ -7,11 +7,14 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import {
   getDividersOption,
   getDividersStyle,
+  getProductsPresets,
+  getSelectedSceneProduct,
   getSidePanelsOption,
   getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
+import { sidePanelAvailabilityRule } from "@/features/configurator-rule-core/options";
 import {
   setDividersOption,
   setDividersStyle,
@@ -23,6 +26,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -35,6 +39,8 @@ export const AccessoriesPage = () => {
   const dividerStyle = useAppSelector(getDividersStyle);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
+  const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const productsPresets = useAppSelector(getProductsPresets);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -42,7 +48,37 @@ export const AccessoriesPage = () => {
     serialize: true,
   });
 
-  const sidePanelAvailability = useAppSelector(selectSidePanelAvailability);
+  const selectorAvailability = useAppSelector(selectSidePanelAvailability);
+
+  const sidePanelAvailability = useMemo(() => {
+    if (selectorAvailability.allowed.size > 0) return selectorAvailability;
+
+    // Only fall back to presets when no cabinet has been clicked yet
+    if (selectedSceneProduct) return selectorAvailability;
+
+    const firstPreset = productsPresets[0];
+    if (!firstPreset) return selectorAvailability;
+
+    const name = firstPreset.name ?? null;
+    const cabinetType =
+      name === "Open-Shelf" || name === "Side-Shelf" || name === "OS"
+        ? "OS"
+        : name === "Sink-Base" || name === "Sink-Cabinet" || name === "Side-Cabinet" || name === "SB" || name === "SC"
+          ? "SBSC"
+          : null;
+
+    const drawers = firstPreset.Drawers ?? null;
+    const handleType =
+      drawers === "1D" || drawers === "1DWID" || drawers === "1" || drawers === "1+inner"
+        ? "1D"
+        : drawers === "2D" || drawers === "2"
+          ? "2D"
+          : null;
+
+    const height = firstPreset.Height ?? null;
+
+    return sidePanelAvailabilityRule({ height, handleType, cabinetType });
+  }, [selectorAvailability, productsPresets, selectedSceneProduct]);
 
   const sidePanelOptions = useMemo(() => {
     const allowed = new Set<string>(["None"]);
@@ -102,9 +138,15 @@ export const AccessoriesPage = () => {
   // Side panel invalidation is handled by global listener middleware.
 
   const handleSidePanelsChange = async (value: string) => {
-    if (!value) return;
+    if (!value || !selectedSceneProduct) return;
 
-    await setConfigBatch({}, { SidePanel: value });
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    const isEdge = selectedSceneProduct === leftCabinetId || selectedSceneProduct === rightCabinetId;
+
+    if (!isEdge) return;
+
+    await setConfigBatch({ cabinetId: selectedSceneProduct }, { SidePanel: value });
+
     dispatch(setSidePanelsOption(value));
   };
 

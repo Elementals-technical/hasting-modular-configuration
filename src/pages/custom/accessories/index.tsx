@@ -29,6 +29,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
   placeDividerToSlot,
@@ -349,10 +350,15 @@ export const CustomAccessoriesPage = () => {
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
-    if (!value) return;
+    if (!value || !activeCabinetId) return;
+
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    const isEdge = activeCabinetId === leftCabinetId || activeCabinetId === rightCabinetId;
+
+    if (!isEdge) return;
 
     await setConfigBatch(
-      {},
+      { cabinetId: activeCabinetId },
       {
         ...selectedProductConfig,
         CabinetColor: getActiveCabinetColor,
