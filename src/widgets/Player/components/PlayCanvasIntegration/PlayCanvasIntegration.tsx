@@ -29,7 +29,6 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
@@ -352,9 +351,6 @@ export const PlayCanvasIntegration = () => {
 
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
-
-    const dimensionTool = getDimensionTool();
-    dimensionTool?.setEnabled(true);
 
     selectTool.on("select", (selectedEntity) => {
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;

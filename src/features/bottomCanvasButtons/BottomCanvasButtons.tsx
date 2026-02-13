@@ -10,6 +10,7 @@ import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
@@ -58,6 +59,7 @@ import {
 import s from "./BottomCanvasButtons.module.scss";
 
 export const BottomCanvasButtons = () => {
+  const [isDimensionsEnabled, setIsDimensionsEnabled] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
   const [isArGenerating, setIsArGenerating] = useState(false);
@@ -355,7 +357,16 @@ export const BottomCanvasButtons = () => {
   return (
     <>
       <div className={s.bottomCanvasButtons}>
-        <BaseButton variant="ghost">
+        <BaseButton
+          variant="ghost"
+          className={isDimensionsEnabled ? s.activeButton : undefined}
+          onClick={() => {
+            const next = !isDimensionsEnabled;
+            const tool = getDimensionTool();
+            tool?.setEnabled(next);
+            setIsDimensionsEnabled(next);
+          }}
+        >
           <DimentionsIcon />
         </BaseButton>
 
