@@ -20,6 +20,15 @@ import tiviImage from "@/shared/assets/images/jpeg/basin/Tivi.jpg";
 import tripImage from "@/shared/assets/images/jpeg/basin/Trip.jpg";
 import integratedImage from "@/shared/assets/images/png/countertop/Integrated.png";
 import vesselImage from "@/shared/assets/images/png/countertop/Vessel.png";
+import vesselAquarius48Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Aquarius48.png";
+import vesselBlade11Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Blade11.png";
+import vesselBlade18Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Blade18.png";
+import vesselFrameImage from "@/shared/assets/images/png/countertop/vessel/Vessel_Frame.png";
+import vesselIrisImage from "@/shared/assets/images/png/countertop/vessel/Vessel_Iris.png";
+import vesselUrbanModoCoverImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Cover.png";
+import vesselUrbanModoFlatImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Flat.png";
+import vesselUrbanModoSeamImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Seam.png";
+import vesselUrbanMorrisImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanMorris.png";
 
 export const optionsMockData = [
   {
@@ -346,7 +355,7 @@ export const optionsMockData3 = [
     name: "Vessel_Blade11",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselBlade11Image,
     },
   },
   {
@@ -355,7 +364,7 @@ export const optionsMockData3 = [
     name: "Vessel_Blade18",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselBlade18Image,
     },
   },
   {
@@ -364,7 +373,7 @@ export const optionsMockData3 = [
     name: "Vessel_Frame",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselFrameImage,
     },
   },
   {
@@ -373,7 +382,7 @@ export const optionsMockData3 = [
     name: "Vessel_Iris",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselIrisImage,
     },
   },
   {
@@ -382,25 +391,52 @@ export const optionsMockData3 = [
     name: "Vessel_UrbanModo",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselUrbanModoFlatImage,
     },
   },
   {
     id: 3034,
-    title: "Vessel Urban Morris",
-    name: "Vessel_UrbanMorris",
+    title: "Vessel Urban Modo Flat",
+    name: "Vessel_UrbanModo_Flat",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselUrbanModoFlatImage,
     },
   },
   {
     id: 3035,
+    title: "Vessel Urban Modo Seam",
+    name: "Vessel_UrbanModo_Seam",
+    isShortDesc: false,
+    metadata: {
+      image: vesselUrbanModoSeamImage,
+    },
+  },
+  {
+    id: 3036,
+    title: "Vessel Urban Modo Cover",
+    name: "Vessel_UrbanModo_Cover",
+    isShortDesc: false,
+    metadata: {
+      image: vesselUrbanModoCoverImage,
+    },
+  },
+  {
+    id: 3037,
+    title: "Vessel Urban Morris",
+    name: "Vessel_UrbanMorris",
+    isShortDesc: false,
+    metadata: {
+      image: vesselUrbanMorrisImage,
+    },
+  },
+  {
+    id: 3038,
     title: "Vessel Aquarius",
     name: "Vessel_Aquarius",
     isShortDesc: false,
     metadata: {
-      image: vesselImage,
+      image: vesselAquarius48Image,
     },
   },
 ];
