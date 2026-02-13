@@ -257,8 +257,6 @@ export const SummaryPage = () => {
               width: width ?? null,
               height: height ?? null,
               depth: depth ?? null,
-              grainDirection:
-                typeof config.GrainDirection === "string" ? config.GrainDirection : grainDirection || null,
               cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
               hdl: handleMaterialSku
                 ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -305,7 +303,6 @@ export const SummaryPage = () => {
                 width: preset.Width ?? null,
                 height: preset.Height ?? null,
                 depth: preset.Depth ?? null,
-                grainDirection: grainDirection || null,
                 cab: cabinetColorSku
                   ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) }
                   : null,
@@ -343,7 +340,6 @@ export const SummaryPage = () => {
                   width: selectedDimensions.width,
                   height: selectedDimensions.height,
                   depth: selectedDimensions.depth,
-                  grainDirection: grainDirection || null,
                   cab: cabinetColorSku
                     ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
                     : null,

@@ -33,12 +33,6 @@ export const patternSkuMap: Record<string, string> = {
   None: "X",
 };
 
-/** Grain direction → SKU code */
-export const grainDirectionSkuMap: Record<string, string> = {
-  GrainHorizontal: "GH",
-  GrainVertical: "GV",
-};
-
 /** Side panel style → SKU code */
 export const sidePanelSkuMap: Record<string, string> = {
   None: "X",

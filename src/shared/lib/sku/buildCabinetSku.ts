@@ -2,7 +2,6 @@ import {
   cabinetTypeSkuMap,
   dividerSkuMap,
   drawerSkuMap,
-  grainDirectionSkuMap,
   handleSkuMap,
   patternSkuMap,
   sidePanelSkuMap,
@@ -17,7 +16,6 @@ export type CabinetSkuInput = {
   width: number | null;
   height: number | null;
   depth: number | null;
-  grainDirection: string | null;
   sidePanel: string | null;
   divider: string | null;
   towelBar: string | null;
@@ -36,14 +34,13 @@ const resolve = (map: Record<string, string>, value: string | null): string => {
 };
 
 export function buildCabinetSku(input: CabinetSkuInput): string {
-  // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting/GrainDirection
+  // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting
   const type = resolve(cabinetTypeSkuMap, input.cabinetType);
   const drawers = resolve(drawerSkuMap, input.drawers);
   const handle = resolve(handleSkuMap, input.handle);
   const pattern = resolve(patternSkuMap, input.pattern);
-  const grain = resolve(grainDirectionSkuMap, input.grainDirection);
 
-  const configBlock = [type, drawers, handle, pattern, grain].join("/");
+  const configBlock = [type, drawers, handle, pattern].join("/");
 
   // Dimensions
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;

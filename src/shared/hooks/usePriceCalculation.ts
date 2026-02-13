@@ -15,7 +15,6 @@ import {
   getCountertopStyle,
   getSinkType,
   getDrawerPanelFluting,
-  getGrainDirection,
   getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
@@ -83,7 +82,6 @@ export function usePriceCalculation() {
   const productsPresets = useAppSelector(getProductsPresets);
 
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const grainDirection = useAppSelector(getGrainDirection);
 
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
@@ -147,7 +145,6 @@ export function usePriceCalculation() {
           width: preset.Width ?? null,
           height: preset.Height ?? null,
           depth: preset.Depth ?? null,
-          grainDirection: grainDirection || null,
           cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -166,7 +163,6 @@ export function usePriceCalculation() {
         width: selectedDimensions.width,
         height: selectedDimensions.height,
         depth: selectedDimensions.depth,
-        grainDirection: grainDirection || null,
         cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
         hdl: handleMaterialSku
           ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -242,7 +238,6 @@ export function usePriceCalculation() {
     countertopStyle,
     sinkType,
     drawerPanelFluting,
-    grainDirection,
     towelBarOption,
     towelBarColor,
     faucetHolesAmount,

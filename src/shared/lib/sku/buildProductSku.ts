@@ -1,4 +1,4 @@
-import { cabinetTypeSkuMap, drawerSkuMap, grainDirectionSkuMap, handleSkuMap, patternSkuMap } from "./cabinetSkuMaps";
+import { cabinetTypeSkuMap, drawerSkuMap, handleSkuMap, patternSkuMap } from "./cabinetSkuMaps";
 
 export type ElementMaterial = {
   materialSku: string | null;
@@ -11,7 +11,6 @@ export type ProductSkuInput = {
   drawers: string | null;
   handle: string | null;
   pattern: string | null;
-  grainDirection: string | null;
 
   // ── Dimensions (W-H-D order with suffixes: 60W-53H-50D) ──
   width: number | null;
@@ -56,14 +55,13 @@ function buildTriplet(code: string, el: ElementMaterial | null): string | null {
  * VAN-URSTD-SB/1DW/PTO/X-60W-53H-50D-CAB-LACG-37-HDL-LACG-77
  */
 export function buildProductSku(input: ProductSkuInput): string {
-  // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting/GrainDirection
+  // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting
   const type = resolve(cabinetTypeSkuMap, input.cabinetType);
   const drawers = resolve(drawerSkuMap, input.drawers);
   const handle = resolve(handleSkuMap, input.handle);
   const pattern = resolve(patternSkuMap, input.pattern);
-  const grain = resolve(grainDirectionSkuMap, input.grainDirection);
 
-  const configBlock = [type, drawers, handle, pattern, grain].join("/");
+  const configBlock = [type, drawers, handle, pattern].join("/");
 
   // Dimensions: W-H-D order with suffixes
   const w = input.width != null ? `${input.width}W` : FALLBACK;

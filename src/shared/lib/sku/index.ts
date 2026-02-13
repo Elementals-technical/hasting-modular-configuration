@@ -7,7 +7,6 @@ export {
   drawerSkuMap,
   handleSkuMap,
   patternSkuMap,
-  grainDirectionSkuMap,
   sidePanelSkuMap,
   dividerSkuMap,
   towelBarSkuMap,
