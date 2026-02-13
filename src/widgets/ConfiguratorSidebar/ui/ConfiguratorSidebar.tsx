@@ -22,7 +22,7 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
   const activeStep = useAppSelector(getActiveStep);
   const dispatch = useAppDispatch();
 
-  usePriceCalculation(flow);
+  usePriceCalculation();
 
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
 

@@ -59,7 +59,7 @@ const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
 
 const DEBOUNCE_MS = 300;
 
-export function usePriceCalculation(flow: "prebuilt" | "custom") {
+export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
 
@@ -148,9 +148,7 @@ export function usePriceCalculation(flow: "prebuilt" | "custom") {
           height: preset.Height ?? null,
           depth: preset.Depth ?? null,
           grainDirection: grainDirection || null,
-          cab: cabinetColorSku
-            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) }
-            : null,
+          cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
             : null,
@@ -169,9 +167,7 @@ export function usePriceCalculation(flow: "prebuilt" | "custom") {
         height: selectedDimensions.height,
         depth: selectedDimensions.depth,
         grainDirection: grainDirection || null,
-        cab: cabinetColorSku
-          ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
-          : null,
+        cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
         hdl: handleMaterialSku
           ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
           : null,
