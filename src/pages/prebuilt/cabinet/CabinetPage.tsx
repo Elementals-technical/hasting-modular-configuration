@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -83,6 +83,14 @@ export const CabinetPage = () => {
       drawers,
     });
   }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial]);
+
+  useEffect(() => {
+    if (!flutingState.available && !activeDrawerPanelFluting) {
+      setConfigBatch({}, {
+        DrawerPanelFluting: "None",
+      });
+    }
+  }, [flutingState.available, activeDrawerPanelFluting]);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
