@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
@@ -32,7 +32,13 @@ import {
 import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { buildProductSku, buildCountertopSku, buildTowelBarSku, TOWEL_BAR_DEFAULTS, extractColorCode } from "@/shared/lib/sku";
+import {
+  buildProductSku,
+  buildCountertopSku,
+  buildTowelBarSku,
+  TOWEL_BAR_DEFAULTS,
+  extractColorCode,
+} from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
 import { setActiveSkus, setSkuPrices } from "@/entities/product/model/store/priceStore";
@@ -182,15 +188,18 @@ export const CustomSummaryPage = () => {
     return map;
   }, []);
 
-  const resolveSwatch = (value: string) => {
-    const entry = materialLookup.get(value);
-    return {
-      color: entry?.hex ?? "#dcdcdc",
-      image: buildImageSrc(entry?.image),
-      label: entry?.label ?? value,
-      value,
-    };
-  };
+  const resolveSwatch = useCallback(
+    (value: string) => {
+      const entry = materialLookup.get(value);
+      return {
+        color: entry?.hex ?? "#dcdcdc",
+        image: buildImageSrc(entry?.image),
+        label: entry?.label ?? value,
+        value,
+      };
+    },
+    [materialLookup],
+  );
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
     id: 4,
@@ -672,11 +681,18 @@ export const CustomSummaryPage = () => {
     return list;
   }, [summarySections]);
 
+  const fetchedSkusRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     let isMounted = true;
+
     dispatch(setActiveSkus(skuSequence));
-    const pending = skuList.filter((sku) => !priceBySku[sku]);
+    const pending = skuList.filter((sku) => !fetchedSkusRef.current.has(sku));
+
     if (!pending.length) return undefined;
+
+    // Mark as requested immediately to prevent duplicate fetches
+    pending.forEach((sku) => fetchedSkusRef.current.add(sku));
 
     const loadPrices = async () => {
       const next: Record<string, number> = {};
@@ -703,7 +719,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, skuList, skuSequence, priceBySku, triggerPriceBySku]);
+  }, [dispatch, skuList, skuSequence, triggerPriceBySku]);
 
   return (
     <div className={s.summaryPage}>
