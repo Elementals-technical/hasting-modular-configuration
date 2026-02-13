@@ -16,8 +16,8 @@ const SERIES = "URTWLBR";
 
 /** Side config codes */
 const sideConfigMap: Record<string, string> = {
-  L: "STBL",
-  R: "STBR",
+  L: "STB/L",
+  R: "STB/R",
 };
 
 /** Default towel-bar dimensions (current model: TowelBar40) */

@@ -27,11 +27,13 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getCabinetColor,
   getBookMatching,
+  getCabinetColorMaterial,
   getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
   getProductsPresets,
   getSelectedProductConfig,
+  getSelectedSceneProduct,
 } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
@@ -43,6 +45,7 @@ import {
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { flutingRule } from "@/features/configurator-rule-core/options";
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
@@ -53,9 +56,33 @@ export const CabinetPage = () => {
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const cabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
   const bookMatchingState = useAppSelector(selectBookMatchingState);
-  const flutingState = useAppSelector(selectFlutingState);
+  const selectorFlutingState = useAppSelector(selectFlutingState);
+
+  const flutingState = useMemo(() => {
+    if (selectorFlutingState.available) return selectorFlutingState;
+
+    // Trust the selector when user already clicked a cabinet in the scene
+    if (selectedSceneProduct) return selectorFlutingState;
+
+    // Fall back to presets for drawer info (same pattern as AccessoriesPage)
+    const firstPreset = presetsProducts[0];
+    if (!firstPreset) return selectorFlutingState;
+
+    const name = firstPreset.name ?? null;
+    const isOpenShelf = name === "Open-Shelf" || name === "Side-Shelf";
+    const drawers = firstPreset.Drawers ?? null;
+
+    return flutingRule({
+      targetPart: "CABINET",
+      isOpenShelf,
+      material: cabinetMaterial,
+      drawers,
+    });
+  }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial]);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
