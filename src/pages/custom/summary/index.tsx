@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -40,8 +40,6 @@ import {
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
-import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
-import { setActiveSkus, setSkuPrices } from "@/entities/product/model/store/priceStore";
 
 import s from "./SummaryPage.module.scss";
 
@@ -59,26 +57,6 @@ const resolveDividerImage = (selection?: string) => {
   if (!selection) return undefined;
   const match = dividersMockData.find((option) => option.title === selection);
   return match?.metadata?.image;
-};
-
-const parsePriceValue = (value: string | number) => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  const normalized = value.replace(/[^0-9.-]+/g, "");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
-  if (!data) return null;
-
-  const candidates = ["price", "Price", "total", "Total", "amount", "Amount", "value", "Value"];
-
-  for (const key of candidates) {
-    const value = data[key];
-    if (typeof value === "number") return parsePriceValue(value);
-    if (typeof value === "string" && value.trim()) return parsePriceValue(value);
-  }
-  return null;
 };
 
 const formatPrice = (value?: number | null) => {
@@ -118,10 +96,7 @@ const swatches = [
 ];
 
 export const CustomSummaryPage = () => {
-  const dispatch = useAppDispatch();
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
 
   const priceBySku = useAppSelector(getPriceBySku);
   const productsPresets = useAppSelector(getProductsPresets);
@@ -657,69 +632,8 @@ export const CustomSummaryPage = () => {
     resolveItemPrice,
   ]);
 
-  const skuList = useMemo(() => {
-    const set = new Set<string>();
-
-    summarySections.forEach((section) => {
-      section.items.forEach((item) => {
-        if (item.sku) set.add(item.sku);
-      });
-    });
-
-    return Array.from(set);
-  }, [summarySections]);
-
-  const skuSequence = useMemo(() => {
-    const list: string[] = [];
-
-    summarySections.forEach((section) => {
-      section.items.forEach((item) => {
-        if (item.sku) list.push(item.sku);
-      });
-    });
-
-    return list;
-  }, [summarySections]);
-
-  const fetchedSkusRef = useRef<Set<string>>(new Set());
-
-  useEffect(() => {
-    let isMounted = true;
-
-    dispatch(setActiveSkus(skuSequence));
-    const pending = skuList.filter((sku) => !fetchedSkusRef.current.has(sku));
-
-    if (!pending.length) return undefined;
-
-    // Mark as requested immediately to prevent duplicate fetches
-    pending.forEach((sku) => fetchedSkusRef.current.add(sku));
-
-    const loadPrices = async () => {
-      const next: Record<string, number> = {};
-
-      await Promise.all(
-        pending.map(async (sku) => {
-          try {
-            const data = await triggerPriceBySku(sku).unwrap();
-
-            const price = resolvePriceFromResponse(data);
-
-            if (typeof price === "number") next[sku] = price;
-          } catch {
-            // Ignore price errors; keep placeholder
-          }
-        }),
-      );
-
-      if (isMounted && Object.keys(next).length) dispatch(setSkuPrices(next));
-    };
-
-    loadPrices();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [dispatch, skuList, skuSequence, triggerPriceBySku]);
+  // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
+  // This page only reads from the store.
 
   return (
     <div className={s.summaryPage}>

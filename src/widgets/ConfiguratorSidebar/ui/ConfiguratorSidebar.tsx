@@ -7,6 +7,7 @@ import { setActiveStep } from "@/features/sidebar/model/store/slice";
 import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 
 import s from "./ConfiguratorSidebar.module.scss";
@@ -20,6 +21,8 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
   const activeStep = useAppSelector(getActiveStep);
   const dispatch = useAppDispatch();
+
+  usePriceCalculation(flow);
 
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
 
