@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -14,12 +14,14 @@ import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
   setCabinetColor,
+  setCabinetColorSku,
   setCabinetColorFinish,
   setCabinetColorMaterial,
   setBookMatching,
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
+  setHandleGrooveColorSku,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -42,6 +44,7 @@ import {
 } from "@/entities/product/model/store/derivedSelectors";
 import {
   filterOptionsByMaterialSelection,
+  groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -83,6 +86,14 @@ export const CabinetPage = () => {
       drawers,
     });
   }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial]);
+
+  useEffect(() => {
+    if (!flutingState.available && !activeDrawerPanelFluting) {
+      setConfigBatch({}, {
+        DrawerPanelFluting: "None",
+      });
+    }
+  }, [flutingState.available, activeDrawerPanelFluting]);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -205,15 +216,15 @@ export const CabinetPage = () => {
     [buildOptionsFromGroups, grooveColorGroups],
   );
 
-  const materialFilters = useMemo(
-    () => buildFiltersFromGroups(cabinetColorGroups),
-    [buildFiltersFromGroups, cabinetColorGroups],
-  );
+  const materialFilters = useMemo(() => {
+    const filters = buildFiltersFromGroups(cabinetColorGroups);
+    return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
+  }, [buildFiltersFromGroups, cabinetColorGroups]);
 
-  const grooveMaterialFilters = useMemo(
-    () => buildFiltersFromGroups(grooveColorGroups),
-    [buildFiltersFromGroups, grooveColorGroups],
-  );
+  const grooveMaterialFilters = useMemo(() => {
+    const filters = buildFiltersFromGroups(grooveColorGroups);
+    return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
+  }, [buildFiltersFromGroups, grooveColorGroups]);
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});
@@ -254,6 +265,18 @@ export const CabinetPage = () => {
   const findOptionByColorName = useCallback(
     (colorName: string) =>
       basePanelOptions.find((option) => option.metadata?.value === colorName || option.name === colorName),
+    [basePanelOptions],
+  );
+
+  const findSkuByColorName = useCallback(
+    (colorName: string): string => {
+      for (const option of basePanelOptions) {
+        if (option.metadata?.value === colorName || option.name === colorName) {
+          return option.metadata?.sku ?? "";
+        }
+      }
+      return "";
+    },
     [basePanelOptions],
   );
 
@@ -347,6 +370,7 @@ export const CabinetPage = () => {
     });
 
     dispatch(setCabinetColor(colorName));
+    dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
 
     const option = findOptionByColorName(colorName);
     const materialToken = resolveMaterialToken(option);
@@ -364,7 +388,6 @@ export const CabinetPage = () => {
     presetNames.forEach((productName) => {
       setConfigBatch({ productType: productName }, { HandleGrooveColor: colorName });
     });
-    
 
     dispatch(
       setSelectedProductConfig({
@@ -373,6 +396,7 @@ export const CabinetPage = () => {
       }),
     );
     dispatch(setHandleGrooveColor(colorName));
+    dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
   };
 
   const handleChangeDrawerPanelFluting = async (value: string) => {

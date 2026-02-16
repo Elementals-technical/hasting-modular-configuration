@@ -257,8 +257,6 @@ export const SummaryPage = () => {
               width: width ?? null,
               height: height ?? null,
               depth: depth ?? null,
-              grainDirection:
-                typeof config.GrainDirection === "string" ? config.GrainDirection : grainDirection || null,
               cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
               hdl: handleMaterialSku
                 ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -305,7 +303,6 @@ export const SummaryPage = () => {
                 width: preset.Width ?? null,
                 height: preset.Height ?? null,
                 depth: preset.Depth ?? null,
-                grainDirection: grainDirection || null,
                 cab: cabinetColorSku
                   ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) }
                   : null,
@@ -343,7 +340,6 @@ export const SummaryPage = () => {
                   width: selectedDimensions.width,
                   height: selectedDimensions.height,
                   depth: selectedDimensions.depth,
-                  grainDirection: grainDirection || null,
                   cab: cabinetColorSku
                     ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
                     : null,
@@ -379,7 +375,6 @@ export const SummaryPage = () => {
             id: "cabinet-option-drawer-panel",
             title: "Drawer Panel Fluting",
             subtitle: drawerPanelFluting,
-            price: "$—",
           }
         : null,
       grainDirection
@@ -387,7 +382,6 @@ export const SummaryPage = () => {
             id: "cabinet-option-grain-direction",
             title: "Grain Direction",
             subtitle: grainDirection,
-            price: "$—",
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -426,7 +420,6 @@ export const SummaryPage = () => {
             id: "countertop-style",
             title: "Countertop Style",
             subtitle: countertopStyle,
-            price: "$—",
           }
         : null,
       ...countertopSkuLines.slice(1).map((line, i) => ({
@@ -699,7 +692,9 @@ export const SummaryPage = () => {
                     </div>
                   )}
 
-                  <div className={s.price}>{item.price}</div>
+                  <div className={s.price}>
+                    {item.sku && item.price === "$—" ? <span className={s.priceSpinner} /> : item.price}
+                  </div>
                 </div>
               );
             })}

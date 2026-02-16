@@ -53,6 +53,5 @@ export const updateDimensionDataForProduct = (productId: string, config: Dimensi
   const existing = dimensionTool.getDimensionData?.(productId);
   if (areDimensionConfigsEqual(existing, nextConfig)) return;
 
-  dimensionTool.setEnabled(true);
   dimensionTool.setDimensionData(nextData);
 };

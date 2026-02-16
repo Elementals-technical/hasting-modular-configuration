@@ -1,3 +1,5 @@
+// import { cmToInches } from "./cmToInches";
+
 export type TowelBarSkuInput = {
   /** "L" (left) or "R" (right) */
   side: "L" | "R";
@@ -36,6 +38,10 @@ export function buildTowelBarSku(input: TowelBarSkuInput): string | null {
 
   const config = sideConfigMap[input.side];
 
+  // TODO: uncomment cmToInches when backend switches to inches
+  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  // const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
+  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
   const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;

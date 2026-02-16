@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { type PropsWithChildren } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { getPriceTotal } from "@/entities/product/model/store/selectors";
+import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -23,6 +23,8 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
 
   const priceTotal = useAppSelector(getPriceTotal);
+  const activeSkus = useAppSelector(getActiveSkus);
+  const isPriceLoading = useAppSelector(getPriceLoading);
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
@@ -35,7 +37,15 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
     <div className={s.bottomBar}>
       <div className={s.total}>
         <span>Total</span>
-        <span>{formatPrice(priceTotal)}</span>
+        <span>
+          {!activeSkus.length ? (
+            "$0.00"
+          ) : isPriceLoading ? (
+            <span className={s.priceSpinner} />
+          ) : (
+            formatPrice(priceTotal)
+          )}
+        </span>
       </div>
       <div className={s.nextStepWrapp}>
         <BaseButton onClick={handleNavigate} fullWidth={true}>

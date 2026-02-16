@@ -95,6 +95,23 @@ export const AccessoriesPage = () => {
     const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
     if (!groups.length) return [];
 
+    const allowedCodes = ["20B", "243", "2M6", "2M7", "203"];
+    const allowedLabels = ["Bianco", "Carbone", "Creta", "Copper", "Nero"];
+    const lacqueredMtMarkers = ["lacquered mt", "lacquer mt", "lacquered matte", "lacquer matte"];
+    const isAllowedTowelColor = (text: string | undefined | null) => {
+      if (!text) return false;
+      const normalized = text.toLowerCase();
+      return (
+        allowedCodes.some((code) => normalized.includes(code.toLowerCase())) ||
+        allowedLabels.some((label) => normalized.includes(label.toLowerCase()))
+      );
+    };
+    const isLacqueredMt = (text: string | undefined | null) => {
+      if (!text) return false;
+      const normalized = text.toLowerCase();
+      return lacqueredMtMarkers.some((marker) => normalized.includes(marker));
+    };
+
     return groups.flatMap((group) =>
       group.options.flatMap((option) =>
         option.variants
@@ -118,6 +135,10 @@ export const AccessoriesPage = () => {
                 hex,
               },
             };
+          })
+          .filter((item) => {
+            const haystack = `${item.title ?? ""} ${item.name ?? ""} ${item.metadata?.value ?? ""} ${item.desc ?? ""}`;
+            return isAllowedTowelColor(haystack) && isLacqueredMt(haystack);
           }),
       ),
     );

@@ -6,6 +6,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import {
   buildMaterialFilters,
   filterOptionsByMaterialSelection,
+  groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 
@@ -318,7 +319,10 @@ export const CustomCountertopPage = () => {
     });
   }, [allowedMaterials, countertopOptionsFromApi, hasApiOptions]);
 
-  const filteredMaterialFilters = useMemo(() => materialFilters, [materialFilters]);
+  const filteredMaterialFilters = useMemo(
+    () => ({ ...materialFilters, materials: groupMaterialsHierarchically(materialFilters.materials) }),
+    [materialFilters],
+  );
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);

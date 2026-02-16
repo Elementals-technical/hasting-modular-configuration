@@ -68,7 +68,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   z-index: 5;
 
-  min-width: 130px;
+  min-width: 164px;
 }
 
 .menuItem {
@@ -125,4 +125,36 @@
   color: #9ea0a5;
   font-size: 12px;
   margin-top: 2px;
+}
+
+.categoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.categoryItemExpanded {
+  font-weight: 500;
+  color: #9e5a3e;
+}
+
+.caret {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.caretUp {
+  transform: rotate(180deg);
+}
+
+.childrenGroup {
+  display: grid;
+  gap: 2px;
+  padding-left: 12px;
+}
+
+.childItem {
+  padding-left: 20px;
+  font-size: 12px;
 }

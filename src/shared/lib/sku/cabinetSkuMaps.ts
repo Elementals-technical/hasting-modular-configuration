@@ -1,6 +1,7 @@
 /** Cabinet Type → SKU code (Product Parameters Matrix → Cabinet) */
 export const cabinetTypeSkuMap: Record<string, string> = {
   "Sink-Base": "SB",
+  "Sink-Cabinet": "SC",
   "Side-Cabinet": "SC",
   "Open-Shelf": "OS",
   "Side-Shelf": "OSS",
@@ -31,12 +32,6 @@ export const patternSkuMap: Record<string, string> = {
   Cannette: "CRF",
   Rigatino: "RRF",
   None: "X",
-};
-
-/** Grain direction → SKU code */
-export const grainDirectionSkuMap: Record<string, string> = {
-  GrainHorizontal: "GH",
-  GrainVertical: "GV",
 };
 
 /** Side panel style → SKU code */

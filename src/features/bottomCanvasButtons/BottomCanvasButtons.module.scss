@@ -7,3 +7,16 @@
   align-items: center;
   gap: 12px;
 }
+
+.activeButton {
+  background: #ac5331;
+  border-color: #ac5331;
+
+  svg path {
+    stroke: #fff;
+  }
+
+  &:hover {
+    background: #ac5431ce;
+  }
+}

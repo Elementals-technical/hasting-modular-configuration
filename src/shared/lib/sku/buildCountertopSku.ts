@@ -1,3 +1,4 @@
+// import { cmToInches } from "./cmToInches";
 import { countertopStyleSkuMap, basinSkuMap } from "./countertopSkuMaps";
 
 export type CountertopSkuInput = {
@@ -40,7 +41,10 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const styleValue = (input.style?.trim() || "plain").toLowerCase();
   const styleSku = resolve(countertopStyleSkuMap, styleValue);
 
-  // Dimensions (W-H-D format; thickness uses H suffix)
+  // Dimensions: cm (W-H-D format; thickness uses H suffix)
+  // TODO: uncomment cmToInches when backend switches to inches
+  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
   const rawT = input.thickness?.trim();
   const t = rawT ? `${rawT}H` : FALLBACK;
