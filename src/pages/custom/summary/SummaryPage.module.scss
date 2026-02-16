@@ -200,8 +200,25 @@
   color: #555;
   font-size: 13px;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
+.priceSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #d1cec7;
+  border-top-color: #a85a3d;
+  border-radius: 50%;
+  animation: price-spin 0.9s linear infinite;
+}
+
+@keyframes price-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .sectionHint {
   color: #cd7c62;
   font-size: 12px;

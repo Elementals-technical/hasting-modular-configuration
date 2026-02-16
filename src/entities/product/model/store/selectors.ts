@@ -80,6 +80,8 @@ export const getPriceBySku = (state: RootState) => state.rootStateUI.priceStore.
 
 export const getPriceTotal = (state: RootState) => state.rootStateUI.priceStore.total;
 
+export const getActiveSkus = (state: RootState) => state.rootStateUI.priceStore.activeSkus;
+
 // For attention popup in the prebuilt path.
 export const getHasPrebuiltSelections = (state: RootState) => {
   const options = state.rootStateUI.product.productOptions;

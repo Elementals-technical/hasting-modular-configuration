@@ -28,3 +28,19 @@
   justify-content: space-between;
   border-right: 1px solid #e5e6ea;
 }
+
+.priceSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #d1cec7;
+  border-top-color: #a85a3d;
+  border-radius: 50%;
+  display: inline-block;
+  animation: price-spin 0.9s linear infinite;
+}
+
+@keyframes price-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

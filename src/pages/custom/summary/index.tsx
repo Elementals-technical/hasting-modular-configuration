@@ -685,7 +685,9 @@ export const CustomSummaryPage = () => {
                     </div>
                   )}
 
-                  <div className={s.price}>{item.price}</div>
+                  <div className={s.price}>
+                    {item.sku && item.price === "$—" ? <span className={s.priceSpinner} /> : item.price}
+                  </div>
                 </div>
               );
             })}

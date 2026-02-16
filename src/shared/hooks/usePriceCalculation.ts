@@ -122,9 +122,7 @@ export function usePriceCalculation() {
     (productName: string | null): string | null => {
       if (!productName) return null;
       const normalized = productName.toLowerCase();
-      const match = cabinetCatalog.typeCabinetRules.find((rule) =>
-        normalized.includes(rule.code.toLowerCase()),
-      );
+      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
       return match?.code ?? null;
     },
     [cabinetCatalog.typeCabinetRules],
@@ -142,7 +140,11 @@ export function usePriceCalculation() {
     });
 
     if (productsPresets.length > 0 || productIds.length === 0) {
-      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", productsPresets.length > 0 ? "has presets" : "no productIds");
+      console.log(
+        LOG_PREFIX,
+        "fetchSceneConfigs skipped:",
+        productsPresets.length > 0 ? "has presets" : "no productIds",
+      );
       setSceneConfigs([]);
       return;
     }
@@ -159,7 +161,12 @@ export function usePriceCalculation() {
         const cfg = raw as Record<string, unknown>;
         configs.push({
           id,
-          name: (typeof cfg.ProductType === "string" && cfg.ProductType) || (typeof cfg.productType === "string" && cfg.productType) || (typeof cfg.type === "string" && cfg.type) || (typeof cfg.name === "string" && cfg.name) || null,
+          name:
+            (typeof cfg.ProductType === "string" && cfg.ProductType) ||
+            (typeof cfg.productType === "string" && cfg.productType) ||
+            (typeof cfg.type === "string" && cfg.type) ||
+            (typeof cfg.name === "string" && cfg.name) ||
+            null,
           Width: typeof cfg.Width === "number" ? cfg.Width : null,
           Height: typeof cfg.Height === "number" ? cfg.Height : null,
           Depth: typeof cfg.Depth === "number" ? cfg.Depth : null,
@@ -236,11 +243,16 @@ export function usePriceCalculation() {
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-    console.log(LOG_PREFIX, "Building SKUs — path:", hasPresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK", {
-      presetsCount: productsPresets.length,
-      sceneConfigsCount: sceneConfigs.length,
-      productIds,
-    });
+    console.log(
+      LOG_PREFIX,
+      "Building SKUs — path:",
+      hasPresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK",
+      {
+        presetsCount: productsPresets.length,
+        sceneConfigsCount: sceneConfigs.length,
+        productIds,
+      },
+    );
 
     // 1) Cabinet SKU(s) — Resolver 1
     if (hasPresets) {
@@ -403,6 +415,7 @@ export function usePriceCalculation() {
     selectedDimensions.height,
     selectedDimensions.depth,
     selectedProductConfig,
+    productIds,
     cabinetColor,
     cabinetColorSku,
     handleGrooveColor,
