@@ -29,6 +29,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
 import {
   buildMaterialFilters,
   filterOptionsByMaterialSelection,
+  groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
@@ -333,7 +334,10 @@ export const CountertopPage = () => {
     });
   }, [allowedMaterials, countertopOptionsFromApi, hasApiOptions]);
 
-  const filteredMaterialFilters = useMemo(() => materialFilters, [materialFilters]);
+  const filteredMaterialFilters = useMemo(
+    () => ({ ...materialFilters, materials: groupMaterialsHierarchically(materialFilters.materials) }),
+    [materialFilters],
+  );
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);

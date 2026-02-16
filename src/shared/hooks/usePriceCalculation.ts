@@ -37,7 +37,7 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
-import { setActiveSkus, setSkuPrices } from "@/entities/product/model/store/priceStore";
+import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 // ── Price response helpers ──────────────────────────────
@@ -447,13 +447,18 @@ export function usePriceCalculation() {
   useEffect(() => {
     if (!canCalculate || !currentSkus.length) {
       dispatch(setActiveSkus([]));
+      dispatch(setPriceLoading(false));
       return;
     }
 
     dispatch(setActiveSkus(currentSkus));
 
     const pending = currentSkus.filter((sku) => !fetchedRef.current.has(sku));
-    if (!pending.length) return;
+    if (!pending.length) {
+      dispatch(setPriceLoading(false));
+      return;
+    }
+    dispatch(setPriceLoading(true));
 
     const timer = setTimeout(() => {
       let cancelled = false;
@@ -464,19 +469,23 @@ export function usePriceCalculation() {
       const loadPrices = async () => {
         const next: Record<string, number> = {};
 
-        await Promise.all(
-          pending.map(async (sku) => {
-            try {
-              console.log(LOG_PREFIX, "Fetching price for:", sku);
-              const data = await triggerPriceBySku(sku).unwrap();
-              console.log(LOG_PREFIX, "Response for", sku, "→", data);
-              const price = resolvePriceFromResponse(data);
-              if (typeof price === "number") next[sku] = price;
-            } catch (err) {
-              console.warn(LOG_PREFIX, "Price fetch failed for", sku, err);
-            }
-          }),
-        );
+        try {
+          await Promise.all(
+            pending.map(async (sku) => {
+              try {
+                console.log(LOG_PREFIX, "Fetching price for:", sku);
+                const data = await triggerPriceBySku(sku).unwrap();
+                console.log(LOG_PREFIX, "Response for", sku, "→", data);
+                const price = resolvePriceFromResponse(data);
+                if (typeof price === "number") next[sku] = price;
+              } catch (err) {
+                console.warn(LOG_PREFIX, "Price fetch failed for", sku, err);
+              }
+            }),
+          );
+        } finally {
+          if (!cancelled) dispatch(setPriceLoading(false));
+        }
 
         if (!cancelled && Object.keys(next).length) {
           console.log(LOG_PREFIX, "Resolved prices:", next);

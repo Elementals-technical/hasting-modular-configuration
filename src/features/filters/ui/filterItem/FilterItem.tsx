@@ -1,8 +1,14 @@
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 
+type FilterOption = {
+  label: string;
+  value: string;
+  children?: FilterOption[];
+};
+
 interface FilterItemI {
   label: string;
-  options: { label: string; value: string }[];
+  options: FilterOption[];
   value?: string | number;
   onSelect?: (value: string | number) => void;
 }

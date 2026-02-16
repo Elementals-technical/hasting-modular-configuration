@@ -23,13 +23,95 @@ type MaterialOption = {
   valuesArray: MaterialValue[];
 };
 
-type FilterOption = { label: string; value: string };
+type FilterOption = { label: string; value: string; children?: FilterOption[] };
 
 type FiltersSet = {
   materials: FilterOption[];
   colors: FilterOption[];
   looks: FilterOption[];
   hex: FilterOption[];
+};
+
+type MaterialGroup = {
+  label: string;
+  value: string;
+  childValues: string[];
+};
+
+const MATERIAL_HIERARCHY: MaterialGroup[] = [
+  {
+    label: "Solid-Surface",
+    value: "solid-surface",
+    childValues: ["Tekorlux", "Mineralmarmo", "Tekormud", "Tekorund", "Ocritech"],
+  },
+  {
+    label: "Glass",
+    value: "glass",
+    childValues: ["Glass MT", "Glass GL", "Glass"],
+  },
+];
+
+export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): FilterOption[] => {
+  const childToParent = new Map<string, MaterialGroup>();
+  for (const group of MATERIAL_HIERARCHY) {
+    for (const childValue of group.childValues) {
+      childToParent.set(childValue.toLowerCase(), group);
+    }
+  }
+
+  const topLevel: FilterOption[] = [];
+  const grouped = new Map<string, FilterOption[]>();
+
+  for (const option of flatOptions) {
+    const parentGroup = childToParent.get(option.value.toLowerCase());
+
+    if (parentGroup) {
+      const existing = grouped.get(parentGroup.value) ?? [];
+      existing.push(option);
+      grouped.set(parentGroup.value, existing);
+    } else {
+      topLevel.push(option);
+    }
+  }
+
+  const result: FilterOption[] = [];
+
+  const insertionOrder = MATERIAL_HIERARCHY.map((g) => g.value);
+  let hierarchyInserted = false;
+
+  for (const item of topLevel) {
+    if (!hierarchyInserted && item.label.localeCompare(MATERIAL_HIERARCHY[0]?.label ?? "") > 0) {
+      for (const groupValue of insertionOrder) {
+        const group = MATERIAL_HIERARCHY.find((g) => g.value === groupValue);
+        const children = grouped.get(groupValue);
+        if (group && children && children.length > 0) {
+          result.push({
+            label: group.label,
+            value: group.value,
+            children: children.sort((a, b) => a.label.localeCompare(b.label)),
+          });
+        }
+      }
+      hierarchyInserted = true;
+    }
+    result.push(item);
+  }
+
+  if (!hierarchyInserted) {
+    for (const groupValue of insertionOrder) {
+      const group = MATERIAL_HIERARCHY.find((g) => g.value === groupValue);
+      const children = grouped.get(groupValue);
+      if (group && children && children.length > 0) {
+        result.push({
+          label: group.label,
+          value: group.value,
+          children: children.sort((a, b) => a.label.localeCompare(b.label)),
+        });
+      }
+    }
+  }
+
+  return result;
 };
 
 export type MaterialFilterSelection = {

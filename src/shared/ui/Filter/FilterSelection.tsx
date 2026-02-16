@@ -11,6 +11,7 @@ type Option = {
   value: string | number;
   disabled?: boolean;
   reason?: string;
+  children?: Option[];
 };
 
 type FilterSelectionProps = {
@@ -21,9 +22,21 @@ type FilterSelectionProps = {
   className?: string;
 };
 
+const findOptionInTree = (options: Option[], targetValue: string | number): Option | undefined => {
+  for (const option of options) {
+    if (option.value === targetValue) return option;
+    if (option.children) {
+      const found = findOptionInTree(option.children, targetValue);
+      if (found) return found;
+    }
+  }
+  return undefined;
+};
+
 export const FilterSelection = ({ label = "Size", options = [], value, onSelect, className }: FilterSelectionProps) => {
   const [open, setOpen] = useState(false);
   const [internalValue, setInternalValue] = useState<string | number | undefined>(value);
+  const [expandedCategory, setExpandedCategory] = useState<string | number | null>(null);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,7 +47,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
   const selectedValue = value ?? internalValue;
 
   const selectedOption = useMemo(
-    () => options.find((option) => option.value === selectedValue),
+    () => findOptionInTree(options, selectedValue as string | number),
     [options, selectedValue],
   );
   const selectedLabel = selectedOption?.label ?? selectedOption?.name ?? label;
@@ -63,7 +76,10 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setExpandedCategory(null);
+      return;
+    }
 
     const buttonEl = buttonRef.current;
     if (!buttonEl) return;
@@ -86,7 +102,74 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
     setOpen(false);
   };
 
+  const handleCategoryClick = (option: Option) => {
+    if (option.children && option.children.length > 0) {
+      setExpandedCategory((prev) => (prev === option.value ? null : option.value));
+    } else {
+      handleSelect(option);
+    }
+  };
+
   const classes = className ? `${s.filterSelection} ${className}` : s.filterSelection;
+
+  const renderOption = (option: Option, isChild = false) => {
+    const hasChildren = option.children && option.children.length > 0;
+    const isExpanded = expandedCategory === option.value;
+    const isSelected = option.value === selectedValue;
+    const isDisabled = Boolean(option.disabled);
+    const optionLabel = option.label ?? option.name;
+    const optionTitle = isDisabled ? option.reason : undefined;
+
+    if (hasChildren) {
+      return (
+        <div key={option.value}>
+          <button
+            type="button"
+            className={[s.menuItem, s.categoryItem, isExpanded ? s.categoryItemExpanded : ""]
+              .filter(Boolean)
+              .join(" ")}
+            onClick={() => handleCategoryClick(option)}
+          >
+            <span className={s.optionLabel}>{optionLabel}</span>
+            <span className={`${s.caret} ${isExpanded ? s.caretUp : ""}`}>
+              <ArrowDown width="8" />
+            </span>
+          </button>
+
+          {isExpanded && (
+            <div className={s.childrenGroup}>
+              {option.children!.map((child) => renderOption(child, true))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const itemClasses = [
+      s.menuItem,
+      isChild ? s.childItem : "",
+      isSelected ? s.activeItem : "",
+      isDisabled ? s.disabledItem : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return (
+      <button
+        key={option.value}
+        type="button"
+        className={itemClasses}
+        role="option"
+        aria-selected={isSelected}
+        disabled={isDisabled}
+        title={optionTitle}
+        onClick={() => handleSelect(option)}
+      >
+        <span className={s.optionLabel}>{optionLabel}</span>
+        {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
+      </button>
+    );
+  };
 
   return (
     <div className={s.wrapper} ref={wrapperRef}>
@@ -114,32 +197,7 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
               ref={menuRef}
               data-filter-menu="true"
             >
-              {options.map((option) => {
-                const isSelected = option.value === selectedValue;
-                const isDisabled = Boolean(option.disabled);
-                const optionLabel = option.label ?? option.name;
-
-                const optionTitle = isDisabled ? option.reason : undefined;
-                const classes = [s.menuItem, isSelected ? s.activeItem : "", isDisabled ? s.disabledItem : ""]
-                  .filter(Boolean)
-                  .join(" ");
-
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={classes}
-                    role="option"
-                    aria-selected={isSelected}
-                    disabled={isDisabled}
-                    title={optionTitle}
-                    onClick={() => handleSelect(option)}
-                  >
-                    <span className={s.optionLabel}>{optionLabel}</span>
-                    {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
-                  </button>
-                );
-              })}
+              {options.map((option) => renderOption(option))}
             </div>,
             document.body,
           )

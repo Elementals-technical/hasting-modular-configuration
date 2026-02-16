@@ -42,6 +42,7 @@ import {
 } from "@/entities/product/model/store/derivedSelectors";
 import {
   filterOptionsByMaterialSelection,
+  groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -213,15 +214,15 @@ export const CabinetPage = () => {
     [buildOptionsFromGroups, grooveColorGroups],
   );
 
-  const materialFilters = useMemo(
-    () => buildFiltersFromGroups(cabinetColorGroups),
-    [buildFiltersFromGroups, cabinetColorGroups],
-  );
+  const materialFilters = useMemo(() => {
+    const filters = buildFiltersFromGroups(cabinetColorGroups);
+    return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
+  }, [buildFiltersFromGroups, cabinetColorGroups]);
 
-  const grooveMaterialFilters = useMemo(
-    () => buildFiltersFromGroups(grooveColorGroups),
-    [buildFiltersFromGroups, grooveColorGroups],
-  );
+  const grooveMaterialFilters = useMemo(() => {
+    const filters = buildFiltersFromGroups(grooveColorGroups);
+    return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
+  }, [buildFiltersFromGroups, grooveColorGroups]);
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});

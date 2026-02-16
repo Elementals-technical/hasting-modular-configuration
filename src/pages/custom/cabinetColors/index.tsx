@@ -9,7 +9,11 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
-import { filterOptionsByMaterialSelection, type MaterialFilterSelection } from "@/shared/constants/materialFilters";
+import {
+  filterOptionsByMaterialSelection,
+  groupMaterialsHierarchically,
+  type MaterialFilterSelection,
+} from "@/shared/constants/materialFilters";
 import { useGetConfiguratorQuery } from "@/entities";
 
 import { optionsMockData3, optionsMockData4 } from "./constants";
@@ -162,15 +166,15 @@ export const CustomCabinetColorsPage = () => {
     [getVariantMeta],
   );
 
-  const apiMaterialFilters = useMemo(
-    () => buildFiltersFromGroups(cabinetColorGroups),
-    [buildFiltersFromGroups, cabinetColorGroups],
-  );
+  const apiMaterialFilters = useMemo(() => {
+    const filters = buildFiltersFromGroups(cabinetColorGroups);
+    return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
+  }, [buildFiltersFromGroups, cabinetColorGroups]);
 
-  const grooveMaterialFilters = useMemo(
-    () => buildFiltersFromGroups(grooveColorGroups),
-    [buildFiltersFromGroups, grooveColorGroups],
-  );
+  const grooveMaterialFilters = useMemo(() => {
+    const filters = buildFiltersFromGroups(grooveColorGroups);
+    return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
+  }, [buildFiltersFromGroups, grooveColorGroups]);
 
   const buildOptionsFromGroups = useCallback(
     (groups: typeof cabinetColorGroups) => {

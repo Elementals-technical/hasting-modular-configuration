@@ -4,6 +4,7 @@ type PriceState = {
   skuPrices: Record<string, number>;
   activeSkus: string[];
   total: number;
+  isLoading: boolean;
 };
 
 const calculateTotal = (prices: Record<string, number>, activeSkus: string[]) =>
@@ -13,6 +14,7 @@ const initialState: PriceState = {
   skuPrices: {},
   activeSkus: [],
   total: 0,
+  isLoading: false,
 };
 
 const priceStoreSlice = createSlice({
@@ -22,10 +24,14 @@ const priceStoreSlice = createSlice({
     setActiveSkus(state, action: PayloadAction<string[]>) {
       state.activeSkus = action.payload;
       state.total = calculateTotal(state.skuPrices, state.activeSkus);
+      state.isLoading = state.activeSkus.length > 0;
     },
     setSkuPrices(state, action: PayloadAction<Record<string, number>>) {
       state.skuPrices = { ...state.skuPrices, ...action.payload };
       state.total = calculateTotal(state.skuPrices, state.activeSkus);
+    },
+    setPriceLoading(state, action: PayloadAction<boolean>) {
+      state.isLoading = action.payload;
     },
     resetPrices() {
       return initialState;
@@ -33,5 +39,5 @@ const priceStoreSlice = createSlice({
   },
 });
 
-export const { setActiveSkus, setSkuPrices, resetPrices } = priceStoreSlice.actions;
+export const { setActiveSkus, setSkuPrices, setPriceLoading, resetPrices } = priceStoreSlice.actions;
 export const priceStoreReducer = priceStoreSlice.reducer;
