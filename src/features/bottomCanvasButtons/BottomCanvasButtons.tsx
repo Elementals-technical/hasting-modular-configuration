@@ -99,8 +99,7 @@ export const BottomCanvasButtons = () => {
     dispatch(resetProducts());
 
     const defaultRule =
-      cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ??
-      cabinetCatalog.typeCabinetRules[0];
+      cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ?? cabinetCatalog.typeCabinetRules[0];
     if (!defaultRule) return;
 
     const defaultProductName = defaultRule?.code ?? "Sink-Base";

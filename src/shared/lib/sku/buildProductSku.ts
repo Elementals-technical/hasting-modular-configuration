@@ -1,4 +1,5 @@
 import { cabinetTypeSkuMap, drawerSkuMap, handleSkuMap, patternSkuMap } from "./cabinetSkuMaps";
+// import { cmToInches } from "./cmToInches";
 
 export type ElementMaterial = {
   materialSku: string | null;
@@ -12,7 +13,7 @@ export type ProductSkuInput = {
   handle: string | null;
   pattern: string | null;
 
-  // ── Dimensions (W-H-D order with suffixes: 60W-53H-50D) ──
+  // ── Dimensions in cm (converted to inches in the SKU) ──
   width: number | null;
   height: number | null;
   depth: number | null;
@@ -46,24 +47,19 @@ function buildTriplet(code: string, el: ElementMaterial | null): string | null {
 }
 
 /**
- * Builds a single unified cabinet product SKU.
- *
- * Towel-bar accessories are **not** included here — they have their own
- * full product SKUs built by `buildTowelBarSku`.
+ * Builds a single unified cabinet product SKU (dimensions in cm).
  *
  * Example output:
- * VAN-URSTD-SB/1DW/PTO/X-60W-53H-50D-CAB-LACG-37-HDL-LACG-77
+ * VAN-URSTD-SB/2DW/PTO/X-105W-50H-50D-HDL-3D
  */
 export function buildProductSku(input: ProductSkuInput): string {
-  // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting
-  const type = resolve(cabinetTypeSkuMap, input.cabinetType);
-  const drawers = resolve(drawerSkuMap, input.drawers);
-  const handle = resolve(handleSkuMap, input.handle);
-  const pattern = resolve(patternSkuMap, input.pattern);
+  const configBlock = buildConfigBlock(input);
 
-  const configBlock = [type, drawers, handle, pattern].join("/");
-
-  // Dimensions: W-H-D order with suffixes
+  // Dimensions: cm, W-H-D order with suffixes
+  // TODO: uncomment cmToInches when backend switches to inches
+  // const w = input.width != null ? `${cmToInches(input.width)}W` : FALLBACK;
+  // const h = input.height != null ? `${cmToInches(input.height)}H` : FALLBACK;
+  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : FALLBACK;
   const w = input.width != null ? `${input.width}W` : FALLBACK;
   const h = input.height != null ? `${input.height}H` : FALLBACK;
   const d = input.depth != null ? `${input.depth}D` : FALLBACK;
@@ -79,4 +75,29 @@ export function buildProductSku(input: ProductSkuInput): string {
   const elementsSuffix = triplets.length ? `-${triplets.join("-")}` : "";
 
   return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}${elementsSuffix}`;
+}
+
+/**
+ * Builds a base cabinet SKU with raw cm dimensions and no materials.
+ *
+ * Example output:
+ * VAN-URSTD-SB/2DW/UG/X-60W-56H-50D
+ */
+export function buildProductBaseSku(input: ProductSkuInput): string {
+  const configBlock = buildConfigBlock(input);
+
+  const w = input.width != null ? `${input.width}W` : FALLBACK;
+  const h = input.height != null ? `${input.height}H` : FALLBACK;
+  const d = input.depth != null ? `${input.depth}D` : FALLBACK;
+
+  return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}`;
+}
+
+function buildConfigBlock(input: ProductSkuInput): string {
+  const type = resolve(cabinetTypeSkuMap, input.cabinetType);
+  const drawers = resolve(drawerSkuMap, input.drawers);
+  const handle = resolve(handleSkuMap, input.handle);
+  const pattern = resolve(patternSkuMap, input.pattern);
+
+  return [type, drawers, handle, pattern].join("/");
 }

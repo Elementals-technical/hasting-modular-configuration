@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCabinetType,
   getSelectedDimensions,
   getSelectedProductConfig,
+  getSelectedProducts,
   getCabinetColor,
   getCabinetColorSku,
   getHandleGrooveColor,
@@ -20,17 +21,24 @@ import {
   getTowelBarColor,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
+  getSidePanelsOption,
+  getDividersStyle,
+  getCabinetCatalog,
 } from "@/entities/product/model/store/selectors";
 import {
   buildProductSku,
   buildCountertopSku,
   buildTowelBarSku,
+  buildSidePanelSku,
+  buildDividerSku,
   TOWEL_BAR_DEFAULTS,
+  SIDE_PANEL_WIDTH_CM,
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
 import { setActiveSkus, setSkuPrices } from "@/entities/product/model/store/priceStore";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -54,9 +62,23 @@ const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
   return null;
 };
 
+// ── Types ────────────────────────────────────────────────
+
+type ProductConfigSnapshot = {
+  id: string;
+  name: string | null;
+  Width: number | null;
+  Height: number | null;
+  Depth: number | null;
+  Drawers: string | null;
+  Handle: string | null;
+  CabinetColor: string | null;
+};
+
 // ── Hook ────────────────────────────────────────────────
 
 const DEBOUNCE_MS = 300;
+const LOG_PREFIX = "[SKU/Price]";
 
 export function usePriceCalculation() {
   const dispatch = useAppDispatch();
@@ -67,6 +89,7 @@ export function usePriceCalculation() {
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const productIds = useAppSelector(getSelectedProducts);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
@@ -88,6 +111,75 @@ export function usePriceCalculation() {
 
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
+
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const dividersStyle = useAppSelector(getDividersStyle);
+
+  const cabinetCatalog = useAppSelector(getCabinetCatalog);
+
+  /** Resolve a PlayCanvas product name (e.g. "SinkBase60") → catalog code ("Sink-Base") */
+  const resolveCabinetType = useCallback(
+    (productName: string | null): string | null => {
+      if (!productName) return null;
+      const normalized = productName.toLowerCase();
+      const match = cabinetCatalog.typeCabinetRules.find((rule) =>
+        normalized.includes(rule.code.toLowerCase()),
+      );
+      return match?.code ?? null;
+    },
+    [cabinetCatalog.typeCabinetRules],
+  );
+
+  // ── Fetch configs for all products on scene (custom path) ─
+
+  const [sceneConfigs, setSceneConfigs] = useState<ProductConfigSnapshot[]>([]);
+  const productIdsKey = productIds.join("|");
+
+  const fetchSceneConfigs = useCallback(async () => {
+    console.log(LOG_PREFIX, "fetchSceneConfigs called", {
+      productIds,
+      presetsCount: productsPresets.length,
+    });
+
+    if (productsPresets.length > 0 || productIds.length === 0) {
+      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", productsPresets.length > 0 ? "has presets" : "no productIds");
+      setSceneConfigs([]);
+      return;
+    }
+
+    const configs: ProductConfigSnapshot[] = [];
+
+    for (const id of productIds) {
+      try {
+        console.log(LOG_PREFIX, `Calling getConfig("${id}")...`);
+        const raw = await getConfig(id);
+        console.log(LOG_PREFIX, `getConfig("${id}") returned:`, raw);
+        if (!raw) continue;
+
+        const cfg = raw as Record<string, unknown>;
+        configs.push({
+          id,
+          name: (typeof cfg.ProductType === "string" && cfg.ProductType) || (typeof cfg.productType === "string" && cfg.productType) || (typeof cfg.type === "string" && cfg.type) || (typeof cfg.name === "string" && cfg.name) || null,
+          Width: typeof cfg.Width === "number" ? cfg.Width : null,
+          Height: typeof cfg.Height === "number" ? cfg.Height : null,
+          Depth: typeof cfg.Depth === "number" ? cfg.Depth : null,
+          Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
+          Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
+          CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
+        });
+      } catch (err) {
+        console.warn(LOG_PREFIX, "Failed to get config for product", id, err);
+      }
+    }
+
+    console.log(LOG_PREFIX, "Scene configs fetched:", configs.length, configs);
+    setSceneConfigs(configs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productIdsKey, productsPresets.length]);
+
+  useEffect(() => {
+    fetchSceneConfigs();
+  }, [fetchSceneConfigs]);
 
   // ── colorSkuByName from configurator API (cached by RTK Query) ─
 
@@ -121,9 +213,20 @@ export function usePriceCalculation() {
   // ── Guard: minimum data required ──────────────────────
 
   const hasPresets = productsPresets.length > 0;
+  const hasSceneConfigs = sceneConfigs.length > 0;
   const canCalculate = hasPresets
     ? cabinetColorSku !== ""
-    : selectedDimensions.width !== null && cabinetColorSku !== "";
+    : hasSceneConfigs
+      ? cabinetColorSku !== ""
+      : selectedDimensions.width !== null && cabinetColorSku !== "";
+
+  console.log(LOG_PREFIX, "canCalculate:", canCalculate, {
+    hasPresets,
+    hasSceneConfigs,
+    cabinetColorSku,
+    selectedDimensionsWidth: selectedDimensions.width,
+    productIdsCount: productIds.length,
+  });
 
   // ── Build all current SKUs ────────────────────────────
 
@@ -133,12 +236,21 @@ export function usePriceCalculation() {
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-    // 1) Cabinet SKU(s) — from presets (prebuilt) or single config (custom)
+    console.log(LOG_PREFIX, "Building SKUs — path:", hasPresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK", {
+      presetsCount: productsPresets.length,
+      sceneConfigsCount: sceneConfigs.length,
+      productIds,
+    });
+
+    // 1) Cabinet SKU(s) — Resolver 1
     if (hasPresets) {
+      // Prebuilt path: iterate presets
       productsPresets.forEach((preset) => {
+        const resolvedType = resolveCabinetType(preset.name ?? null) ?? activeCabinetType;
+        console.log(LOG_PREFIX, `Resolving cabinet type for preset "${preset.name}" → "${resolvedType}"`);
         const swatchValue = preset.CabinetColor ?? cabinetColor;
         const sku = buildProductSku({
-          cabinetType: preset.name ?? activeCabinetType,
+          cabinetType: resolvedType,
           drawers: preset.Drawers ?? null,
           handle: preset.Handle ?? null,
           pattern: drawerPanelFluting || null,
@@ -152,9 +264,35 @@ export function usePriceCalculation() {
           msp: null,
           bkpl: null,
         });
+        console.log(LOG_PREFIX, "Resolver 1 (Cabinet preset):", sku);
+        skus.push(sku);
+      });
+    } else if (sceneConfigs.length > 0) {
+      // Custom path: iterate all products from PlayCanvas
+      // Color is global (same for all products on scene) → always use Redux cabinetColor
+      sceneConfigs.forEach((cfg) => {
+        const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
+        console.log(LOG_PREFIX, `Resolving cabinet type for "${cfg.name}" (id: ${cfg.id}) → "${resolvedType}"`);
+        const sku = buildProductSku({
+          cabinetType: resolvedType,
+          drawers: cfg.Drawers,
+          handle: cfg.Handle,
+          pattern: drawerPanelFluting || null,
+          width: cfg.Width,
+          height: cfg.Height,
+          depth: cfg.Depth,
+          cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
+          hdl: handleMaterialSku
+            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            : null,
+          msp: null,
+          bkpl: null,
+        });
+        console.log(LOG_PREFIX, `Resolver 1 (Cabinet ${cfg.id}):`, sku);
         skus.push(sku);
       });
     } else {
+      // Fallback: single product from selectedProductConfig
       const cabinetSku = buildProductSku({
         cabinetType: activeCabinetType,
         drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
@@ -170,10 +308,11 @@ export function usePriceCalculation() {
         msp: null,
         bkpl: null,
       });
+      console.log(LOG_PREFIX, "Resolver 1 (Cabinet fallback):", cabinetSku);
       skus.push(cabinetSku);
     }
 
-    // 2) Countertop SKUs
+    // 2) Countertop SKUs — Resolver 2
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,
       width: selectedDimensions.width,
@@ -185,9 +324,10 @@ export function usePriceCalculation() {
       countertopMaterialSku: countertopColorSku || null,
       countertopColorCode: extractColorCode(countertopColor),
     });
+    countertopSkuLines.forEach((line) => console.log(LOG_PREFIX, "Resolver 2 (Countertop):", line));
     skus.push(...countertopSkuLines);
 
-    // 3) Towel bar SKUs
+    // 3) Towel bar SKUs — Resolver 3
     const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
     const towelColorCode = extractColorCode(towelBarColor);
     const hasTowel = towelBarOption && towelBarOption !== "None";
@@ -203,7 +343,10 @@ export function usePriceCalculation() {
         materialSku: towelMaterialSku,
         colorCode: towelColorCode,
       });
-      if (sku) skus.push(sku);
+      if (sku) {
+        console.log(LOG_PREFIX, "Resolver 3 (TowelBar R):", sku);
+        skus.push(sku);
+      }
     }
 
     if (hasTowel && hasLeft && towelMaterialSku) {
@@ -215,14 +358,46 @@ export function usePriceCalculation() {
         materialSku: towelMaterialSku,
         colorCode: towelColorCode,
       });
-      if (sku) skus.push(sku);
+      if (sku) {
+        console.log(LOG_PREFIX, "Resolver 3 (TowelBar L):", sku);
+        skus.push(sku);
+      }
     }
 
+    // 4) Accessories SKUs — Resolver 4 (Side panels + Dividers)
+
+    // Side panels
+    if (sidePanelsOption && sidePanelsOption !== "" && sidePanelsOption !== "None") {
+      const spSku = buildSidePanelSku({
+        panelType: sidePanelsOption,
+        width: SIDE_PANEL_WIDTH_CM,
+        height: selectedDimensions.height,
+        depth: selectedDimensions.depth,
+        handleMaterialSku: handleMaterialSku,
+        handleColorCode: extractColorCode(handleGrooveColor),
+      });
+      if (spSku) {
+        console.log(LOG_PREFIX, "Resolver 4 (SidePanel):", spSku);
+        skus.push(spSku);
+      }
+    }
+
+    // Dividers
+    if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
+      const divSku = buildDividerSku({ dividerStyle: dividersStyle });
+      if (divSku) {
+        console.log(LOG_PREFIX, "Resolver 4 (Divider):", divSku);
+        skus.push(divSku);
+      }
+    }
+
+    console.log(LOG_PREFIX, "All SKUs:", skus);
     return skus;
   }, [
     canCalculate,
     hasPresets,
     productsPresets,
+    sceneConfigs,
     activeCabinetType,
     selectedDimensions.width,
     selectedDimensions.height,
@@ -242,7 +417,10 @@ export function usePriceCalculation() {
     towelBarColor,
     faucetHolesAmount,
     faucetHolesSpacing,
+    sidePanelsOption,
+    dividersStyle,
     colorSkuByName,
+    resolveCabinetType,
   ]);
 
   // ── Stable key for the SKU list (avoid effect re-runs on same content) ─
@@ -276,16 +454,19 @@ export function usePriceCalculation() {
         await Promise.all(
           pending.map(async (sku) => {
             try {
+              console.log(LOG_PREFIX, "Fetching price for:", sku);
               const data = await triggerPriceBySku(sku).unwrap();
+              console.log(LOG_PREFIX, "Response for", sku, "→", data);
               const price = resolvePriceFromResponse(data);
               if (typeof price === "number") next[sku] = price;
-            } catch {
-              // Ignore price errors; keep placeholder
+            } catch (err) {
+              console.warn(LOG_PREFIX, "Price fetch failed for", sku, err);
             }
           }),
         );
 
         if (!cancelled && Object.keys(next).length) {
+          console.log(LOG_PREFIX, "Resolved prices:", next);
           dispatch(setSkuPrices(next));
         }
       };
@@ -300,4 +481,29 @@ export function usePriceCalculation() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skuKey, canCalculate, dispatch, triggerPriceBySku]);
+
+  // ── Re-fetch scene configs when product options change ─
+  // (user changed color, handle, etc. → configs on PlayCanvas are updated)
+
+  useEffect(() => {
+    if (hasPresets || productIds.length === 0) return;
+
+    const timer = setTimeout(() => {
+      // Clear price cache so new SKUs get fetched
+      fetchedRef.current.clear();
+      fetchSceneConfigs();
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    cabinetColor,
+    cabinetColorSku,
+    handleGrooveColor,
+    handleGrooveColorSku,
+    drawerPanelFluting,
+    selectedDimensions.width,
+    selectedDimensions.height,
+    selectedDimensions.depth,
+  ]);
 }

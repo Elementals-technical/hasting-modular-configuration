@@ -7,6 +7,7 @@ import {
   sidePanelSkuMap,
   towelBarSkuMap,
 } from "./cabinetSkuMaps";
+// import { cmToInches } from "./cmToInches";
 
 export type CabinetSkuInput = {
   cabinetType: string | null;
@@ -42,7 +43,11 @@ export function buildCabinetSku(input: CabinetSkuInput): string {
 
   const configBlock = [type, drawers, handle, pattern].join("/");
 
-  // Dimensions
+  // Dimensions: cm
+  // TODO: uncomment cmToInches when backend switches to inches
+  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  // const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
+  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
   const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
