@@ -375,7 +375,6 @@ export const CustomSummaryPage = () => {
             id: "cabinet-option-drawer-panel",
             title: "Drawer Panel Fluting",
             subtitle: drawerPanelFluting,
-            price: "$—",
           }
         : null,
       grainDirection
@@ -383,7 +382,6 @@ export const CustomSummaryPage = () => {
             id: "cabinet-option-grain-direction",
             title: "Grain Direction",
             subtitle: grainDirection,
-            price: "$—",
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -423,7 +421,6 @@ export const CustomSummaryPage = () => {
             id: "countertop-style",
             title: "Countertop Style",
             subtitle: countertopStyle,
-            price: "$—",
           }
         : null,
       // Additional countertop SKU lines (Basin, Faucet, Hole Cutout)
