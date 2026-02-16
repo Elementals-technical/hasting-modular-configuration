@@ -262,27 +262,33 @@ export function usePriceCalculation() {
       productsPresets.forEach((preset, idx) => {
         const name = preset.name ?? "";
 
-        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D
+        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
         if (name === "Open-Shelf") {
+          const swatchValue = preset.CabinetColor ?? cabinetColor;
           const sku = buildOpenShelfSku({
             width: preset.Width ?? null,
             height: preset.Height ?? null,
             depth: preset.Depth ?? null,
+            cabinetMaterialSku: cabinetColorSku || null,
+            cabinetColorCode: extractColorCode(swatchValue),
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Shelf preset #${idx}):`, sku);
           skus.push(sku);
           return;
         }
 
-        // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
+        // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D-CAB-{mat}-{color}
         if (name === "Side-Shelf") {
           // Determine side: if it's before the main cabinet → L, after → R
           const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const swatchValue = preset.CabinetColor ?? cabinetColor;
           const sku = buildOpenSideShelfSku({
             side,
             width: preset.Width ?? null,
             height: preset.Height ?? null,
             depth: preset.Depth ?? null,
+            cabinetMaterialSku: cabinetColorSku || null,
+            cabinetColorCode: extractColorCode(swatchValue),
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf preset #${idx}):`, sku);
           skus.push(sku);
@@ -320,9 +326,15 @@ export function usePriceCalculation() {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
         const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
 
-        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D
+        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
         if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
-          const sku = buildOpenShelfSku({ width: cfg.Width, height: cfg.Height, depth: cfg.Depth });
+          const sku = buildOpenShelfSku({
+            width: cfg.Width,
+            height: cfg.Height,
+            depth: cfg.Depth,
+            cabinetMaterialSku: cabinetColorSku || null,
+            cabinetColorCode: extractColorCode(cabinetColor),
+          });
           console.log(LOG_PREFIX, `Resolver 1 (Open Shelf ${cfg.id}):`, sku);
           skus.push(sku);
           return;
@@ -331,7 +343,14 @@ export function usePriceCalculation() {
         // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
         if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
           const side: "L" | "R" = idx === 0 ? "L" : "R";
-          const sku = buildOpenSideShelfSku({ side, width: cfg.Width, height: cfg.Height, depth: cfg.Depth });
+          const sku = buildOpenSideShelfSku({
+            side,
+            width: cfg.Width,
+            height: cfg.Height,
+            depth: cfg.Depth,
+            cabinetMaterialSku: cabinetColorSku || null,
+            cabinetColorCode: extractColorCode(cabinetColor),
+          });
           console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf ${cfg.id}):`, sku);
           skus.push(sku);
           return;

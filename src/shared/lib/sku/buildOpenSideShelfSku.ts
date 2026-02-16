@@ -7,6 +7,10 @@ export type OpenSideShelfSkuInput = {
   height: number | null;
   /** Depth in cm */
   depth: number | null;
+  /** Cabinet material SKU (e.g. "LACM", "HPL") */
+  cabinetMaterialSku: string | null;
+  /** Cabinet color code (e.g. "TKH", "FE") */
+  cabinetColorCode: string | null;
 };
 
 const FALLBACK = "X";
@@ -14,16 +18,24 @@ const FALLBACK = "X";
 /**
  * Builds a pricing SKU for an Open Side Shelf product (UROSS).
  *
- * Format: VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
+ * Format: VAN-UROSS-{L|R}-{W}W-{H}H-{D}D-CAB-{mat}-{color}
  *
  * Examples:
- *   VAN-UROSS-L-15W-50H-50D
- *   VAN-UROSS-R-15W-50H-46D
+ *   VAN-UROSS-L-15W-50H-50D-CAB-LACM-TKH
+ *   VAN-UROSS-R-15W-50H-46D-CAB-HPL-FE
  */
 export function buildOpenSideShelfSku(input: OpenSideShelfSkuInput): string {
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
   const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
 
-  return `VAN-UROSS-${input.side}-${w}-${h}-${d}`;
+  let sku = `VAN-UROSS-${input.side}-${w}-${h}-${d}`;
+
+  const mat = input.cabinetMaterialSku?.trim();
+  if (mat) {
+    const color = input.cabinetColorCode?.trim();
+    sku += color ? `-CAB-${mat}-${color}` : `-CAB-${mat}`;
+  }
+
+  return sku;
 }
