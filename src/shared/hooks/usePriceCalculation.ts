@@ -31,6 +31,8 @@ import {
   buildTowelBarSku,
   buildSidePanelSku,
   buildDividerSku,
+  buildOpenShelfSku,
+  buildOpenSideShelfSku,
   TOWEL_BAR_DEFAULTS,
   SIDE_PANEL_WIDTH_CM,
   extractColorCode,
@@ -254,11 +256,43 @@ export function usePriceCalculation() {
       },
     );
 
-    // 1) Cabinet SKU(s) — Resolver 1
+    // 1) Product SKU(s) — Resolver 1
     if (hasPresets) {
       // Prebuilt path: iterate presets
-      productsPresets.forEach((preset) => {
-        const resolvedType = resolveCabinetType(preset.name ?? null) ?? activeCabinetType;
+      productsPresets.forEach((preset, idx) => {
+        const name = preset.name ?? "";
+
+        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D
+        if (name === "Open-Shelf") {
+          const sku = buildOpenShelfSku({
+            width: preset.Width ?? null,
+            height: preset.Height ?? null,
+            depth: preset.Depth ?? null,
+          });
+          console.log(LOG_PREFIX, `Resolver 1 (Open Shelf preset #${idx}):`, sku);
+          skus.push(sku);
+          return;
+        }
+
+        // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
+        if (name === "Side-Shelf") {
+          // Determine side: if it's before the main cabinet → L, after → R
+          const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const sku = buildOpenSideShelfSku({
+            side,
+            width: preset.Width ?? null,
+            height: preset.Height ?? null,
+            depth: preset.Depth ?? null,
+          });
+          console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf preset #${idx}):`, sku);
+          skus.push(sku);
+          return;
+        }
+
+        // Standard cabinet → VAN-URSTD-{type}/...
+        // preset.name is already a catalog key ("Sink-Base", "Side-Cabinet", etc.)
+        const resolvedType = name || resolveCabinetType(name || null) || activeCabinetType;
+
         console.log(LOG_PREFIX, `Resolving cabinet type for preset "${preset.name}" → "${resolvedType}"`);
         const swatchValue = preset.CabinetColor ?? cabinetColor;
         const sku = buildProductSku({
@@ -282,8 +316,27 @@ export function usePriceCalculation() {
     } else if (sceneConfigs.length > 0) {
       // Custom path: iterate all products from PlayCanvas
       // Color is global (same for all products on scene) → always use Redux cabinetColor
-      sceneConfigs.forEach((cfg) => {
+      sceneConfigs.forEach((cfg, idx) => {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
+        const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+
+        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D
+        if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
+          const sku = buildOpenShelfSku({ width: cfg.Width, height: cfg.Height, depth: cfg.Depth });
+          console.log(LOG_PREFIX, `Resolver 1 (Open Shelf ${cfg.id}):`, sku);
+          skus.push(sku);
+          return;
+        }
+
+        // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
+        if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
+          const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const sku = buildOpenSideShelfSku({ side, width: cfg.Width, height: cfg.Height, depth: cfg.Depth });
+          console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf ${cfg.id}):`, sku);
+          skus.push(sku);
+          return;
+        }
+
         console.log(LOG_PREFIX, `Resolving cabinet type for "${cfg.name}" (id: ${cfg.id}) → "${resolvedType}"`);
         const sku = buildProductSku({
           cabinetType: resolvedType,
@@ -324,22 +377,62 @@ export function usePriceCalculation() {
       skus.push(cabinetSku);
     }
 
-    // 2) Countertop SKUs — Resolver 2
-    const countertopSkuLines = buildCountertopSku({
-      style: countertopStyle || null,
-      width: selectedDimensions.width,
-      depth: selectedDimensions.depth,
-      thickness: countertopThickness || null,
-      basinType: sinkType || null,
-      faucetHolesAmount: faucetHolesAmount || null,
-      faucetHolesSpacing: faucetHolesSpacing || null,
-      countertopMaterialSku: countertopColorSku || null,
-      countertopColorCode: extractColorCode(countertopColor),
-    });
-    countertopSkuLines.forEach((line) => console.log(LOG_PREFIX, "Resolver 2 (Countertop):", line));
-    skus.push(...countertopSkuLines);
+    // ── Collect per-product dimension sets for resolvers 2-4 ──
+    // Prebuilt: each preset has its own W/H/D + sinkType
+    // Custom:   each sceneConfig has its own W/H/D (sinkType global)
+    // Fallback: single selectedDimensions
+    type ProductDims = { width: number | null; height: number | null; depth: number | null; sinkType: string | null };
+    let productDimsList: ProductDims[];
 
-    // 3) Towel bar SKUs — Resolver 3
+    if (hasPresets) {
+      productDimsList = productsPresets.map((p) => ({
+        width: p.Width ?? null,
+        height: p.Height ?? null,
+        depth: p.Depth ?? null,
+        sinkType: p.sinkType ?? sinkType ?? null,
+      }));
+    } else if (sceneConfigs.length > 0) {
+      productDimsList = sceneConfigs.map((cfg) => ({
+        width: cfg.Width,
+        height: cfg.Height,
+        depth: cfg.Depth,
+        sinkType: sinkType || null,
+      }));
+    } else {
+      productDimsList = [
+        {
+          width: selectedDimensions.width,
+          height: selectedDimensions.height,
+          depth: selectedDimensions.depth,
+          sinkType: sinkType || null,
+        },
+      ];
+    }
+
+    // 2) Countertop SKUs — Resolver 2 (per product)
+    const seenCountertopSkus = new Set<string>();
+    productDimsList.forEach((dims, idx) => {
+      const countertopSkuLines = buildCountertopSku({
+        style: countertopStyle || null,
+        width: dims.width,
+        depth: dims.depth,
+        thickness: countertopThickness || null,
+        basinType: dims.sinkType,
+        faucetHolesAmount: faucetHolesAmount || null,
+        faucetHolesSpacing: faucetHolesSpacing || null,
+        countertopMaterialSku: countertopColorSku || null,
+        countertopColorCode: extractColorCode(countertopColor),
+      });
+      countertopSkuLines.forEach((line) => {
+        if (!seenCountertopSkus.has(line)) {
+          seenCountertopSkus.add(line);
+          console.log(LOG_PREFIX, `Resolver 2 (Countertop #${idx}):`, line);
+          skus.push(line);
+        }
+      });
+    });
+
+    // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
     const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
     const towelColorCode = extractColorCode(towelBarColor);
     const hasTowel = towelBarOption && towelBarOption !== "None";
@@ -376,25 +469,29 @@ export function usePriceCalculation() {
       }
     }
 
-    // 4) Accessories SKUs — Resolver 4 (Side panels + Dividers)
+    // 4) Accessories SKUs — Resolver 4 (Side panels per product + Dividers global)
 
-    // Side panels
+    // Side panels — use per-product height/depth
     if (sidePanelsOption && sidePanelsOption !== "" && sidePanelsOption !== "None") {
-      const spSku = buildSidePanelSku({
-        panelType: sidePanelsOption,
-        width: SIDE_PANEL_WIDTH_CM,
-        height: selectedDimensions.height,
-        depth: selectedDimensions.depth,
-        handleMaterialSku: handleMaterialSku,
-        handleColorCode: extractColorCode(handleGrooveColor),
+      const seenSpSkus = new Set<string>();
+      productDimsList.forEach((dims, idx) => {
+        const spSku = buildSidePanelSku({
+          panelType: sidePanelsOption,
+          width: SIDE_PANEL_WIDTH_CM,
+          height: dims.height,
+          depth: dims.depth,
+          handleMaterialSku: handleMaterialSku,
+          handleColorCode: extractColorCode(handleGrooveColor),
+        });
+        if (spSku && !seenSpSkus.has(spSku)) {
+          seenSpSkus.add(spSku);
+          console.log(LOG_PREFIX, `Resolver 4 (SidePanel #${idx}):`, spSku);
+          skus.push(spSku);
+        }
       });
-      if (spSku) {
-        console.log(LOG_PREFIX, "Resolver 4 (SidePanel):", spSku);
-        skus.push(spSku);
-      }
     }
 
-    // Dividers
+    // Dividers (no dimensions — global)
     if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
       const divSku = buildDividerSku({ dividerStyle: dividersStyle });
       if (divSku) {

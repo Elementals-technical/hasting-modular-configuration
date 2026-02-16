@@ -14,12 +14,14 @@ import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
   setCabinetColor,
+  setCabinetColorSku,
   setCabinetColorFinish,
   setCabinetColorMaterial,
   setBookMatching,
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
+  setHandleGrooveColorSku,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -266,6 +268,18 @@ export const CabinetPage = () => {
     [basePanelOptions],
   );
 
+  const findSkuByColorName = useCallback(
+    (colorName: string): string => {
+      for (const option of basePanelOptions) {
+        if (option.metadata?.value === colorName || option.name === colorName) {
+          return option.metadata?.sku ?? "";
+        }
+      }
+      return "";
+    },
+    [basePanelOptions],
+  );
+
   const resolveMaterialToken = useCallback((option?: { metadata?: { materials?: string[]; sku?: string } }) => {
     const sku = option?.metadata?.sku?.trim().toUpperCase();
     if (sku === "ESS") return "Essenze";
@@ -356,6 +370,7 @@ export const CabinetPage = () => {
     });
 
     dispatch(setCabinetColor(colorName));
+    dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
 
     const option = findOptionByColorName(colorName);
     const materialToken = resolveMaterialToken(option);
@@ -373,7 +388,6 @@ export const CabinetPage = () => {
     presetNames.forEach((productName) => {
       setConfigBatch({ productType: productName }, { HandleGrooveColor: colorName });
     });
-    
 
     dispatch(
       setSelectedProductConfig({
@@ -382,6 +396,7 @@ export const CabinetPage = () => {
       }),
     );
     dispatch(setHandleGrooveColor(colorName));
+    dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
   };
 
   const handleChangeDrawerPanelFluting = async (value: string) => {
