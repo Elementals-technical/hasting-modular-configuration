@@ -1,6 +1,7 @@
 /** Cabinet Type → SKU code (Product Parameters Matrix → Cabinet) */
 export const cabinetTypeSkuMap: Record<string, string> = {
   "Sink-Base": "SB",
+  "Sink-Cabinet": "SC",
   "Side-Cabinet": "SC",
   "Open-Shelf": "OS",
   "Side-Shelf": "OSS",

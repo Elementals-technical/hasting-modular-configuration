@@ -38,6 +38,27 @@ const resolve = (map: Record<string, string>, value: string | null): string => {
   return map[value] ?? FALLBACK;
 };
 
+const normalizeToken = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+const resolveCabinetType = (value: string | null): string => {
+  if (!value) return FALLBACK;
+
+  // If already a known code (e.g. "SB"), keep it.
+  if (Object.values(cabinetTypeSkuMap).includes(value)) return value;
+
+  // Exact key match (e.g. "Sink-Base").
+  if (cabinetTypeSkuMap[value]) return cabinetTypeSkuMap[value];
+
+  // Fuzzy match on normalized tokens (e.g. "SinkBase60" -> "Sink-Base").
+  const normalizedValue = normalizeToken(value);
+  for (const [key, code] of Object.entries(cabinetTypeSkuMap)) {
+    const normalizedKey = normalizeToken(key);
+    if (normalizedKey && normalizedValue.includes(normalizedKey)) return code;
+  }
+
+  return FALLBACK;
+};
+
 function buildTriplet(code: string, el: ElementMaterial | null): string | null {
   const mat = el?.materialSku?.trim();
   if (!mat) return null;
@@ -94,7 +115,7 @@ export function buildProductBaseSku(input: ProductSkuInput): string {
 }
 
 function buildConfigBlock(input: ProductSkuInput): string {
-  const type = resolve(cabinetTypeSkuMap, input.cabinetType);
+  const type = resolveCabinetType(input.cabinetType);
   const drawers = resolve(drawerSkuMap, input.drawers);
   const handle = resolve(handleSkuMap, input.handle);
   const pattern = resolve(patternSkuMap, input.pattern);
