@@ -34,6 +34,7 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -57,6 +58,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
 
+  const saveSnapshot = useHistorySnapshot();
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
 
   const handleOptions = useMemo(
@@ -126,6 +128,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   // };
 
   const handleSetHandleType = async (handleType: string) => {
+    await saveSnapshot();
     dispatch(
       setSelectedProductConfig({
         ...(selectedProductConfig ?? {}),
@@ -203,6 +206,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!activeDrawerProduct) return;
 
+      await saveSnapshot();
       const productId = await setProductByParams(activeDrawerProduct, entityId, side);
 
       if (!productId) return;
@@ -225,7 +229,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     };
 
     setHandleButtonClick(onPlusClick);
-  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch, onProductAdded]);
+  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch, onProductAdded, saveSnapshot]);
 
   return (
     <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>

@@ -8,6 +8,8 @@ import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
+import { UndoIcon } from "@/shared/assets/images/svg/UndoIcon";
+import { RedoIcon } from "@/shared/assets/images/svg/RedoIcon";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
@@ -36,6 +38,12 @@ import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
+import { getCanUndo, getCanRedo, getLastPastSnapshot, getLastFutureSnapshot } from "@/entities/history/model/store/selectors";
+import { undo, redo } from "@/entities/history/model/store/slice";
+import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
+import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { store, type RootState } from "@/app/store";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -89,12 +97,49 @@ export const BottomCanvasButtons = () => {
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
+  const canUndo = useAppSelector(getCanUndo);
+  const canRedo = useAppSelector(getCanRedo);
+  const lastPastSnapshot = useAppSelector(getLastPastSnapshot);
+  const lastFutureSnapshot = useAppSelector(getLastFutureSnapshot);
+
+  const saveSnapshot = useHistorySnapshot();
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  const handleUndo = async () => {
+    if (!canUndo || !lastPastSnapshot || isRestoring) return;
+    setIsRestoring(true);
+    try {
+      const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
+      dispatch(undo(currentSnapshot));
+      await restoreSnapshot(lastPastSnapshot, dispatch);
+    } catch (error) {
+      console.error("[History] Undo failed", error);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+  const handleRedo = async () => {
+    if (!canRedo || !lastFutureSnapshot || isRestoring) return;
+    setIsRestoring(true);
+    try {
+      const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
+      dispatch(redo(currentSnapshot));
+      await restoreSnapshot(lastFutureSnapshot, dispatch);
+    } catch (error) {
+      console.error("[History] Redo failed", error);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const isCustomRoute = pathname.includes("/custom");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
   const resetCustomBuilderScene = async () => {
+    await saveSnapshot();
     removeAllProducts();
     dispatch(resetProducts());
 
@@ -137,6 +182,7 @@ export const BottomCanvasButtons = () => {
   };
 
   const resetPrebuiltScene = async () => {
+    await saveSnapshot();
     removeAllProducts();
     dispatch(resetPrebuiltProducts());
 
@@ -375,6 +421,24 @@ export const BottomCanvasButtons = () => {
 
         <BaseButton variant="ghost" onClick={() => zoomOut()}>
           <ZoomOutIcon />
+        </BaseButton>
+
+        <BaseButton
+          variant="ghost"
+          className={!canUndo || isRestoring ? s.disabledButton : undefined}
+          disabled={!canUndo || isRestoring}
+          onClick={handleUndo}
+        >
+          <UndoIcon />
+        </BaseButton>
+
+        <BaseButton
+          variant="ghost"
+          className={!canRedo || isRestoring ? s.disabledButton : undefined}
+          disabled={!canRedo || isRestoring}
+          onClick={handleRedo}
+        >
+          <RedoIcon />
         </BaseButton>
 
         <BaseButton

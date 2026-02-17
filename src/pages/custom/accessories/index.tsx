@@ -29,6 +29,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
@@ -49,6 +50,7 @@ import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisible
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const dividerSelection = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
   const towelSelection = useAppSelector(getTowelBarOption);
@@ -380,6 +382,7 @@ export const CustomAccessoriesPage = () => {
 
     if (!isEdge) return;
 
+    await saveSnapshot();
     await setConfigBatch(
       { cabinetId: activeCabinetId },
       {
@@ -435,6 +438,7 @@ export const CustomAccessoriesPage = () => {
   const handleTowelBarChange = async (value: string | null) => {
     if (!value) return;
 
+    await saveSnapshot();
     const isNone = value === "None";
     const side = value.toLowerCase() as "left" | "right" | "both";
 
@@ -453,8 +457,9 @@ export const CustomAccessoriesPage = () => {
     dispatch(setTowelBarOption(value));
   };
 
-  const handleTowelBarColorChange = (value?: string) => {
+  const handleTowelBarColorChange = async (value?: string) => {
     if (!value) return;
+    await saveSnapshot();
 
     setConfigBatch(
       {},

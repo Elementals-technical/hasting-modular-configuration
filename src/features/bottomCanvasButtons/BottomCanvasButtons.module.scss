@@ -8,6 +8,12 @@
   gap: 12px;
 }
 
+.disabledButton {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: default;
+}
+
 .activeButton {
   background: #ac5331;
   border-color: #ac5331;

@@ -35,6 +35,7 @@ import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
 import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "027";
@@ -63,6 +64,8 @@ export const PlayCanvasIntegration = () => {
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
+
+  const saveSnapshot = useHistorySnapshot();
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -187,6 +190,7 @@ export const PlayCanvasIntegration = () => {
       if (!selectedSceneProduct) return;
 
       try {
+        await saveSnapshot();
         await setConfig(selectedSceneProduct, { Width: width });
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set width", error);
@@ -194,7 +198,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct],
+    [selectedSceneProduct, saveSnapshot],
   );
 
   const handleSetDepth = useCallback(
@@ -202,14 +206,15 @@ export const PlayCanvasIntegration = () => {
       if (!productIds) return;
 
       try {
+        await saveSnapshot();
         await setConfigBatch(productIds, { Depth: depth });
       } catch (error) {
-        console.error("[PlayCanvasIntegration] Failed to set width", error);
+        console.error("[PlayCanvasIntegration] Failed to set depth", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds],
+    [productIds, saveSnapshot],
   );
 
   useEffect(() => {
@@ -222,6 +227,7 @@ export const PlayCanvasIntegration = () => {
     if (!selectedSceneProduct) return;
 
     try {
+      await saveSnapshot();
       await removeProduct(selectedSceneProduct);
       dispatch(removeProductId(selectedSceneProduct));
     } catch (error) {
@@ -229,7 +235,7 @@ export const PlayCanvasIntegration = () => {
     } finally {
       setDropdownState((prev) => ({ ...prev, visible: false }));
     }
-  }, [dispatch, selectedSceneProduct]);
+  }, [dispatch, selectedSceneProduct, saveSnapshot]);
 
   const normalizeProductType = useCallback((value: string, productId: string) => {
     const lastDash = value.lastIndexOf("-");
@@ -282,6 +288,7 @@ export const PlayCanvasIntegration = () => {
 
     const onPlusClick = async (entityId: string, side: "left" | "right") => {
       try {
+        await saveSnapshot();
         const config = await getConfig(duplicateSourceId);
         if (!config) return;
         const mergedConfig = { ...config, ...selectedProductConfig };
@@ -308,7 +315,7 @@ export const PlayCanvasIntegration = () => {
     return () => {
       setVisibleButtons(false);
     };
-  }, [dispatch, duplicateSourceId, resolveProductTypeFromId, selectedProductConfig]);
+  }, [dispatch, duplicateSourceId, resolveProductTypeFromId, selectedProductConfig, saveSnapshot]);
 
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
   const handleAddAdditionalProduct = useCallback(() => {
@@ -317,15 +324,16 @@ export const PlayCanvasIntegration = () => {
   }, [navigate]);
 
   const handleSwapProducts = useCallback(
-    (idA: string, idB: string) => {
+    async (idA: string, idB: string) => {
+      await saveSnapshot();
       swapProducts(idA, idB);
       dispatch(swapProductIds({ idA, idB }));
     },
-    [dispatch],
+    [dispatch, saveSnapshot],
   );
 
   const handleMoveProduct = useCallback(
-    (direction: "left" | "right") => {
+    async (direction: "left" | "right") => {
       if (!selectedSceneProduct) return;
 
       const orderedIds = getOrderedProductIds(productIds);
@@ -335,7 +343,7 @@ export const PlayCanvasIntegration = () => {
       const neighborIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
       if (neighborIndex < 0 || neighborIndex >= orderedIds.length) return;
 
-      handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
+      await handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
       setDropdownState((prev) => ({ ...prev, visible: false }));
     },
     [handleSwapProducts, productIds, selectedSceneProduct],

@@ -25,6 +25,7 @@ import {
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getCabinetColor,
@@ -52,6 +53,7 @@ import { flutingRule } from "@/features/configurator-rule-core/options";
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -362,8 +364,9 @@ export const CabinetPage = () => {
     return i.name;
   });
 
-  const handleChangeColor = (colorName?: string) => {
+  const handleChangeColor = async (colorName?: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     presetNames.forEach(() => {
       setConfigBatch({}, { CabinetColor: colorName });
@@ -380,8 +383,9 @@ export const CabinetPage = () => {
     dispatch(setCabinetColorFinish(finishToken));
   };
 
-  const handleChangeGrooveColor = (colorName: string) => {
+  const handleChangeGrooveColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("HandleGrooveColor", colorName);
 
@@ -401,6 +405,7 @@ export const CabinetPage = () => {
 
   const handleChangeDrawerPanelFluting = async (value: string) => {
     if (!value) return;
+    await saveSnapshot();
     await setConfigBatch(
       {},
       {
@@ -412,6 +417,7 @@ export const CabinetPage = () => {
 
   const handleChangeGrainDirection = async (value: string) => {
     if (!value) return;
+    await saveSnapshot();
     await setConfigBatch(
       {},
       {

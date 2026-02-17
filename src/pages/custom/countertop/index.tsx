@@ -21,6 +21,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import {
   setActiveBasinStyle,
   setActiveCountertopColor,
@@ -50,6 +51,7 @@ const COUNTERTOP_OPTION = "Counertops materials";
 
 export const CustomCountertopPage = () => {
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -498,8 +500,9 @@ export const CustomCountertopPage = () => {
     };
   }, [selectedProducts, containsSinkBase]);
 
-  const handleChangeCountertopColor = (colorName: string) => {
+  const handleChangeCountertopColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("Countertop Color", colorName);
 
@@ -511,7 +514,8 @@ export const CustomCountertopPage = () => {
     dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
-  const handleAddbasinStyle = (basinStyle: string) => {
+  const handleAddbasinStyle = async (basinStyle: string) => {
+    await saveSnapshot();
     console.log("basinStyle", basinStyle);
 
     setConfigBatch(selectedProducts, {
@@ -522,7 +526,8 @@ export const CustomCountertopPage = () => {
   };
 
   const handleAddThickness = useCallback(
-    (thickness: string) => {
+    async (thickness: string) => {
+      await saveSnapshot();
       console.log("thickness", thickness);
 
       setConfigBatch(
@@ -534,7 +539,7 @@ export const CustomCountertopPage = () => {
 
       dispatch(setActiveCountertopThickness(thickness));
     },
-    [dispatch],
+    [dispatch, saveSnapshot],
   );
 
   useEffect(() => {

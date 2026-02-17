@@ -43,6 +43,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
@@ -54,6 +55,7 @@ const COUNTERTOP_OPTION = "Counertops materials";
 
 export const CountertopPage = () => {
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const presetsProducts = useAppSelector(getProductsPresets);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -514,8 +516,9 @@ export const CountertopPage = () => {
     return i.name;
   });
 
-  const handleChangeCountertopColor = (colorName: string) => {
+  const handleChangeCountertopColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("Countertop Color", colorName);
 
@@ -527,7 +530,8 @@ export const CountertopPage = () => {
     dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
-  const handleAddBasinStyle = (basinStyle: string) => {
+  const handleAddBasinStyle = async (basinStyle: string) => {
+    await saveSnapshot();
     presetNames.forEach((productName) => {
       setConfigBatch({ productType: productName }, { sinkType: basinStyle });
     });
@@ -536,14 +540,15 @@ export const CountertopPage = () => {
   };
 
   const handleAddThickness = useCallback(
-    (thickness: string) => {
+    async (thickness: string) => {
+      await saveSnapshot();
       console.log("thickness prebuilt", thickness);
 
       setConfigBatch({}, { Thickness: thickness });
 
       dispatch(setActiveCountertopThickness(thickness));
     },
-    [dispatch],
+    [dispatch, saveSnapshot],
   );
 
   useEffect(() => {

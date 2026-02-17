@@ -74,6 +74,7 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useGetProductDatatableQuery } from "@/entities/product/api";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 
 type AccordionConfig = {
   id: string;
@@ -128,6 +129,7 @@ export const CabinetBuilderPage = () => {
     isError: isMatrixError,
   } = useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
 
+  const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
 
   const cabinetStyleOptions = useMemo(() => {
@@ -647,6 +649,7 @@ export const CabinetBuilderPage = () => {
           productConfig.sinkType = sinkType;
         }
 
+        await saveSnapshot();
         const productId = await addProduct(productName, productConfig);
 
         if (productId) {
@@ -698,6 +701,7 @@ export const CabinetBuilderPage = () => {
     handleSelectCabinetConfig,
     dispatch,
     handleResetToDefaultState,
+    saveSnapshot,
   ]);
 
   useEffect(() => {
