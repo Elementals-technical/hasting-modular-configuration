@@ -56,6 +56,7 @@ export const PlayCanvasIntegration = () => {
     x: 0,
     y: 0,
   });
+
   const [countertopPopoverState, setCountertopPopoverState] = useState<{
     visible: boolean;
     x: number;
@@ -67,6 +68,7 @@ export const PlayCanvasIntegration = () => {
     y: 0,
     entityName: null,
   });
+
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const countertopPopoverRef = useRef<HTMLDivElement | null>(null);

@@ -499,8 +499,6 @@ export function usePriceCalculation() {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          handleMaterialSku: handleMaterialSku,
-          handleColorCode: extractColorCode(handleGrooveColor),
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);

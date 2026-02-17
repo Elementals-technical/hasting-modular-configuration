@@ -37,6 +37,9 @@ import {
   buildCountertopSku,
   buildTowelBarSku,
   TOWEL_BAR_DEFAULTS,
+  buildSidePanelSku,
+  SIDE_PANEL_WIDTH_CM,
+  buildDividerSku,
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -467,20 +470,54 @@ export const CustomSummaryPage = () => {
           })
         : null;
 
+    // Side panel SKUs — one per unique dimension set
+    const sidePanelSkuItems: SummaryItem[] = [];
+    if (sidePanelsOption && sidePanelsOption !== "None") {
+      const dimsList =
+        cabinetConfigs.length > 0
+          ? cabinetConfigs.map((c) => ({
+              height: typeof c.Height === "number" ? c.Height : null,
+              depth: typeof c.Depth === "number" ? c.Depth : null,
+            }))
+          : productsPresets.length > 0
+            ? productsPresets.map((p) => ({ height: p.Height ?? null, depth: p.Depth ?? null }))
+            : [{ height: selectedDimensions.height, depth: selectedDimensions.depth }];
+
+      const seenSpSkus = new Set<string>();
+      dimsList.forEach((dims, idx) => {
+        const spSku = buildSidePanelSku({
+          panelType: sidePanelsOption,
+          width: SIDE_PANEL_WIDTH_CM,
+          height: dims.height,
+          depth: dims.depth,
+        });
+        if (spSku && !seenSpSkus.has(spSku)) {
+          seenSpSkus.add(spSku);
+          sidePanelSkuItems.push({
+            id: `accessories-side-panel-${idx}`,
+            title: "Side Panel",
+            subtitle: spSku,
+            sku: spSku,
+            price: resolveItemPrice(spSku),
+            copyable: true,
+          });
+        }
+      });
+    }
+
+    // Divider SKU
+    const divSku = dividerStyle && dividerStyle !== "None"
+      ? buildDividerSku({ dividerStyle })
+      : null;
+
     const accessoriesItems: SummaryItem[] = [
-      sidePanelsOption
-        ? {
-            id: "accessories-side-panels",
-            title: "Side Panels",
-            subtitle: sidePanelsOption,
-            price: "$—",
-          }
-        : null,
-      dividersOption
+      ...sidePanelSkuItems,
+      divSku
         ? {
             id: "accessories-dividers",
             title: "Dividers",
-            subtitle: dividerStyle || dividersOption,
+            subtitle: divSku,
+            sku: divSku,
             swatch:
               dividerStyle && dividerImage
                 ? {
@@ -490,7 +527,8 @@ export const CustomSummaryPage = () => {
                     image: dividerImage,
                   }
                 : undefined,
-            price: "$—",
+            price: resolveItemPrice(divSku),
+            copyable: true,
           }
         : null,
       towelBarRightSku
