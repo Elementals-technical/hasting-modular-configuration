@@ -10,6 +10,7 @@ import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/st
 
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
@@ -51,6 +52,8 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
     }
 
     if (prevStep) {
+      setVisibleDrawerButtons(false);
+
       navigate(prevStep.path);
       return;
     }
@@ -62,7 +65,11 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   };
 
   const handleNavigateForward = () => {
-    if (nextStep) navigate(nextStep.path);
+    if (nextStep) {
+      setVisibleDrawerButtons(false);
+
+      navigate(nextStep.path);
+    }
   };
 
   const handleConfirmLeave = async () => {
