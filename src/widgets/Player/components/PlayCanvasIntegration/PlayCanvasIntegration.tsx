@@ -883,7 +883,7 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1000,
           }}
         >
-          {!isPrebuilt && <NestedDropdown items={countertopPopoverItems} />}
+          {!isPrebuilt && <NestedDropdown style={{ width: "200px" }} items={countertopPopoverItems} />}
         </div>
       )}
     </div>
