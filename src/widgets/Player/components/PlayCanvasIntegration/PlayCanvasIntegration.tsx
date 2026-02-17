@@ -8,6 +8,7 @@ import {
   addProductId,
   removeProductId,
   setActiveCabinetType,
+  setActiveCountertopThickness,
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
@@ -23,6 +24,10 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import {
   getDimensionOptions,
   getCabinetCatalog,
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getSinkType,
+  getSelectedDimensions,
   getIsDrawerOpen,
   getSelectedSceneProduct,
   getSelectedProductConfig,
@@ -36,6 +41,9 @@ import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
 import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useGetConfiguratorQuery } from "@/entities";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "027";
@@ -48,8 +56,20 @@ export const PlayCanvasIntegration = () => {
     x: 0,
     y: 0,
   });
+  const [countertopPopoverState, setCountertopPopoverState] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    entityName: string | null;
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    entityName: null,
+  });
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
+  const countertopPopoverRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -59,13 +79,165 @@ export const PlayCanvasIntegration = () => {
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
+  const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
+  const activeBasinStyle = useAppSelector(getSinkType);
 
   console.log("selectedSceneProduct", selectedSceneProduct);
 
   const saveSnapshot = useHistorySnapshot();
+
+  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+  const { data: counterTopMaterials } = useGetConfiguratorQuery({
+    id: 4,
+    view: "full",
+    serialize: true,
+  });
+
+  const normalizeMaterialLabel = (value: string) => {
+    const parts = value
+      .split(":")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : value;
+  };
+
+  const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+
+  const toStringArrayFromCsv = (value: unknown): string[] => {
+    if (typeof value !== "string") return [];
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  };
+
+  const getVariantMeta = useCallback(
+    (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
+      const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+      const nested =
+        typeof meta.metadata === "object" && meta.metadata
+          ? (meta.metadata as Record<string, unknown>)
+          : ({} as Record<string, unknown>);
+
+      const pick = (...values: unknown[]): string | undefined => {
+        for (const value of values) {
+          const str = toOptionalString(value);
+          if (str) return str;
+        }
+        return undefined;
+      };
+
+      return {
+        material: pick(nested.Material, meta.Material),
+        color: pick(nested.Color, meta.Color),
+        look: pick(nested.Look, meta.Look),
+        hex: pick(nested.hex, meta.hex),
+        image: pick(nested.image, meta.image, variant.image),
+        value: pick(meta.value, nested.value, variant.name),
+        label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
+      };
+    },
+    [],
+  );
+
+  const countertopOptionsFromApi = useMemo(() => {
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    if (!groups.length) return [];
+
+    const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
+      const tokens = new Set<string>();
+      if (metaMaterial) {
+        toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(token));
+      }
+      if (name) tokens.add(name);
+      extraTokens.forEach((token) => {
+        if (token) tokens.add(token);
+      });
+
+      const parts = name
+        .split(":")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length > 1) tokens.add(parts[parts.length - 1]);
+      return Array.from(tokens);
+    };
+
+    return groups.flatMap((group) =>
+      group.options.flatMap((option) =>
+        option.variants
+          .filter((variant) => variant.enabled)
+          .map((variant) => {
+            const meta = getVariantMeta(variant);
+            const metaMaterial = meta.material;
+            const metaColor = meta.color;
+            const metaLook = meta.look;
+            const metaHex = meta.hex;
+            const descSource = option.name || group.proxyName || variant.name;
+
+            return {
+              id: variant.id,
+              title: meta.label ?? variant.name,
+              name: variant.name,
+              desc: normalizeMaterialLabel(descSource),
+              metadata: {
+                image: meta.image,
+                value: meta.value ?? variant.name,
+                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                materials: buildMaterialTokens(
+                  option.name || variant.name,
+                  metaMaterial,
+                  group.proxyName ? [group.proxyName] : [],
+                ),
+                colors: toStringArrayFromCsv(metaColor),
+                looks: toStringArrayFromCsv(metaLook),
+                hex: metaHex?.trim(),
+              },
+            };
+          }),
+      ),
+    );
+  }, [counterTopMaterials, getVariantMeta]);
+
+  const activeMaterialTokens = useMemo(() => {
+    if (!activeCountertopColor) return [];
+    const match = countertopOptionsFromApi.find((option) => {
+      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
+      return candidate === activeCountertopColor;
+    });
+    return match?.metadata?.materials ?? [];
+  }, [activeCountertopColor, countertopOptionsFromApi]);
+
+  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+
+  const ruleState = useMemo(
+    () =>
+      buildCountertopRuleState({
+        rules: countertopRules,
+        activeMaterialTokens,
+        width: selectedDimensions.width ?? null,
+        depth: selectedDimensions.depth ?? null,
+        activeBasinStyle,
+        activeThickness: activeCountertopThickness ?? null,
+      }),
+    [
+      activeBasinStyle,
+      activeCountertopThickness,
+      activeMaterialTokens,
+      countertopRules,
+      selectedDimensions.depth,
+      selectedDimensions.width,
+    ],
+  );
+
+  const thicknessOptions = useMemo(
+    () => Array.from(ruleState.allowedThicknesses).sort((a, b) => a - b),
+    [ruleState.allowedThicknesses],
+  );
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -85,6 +257,22 @@ export const PlayCanvasIntegration = () => {
 
     const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current);
     setDropdownState({ visible: true, x: pos.x, y: pos.y });
+  }, []);
+
+  const showCountertopPopoverForEntity = useCallback((entityName: string) => {
+    const iframeEl = containerRef.current;
+    if (!iframeEl) return;
+
+    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
+      width: 360,
+      height: 320,
+    });
+
+    setCountertopPopoverState({ visible: true, x: pos.x, y: pos.y, entityName });
+  }, []);
+
+  const closeCountertopPopover = useCallback(() => {
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, []);
 
   // Track pointer position so we know where the user clicked inside the iframe.
@@ -221,6 +409,7 @@ export const PlayCanvasIntegration = () => {
     if (!isDrawerOpen) return;
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isDrawerOpen]);
 
   const handleRemoveProducts = useCallback(async () => {
@@ -280,7 +469,9 @@ export const PlayCanvasIntegration = () => {
     if (!selectedSceneProduct) return;
     setDuplicateSourceId(selectedSceneProduct);
     setVisibleButtons(true);
+
     setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [selectedSceneProduct]);
 
   useEffect(() => {
@@ -320,7 +511,9 @@ export const PlayCanvasIntegration = () => {
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
   const handleAddAdditionalProduct = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
+
     setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleSwapProducts = useCallback(
@@ -354,6 +547,19 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
+  const isCountertopEntity = useCallback((entityName: string | null, config?: Record<string, unknown>) => {
+    if (!entityName) return false;
+    const candidates = [
+      entityName,
+      typeof config?.ProductType === "string" ? (config.ProductType as string) : null,
+      typeof config?.productType === "string" ? (config.productType as string) : null,
+      typeof config?.type === "string" ? (config.type as string) : null,
+      typeof config?.entityName === "string" ? (config.entityName as string) : null,
+    ].filter(Boolean) as string[];
+
+    return candidates.some((value) => value.startsWith("Top_"));
+  }, []);
+
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
 
@@ -376,16 +582,55 @@ export const PlayCanvasIntegration = () => {
           selectTool?.setSelectedByName(firstSelected.name ?? "", { mode: "replace" });
 
           updateDimensionDataForProduct(firstSelected.name ?? "", config);
-        })();
 
-        showDropdownForEntity(firstSelected.name ?? "");
+          if (isCountertopEntity(firstSelected.name ?? "", config)) {
+            setDropdownState((prev) => ({ ...prev, visible: false }));
+            showCountertopPopoverForEntity(firstSelected.name ?? "");
+          } else {
+            setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+            showDropdownForEntity(firstSelected.name ?? "");
+          }
+        })();
       } else {
         console.log("клик в пустоту");
         // dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
+        setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
       }
     });
   }
+
+  useEffect(() => {
+    if (!countertopPopoverState.visible) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target || !countertopPopoverRef.current) return;
+      if (!countertopPopoverRef.current.contains(target)) {
+        closeCountertopPopover();
+      }
+    };
+
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [closeCountertopPopover, countertopPopoverState.visible]);
+
+  useEffect(() => {
+    if (!countertopPopoverState.visible || !countertopPopoverState.entityName) return;
+
+    const handleResize = () => {
+      const iframeEl = containerRef.current;
+      if (!iframeEl) return;
+      const pos = getDropdownPosition(countertopPopoverState.entityName, iframeEl, lastPointerPosRef.current, {
+        width: 360,
+        height: 320,
+      });
+      setCountertopPopoverState((prev) => ({ ...prev, x: pos.x, y: pos.y }));
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [countertopPopoverState.entityName, countertopPopoverState.visible]);
 
   useEffect(() => {
     if (!selectedSceneProduct) return;
@@ -507,6 +752,94 @@ export const PlayCanvasIntegration = () => {
     handleDuplicateProduct,
   ]);
 
+  const handleCountertopThicknessSelect = useCallback(
+    async (thickness: number) => {
+      if (!selectedSceneProduct || !thickness) return;
+      await saveSnapshot();
+
+      await setConfigBatch({}, { Thickness: thickness });
+      dispatch(setActiveCountertopThickness(`${thickness}`));
+    },
+    [dispatch, saveSnapshot, selectedSceneProduct],
+  );
+
+  const handleOpenCountertopColor = useCallback(() => {
+    navigate("/custom/countertop?accordion=counter-top-color");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
+
+  const handleOpenCountertopStyle = useCallback(() => {
+    navigate("/custom/countertop?accordion=countertop-style");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
+
+  const handleOpenBasinStyle = useCallback(() => {
+    navigate("/custom/countertop?accordion=basin-style");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
+
+  const countertopPopoverItems: DropdownItem[] = useMemo(() => {
+    return [
+      {
+        id: "countertop-color",
+        label: "Color",
+        children: [
+          {
+            id: "countertop-select-color",
+            label: "Select Color",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCountertopColor,
+          },
+        ],
+      },
+      {
+        id: "countertop-thickness",
+        label: "Thickness",
+        children: thicknessOptions.map((value) => {
+          const label = `${value}"`;
+          return {
+            id: label,
+            label,
+            onClick: () => handleCountertopThicknessSelect(value),
+          };
+        }),
+      },
+      {
+        id: "countertop-style",
+        label: "Countertop Style",
+        children: [
+          {
+            id: "countertop-select-style",
+            label: "Select Style",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenCountertopStyle,
+          },
+        ],
+      },
+      {
+        id: "basin-style",
+        label: "Basin Style",
+        children: [
+          {
+            id: "basin-select-style",
+            label: "Select Style",
+            trailing: <ArrowTopRight color={"#333"} />,
+            onClick: handleOpenBasinStyle,
+          },
+        ],
+      },
+    ];
+  }, [
+    handleOpenBasinStyle,
+    handleOpenCountertopColor,
+    handleOpenCountertopStyle,
+    handleCountertopThicknessSelect,
+    thicknessOptions,
+  ]);
+
   return (
     <div style={{ position: "relative", height: "100%" }}>
       <iframe
@@ -532,10 +865,25 @@ export const PlayCanvasIntegration = () => {
             top: dropdownState.y,
             left: dropdownState.x,
             pointerEvents: "auto",
-            zIndex: 10,
+            zIndex: 1000,
           }}
         >
           {!isPrebuilt && <NestedDropdown items={dropdownItems} />}
+        </div>
+      )}
+
+      {countertopPopoverState.visible && !isDrawerOpen && (
+        <div
+          ref={countertopPopoverRef}
+          style={{
+            position: "absolute",
+            top: countertopPopoverState.y,
+            left: countertopPopoverState.x,
+            pointerEvents: "auto",
+            zIndex: 1000,
+          }}
+        >
+          {!isPrebuilt && <NestedDropdown items={countertopPopoverItems} />}
         </div>
       )}
     </div>

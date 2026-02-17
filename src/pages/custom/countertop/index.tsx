@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
@@ -50,6 +51,8 @@ import { useGetConfiguratorQuery } from "@/entities";
 const COUNTERTOP_OPTION = "Counertops materials";
 
 export const CustomCountertopPage = () => {
+  const [searchParams] = useSearchParams();
+
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
@@ -434,13 +437,7 @@ export const CustomCountertopPage = () => {
 
       return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [
-    activeCountertopStyle,
-    activeMaterialTokens,
-    allowedBasinTokens,
-    allowedMaterials,
-    ruleState.allowedStyles,
-  ]);
+  }, [activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
@@ -645,9 +642,17 @@ export const CustomCountertopPage = () => {
     },
   ];
 
+  const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString();
+  const [accordionValue, setAccordionValue] = useState(defaultValue);
+
+  useEffect(() => {
+    const target = searchParams.get("accordion");
+    if (target) setAccordionValue(target);
+  }, [searchParams]);
+
   return (
     <div className="countertop">
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup defaultValue={defaultValue} value={accordionValue} onValueChange={setAccordionValue}>
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}
