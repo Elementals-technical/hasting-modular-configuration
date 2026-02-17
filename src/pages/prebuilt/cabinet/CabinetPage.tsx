@@ -91,9 +91,12 @@ export const CabinetPage = () => {
 
   useEffect(() => {
     if (!flutingState.available && !activeDrawerPanelFluting) {
-      setConfigBatch({}, {
-        DrawerPanelFluting: "None",
-      });
+      setConfigBatch(
+        {},
+        {
+          DrawerPanelFluting: "None",
+        },
+      );
     }
   }, [flutingState.available, activeDrawerPanelFluting]);
 
@@ -117,7 +120,10 @@ export const CabinetPage = () => {
 
   const toStringArrayFromCsv = (value: unknown): string[] => {
     if (typeof value !== "string") return [];
-    return value.split(",").map((part) => part.trim()).filter(Boolean);
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
   };
 
   const getVariantMeta = useCallback(
@@ -201,9 +207,16 @@ export const CabinetPage = () => {
       });
 
       const toOptions = (set: Set<string>) =>
-        Array.from(set).sort((a, b) => a.localeCompare(b)).map((value) => ({ label: value, value }));
+        Array.from(set)
+          .sort((a, b) => a.localeCompare(b))
+          .map((value) => ({ label: value, value }));
 
-      return { materials: toOptions(materialSet), colors: toOptions(colorSet), looks: toOptions(lookSet), hex: toOptions(hexSet) };
+      return {
+        materials: toOptions(materialSet),
+        colors: toOptions(colorSet),
+        looks: toOptions(lookSet),
+        hex: toOptions(hexSet),
+      };
     },
     [getVariantMeta],
   );
