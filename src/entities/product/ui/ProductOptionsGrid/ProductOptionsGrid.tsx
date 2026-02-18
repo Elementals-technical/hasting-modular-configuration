@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionItem";
+import { MaterialPreviewModal } from "@/shared/ui/Popups/MaterialPreviewModal/MaterialPreviewModal";
 
 import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor, getSinkType } from "../../model/store/selectors";
@@ -50,6 +52,8 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   const activeColor = useAppSelector(getCabinetColor);
   const activeBasinStyle = useAppSelector(getSinkType);
 
+  const [previewItem, setPreviewItem] = useState<{ title: string; metadata?: ProductOptionMetadata } | null>(null);
+
   const hasActiveCabinet = activeCabinet !== null;
 
   console.log("hasActiveCabinet", hasActiveCabinet);
@@ -80,6 +84,11 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
 
         const handleSetActive = setActiveCabinet ? () => setActiveCabinet(String(playcanvasValue), i.name) : undefined;
 
+        const isMaterial =
+          (i.metadata?.materials?.length ?? 0) > 0 ||
+          (i.metadata?.colors?.length ?? 0) > 0 ||
+          !!i.metadata?.hex;
+
         return (
           <ProductOptionItem
             key={i.id}
@@ -94,9 +103,17 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
             isActive={isActive}
             setActive={handleSetActive}
             name={playcanvasValue}
+            onPreview={isMaterial ? (title, metadata) => setPreviewItem({ title, metadata }) : undefined}
           />
         );
       })}
+
+      <MaterialPreviewModal
+        isOpening={previewItem !== null}
+        onClose={() => setPreviewItem(null)}
+        title={previewItem?.title ?? ""}
+        metadata={previewItem?.metadata}
+      />
     </div>
   );
 };
