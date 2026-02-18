@@ -804,7 +804,6 @@ export const CustomSummaryPage = () => {
     countertopColor,
     countertopThickness,
     countertopStyle,
-    dividersOption,
     drawerPanelFluting,
     faucetHolesAmount,
     faucetHolesSpacing,
