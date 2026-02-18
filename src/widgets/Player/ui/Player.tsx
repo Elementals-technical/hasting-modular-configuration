@@ -38,6 +38,7 @@ import {
 import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 
 import s from "./Player.module.scss";
+import { QuoteIcon } from "@/shared/assets/images/svg/QuoteIcon";
 
 export function Player() {
   const location = useLocation();
@@ -193,6 +194,13 @@ export function Player() {
       )}
 
       <BottomCanvasButtons />
+
+      {isSummaryPage && (
+        <div className={s.generateBtn}>
+          <span>Generate Quote</span>
+          <QuoteIcon />
+        </div>
+      )}
 
       {!isSummaryPage ? (
         <div className={s.hintIcon}>

@@ -64,3 +64,22 @@
 
   cursor: pointer;
 }
+
+.generateBtn {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  bottom: 32px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #fff;
+
+  padding: 8px 16px;
+  border-radius: 50px;
+  background-color: #ac5331;
+
+  cursor: pointer;
+}
