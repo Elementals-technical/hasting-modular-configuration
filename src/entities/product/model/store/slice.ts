@@ -75,7 +75,7 @@ type ProductConfig = {
   [key: string]: unknown;
 } & Partial<addProductConfigI>;
 
-type HandleOption = "" | "handle_pto" | "handle_urban_topcut" | "handle_urban_botcut";
+export type HandleOption = "" | "handle_pto" | "handle_urban_topcut" | "handle_urban_botcut";
 
 const DEFAULT_DIMENSIONS: ProductDimensions = {
   width: null,

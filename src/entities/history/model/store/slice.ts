@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { HandleOption } from "@/entities/product/model/store/slice";
 
 export type SceneSnapshot = {
   productIds: string[];
@@ -13,7 +14,7 @@ export type SceneSnapshot = {
     CountertopColorSku: string;
     HandleGrooveColor: string;
     HandleGrooveColorSku: string;
-    Handle: string;
+    Handle: HandleOption;
     Thickness: string;
     DrawerPanelFluting: string;
     GrainDirection: string;
