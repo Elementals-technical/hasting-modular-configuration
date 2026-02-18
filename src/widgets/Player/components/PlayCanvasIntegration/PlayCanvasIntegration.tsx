@@ -618,12 +618,13 @@ export const PlayCanvasIntegration = () => {
   }, [closeCountertopPopover, countertopPopoverState.visible]);
 
   useEffect(() => {
-    if (!countertopPopoverState.visible || !countertopPopoverState.entityName) return;
+    const entityName = countertopPopoverState.entityName;
+    if (!countertopPopoverState.visible || !entityName) return;
 
     const handleResize = () => {
       const iframeEl = containerRef.current;
       if (!iframeEl) return;
-      const pos = getDropdownPosition(countertopPopoverState.entityName, iframeEl, lastPointerPosRef.current, {
+      const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
         width: 360,
         height: 320,
       });
