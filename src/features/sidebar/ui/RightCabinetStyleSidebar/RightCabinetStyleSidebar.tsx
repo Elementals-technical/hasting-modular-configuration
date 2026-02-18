@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
+import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
+import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
+import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import image from "../../../../shared/assets/images/png/img_png.png";
 import upperHandleImage from "@/shared/assets/images/jpeg/UpperGHandle.jpg";
 import centralHandleImage from "@/shared/assets/images/jpeg/CentralGHandle.jpg";
@@ -60,6 +63,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const saveSnapshot = useHistorySnapshot();
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
+  const [pendingHandleType, setPendingHandleType] = useState<string | null>(null);
 
   const handleOptions = useMemo(
     () =>
@@ -127,7 +131,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   //   dispatch(setSelectedDimensions({ height: Number(value) }));
   // };
 
-  const handleSetHandleType = async (handleType: string) => {
+  const applyHandleType = async (handleType: string) => {
     await saveSnapshot();
     dispatch(
       setSelectedProductConfig({
@@ -138,6 +142,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (selectedProducts.length) {
       await setConfigBatch(selectedProducts, { Handle: handleType });
+    }
+  };
+
+  const handleSetHandleType = async (handleType: string) => {
+    await applyHandleType(handleType);
+
+    if (selectedProducts.length > 0) {
+      setPendingHandleType(handleType);
     }
   };
 
@@ -232,32 +244,54 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch, onProductAdded, saveSnapshot]);
 
   return (
-    <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
-      <div className={s.arrow} onClick={handleCloseSidebar}>
-        <ArrowRight width="16" />
-      </div>
-      <div className={s.content}>
-        <div className={s.contentItem}>
-          <div>Width</div>
-          <FilterSelection
-            label={"Width"}
-            options={dimensionOptions.width}
-            value={selectedDimensions.width ?? ""}
-            onSelect={(value) => handleChangeWidth(value)}
-          />
+    <>
+      <PopupCenterContent isOpening={pendingHandleType !== null} onClose={() => setPendingHandleType(null)}>
+        <div className={s.confirmPopup}>
+          <div className={s.confirmHeader}>
+            <div className={s.confirmTitle}>Handle Style Updated</div>
+            <div className={s.confirmClose} onClick={() => setPendingHandleType(null)}>
+              <CloseBtnIcon />
+            </div>
+          </div>
+          <div className={s.confirmContent}>
+            <p>The handle style has been updated for all drawer cabinets.</p>
+          </div>
+          <div className={s.confirmFooter}>
+            <div>
+              <BaseButton onClick={() => setPendingHandleType(null)} fullWidth={true}>
+                Confirm
+              </BaseButton>
+            </div>
+          </div>
         </div>
+      </PopupCenterContent>
 
-        <div className={s.contentItem}>
-          <div>Depth</div>
-          <FilterSelection
-            label={"Depth"}
-            options={dimensionOptions.depth}
-            value={selectedDimensions.depth ?? ""}
-            onSelect={(value) => handleChangeDepth(value)}
-          />
+      <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
+        <div className={s.arrow} onClick={handleCloseSidebar}>
+          <ArrowRight width="16" />
         </div>
+        <div className={s.content}>
+          <div className={s.contentItem}>
+            <div>Width</div>
+            <FilterSelection
+              label={"Width"}
+              options={dimensionOptions.width}
+              value={selectedDimensions.width ?? ""}
+              onSelect={(value) => handleChangeWidth(value)}
+            />
+          </div>
 
-        {/* <div className={s.contentItem}>
+          <div className={s.contentItem}>
+            <div>Depth</div>
+            <FilterSelection
+              label={"Depth"}
+              options={dimensionOptions.depth}
+              value={selectedDimensions.depth ?? ""}
+              onSelect={(value) => handleChangeDepth(value)}
+            />
+          </div>
+
+          {/* <div className={s.contentItem}>
           <div>Height</div>
           <FilterSelection
             label={"Height"}
@@ -267,28 +301,29 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           />
         </div> */}
 
-        {!handlesDisabled && (
-          <div className={s.contentItem}>
-            <div>Handle</div>
-            <FilterSelection
-              label={"Handle"}
-              options={handleOptions}
-              value={selectedProductConfig?.Handle as string | undefined}
-              onSelect={(value) => handleSetHandleType(String(value))}
-            />
-          </div>
-        )}
+          {!handlesDisabled && (
+            <div className={s.contentItem}>
+              <div>Handle</div>
+              <FilterSelection
+                label={"Handle"}
+                options={handleOptions}
+                value={selectedProductConfig?.Handle as string | undefined}
+                onSelect={(value) => handleSetHandleType(String(value))}
+              />
+            </div>
+          )}
 
-        {!handlesDisabled && (
-          <div className={s.image}>
-            <img src={handleImage} alt="handle preview" />
-          </div>
-        )}
-      </div>
+          {!handlesDisabled && (
+            <div className={s.image}>
+              <img src={handleImage} alt="handle preview" />
+            </div>
+          )}
+        </div>
 
-      <div className={s.bottomText}>
-        Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
+        <div className={s.bottomText}>
+          Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
+        </div>
       </div>
-    </div>
+    </>
   );
 };
