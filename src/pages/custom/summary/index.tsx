@@ -841,7 +841,7 @@ export const CustomSummaryPage = () => {
   // This page only reads from the store.
 
   return (
-    <div className={s.summaryPage}>
+    <div id="summary-content" className={s.summaryPage}>
       {summarySections.map((section) => (
         <div key={section.id} className={s.section}>
           <div className={s.sectionHeader}>

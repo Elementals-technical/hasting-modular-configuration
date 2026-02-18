@@ -1,3 +1,20 @@
+#summary-print-clone {
+  display: none;
+}
+
+@media print {
+  body > :not(#summary-print-clone) {
+    display: none !important;
+  }
+
+  #summary-print-clone {
+    display: block;
+    padding: 24px;
+    box-sizing: border-box;
+    background: #fff;
+  }
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

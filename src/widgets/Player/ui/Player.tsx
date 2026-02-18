@@ -124,6 +124,23 @@ export function Player() {
     }
   };
 
+  const handleGenerateQuote = () => {
+    const content = document.getElementById("summary-content");
+    if (!content) return;
+
+    const clone = content.cloneNode(true) as HTMLElement;
+    clone.id = "summary-print-clone";
+    document.body.appendChild(clone);
+
+    const restore = () => {
+      clone.remove();
+      window.removeEventListener("afterprint", restore);
+    };
+
+    window.addEventListener("afterprint", restore);
+    window.print();
+  };
+
   const handleCopyShareValue = async () => {
     if (!shareValue) return;
 
@@ -196,7 +213,7 @@ export function Player() {
       <BottomCanvasButtons />
 
       {isSummaryPage && (
-        <div className={s.generateBtn}>
+        <div className={s.generateBtn} onClick={handleGenerateQuote}>
           <span>Generate Quote</span>
           <QuoteIcon />
         </div>

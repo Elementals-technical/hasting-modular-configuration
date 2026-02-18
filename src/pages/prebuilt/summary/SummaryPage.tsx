@@ -33,7 +33,16 @@ import {
 import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { buildProductSku, buildCountertopSku, buildTowelBarSku, TOWEL_BAR_DEFAULTS, buildSidePanelSku, SIDE_PANEL_WIDTH_CM, buildDividerSku, extractColorCode } from "@/shared/lib/sku";
+import {
+  buildProductSku,
+  buildCountertopSku,
+  buildTowelBarSku,
+  TOWEL_BAR_DEFAULTS,
+  buildSidePanelSku,
+  SIDE_PANEL_WIDTH_CM,
+  buildDividerSku,
+  extractColorCode,
+} from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 
 import s from "./SummaryPage.module.scss";
@@ -349,7 +358,13 @@ export const SummaryPage = () => {
             };
             const sku = buildProductSku(skuInput);
 
-            console.log(`[Cabinet SKU #${index}]`, { skuInput, sku, cabinetColorSku, handleGrooveColorSku, swatchValue });
+            console.log(`[Cabinet SKU #${index}]`, {
+              skuInput,
+              sku,
+              cabinetColorSku,
+              handleGrooveColorSku,
+              swatchValue,
+            });
 
             return {
               id: `cabinet-${index}`,
@@ -368,7 +383,10 @@ export const SummaryPage = () => {
                 cabinetType: productCabinetType,
                 drawers: typeof config.Drawers === "string" ? config.Drawers : null,
                 handle: typeof config.Handle === "string" ? config.Handle : null,
-                pattern: typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+                pattern:
+                  typeof config.DrawerPanelFluting === "string"
+                    ? config.DrawerPanelFluting
+                    : drawerPanelFluting || null,
                 width: width ?? null,
                 height: height ?? null,
                 depth: depth ?? null,
@@ -542,9 +560,7 @@ export const SummaryPage = () => {
           Width: selectedDimensions.width,
           Thickness: countertopThickness || null,
           Depth: selectedDimensions.depth,
-          Material: countertopColorSku
-            ? (materialSkuLabelMap[countertopColorSku] ?? countertopColorSku)
-            : null,
+          Material: countertopColorSku ? (materialSkuLabelMap[countertopColorSku] ?? countertopColorSku) : null,
           "Color Code": countertopColor,
         },
       },
@@ -644,9 +660,7 @@ export const SummaryPage = () => {
     }
 
     // Divider SKU
-    const divSku = dividerStyle && dividerStyle !== "None"
-      ? buildDividerSku({ dividerStyle })
-      : null;
+    const divSku = dividerStyle && dividerStyle !== "None" ? buildDividerSku({ dividerStyle }) : null;
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
@@ -808,7 +822,6 @@ export const SummaryPage = () => {
     countertopColor,
     countertopThickness,
     countertopStyle,
-    dividersOption,
     drawerPanelFluting,
     faucetHolesAmount,
     faucetHolesSpacing,
@@ -847,7 +860,7 @@ export const SummaryPage = () => {
   // This page only reads from the store.
 
   return (
-    <div className={s.summaryPage}>
+    <div id="summary-content" className={s.summaryPage}>
       {summarySections.map((section) => (
         <div key={section.id} className={s.section}>
           <div className={s.sectionHeader}>
