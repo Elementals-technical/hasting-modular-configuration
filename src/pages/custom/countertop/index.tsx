@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
@@ -21,6 +22,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import {
   setActiveBasinStyle,
   setActiveCountertopColor,
@@ -49,7 +51,10 @@ import { useGetConfiguratorQuery } from "@/entities";
 const COUNTERTOP_OPTION = "Counertops materials";
 
 export const CustomCountertopPage = () => {
+  const [searchParams] = useSearchParams();
+
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -432,13 +437,7 @@ export const CustomCountertopPage = () => {
 
       return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [
-    activeCountertopStyle,
-    activeMaterialTokens,
-    allowedBasinTokens,
-    allowedMaterials,
-    ruleState.allowedStyles,
-  ]);
+  }, [activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
@@ -498,8 +497,9 @@ export const CustomCountertopPage = () => {
     };
   }, [selectedProducts, containsSinkBase]);
 
-  const handleChangeCountertopColor = (colorName: string) => {
+  const handleChangeCountertopColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("Countertop Color", colorName);
 
@@ -511,7 +511,8 @@ export const CustomCountertopPage = () => {
     dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
-  const handleAddbasinStyle = (basinStyle: string) => {
+  const handleAddbasinStyle = async (basinStyle: string) => {
+    await saveSnapshot();
     console.log("basinStyle", basinStyle);
 
     setConfigBatch(selectedProducts, {
@@ -522,7 +523,8 @@ export const CustomCountertopPage = () => {
   };
 
   const handleAddThickness = useCallback(
-    (thickness: string) => {
+    async (thickness: string) => {
+      await saveSnapshot();
       console.log("thickness", thickness);
 
       setConfigBatch(
@@ -534,7 +536,7 @@ export const CustomCountertopPage = () => {
 
       dispatch(setActiveCountertopThickness(thickness));
     },
-    [dispatch],
+    [dispatch, saveSnapshot],
   );
 
   useEffect(() => {
@@ -640,9 +642,17 @@ export const CustomCountertopPage = () => {
     },
   ];
 
+  const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString();
+  const [accordionValue, setAccordionValue] = useState(defaultValue);
+
+  useEffect(() => {
+    const target = searchParams.get("accordion");
+    if (target) setAccordionValue(target);
+  }, [searchParams]);
+
   return (
     <div className="countertop">
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup defaultValue={defaultValue} value={accordionValue} onValueChange={setAccordionValue}>
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}

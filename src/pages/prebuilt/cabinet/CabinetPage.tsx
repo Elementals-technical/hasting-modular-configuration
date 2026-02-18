@@ -25,6 +25,7 @@ import {
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getCabinetColor,
@@ -52,6 +53,7 @@ import { flutingRule } from "@/features/configurator-rule-core/options";
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -89,9 +91,12 @@ export const CabinetPage = () => {
 
   useEffect(() => {
     if (!flutingState.available && !activeDrawerPanelFluting) {
-      setConfigBatch({}, {
-        DrawerPanelFluting: "None",
-      });
+      setConfigBatch(
+        {},
+        {
+          DrawerPanelFluting: "None",
+        },
+      );
     }
   }, [flutingState.available, activeDrawerPanelFluting]);
 
@@ -115,7 +120,10 @@ export const CabinetPage = () => {
 
   const toStringArrayFromCsv = (value: unknown): string[] => {
     if (typeof value !== "string") return [];
-    return value.split(",").map((part) => part.trim()).filter(Boolean);
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
   };
 
   const getVariantMeta = useCallback(
@@ -199,9 +207,16 @@ export const CabinetPage = () => {
       });
 
       const toOptions = (set: Set<string>) =>
-        Array.from(set).sort((a, b) => a.localeCompare(b)).map((value) => ({ label: value, value }));
+        Array.from(set)
+          .sort((a, b) => a.localeCompare(b))
+          .map((value) => ({ label: value, value }));
 
-      return { materials: toOptions(materialSet), colors: toOptions(colorSet), looks: toOptions(lookSet), hex: toOptions(hexSet) };
+      return {
+        materials: toOptions(materialSet),
+        colors: toOptions(colorSet),
+        looks: toOptions(lookSet),
+        hex: toOptions(hexSet),
+      };
     },
     [getVariantMeta],
   );
@@ -362,8 +377,9 @@ export const CabinetPage = () => {
     return i.name;
   });
 
-  const handleChangeColor = (colorName?: string) => {
+  const handleChangeColor = async (colorName?: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     presetNames.forEach(() => {
       setConfigBatch({}, { CabinetColor: colorName });
@@ -380,8 +396,9 @@ export const CabinetPage = () => {
     dispatch(setCabinetColorFinish(finishToken));
   };
 
-  const handleChangeGrooveColor = (colorName: string) => {
+  const handleChangeGrooveColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("HandleGrooveColor", colorName);
 
@@ -401,6 +418,7 @@ export const CabinetPage = () => {
 
   const handleChangeDrawerPanelFluting = async (value: string) => {
     if (!value) return;
+    await saveSnapshot();
     await setConfigBatch(
       {},
       {
@@ -412,6 +430,7 @@ export const CabinetPage = () => {
 
   const handleChangeGrainDirection = async (value: string) => {
     if (!value) return;
+    await saveSnapshot();
     await setConfigBatch(
       {},
       {

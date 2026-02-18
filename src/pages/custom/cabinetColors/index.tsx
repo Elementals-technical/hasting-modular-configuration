@@ -35,6 +35,7 @@ import {
   selectGrainDirectionState,
 } from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import {
   setCabinetColor,
@@ -51,6 +52,7 @@ import {
 
 export const CustomCabinetColorsPage = () => {
   const dispatch = useAppDispatch();
+  const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -251,7 +253,7 @@ export const CustomCabinetColorsPage = () => {
         id: "groove-color-none",
         title: "None",
         isShortDesc: false,
-        metadata: { value: "Blu Pavone A6 MT" },
+        metadata: { value: "None" },
       },
       ...sortedGrooveOptions,
     ],
@@ -354,8 +356,9 @@ export const CustomCabinetColorsPage = () => {
     return match?.[1] ?? "";
   }, []);
 
-  const handleChangeColor = (colorName: string) => {
+  const handleChangeColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("colorName", colorName);
 
@@ -377,8 +380,9 @@ export const CustomCabinetColorsPage = () => {
     dispatch(setCabinetColorFinish(finishToken));
   };
 
-  const handleChangeGrooveColor = (colorName: string) => {
+  const handleChangeGrooveColor = async (colorName: string) => {
     if (!colorName) return;
+    await saveSnapshot();
 
     console.log("HandleGrooveColor", colorName);
 
@@ -398,6 +402,7 @@ export const CustomCabinetColorsPage = () => {
 
   const handleChangeDrawerPanelFluting = async (value: string) => {
     if (!value) return;
+    await saveSnapshot();
     await setConfigBatch(selectedProducts, {
       DrawerPanelFluting: value,
     });
@@ -406,6 +411,7 @@ export const CustomCabinetColorsPage = () => {
 
   const handleChangeGrainDirection = async (value: string) => {
     if (!value) return;
+    await saveSnapshot();
     await setConfigBatch(selectedProducts, {
       GrainDirection: value,
     });

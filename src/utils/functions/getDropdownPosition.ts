@@ -18,7 +18,10 @@ export function getDropdownPosition(
   entityName: string,
   container: HTMLIFrameElement,
   lastPointerPos: { x: number; y: number } | null,
+  size?: { width?: number; height?: number },
 ): DropdownPosition {
+  const dropdownWidth = size?.width ?? DROPDOWN_WIDTH;
+  const dropdownHeight = size?.height ?? DROPDOWN_HEIGHT;
   const containerWidth = container.offsetWidth;
   const containerHeight = container.offsetHeight;
 
@@ -43,11 +46,11 @@ export function getDropdownPosition(
   let y = anchorY;
 
   // Clamp so the dropdown stays within the container
-  if (x + DROPDOWN_WIDTH > containerWidth) {
-    x = anchorX - DROPDOWN_WIDTH - DROPDOWN_OFFSET_X;
+  if (x + dropdownWidth > containerWidth) {
+    x = anchorX - dropdownWidth - DROPDOWN_OFFSET_X;
   }
-  if (y + DROPDOWN_HEIGHT > containerHeight) {
-    y = containerHeight - DROPDOWN_HEIGHT;
+  if (y + dropdownHeight > containerHeight) {
+    y = containerHeight - dropdownHeight;
   }
   if (x < 0) x = 0;
   if (y < 0) y = 0;

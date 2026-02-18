@@ -9,10 +9,6 @@ export type SidePanelSkuInput = {
   height: number | null;
   /** Cabinet depth in cm */
   depth: number | null;
-  /** Handle material SKU (e.g. "LACM") */
-  handleMaterialSku: string | null;
-  /** Handle color code (e.g. "FE") */
-  handleColorCode: string | null;
 };
 
 const FALLBACK = "X";
@@ -22,9 +18,9 @@ const SERIES = "URSP";
 /** Side-panel groove type → pricing code for the URSP SKU */
 const sidePanelPricingMap: Record<string, string> = {
   NoG: "0G",
-  UpperG: "UPG",
-  CenterG: "CTG",
-  DoubleG: "DBG",
+  UpperG: "1GU",
+  CenterG: "1GC",
+  DoubleG: "2G",
 };
 
 /** Default physical width of a side panel in cm */
@@ -35,11 +31,7 @@ export const SIDE_PANEL_WIDTH_CM = 1;
  *
  * Dimensions are converted from cm → inches.
  *
- * Without handle material:
- *   VAN-URSP-0G-.4W-19.7H-17.9D
- *
- * With handle material:
- *   VAN-URSP-0G-.4W-19.7H-17.9D-HDL-LACM
+ * Example: VAN-URSP-0G-.4W-19.7H-17.9D
  */
 export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   if (!input.panelType || input.panelType === "None") return null;
@@ -54,13 +46,5 @@ export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
   const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
 
-  let sku = `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}`;
-
-  const mat = input.handleMaterialSku?.trim();
-  if (mat) {
-    const color = input.handleColorCode?.trim();
-    sku += color ? `-HDL-${mat}-${color}` : `-HDL-${mat}`;
-  }
-
-  return sku;
+  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}`;
 }

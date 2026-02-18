@@ -6,6 +6,7 @@ import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { type PropsWithChildren } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
+import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -30,7 +31,11 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
 
   const handleNavigate = () => {
-    if (nextStep) navigate(nextStep?.path);
+    if (nextStep) {
+      setVisibleDrawerButtons(false);
+
+      navigate(nextStep?.path);
+    }
   };
 
   return (

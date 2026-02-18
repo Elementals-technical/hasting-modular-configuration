@@ -430,6 +430,22 @@ const productSlice = createSlice({
     setHasBootstrappedCabinetBuilder(state, action: PayloadAction<boolean>) {
       state.hasBootstrappedCabinetBuilder = action.payload;
     },
+    restoreProductState(
+      state,
+      action: PayloadAction<{
+        productIds: string[];
+        productOptions: ProductState["productOptions"];
+        activeCabinetType: string | null;
+        selectedDimensions: { width: number | null; height: number | null; depth: number | null };
+      }>,
+    ) {
+      const { productIds, productOptions, activeCabinetType, selectedDimensions } = action.payload;
+      state.productIds = productIds;
+      state.productOptions = productOptions;
+      state.activeCabinetType = activeCabinetType;
+      state.selectedDimensions = selectedDimensions;
+      applyRulesToState(state);
+    },
   },
 });
 
@@ -473,5 +489,6 @@ export const {
   setIsDrawerOpen,
   resetCabinetBuilderBootstrap,
   setHasBootstrappedCabinetBuilder,
+  restoreProductState,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;
