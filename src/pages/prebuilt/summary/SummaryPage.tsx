@@ -72,6 +72,7 @@ type SummaryItem = {
   };
   price: string;
   copyable?: boolean;
+  description?: Record<string, unknown>;
 };
 
 type SummarySection = {
@@ -79,6 +80,43 @@ type SummarySection = {
   title: string;
   items: SummaryItem[];
   copyLabel?: string;
+};
+
+/** Human-readable labels for handle types */
+const handleLabelMap: Record<string, string> = {
+  handle_urban_topcut: "Urban Top Cut",
+  handle_urban_botcut: "Center Groove",
+  handle_pto: "Push to Open",
+};
+
+/** Human-readable labels for drawer configs */
+const drawerLabelMap: Record<string, string> = {
+  "1D": "1 Drawer",
+  "2D": "2 Drawer",
+  "1DWID": "1 Wide Drawer",
+};
+
+/** Human-readable labels for material SKU codes */
+const materialSkuLabelMap: Record<string, string> = {
+  LACG: "Lacquered Gloss",
+  LACM: "Lacquered Matt",
+  FX: "Fenix",
+  HPL: "HPL",
+  POR: "Porcelain",
+  GLSM: "Glass Matt",
+  GLSG: "Glass Gloss",
+  SSMMO: "Minermalmaro",
+  SSTM: "Teckormud",
+  SSOCR: "Ocritech",
+  SSTKR: "Tekorlux",
+};
+
+/** Human-readable labels for side panel groove types */
+const sidePanelLabelMap: Record<string, string> = {
+  NoG: "No Groove",
+  UpperG: "Upper Groove",
+  CenterG: "Center Groove",
+  DoubleG: "Double Groove",
 };
 
 const swatches = [
@@ -221,6 +259,51 @@ export const SummaryPage = () => {
     };
   }, [selectedProducts]);
 
+  const buildCabinetDescription = useCallback(
+    (opts: {
+      cabinetType: string | null;
+      drawers: string | null;
+      handle: string | null;
+      pattern: string | null;
+      width: number | null;
+      height: number | null;
+      depth: number | null;
+      cabColor: string;
+      cabMaterialSku: string | null;
+      hdlColor: string;
+      hdlMaterialSku: string | null;
+    }): Record<string, unknown> => {
+      const elements: Record<string, string>[] = [];
+      if (opts.cabMaterialSku) {
+        elements.push({
+          "Product Elements": "Cabinet",
+          Material: materialSkuLabelMap[opts.cabMaterialSku] ?? opts.cabMaterialSku,
+          "Color Code": opts.cabColor,
+        });
+      }
+      if (opts.hdlMaterialSku) {
+        elements.push({
+          "Product Elements": "Handle",
+          Material: materialSkuLabelMap[opts.hdlMaterialSku] ?? opts.hdlMaterialSku,
+          "Color Code": opts.hdlColor,
+        });
+      }
+      return {
+        "Product Category": "Vanity",
+        Products: "Urban Standard",
+        "Cabinet Type": opts.cabinetType?.replace(/-/g, " ") ?? "Unknown",
+        "Cabinet Style": opts.drawers ? (drawerLabelMap[opts.drawers] ?? opts.drawers) : "Unknown",
+        "Handle Style": opts.handle ? (handleLabelMap[opts.handle] ?? opts.handle) : "Unknown",
+        "Drawer Panel Fluting": opts.pattern || "None",
+        Width: opts.width,
+        Height: opts.height,
+        Depth: opts.depth,
+        elements,
+      };
+    },
+    [],
+  );
+
   const summarySections: SummarySection[] = useMemo(() => {
     const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
 
@@ -281,6 +364,19 @@ export const SummaryPage = () => {
               },
               price: resolveItemPrice(sku),
               copyable: true,
+              description: buildCabinetDescription({
+                cabinetType: productCabinetType,
+                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+                handle: typeof config.Handle === "string" ? config.Handle : null,
+                pattern: typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cabColor: swatchValue,
+                cabMaterialSku: cabinetColorSku || null,
+                hdlColor: handleGrooveColor,
+                hdlMaterialSku: handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null,
+              }),
             };
           })
         : productsPresets.length > 0
@@ -326,6 +422,19 @@ export const SummaryPage = () => {
                 },
                 price: resolveItemPrice(sku),
                 copyable: true,
+                description: buildCabinetDescription({
+                  cabinetType: preset.name ?? activeCabinetType,
+                  drawers: preset.Drawers ?? null,
+                  handle: preset.Handle ?? null,
+                  pattern: drawerPanelFluting || null,
+                  width: preset.Width ?? null,
+                  height: preset.Height ?? null,
+                  depth: preset.Depth ?? null,
+                  cabColor: swatchValue,
+                  cabMaterialSku: cabinetColorSku || null,
+                  hdlColor: handleGrooveColor,
+                  hdlMaterialSku: handleMaterialSku,
+                }),
               };
             })
           : [
@@ -362,6 +471,19 @@ export const SummaryPage = () => {
                   },
                   price: resolveItemPrice(sku),
                   copyable: true,
+                  description: buildCabinetDescription({
+                    cabinetType: activeCabinetType,
+                    drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+                    handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+                    pattern: drawerPanelFluting || null,
+                    width: selectedDimensions.width,
+                    height: selectedDimensions.height,
+                    depth: selectedDimensions.depth,
+                    cabColor: cabinetColor,
+                    cabMaterialSku: cabinetColorSku || null,
+                    hdlColor: handleGrooveColor,
+                    hdlMaterialSku: handleMaterialSku,
+                  }),
                 };
               })(),
             ];
@@ -414,6 +536,17 @@ export const SummaryPage = () => {
         },
         price: resolveItemPrice(countertopSkuLines[0]),
         copyable: true,
+        description: {
+          "Product Category": "Countertop",
+          Style: countertopStyle || "Plain",
+          Width: selectedDimensions.width,
+          Thickness: countertopThickness || null,
+          Depth: selectedDimensions.depth,
+          Material: countertopColorSku
+            ? (materialSkuLabelMap[countertopColorSku] ?? countertopColorSku)
+            : null,
+          "Color Code": countertopColor,
+        },
       },
       countertopStyle
         ? {
@@ -429,6 +562,9 @@ export const SummaryPage = () => {
         sku: line,
         price: resolveItemPrice(line),
         copyable: true,
+        description: {
+          "Product Category": countertopSkuLabels[i + 1] ?? "Countertop Element",
+        },
       })),
     ].filter(Boolean) as SummaryItem[];
 
@@ -495,6 +631,13 @@ export const SummaryPage = () => {
             sku: spSku,
             price: resolveItemPrice(spSku),
             copyable: true,
+            description: {
+              "Product Category": "Side Panel",
+              "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
+              Width: SIDE_PANEL_WIDTH_CM,
+              Height: dims.height,
+              Depth: dims.depth,
+            },
           });
         }
       });
@@ -532,6 +675,10 @@ export const SummaryPage = () => {
                 : undefined,
             price: resolveItemPrice(divSku),
             copyable: true,
+            description: {
+              "Product Category": "Divider",
+              "Divider Style": dividerStyle,
+            },
           }
         : null,
       towelBarRightSku
@@ -542,6 +689,15 @@ export const SummaryPage = () => {
             sku: towelBarRightSku,
             price: resolveItemPrice(towelBarRightSku),
             copyable: true,
+            description: {
+              "Product Category": "Towel Bar",
+              Side: "Right",
+              Width: TOWEL_BAR_DEFAULTS.width,
+              Height: TOWEL_BAR_DEFAULTS.height,
+              Depth: TOWEL_BAR_DEFAULTS.depth,
+              Material: towelMaterialSku ? (materialSkuLabelMap[towelMaterialSku] ?? towelMaterialSku) : null,
+              "Color Code": towelBarColor,
+            },
           }
         : null,
       towelBarLeftSku
@@ -552,6 +708,15 @@ export const SummaryPage = () => {
             sku: towelBarLeftSku,
             price: resolveItemPrice(towelBarLeftSku),
             copyable: true,
+            description: {
+              "Product Category": "Towel Bar",
+              Side: "Left",
+              Width: TOWEL_BAR_DEFAULTS.width,
+              Height: TOWEL_BAR_DEFAULTS.height,
+              Depth: TOWEL_BAR_DEFAULTS.depth,
+              Material: towelMaterialSku ? (materialSkuLabelMap[towelMaterialSku] ?? towelMaterialSku) : null,
+              "Color Code": towelBarColor,
+            },
           }
         : null,
       {
@@ -665,7 +830,18 @@ export const SummaryPage = () => {
     dividerStyle,
     resolveSwatch,
     resolveItemPrice,
+    buildCabinetDescription,
   ]);
+
+  const fullSkuJson = useMemo(() => {
+    return summarySections
+      .flatMap((section) => section.items)
+      .filter((item) => item.sku && item.copyable)
+      .map((item) => ({
+        sku: item.sku,
+        description: item.description ?? {},
+      }));
+  }, [summarySections]);
 
   // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
   // This page only reads from the store.
@@ -680,9 +856,7 @@ export const SummaryPage = () => {
 
           <div className={s.sectionList}>
             {section.items.map((item) => {
-              const textToCopy = item.sku
-                ? item.sku
-                : [item.title, item.subtitle, item.swatch?.label, item.swatch?.value].filter(Boolean).join(" - ");
+              const textToCopy = JSON.stringify(fullSkuJson, null, 2);
 
               return (
                 <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
