@@ -17,6 +17,7 @@ import {
   getSinkType,
   getDrawerPanelFluting,
   getGrainDirection,
+  getBookMatching,
   getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
@@ -34,6 +35,7 @@ import {
   buildDividerSku,
   buildOpenShelfSku,
   buildOpenSideShelfSku,
+  buildBookMatchingSku,
   TOWEL_BAR_DEFAULTS,
   SIDE_PANEL_WIDTH_CM,
   extractColorCode,
@@ -111,6 +113,7 @@ export function usePriceCalculation() {
 
   const grainDirection = useAppSelector(getGrainDirection);
   const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
+  const bookMatching = useAppSelector(getBookMatching);
 
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
@@ -416,6 +419,7 @@ export function usePriceCalculation() {
     // Fallback: single selectedDimensions
     type ProductDims = { width: number | null; height: number | null; depth: number | null; sinkType: string | null };
     let productDimsList: ProductDims[];
+    const cabinetCount = hasPresets ? productsPresets.length : sceneConfigs.length > 0 ? sceneConfigs.length : 1;
 
     if (hasPresets) {
       productDimsList = productsPresets.map((p) => ({
@@ -531,6 +535,16 @@ export function usePriceCalculation() {
       }
     }
 
+    // 5) Book matching SKU — pricing modifier (global)
+    if (bookMatching === "enabled" && grainSku) {
+      const isHorizontal = grainSku === "H";
+      if (!isHorizontal || cabinetCount >= 2) {
+        const bmSku = buildBookMatchingSku({ direction: grainSku });
+        console.log(LOG_PREFIX, "Resolver 5 (Book Matching):", bmSku);
+        skus.push(bmSku);
+      }
+    }
+
     console.log(LOG_PREFIX, "All SKUs:", skus);
     return skus;
   }, [
@@ -553,6 +567,7 @@ export function usePriceCalculation() {
     countertopThickness,
     countertopStyle,
     grainSku,
+    bookMatching,
     sinkType,
     drawerPanelFluting,
     towelBarOption,

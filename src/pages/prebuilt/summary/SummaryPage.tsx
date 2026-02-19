@@ -17,6 +17,7 @@ import {
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
   getGrainDirection,
+  getBookMatching,
   getHandleGrooveColor,
   getHandleGrooveColorSku,
   getPriceBySku,
@@ -40,6 +41,7 @@ import {
   buildSidePanelSku,
   SIDE_PANEL_WIDTH_CM,
   buildDividerSku,
+  buildBookMatchingSku,
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -159,6 +161,7 @@ export const SummaryPage = () => {
   const sinkType = useAppSelector(getSinkType);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
+  const bookMatching = useAppSelector(getBookMatching);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const dividersOption = useAppSelector(getDividersOption);
@@ -319,6 +322,8 @@ export const SummaryPage = () => {
   const summarySections: SummarySection[] = useMemo(() => {
     const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
     const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
+    const cabinetCount =
+      cabinetConfigs.length > 0 ? cabinetConfigs.length : productsPresets.length > 0 ? productsPresets.length : 1;
 
     const cabinetItems =
       cabinetConfigs.length > 0
@@ -731,6 +736,23 @@ export const SummaryPage = () => {
             },
           }
         : null,
+      bookMatching === "enabled" && grainSku && (grainSku !== "H" || cabinetCount >= 2)
+        ? (() => {
+            const bmSku = buildBookMatchingSku({ direction: grainSku });
+            return {
+              id: "accessories-book-matching",
+              title: "Book Matching",
+              subtitle: bmSku,
+              sku: bmSku,
+              price: resolveItemPrice(bmSku),
+              copyable: true,
+              description: {
+                "Product Category": "Book Matching",
+                Direction: grainSku === "H" ? "Horizontal" : "Vertical",
+              },
+            };
+          })()
+        : null,
     ].filter(Boolean) as SummaryItem[];
 
     const faucetItems: SummaryItem[] = [
@@ -812,6 +834,7 @@ export const SummaryPage = () => {
     faucetHolesAmount,
     faucetHolesSpacing,
     grainDirection,
+    bookMatching,
     handleGrooveColor,
     handleGrooveColorSku,
     productsPresets,

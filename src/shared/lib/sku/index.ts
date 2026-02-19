@@ -5,6 +5,7 @@ export { buildSidePanelSku, SIDE_PANEL_WIDTH_CM, type SidePanelSkuInput } from "
 export { buildDividerSku, type DividerSkuInput } from "./buildDividerSku";
 export { buildOpenShelfSku, type OpenShelfSkuInput } from "./buildOpenShelfSku";
 export { buildOpenSideShelfSku, type OpenSideShelfSkuInput } from "./buildOpenSideShelfSku";
+export { buildBookMatchingSku, type BookMatchingSkuInput } from "./buildBookMatchingSku";
 export { cmToInches } from "./cmToInches";
 export { extractColorCode } from "./extractColorCode";
 export {
