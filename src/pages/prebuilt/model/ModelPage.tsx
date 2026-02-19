@@ -16,7 +16,6 @@ import {
   addProductPreset,
   reset,
   resetCabinetBuilderBootstrap,
-  resetPrebuiltProducts,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -152,23 +151,31 @@ export const ModelPage = () => {
       return;
     }
 
+    const currentPresets = productsPresets;
+
     removeAllProducts();
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
 
     dispatch(reset());
-    dispatch(resetPrebuiltProducts());
     dispatch(resetCabinetBuilderBootstrap());
+    if (currentPresets.length) {
+      dispatch(addProductPreset(currentPresets));
+    }
     navigate(ROUTES.CUSTOM);
   };
 
   const handleConfirmLeave = async () => {
+    const currentPresets = productsPresets;
+
     removeAllProducts();
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
     await setConfigBatch({}, { SidePanel: "None" });
 
     dispatch(reset());
-    dispatch(resetPrebuiltProducts());
     dispatch(resetCabinetBuilderBootstrap());
+    if (currentPresets.length) {
+      dispatch(addProductPreset(currentPresets));
+    }
     navigate(ROUTES.CUSTOM);
   };
 
