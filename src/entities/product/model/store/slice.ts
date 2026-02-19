@@ -43,6 +43,8 @@ type ProductState = {
   dimensionOptions: DimensionOptionGroup;
   cabinetCatalog: ConfiguratorCatalog;
   placedDividers: PlacedDivider[];
+  /** Maps productId → raw drawer value ("1", "2", "1+inner"). Only set for non-open cabinets. */
+  placedCabinetStyles: Record<string, string>;
   productOptions: {
     CabinetColor: string;
     CabinetColorSku: string;
@@ -185,6 +187,7 @@ const createInitialState = (): ProductState => {
     },
     cabinetCatalog: { typeCabinetRules: [] },
     placedDividers: [],
+    placedCabinetStyles: {},
     productOptions: {
       CabinetColor: "Ardesia DD GL",
       CabinetColorSku: "",
@@ -256,6 +259,8 @@ const productSlice = createSlice({
       if (lastIndex !== -1) {
         state.productIds.splice(lastIndex, 1);
       }
+
+      delete state.placedCabinetStyles[action.payload];
     },
     swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
       const { idA, idB } = action.payload;
@@ -277,6 +282,7 @@ const productSlice = createSlice({
     },
     resetProducts(state) {
       state.productIds = [];
+      state.placedCabinetStyles = {};
     },
     resetCabinetBuilderBootstrap(state) {
       state.hasBootstrappedCabinetBuilder = false;
@@ -292,6 +298,9 @@ const productSlice = createSlice({
       state.productsPresets = action.payload;
     },
 
+    setPlacedCabinetStyle(state, action: PayloadAction<{ id: string; value: string }>) {
+      state.placedCabinetStyles[action.payload.id] = action.payload.value;
+    },
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
     },
@@ -479,6 +488,7 @@ export const {
   addProductId,
   addProductPreset,
   removeProductId,
+  setPlacedCabinetStyle,
   swapProductIds,
   insertProductIdRelative,
   reset,

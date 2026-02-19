@@ -13,6 +13,8 @@ interface ProductStyleItemI {
   isActive?: boolean;
   onSelectStyle?: (id: number) => void;
   isAvailable?: boolean;
+  isMixingRestricted?: boolean;
+  onMixingRestrictedSelect?: (id: number) => void;
 }
 
 export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
@@ -23,18 +25,34 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   isActive = false,
   onSelectStyle,
   isAvailable = true,
+  isMixingRestricted = false,
+  onMixingRestrictedSelect,
 }) => {
-  const isClickable = isAvailable;
+  const isClickable = isAvailable && !isMixingRestricted;
 
   const handleClick = () => {
-    if (!isClickable) return;
+    if (!isAvailable) return;
+
+    if (isMixingRestricted) {
+      onMixingRestrictedSelect?.(id);
+      return;
+    }
 
     onSelectStyle?.(id);
     handleOpenStyleSidebar();
   };
 
+  const itemClass = [
+    s.productStyleItem,
+    isActive ? s.activeItem : "",
+    !isAvailable ? s.disabled : "",
+    isAvailable && isMixingRestricted ? s.restricted : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={`${s.productStyleItem} ${isActive ? s.activeItem : ""} ${!isClickable ? s.disabled : ""}`}>
+    <div className={itemClass}>
       <div className={s.image} onClick={handleClick}>
         <img src={imageSrc ?? none_img} alt="image" />
       </div>
