@@ -537,9 +537,16 @@ export const CustomSummaryPage = () => {
         : null,
     ].filter(Boolean) as SummaryItem[];
 
+    const totalCountertopWidth =
+      cabinetConfigs.length > 0
+        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+        : productsPresets.length > 0
+          ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) || null
+          : selectedDimensions.width;
+
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,
-      width: selectedDimensions.width,
+      width: totalCountertopWidth,
       depth: selectedDimensions.depth,
       thickness: countertopThickness || null,
       basinType: sinkType || null,
@@ -569,7 +576,7 @@ export const CustomSummaryPage = () => {
         description: {
           "Product Category": "Countertop",
           Style: countertopStyle || "Plain",
-          Width: selectedDimensions.width,
+          Width: totalCountertopWidth,
           Thickness: countertopThickness || null,
           Depth: selectedDimensions.depth,
           Material: countertopColorSku ? (materialSkuLabelMap[countertopColorSku] ?? countertopColorSku) : null,
