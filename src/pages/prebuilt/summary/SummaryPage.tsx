@@ -254,7 +254,12 @@ export const SummaryPage = () => {
         return;
       }
 
-      const configs = await Promise.all(selectedProducts.map((id) => getConfig(id)));
+      const configs = await Promise.all(
+        selectedProducts.map(async (id) => {
+          const config = await getConfig(id);
+          return config ? { _productId: id, ...config } : null;
+        }),
+      );
       const cleaned = configs.filter((config): config is Record<string, unknown> => Boolean(config));
       if (isMounted) setProductConfigs(cleaned);
     };
@@ -324,12 +329,23 @@ export const SummaryPage = () => {
 
             const dims = [width, depth, height].every((v) => v !== undefined) ? `${width}x${depth}x${height}` : "";
             const subtitle = [drawers, dims].filter(Boolean).join(" | ");
+            const resolveNameFromRaw = (v: string) => {
+              const lastDash = v.lastIndexOf("-");
+              if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
+              return v;
+            };
             const name =
               typeof config.ProductType === "string"
                 ? config.ProductType
-                : typeof config.name === "string"
-                  ? config.name
-                  : undefined;
+                : typeof config.productType === "string"
+                  ? config.productType
+                  : typeof config.entityName === "string"
+                    ? resolveNameFromRaw(config.entityName)
+                    : typeof config._productId === "string"
+                      ? resolveNameFromRaw(config._productId)
+                      : typeof config.name === "string"
+                        ? config.name
+                        : undefined;
             const swatchValue =
               typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
             const swatch = resolveSwatch(swatchValue);
@@ -357,7 +373,7 @@ export const SummaryPage = () => {
 
             return {
               id: `cabinet-${index}`,
-              title: name ?? "Cabinet",
+              title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
               subtitle,
               sku,
               swatch: {
@@ -418,7 +434,7 @@ export const SummaryPage = () => {
 
               return {
                 id: `cabinet-${index}`,
-                title: preset.name ?? "Cabinet",
+                title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
                 subtitle,
                 sku,
                 swatch: {
@@ -468,7 +484,7 @@ export const SummaryPage = () => {
 
                 return {
                   id: "cabinet-1",
-                  title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : "Cabinet",
+                  title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
                   subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
                   sku,
                   swatch: {
@@ -714,18 +730,6 @@ export const SummaryPage = () => {
             },
           }
         : null,
-      {
-        id: "accessories-1",
-        title: "Handle Groove",
-        subtitle: "Groove color",
-        swatch: {
-          label: "Groove",
-          value: handleGrooveColor,
-          color: grooveSwatch.color,
-          image: grooveSwatch.image,
-        },
-        price: "$0",
-      },
     ].filter(Boolean) as SummaryItem[];
 
     const faucetItems: SummaryItem[] = [
