@@ -22,5 +22,6 @@ export async function captureSnapshot(getState: () => RootState): Promise<SceneS
     productOptions: { ...state.productOptions },
     activeCabinetType: state.activeCabinetType,
     selectedDimensions: { ...state.selectedDimensions },
+    placedDividers: [...state.placedDividers],
   };
 }

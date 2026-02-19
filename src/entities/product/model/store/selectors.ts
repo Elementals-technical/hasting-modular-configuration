@@ -68,6 +68,8 @@ export const getDividersOption = (state: RootState) => state.rootStateUI.product
 
 export const getDividersStyle = (state: RootState) => state.rootStateUI.product.productOptions.DividersStyle;
 
+export const getPlacedDividers = (state: RootState) => state.rootStateUI.product.placedDividers;
+
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 
 export const getTowelBarColor = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarColor;

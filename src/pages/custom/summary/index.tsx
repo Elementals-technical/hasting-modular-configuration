@@ -11,8 +11,7 @@ import {
   getCabinetColorSku,
   getCountertopColorSku,
   getCountertopStyle,
-  getDividersOption,
-  getDividersStyle,
+  getPlacedDividers,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
@@ -160,8 +159,7 @@ export const CustomSummaryPage = () => {
   const grainDirection = useAppSelector(getGrainDirection);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const dividersOption = useAppSelector(getDividersOption);
-  const dividerStyle = useAppSelector(getDividersStyle);
+  const placedDividers = useAppSelector(getPlacedDividers);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
@@ -483,7 +481,10 @@ export const CustomSummaryPage = () => {
 
                 return {
                   id: "cabinet-1",
-                  title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
+                  title:
+                    typeof selectedProductConfig?.name === "string"
+                      ? selectedProductConfig.name
+                      : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
                   subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
                   sku,
                   swatch: {
@@ -590,7 +591,24 @@ export const CustomSummaryPage = () => {
       })),
     ].filter(Boolean) as SummaryItem[];
 
-    const dividerImage = buildImageSrc(resolveDividerImage(dividerStyle));
+    const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
+
+    const dividerItems: SummaryItem[] = placedDividers.map((divider, index) => {
+      const style = typeToStyleMap[divider.type];
+      const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
+      // const image = buildImageSrc(resolveDividerImage(style));
+      const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
+      return {
+        id: `accessories-dividers-${divider.key}-${index}`,
+        title: "Dividers",
+        subtitle: sku ?? undefined,
+        sku: sku ?? undefined,
+        // swatch: style && image ? { label: "Divider", value: style, color: "#ffffff", image } : undefined,
+        price: formatPrice(unitPrice),
+        copyable: !!sku,
+        description: { "Product Category": "Divider", "Divider Style": style },
+      };
+    });
 
     // Towel bar full product SKUs
     const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
@@ -665,34 +683,9 @@ export const CustomSummaryPage = () => {
       });
     }
 
-    // Divider SKU
-    const divSku = dividerStyle && dividerStyle !== "None" ? buildDividerSku({ dividerStyle }) : null;
-
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
-      divSku
-        ? {
-            id: "accessories-dividers",
-            title: "Dividers",
-            subtitle: divSku,
-            sku: divSku,
-            swatch:
-              dividerStyle && dividerImage
-                ? {
-                    label: "Divider",
-                    value: dividerStyle,
-                    color: "#ffffff",
-                    image: dividerImage,
-                  }
-                : undefined,
-            price: resolveItemPrice(divSku),
-            copyable: true,
-            description: {
-              "Product Category": "Divider",
-              "Divider Style": dividerStyle,
-            },
-          }
-        : null,
+      ...dividerItems,
       towelBarRightSku
         ? {
             id: "accessories-towel-bar-right",
@@ -825,7 +818,8 @@ export const CustomSummaryPage = () => {
     sinkType,
     towelBarColor,
     towelBarOption,
-    dividerStyle,
+    placedDividers,
+    priceBySku,
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,

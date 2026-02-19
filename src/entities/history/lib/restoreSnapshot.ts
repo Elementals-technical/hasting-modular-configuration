@@ -66,6 +66,7 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
       productOptions: snapshot.productOptions,
       activeCabinetType: snapshot.activeCabinetType,
       selectedDimensions: snapshot.selectedDimensions,
+      placedDividers: snapshot.placedDividers,
     }),
   );
 }

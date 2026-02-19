@@ -24,6 +24,14 @@ type DimensionOptionGroup = {
   handles: DimensionOption[];
 };
 
+export type PlacedDivider = {
+  key: string;
+  cabinetId: string;
+  drawerType: "Top" | "Bot";
+  zone: string;
+  type: "A" | "B" | "C";
+};
+
 type ProductState = {
   productIds: string[];
   activeCabinetType: string | null;
@@ -34,6 +42,7 @@ type ProductState = {
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
   cabinetCatalog: ConfiguratorCatalog;
+  placedDividers: PlacedDivider[];
   productOptions: {
     CabinetColor: string;
     CabinetColorSku: string;
@@ -175,6 +184,7 @@ const createInitialState = (): ProductState => {
       handles: [],
     },
     cabinetCatalog: { typeCabinetRules: [] },
+    placedDividers: [],
     productOptions: {
       CabinetColor: "Ardesia DD GL",
       CabinetColorSku: "",
@@ -408,6 +418,20 @@ const productSlice = createSlice({
     setDividersStyle(state, action: PayloadAction<string>) {
       state.productOptions.DividersStyle = action.payload;
     },
+    addPlacedDivider(state, action: PayloadAction<PlacedDivider>) {
+      const idx = state.placedDividers.findIndex((d) => d.key === action.payload.key);
+      if (idx >= 0) {
+        state.placedDividers[idx] = action.payload;
+      } else {
+        state.placedDividers.push(action.payload);
+      }
+    },
+    removePlacedDivider(state, action: PayloadAction<string>) {
+      state.placedDividers = state.placedDividers.filter((d) => d.key !== action.payload);
+    },
+    clearPlacedDividers(state) {
+      state.placedDividers = [];
+    },
     setTowelBarOption(state, action: PayloadAction<string>) {
       state.productOptions.TowelBarOption = action.payload;
     },
@@ -437,13 +461,15 @@ const productSlice = createSlice({
         productOptions: ProductState["productOptions"];
         activeCabinetType: string | null;
         selectedDimensions: { width: number | null; height: number | null; depth: number | null };
+        placedDividers?: PlacedDivider[];
       }>,
     ) {
-      const { productIds, productOptions, activeCabinetType, selectedDimensions } = action.payload;
+      const { productIds, productOptions, activeCabinetType, selectedDimensions, placedDividers } = action.payload;
       state.productIds = productIds;
       state.productOptions = productOptions;
       state.activeCabinetType = activeCabinetType;
       state.selectedDimensions = selectedDimensions;
+      state.placedDividers = placedDividers ?? [];
       applyRulesToState(state);
     },
   },
@@ -479,6 +505,9 @@ export const {
   setLedOption,
   setDividersOption,
   setDividersStyle,
+  addPlacedDivider,
+  removePlacedDivider,
+  clearPlacedDividers,
   setTowelBarOption,
   setTowelBarColor,
   setFaucetHolesAmount,
