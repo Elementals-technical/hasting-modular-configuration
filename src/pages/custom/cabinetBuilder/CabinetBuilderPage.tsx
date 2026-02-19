@@ -123,11 +123,8 @@ export const CabinetBuilderPage = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
 
-  const {
-    data: matrixCabinetTable,
-    isLoading: isMatrixLoading,
-    isError: isMatrixError,
-  } = useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
+  const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
+    useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
@@ -720,6 +717,7 @@ export const CabinetBuilderPage = () => {
           handleAdd={handleSelectCabinetConfig}
           data={cabinetTypeOptions}
           setActiveCabinet={setActiveCabinet}
+          isLoading={isMatrixLoading}
         />
       ),
     },
@@ -752,11 +750,7 @@ export const CabinetBuilderPage = () => {
       <div className={s.cabinetBuilder}>
         {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
 
-        {isMatrixLoading ? (
-          <div>Loading cabinet rules...</div>
-        ) : isMatrixError || cabinetCatalog.typeCabinetRules.length === 0 ? (
-          <div>Cabinet rules are unavailable.</div>
-        ) : (
+        {
           <ConfiguratorAccordionGroup
             defaultValue={defaultValue}
             value={accordionValue}
@@ -768,7 +762,7 @@ export const CabinetBuilderPage = () => {
               </ConfiguratorAccordionItem>
             ))}
           </ConfiguratorAccordionGroup>
-        )}
+        }
 
         <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
       </div>
