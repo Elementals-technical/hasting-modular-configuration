@@ -63,7 +63,7 @@ const resolveDividerImage = (selection?: string) => {
 };
 
 const formatPrice = (value?: number | null) => {
-  if (typeof value !== "number") return "$—";
+  if (typeof value !== "number") return "$0";
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
 
@@ -179,7 +179,7 @@ export const CustomSummaryPage = () => {
       setTimeout(() => setCopiedId(null), 1500);
     });
   };
-  const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$—"), [priceBySku]);
+  const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
   const materialLookup = useMemo(() => {
     const values = (dataMaterial as { materials?: any[] }).materials ?? [];
@@ -725,7 +725,7 @@ export const CustomSummaryPage = () => {
           color: grooveSwatch.color,
           image: grooveSwatch.image,
         },
-        price: "$—",
+        price: "$0",
       },
     ].filter(Boolean) as SummaryItem[];
 
@@ -735,7 +735,7 @@ export const CustomSummaryPage = () => {
             id: "faucet-holes-amount",
             title: "Faucet Holes Amount",
             subtitle: faucetHolesAmount,
-            price: "$—",
+            price: "$0",
           }
         : null,
       faucetHolesSpacing
@@ -743,7 +743,7 @@ export const CustomSummaryPage = () => {
             id: "faucet-holes-spacing",
             title: "Faucet Holes Spacing",
             subtitle: faucetHolesSpacing,
-            price: "$—",
+            price: "$0",
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -777,7 +777,7 @@ export const CustomSummaryPage = () => {
             id: "basin-1",
             title: "Basin",
             subtitle: sinkType || undefined,
-            price: "$—",
+            price: "$0",
           },
         ],
       },
@@ -896,7 +896,7 @@ export const CustomSummaryPage = () => {
                   )}
 
                   <div className={s.price}>
-                    {item.sku && item.price === "$—" ? <span className={s.priceSpinner} /> : item.price}
+                    {item.sku && item.price === "$0" ? <span className={s.priceSpinner} /> : item.price}
                   </div>
                 </div>
               );

@@ -19,7 +19,6 @@ import {
   getGrainDirection,
   getHandleGrooveColor,
   getHandleGrooveColorSku,
-  getLedOption,
   getPriceBySku,
   getProductsPresets,
   getSelectedProducts,
@@ -64,7 +63,7 @@ const resolveDividerImage = (selection?: string) => {
 };
 
 const formatPrice = (value?: number | null) => {
-  if (typeof value !== "number") return "$—";
+  if (typeof value !== "number") return "$0";
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
 
@@ -162,7 +161,6 @@ export const SummaryPage = () => {
   const grainDirection = useAppSelector(getGrainDirection);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const ledOption = useAppSelector(getLedOption);
   const dividersOption = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
@@ -182,7 +180,7 @@ export const SummaryPage = () => {
     });
   };
 
-  const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$—"), [priceBySku]);
+  const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
   const materialLookup = useMemo(() => {
     const values = (dataMaterial as { materials?: any[] }).materials ?? [];
@@ -340,7 +338,7 @@ export const SummaryPage = () => {
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-            const skuInput = {
+            const sku = buildProductSku({
               cabinetType: productCabinetType,
               drawers: typeof config.Drawers === "string" ? config.Drawers : null,
               handle: typeof config.Handle === "string" ? config.Handle : null,
@@ -355,15 +353,6 @@ export const SummaryPage = () => {
                 : null,
               msp: null,
               bkpl: null,
-            };
-            const sku = buildProductSku(skuInput);
-
-            console.log(`[Cabinet SKU #${index}]`, {
-              skuInput,
-              sku,
-              cabinetColorSku,
-              handleGrooveColorSku,
-              swatchValue,
             });
 
             return {
@@ -664,14 +653,6 @@ export const SummaryPage = () => {
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
-      ledOption
-        ? {
-            id: "accessories-led",
-            title: "LED",
-            subtitle: ledOption,
-            price: "$—",
-          }
-        : null,
       divSku
         ? {
             id: "accessories-dividers",
@@ -743,7 +724,7 @@ export const SummaryPage = () => {
           color: grooveSwatch.color,
           image: grooveSwatch.image,
         },
-        price: "$—",
+        price: "$0",
       },
     ].filter(Boolean) as SummaryItem[];
 
@@ -753,7 +734,7 @@ export const SummaryPage = () => {
             id: "faucet-holes-amount",
             title: "Faucet Holes Amount",
             subtitle: faucetHolesAmount,
-            price: "$—",
+            price: "$0",
           }
         : null,
       faucetHolesSpacing
@@ -761,7 +742,7 @@ export const SummaryPage = () => {
             id: "faucet-holes-spacing",
             title: "Faucet Holes Spacing",
             subtitle: faucetHolesSpacing,
-            price: "$—",
+            price: "$0",
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -795,7 +776,7 @@ export const SummaryPage = () => {
             id: "basin-1",
             title: "Basin",
             subtitle: sinkType || undefined,
-            price: "$—",
+            price: "$0",
           },
         ],
       },
@@ -828,7 +809,6 @@ export const SummaryPage = () => {
     grainDirection,
     handleGrooveColor,
     handleGrooveColorSku,
-    ledOption,
     productsPresets,
     productConfigs,
     colorSkuByName,
@@ -915,7 +895,7 @@ export const SummaryPage = () => {
                   )}
 
                   <div className={s.price}>
-                    {item.sku && item.price === "$—" ? <span className={s.priceSpinner} /> : item.price}
+                    {item.sku && item.price === "$0" ? <span className={s.priceSpinner} /> : item.price}
                   </div>
                 </div>
               );
