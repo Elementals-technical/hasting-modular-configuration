@@ -163,11 +163,11 @@ export const CabinetBuilderPage = () => {
         isShortDesc: meta.isShortDesc ?? false,
         metadata: {
           ...(meta.metadata ?? {}),
-          image: resolveCabinetStyleImage(String(value), heightValue, meta.metadata?.image),
+          image: resolveCabinetStyleImage(String(value), heightValue, activeCabinetType, meta.metadata?.image),
         },
       };
     });
-  }, [selectedDimensions.height, dimensionOptions.drawers]);
+  }, [selectedDimensions.height, dimensionOptions.drawers, activeCabinetType]);
 
   const cabinetTypeOptions = useMemo(
     () =>
