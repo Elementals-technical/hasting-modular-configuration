@@ -4,6 +4,8 @@ import { cabinetTypeSkuMap, drawerSkuMap, handleSkuMap, patternSkuMap } from "./
 export type ElementMaterial = {
   materialSku: string | null;
   colorCode: string | null;
+  /** Grain direction suffix: "H" for Horizontal, "V" for Vertical */
+  grainDirection?: "H" | "V" | null;
 };
 
 export type ProductSkuInput = {
@@ -64,7 +66,9 @@ function buildTriplet(code: string, el: ElementMaterial | null): string | null {
   if (!mat) return null;
 
   const color = el?.colorCode?.trim();
-  return color ? `${code}-${mat}-${color}` : `${code}-${mat}`;
+  const grainSuffix = el?.grainDirection === "H" ? "/H" : el?.grainDirection === "V" ? "/V" : "";
+  const colorWithGrain = color ? `${color}${grainSuffix}` : null;
+  return colorWithGrain ? `${code}-${mat}-${colorWithGrain}` : `${code}-${mat}`;
 }
 
 /**

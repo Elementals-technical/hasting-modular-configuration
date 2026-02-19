@@ -16,6 +16,7 @@ import {
   getCountertopStyle,
   getSinkType,
   getDrawerPanelFluting,
+  getGrainDirection,
   getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
@@ -107,6 +108,9 @@ export function usePriceCalculation() {
   const productsPresets = useAppSelector(getProductsPresets);
 
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
+
+  const grainDirection = useAppSelector(getGrainDirection);
+  const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
 
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
@@ -271,6 +275,7 @@ export function usePriceCalculation() {
             depth: preset.Depth ?? null,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(swatchValue),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Shelf preset #${idx}):`, sku);
           skus.push(sku);
@@ -289,6 +294,7 @@ export function usePriceCalculation() {
             depth: preset.Depth ?? null,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(swatchValue),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf preset #${idx}):`, sku);
           skus.push(sku);
@@ -309,7 +315,9 @@ export function usePriceCalculation() {
           width: preset.Width ?? null,
           height: preset.Height ?? null,
           depth: preset.Depth ?? null,
-          cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
+          cab: cabinetColorSku
+            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+            : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
             : null,
@@ -334,6 +342,7 @@ export function usePriceCalculation() {
             depth: cfg.Depth,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(cabinetColor),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Shelf ${cfg.id}):`, sku);
           skus.push(sku);
@@ -350,6 +359,7 @@ export function usePriceCalculation() {
             depth: cfg.Depth,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(cabinetColor),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf ${cfg.id}):`, sku);
           skus.push(sku);
@@ -365,7 +375,9 @@ export function usePriceCalculation() {
           width: cfg.Width,
           height: cfg.Height,
           depth: cfg.Depth,
-          cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
+          cab: cabinetColorSku
+            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+            : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
             : null,
@@ -385,7 +397,9 @@ export function usePriceCalculation() {
         width: selectedDimensions.width,
         height: selectedDimensions.height,
         depth: selectedDimensions.depth,
-        cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
+        cab: cabinetColorSku
+          ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+          : null,
         hdl: handleMaterialSku
           ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
           : null,
@@ -538,6 +552,7 @@ export function usePriceCalculation() {
     countertopColorSku,
     countertopThickness,
     countertopStyle,
+    grainSku,
     sinkType,
     drawerPanelFluting,
     towelBarOption,

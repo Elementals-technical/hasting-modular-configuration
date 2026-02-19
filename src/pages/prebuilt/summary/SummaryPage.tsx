@@ -317,6 +317,7 @@ export const SummaryPage = () => {
   );
 
   const summarySections: SummarySection[] = useMemo(() => {
+    const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
     const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
 
     const cabinetItems =
@@ -363,7 +364,7 @@ export const SummaryPage = () => {
               width: width ?? null,
               height: height ?? null,
               depth: depth ?? null,
-              cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
+              cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku } : null,
               hdl: handleMaterialSku
                 ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
                 : null,
@@ -423,7 +424,7 @@ export const SummaryPage = () => {
                 height: preset.Height ?? null,
                 depth: preset.Depth ?? null,
                 cab: cabinetColorSku
-                  ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) }
+                  ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
                   : null,
                 hdl: handleMaterialSku
                   ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -473,7 +474,7 @@ export const SummaryPage = () => {
                   height: selectedDimensions.height,
                   depth: selectedDimensions.depth,
                   cab: cabinetColorSku
-                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) }
+                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
                     : null,
                   hdl: handleMaterialSku
                     ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
