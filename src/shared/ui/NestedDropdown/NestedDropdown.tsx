@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 
 import clsx from "clsx";
 
@@ -19,33 +19,72 @@ interface NestedDropdownProps {
   style?: CSSProperties;
 }
 
-export const NestedDropdown = ({ items, className, style }: NestedDropdownProps) => {
-  const handleClick = (item: DropdownItem) => {
-    if (item.children && item.children.length > 0) {
-      return;
+const CLOSE_DELAY = 50;
+
+interface MenuItemProps {
+  item: DropdownItem;
+  renderItems: (list: DropdownItem[], isSub?: boolean) => ReactNode;
+}
+
+const MenuItem = ({ item, renderItems }: MenuItemProps) => {
+  const hasChildren = Boolean(item.children?.length);
+  const [isOpen, setIsOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
     }
-    item.onClick?.();
   };
 
-  const renderItems = (list: DropdownItem[], isSub = false) => (
-    <div className={clsx(s.menu, isSub && s.subMenu)}>
-      {list.map((item) => {
-        const hasChildren = Boolean(item.children?.length);
-        return (
-          <div key={item.id} className={clsx(s.item, hasChildren && s.hasChildren)} onClick={() => handleClick(item)}>
-            <div className={s.left}>
-              {item.icon && <span className={s.icon}>{item.icon}</span>}
-              <span className={s.label}>{item.label}</span>
-            </div>
-            <div className={s.right}>
-              {item.trailing && <span className={s.trailing}>{item.trailing}</span>}
-              {hasChildren && <span className={s.caret}>›</span>}
-            </div>
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setIsOpen(false), CLOSE_DELAY);
+  };
 
-            {hasChildren && <div className={s.subWrapper}>{renderItems(item.children ?? [], true)}</div>}
-          </div>
-        );
-      })}
+  return (
+    <div
+      className={clsx(s.item, hasChildren && s.hasChildren, isOpen && s.itemOpen)}
+      onClick={() => {
+        if (!hasChildren) item.onClick?.();
+      }}
+      onMouseEnter={() => {
+        cancelClose();
+        if (hasChildren) setIsOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (hasChildren) scheduleClose();
+      }}
+    >
+      <div className={s.left}>
+        {item.icon && <span className={s.icon}>{item.icon}</span>}
+        <span className={s.label}>{item.label}</span>
+      </div>
+      <div className={s.right}>
+        {item.trailing && <span className={s.trailing}>{item.trailing}</span>}
+        {hasChildren && <span className={s.caret}>›</span>}
+      </div>
+
+      {hasChildren && (
+        <div
+          className={clsx(s.subWrapper, isOpen && s.subWrapperOpen)}
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+        >
+          {renderItems(item.children ?? [], true)}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const NestedDropdown = ({ items, className, style }: NestedDropdownProps) => {
+  const renderItems = (list: DropdownItem[], isSub = false): ReactNode => (
+    <div className={clsx(s.menu, isSub && s.subMenu)}>
+      {list.map((item) => (
+        <MenuItem key={item.id} item={item} renderItems={renderItems} />
+      ))}
     </div>
   );
 
