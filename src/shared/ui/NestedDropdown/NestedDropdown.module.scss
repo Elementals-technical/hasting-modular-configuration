@@ -84,19 +84,10 @@
 
 .caret {
   font-size: 14px;
-}
-
-.hasChildren > .right .caret {
   transition: transform 0.1s ease;
 }
 
-.hasChildren:hover,
-.hasChildren.itemOpen {
-  background: #f6f2ec;
-}
-
-.hasChildren:hover > .right .caret,
-.hasChildren.itemOpen > .right .caret {
+.hasChildren:hover > .right .caret {
   transform: translateX(2px);
 }
 
@@ -115,7 +106,7 @@
     visibility 0.15s ease;
 }
 
-.subWrapperOpen {
+.hasChildren:hover > .subWrapper {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;

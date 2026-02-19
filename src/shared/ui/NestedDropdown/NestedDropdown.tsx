@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 
 import clsx from "clsx";
 
@@ -19,8 +19,6 @@ interface NestedDropdownProps {
   style?: CSSProperties;
 }
 
-const CLOSE_DELAY = 50;
-
 interface MenuItemProps {
   item: DropdownItem;
   renderItems: (list: DropdownItem[], isSub?: boolean) => ReactNode;
@@ -28,33 +26,12 @@ interface MenuItemProps {
 
 const MenuItem = ({ item, renderItems }: MenuItemProps) => {
   const hasChildren = Boolean(item.children?.length);
-  const [isOpen, setIsOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const cancelClose = () => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  };
-
-  const scheduleClose = () => {
-    cancelClose();
-    closeTimer.current = setTimeout(() => setIsOpen(false), CLOSE_DELAY);
-  };
 
   return (
     <div
-      className={clsx(s.item, hasChildren && s.hasChildren, isOpen && s.itemOpen)}
+      className={clsx(s.item, hasChildren && s.hasChildren)}
       onClick={() => {
         if (!hasChildren) item.onClick?.();
-      }}
-      onMouseEnter={() => {
-        cancelClose();
-        if (hasChildren) setIsOpen(true);
-      }}
-      onMouseLeave={() => {
-        if (hasChildren) scheduleClose();
       }}
     >
       <div className={s.left}>
@@ -67,11 +44,7 @@ const MenuItem = ({ item, renderItems }: MenuItemProps) => {
       </div>
 
       {hasChildren && (
-        <div
-          className={clsx(s.subWrapper, isOpen && s.subWrapperOpen)}
-          onMouseEnter={cancelClose}
-          onMouseLeave={scheduleClose}
-        >
+        <div className={s.subWrapper}>
           {renderItems(item.children ?? [], true)}
         </div>
       )}
