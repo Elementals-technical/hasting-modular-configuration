@@ -17,7 +17,7 @@ export const ViewModePanel = () => {
         </Link>
       </div>
       <div className={s.rightText}>
-        <Link to={"#"} onClick={(e) => e.stopPropagation()} to={"#"} ы>
+        <Link to={"#"} onClick={(e) => e.stopPropagation()}>
           <span>Order free Swatches</span>
           <span className={s.leftIcon}>
             <TagIcon />

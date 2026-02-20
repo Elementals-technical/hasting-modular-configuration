@@ -200,7 +200,7 @@ export const AccessoriesPage = () => {
     if (!isPlayCanvasReady) return;
 
     const wrapped = wrapShowTopView({
-      onSelect: (cabinetId, drawerType) => {
+      onSelect: (_, drawerType) => {
         setActiveDrawerType(drawerType);
         dispatch(setIsDrawerOpen(true));
       },
