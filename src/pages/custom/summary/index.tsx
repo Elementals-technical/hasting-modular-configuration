@@ -29,7 +29,7 @@ import {
   getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
-import { dividersMockData } from "@/pages/custom/accessories/constants";
+// import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -57,11 +57,11 @@ const buildImageSrc = (imagePath?: string) => {
   return imagePath;
 };
 
-const resolveDividerImage = (selection?: string) => {
-  if (!selection) return undefined;
-  const match = dividersMockData.find((option) => option.title === selection);
-  return match?.metadata?.image;
-};
+// const resolveDividerImage = (selection?: string) => {
+//   if (!selection) return undefined;
+//   const match = dividersMockData.find((option) => option.title === selection);
+//   return match?.metadata?.image;
+// };
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$0";
@@ -366,7 +366,9 @@ export const CustomSummaryPage = () => {
               width: width ?? null,
               height: height ?? null,
               depth: depth ?? null,
-              cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku } : null,
+              cab: cabinetColorSku
+                ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+                : null,
               hdl: handleMaterialSku
                 ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
                 : null,
@@ -476,7 +478,11 @@ export const CustomSummaryPage = () => {
                   height: selectedDimensions.height,
                   depth: selectedDimensions.depth,
                   cab: cabinetColorSku
-                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+                    ? {
+                        materialSku: cabinetColorSku,
+                        colorCode: extractColorCode(cabinetColor),
+                        grainDirection: grainSku,
+                      }
                     : null,
                   hdl: handleMaterialSku
                     ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -517,7 +523,7 @@ export const CustomSummaryPage = () => {
               })(),
             ];
 
-    const grooveSwatch = resolveSwatch(handleGrooveColor);
+    // const grooveSwatch = resolveSwatch(handleGrooveColor);
     const countertopSwatch = resolveSwatch(countertopColor);
 
     const cabinetOptionItems: SummaryItem[] = [

@@ -11,7 +11,7 @@ import {
   getCabinetColorSku,
   getCountertopColorSku,
   getCountertopStyle,
-  getDividersOption,
+  // getDividersOption,
   getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
@@ -164,7 +164,7 @@ export const SummaryPage = () => {
   const bookMatching = useAppSelector(getBookMatching);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const dividersOption = useAppSelector(getDividersOption);
+  // const dividersOption = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
@@ -369,7 +369,9 @@ export const SummaryPage = () => {
               width: width ?? null,
               height: height ?? null,
               depth: depth ?? null,
-              cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku } : null,
+              cab: cabinetColorSku
+                ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+                : null,
               hdl: handleMaterialSku
                 ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
                 : null,
@@ -479,7 +481,11 @@ export const SummaryPage = () => {
                   height: selectedDimensions.height,
                   depth: selectedDimensions.depth,
                   cab: cabinetColorSku
-                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+                    ? {
+                        materialSku: cabinetColorSku,
+                        colorCode: extractColorCode(cabinetColor),
+                        grainDirection: grainSku,
+                      }
                     : null,
                   hdl: handleMaterialSku
                     ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -490,7 +496,10 @@ export const SummaryPage = () => {
 
                 return {
                   id: "cabinet-1",
-                  title: typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
+                  title:
+                    typeof selectedProductConfig?.name === "string"
+                      ? selectedProductConfig.name
+                      : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
                   subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
                   sku,
                   swatch: {
@@ -517,7 +526,6 @@ export const SummaryPage = () => {
               })(),
             ];
 
-    const grooveSwatch = resolveSwatch(handleGrooveColor);
     const countertopSwatch = resolveSwatch(countertopColor);
 
     const cabinetOptionItems: SummaryItem[] = [

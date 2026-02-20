@@ -28,7 +28,7 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   isMixingRestricted = false,
   onMixingRestrictedSelect,
 }) => {
-  const isClickable = isAvailable && !isMixingRestricted;
+  // const isClickable = isAvailable && !isMixingRestricted;
 
   const handleClick = () => {
     if (!isAvailable) return;
