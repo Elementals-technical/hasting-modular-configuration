@@ -432,7 +432,7 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
-        await setConfigBatch(productIds, { Depth: depth });
+        await setConfigBatch({}, { Depth: depth });
 
         dispatch(setSelectedDimensions({ depth }));
       } catch (error) {
