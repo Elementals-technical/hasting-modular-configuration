@@ -342,7 +342,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3028,
-    title: "Tekorund TIVI",
+    title: "Tekormud TIVI",
     name: "Top_Tekormud_Tivi",
     isShortDesc: false,
     metadata: {

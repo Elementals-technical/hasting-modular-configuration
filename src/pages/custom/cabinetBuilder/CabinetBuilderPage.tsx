@@ -847,6 +847,7 @@ export const CabinetBuilderPage = () => {
           data={cabinetTypeOptions}
           setActiveCabinet={setActiveCabinet}
           isLoading={isMatrixLoading}
+          variant="cabinetType"
         />
       ),
     },

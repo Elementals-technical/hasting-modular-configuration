@@ -1,3 +1,10 @@
+import flutingVerticalA from "@/shared/assets/images/png/flutting/Fluting_Vertical_TypeA.png";
+import flutingVerticalB from "@/shared/assets/images/png/flutting/Fluting_Vertical_TypeB.png";
+import flutingHorizontalA from "@/shared/assets/images/png/flutting/Fluting_Horizontal_TypeA.png";
+import flutingHorizontalB from "@/shared/assets/images/png/flutting/Fluting_Horizontal_TypeB.png";
+import grainHorizontal from "@/shared/assets/images/png/gain_direction/Grain_Horizontal.png";
+import grainVertical from "@/shared/assets/images/png/gain_direction/Grain_Vertical.png";
+
 export const optionsMockData = [
   {
     id: 1001,
@@ -63,25 +70,25 @@ export const optionsMockData3 = [
     id: 3002,
     title: "Fluting Vertical A",
     isShortDesc: false,
-    metadata: { value: "FlutingVerticalA" },
+    metadata: { value: "FlutingVerticalA", image: flutingVerticalA },
   },
   {
     id: 3003,
     title: "Fluting Vertical B",
     isShortDesc: false,
-    metadata: { value: "FlutingVerticalB" },
+    metadata: { value: "FlutingVerticalB", image: flutingVerticalB },
   },
   {
     id: 3004,
     title: "Fluting Horizontal A",
     isShortDesc: false,
-    metadata: { value: "FlutingHorizontalA" },
+    metadata: { value: "FlutingHorizontalA", image: flutingHorizontalA },
   },
   {
     id: 3005,
     title: "Fluting Horizontal B",
     isShortDesc: false,
-    metadata: { value: "FlutingHorizontalB" },
+    metadata: { value: "FlutingHorizontalB", image: flutingHorizontalB },
   },
 ];
 
@@ -90,12 +97,12 @@ export const optionsMockData4 = [
     id: 4001,
     title: "Horizontal",
     isShortDesc: false,
-    metadata: { value: "GrainHorizontal" },
+    metadata: { value: "GrainHorizontal", image: grainHorizontal },
   },
   {
     id: 4002,
     title: "Vertical",
     isShortDesc: false,
-    metadata: { value: "GrainVertical" },
+    metadata: { value: "GrainVertical", image: grainVertical },
   },
 ];

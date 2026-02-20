@@ -1,4 +1,5 @@
 import { useState } from "react";
+import clsx from "clsx";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { ProductOptionItem } from "@/shared/ui/ProductOptionItem/ProductOptionItem";
 import { MaterialPreviewModal } from "@/shared/ui/Popups/MaterialPreviewModal/MaterialPreviewModal";
@@ -37,6 +38,7 @@ interface ProductOptionsGridI {
   activeValue?: string | number | null;
   activeValueSecondary?: string | number | null;
   isLoading?: boolean;
+  variant?: "cabinetType";
 }
 
 export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
@@ -47,6 +49,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   activeValue,
   activeValueSecondary,
   isLoading,
+  variant,
 }) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const activeColor = useAppSelector(getCabinetColor);
@@ -63,7 +66,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   }
 
   return (
-    <div className={s.optionsGrid}>
+    <div className={clsx(s.optionsGrid, variant === "cabinetType" && s.optionsGridCabinetType)}>
       {isLoading && <LoaderBlock />}
 
       {data.map((i) => {

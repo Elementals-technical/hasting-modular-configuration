@@ -42,7 +42,7 @@ const MATERIAL_HIERARCHY: MaterialGroup[] = [
   {
     label: "Solid-Surface",
     value: "solid-surface",
-    childValues: ["Tekorlux", "Mineralmarmo", "Tekormud", "Tekorund", "Ocritech"],
+    childValues: ["Tekorlux", "Mineralmarmo", "Tekormud", "Ocritech"],
   },
   {
     label: "Glass",
@@ -124,7 +124,11 @@ export type MaterialFilterSelection = {
 const isMaterialOption = (item: MaterialOption, optionName: string) =>
   item.option === optionName && item.typeComponent === "material";
 
-const parseList = (raw?: string) => raw?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+const parseList = (raw?: string) =>
+  raw
+    ?.split(",")
+    .map((item) => item.trim())
+    .filter(Boolean) ?? [];
 
 const toFilterOptions = (set: Set<string>): FilterOption[] =>
   Array.from(set)
