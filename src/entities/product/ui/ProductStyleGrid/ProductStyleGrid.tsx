@@ -12,6 +12,7 @@ interface ProductStyleGridI {
     name?: string | undefined;
     desc?: string | undefined;
     isAvailable?: boolean;
+    isMixingRestricted?: boolean;
     isShortDesc: boolean;
     value?: string;
     metadata?: {
@@ -23,6 +24,7 @@ interface ProductStyleGridI {
   isActive?: boolean;
   activeStyleId?: number | null;
   onSelectStyle?: (id: number) => void;
+  onMixingRestrictedSelect?: (id: number) => void;
 }
 
 export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
@@ -32,6 +34,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   isActive = false,
   activeStyleId = null,
   onSelectStyle,
+  onMixingRestrictedSelect,
 }) => {
   const activeCabinet = useAppSelector(getActiveCabinetType);
   const hasActiveCabinet = activeCabinet !== null;
@@ -54,7 +57,9 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             isActive={isItemActive}
             isAvailable={i.isAvailable}
+            isMixingRestricted={i.isMixingRestricted}
             onSelectStyle={onSelectStyle}
+            onMixingRestrictedSelect={onMixingRestrictedSelect}
           />
         );
       })}

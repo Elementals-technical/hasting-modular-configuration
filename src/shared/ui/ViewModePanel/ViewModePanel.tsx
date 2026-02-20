@@ -9,7 +9,7 @@ export const ViewModePanel = () => {
   return (
     <div className={s.viewTopPanel}>
       <div className={s.leftText}>
-        <Link to={"#"}>
+        <Link onClick={(e) => e.stopPropagation()} to={"#"}>
           <span>View in full mode</span>
           <span className={s.leftIcon}>
             <ExpandIcon />
@@ -17,7 +17,7 @@ export const ViewModePanel = () => {
         </Link>
       </div>
       <div className={s.rightText}>
-        <Link to={"#"}>
+        <Link to={"#"} onClick={(e) => e.stopPropagation()}>
           <span>Order free Swatches</span>
           <span className={s.leftIcon}>
             <TagIcon />

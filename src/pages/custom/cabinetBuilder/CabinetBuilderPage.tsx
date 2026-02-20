@@ -41,6 +41,7 @@ import {
   setDrawerProduct,
   addProductPreset,
   setCabinetCatalog,
+  setPlacedCabinetStyle,
 } from "@/entities/product/model/store/slice";
 
 import {
@@ -58,6 +59,7 @@ import {
   getSinkType,
   getProductsPresets,
   getHasBootstrappedCabinetBuilder,
+  getDominantDrawerGroup,
 } from "@/entities/product/model/store/selectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -65,6 +67,7 @@ import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabi
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
 import { cabinetTypeMetadataByCode, drawerMetaByValue } from "./constants";
+import { DrawerStyleConflictPopup } from "./DrawerStyleConflictPopup";
 import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
@@ -88,10 +91,27 @@ const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
 
+const mapDrawerValueToConfig = (value?: string) => {
+  if (value === "1") return "1D";
+  if (value === "2") return "2D";
+  if (value === "1+inner") return "1DWID";
+  return undefined;
+};
+
+const mapConfigToDrawerValue = (config?: string): string | null => {
+  if (config === "1D") return "1";
+  if (config === "2D") return "2";
+  if (config === "1DWID") return "1+inner";
+  return null;
+};
+
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
   const [accordionValue, setAccordionValue] = useState(defaultValue);
   const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
+  const [pendingMixingStyle, setPendingMixingStyle] = useState<{ id: number; value: string; title: string } | null>(
+    null,
+  );
 
   const bootstrappedRef = useRef(false);
   const autoAddSignatureRef = useRef<string | null>(null);
@@ -122,12 +142,10 @@ export const CabinetBuilderPage = () => {
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
   const productsPresets = useAppSelector(getProductsPresets);
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
+  const dominantDrawerGroup = useAppSelector(getDominantDrawerGroup);
 
-  const {
-    data: matrixCabinetTable,
-    isLoading: isMatrixLoading,
-    isError: isMatrixError,
-  } = useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
+  const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
+    useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
@@ -155,19 +173,24 @@ export const CabinetBuilderPage = () => {
         isShortDesc: false,
       };
 
+      const isMixingRestricted =
+        (dominantDrawerGroup === "double" && (value === "1" || value === "1+inner")) ||
+        (dominantDrawerGroup === "single" && value === "2");
+
       return {
         id: meta.id,
         title: meta.title,
         value: String(value),
         isAvailable: ruleOption ? !ruleOption.disabled : true,
+        isMixingRestricted,
         isShortDesc: meta.isShortDesc ?? false,
         metadata: {
           ...(meta.metadata ?? {}),
-          image: resolveCabinetStyleImage(String(value), heightValue, meta.metadata?.image),
+          image: resolveCabinetStyleImage(String(value), heightValue, activeCabinetType, meta.metadata?.image),
         },
       };
     });
-  }, [selectedDimensions.height, dimensionOptions.drawers]);
+  }, [selectedDimensions.height, dimensionOptions.drawers, activeCabinetType, dominantDrawerGroup]);
 
   const cabinetTypeOptions = useMemo(
     () =>
@@ -212,13 +235,6 @@ export const CabinetBuilderPage = () => {
     dispatch(setOpenStyleSidebar(true));
   };
 
-  const mapDrawerValueToConfig = (value?: string) => {
-    if (value === "1") return "1D";
-    if (value === "2") return "2D";
-    if (value === "1+inner") return "1DWID";
-    return undefined;
-  };
-
   const handleSelectDrawerStyle = (id: number) => {
     setActiveStyleId(id);
 
@@ -234,6 +250,97 @@ export const CabinetBuilderPage = () => {
       );
     }
   };
+
+  const handleResetToDefaultState = useCallback(() => {
+    setAccordionValue(CABINET_TYPE_ID);
+  }, []);
+
+  const handleMixingRestrictedSelect = useCallback(
+    (id: number) => {
+      const option = cabinetStyleOptions.find((item) => item.id === id);
+      if (!option) return;
+      setPendingMixingStyle({ id, value: option.value ?? "", title: option.title });
+    },
+    [cabinetStyleOptions],
+  );
+
+  const handleMixingConfirm = useCallback(async () => {
+    if (!pendingMixingStyle || !activeCabinetType) return;
+
+    const { id } = pendingMixingStyle;
+    const option = cabinetStyleOptions.find((item) => item.id === id);
+    const mappedValue = mapDrawerValueToConfig(option?.value);
+    const drawerRawValue = option?.value;
+
+    setPendingMixingStyle(null);
+
+    // 1. Clear PlayCanvas scene first — before any state changes to avoid render-triggered side effects
+    await removeAllProducts();
+
+    // 2. Clear Redux product tracking
+    dispatch(resetProducts());
+
+    if (
+      !mappedValue ||
+      selectedDimensions.width === null ||
+      selectedDimensions.height === null ||
+      selectedDimensions.depth === null
+    ) {
+      return;
+    }
+
+    // 3. Update selected style state
+    setActiveStyleId(id);
+    dispatch(setSelectedProductConfig({ ...selectedProductConfig, Drawers: mappedValue }));
+
+    // 4. Add the new product directly — avoids auto-add bootstrapping complexity
+    const productConfig: addProductConfigI = {
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+      Width: selectedDimensions.width,
+      CabinetColor: cabinetColor,
+      CountertopColor: countertopColor,
+      HandleGrooveColor: handleGrooveColor,
+      Handle: selectedProductConfig?.Handle || "handle_urban_topcut",
+      Drawers: mappedValue,
+    };
+
+    if (activeCabinetRule?.hasSink && sinkType) {
+      productConfig.sinkType = sinkType;
+    }
+
+    await saveSnapshot();
+    const productId = await addProduct(activeCabinetType, productConfig);
+
+    if (productId) {
+      dispatch(addProductId(productId));
+      handleSelectCabinetConfig(activeCabinetType, productConfig);
+      if (drawerRawValue) {
+        dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+      }
+      handleResetToDefaultState();
+      dispatch(setOpenStyleSidebar(false));
+    }
+  }, [
+    pendingMixingStyle,
+    activeCabinetType,
+    activeCabinetRule,
+    dispatch,
+    cabinetStyleOptions,
+    selectedProductConfig,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    sinkType,
+    handleSelectCabinetConfig,
+    handleResetToDefaultState,
+    saveSnapshot,
+  ]);
+
+  const handleMixingCancel = useCallback(() => {
+    setPendingMixingStyle(null);
+  }, []);
 
   const setActiveCabinet = (id: string, name?: string) => {
     console.log("name", name);
@@ -316,6 +423,15 @@ export const CabinetBuilderPage = () => {
 
       const orderedIds = existingIds.length ? existingIds : getOrderedProductIds();
       orderedIds.forEach((id) => dispatch(addProductId(id)));
+
+      // Populate mixing restriction state from the bootstrapped presets
+      orderedIds.forEach((productId, index) => {
+        const preset = productsPresets[index];
+        const drawerRawValue = mapConfigToDrawerValue(preset?.Drawers);
+        if (drawerRawValue) {
+          dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+        }
+      });
 
       const [firstPreset] = productsPresets;
       if (firstPreset?.name) {
@@ -415,6 +531,14 @@ export const CabinetBuilderPage = () => {
 
           if (configValue && typeof configValue === "object") {
             const cfg = configValue as Record<string, unknown>;
+
+            // Populate mixing restriction state from restored config
+            if (typeof cfg.Drawers === "string") {
+              const drawerRawValue = mapConfigToDrawerValue(cfg.Drawers);
+              if (drawerRawValue) {
+                dispatch(setPlacedCabinetStyle({ id: orderedIds[i], value: drawerRawValue }));
+              }
+            }
 
             if (!sidePanelValue && typeof cfg.SidePanel === "string") {
               sidePanelValue = cfg.SidePanel;
@@ -593,10 +717,6 @@ export const CabinetBuilderPage = () => {
     handleRestoreConfiguration(configId);
   }, [canvasReady, configId, dispatch, handleRestoreConfiguration]);
 
-  const handleResetToDefaultState = useCallback(() => {
-    setAccordionValue(CABINET_TYPE_ID);
-  }, []);
-
   // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
@@ -655,6 +775,12 @@ export const CabinetBuilderPage = () => {
         if (productId) {
           dispatch(addProductId(productId));
           handleSelectCabinetConfig(productName, productConfig);
+
+          // Track the drawer style of this placed cabinet for mixing restriction logic
+          const drawerRawValue = mapConfigToDrawerValue(productConfig.Drawers as string | undefined);
+          if (drawerRawValue) {
+            dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+          }
 
           // Update dimensions if they were set from the cabinet option
           if (cabinetConfig.Width || cabinetConfig.Height || cabinetConfig.Depth) {
@@ -720,6 +846,7 @@ export const CabinetBuilderPage = () => {
           handleAdd={handleSelectCabinetConfig}
           data={cabinetTypeOptions}
           setActiveCabinet={setActiveCabinet}
+          isLoading={isMatrixLoading}
         />
       ),
     },
@@ -741,6 +868,7 @@ export const CabinetBuilderPage = () => {
             isActive={isStyleDrawerActive}
             activeStyleId={activeStyleId}
             onSelectStyle={handleSelectDrawerStyle}
+            onMixingRestrictedSelect={handleMixingRestrictedSelect}
           />
         );
       })(),
@@ -752,11 +880,7 @@ export const CabinetBuilderPage = () => {
       <div className={s.cabinetBuilder}>
         {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
 
-        {isMatrixLoading ? (
-          <div>Loading cabinet rules...</div>
-        ) : isMatrixError || cabinetCatalog.typeCabinetRules.length === 0 ? (
-          <div>Cabinet rules are unavailable.</div>
-        ) : (
+        {
           <ConfiguratorAccordionGroup
             defaultValue={defaultValue}
             value={accordionValue}
@@ -768,10 +892,17 @@ export const CabinetBuilderPage = () => {
               </ConfiguratorAccordionItem>
             ))}
           </ConfiguratorAccordionGroup>
-        )}
+        }
 
         <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
       </div>
+
+      <DrawerStyleConflictPopup
+        isOpening={pendingMixingStyle !== null}
+        newStyleTitle={pendingMixingStyle?.title ?? ""}
+        onConfirm={handleMixingConfirm}
+        onCancel={handleMixingCancel}
+      />
     </>
   );
 };

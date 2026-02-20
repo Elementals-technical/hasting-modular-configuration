@@ -18,6 +18,9 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import {
+  addPlacedDivider,
+  clearPlacedDividers,
+  removePlacedDivider,
   setDividersOption,
   setDividersStyle,
   setIsDrawerOpen,
@@ -276,6 +279,16 @@ export const CustomAccessoriesPage = () => {
       });
       await placeDividerToSlot({ ...slotInfo, drawerType }, selectedType);
       console.log("[Dividers] placeDividerToSlot done");
+      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+      dispatch(
+        addPlacedDivider({
+          key: compositeKey,
+          cabinetId: slotInfo.cabinetId,
+          drawerType,
+          zone: slotInfo.zone,
+          type: selectedType,
+        }),
+      );
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
       console.log("[Dividers] showIconDividerSlots after add");
     });
@@ -302,6 +315,8 @@ export const CustomAccessoriesPage = () => {
       });
       await removeDividerFromSlot(slotInfo);
       console.log("[Dividers] removeDividerFromSlot done");
+      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+      dispatch(removePlacedDivider(compositeKey));
       if (drawerType) {
         showIconDividerSlots(slotInfo.cabinetId, drawerType);
         console.log("[Dividers] showIconDividerSlots after remove");
@@ -315,6 +330,8 @@ export const CustomAccessoriesPage = () => {
         if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
           console.log("[Dividers] legacy occupied - remove");
           await removeDividerFromSlot(slotInfo);
+          const legacyRemoveKey = `${slotInfo.cabinetId}::${slotInfo.drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+          dispatch(removePlacedDivider(legacyRemoveKey));
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
           return;
         }
@@ -356,11 +373,29 @@ export const CustomAccessoriesPage = () => {
         });
         await placeDividerToSlot({ ...normalizedAddSlotInfo, drawerType }, selectedType);
         console.log("[Dividers] legacy placeDividerToSlot done");
+        const legacyAddKey = `${normalizedAddSlotInfo.cabinetId}::${drawerType}::${normalizedAddSlotInfo.zone}::${normalizedAddSlotInfo.key}`;
+        dispatch(
+          addPlacedDivider({
+            key: legacyAddKey,
+            cabinetId: normalizedAddSlotInfo.cabinetId,
+            drawerType,
+            zone: normalizedAddSlotInfo.zone,
+            type: selectedType,
+          }),
+        );
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
         console.log("[Dividers] legacy showIconDividerSlots after add");
       });
     }
-  }, [activeCabinetId, activeDrawerType, dividerSelection, selectedDividerType, resolveDividerType, isPlayCanvasReady]);
+  }, [
+    activeCabinetId,
+    activeDrawerType,
+    dispatch,
+    dividerSelection,
+    selectedDividerType,
+    resolveDividerType,
+    isPlayCanvasReady,
+  ]);
 
   useEffect(() => {
     if (towelSelection !== "None") return;
@@ -427,6 +462,7 @@ export const CustomAccessoriesPage = () => {
 
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
+      dispatch(clearPlacedDividers());
     }
   };
 

@@ -51,6 +51,14 @@
       cursor: not-allowed;
     }
   }
+
+  &.restricted {
+    opacity: 0.5;
+
+    .image {
+      cursor: pointer;
+    }
+  }
 }
 
 .titleDisabled {

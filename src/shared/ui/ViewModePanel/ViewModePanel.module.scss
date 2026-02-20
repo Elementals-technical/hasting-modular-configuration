@@ -31,3 +31,10 @@
   display: flex;
   align-items: center;
 }
+
+.leftText,
+.rightText {
+  a {
+    cursor: auto;
+  }
+}

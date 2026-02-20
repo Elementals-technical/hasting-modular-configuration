@@ -51,6 +51,7 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
+  const pendingHandleSyncRef = useRef(false);
   const [dropdownState, setDropdownState] = useState<{ visible: boolean; x: number; y: number }>({
     visible: false,
     x: 0,
@@ -89,8 +90,6 @@ export const PlayCanvasIntegration = () => {
   const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
 
-  console.log("selectedSceneProduct", selectedSceneProduct);
-
   const saveSnapshot = useHistorySnapshot();
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
@@ -117,6 +116,40 @@ export const PlayCanvasIntegration = () => {
       .map((part) => part.trim())
       .filter(Boolean);
   };
+
+  const isDrawerCabinet = useMemo(() => {
+    const raw =
+      (typeof selectedProductConfig?.ProductType === "string" && selectedProductConfig.ProductType) ||
+      (typeof selectedProductConfig?.productType === "string" && selectedProductConfig.productType) ||
+      (typeof selectedProductConfig?.type === "string" && selectedProductConfig.type) ||
+      selectedSceneProduct ||
+      "";
+
+    // Strip trailing random suffix (e.g. "Open-Shelf-abc123" → "Open-Shelf")
+    const lastDash = raw.lastIndexOf("-");
+    const baseType =
+      lastDash > 0 && raw.slice(lastDash + 1).length >= 6 ? raw.slice(0, lastDash).toLowerCase() : raw.toLowerCase();
+
+    const openShelfTypes = ["open-shelf", "side-shelf", "os", "oss"];
+
+    return !openShelfTypes.includes(baseType);
+  }, [selectedProductConfig, selectedSceneProduct]);
+
+  const handleOptions = useMemo(() => {
+    if (dimensionOptions.handles?.length) {
+      return dimensionOptions.handles.map((h) => ({
+        label: String(h.name ?? h.value),
+        value: String(h.value),
+        disabled: h.disabled,
+      }));
+    }
+
+    return [
+      { label: "Push to open", value: "handle_pto" },
+      { label: "Upper Groove", value: "handle_urban_topcut" },
+      { label: "Central Groove", value: "handle_urban_botcut" },
+    ];
+  }, [dimensionOptions.handles]);
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
@@ -382,13 +415,15 @@ export const PlayCanvasIntegration = () => {
       try {
         await saveSnapshot();
         await setConfig(selectedSceneProduct, { Width: width });
+
+        dispatch(setSelectedDimensions({ width }));
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set width", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot],
+    [selectedSceneProduct, saveSnapshot, dispatch],
   );
 
   const handleSetDepth = useCallback(
@@ -398,14 +433,46 @@ export const PlayCanvasIntegration = () => {
       try {
         await saveSnapshot();
         await setConfigBatch(productIds, { Depth: depth });
+
+        dispatch(setSelectedDimensions({ depth }));
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set depth", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, saveSnapshot],
+    [productIds, saveSnapshot, dispatch],
   );
+
+  const handleSetHandleType = useCallback(
+    async (handleType: string) => {
+      try {
+        await saveSnapshot();
+        pendingHandleSyncRef.current = true;
+        dispatch(setSelectedProductConfig({ ...selectedProductConfig, Handle: handleType }));
+
+        if (productIds.length) {
+          await setConfigBatch({}, { Handle: handleType });
+        }
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set handle type", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [dispatch, productIds, saveSnapshot, selectedProductConfig],
+  );
+
+  // After a handle selection forces a new height via the rules engine, push it to PlayCanvas.
+  // The same effect in RightCabinetStyleSidebar.
+  useEffect(() => {
+    if (!pendingHandleSyncRef.current) return;
+
+    if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
+
+    pendingHandleSyncRef.current = false;
+    setConfigBatch({}, { Height: selectedDimensions.height });
+  }, [selectedDimensions]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -543,6 +610,11 @@ export const PlayCanvasIntegration = () => {
     },
     [handleSwapProducts, productIds, selectedSceneProduct],
   );
+
+  const handleOpenCabinetStyle = useCallback(() => {
+    navigate("/custom/cabinet-builder?accordion=cabinet-style");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleOpenCabinetColor = useCallback(() => {
     navigate("/custom/cabinet-colors?accordion=cabinet-color");
@@ -733,6 +805,34 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
+      ...(isDrawerCabinet
+        ? [
+            {
+              id: "details",
+              label: "Details",
+              trailing: "",
+              children: [
+                {
+                  id: "cabinet-style",
+                  label: "Cabinet Style",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: handleOpenCabinetStyle,
+                },
+                {
+                  id: "handle-style",
+                  label: "Handle Style",
+                  trailing: "",
+                  children: handleOptions.map((option) => ({
+                    id: option.value,
+                    label: option.label,
+                    trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
+                    onClick: () => handleSetHandleType(option.value),
+                  })),
+                },
+              ],
+            } as DropdownItem,
+          ]
+        : []),
       { id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct },
       { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
     ];
@@ -750,9 +850,14 @@ export const PlayCanvasIntegration = () => {
     dimensionOptions.width,
     productIds.length,
     handleMoveProduct,
+    handleOpenCabinetStyle,
     handleOpenCabinetColor,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
+    isDrawerCabinet,
+    handleOptions,
+    handleSetHandleType,
+    selectedProductConfig,
   ]);
 
   const handleCountertopThicknessSelect = useCallback(

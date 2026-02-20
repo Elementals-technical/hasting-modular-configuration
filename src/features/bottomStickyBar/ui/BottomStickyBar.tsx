@@ -54,7 +54,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
       </div>
       <div className={s.nextStepWrapp}>
         <BaseButton onClick={handleNavigate} fullWidth={true}>
-          Next: {nextStep?.label}
+          {nextStep ? `Next: ${nextStep.label}` : "Create Order"}
         </BaseButton>
       </div>
     </div>

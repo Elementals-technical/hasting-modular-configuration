@@ -86,14 +86,27 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
 
   return (
     <>
-      <div className={s.stepNavigationBar}>
+      <div
+        className={s.stepNavigationBar}
+        style={!nextStep ? { justifyContent: "unset", gap: "12px", fontSize: "16px" } : undefined}
+      >
         <div className={s.stepBack} onClick={handleNavigate}>
           <ArrowLeft />
         </div>
-        <div className={s.stepNavigationBar_title}>
-          Select {title} <span onClick={() => dispatch(toggle())}>{<ArrowDown width="12" height="12" />}</span>
-        </div>
-        <div className={s.stepForward} onClick={handleNavigateForward}>
+
+        {nextStep ? (
+          <div className={s.stepNavigationBar_title}>
+            Select {title} <span onClick={() => dispatch(toggle())}>{<ArrowDown width="12" height="12" />}</span>
+          </div>
+        ) : (
+          <div>Your Configuration</div>
+        )}
+
+        <div
+          className={s.stepForward}
+          style={{ visibility: nextStep ? "visible" : "hidden" }}
+          onClick={handleNavigateForward}
+        >
           <ArrowRight />
         </div>
       </div>

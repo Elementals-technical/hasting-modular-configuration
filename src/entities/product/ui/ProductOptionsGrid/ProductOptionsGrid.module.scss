@@ -10,6 +10,14 @@
   max-height: 392px;
   min-height: 185px;
   overflow-y: auto;
+
+  > div {
+    &:first-child {
+      img {
+        height: 121px;
+      }
+    }
+  }
 }
 
 @media (max-width: 1400px) {

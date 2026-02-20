@@ -39,9 +39,11 @@ export const HomePage = () => {
     setIsOpenedBuildInfo(false);
   };
 
+  const isSummary = pathname.endsWith("/summary");
+
   return (
     <div className={s.homePageWrap}>
-      <div className={s.content}>
+      <div className={`${s.content} ${isSummary ? s.summaryLayout : ""}`}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
           <SideNavigation flow={flow} />
         </div>

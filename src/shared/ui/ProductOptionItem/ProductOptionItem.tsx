@@ -3,6 +3,7 @@ import none_img from "../../assets/images/png/none_img.png";
 import { Hint } from "../Hint/Hint";
 
 import { HintOptionIcon } from "@/shared/assets/images/svg/HintOptionIcon";
+import { ExpandIcon } from "@/shared/assets/images/svg/ExpandIcon";
 import type { ProductOptionMetadata } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 import s from "./ProductOptionItem.module.scss";
@@ -25,6 +26,7 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  isMaterial?: boolean;
   name?: string;
   isShortDesc: boolean;
   config?: addProductConfigI;
@@ -32,6 +34,7 @@ interface ProductOptionItemI {
   onClick?: (name: string, config?: addProductConfigI) => void | Promise<void>;
   setActive?: (id: number | string) => void;
   metadata?: ProductOptionMetadata;
+  onPreview?: (title: string, metadata?: ProductOptionMetadata) => void;
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
@@ -43,9 +46,11 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   name,
   config,
   isActive = false,
+  isMaterial = false,
   onClick,
   setActive,
   metadata,
+  onPreview,
 }) => {
   const available = isAvailable ?? true; // undefined as available
   const productName = name ?? title;
@@ -56,19 +61,33 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 
   return (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""}`}
       onClick={() => {
         onClick?.(productName, config);
         setActive?.(id);
       }}
     >
-      <div className={`${s.image} ${hasVisual ? s.withVisual : ""}`}>
-        {hasImage ? (
-          <img src={imageSrc} alt="color image" />
-        ) : hasHexColor ? (
-          <div className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
-        ) : (
-          <img src={imageSrc} alt="color image" />
+      <div className={s.imageContainer}>
+        <div className={`${s.image} ${hasVisual ? s.withVisual : ""}`}>
+          {hasImage ? (
+            <img src={imageSrc} alt="color image" />
+          ) : hasHexColor ? (
+            <div className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
+          ) : (
+            <img src={imageSrc} alt="color image" />
+          )}
+        </div>
+
+        {onPreview && (
+          <button
+            className={s.expandBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview(title, metadata);
+            }}
+          >
+            <ExpandIcon />
+          </button>
         )}
       </div>
 

@@ -24,6 +24,14 @@ type DimensionOptionGroup = {
   handles: DimensionOption[];
 };
 
+export type PlacedDivider = {
+  key: string;
+  cabinetId: string;
+  drawerType: "Top" | "Bot";
+  zone: string;
+  type: "A" | "B" | "C";
+};
+
 type ProductState = {
   productIds: string[];
   activeCabinetType: string | null;
@@ -34,6 +42,9 @@ type ProductState = {
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
   cabinetCatalog: ConfiguratorCatalog;
+  placedDividers: PlacedDivider[];
+  /** Maps productId → raw drawer value ("1", "2", "1+inner"). Only set for non-open cabinets. */
+  placedCabinetStyles: Record<string, string>;
   productOptions: {
     CabinetColor: string;
     CabinetColorSku: string;
@@ -175,6 +186,8 @@ const createInitialState = (): ProductState => {
       handles: [],
     },
     cabinetCatalog: { typeCabinetRules: [] },
+    placedDividers: [],
+    placedCabinetStyles: {},
     productOptions: {
       CabinetColor: "Ardesia DD GL",
       CabinetColorSku: "",
@@ -246,6 +259,8 @@ const productSlice = createSlice({
       if (lastIndex !== -1) {
         state.productIds.splice(lastIndex, 1);
       }
+
+      delete state.placedCabinetStyles[action.payload];
     },
     swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
       const { idA, idB } = action.payload;
@@ -267,6 +282,7 @@ const productSlice = createSlice({
     },
     resetProducts(state) {
       state.productIds = [];
+      state.placedCabinetStyles = {};
     },
     resetCabinetBuilderBootstrap(state) {
       state.hasBootstrappedCabinetBuilder = false;
@@ -282,6 +298,9 @@ const productSlice = createSlice({
       state.productsPresets = action.payload;
     },
 
+    setPlacedCabinetStyle(state, action: PayloadAction<{ id: string; value: string }>) {
+      state.placedCabinetStyles[action.payload.id] = action.payload.value;
+    },
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
     },
@@ -408,6 +427,20 @@ const productSlice = createSlice({
     setDividersStyle(state, action: PayloadAction<string>) {
       state.productOptions.DividersStyle = action.payload;
     },
+    addPlacedDivider(state, action: PayloadAction<PlacedDivider>) {
+      const idx = state.placedDividers.findIndex((d) => d.key === action.payload.key);
+      if (idx >= 0) {
+        state.placedDividers[idx] = action.payload;
+      } else {
+        state.placedDividers.push(action.payload);
+      }
+    },
+    removePlacedDivider(state, action: PayloadAction<string>) {
+      state.placedDividers = state.placedDividers.filter((d) => d.key !== action.payload);
+    },
+    clearPlacedDividers(state) {
+      state.placedDividers = [];
+    },
     setTowelBarOption(state, action: PayloadAction<string>) {
       state.productOptions.TowelBarOption = action.payload;
     },
@@ -437,13 +470,15 @@ const productSlice = createSlice({
         productOptions: ProductState["productOptions"];
         activeCabinetType: string | null;
         selectedDimensions: { width: number | null; height: number | null; depth: number | null };
+        placedDividers?: PlacedDivider[];
       }>,
     ) {
-      const { productIds, productOptions, activeCabinetType, selectedDimensions } = action.payload;
+      const { productIds, productOptions, activeCabinetType, selectedDimensions, placedDividers } = action.payload;
       state.productIds = productIds;
       state.productOptions = productOptions;
       state.activeCabinetType = activeCabinetType;
       state.selectedDimensions = selectedDimensions;
+      state.placedDividers = placedDividers ?? [];
       applyRulesToState(state);
     },
   },
@@ -453,6 +488,7 @@ export const {
   addProductId,
   addProductPreset,
   removeProductId,
+  setPlacedCabinetStyle,
   swapProductIds,
   insertProductIdRelative,
   reset,
@@ -479,6 +515,9 @@ export const {
   setLedOption,
   setDividersOption,
   setDividersStyle,
+  addPlacedDivider,
+  removePlacedDivider,
+  clearPlacedDividers,
   setTowelBarOption,
   setTowelBarColor,
   setFaucetHolesAmount,

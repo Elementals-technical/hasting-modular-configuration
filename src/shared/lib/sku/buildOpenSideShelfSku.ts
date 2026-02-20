@@ -11,6 +11,8 @@ export type OpenSideShelfSkuInput = {
   cabinetMaterialSku: string | null;
   /** Cabinet color code (e.g. "TKH", "FE") */
   cabinetColorCode: string | null;
+  /** Grain direction suffix: "H" for Horizontal, "V" for Vertical */
+  grainDirection?: "H" | "V" | null;
 };
 
 const FALLBACK = "X";
@@ -34,7 +36,9 @@ export function buildOpenSideShelfSku(input: OpenSideShelfSkuInput): string {
   const mat = input.cabinetMaterialSku?.trim();
   if (mat) {
     const color = input.cabinetColorCode?.trim();
-    sku += color ? `-CAB-${mat}-${color}` : `-CAB-${mat}`;
+    const grainSuffix = input.grainDirection === "H" ? "/H" : input.grainDirection === "V" ? "/V" : "";
+    const colorWithGrain = color ? `${color}${grainSuffix}` : null;
+    sku += colorWithGrain ? `-CAB-${mat}-${colorWithGrain}` : `-CAB-${mat}`;
   }
 
   return sku;

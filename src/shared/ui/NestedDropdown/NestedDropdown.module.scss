@@ -84,14 +84,7 @@
 
 .caret {
   font-size: 14px;
-}
-
-.hasChildren > .right .caret {
   transition: transform 0.1s ease;
-}
-
-.hasChildren:hover {
-  background: #f6f2ec;
 }
 
 .hasChildren:hover > .right .caret {
@@ -102,15 +95,19 @@
   position: absolute;
   top: 0;
   left: 100%;
-  margin-left: 2px; /* tiny overlap to avoid pointer gaps between parent and submenu */
-  display: none;
+  /* padding-left creates an invisible bridge over the gap so diagonal mouse
+     movement from parent to submenu never loses hover */
+  padding-left: 8px;
+  visibility: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.12s ease;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
 }
 
 .hasChildren:hover > .subWrapper {
-  display: block;
+  visibility: visible;
   opacity: 1;
   pointer-events: auto;
 }

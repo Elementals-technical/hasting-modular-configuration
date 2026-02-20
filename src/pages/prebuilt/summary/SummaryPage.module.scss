@@ -8,6 +8,24 @@
   gap: 12px;
 
   background: #ffffff;
+
+  max-height: 700px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 999px;
+  }
 }
 
 .section {
@@ -53,7 +71,7 @@
 
 .itemRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 6px 0;
@@ -104,7 +122,7 @@
 }
 
 .copyButton {
-  margin-left: auto;
+  margin-left: 10%;
   width: 28px;
   height: 28px;
 
@@ -173,8 +191,8 @@
 }
 
 .swatchColor {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   border-radius: 8px;
   border: 1px solid #d9d7d2;
@@ -323,6 +341,30 @@
 
   .price {
     justify-self: start;
+  }
+}
+
+@media screen and (max-height: 900px) {
+  .summaryPage {
+    max-height: 620px;
+  }
+}
+
+@media screen and (max-height: 800px) {
+  .summaryPage {
+    max-height: 500px;
+  }
+}
+
+@media screen and (max-height: 700px) {
+  .summaryPage {
+    max-height: 450px;
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .summaryPage {
+    max-height: 400px;
   }
 }
 

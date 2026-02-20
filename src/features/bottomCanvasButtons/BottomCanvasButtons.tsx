@@ -38,7 +38,12 @@ import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
-import { getCanUndo, getCanRedo, getLastPastSnapshot, getLastFutureSnapshot } from "@/entities/history/model/store/selectors";
+import {
+  getCanUndo,
+  getCanRedo,
+  getLastPastSnapshot,
+  getLastFutureSnapshot,
+} from "@/entities/history/model/store/selectors";
 import { undo, redo } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
@@ -134,6 +139,7 @@ export const BottomCanvasButtons = () => {
   };
 
   const isCustomRoute = pathname.includes("/custom");
+  const isSummaryPage = pathname.includes("/summary");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
@@ -415,31 +421,35 @@ export const BottomCanvasButtons = () => {
           <DimentionsIcon />
         </BaseButton>
 
-        <BaseButton variant="ghost" onClick={() => zoomIn()}>
-          <ZoomInIcon />
-        </BaseButton>
+        {!isSummaryPage && (
+          <>
+            <BaseButton variant="ghost" onClick={() => zoomIn()}>
+              <ZoomInIcon />
+            </BaseButton>
 
-        <BaseButton variant="ghost" onClick={() => zoomOut()}>
-          <ZoomOutIcon />
-        </BaseButton>
+            <BaseButton variant="ghost" onClick={() => zoomOut()}>
+              <ZoomOutIcon />
+            </BaseButton>
 
-        <BaseButton
-          variant="ghost"
-          className={!canUndo || isRestoring ? s.disabledButton : undefined}
-          disabled={!canUndo || isRestoring}
-          onClick={handleUndo}
-        >
-          <UndoIcon />
-        </BaseButton>
+            <BaseButton
+              variant="ghost"
+              className={!canUndo || isRestoring ? s.disabledButton : undefined}
+              disabled={!canUndo || isRestoring}
+              onClick={handleUndo}
+            >
+              <UndoIcon />
+            </BaseButton>
 
-        <BaseButton
-          variant="ghost"
-          className={!canRedo || isRestoring ? s.disabledButton : undefined}
-          disabled={!canRedo || isRestoring}
-          onClick={handleRedo}
-        >
-          <RedoIcon />
-        </BaseButton>
+            <BaseButton
+              variant="ghost"
+              className={!canRedo || isRestoring ? s.disabledButton : undefined}
+              disabled={!canRedo || isRestoring}
+              onClick={handleRedo}
+            >
+              <RedoIcon />
+            </BaseButton>
+          </>
+        )}
 
         <BaseButton
           variant="ghost"
@@ -451,22 +461,26 @@ export const BottomCanvasButtons = () => {
           <ArIcon />
         </BaseButton>
 
-        <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
-          <ShareIcon />
-        </BaseButton>
+        {!isSummaryPage && (
+          <>
+            <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
+              <ShareIcon />
+            </BaseButton>
 
-        <BaseButton
-          variant="ghost"
-          onClick={() => {
-            if (isCustomRoute) {
-              resetCustomBuilderScene();
-            } else {
-              resetPrebuiltScene();
-            }
-          }}
-        >
-          <RotateIcon />
-        </BaseButton>
+            <BaseButton
+              variant="ghost"
+              onClick={() => {
+                if (isCustomRoute) {
+                  resetCustomBuilderScene();
+                } else {
+                  resetPrebuiltScene();
+                }
+              }}
+            >
+              <RotateIcon />
+            </BaseButton>
+          </>
+        )}
 
         <ArPopup
           isLoadingAr={isFetchingArConfig || isArGenerating}

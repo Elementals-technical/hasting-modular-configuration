@@ -581,7 +581,7 @@ export const CustomCountertopPage = () => {
 
       <FilterItem
         label="Price"
-        options={materialFilters.hex}
+        options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>

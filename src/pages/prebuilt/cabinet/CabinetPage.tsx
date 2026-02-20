@@ -100,6 +100,18 @@ export const CabinetPage = () => {
     }
   }, [flutingState.available, activeDrawerPanelFluting]);
 
+  useEffect(() => {
+    if (!grainDirectionState.available && activeGrainDirection) {
+      setConfigBatch(
+        {},
+        {
+          GrainDirection: "",
+        },
+      );
+      dispatch(setGrainDirection(""));
+    }
+  }, [grainDirectionState.available, activeGrainDirection, dispatch]);
+
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
@@ -339,7 +351,7 @@ export const CabinetPage = () => {
 
       <FilterItem
         label="Price"
-        options={materialFilters.hex}
+        options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
@@ -367,7 +379,7 @@ export const CabinetPage = () => {
 
       <FilterItem
         label="Price"
-        options={grooveMaterialFilters.hex}
+        options={[]}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>

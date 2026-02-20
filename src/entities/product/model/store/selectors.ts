@@ -68,6 +68,23 @@ export const getDividersOption = (state: RootState) => state.rootStateUI.product
 
 export const getDividersStyle = (state: RootState) => state.rootStateUI.product.productOptions.DividersStyle;
 
+export const getPlacedDividers = (state: RootState) => state.rootStateUI.product.placedDividers;
+
+export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;
+
+/** Returns which drawer group currently dominates the scene.
+ *  "single" = at least one 1DW or 1DWID placed (no 2DW)
+ *  "double" = at least one 2DW placed
+ *  null     = nothing placed yet (or all OS/OSS)
+ */
+export const getDominantDrawerGroup = (state: RootState): "single" | "double" | null => {
+  const styles = Object.values(state.rootStateUI.product.placedCabinetStyles);
+  if (styles.length === 0) return null;
+  if (styles.some((v) => v === "2")) return "double";
+  if (styles.some((v) => v === "1" || v === "1+inner")) return "single";
+  return null;
+};
+
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 
 export const getTowelBarColor = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarColor;

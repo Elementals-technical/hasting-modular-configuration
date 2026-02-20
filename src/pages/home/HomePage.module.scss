@@ -27,6 +27,27 @@
   }
 }
 
+/* Summary page — swap sidebar and player */
+.summaryLayout {
+  grid-template-columns: 1fr 1fr;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+
+  /* ConfiguratorSidebar is the 3rd child (navWrap is 1st, Player is 2nd) */
+  & > :nth-child(3) {
+    order: 1;
+    border-left: none;
+    border-right: 1px solid #e5e6ea;
+  }
+
+  /* Player is the 2nd child */
+  & > :nth-child(2) {
+    order: 2;
+  }
+}
+
 /* Player area */
 .content :global(.playerWrap) {
   position: relative;

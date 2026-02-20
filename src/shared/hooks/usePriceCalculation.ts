@@ -16,6 +16,8 @@ import {
   getCountertopStyle,
   getSinkType,
   getDrawerPanelFluting,
+  getGrainDirection,
+  getBookMatching,
   getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
@@ -33,6 +35,7 @@ import {
   buildDividerSku,
   buildOpenShelfSku,
   buildOpenSideShelfSku,
+  buildBookMatchingSku,
   TOWEL_BAR_DEFAULTS,
   SIDE_PANEL_WIDTH_CM,
   extractColorCode,
@@ -41,6 +44,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -108,6 +112,10 @@ export function usePriceCalculation() {
 
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
 
+  const grainDirection = useAppSelector(getGrainDirection);
+  const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
+  const bookMatching = useAppSelector(getBookMatching);
+
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
 
@@ -141,17 +149,21 @@ export function usePriceCalculation() {
       presetsCount: productsPresets.length,
     });
 
-    if (productsPresets.length > 0 || productIds.length === 0) {
-      console.log(
-        LOG_PREFIX,
-        "fetchSceneConfigs skipped:",
-        productsPresets.length > 0 ? "has presets" : "no productIds",
-      );
+    if (productIds.length === 0) {
+      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", "no productIds");
       setSceneConfigs([]);
       return;
     }
 
     const configs: ProductConfigSnapshot[] = [];
+    const dimensionTool = getDimensionTool();
+    const readDimValue = (map?: Record<string, string>) => {
+      if (!map) return null;
+      const [key] = Object.keys(map);
+      if (!key) return null;
+      const value = Number(key);
+      return Number.isFinite(value) ? value : null;
+    };
 
     for (const id of productIds) {
       try {
@@ -161,6 +173,11 @@ export function usePriceCalculation() {
         if (!raw) continue;
 
         const cfg = raw as Record<string, unknown>;
+        const dimensionData = dimensionTool?.getDimensionData?.(id) ?? null;
+        const toolWidth = readDimValue(dimensionData?.Width as Record<string, string> | undefined);
+        const toolHeight = readDimValue(dimensionData?.Height as Record<string, string> | undefined);
+        const toolDepth = readDimValue(dimensionData?.Depth as Record<string, string> | undefined);
+
         configs.push({
           id,
           name:
@@ -169,9 +186,9 @@ export function usePriceCalculation() {
             (typeof cfg.type === "string" && cfg.type) ||
             (typeof cfg.name === "string" && cfg.name) ||
             null,
-          Width: typeof cfg.Width === "number" ? cfg.Width : null,
-          Height: typeof cfg.Height === "number" ? cfg.Height : null,
-          Depth: typeof cfg.Depth === "number" ? cfg.Depth : null,
+          Width: toolWidth ?? (typeof cfg.Width === "number" ? cfg.Width : null),
+          Height: toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
+          Depth: toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
           Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
           Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
           CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
@@ -223,7 +240,8 @@ export function usePriceCalculation() {
 
   const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
-  const canCalculate = hasPresets
+  const shouldUsePresets = hasPresets && !hasSceneConfigs;
+  const canCalculate = shouldUsePresets
     ? cabinetColorSku !== ""
     : hasSceneConfigs
       ? cabinetColorSku !== ""
@@ -248,7 +266,7 @@ export function usePriceCalculation() {
     console.log(
       LOG_PREFIX,
       "Building SKUs — path:",
-      hasPresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK",
+      shouldUsePresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK",
       {
         presetsCount: productsPresets.length,
         sceneConfigsCount: sceneConfigs.length,
@@ -257,7 +275,7 @@ export function usePriceCalculation() {
     );
 
     // 1) Product SKU(s) — Resolver 1
-    if (hasPresets) {
+    if (shouldUsePresets) {
       // Prebuilt path: iterate presets
       productsPresets.forEach((preset, idx) => {
         const name = preset.name ?? "";
@@ -271,6 +289,7 @@ export function usePriceCalculation() {
             depth: preset.Depth ?? null,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(swatchValue),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Shelf preset #${idx}):`, sku);
           skus.push(sku);
@@ -289,6 +308,7 @@ export function usePriceCalculation() {
             depth: preset.Depth ?? null,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(swatchValue),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf preset #${idx}):`, sku);
           skus.push(sku);
@@ -309,7 +329,9 @@ export function usePriceCalculation() {
           width: preset.Width ?? null,
           height: preset.Height ?? null,
           depth: preset.Depth ?? null,
-          cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue) } : null,
+          cab: cabinetColorSku
+            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+            : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
             : null,
@@ -334,6 +356,7 @@ export function usePriceCalculation() {
             depth: cfg.Depth,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(cabinetColor),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Shelf ${cfg.id}):`, sku);
           skus.push(sku);
@@ -350,6 +373,7 @@ export function usePriceCalculation() {
             depth: cfg.Depth,
             cabinetMaterialSku: cabinetColorSku || null,
             cabinetColorCode: extractColorCode(cabinetColor),
+            grainDirection: grainSku,
           });
           console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf ${cfg.id}):`, sku);
           skus.push(sku);
@@ -365,7 +389,9 @@ export function usePriceCalculation() {
           width: cfg.Width,
           height: cfg.Height,
           depth: cfg.Depth,
-          cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
+          cab: cabinetColorSku
+            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+            : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
             : null,
@@ -385,7 +411,9 @@ export function usePriceCalculation() {
         width: selectedDimensions.width,
         height: selectedDimensions.height,
         depth: selectedDimensions.depth,
-        cab: cabinetColorSku ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor) } : null,
+        cab: cabinetColorSku
+          ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+          : null,
         hdl: handleMaterialSku
           ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
           : null,
@@ -402,8 +430,9 @@ export function usePriceCalculation() {
     // Fallback: single selectedDimensions
     type ProductDims = { width: number | null; height: number | null; depth: number | null; sinkType: string | null };
     let productDimsList: ProductDims[];
+    const cabinetCount = shouldUsePresets ? productsPresets.length : sceneConfigs.length > 0 ? sceneConfigs.length : 1;
 
-    if (hasPresets) {
+    if (shouldUsePresets) {
       productDimsList = productsPresets.map((p) => ({
         width: p.Width ?? null,
         height: p.Height ?? null,
@@ -517,11 +546,21 @@ export function usePriceCalculation() {
       }
     }
 
+    // 5) Book matching SKU — pricing modifier (global)
+    if (bookMatching === "enabled" && grainSku) {
+      const isHorizontal = grainSku === "H";
+      if (!isHorizontal || cabinetCount >= 2) {
+        const bmSku = buildBookMatchingSku({ direction: grainSku });
+        console.log(LOG_PREFIX, "Resolver 5 (Book Matching):", bmSku);
+        skus.push(bmSku);
+      }
+    }
+
     console.log(LOG_PREFIX, "All SKUs:", skus);
     return skus;
   }, [
     canCalculate,
-    hasPresets,
+    shouldUsePresets,
     productsPresets,
     sceneConfigs,
     activeCabinetType,
@@ -538,6 +577,8 @@ export function usePriceCalculation() {
     countertopColorSku,
     countertopThickness,
     countertopStyle,
+    grainSku,
+    bookMatching,
     sinkType,
     drawerPanelFluting,
     towelBarOption,
@@ -622,7 +663,7 @@ export function usePriceCalculation() {
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)
 
   useEffect(() => {
-    if (hasPresets || productIds.length === 0) return;
+    if (shouldUsePresets || productIds.length === 0) return;
 
     const timer = setTimeout(() => {
       // Clear price cache so new SKUs get fetched
@@ -633,13 +674,28 @@ export function usePriceCalculation() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    bookMatching,
+    grainDirection,
     cabinetColor,
     cabinetColorSku,
     handleGrooveColor,
     handleGrooveColorSku,
+    selectedProductConfig?.Handle,
+    selectedProductConfig?.Drawers,
     drawerPanelFluting,
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    countertopColor,
+    countertopColorSku,
+    countertopThickness,
+    countertopStyle,
+    sinkType,
+    towelBarOption,
+    towelBarColor,
+    faucetHolesAmount,
+    faucetHolesSpacing,
+    sidePanelsOption,
+    dividersStyle,
   ]);
 }

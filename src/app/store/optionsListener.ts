@@ -10,12 +10,13 @@ import {
   setActiveCabinetType,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
-import { getBookMatching, getDrawerPanelFluting, getGrainDirection } from "@/entities/product/model/store/selectors";
+import { getBookMatching, getDrawerPanelFluting, getGrainDirection, getSelectedProducts } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
 } from "@/entities/product/model/store/derivedSelectors";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -25,10 +26,13 @@ optionsListenerMiddleware.startListening({
     const state = listenerApi.getState() as RootState;
     const grainState = selectGrainDirectionState(state);
     const currentGrain = getGrainDirection(state);
+    const selectedProducts = getSelectedProducts(state);
 
     if (!grainState.available && currentGrain) {
       listenerApi.dispatch(setGrainDirection(""));
       listenerApi.dispatch(setBookMatching(""));
+      const ids = selectedProducts.length ? selectedProducts : {};
+      await setConfigBatch(ids, { GrainDirection: "" });
     }
   },
 });
@@ -71,4 +75,3 @@ optionsListenerMiddleware.startListening({
     }
   },
 });
-

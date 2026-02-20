@@ -10,6 +10,7 @@ export const ModelDetailsPage = () => {
   const selectedModel = productMockData.find(({ id }) => id === Number(modelId));
 
   const presetProducts = selectedModel?.presetProducts ?? [];
+  const detailsImage = selectedModel?.img ?? img_desc;
   const stepLabels = ["A", "B", "C", "D", "E"];
 
   const hasPresetProducts = presetProducts.length > 0;
@@ -24,7 +25,7 @@ export const ModelDetailsPage = () => {
     <div className={s.modelDetails}>
       <div className={s.detailsDimensions}>
         <div className={s.image}>
-          <img src={img_desc} alt="dimentions image" />
+          <img src={detailsImage} alt={`${selectedModel?.title ?? "Model"} image`} />
         </div>
         <div className={s.dimensions}>
           <div className={s.dimensions_titleBlock}>

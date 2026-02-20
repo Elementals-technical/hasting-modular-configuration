@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -16,8 +17,12 @@ import {
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import { sidePanelAvailabilityRule } from "@/features/configurator-rule-core/options";
 import {
+  addPlacedDivider,
+  clearPlacedDividers,
+  removePlacedDivider,
   setDividersOption,
   setDividersStyle,
+  setIsDrawerOpen,
   setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
@@ -28,6 +33,18 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
+import {
+  getAvailableDividerTypes,
+  placeDividerToSlot,
+  removeDividerFromSlot,
+  setDividerSlotClickHandler,
+  setOnAddSlotClick,
+  setOnOccupiedSlotClick,
+  setVisibleDividerSlotButtons,
+  showIconDividerSlots,
+  wrapExitTopView,
+  wrapShowTopView,
+} from "@/utils/functions/playcanvas/dividers";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -43,6 +60,27 @@ export const AccessoriesPage = () => {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const productsPresets = useAppSelector(getProductsPresets);
+  const isPlayCanvasReady = usePlayCanvasReady();
+  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
+
+  const selectedDividerType =
+    dividerStyle?.trim() === "Option B"
+      ? "B"
+      : dividerStyle?.trim() === "Option C"
+        ? "C"
+        : dividerStyle?.trim() === "Option A"
+          ? "A"
+          : null;
+
+  const resolveDividerType = useCallback(
+    (available: string[]) => {
+      if (selectedDividerType && available.includes(selectedDividerType)) return selectedDividerType;
+
+      if (available.length > 0) return available[0] as "A" | "B" | "C";
+      return (selectedDividerType || "A") as "A" | "B" | "C";
+    },
+    [selectedDividerType],
+  );
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -158,6 +196,158 @@ export const AccessoriesPage = () => {
     );
   }, [towelSelection]);
 
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    const wrapped = wrapShowTopView({
+      onSelect: (_, drawerType) => {
+        setActiveDrawerType(drawerType);
+        dispatch(setIsDrawerOpen(true));
+      },
+
+      onAfterSelect: (cabinetId, drawerType) => {
+        if (dividerSelection === "Customize") {
+          setVisibleDividerSlotButtons(true);
+          showIconDividerSlots(cabinetId, drawerType);
+        }
+      },
+    });
+
+    if (!wrapped) {
+      console.log("[Drawer] showTopView not ready or already wrapped");
+    }
+  }, [dispatch, isPlayCanvasReady, dividerSelection]);
+
+  useEffect(() => {
+    const exitTopView = wrapExitTopView({
+      onExit: () => {
+        setActiveDrawerType(null);
+        dispatch(setIsDrawerOpen(false));
+      },
+    });
+
+    if (!exitTopView) {
+      console.warn("[Drawer] exitTopView not ready");
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    if (dividerSelection !== "Customize") {
+      setVisibleDividerSlotButtons(false);
+      return;
+    }
+
+    setVisibleDividerSlotButtons(true);
+
+    if (!selectedSceneProduct) return;
+
+    if (activeDrawerType) {
+      showIconDividerSlots(selectedSceneProduct, activeDrawerType);
+    }
+
+    const onAddHandler = setOnAddSlotClick(async (slotInfo) => {
+      const available =
+        slotInfo.availableTypes?.length > 0
+          ? slotInfo.availableTypes
+          : getAvailableDividerTypes({
+              cabinetId: slotInfo.cabinetId,
+              drawerType: slotInfo.drawerType,
+              zone: slotInfo.zone,
+              key: slotInfo.key,
+            }) || [];
+
+      const selectedType = resolveDividerType(available);
+      const drawerType = slotInfo.drawerType ?? activeDrawerType;
+
+      if (!drawerType) {
+        console.warn("[Dividers] drawerType not resolved for add slot");
+        return;
+      }
+
+      await placeDividerToSlot({ ...slotInfo, drawerType }, selectedType);
+      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+      dispatch(
+        addPlacedDivider({
+          key: compositeKey,
+          cabinetId: slotInfo.cabinetId,
+          drawerType,
+          zone: slotInfo.zone,
+          type: selectedType,
+        }),
+      );
+      showIconDividerSlots(slotInfo.cabinetId, drawerType);
+    });
+
+    const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
+      const drawerType = slotInfo.drawerType ?? activeDrawerType;
+      await removeDividerFromSlot(slotInfo);
+      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+      dispatch(removePlacedDivider(compositeKey));
+      if (drawerType) {
+        showIconDividerSlots(slotInfo.cabinetId, drawerType);
+      }
+    });
+
+    if (!onAddHandler && !onOccupiedHandler) {
+      setDividerSlotClickHandler(async (slotInfo) => {
+        if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
+          await removeDividerFromSlot(slotInfo);
+          const legacyRemoveKey = `${slotInfo.cabinetId}::${slotInfo.drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+          dispatch(removePlacedDivider(legacyRemoveKey));
+          showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
+          return;
+        }
+
+        const addSlotInfo = slotInfo as {
+          cabinetId: string;
+          drawerType: "Top" | "Bot";
+          zone: string;
+          key: string;
+          availableTypes?: string[];
+        };
+
+        const available = addSlotInfo.availableTypes?.length
+          ? addSlotInfo.availableTypes
+          : getAvailableDividerTypes(addSlotInfo) || [];
+
+        const normalizedAddSlotInfo = {
+          ...addSlotInfo,
+          availableTypes: addSlotInfo.availableTypes ?? [],
+        };
+
+        const selectedType = resolveDividerType(available);
+        const drawerType = normalizedAddSlotInfo.drawerType ?? activeDrawerType;
+        if (!drawerType) {
+          console.warn("[Dividers] drawerType not resolved for legacy add slot");
+          return;
+        }
+
+        await placeDividerToSlot({ ...normalizedAddSlotInfo, drawerType }, selectedType);
+        const legacyAddKey = `${normalizedAddSlotInfo.cabinetId}::${drawerType}::${normalizedAddSlotInfo.zone}::${normalizedAddSlotInfo.key}`;
+        dispatch(
+          addPlacedDivider({
+            key: legacyAddKey,
+            cabinetId: normalizedAddSlotInfo.cabinetId,
+            drawerType,
+            zone: normalizedAddSlotInfo.zone,
+            type: selectedType,
+          }),
+        );
+        showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
+      });
+    }
+  }, [
+    selectedSceneProduct,
+    activeDrawerType,
+    dispatch,
+    dividerSelection,
+    selectedDividerType,
+    resolveDividerType,
+    isPlayCanvasReady,
+  ]);
+
   // Side panel invalidation is handled by global listener middleware.
 
   const handleSidePanelsChange = async (value: string) => {
@@ -177,15 +367,34 @@ export const AccessoriesPage = () => {
   const handleDividersChange = (value: string | null) => {
     if (!value) return;
 
+    if (value === "None") {
+      const exitTopView = wrapExitTopView({
+        onExit: () => {
+          setActiveDrawerType(null);
+          dispatch(setIsDrawerOpen(false));
+        },
+      });
+
+      if (exitTopView) {
+        exitTopView();
+      } else {
+        console.warn("[Drawer] exitTopView not ready");
+      }
+    }
+
     if (value === "Customize") {
       setVisibleDrawerButtons(true);
     } else {
       setVisibleDrawerButtons(false);
+      setVisibleDividerSlotButtons(false);
+
+      dispatch(setIsDrawerOpen(false));
     }
 
     dispatch(setDividersOption(value));
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
+      dispatch(clearPlacedDividers());
     }
   };
 
@@ -228,6 +437,17 @@ export const AccessoriesPage = () => {
     );
 
     dispatch(setTowelBarColor(value));
+  };
+
+  const handleAccordionChange = (value: string) => {
+    if (!value) return;
+
+    if (value === "dividers") {
+      setVisibleDrawerButtons(dividerSelection === "Customize");
+      return;
+    }
+
+    setVisibleDrawerButtons(false);
   };
 
   const ACCORDIONS: AccordionConfig[] = [
@@ -289,7 +509,10 @@ export const AccessoriesPage = () => {
 
   return (
     <div className="accessoriesPage">
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup
+        defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}
+        onValueChange={handleAccordionChange}
+      >
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}

@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { HandleOption } from "@/entities/product/model/store/slice";
+import type { HandleOption, PlacedDivider } from "@/entities/product/model/store/slice";
 
 export type SceneSnapshot = {
   productIds: string[];
@@ -35,6 +35,7 @@ export type SceneSnapshot = {
     height: number | null;
     depth: number | null;
   };
+  placedDividers?: PlacedDivider[];
 };
 
 type HistoryState = {

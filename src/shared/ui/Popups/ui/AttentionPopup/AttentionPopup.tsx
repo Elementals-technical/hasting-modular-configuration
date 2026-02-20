@@ -50,7 +50,7 @@ export const AttentionPopup: React.FC<AttentionPopupI> = ({ isOpening, setIsOpen
 
         <div className={s.footer}>
           <div>
-            <BaseButton onClick={handleCancel} fullWidth={true}>
+            <BaseButton variant="ghost" onClick={handleCancel} fullWidth={true}>
               Cancel
             </BaseButton>
           </div>

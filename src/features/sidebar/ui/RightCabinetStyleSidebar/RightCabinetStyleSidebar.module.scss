@@ -90,6 +90,52 @@
   }
 }
 
+.confirmPopup {
+  width: 400px;
+  background-color: #fff;
+  border-radius: 10px;
+}
+
+.confirmHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e5e6ea;
+}
+
+.confirmTitle {
+  color: #282828;
+  font-family: Poppins;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 26px;
+}
+
+.confirmClose {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.confirmContent {
+  padding: 20px;
+  border-bottom: 1px solid #e5e6ea;
+
+  p {
+    margin: 0;
+    color: #282828;
+    font-family: Poppins;
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+.confirmFooter {
+  padding: 20px;
+  width: 100%;
+}
+
 .plusButtonIcon {
   display: inline-flex;
   background-color: #ac5331;
