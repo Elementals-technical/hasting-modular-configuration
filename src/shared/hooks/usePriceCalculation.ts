@@ -44,6 +44,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -159,6 +160,14 @@ export function usePriceCalculation() {
     }
 
     const configs: ProductConfigSnapshot[] = [];
+    const dimensionTool = getDimensionTool();
+    const readDimValue = (map?: Record<string, string>) => {
+      if (!map) return null;
+      const [key] = Object.keys(map);
+      if (!key) return null;
+      const value = Number(key);
+      return Number.isFinite(value) ? value : null;
+    };
 
     for (const id of productIds) {
       try {
@@ -168,6 +177,11 @@ export function usePriceCalculation() {
         if (!raw) continue;
 
         const cfg = raw as Record<string, unknown>;
+        const dimensionData = dimensionTool?.getDimensionData?.(id) ?? null;
+        const toolWidth = readDimValue(dimensionData?.Width as Record<string, string> | undefined);
+        const toolHeight = readDimValue(dimensionData?.Height as Record<string, string> | undefined);
+        const toolDepth = readDimValue(dimensionData?.Depth as Record<string, string> | undefined);
+
         configs.push({
           id,
           name:
@@ -176,9 +190,9 @@ export function usePriceCalculation() {
             (typeof cfg.type === "string" && cfg.type) ||
             (typeof cfg.name === "string" && cfg.name) ||
             null,
-          Width: typeof cfg.Width === "number" ? cfg.Width : null,
-          Height: typeof cfg.Height === "number" ? cfg.Height : null,
-          Depth: typeof cfg.Depth === "number" ? cfg.Depth : null,
+          Width: toolWidth ?? (typeof cfg.Width === "number" ? cfg.Width : null),
+          Height: toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
+          Depth: toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
           Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
           Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
           CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
@@ -663,13 +677,28 @@ export function usePriceCalculation() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    bookMatching,
+    grainDirection,
     cabinetColor,
     cabinetColorSku,
     handleGrooveColor,
     handleGrooveColorSku,
+    selectedProductConfig?.Handle,
+    selectedProductConfig?.Drawers,
     drawerPanelFluting,
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    countertopColor,
+    countertopColorSku,
+    countertopThickness,
+    countertopStyle,
+    sinkType,
+    towelBarOption,
+    towelBarColor,
+    faucetHolesAmount,
+    faucetHolesSpacing,
+    sidePanelsOption,
+    dividersStyle,
   ]);
 }

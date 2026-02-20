@@ -415,13 +415,15 @@ export const PlayCanvasIntegration = () => {
       try {
         await saveSnapshot();
         await setConfig(selectedSceneProduct, { Width: width });
+
+        dispatch(setSelectedDimensions({ width }));
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set width", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot],
+    [selectedSceneProduct, saveSnapshot, dispatch],
   );
 
   const handleSetDepth = useCallback(
@@ -431,13 +433,15 @@ export const PlayCanvasIntegration = () => {
       try {
         await saveSnapshot();
         await setConfigBatch(productIds, { Depth: depth });
+
+        dispatch(setSelectedDimensions({ depth }));
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set depth", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, saveSnapshot],
+    [productIds, saveSnapshot, dispatch],
   );
 
   const handleSetHandleType = useCallback(
