@@ -100,6 +100,18 @@ export const CabinetPage = () => {
     }
   }, [flutingState.available, activeDrawerPanelFluting]);
 
+  useEffect(() => {
+    if (!grainDirectionState.available && activeGrainDirection) {
+      setConfigBatch(
+        {},
+        {
+          GrainDirection: "",
+        },
+      );
+      dispatch(setGrainDirection(""));
+    }
+  }, [grainDirectionState.available, activeGrainDirection, dispatch]);
+
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
     view: "full",

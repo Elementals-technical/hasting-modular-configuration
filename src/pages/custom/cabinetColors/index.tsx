@@ -452,6 +452,17 @@ export const CustomCabinetColorsPage = () => {
     }
   }, [flutingState.available, activeDrawerPanelFluting, isPlayCanvasReady, selectedProducts]);
 
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    if (!grainDirectionState.available && activeGrainDirection) {
+      setConfigBatch(selectedProducts, {
+        GrainDirection: "",
+      });
+      dispatch(setGrainDirection(""));
+    }
+  }, [grainDirectionState.available, activeGrainDirection, isPlayCanvasReady, selectedProducts, dispatch]);
+
   // useEffect(() => {
   //   if (!isPlayCanvasReady || !activeGrainDirection) return;
 
