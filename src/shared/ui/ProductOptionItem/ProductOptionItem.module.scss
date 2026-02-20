@@ -66,6 +66,18 @@
   }
 }
 
+.materialOption {
+  --is-material: 1;
+
+  > div {
+    > div {
+      img {
+        object-fit: cover !important;
+      }
+    }
+  }
+}
+
 .imageContainer {
   position: relative;
 }

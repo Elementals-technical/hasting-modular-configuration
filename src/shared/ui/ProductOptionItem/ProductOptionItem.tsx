@@ -26,6 +26,7 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  isMaterial?: boolean;
   name?: string;
   isShortDesc: boolean;
   config?: addProductConfigI;
@@ -45,6 +46,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   name,
   config,
   isActive = false,
+  isMaterial = false,
   onClick,
   setActive,
   metadata,
@@ -59,7 +61,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 
   return (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""}`}
       onClick={() => {
         onClick?.(productName, config);
         setActive?.(id);
