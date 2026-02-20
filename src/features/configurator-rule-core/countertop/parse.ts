@@ -2,7 +2,10 @@ import type { CountertopDatatable } from "@/entities/countertop/api/types";
 
 import type { CountertopMatrixRule } from "./types";
 
-const MATERIAL_ALIASES: Record<string, string[]> = {};
+const MATERIAL_ALIASES: Record<string, string[]> = {
+  tekorund: ["tekormud"],
+  tekormud: ["tekorund"],
+};
 
 const normalizeToken = (value: string) =>
   value

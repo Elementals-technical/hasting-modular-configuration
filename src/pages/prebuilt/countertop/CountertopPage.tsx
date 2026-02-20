@@ -87,6 +87,11 @@ export const CountertopPage = () => {
     return parts.length > 1 ? parts[parts.length - 1] : value;
   };
 
+  const normalizeMaterialAlias = (value: string) => {
+    const trimmed = value.trim();
+    return trimmed.toLowerCase() === "tekorund" ? "Tekormud" : trimmed;
+  };
+
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
   const toStringArrayFromCsv = (value: unknown): string[] => {
@@ -132,18 +137,18 @@ export const CountertopPage = () => {
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
       const tokens = new Set<string>();
       if (metaMaterial) {
-        toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(token));
+        toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(normalizeMaterialAlias(token)));
       }
-      if (name) tokens.add(name);
+      if (name) tokens.add(normalizeMaterialAlias(name));
       extraTokens.forEach((token) => {
-        if (token) tokens.add(token);
+        if (token) tokens.add(normalizeMaterialAlias(token));
       });
 
       const parts = name
         .split(":")
         .map((part) => part.trim())
         .filter(Boolean);
-      if (parts.length > 1) tokens.add(parts[parts.length - 1]);
+      if (parts.length > 1) tokens.add(normalizeMaterialAlias(parts[parts.length - 1]));
       return Array.from(tokens);
     };
 
@@ -153,7 +158,7 @@ export const CountertopPage = () => {
           .filter((variant) => variant.enabled)
           .map((variant) => {
             const meta = getVariantMeta(variant);
-            const metaMaterial = meta.material;
+            const metaMaterial = meta.material ?? option.name;
             const metaColor = meta.color;
             const metaLook = meta.look;
             const metaHex = meta.hex;
@@ -225,7 +230,7 @@ export const CountertopPage = () => {
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
 
-    matrixMaterials.forEach((material) => materialSet.add(material));
+    matrixMaterials.forEach((material) => materialSet.add(normalizeMaterialAlias(material)));
 
     groups.forEach((group) => {
       group.options.forEach((option) => {
@@ -233,14 +238,14 @@ export const CountertopPage = () => {
           if (!variant.enabled) return;
 
           const meta = getVariantMeta(variant);
-          const metaMaterial = meta.material;
+          const metaMaterial = meta.material ?? option.name;
           const metaColor = meta.color;
           const metaLook = meta.look;
           const metaHex = meta.hex;
 
-          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)].filter(
-            Boolean,
-          ) as string[];
+          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)]
+            .filter(Boolean)
+            .map((value) => normalizeMaterialAlias(value)) as string[];
 
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
