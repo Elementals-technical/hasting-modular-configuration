@@ -282,7 +282,7 @@ export const CustomCabinetColorsPage = () => {
 
       <FilterItem
         label="Price"
-        options={apiMaterialFilters.hex}
+        options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
@@ -310,7 +310,7 @@ export const CustomCabinetColorsPage = () => {
 
       <FilterItem
         label="Price"
-        options={grooveMaterialFilters.hex}
+        options={[]}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
     </FilterRow>
