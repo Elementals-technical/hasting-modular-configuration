@@ -149,12 +149,8 @@ export function usePriceCalculation() {
       presetsCount: productsPresets.length,
     });
 
-    if (productsPresets.length > 0 || productIds.length === 0) {
-      console.log(
-        LOG_PREFIX,
-        "fetchSceneConfigs skipped:",
-        productsPresets.length > 0 ? "has presets" : "no productIds",
-      );
+    if (productIds.length === 0) {
+      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", "no productIds");
       setSceneConfigs([]);
       return;
     }
@@ -244,7 +240,8 @@ export function usePriceCalculation() {
 
   const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
-  const canCalculate = hasPresets
+  const shouldUsePresets = hasPresets && !hasSceneConfigs;
+  const canCalculate = shouldUsePresets
     ? cabinetColorSku !== ""
     : hasSceneConfigs
       ? cabinetColorSku !== ""
@@ -269,7 +266,7 @@ export function usePriceCalculation() {
     console.log(
       LOG_PREFIX,
       "Building SKUs — path:",
-      hasPresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK",
+      shouldUsePresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK",
       {
         presetsCount: productsPresets.length,
         sceneConfigsCount: sceneConfigs.length,
@@ -278,7 +275,7 @@ export function usePriceCalculation() {
     );
 
     // 1) Product SKU(s) — Resolver 1
-    if (hasPresets) {
+    if (shouldUsePresets) {
       // Prebuilt path: iterate presets
       productsPresets.forEach((preset, idx) => {
         const name = preset.name ?? "";
@@ -433,9 +430,9 @@ export function usePriceCalculation() {
     // Fallback: single selectedDimensions
     type ProductDims = { width: number | null; height: number | null; depth: number | null; sinkType: string | null };
     let productDimsList: ProductDims[];
-    const cabinetCount = hasPresets ? productsPresets.length : sceneConfigs.length > 0 ? sceneConfigs.length : 1;
+    const cabinetCount = shouldUsePresets ? productsPresets.length : sceneConfigs.length > 0 ? sceneConfigs.length : 1;
 
-    if (hasPresets) {
+    if (shouldUsePresets) {
       productDimsList = productsPresets.map((p) => ({
         width: p.Width ?? null,
         height: p.Height ?? null,
@@ -563,7 +560,7 @@ export function usePriceCalculation() {
     return skus;
   }, [
     canCalculate,
-    hasPresets,
+    shouldUsePresets,
     productsPresets,
     sceneConfigs,
     activeCabinetType,
@@ -666,7 +663,7 @@ export function usePriceCalculation() {
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)
 
   useEffect(() => {
-    if (hasPresets || productIds.length === 0) return;
+    if (shouldUsePresets || productIds.length === 0) return;
 
     const timer = setTimeout(() => {
       // Clear price cache so new SKUs get fetched
