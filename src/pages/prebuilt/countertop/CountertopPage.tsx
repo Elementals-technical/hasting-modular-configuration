@@ -452,13 +452,7 @@ export const CountertopPage = () => {
 
       return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [
-    activeCountertopStyle,
-    activeMaterialTokens,
-    allowedBasinTokens,
-    allowedMaterials,
-    ruleState.allowedStyles,
-  ]);
+  }, [activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
@@ -537,9 +531,8 @@ export const CountertopPage = () => {
 
   const handleAddBasinStyle = async (basinStyle: string) => {
     await saveSnapshot();
-    presetNames.forEach((productName) => {
-      setConfigBatch({ productType: productName }, { sinkType: basinStyle });
-    });
+
+    setConfigBatch({}, { sinkType: basinStyle });
 
     dispatch(setActiveBasinStyle(basinStyle));
   };
