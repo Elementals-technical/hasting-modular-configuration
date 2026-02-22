@@ -18,8 +18,10 @@ type FilterSelectionProps = {
   label?: string;
   options?: Option[];
   value?: string | number;
-  onSelect?: (value: string | number) => void;
+  onSelect?: (value?: string | number) => void;
   className?: string;
+  allowShowAll?: boolean;
+  showAllLabel?: string;
 };
 
 const findOptionInTree = (options: Option[], targetValue: string | number): Option | undefined => {
@@ -33,10 +35,19 @@ const findOptionInTree = (options: Option[], targetValue: string | number): Opti
   return undefined;
 };
 
-export const FilterSelection = ({ label = "Size", options = [], value, onSelect, className }: FilterSelectionProps) => {
+export const FilterSelection = ({
+  label = "Size",
+  options = [],
+  value,
+  onSelect,
+  className,
+  allowShowAll = false,
+  showAllLabel = "Show all",
+}: FilterSelectionProps) => {
   const [open, setOpen] = useState(false);
   const [internalValue, setInternalValue] = useState<string | number | undefined>(value);
   const [expandedCategory, setExpandedCategory] = useState<string | number | null>(null);
+  const [showAllSelected, setShowAllSelected] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -47,13 +58,17 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
   const selectedValue = value ?? internalValue;
 
   const selectedOption = useMemo(
-    () => findOptionInTree(options, selectedValue as string | number),
+    () => (selectedValue === undefined ? undefined : findOptionInTree(options, selectedValue)),
     [options, selectedValue],
   );
-  const selectedLabel = selectedOption?.label ?? selectedOption?.name ?? label;
+  const showAllActive = allowShowAll && showAllSelected;
+  const selectedLabel = showAllActive ? showAllLabel : selectedOption?.label ?? selectedOption?.name ?? label;
 
   useEffect(() => {
     setInternalValue(value);
+    if (value !== undefined) {
+      setShowAllSelected(false);
+    }
   }, [value]);
 
   useEffect(() => {
@@ -98,8 +113,20 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
       setInternalValue(option.value);
     }
 
+    setShowAllSelected(false);
     onSelect?.(option.value);
     setOpen(false);
+  };
+
+  const handleShowAll = () => {
+    if (value === undefined) {
+      setInternalValue(undefined);
+    }
+
+    setShowAllSelected(true);
+    onSelect?.(undefined);
+    setOpen(false);
+    setExpandedCategory(null);
   };
 
   const handleCategoryClick = (option: Option) => {
@@ -197,6 +224,17 @@ export const FilterSelection = ({ label = "Size", options = [], value, onSelect,
               ref={menuRef}
               data-filter-menu="true"
             >
+              {allowShowAll ? (
+                <button
+                  type="button"
+                  className={[s.menuItem, showAllActive ? s.activeItem : ""].filter(Boolean).join(" ")}
+                  role="option"
+                  aria-selected={showAllActive}
+                  onClick={handleShowAll}
+                >
+                  <span className={s.optionLabel}>{showAllLabel}</span>
+                </button>
+              ) : null}
               {options.map((option) => renderOption(option))}
             </div>,
             document.body,

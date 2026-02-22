@@ -12,7 +12,7 @@ import {
   getCountertopColorSku,
   getCountertopStyle,
   // getDividersOption,
-  getDividersStyle,
+  // getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
@@ -29,8 +29,9 @@ import {
   getSinkType,
   getTowelBarColor,
   getTowelBarOption,
+  getPlacedDividers,
 } from "@/entities/product/model/store/selectors";
-import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
+// import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -58,11 +59,11 @@ const buildImageSrc = (imagePath?: string) => {
   return imagePath;
 };
 
-const resolveDividerImage = (selection?: string) => {
-  if (!selection) return undefined;
-  const match = dividersMockData.find((option) => option.title === selection);
-  return match?.metadata?.image;
-};
+// const resolveDividerImage = (selection?: string) => {
+//   if (!selection) return undefined;
+//   const match = dividersMockData.find((option) => option.title === selection);
+//   return match?.metadata?.image;
+// };
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$0";
@@ -164,8 +165,7 @@ export const SummaryPage = () => {
   const bookMatching = useAppSelector(getBookMatching);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  // const dividersOption = useAppSelector(getDividersOption);
-  const dividerStyle = useAppSelector(getDividersStyle);
+  const placedDividers = useAppSelector(getPlacedDividers);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
@@ -610,8 +610,6 @@ export const SummaryPage = () => {
       })),
     ].filter(Boolean) as SummaryItem[];
 
-    const dividerImage = buildImageSrc(resolveDividerImage(dividerStyle));
-
     // Towel bar full product SKUs
     const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
     const towelColorCode = extractColorCode(towelBarColor);
@@ -685,34 +683,28 @@ export const SummaryPage = () => {
       });
     }
 
-    // Divider SKU
-    const divSku = dividerStyle && dividerStyle !== "None" ? buildDividerSku({ dividerStyle }) : null;
+    const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
+
+    const dividerItems: SummaryItem[] = placedDividers.map((divider, index) => {
+      const style = typeToStyleMap[divider.type];
+      const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
+      // const image = buildImageSrc(resolveDividerImage(style));
+      const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
+      return {
+        id: `accessories-dividers-${divider.key}-${index}`,
+        title: "Dividers",
+        subtitle: sku ?? undefined,
+        sku: sku ?? undefined,
+        // swatch: style && image ? { label: "Divider", value: style, color: "#ffffff", image } : undefined,
+        price: formatPrice(unitPrice),
+        copyable: !!sku,
+        description: { "Product Category": "Divider", "Divider Style": style },
+      };
+    });
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
-      divSku
-        ? {
-            id: "accessories-dividers",
-            title: "Dividers",
-            subtitle: divSku,
-            sku: divSku,
-            swatch:
-              dividerStyle && dividerImage
-                ? {
-                    label: "Divider",
-                    value: dividerStyle,
-                    color: "#ffffff",
-                    image: dividerImage,
-                  }
-                : undefined,
-            price: resolveItemPrice(divSku),
-            copyable: true,
-            description: {
-              "Product Category": "Divider",
-              "Divider Style": dividerStyle,
-            },
-          }
-        : null,
+      ...dividerItems,
       towelBarRightSku
         ? {
             id: "accessories-towel-bar-right",
@@ -863,7 +855,8 @@ export const SummaryPage = () => {
     sinkType,
     towelBarColor,
     towelBarOption,
-    dividerStyle,
+    placedDividers,
+    priceBySku,
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,
