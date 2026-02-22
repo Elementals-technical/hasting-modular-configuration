@@ -265,18 +265,21 @@ export const CustomCabinetColorsPage = () => {
       <FilterItem
         label="Material"
         options={apiMaterialFilters.materials}
+        value={selectedFilter.material}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, material: value as string }))}
       />
 
       <FilterItem
         label="Color"
         options={apiMaterialFilters.colors}
+        value={selectedFilter.color}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, color: value as string }))}
       />
 
       <FilterItem
         label="Look"
         options={apiMaterialFilters.looks}
+        value={selectedFilter.look}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, look: value as string }))}
       />
 
@@ -293,18 +296,21 @@ export const CustomCabinetColorsPage = () => {
       <FilterItem
         label="Material"
         options={grooveMaterialFilters.materials}
+        value={selectedGrooveFilter.material}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, material: value as string }))}
       />
 
       <FilterItem
         label="Color"
         options={grooveMaterialFilters.colors}
+        value={selectedGrooveFilter.color}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, color: value as string }))}
       />
 
       <FilterItem
         label="Look"
         options={grooveMaterialFilters.looks}
+        value={selectedGrooveFilter.look}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, look: value as string }))}
       />
 

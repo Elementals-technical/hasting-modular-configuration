@@ -569,18 +569,21 @@ export const CustomCountertopPage = () => {
       <FilterItem
         label="Material"
         options={filteredMaterialFilters.materials}
+        value={selectedFilter.material}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, material: value as string }))}
       />
 
       <FilterItem
         label="Color"
         options={materialFilters.colors}
+        value={selectedFilter.color}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, color: value as string }))}
       />
 
       <FilterItem
         label="Look"
         options={materialFilters.looks}
+        value={selectedFilter.look}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, look: value as string }))}
       />
 
