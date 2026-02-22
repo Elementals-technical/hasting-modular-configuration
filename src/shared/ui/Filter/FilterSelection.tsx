@@ -62,7 +62,7 @@ export const FilterSelection = ({
     [options, selectedValue],
   );
   const showAllActive = allowShowAll && showAllSelected;
-  const selectedLabel = showAllActive ? showAllLabel : selectedOption?.label ?? selectedOption?.name ?? label;
+  const selectedLabel = selectedOption?.label ?? selectedOption?.name ?? label;
 
   useEffect(() => {
     setInternalValue(value);
