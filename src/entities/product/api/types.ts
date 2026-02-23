@@ -16,4 +16,10 @@ export type ProductDatatable = {
   updatedAt: string;
 };
 
-export type ProductSkuPriceResponse = Record<string, unknown>;
+export type ProductSkuPriceResponse = {
+  price: number;
+  resolver: string;
+  error: string | null;
+  metadata: Record<string, unknown>;
+  parsed: Record<string, unknown>;
+};

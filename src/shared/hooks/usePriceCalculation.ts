@@ -42,30 +42,21 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
+import type { ProductSkuPriceResponse } from "@/entities/product/api/types";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
+const DEBOUNCE_MS = 300;
+const LOG_PREFIX = "[SKU/Price]";
+
 // ── Price response helpers ──────────────────────────────
 
-const parsePriceValue = (value: string | number) => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  const normalized = value.replace(/[^0-9.-]+/g, "");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
-  if (!data) return null;
-
-  const candidates = ["price", "Price", "total", "Total", "amount", "Amount", "value", "Value"];
-
-  for (const key of candidates) {
-    const value = data[key];
-    if (typeof value === "number") return parsePriceValue(value);
-    if (typeof value === "string" && value.trim()) return parsePriceValue(value);
+const resolvePriceFromResponse = (data: ProductSkuPriceResponse): number | null => {
+  if (data.error !== null) {
+    console.warn(LOG_PREFIX, "API returned error:", data.error, "| resolver:", data.resolver);
   }
-  return null;
+  return Number.isFinite(data.price) ? data.price : null;
 };
 
 // ── Types ────────────────────────────────────────────────
@@ -82,9 +73,6 @@ type ProductConfigSnapshot = {
 };
 
 // ── Hook ────────────────────────────────────────────────
-
-const DEBOUNCE_MS = 300;
-const LOG_PREFIX = "[SKU/Price]";
 
 export function usePriceCalculation() {
   const dispatch = useAppDispatch();
@@ -241,11 +229,7 @@ export function usePriceCalculation() {
   const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
   const shouldUsePresets = hasPresets && !hasSceneConfigs;
-  const canCalculate = shouldUsePresets
-    ? cabinetColorSku !== ""
-    : hasSceneConfigs
-      ? cabinetColorSku !== ""
-      : selectedDimensions.width !== null && cabinetColorSku !== "";
+  const canCalculate = shouldUsePresets ? hasPresets : hasSceneConfigs ? true : selectedDimensions.width !== null;
 
   console.log(LOG_PREFIX, "canCalculate:", canCalculate, {
     hasPresets,
@@ -666,8 +650,6 @@ export function usePriceCalculation() {
     if (shouldUsePresets || productIds.length === 0) return;
 
     const timer = setTimeout(() => {
-      // Clear price cache so new SKUs get fetched
-      fetchedRef.current.clear();
       fetchSceneConfigs();
     }, DEBOUNCE_MS);
 
