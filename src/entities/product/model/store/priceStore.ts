@@ -24,7 +24,6 @@ const priceStoreSlice = createSlice({
     setActiveSkus(state, action: PayloadAction<string[]>) {
       state.activeSkus = action.payload;
       state.total = calculateTotal(state.skuPrices, state.activeSkus);
-      state.isLoading = state.activeSkus.length > 0;
     },
     setSkuPrices(state, action: PayloadAction<Record<string, number>>) {
       state.skuPrices = { ...state.skuPrices, ...action.payload };

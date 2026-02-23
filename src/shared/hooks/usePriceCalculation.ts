@@ -26,6 +26,7 @@ import {
   getSidePanelsOption,
   getDividersStyle,
   getCabinetCatalog,
+  getPlacedDividers,
 } from "@/entities/product/model/store/selectors";
 import {
   buildProductSku,
@@ -124,6 +125,7 @@ export function usePriceCalculation() {
 
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const dividersStyle = useAppSelector(getDividersStyle);
+  const placedDividers = useAppSelector(getPlacedDividers);
 
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
@@ -537,12 +539,15 @@ export function usePriceCalculation() {
       });
     }
 
-    // Dividers (no dimensions — global)
+    // Dividers — one per placed divider
     if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
       const divSku = buildDividerSku({ dividerStyle: dividersStyle });
       if (divSku) {
-        console.log(LOG_PREFIX, "Resolver 4 (Divider):", divSku);
-        skus.push(divSku);
+        const count = placedDividers.length > 0 ? placedDividers.length : cabinetCount;
+        for (let i = 0; i < count; i++) {
+          console.log(LOG_PREFIX, `Resolver 4 (Divider #${i + 1}):`, divSku);
+          skus.push(divSku);
+        }
       }
     }
 
@@ -587,6 +592,7 @@ export function usePriceCalculation() {
     faucetHolesSpacing,
     sidePanelsOption,
     dividersStyle,
+    placedDividers.length,
     colorSkuByName,
     resolveCabinetType,
   ]);
@@ -626,7 +632,7 @@ export function usePriceCalculation() {
 
         try {
           await Promise.all(
-            pending.map(async (sku) => {
+            [...new Set(pending)].map(async (sku) => {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
                 const data = await triggerPriceBySku(sku).unwrap();
@@ -674,8 +680,6 @@ export function usePriceCalculation() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    bookMatching,
-    grainDirection,
     cabinetColor,
     cabinetColorSku,
     handleGrooveColor,
@@ -686,16 +690,5 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
-    countertopColor,
-    countertopColorSku,
-    countertopThickness,
-    countertopStyle,
-    sinkType,
-    towelBarOption,
-    towelBarColor,
-    faucetHolesAmount,
-    faucetHolesSpacing,
-    sidePanelsOption,
-    dividersStyle,
   ]);
 }
