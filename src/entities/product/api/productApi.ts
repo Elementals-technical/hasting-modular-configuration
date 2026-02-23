@@ -15,7 +15,6 @@ export const productApi = baseApi.injectEndpoints({
       query: (sku) => ({
         url: routes.priceBySku(sku),
       }),
-      keepUnusedDataFor: 0,
     }),
   }),
 });
