@@ -12,6 +12,13 @@
     padding: 24px;
     box-sizing: border-box;
     background: #fff;
+
+    [class*="copyHint"],
+    [class*="copyButton"],
+    [class*="copyIcon"],
+    [class*="priceSpinner"] {
+      display: none !important;
+    }
   }
 }
 
