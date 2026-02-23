@@ -11,6 +11,7 @@ import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/st
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
+import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 
@@ -41,6 +42,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
 
   const handleNavigate = () => {
+    const exitTopView = wrapExitTopView({});
+    if (exitTopView) exitTopView();
+
     if (location.pathname.startsWith("/custom/cabinet-builder")) {
       if (hasProducts) {
         setIsAttentionPopupOpen(true);
@@ -66,6 +70,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
 
   const handleNavigateForward = () => {
     if (nextStep) {
+      const exitTopView = wrapExitTopView({});
+      if (exitTopView) exitTopView();
+
       setVisibleDrawerButtons(false);
 
       navigate(nextStep.path);
