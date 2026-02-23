@@ -23,7 +23,6 @@ import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
-import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux.ts";
 import {
@@ -605,7 +604,7 @@ export const CountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel />
+          {/* <ViewModePanel /> */}
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedCountertopOptions}

@@ -32,7 +32,6 @@ import {
 } from "@/entities/product/model/store/slice";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
-import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -602,7 +601,7 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel />
+          {/* <ViewModePanel /> */}
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedCountertopOptions}

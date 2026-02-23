@@ -8,7 +8,6 @@ import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/Pro
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import {
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
@@ -484,7 +483,7 @@ export const CustomCabinetColorsPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel />
+          {/* <ViewModePanel /> */}
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedBasePanelOptions}
@@ -500,7 +499,7 @@ export const CustomCabinetColorsPage = () => {
       title: "Handle Groove Color (Optional)",
       content: (
         <>
-          <ViewModePanel />
+          {/* <ViewModePanel /> */}
           {renderGrooveFilters()}
           <ProductOptionsGrid
             data={grooveColorOptions}

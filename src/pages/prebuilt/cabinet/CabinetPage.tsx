@@ -8,7 +8,6 @@ import { optionsMockData3, optionsMockData4 } from "@/pages/prebuilt/cabinet/con
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
-import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
@@ -469,7 +468,7 @@ export const CabinetPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel />
+          {/* <ViewModePanel /> */}
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedBasePanelOptions}
@@ -484,7 +483,7 @@ export const CabinetPage = () => {
       title: "Handle Groove Color (Optional)",
       content: (
         <>
-          <ViewModePanel />
+          {/* <ViewModePanel /> */}
           {renderGrooveFilters()}
           <ProductOptionsGrid
             data={grooveColorOptions}
