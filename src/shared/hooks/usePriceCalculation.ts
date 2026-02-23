@@ -151,6 +151,12 @@ export function usePriceCalculation() {
       presetsCount: productsPresets.length,
     });
 
+    if (productsPresets.length > 0) {
+      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", "using presets");
+      setSceneConfigs([]);
+      return;
+    }
+
     if (productIds.length === 0) {
       console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", "no productIds");
       setSceneConfigs([]);
@@ -242,7 +248,7 @@ export function usePriceCalculation() {
 
   const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
-  const shouldUsePresets = hasPresets && !hasSceneConfigs;
+  const shouldUsePresets = hasPresets;
   const canCalculate = shouldUsePresets
     ? cabinetColorSku !== ""
     : hasSceneConfigs
