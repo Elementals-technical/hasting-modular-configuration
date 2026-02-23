@@ -144,9 +144,15 @@ export const ModelPage = () => {
     }
   };
 
-  const handleCustomizePreset = (presetProducts?: PresetProduct[]) => {
+  const handleCustomizePreset = async (presetProducts?: PresetProduct[]) => {
     if (!presetProducts?.length) return;
 
+    removeAllProducts();
+    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await setConfigBatch({}, { SidePanel: "None" });
+
+    dispatch(reset());
+    dispatch(resetCabinetBuilderBootstrap());
     dispatch(addProductPreset(presetProducts));
     navigate(ROUTES.CUSTOM);
   };
