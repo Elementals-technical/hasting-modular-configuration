@@ -66,11 +66,19 @@ export const ModelPage = () => {
     });
   }, [sizeFilter, styleFilter]);
 
-  const handleSizeFilter = useCallback((value: string | number) => {
+  const handleSizeFilter = useCallback((value?: string | number) => {
+    if (value === undefined) {
+      setSizeFilter("all");
+      return;
+    }
     setSizeFilter(value === "all" ? "all" : (value as ProductSize));
   }, []);
 
-  const handleStyleFilter = useCallback((value: string | number) => {
+  const handleStyleFilter = useCallback((value?: string | number) => {
+    if (value === undefined) {
+      setStyleFilter("all");
+      return;
+    }
     setStyleFilter(value === "all" ? "all" : (value as ProductStyle));
   }, []);
 
@@ -136,9 +144,15 @@ export const ModelPage = () => {
     }
   };
 
-  const handleCustomizePreset = (presetProducts?: PresetProduct[]) => {
+  const handleCustomizePreset = async (presetProducts?: PresetProduct[]) => {
     if (!presetProducts?.length) return;
 
+    removeAllProducts();
+    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await setConfigBatch({}, { SidePanel: "None" });
+
+    dispatch(reset());
+    dispatch(resetCabinetBuilderBootstrap());
     dispatch(addProductPreset(presetProducts));
     navigate(ROUTES.CUSTOM);
   };

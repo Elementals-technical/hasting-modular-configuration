@@ -96,7 +96,8 @@ export const CustomFaucetHolesPage = () => {
     dispatch(setFaucetHolesAmount(value));
   };
 
-  const handleFaucetSpacingChange = (value: string | number) => {
+  const handleFaucetSpacingChange = (value?: string | number) => {
+    if (value === undefined) return;
     dispatch(setFaucetHolesSpacing(String(value)));
   };
 

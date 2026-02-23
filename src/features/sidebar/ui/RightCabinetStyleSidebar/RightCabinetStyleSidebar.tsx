@@ -119,11 +119,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     dispatch(setOpenStyleSidebar(false));
   };
 
-  const handleChangeWidth = (value: string | number) => {
+  const handleChangeWidth = (value?: string | number) => {
+    if (value === undefined) return;
     dispatch(setSelectedDimensions({ width: Number(value) }));
   };
 
-  const handleChangeDepth = (value: string | number) => {
+  const handleChangeDepth = (value?: string | number) => {
+    if (value === undefined) return;
     dispatch(setSelectedDimensions({ depth: Number(value) }));
   };
 
@@ -308,7 +310,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
                 label={"Handle"}
                 options={handleOptions}
                 value={selectedProductConfig?.Handle as string | undefined}
-                onSelect={(value) => handleSetHandleType(String(value))}
+                onSelect={(value) => {
+                  if (value === undefined) return;
+                  handleSetHandleType(String(value));
+                }}
               />
             </div>
           )}

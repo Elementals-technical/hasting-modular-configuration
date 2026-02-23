@@ -516,6 +516,9 @@ export const CustomAccessoriesPage = () => {
     }
 
     setVisibleDrawerButtons(false);
+
+    const exitTopView = wrapExitTopView({});
+    if (exitTopView) exitTopView();
   };
 
   const ACCORDIONS: AccordionConfig[] = [

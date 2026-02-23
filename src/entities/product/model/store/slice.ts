@@ -196,7 +196,7 @@ const createInitialState = (): ProductState => {
       sinkType: "Top_HPLPrisma",
       CountertopColor: "Rosso Rubino 19 MT",
       CountertopColorSku: "",
-      HandleGrooveColor: "Blu Pavone A6 MT",
+      HandleGrooveColor: "",
       HandleGrooveColorSku: "",
       Handle: "",
       Thickness: "",

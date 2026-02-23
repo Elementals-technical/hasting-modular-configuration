@@ -12,6 +12,26 @@
     padding: 24px;
     box-sizing: border-box;
     background: #fff;
+
+    [class*="copyHint"],
+    [class*="copyButton"],
+    [class*="copyIcon"],
+    [class*="priceSpinner"] {
+      display: none !important;
+    }
+
+    [class*="itemRow"],
+    [class*="swatchTile"],
+    [class*="swatch"]:not([class*="swatchesList"]):not([class*="swatchColor"]) {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    [class*="section"] {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      break-before: auto;
+    }
   }
 }
 

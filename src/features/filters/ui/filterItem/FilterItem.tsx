@@ -10,13 +10,31 @@ interface FilterItemI {
   label: string;
   options: FilterOption[];
   value?: string | number;
-  onSelect?: (value: string | number) => void;
+  onSelect?: (value?: string | number) => void;
+  allowShowAll?: boolean;
 }
 
-export const FilterItem: React.FC<FilterItemI> = ({ label, options, value, onSelect }) => {
-  const handleSelect = (val: string | number) => {
+const hasAllOption = (options: FilterOption[]) =>
+  options.some((option) => {
+    const optionLabel = (option.label ?? "").toLowerCase();
+    const optionValue = (option.value ?? "").toLowerCase();
+    return optionLabel === "all" || optionLabel === "show all" || optionValue === "all";
+  });
+
+export const FilterItem: React.FC<FilterItemI> = ({ label, options, value, onSelect, allowShowAll }) => {
+  const handleSelect = (val?: string | number) => {
     onSelect?.(val);
   };
 
-  return <FilterSelection label={label} options={options} value={value} onSelect={handleSelect} />;
+  const showAllEnabled = allowShowAll ?? !hasAllOption(options);
+
+  return (
+    <FilterSelection
+      label={label}
+      options={options}
+      value={value}
+      onSelect={handleSelect}
+      allowShowAll={showAllEnabled}
+    />
+  );
 };

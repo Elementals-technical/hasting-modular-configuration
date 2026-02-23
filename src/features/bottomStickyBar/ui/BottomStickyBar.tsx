@@ -7,6 +7,7 @@ import { type PropsWithChildren } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
+import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -32,6 +33,9 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
 
   const handleNavigate = () => {
     if (nextStep) {
+      const exitTopView = wrapExitTopView({});
+      if (exitTopView) exitTopView();
+
       setVisibleDrawerButtons(false);
 
       navigate(nextStep?.path);
