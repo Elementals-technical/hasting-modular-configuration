@@ -250,15 +250,15 @@ export function usePriceCalculation() {
   const hasSceneConfigs = sceneConfigs.length > 0;
   const shouldUsePresets = hasPresets;
   const canCalculate = shouldUsePresets
-    ? cabinetColorSku !== ""
+    ? true
     : hasSceneConfigs
-      ? cabinetColorSku !== ""
-      : selectedDimensions.width !== null && cabinetColorSku !== "";
+      ? true
+      : selectedDimensions.width !== null;
 
   console.log(LOG_PREFIX, "canCalculate:", canCalculate, {
     hasPresets,
     hasSceneConfigs,
-    cabinetColorSku,
+    cabinetColorSku: cabinetColorSku || "(none — base SKU will be used)",
     selectedDimensionsWidth: selectedDimensions.width,
     productIdsCount: productIds.length,
   });
