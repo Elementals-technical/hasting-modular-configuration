@@ -23,14 +23,10 @@ export const handleSkuMap: Record<string, string> = {
 
 /** Front pattern / fluting → SKU code */
 export const patternSkuMap: Record<string, string> = {
-  FlutingVerticalA: "FVA",
-  FlutingVerticalB: "FVB",
-  FlutingHorizontalA: "FHA",
-  FlutingHorizontalB: "FHB",
-  Uniform: "URF",
-  Staggered: "SRF",
-  Cannette: "CRF",
-  Rigatino: "RRF",
+  FlutingVerticalA: "CVA",
+  FlutingVerticalB: "CVB",
+  FlutingHorizontalA: "CHA",
+  FlutingHorizontalB: "CHB",
   None: "X",
 };
 

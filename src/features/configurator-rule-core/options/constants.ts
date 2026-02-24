@@ -15,10 +15,10 @@ export const GRAIN_DIRECTION_VALUES = [
 
 export const FLUTING_VALUES = [
   { value: "None", label: "None" },
-  { value: "FlutingVerticalA", label: "Fluting Vertical A" },
-  { value: "FlutingVerticalB", label: "Fluting Vertical B" },
-  { value: "FlutingHorizontalA", label: "Fluting Horizontal A" },
-  { value: "FlutingHorizontalB", label: "Fluting Horizontal B" },
+  { value: "FlutingVerticalA", label: "Vertical Asymmetrical" },
+  { value: "FlutingVerticalB", label: "Vertical Symmetrical" },
+  { value: "FlutingHorizontalA", label: "Horizontal Asymmetrical" },
+  { value: "FlutingHorizontalB", label: "Horizontal Symmetrical" },
 ];
 
 export const SIDE_PANELS_NONE = "None";
