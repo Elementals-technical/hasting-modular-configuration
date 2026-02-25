@@ -7,6 +7,7 @@ export { buildOpenShelfSku, type OpenShelfSkuInput } from "./buildOpenShelfSku";
 export { buildOpenSideShelfSku, type OpenSideShelfSkuInput } from "./buildOpenSideShelfSku";
 export { buildBookMatchingSku, type BookMatchingSkuInput } from "./buildBookMatchingSku";
 export { cmToInches } from "./cmToInches";
+export { toSkuDepth } from "./toSkuDepth";
 export { extractColorCode } from "./extractColorCode";
 export {
   cabinetTypeSkuMap,
