@@ -1,3 +1,5 @@
+import { toSkuDepth } from "./toSkuDepth";
+
 export type OpenSideShelfSkuInput = {
   /** "L" or "R" */
   side: "L" | "R";
@@ -29,7 +31,7 @@ const FALLBACK = "X";
 export function buildOpenSideShelfSku(input: OpenSideShelfSkuInput): string {
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
+  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : `${FALLBACK}D`;
 
   let sku = `VAN-UROSS-${input.side}-${w}-${h}-${d}`;
 

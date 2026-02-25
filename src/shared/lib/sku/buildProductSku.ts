@@ -1,4 +1,5 @@
 import { cabinetTypeSkuMap, drawerSkuMap, handleSkuMap, patternSkuMap } from "./cabinetSkuMaps";
+import { toSkuDepth } from "./toSkuDepth";
 // import { cmToInches } from "./cmToInches";
 
 export type ElementMaterial = {
@@ -34,6 +35,7 @@ export type ProductSkuInput = {
 const FALLBACK = "X";
 const CATEGORY = "VAN";
 const SERIES = "URSTD";
+
 
 const resolve = (map: Record<string, string>, value: string | null): string => {
   if (!value) return FALLBACK;
@@ -87,7 +89,7 @@ export function buildProductSku(input: ProductSkuInput): string {
   // const d = input.depth != null ? `${cmToInches(input.depth)}D` : FALLBACK;
   const w = input.width != null ? `${input.width}W` : FALLBACK;
   const h = input.height != null ? `${input.height}H` : FALLBACK;
-  const d = input.depth != null ? `${input.depth}D` : FALLBACK;
+  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : FALLBACK;
 
   // Element triplets (order matches spec)
   const triplets = [
@@ -113,7 +115,7 @@ export function buildProductBaseSku(input: ProductSkuInput): string {
 
   const w = input.width != null ? `${input.width}W` : FALLBACK;
   const h = input.height != null ? `${input.height}H` : FALLBACK;
-  const d = input.depth != null ? `${input.depth}D` : FALLBACK;
+  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : FALLBACK;
 
   return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}`;
 }
