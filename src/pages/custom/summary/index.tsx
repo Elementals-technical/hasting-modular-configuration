@@ -114,7 +114,7 @@ const materialSkuLabelMap: Record<string, string> = {
   POR: "Porcelain",
   GLSM: "Glass Matt",
   GLSG: "Glass Gloss",
-  SSMMO: "Minermalmaro",
+  SSMLM: "Minermalmaro",
   SSTM: "Teckormud",
   SSOCR: "Ocritech",
   SSTKR: "Tekorlux",
