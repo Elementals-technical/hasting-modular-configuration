@@ -911,8 +911,6 @@ export const CustomSummaryPage = () => {
 
           <div className={s.sectionList}>
             {section.items.map((item) => {
-              const textToCopy = JSON.stringify(fullSkuJson, null, 2);
-
               return (
                 <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
                   <div className={s.itemInfo}>
@@ -925,12 +923,12 @@ export const CustomSummaryPage = () => {
                       {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
                     </div>
 
-                    {item.copyable && (
-                      <Hint className={s.copyHint} content={"Copy SKU and descriprion"}>
+                    {item.copyable && item.sku && (
+                      <Hint className={s.copyHint} content={"Copy SKU"}>
                         <button
                           className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                          onClick={() => handleCopy(textToCopy, item.id)}
-                          aria-label="Copy sku and description"
+                          onClick={() => handleCopy(item.sku!, item.id)}
+                          aria-label="Copy SKU"
                         >
                           <span className={s.copyIcon} />
                         </button>
@@ -988,6 +986,15 @@ export const CustomSummaryPage = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className={s.copyAllSection}>
+        <button
+          className={`${s.copyAllButton} ${copiedId === "copy-all" ? s.copiedAll : ""}`}
+          onClick={() => handleCopy(JSON.stringify(fullSkuJson, null, 2), "copy-all")}
+        >
+          {copiedId === "copy-all" ? "Copied!" : "Copy All SKU"}
+        </button>
       </div>
     </div>
   );
