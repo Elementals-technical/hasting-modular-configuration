@@ -46,7 +46,7 @@ import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "027";
+const PLAYCANVAS_VERSION = "028";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
