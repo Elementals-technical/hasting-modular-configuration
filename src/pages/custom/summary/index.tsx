@@ -35,6 +35,8 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
   buildProductSku,
   buildCountertopSku,
+  buildVesselSku,
+  vesselHeightCmMap,
   buildTowelBarSku,
   TOWEL_BAR_DEFAULTS,
   buildSidePanelSku,
@@ -562,6 +564,17 @@ export const CustomSummaryPage = () => {
       countertopColorCode: extractColorCode(countertopColor),
     });
 
+    const vesselSku = sinkType?.startsWith("Vessel_")
+      ? buildVesselSku({
+          vesselType: sinkType,
+          width: totalCountertopWidth,
+          height: vesselHeightCmMap[sinkType] ?? null,
+          depth: selectedDimensions.depth,
+          materialSku: null,
+          colorCode: null,
+        })
+      : null;
+
     const countertopSkuLabels = ["Countertop", "Basin", "Faucet Hole Quantity", "Faucet Hole Spacing", "Hole Cutout"];
 
     const countertopItems: SummaryItem[] = [
@@ -812,6 +825,19 @@ export const CustomSummaryPage = () => {
             subtitle: sinkType || undefined,
             price: "$0",
           },
+          ...(vesselSku
+            ? [
+                {
+                  id: "basin-vessel-sku",
+                  title: "Vessel",
+                  subtitle: vesselSku,
+                  sku: vesselSku,
+                  price: resolveItemPrice(vesselSku),
+                  copyable: true,
+                  description: { "Product Category": "Vessel", Type: sinkType },
+                },
+              ]
+            : []),
         ],
       },
       {
