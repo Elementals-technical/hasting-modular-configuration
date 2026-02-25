@@ -72,6 +72,25 @@ const formatPrice = (value?: number | null) => {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
 
+/** SKU prefixes whose dimension values are stored in centimeters */
+const CM_SKU_PREFIXES = ["VAN-URSTD-", "VAN-URTWLBR-", "VAN-URSP-"];
+
+const formatInches = (cm: number): string => {
+  const inches = Math.round((cm / 2.54) * 10) / 10;
+  if (Number.isInteger(inches)) return String(inches);
+  const str = inches.toFixed(1);
+  return str.startsWith("0.") ? str.slice(1) : str;
+};
+
+/** Converts dimension values (W/H/D) from cm to inches for SKUs that store cm.
+ *  SKUs that already use inches (CT-, VES-) are returned unchanged. */
+const convertSkuToInches = (sku: string): string => {
+  if (!CM_SKU_PREFIXES.some((prefix) => sku.startsWith(prefix))) return sku;
+  return sku.replace(/-(\d+(?:\.\d+)?)(W|H|D)(?=-|$)/g, (_, value, unit) => {
+    return `-${formatInches(parseFloat(value))}${unit}`;
+  });
+};
+
 type SummaryItem = {
   id: string;
   title: string;
@@ -894,6 +913,7 @@ export const SummaryPage = () => {
       .filter((item) => item.sku && item.copyable)
       .map((item) => ({
         sku: item.sku,
+        skuInches: convertSkuToInches(item.sku!),
         description: item.description ?? {},
       }));
   }, [summarySections]);
@@ -927,7 +947,16 @@ export const SummaryPage = () => {
                       <Hint className={s.copyHint} content={"Copy SKU"}>
                         <button
                           className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                          onClick={() => handleCopy(item.sku!, item.id)}
+                          onClick={() =>
+                            handleCopy(
+                              JSON.stringify(
+                                { sku: item.sku, skuInches: convertSkuToInches(item.sku!) },
+                                null,
+                                2,
+                              ),
+                              item.id,
+                            )
+                          }
                           aria-label="Copy SKU"
                         >
                           <span className={s.copyIcon} />
