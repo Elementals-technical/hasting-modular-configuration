@@ -22,7 +22,6 @@ export type CountertopSkuInput = {
 
 const FALLBACK = "X";
 const CATEGORY = "CT";
-const SERIES = "URFX";
 
 const resolve = (map: Record<string, string>, value: string | null): string => {
   if (!value) return FALLBACK;
@@ -31,11 +30,13 @@ const resolve = (map: Record<string, string>, value: string | null): string => {
 
 /**
  * Returns an array of SKU lines for the countertop:
- *  [0] Top        — always present  CT-URFX-{STYLE}-{W}W-{THICKNESS}H-{D}D-CT-{MatSKU}-{Color}
- *  [1] Basin      — if style is integrated or vessel  CT-URFX-{BASIN}
- *  [2] Faucet Qty — if faucet holes > 0  CT-URFX-FAHO/{QTY}
- *  [3] Faucet Spc — if faucet holes > 0  CT-URFX-FAHOS/{SPACING}
- *  [4] Hole Cut   — if style is vessel   CT-URFX-HCUT
+ *  [0] Top        — always present  CT-{SERIES}-{STYLE}-{W}W-{THICKNESS}H-{D}D-CT-{MatSKU}-{Color}
+ *  [1] Basin      — if style is integrated or vessel  CT-{SERIES}-{BASIN}
+ *  [2] Faucet Qty — if faucet holes > 0  CT-{SERIES}-FAHO/{QTY}
+ *  [3] Faucet Spc — if faucet holes > 0  CT-{SERIES}-FAHOS/{SPACING}
+ *  [4] Hole Cut   — if style is vessel   CT-{SERIES}-HCUT
+ *
+ * SERIES is derived from material SKU: "UR" + materialSku (e.g. FX → URFX, HPL → URHPL)
  */
 export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const styleValue = (input.style?.trim() || "plain").toLowerCase();
@@ -52,8 +53,11 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const color = input.countertopColorCode?.trim() || null;
   const matBlock = mat ? `-CT-${mat}${color ? `-${color}` : ""}` : "";
 
+  // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
+  const series = mat ? `UR${mat}` : "URFX";
+
   // Top line — always present
-  const top = `${CATEGORY}-${SERIES}-${styleSku}-${w}-${t}-${d}${matBlock}`;
+  const top = `${CATEGORY}-${series}-${styleSku}-${w}-${t}-${d}${matBlock}`;
   const lines: string[] = [top];
 
   const isIntegrated = styleValue === "integrated";
@@ -63,24 +67,24 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   if ((isIntegrated || isVessel) && input.basinType) {
     const basinSku = resolve(basinSkuMap, input.basinType);
     if (basinSku !== FALLBACK) {
-      lines.push(`${CATEGORY}-${SERIES}-${basinSku}`);
+      lines.push(`${CATEGORY}-${series}-${basinSku}`);
     }
   }
 
   // Faucet holes
   const holesQty = input.faucetHolesAmount?.trim() || "0";
   if (holesQty !== "0" && holesQty !== "") {
-    lines.push(`${CATEGORY}-${SERIES}-FAHO/${holesQty}`);
+    lines.push(`${CATEGORY}-${series}-FAHO/${holesQty}`);
 
     const spacing = input.faucetHolesSpacing?.replace(/"/g, "").trim() || null;
     if (spacing) {
-      lines.push(`${CATEGORY}-${SERIES}-FAHOS/${spacing}`);
+      lines.push(`${CATEGORY}-${series}-FAHOS/${spacing}`);
     }
   }
 
   // Hole cutout — only for vessel
   if (isVessel) {
-    lines.push(`${CATEGORY}-${SERIES}-HCUT`);
+    lines.push(`${CATEGORY}-${series}-HCUT`);
   }
 
   return lines;

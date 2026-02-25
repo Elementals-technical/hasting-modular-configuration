@@ -37,6 +37,8 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
   buildProductSku,
   buildCountertopSku,
+  buildVesselSku,
+  vesselHeightCmMap,
   buildTowelBarSku,
   TOWEL_BAR_DEFAULTS,
   buildSidePanelSku,
@@ -68,6 +70,25 @@ const buildImageSrc = (imagePath?: string) => {
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$0";
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+};
+
+/** SKU prefixes whose dimension values are stored in centimeters */
+const CM_SKU_PREFIXES = ["VAN-URSTD-", "VAN-URTWLBR-", "VAN-URSP-"];
+
+const formatInches = (cm: number): string => {
+  const inches = Math.round((cm / 2.54) * 10) / 10;
+  if (Number.isInteger(inches)) return String(inches);
+  const str = inches.toFixed(1);
+  return str.startsWith("0.") ? str.slice(1) : str;
+};
+
+/** Converts dimension values (W/H/D) from cm to inches for SKUs that store cm.
+ *  SKUs that already use inches (CT-, VES-) are returned unchanged. */
+const convertSkuToInches = (sku: string): string => {
+  if (!CM_SKU_PREFIXES.some((prefix) => sku.startsWith(prefix))) return sku;
+  return sku.replace(/-(\d+(?:\.\d+)?)(W|H|D)(?=-|$)/g, (_, value, unit) => {
+    return `-${formatInches(parseFloat(value))}${unit}`;
+  });
 };
 
 type SummaryItem = {
@@ -116,7 +137,7 @@ const materialSkuLabelMap: Record<string, string> = {
   POR: "Porcelain",
   GLSM: "Glass Matt",
   GLSG: "Glass Gloss",
-  SSMMO: "Minermalmaro",
+  SSMLM: "Minermalmaro",
   SSTM: "Teckormud",
   SSOCR: "Ocritech",
   SSTKR: "Tekorlux",
@@ -564,6 +585,17 @@ export const SummaryPage = () => {
       countertopColorCode: extractColorCode(countertopColor),
     });
 
+    const vesselSku = sinkType?.startsWith("Vessel_")
+      ? buildVesselSku({
+          vesselType: sinkType,
+          width: totalCountertopWidth,
+          height: vesselHeightCmMap[sinkType] ?? null,
+          depth: selectedDimensions.depth,
+          materialSku: null,
+          colorCode: null,
+        })
+      : null;
+
     const countertopSkuLabels = ["Countertop", "Basin", "Faucet Hole Quantity", "Faucet Hole Spacing", "Hole Cutout"];
 
     const countertopItems: SummaryItem[] = [
@@ -812,6 +844,19 @@ export const SummaryPage = () => {
             subtitle: sinkType || undefined,
             price: "$0",
           },
+          ...(vesselSku
+            ? [
+                {
+                  id: "basin-vessel-sku",
+                  title: "Vessel",
+                  subtitle: vesselSku,
+                  sku: vesselSku,
+                  price: resolveItemPrice(vesselSku),
+                  copyable: true,
+                  description: { "Product Category": "Vessel", Type: sinkType },
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -868,6 +913,7 @@ export const SummaryPage = () => {
       .filter((item) => item.sku && item.copyable)
       .map((item) => ({
         sku: item.sku,
+        skuInches: convertSkuToInches(item.sku!),
         description: item.description ?? {},
       }));
   }, [summarySections]);
@@ -885,8 +931,6 @@ export const SummaryPage = () => {
 
           <div className={s.sectionList}>
             {section.items.map((item) => {
-              const textToCopy = JSON.stringify(fullSkuJson, null, 2);
-
               return (
                 <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
                   <div className={s.itemInfo}>
@@ -899,12 +943,21 @@ export const SummaryPage = () => {
                       {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
                     </div>
 
-                    {item.copyable && (
-                      <Hint className={s.copyHint} content={"Copy SKU and descriprion"}>
+                    {item.copyable && item.sku && (
+                      <Hint className={s.copyHint} content={"Copy SKU"}>
                         <button
                           className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                          onClick={() => handleCopy(textToCopy, item.id)}
-                          aria-label="Copy sku and description"
+                          onClick={() =>
+                            handleCopy(
+                              JSON.stringify(
+                                { sku: item.sku, skuInches: convertSkuToInches(item.sku!) },
+                                null,
+                                2,
+                              ),
+                              item.id,
+                            )
+                          }
+                          aria-label="Copy SKU"
                         >
                           <span className={s.copyIcon} />
                         </button>
@@ -962,6 +1015,15 @@ export const SummaryPage = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className={s.copyAllSection}>
+        <button
+          className={`${s.copyAllButton} ${copiedId === "copy-all" ? s.copiedAll : ""}`}
+          onClick={() => handleCopy(JSON.stringify(fullSkuJson, null, 2), "copy-all")}
+        >
+          {copiedId === "copy-all" ? "Copied!" : "Copy All SKU"}
+        </button>
       </div>
     </div>
   );

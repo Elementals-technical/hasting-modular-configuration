@@ -371,3 +371,31 @@
 .copyHint {
   width: 190px;
 }
+
+.copyAllSection {
+  padding: 4px 0;
+}
+
+.copyAllButton {
+  width: 100%;
+  padding: 10px 16px;
+  background: #f5f3f1;
+  border: 1px solid #e2dfdb;
+  border-radius: 12px;
+  color: #8b857c;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #704c36;
+    border-color: #cfc9c3;
+  }
+}
+
+.copiedAll {
+  background: #e0f4e5;
+  border-color: #92c9a3;
+  color: #4b8f63;
+}

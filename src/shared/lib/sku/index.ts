@@ -19,3 +19,5 @@ export {
   towelBarSkuMap,
 } from "./cabinetSkuMaps";
 export { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
+export { buildVesselSku, type VesselSkuInput } from "./buildVesselSku";
+export { vesselSeriesSkuMap, vesselHeightCmMap } from "./vesselSkuMaps";

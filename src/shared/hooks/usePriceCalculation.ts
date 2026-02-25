@@ -31,6 +31,8 @@ import {
 import {
   buildProductSku,
   buildCountertopSku,
+  buildVesselSku,
+  vesselHeightCmMap,
   buildTowelBarSku,
   buildSidePanelSku,
   buildDividerSku,
@@ -486,6 +488,26 @@ export function usePriceCalculation() {
           skus.push(line);
         }
       });
+    });
+
+    // 2b) Vessel basin SKU — Resolver 2b (when sinkType is a vessel type)
+    const seenVesselSkus = new Set<string>();
+    productDimsList.forEach((dims, idx) => {
+      const vesselType = dims.sinkType?.startsWith("Vessel_") ? dims.sinkType : null;
+      if (!vesselType) return;
+      const vesselSku = buildVesselSku({
+        vesselType,
+        width: dims.width,
+        height: vesselHeightCmMap[vesselType] ?? null,
+        depth: dims.depth,
+        materialSku: null,
+        colorCode: null,
+      });
+      if (!seenVesselSkus.has(vesselSku)) {
+        seenVesselSkus.add(vesselSku);
+        console.log(LOG_PREFIX, `Resolver 2b (Vessel #${idx}):`, vesselSku);
+        skus.push(vesselSku);
+      }
     });
 
     // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
