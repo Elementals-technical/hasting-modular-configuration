@@ -21,6 +21,7 @@ import {
   getHandleGrooveColor,
   getHandleGrooveColorSku,
   getPriceBySku,
+  getPriceLoading,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
@@ -163,6 +164,7 @@ export const CustomSummaryPage = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const priceBySku = useAppSelector(getPriceBySku);
+  const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -990,7 +992,11 @@ export const CustomSummaryPage = () => {
                   )}
 
                   <div className={s.price}>
-                    {item.sku && item.price === "$0" ? <span className={s.priceSpinner} /> : item.price}
+                    {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
+                      <span className={s.priceSpinner} />
+                    ) : (
+                      item.price
+                    )}
                   </div>
                 </div>
               );
