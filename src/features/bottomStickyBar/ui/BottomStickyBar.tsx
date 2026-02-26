@@ -8,6 +8,7 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
+import { getSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -39,6 +40,11 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
       setVisibleDrawerButtons(false);
 
       navigate(nextStep?.path);
+    } else {
+      const skuJson = getSummarySkuJson();
+      if (skuJson.length && navigator.clipboard) {
+        navigator.clipboard.writeText(JSON.stringify(skuJson, null, 2));
+      }
     }
   };
 

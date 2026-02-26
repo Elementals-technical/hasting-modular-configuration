@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
@@ -21,6 +22,7 @@ import {
   getHandleGrooveColor,
   getHandleGrooveColorSku,
   getPriceBySku,
+  getPriceLoading,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
@@ -164,6 +166,7 @@ export const SummaryPage = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const priceBySku = useAppSelector(getPriceBySku);
+  const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -918,6 +921,11 @@ export const SummaryPage = () => {
       }));
   }, [summarySections]);
 
+  useEffect(() => {
+    setSummarySkuJson(fullSkuJson);
+    return () => setSummarySkuJson([]);
+  }, [fullSkuJson]);
+
   // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
   // This page only reads from the store.
 
@@ -984,7 +992,11 @@ export const SummaryPage = () => {
                   )}
 
                   <div className={s.price}>
-                    {item.sku && item.price === "$0" ? <span className={s.priceSpinner} /> : item.price}
+                    {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
+                      <span className={s.priceSpinner} />
+                    ) : item.price !== "$0" ? (
+                      item.price
+                    ) : null}
                   </div>
                 </div>
               );
@@ -1017,14 +1029,6 @@ export const SummaryPage = () => {
         </div>
       </div>
 
-      <div className={s.copyAllSection}>
-        <button
-          className={`${s.copyAllButton} ${copiedId === "copy-all" ? s.copiedAll : ""}`}
-          onClick={() => handleCopy(JSON.stringify(fullSkuJson, null, 2), "copy-all")}
-        >
-          {copiedId === "copy-all" ? "Copied!" : "Copy All SKU"}
-        </button>
-      </div>
     </div>
   );
 };
