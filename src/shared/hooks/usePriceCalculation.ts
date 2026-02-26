@@ -44,7 +44,11 @@ import {
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
-import { useLazyGetProductPriceBySkuQuery, useLazyResolveSkuPriceQuery } from "@/entities/product/api";
+import {
+  useLazyGetProductPriceBySkuQuery,
+  useLazyResolveSkuPriceQuery,
+  useLazyDebugSkuSearchQuery,
+} from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
@@ -93,6 +97,7 @@ export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
   const [triggerResolveSkuPrice] = useLazyResolveSkuPriceQuery();
+  const [triggerDebugSkuSearch] = useLazyDebugSkuSearchQuery();
 
   // ── Read all relevant state ───────────────────────────
 
@@ -178,9 +183,8 @@ export function usePriceCalculation() {
 
     for (const id of productIds) {
       try {
-        console.log(LOG_PREFIX, `Calling getConfig("${id}")...`);
         const raw = await getConfig(id);
-        console.log(LOG_PREFIX, `getConfig("${id}") returned:`, raw);
+
         if (!raw) continue;
 
         const cfg = raw as Record<string, unknown>;
@@ -209,7 +213,6 @@ export function usePriceCalculation() {
       }
     }
 
-    console.log(LOG_PREFIX, "Scene configs fetched:", configs.length, configs);
     setSceneConfigs(configs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -260,14 +263,6 @@ export function usePriceCalculation() {
   const shouldUsePresets = hasPresets;
   const canCalculate = shouldUsePresets ? true : hasSceneConfigs ? true : selectedDimensions.width !== null;
 
-  console.log(LOG_PREFIX, "canCalculate:", canCalculate, {
-    hasPresets,
-    hasSceneConfigs,
-    cabinetColorSku: cabinetColorSku || "(none — base SKU will be used)",
-    selectedDimensionsWidth: selectedDimensions.width,
-    productIdsCount: productIds.length,
-  });
-
   // ── Build all current SKUs ────────────────────────────
 
   const currentSkus = useMemo(() => {
@@ -275,17 +270,6 @@ export function usePriceCalculation() {
 
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
-
-    console.log(
-      LOG_PREFIX,
-      "Building SKUs — path:",
-      shouldUsePresets ? "PRESETS" : sceneConfigs.length > 0 ? `SCENE_CONFIGS (${sceneConfigs.length})` : "FALLBACK",
-      {
-        presetsCount: productsPresets.length,
-        sceneConfigsCount: sceneConfigs.length,
-        productIds,
-      },
-    );
 
     // 1) Product SKU(s) — Resolver 1
     if (shouldUsePresets) {
@@ -304,7 +288,7 @@ export function usePriceCalculation() {
             cabinetColorCode: extractColorCode(swatchValue),
             grainDirection: grainSku,
           });
-          console.log(LOG_PREFIX, `Resolver 1 (Open Shelf preset #${idx}):`, sku);
+
           skus.push(sku);
           return;
         }
@@ -323,7 +307,7 @@ export function usePriceCalculation() {
             cabinetColorCode: extractColorCode(swatchValue),
             grainDirection: grainSku,
           });
-          console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf preset #${idx}):`, sku);
+
           skus.push(sku);
           return;
         }
@@ -332,7 +316,6 @@ export function usePriceCalculation() {
         // preset.name is already a catalog key ("Sink-Base", "Side-Cabinet", etc.)
         const resolvedType = name || resolveCabinetType(name || null) || activeCabinetType;
 
-        console.log(LOG_PREFIX, `Resolving cabinet type for preset "${preset.name}" → "${resolvedType}"`);
         const swatchValue = preset.CabinetColor ?? cabinetColor;
         const sku = buildProductSku({
           cabinetType: resolvedType,
@@ -351,7 +334,7 @@ export function usePriceCalculation() {
           msp: null,
           bkpl: null,
         });
-        console.log(LOG_PREFIX, "Resolver 1 (Cabinet preset):", sku);
+
         skus.push(sku);
       });
     } else if (sceneConfigs.length > 0) {
@@ -371,7 +354,7 @@ export function usePriceCalculation() {
             cabinetColorCode: extractColorCode(cabinetColor),
             grainDirection: grainSku,
           });
-          console.log(LOG_PREFIX, `Resolver 1 (Open Shelf ${cfg.id}):`, sku);
+
           skus.push(sku);
           return;
         }
@@ -388,12 +371,11 @@ export function usePriceCalculation() {
             cabinetColorCode: extractColorCode(cabinetColor),
             grainDirection: grainSku,
           });
-          console.log(LOG_PREFIX, `Resolver 1 (Open Side Shelf ${cfg.id}):`, sku);
+
           skus.push(sku);
           return;
         }
 
-        console.log(LOG_PREFIX, `Resolving cabinet type for "${cfg.name}" (id: ${cfg.id}) → "${resolvedType}"`);
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: cfg.Drawers,
@@ -411,7 +393,7 @@ export function usePriceCalculation() {
           msp: null,
           bkpl: null,
         });
-        console.log(LOG_PREFIX, `Resolver 1 (Cabinet ${cfg.id}):`, sku);
+
         skus.push(sku);
       });
     } else {
@@ -433,7 +415,7 @@ export function usePriceCalculation() {
         msp: null,
         bkpl: null,
       });
-      console.log(LOG_PREFIX, "Resolver 1 (Cabinet fallback):", cabinetSku);
+
       skus.push(cabinetSku);
     }
 
@@ -487,7 +469,7 @@ export function usePriceCalculation() {
       countertopSkuLines.forEach((line) => {
         if (!seenCountertopSkus.has(line)) {
           seenCountertopSkus.add(line);
-          console.log(LOG_PREFIX, `Resolver 2 (Countertop #${idx}):`, line);
+
           skus.push(line);
         }
       });
@@ -530,7 +512,6 @@ export function usePriceCalculation() {
         colorCode: towelColorCode,
       });
       if (sku) {
-        console.log(LOG_PREFIX, "Resolver 3 (TowelBar R):", sku);
         skus.push(sku);
       }
     }
@@ -545,7 +526,6 @@ export function usePriceCalculation() {
         colorCode: towelColorCode,
       });
       if (sku) {
-        console.log(LOG_PREFIX, "Resolver 3 (TowelBar L):", sku);
         skus.push(sku);
       }
     }
@@ -604,7 +584,6 @@ export function usePriceCalculation() {
     selectedDimensions.height,
     selectedDimensions.depth,
     selectedProductConfig,
-    productIds,
     cabinetColor,
     cabinetColorSku,
     handleGrooveColor,
@@ -667,11 +646,21 @@ export function usePriceCalculation() {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
-                const data = sku.startsWith("VES-")
+                const isVessel = sku.startsWith("VES-");
+                const data = isVessel
                   ? await triggerResolveSkuPrice({ containerId: 1, sku }).unwrap()
                   : await triggerPriceBySku(sku).unwrap();
 
                 console.log(LOG_PREFIX, "Response for", sku, "→", data);
+
+                if (isVessel) {
+                  const searchParts = sku.split("-").filter(Boolean);
+                  triggerDebugSkuSearch({ tableId: 503, searchParts })
+                    .unwrap()
+                    .then((result) => console.log("[VESSEL]", "Debug SKU search for", sku, "→", result))
+                    .catch((err) => console.warn("[VESSEL]", "Debug SKU search failed for", sku, err));
+                }
+
                 const price = resolvePriceFromResponse(data);
                 if (typeof price === "number") next[sku] = price;
               } catch (err) {

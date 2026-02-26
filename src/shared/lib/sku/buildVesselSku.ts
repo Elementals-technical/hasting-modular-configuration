@@ -30,9 +30,11 @@ export function buildVesselSku(input: VesselSkuInput): string {
   const series = (input.vesselType ? vesselSeriesSkuMap[input.vesselType] : null) ?? FALLBACK;
   const model = input.model?.trim() || "X";
 
+  const normalizedDepth = input.depth === 46 ? 45.5 : input.depth;
+
   const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
+  const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
   const mat = input.materialSku?.trim() || null;
   const color = input.colorCode?.trim() || null;
