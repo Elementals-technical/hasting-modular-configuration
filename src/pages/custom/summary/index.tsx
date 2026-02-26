@@ -994,9 +994,9 @@ export const CustomSummaryPage = () => {
                   <div className={s.price}>
                     {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
                       <span className={s.priceSpinner} />
-                    ) : (
+                    ) : item.price !== "$0" ? (
                       item.price
-                    )}
+                    ) : null}
                   </div>
                 </div>
               );
