@@ -44,7 +44,7 @@ import {
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
-import { useLazyGetProductPriceBySkuQuery } from "@/entities/product/api";
+import { useLazyGetProductPriceBySkuQuery, useLazyResolveSkuPriceQuery } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
@@ -92,6 +92,7 @@ const LOG_PREFIX = "[SKU/Price]";
 export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
+  const [triggerResolveSkuPrice] = useLazyResolveSkuPriceQuery();
 
   // ── Read all relevant state ───────────────────────────
 
@@ -211,7 +212,13 @@ export function usePriceCalculation() {
     console.log(LOG_PREFIX, "Scene configs fetched:", configs.length, configs);
     setSceneConfigs(configs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productIdsKey, productsPresets.length, selectedDimensions.width, selectedDimensions.height, selectedDimensions.depth]);
+  }, [
+    productIdsKey,
+    productsPresets.length,
+    selectedDimensions.width,
+    selectedDimensions.height,
+    selectedDimensions.depth,
+  ]);
 
   useEffect(() => {
     fetchSceneConfigs();
@@ -251,11 +258,7 @@ export function usePriceCalculation() {
   const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
   const shouldUsePresets = hasPresets;
-  const canCalculate = shouldUsePresets
-    ? true
-    : hasSceneConfigs
-      ? true
-      : selectedDimensions.width !== null;
+  const canCalculate = shouldUsePresets ? true : hasSceneConfigs ? true : selectedDimensions.width !== null;
 
   console.log(LOG_PREFIX, "canCalculate:", canCalculate, {
     hasPresets,
@@ -663,7 +666,11 @@ export function usePriceCalculation() {
             [...new Set(pending)].map(async (sku) => {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
-                const data = await triggerPriceBySku(sku).unwrap();
+
+                const data = sku.startsWith("VES-")
+                  ? await triggerResolveSkuPrice({ containerId: 1, sku }).unwrap()
+                  : await triggerPriceBySku(sku).unwrap();
+
                 console.log(LOG_PREFIX, "Response for", sku, "→", data);
                 const price = resolvePriceFromResponse(data);
                 if (typeof price === "number") next[sku] = price;
