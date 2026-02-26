@@ -211,7 +211,7 @@ export function usePriceCalculation() {
     console.log(LOG_PREFIX, "Scene configs fetched:", configs.length, configs);
     setSceneConfigs(configs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productIdsKey, productsPresets.length]);
+  }, [productIdsKey, productsPresets.length, selectedDimensions.width, selectedDimensions.height, selectedDimensions.depth]);
 
   useEffect(() => {
     fetchSceneConfigs();
