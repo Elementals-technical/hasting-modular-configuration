@@ -454,7 +454,7 @@ export function usePriceCalculation() {
 
     // 2) Countertop SKUs — Resolver 2 (per product)
     const seenCountertopSkus = new Set<string>();
-    productDimsList.forEach((dims, idx) => {
+    productDimsList.forEach((dims) => {
       const countertopSkuLines = buildCountertopSku({
         style: countertopStyle || null,
         width: dims.width,
