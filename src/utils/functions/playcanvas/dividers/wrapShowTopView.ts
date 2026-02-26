@@ -13,7 +13,10 @@ export function wrapShowTopView({ onSelect, onAfterSelect }: WrapShowTopViewOpti
   const api = containerRef?.current?.contentWindow?.ConfiguratorAPI as
     | {
         showTopView?: ShowTopView;
+        openDrawer?: (cabinetId: string, drawerType: DrawerType) => unknown;
         __wrappedShowTopView?: boolean;
+        __activeDrawerCabinetId?: string;
+        __activeDrawerType?: DrawerType;
       }
     | undefined;
 
@@ -21,10 +24,13 @@ export function wrapShowTopView({ onSelect, onAfterSelect }: WrapShowTopViewOpti
 
   const originalShowTopView = api.showTopView.bind(api);
   api.showTopView = (cabinetId, drawerType) => {
+    api.__activeDrawerCabinetId = cabinetId;
+    api.__activeDrawerType = drawerType;
     onSelect(cabinetId, drawerType);
     if (onAfterSelect) {
       onAfterSelect(cabinetId, drawerType);
     }
+    api.openDrawer?.(cabinetId, drawerType);
     return originalShowTopView(cabinetId, drawerType);
   };
   api.__wrappedShowTopView = true;
