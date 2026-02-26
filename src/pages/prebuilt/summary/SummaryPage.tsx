@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
@@ -918,6 +919,11 @@ export const SummaryPage = () => {
       }));
   }, [summarySections]);
 
+  useEffect(() => {
+    setSummarySkuJson(fullSkuJson);
+    return () => setSummarySkuJson([]);
+  }, [fullSkuJson]);
+
   // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
   // This page only reads from the store.
 
@@ -1017,14 +1023,6 @@ export const SummaryPage = () => {
         </div>
       </div>
 
-      <div className={s.copyAllSection}>
-        <button
-          className={`${s.copyAllButton} ${copiedId === "copy-all" ? s.copiedAll : ""}`}
-          onClick={() => handleCopy(JSON.stringify(fullSkuJson, null, 2), "copy-all")}
-        >
-          {copiedId === "copy-all" ? "Copied!" : "Copy All SKU"}
-        </button>
-      </div>
     </div>
   );
 };
