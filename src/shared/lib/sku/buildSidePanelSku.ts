@@ -1,4 +1,5 @@
 // import { cmToInches } from "./cmToInches";
+import { toSkuDepth } from "./toSkuDepth";
 
 export type SidePanelSkuInput = {
   /** Side-panel groove type: "NoG" | "UpperG" | "CenterG" | "DoubleG" */
@@ -44,7 +45,7 @@ export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
   const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
+  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : `${FALLBACK}D`;
 
   return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}`;
 }
