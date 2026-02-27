@@ -204,7 +204,6 @@ export const CabinetPage = () => {
       const hexSet = new Set<string>();
 
       groups.forEach((group) => {
-        if (group.proxyName) materialSet.add(group.proxyName);
         group.options.forEach((option) => {
           if (option.name) materialSet.add(option.name);
           option.variants?.forEach((variant) => {
