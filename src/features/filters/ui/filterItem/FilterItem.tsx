@@ -3,6 +3,7 @@ import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 type FilterOption = {
   label: string;
   value: string;
+  description?: string;
   children?: FilterOption[];
 };
 

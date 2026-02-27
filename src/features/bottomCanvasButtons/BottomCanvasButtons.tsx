@@ -7,28 +7,11 @@ import { ZoomInIcon } from "@/shared/assets/images/svg/ZoomInIcon";
 import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
-import { RotateIcon } from "@/shared/assets/images/svg/RotateIcon";
 import { UndoIcon } from "@/shared/assets/images/svg/UndoIcon";
 import { RedoIcon } from "@/shared/assets/images/svg/RedoIcon";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
-import { addPreset } from "@/utils/functions/playcanvas/addPreset";
-
-import {
-  addProductId,
-  addProductPreset,
-  resetPrebuiltProducts,
-  resetProducts,
-  setActiveBasinStyle,
-  setActiveCabinetType,
-  setDrawerProduct,
-  setSelectedDimensions,
-  setSelectedProductConfig,
-} from "@/entities/product/model/store/slice";
-import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -47,13 +30,11 @@ import {
 import { undo, redo } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { store, type RootState } from "@/app/store";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getCabinetColor,
-  getCabinetCatalog,
   getCountertopStyle,
   getDividersOption,
   getDividersStyle,
@@ -85,7 +66,7 @@ export const BottomCanvasButtons = () => {
   const dispatch = useAppDispatch();
 
   const cabinetColor = useAppSelector(getCabinetColor);
-  const cabinetCatalog = useAppSelector(getCabinetCatalog);
+  // const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const sinkType = useAppSelector(getSinkType);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -107,7 +88,7 @@ export const BottomCanvasButtons = () => {
   const lastPastSnapshot = useAppSelector(getLastPastSnapshot);
   const lastFutureSnapshot = useAppSelector(getLastFutureSnapshot);
 
-  const saveSnapshot = useHistorySnapshot();
+  // const saveSnapshot = useHistorySnapshot();
   const [isRestoring, setIsRestoring] = useState(false);
 
   const handleUndo = async () => {
@@ -138,68 +119,68 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  const isCustomRoute = pathname.includes("/custom");
+  // const isCustomRoute = pathname.includes("/custom");
   const isSummaryPage = pathname.includes("/summary");
 
   const [saveConfiguration] = useSaveConfigurationMutation();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
-  const resetCustomBuilderScene = async () => {
-    await saveSnapshot();
-    removeAllProducts();
-    dispatch(resetProducts());
+  // const resetCustomBuilderScene = async () => {
+  //   await saveSnapshot();
+  //   removeAllProducts();
+  //   dispatch(resetProducts());
 
-    const defaultRule =
-      cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ?? cabinetCatalog.typeCabinetRules[0];
-    if (!defaultRule) return;
+  //   const defaultRule =
+  //     cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ?? cabinetCatalog.typeCabinetRules[0];
+  //   if (!defaultRule) return;
 
-    const defaultProductName = defaultRule?.code ?? "Sink-Base";
-    const defaultProductConfig: addProductConfigI = {
-      Height: defaultRule?.heights[defaultRule.heights.length - 1] ?? 56,
-      Depth: defaultRule?.depths[0] ?? 46,
-      CabinetColor: "Ardesia DD GL",
-      Width: defaultRule?.widths[0] ?? 60,
-      sinkType: defaultRule?.hasSink ? "Top_HPLPrisma" : undefined,
-      CountertopColor: "Rosso Rubino 19 MT",
-      HandleGrooveColor: "Blu Pavone A6 MT",
-    };
+  //   const defaultProductName = defaultRule?.code ?? "Sink-Base";
+  //   const defaultProductConfig: addProductConfigI = {
+  //     Height: defaultRule?.heights[defaultRule.heights.length - 1] ?? 56,
+  //     Depth: defaultRule?.depths[0] ?? 46,
+  //     CabinetColor: "Ardesia DD GL",
+  //     Width: defaultRule?.widths[0] ?? 60,
+  //     sinkType: defaultRule?.hasSink ? "Top_HPLPrisma" : undefined,
+  //     CountertopColor: "Rosso Rubino 19 MT",
+  //     HandleGrooveColor: "Blu Pavone A6 MT",
+  //   };
 
-    dispatch(setActiveCabinetType(defaultRule.code));
+  //   dispatch(setActiveCabinetType(defaultRule.code));
 
-    const productId = await addProduct(defaultProductName, defaultProductConfig);
+  //   const productId = await addProduct(defaultProductName, defaultProductConfig);
 
-    dispatch(setDrawerProduct(defaultProductName));
-    dispatch(setSelectedProductConfig(defaultProductConfig));
-    dispatch(
-      setSelectedDimensions({
-        width: defaultProductConfig.Width,
-        height: defaultProductConfig.Height,
-        depth: defaultProductConfig.Depth,
-      }),
-    );
+  //   dispatch(setDrawerProduct(defaultProductName));
+  //   dispatch(setSelectedProductConfig(defaultProductConfig));
+  //   dispatch(
+  //     setSelectedDimensions({
+  //       width: defaultProductConfig.Width,
+  //       height: defaultProductConfig.Height,
+  //       depth: defaultProductConfig.Depth,
+  //     }),
+  //   );
 
-    if (defaultProductConfig.sinkType) {
-      dispatch(setActiveBasinStyle(defaultProductConfig.sinkType));
-    }
+  //   if (defaultProductConfig.sinkType) {
+  //     dispatch(setActiveBasinStyle(defaultProductConfig.sinkType));
+  //   }
 
-    if (productId) {
-      dispatch(addProductId(productId));
-    }
-  };
+  //   if (productId) {
+  //     dispatch(addProductId(productId));
+  //   }
+  // };
 
-  const resetPrebuiltScene = async () => {
-    await saveSnapshot();
-    removeAllProducts();
-    dispatch(resetPrebuiltProducts());
+  // const resetPrebuiltScene = async () => {
+  //   await saveSnapshot();
+  //   removeAllProducts();
+  //   dispatch(resetPrebuiltProducts());
 
-    try {
-      await addPreset(productMockData[0].presetProducts);
+  //   try {
+  //     await addPreset(productMockData[0].presetProducts);
 
-      dispatch(addProductPreset(productMockData[0].presetProducts));
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     dispatch(addProductPreset(productMockData[0].presetProducts));
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const handleSaveConfiguration = async () => {
     const ids = getOrderedProductIds();
@@ -423,30 +404,12 @@ export const BottomCanvasButtons = () => {
 
         {!isSummaryPage && (
           <>
-            <BaseButton variant="ghost" onClick={() => zoomIn()}>
-              <ZoomInIcon />
-            </BaseButton>
-
             <BaseButton variant="ghost" onClick={() => zoomOut()}>
               <ZoomOutIcon />
             </BaseButton>
 
-            <BaseButton
-              variant="ghost"
-              className={!canUndo || isRestoring ? s.disabledButton : undefined}
-              disabled={!canUndo || isRestoring}
-              onClick={handleUndo}
-            >
-              <UndoIcon />
-            </BaseButton>
-
-            <BaseButton
-              variant="ghost"
-              className={!canRedo || isRestoring ? s.disabledButton : undefined}
-              disabled={!canRedo || isRestoring}
-              onClick={handleRedo}
-            >
-              <RedoIcon />
+            <BaseButton variant="ghost" onClick={() => zoomIn()}>
+              <ZoomInIcon />
             </BaseButton>
           </>
         )}
@@ -467,7 +430,7 @@ export const BottomCanvasButtons = () => {
               <ShareIcon />
             </BaseButton>
 
-            <BaseButton
+            {/* <BaseButton
               variant="ghost"
               onClick={() => {
                 if (isCustomRoute) {
@@ -478,6 +441,24 @@ export const BottomCanvasButtons = () => {
               }}
             >
               <RotateIcon />
+            </BaseButton> */}
+
+            <BaseButton
+              variant="ghost"
+              className={!canUndo || isRestoring ? s.disabledButton : undefined}
+              disabled={!canUndo || isRestoring}
+              onClick={handleUndo}
+            >
+              <UndoIcon />
+            </BaseButton>
+
+            <BaseButton
+              variant="ghost"
+              className={!canRedo || isRestoring ? s.disabledButton : undefined}
+              disabled={!canRedo || isRestoring}
+              onClick={handleRedo}
+            >
+              <RedoIcon />
             </BaseButton>
           </>
         )}

@@ -46,6 +46,8 @@ import {
 
 import s from "./Countertop.module.scss";
 import { useGetConfiguratorQuery } from "@/entities";
+import { BaseButton } from "@/shared";
+import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -333,15 +335,20 @@ export const CustomCountertopPage = () => {
     [materialFilters],
   );
 
+  const tierOptions = useMemo(() => buildTierFilterOptions(countertopOptions), [countertopOptions]);
+
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
 
-    if (!allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)) return filteredByUi;
+    const filteredByMaterial =
+      !allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)
+        ? filteredByUi
+        : filteredByUi.filter((option) => {
+            const materials = option.metadata?.materials ?? [];
+            return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
+          });
 
-    return filteredByUi.filter((option) => {
-      const materials = option.metadata?.materials ?? [];
-      return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
-    });
+    return filterOptionsByTier(filteredByMaterial, selectedFilter.tier);
   }, [allowedMaterials, countertopOptions, hasAllowedOptionMatch, hasApiOptions, selectedFilter]);
 
   const filteredThicknessOptions = useMemo(() => {
@@ -563,6 +570,10 @@ export const CustomCountertopPage = () => {
 
   console.log("materials filter options", filteredMaterialFilters.materials);
 
+  const clearAllFilters = () => {
+    setSelectedFilter({});
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -588,9 +599,16 @@ export const CustomCountertopPage = () => {
 
       <FilterItem
         label="Price"
-        options={[]}
-        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
+        options={tierOptions}
+        value={selectedFilter.tier}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, tier: value as string | undefined }))}
       />
+
+      {Object.values(selectedFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 

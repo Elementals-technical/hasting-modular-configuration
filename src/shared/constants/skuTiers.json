@@ -1,0 +1,17 @@
+{
+  "3D": 1,
+  "SSOCR": 1,
+  "LACM": 2,
+  "GLSM": 2,
+  "GLSG": 2,
+  "SSMLM": 2,
+  "LACG": 3,
+  "ST": 3,
+  "BM": 3,
+  "SSTKR": 3,
+  "SSTM": 3,
+  "HPL": 4,
+  "ESS": 4,
+  "FX": 4,
+  "POR": 4
+}

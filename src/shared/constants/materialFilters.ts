@@ -119,6 +119,7 @@ export type MaterialFilterSelection = {
   color?: string;
   look?: string;
   hex?: string;
+  tier?: string;
 };
 
 const isMaterialOption = (item: MaterialOption, optionName: string) =>

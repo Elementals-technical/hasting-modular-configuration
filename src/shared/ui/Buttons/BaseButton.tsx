@@ -5,7 +5,7 @@ import s from "./BaseButton.module.scss";
 
 type BaseButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost";
-  size?: "md" | "lg";
+  size?: "md" | "lg" | "sm";
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   fullWidth?: boolean;

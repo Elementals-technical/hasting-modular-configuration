@@ -19,11 +19,13 @@ import {
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
-import { ROUTES } from "@/shared";
+import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+
+import s from "./ModelPage.module.scss";
 
 const presetKeys: Array<keyof PresetProduct> = [
   "name",
@@ -220,7 +222,12 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady, dispatch, productsPresets]);
+  }, [canvasReady, dispatch, productsPresets, updateSelectedDimensionsFromScene]);
+
+  const clearAllFilters = () => {
+    setSizeFilter("all");
+    setStyleFilter("all");
+  };
 
   return (
     <div>
@@ -228,7 +235,7 @@ export const ModelPage = () => {
         <>
           <ModeSwitcher onClick={handleNavigate} />
 
-          <FilterRow>
+          <FilterRow className={s.filterRow}>
             <FilterItem
               label="Size"
               value={sizeFilter === "all" ? undefined : sizeFilter}
@@ -260,6 +267,12 @@ export const ModelPage = () => {
               ]}
               onSelect={handleStyleFilter}
             />
+
+            {(sizeFilter !== "all" || styleFilter !== "all") && (
+              <BaseButton size="sm" onClick={clearAllFilters}>
+                Clear All
+              </BaseButton>
+            )}
           </FilterRow>
 
           <ProductModelsGrid

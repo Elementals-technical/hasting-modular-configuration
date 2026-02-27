@@ -11,6 +11,7 @@ type Option = {
   value: string | number;
   disabled?: boolean;
   reason?: string;
+  description?: string;
   children?: Option[];
 };
 
@@ -46,7 +47,7 @@ export const FilterSelection = ({
 }: FilterSelectionProps) => {
   const [open, setOpen] = useState(false);
   const [internalValue, setInternalValue] = useState<string | number | undefined>(value);
-  const [expandedCategory, setExpandedCategory] = useState<string | number | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string | number>>(new Set());
   const [showAllSelected, setShowAllSelected] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -92,7 +93,7 @@ export const FilterSelection = ({
 
   useEffect(() => {
     if (!open) {
-      setExpandedCategory(null);
+      setExpandedCategories(new Set());
       return;
     }
 
@@ -100,12 +101,27 @@ export const FilterSelection = ({
     if (!buttonEl) return;
 
     const rect = buttonEl.getBoundingClientRect();
-    setMenuStyle({
-      top: rect.bottom + 6,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 1000,
-    });
+    const minMenuWidth = 164;
+    const menuWidth = Math.max(rect.width, minMenuWidth);
+    const overflows = rect.left + menuWidth > window.innerWidth;
+
+    if (overflows) {
+      setMenuStyle({
+        position: "fixed",
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+        width: rect.width,
+        zIndex: 1000,
+      });
+    } else {
+      setMenuStyle({
+        position: "fixed",
+        top: rect.bottom + 6,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 1000,
+      });
+    }
   }, [open]);
 
   const handleSelect = (option: Option) => {
@@ -126,12 +142,22 @@ export const FilterSelection = ({
     setShowAllSelected(true);
     onSelect?.(undefined);
     setOpen(false);
-    setExpandedCategory(null);
+    setExpandedCategories(new Set());
   };
 
   const handleCategoryClick = (option: Option) => {
     if (option.children && option.children.length > 0) {
-      setExpandedCategory((prev) => (prev === option.value ? null : option.value));
+      setExpandedCategories((prev) => {
+        const next = new Set(prev);
+
+        if (next.has(option.value)) {
+          next.delete(option.value);
+        } else {
+          next.add(option.value);
+        }
+
+        return next;
+      });
     } else {
       handleSelect(option);
     }
@@ -141,7 +167,7 @@ export const FilterSelection = ({
 
   const renderOption = (option: Option, isChild = false) => {
     const hasChildren = option.children && option.children.length > 0;
-    const isExpanded = expandedCategory === option.value;
+    const isExpanded = expandedCategories.has(option.value);
     const isSelected = option.value === selectedValue;
     const isDisabled = Boolean(option.disabled);
     const optionLabel = option.label ?? option.name;
@@ -152,9 +178,7 @@ export const FilterSelection = ({
         <div key={option.value}>
           <button
             type="button"
-            className={[s.menuItem, s.categoryItem, isExpanded ? s.categoryItemExpanded : ""]
-              .filter(Boolean)
-              .join(" ")}
+            className={[s.menuItem, s.categoryItem, isExpanded ? s.categoryItemExpanded : ""].filter(Boolean).join(" ")}
             onClick={() => handleCategoryClick(option)}
           >
             <span className={s.optionLabel}>{optionLabel}</span>
@@ -164,9 +188,7 @@ export const FilterSelection = ({
           </button>
 
           {isExpanded && (
-            <div className={s.childrenGroup}>
-              {option.children!.map((child) => renderOption(child, true))}
-            </div>
+            <div className={s.childrenGroup}>{option.children!.map((child) => renderOption(child, true))}</div>
           )}
         </div>
       );
@@ -193,6 +215,7 @@ export const FilterSelection = ({
         onClick={() => handleSelect(option)}
       >
         <span className={s.optionLabel}>{optionLabel}</span>
+        {option.description ? <span className={s.optionDescription}>{option.description}</span> : null}
         {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
       </button>
     );

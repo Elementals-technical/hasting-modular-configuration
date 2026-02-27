@@ -13,12 +13,14 @@ import {
   groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
+import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
 
 import { optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { BaseButton } from "@/shared";
 import {
   getCabinetColor,
   getBookMatching,
@@ -131,8 +133,6 @@ export const CustomCabinetColorsPage = () => {
       const hexSet = new Set<string>();
 
       groups.forEach((group) => {
-        if (group.proxyName) materialSet.add(group.proxyName);
-
         group.options.forEach((option) => {
           if (option.name) materialSet.add(option.name);
 
@@ -223,11 +223,14 @@ export const CustomCabinetColorsPage = () => {
     [buildOptionsFromGroups, grooveColorGroups],
   );
 
+  const tierOptions = useMemo(() => buildTierFilterOptions(basePanelOptionsFromApi), [basePanelOptionsFromApi]);
+  const groovePriceRangeOptions = useMemo(() => buildTierFilterOptions(grooveOptionsFromApi), [grooveOptionsFromApi]);
+
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});
 
   const filteredBasePanelOptions = useMemo(
-    () => filterOptionsByMaterialSelection(basePanelOptionsFromApi, selectedFilter),
+    () => filterOptionsByTier(filterOptionsByMaterialSelection(basePanelOptionsFromApi, selectedFilter), selectedFilter.tier),
     [basePanelOptionsFromApi, selectedFilter],
   );
 
@@ -237,7 +240,7 @@ export const CustomCabinetColorsPage = () => {
   );
 
   const filteredGrooveOptions = useMemo(
-    () => filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter),
+    () => filterOptionsByTier(filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter), selectedGrooveFilter.tier),
     [grooveOptionsFromApi, selectedGrooveFilter],
   );
 
@@ -258,6 +261,11 @@ export const CustomCabinetColorsPage = () => {
     ],
     [sortedGrooveOptions],
   );
+
+  const clearAllFilters = () => {
+    setSelectedFilter({});
+    setSelectedGrooveFilter({});
+  };
 
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
@@ -284,9 +292,16 @@ export const CustomCabinetColorsPage = () => {
 
       <FilterItem
         label="Price"
-        options={[]}
-        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
+        options={tierOptions}
+        value={selectedFilter.tier}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, tier: value as string | undefined }))}
       />
+
+      {Object.values(selectedFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 
@@ -315,9 +330,16 @@ export const CustomCabinetColorsPage = () => {
 
       <FilterItem
         label="Price"
-        options={[]}
-        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
+        options={groovePriceRangeOptions}
+        value={selectedGrooveFilter.tier}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, tier: value as string | undefined }))}
       />
+
+      {Object.values(selectedGrooveFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 
