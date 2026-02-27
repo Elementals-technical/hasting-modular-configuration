@@ -1,5 +1,5 @@
 import { cmToInches } from "./cmToInches";
-import { vesselSeriesSkuMap } from "./vesselSkuMaps";
+import { vesselSeriesSkuMap, vesselFixedWidthInMap, vesselFixedDepthInMap } from "./vesselSkuMaps";
 
 export type VesselSkuInput = {
   /** PlayCanvas vessel type, e.g. "Vessel_Blade11", "Vessel_UrbanModo" */
@@ -32,9 +32,12 @@ export function buildVesselSku(input: VesselSkuInput): string {
 
   const normalizedDepth = input.depth === 46 ? 45.5 : input.depth;
 
-  const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  const fixedW = input.vesselType ? vesselFixedWidthInMap[input.vesselType] : undefined;
+  const fixedD = input.vesselType ? vesselFixedDepthInMap[input.vesselType] : undefined;
+
+  const w = fixedW ? `${fixedW}W` : input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
-  const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
+  const d = fixedD ? `${fixedD}D` : normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
   const mat = input.materialSku?.trim() || null;
   const color = input.colorCode?.trim() || null;

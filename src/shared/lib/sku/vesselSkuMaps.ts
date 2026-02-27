@@ -14,3 +14,19 @@ export const vesselHeightCmMap: Record<string, number> = {
   Vessel_Blade18: 15.5,
   Vessel_Blade11: 15.5,
 };
+
+/** Fixed width in inches per vessel type (overrides dynamic input) */
+export const vesselFixedWidthInMap: Record<string, string> = {
+  Vessel_UrbanModo: "19.7",
+  Vessel_Blade11: "19.7",
+  Vessel_UrbanMorris: "22.8",
+  Vessel_Blade18: "21.7",
+};
+
+/** Fixed depth in inches per vessel type (overrides dynamic input) */
+export const vesselFixedDepthInMap: Record<string, string> = {
+  Vessel_UrbanModo: "13",
+  Vessel_Blade11: "15",
+  Vessel_UrbanMorris: "14.6",
+  Vessel_Blade18: "15",
+};
