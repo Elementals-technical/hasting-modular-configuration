@@ -49,6 +49,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CountertopPage.module.scss";
+import { BaseButton } from "@/shared";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -566,6 +567,10 @@ export const CountertopPage = () => {
     dispatch(setCountertopStyle(style));
   };
 
+  const clearAllFilters = () => {
+    setSelectedFilter({});
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -594,6 +599,10 @@ export const CountertopPage = () => {
         options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
+
+      <BaseButton onClick={clearAllFilters} size="sm">
+        Clear All
+      </BaseButton>
     </FilterRow>
   );
 

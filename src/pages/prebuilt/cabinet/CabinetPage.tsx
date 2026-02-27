@@ -49,6 +49,7 @@ import {
 } from "@/shared/constants/materialFilters";
 import { useGetConfiguratorQuery } from "@/entities";
 import { flutingRule } from "@/features/configurator-rule-core/options";
+import { BaseButton } from "@/shared";
 
 export const CabinetPage = () => {
   const dispatch = useAppDispatch();
@@ -328,6 +329,11 @@ export const CabinetPage = () => {
     return match?.[1] ?? "";
   }, []);
 
+  const clearAllFilters = () => {
+    setSelectedFilter({});
+    setSelectedGrooveFilter({});
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -356,6 +362,10 @@ export const CabinetPage = () => {
         options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
+
+      <BaseButton onClick={clearAllFilters} size="sm">
+        Clear All
+      </BaseButton>
     </FilterRow>
   );
 
@@ -387,6 +397,10 @@ export const CabinetPage = () => {
         options={[]}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
+
+      <BaseButton onClick={clearAllFilters} size="sm">
+        Clear All
+      </BaseButton>
     </FilterRow>
   );
 
