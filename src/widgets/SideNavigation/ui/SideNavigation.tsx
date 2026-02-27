@@ -51,7 +51,11 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
       <ul className={s.navList}>
         {steps.map((step) => (
           <li key={step.id}>
-            <NavLink to={step.path} className={({ isActive }) => `${s.navItem} ${isActive ? s.active : ""}`.trim()}>
+            <NavLink
+              to={step.path}
+              className={({ isActive }) => `${s.navItem} ${isActive ? s.active : ""}`.trim()}
+              onClick={() => dispatch(close())}
+            >
               {step.label}
             </NavLink>
           </li>
