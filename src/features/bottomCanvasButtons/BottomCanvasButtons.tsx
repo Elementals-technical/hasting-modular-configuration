@@ -423,12 +423,12 @@ export const BottomCanvasButtons = () => {
 
         {!isSummaryPage && (
           <>
-            <BaseButton variant="ghost" onClick={() => zoomIn()}>
-              <ZoomInIcon />
-            </BaseButton>
-
             <BaseButton variant="ghost" onClick={() => zoomOut()}>
               <ZoomOutIcon />
+            </BaseButton>
+
+            <BaseButton variant="ghost" onClick={() => zoomIn()}>
+              <ZoomInIcon />
             </BaseButton>
 
             <BaseButton
