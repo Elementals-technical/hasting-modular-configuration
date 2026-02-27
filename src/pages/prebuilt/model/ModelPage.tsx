@@ -220,7 +220,7 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady, dispatch, productsPresets]);
+  }, [canvasReady, dispatch, productsPresets, updateSelectedDimensionsFromScene]);
 
   return (
     <div>

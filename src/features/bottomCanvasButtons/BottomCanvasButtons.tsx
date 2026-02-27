@@ -430,24 +430,6 @@ export const BottomCanvasButtons = () => {
             <BaseButton variant="ghost" onClick={() => zoomIn()}>
               <ZoomInIcon />
             </BaseButton>
-
-            <BaseButton
-              variant="ghost"
-              className={!canUndo || isRestoring ? s.disabledButton : undefined}
-              disabled={!canUndo || isRestoring}
-              onClick={handleUndo}
-            >
-              <UndoIcon />
-            </BaseButton>
-
-            <BaseButton
-              variant="ghost"
-              className={!canRedo || isRestoring ? s.disabledButton : undefined}
-              disabled={!canRedo || isRestoring}
-              onClick={handleRedo}
-            >
-              <RedoIcon />
-            </BaseButton>
           </>
         )}
 
@@ -467,7 +449,7 @@ export const BottomCanvasButtons = () => {
               <ShareIcon />
             </BaseButton>
 
-            <BaseButton
+            {/* <BaseButton
               variant="ghost"
               onClick={() => {
                 if (isCustomRoute) {
@@ -478,6 +460,24 @@ export const BottomCanvasButtons = () => {
               }}
             >
               <RotateIcon />
+            </BaseButton> */}
+
+            <BaseButton
+              variant="ghost"
+              className={!canUndo || isRestoring ? s.disabledButton : undefined}
+              disabled={!canUndo || isRestoring}
+              onClick={handleUndo}
+            >
+              <UndoIcon />
+            </BaseButton>
+
+            <BaseButton
+              variant="ghost"
+              className={!canRedo || isRestoring ? s.disabledButton : undefined}
+              disabled={!canRedo || isRestoring}
+              onClick={handleRedo}
+            >
+              <RedoIcon />
             </BaseButton>
           </>
         )}
