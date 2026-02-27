@@ -837,18 +837,12 @@ export const CustomSummaryPage = () => {
         title: "Countertop",
         items: countertopItems,
       },
-      {
-        id: "basin",
-        title: "Basin",
-        items: [
-          {
-            id: "basin-1",
-            title: "Basin",
-            subtitle: sinkType || undefined,
-            price: "$0",
-          },
-          ...(vesselSku
-            ? [
+      ...(vesselSku
+        ? [
+            {
+              id: "basin",
+              title: "Basin",
+              items: [
                 {
                   id: "basin-vessel-sku",
                   title: "Vessel",
@@ -858,10 +852,10 @@ export const CustomSummaryPage = () => {
                   copyable: true,
                   description: { "Product Category": "Vessel", Type: sinkType },
                 },
-              ]
-            : []),
-        ],
-      },
+              ],
+            },
+          ]
+        : []),
       {
         id: "accessories",
         title: "Accessories",
