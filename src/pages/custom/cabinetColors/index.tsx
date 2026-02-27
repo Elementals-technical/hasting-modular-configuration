@@ -19,6 +19,7 @@ import { optionsMockData3, optionsMockData4 } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { BaseButton } from "@/shared";
 import {
   getCabinetColor,
   getBookMatching,
@@ -259,6 +260,11 @@ export const CustomCabinetColorsPage = () => {
     [sortedGrooveOptions],
   );
 
+  const clearAllFilters = () => {
+    setSelectedFilter({});
+    setSelectedGrooveFilter({});
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -287,6 +293,12 @@ export const CustomCabinetColorsPage = () => {
         options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
+
+      {Object.values(selectedFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 
@@ -318,6 +330,12 @@ export const CustomCabinetColorsPage = () => {
         options={[]}
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
+
+      {Object.values(selectedGrooveFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 

@@ -363,9 +363,11 @@ export const CabinetPage = () => {
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
 
-      <BaseButton onClick={clearAllFilters} size="sm">
-        Clear All
-      </BaseButton>
+      {Object.values(selectedFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 
@@ -398,9 +400,11 @@ export const CabinetPage = () => {
         onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
       />
 
-      <BaseButton onClick={clearAllFilters} size="sm">
-        Clear All
-      </BaseButton>
+      {Object.values(selectedGrooveFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 

@@ -268,9 +268,11 @@ export const ModelPage = () => {
               onSelect={handleStyleFilter}
             />
 
-            <BaseButton size="sm" onClick={clearAllFilters}>
-              Clear All
-            </BaseButton>
+            {(sizeFilter !== "all" || styleFilter !== "all") && (
+              <BaseButton size="sm" onClick={clearAllFilters}>
+                Clear All
+              </BaseButton>
+            )}
           </FilterRow>
 
           <ProductModelsGrid

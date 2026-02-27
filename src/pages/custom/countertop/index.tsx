@@ -46,6 +46,7 @@ import {
 
 import s from "./Countertop.module.scss";
 import { useGetConfiguratorQuery } from "@/entities";
+import { BaseButton } from "@/shared";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
@@ -563,6 +564,10 @@ export const CustomCountertopPage = () => {
 
   console.log("materials filter options", filteredMaterialFilters.materials);
 
+  const clearAllFilters = () => {
+    setSelectedFilter({});
+  };
+
   const renderFilters = () => (
     <FilterRow className={s.innerRow}>
       <FilterItem
@@ -591,6 +596,12 @@ export const CustomCountertopPage = () => {
         options={[]}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
+
+      {Object.values(selectedFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 

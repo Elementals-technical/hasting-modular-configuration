@@ -600,9 +600,11 @@ export const CountertopPage = () => {
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
       />
 
-      <BaseButton onClick={clearAllFilters} size="sm">
-        Clear All
-      </BaseButton>
+      {Object.values(selectedFilter).some(Boolean) && (
+        <BaseButton onClick={clearAllFilters} size="sm">
+          Clear All
+        </BaseButton>
+      )}
     </FilterRow>
   );
 
