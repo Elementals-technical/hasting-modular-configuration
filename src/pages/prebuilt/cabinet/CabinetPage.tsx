@@ -47,6 +47,7 @@ import {
   groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
+import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
 import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
@@ -252,11 +253,14 @@ export const CabinetPage = () => {
     return { ...filters, materials: groupMaterialsHierarchically(filters.materials) };
   }, [buildFiltersFromGroups, grooveColorGroups]);
 
+  const tierOptions = useMemo(() => buildTierFilterOptions(basePanelOptions), [basePanelOptions]);
+  const groovePriceRangeOptions = useMemo(() => buildTierFilterOptions(grooveOptionsFromApi), [grooveOptionsFromApi]);
+
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});
 
   const filteredBasePanelOptions = useMemo(
-    () => filterOptionsByMaterialSelection(basePanelOptions, selectedFilter),
+    () => filterOptionsByTier(filterOptionsByMaterialSelection(basePanelOptions, selectedFilter), selectedFilter.tier),
     [basePanelOptions, selectedFilter],
   );
 
@@ -266,7 +270,7 @@ export const CabinetPage = () => {
   );
 
   const filteredGrooveOptions = useMemo(
-    () => filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter),
+    () => filterOptionsByTier(filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter), selectedGrooveFilter.tier),
     [grooveOptionsFromApi, selectedGrooveFilter],
   );
 
@@ -358,8 +362,9 @@ export const CabinetPage = () => {
 
       <FilterItem
         label="Price"
-        options={[]}
-        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, hex: value as string }))}
+        options={tierOptions}
+        value={selectedFilter.tier}
+        onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, tier: value as string | undefined }))}
       />
 
       {Object.values(selectedFilter).some(Boolean) && (
@@ -395,8 +400,9 @@ export const CabinetPage = () => {
 
       <FilterItem
         label="Price"
-        options={[]}
-        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, hex: value as string }))}
+        options={groovePriceRangeOptions}
+        value={selectedGrooveFilter.tier}
+        onSelect={(value) => setSelectedGrooveFilter((prev) => ({ ...prev, tier: value as string | undefined }))}
       />
 
       {Object.values(selectedGrooveFilter).some(Boolean) && (

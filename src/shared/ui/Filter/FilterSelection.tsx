@@ -11,6 +11,7 @@ type Option = {
   value: string | number;
   disabled?: boolean;
   reason?: string;
+  description?: string;
   children?: Option[];
 };
 
@@ -100,12 +101,27 @@ export const FilterSelection = ({
     if (!buttonEl) return;
 
     const rect = buttonEl.getBoundingClientRect();
-    setMenuStyle({
-      top: rect.bottom + 6,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 1000,
-    });
+    const minMenuWidth = 164;
+    const menuWidth = Math.max(rect.width, minMenuWidth);
+    const overflows = rect.left + menuWidth > window.innerWidth;
+
+    if (overflows) {
+      setMenuStyle({
+        position: "fixed",
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+        width: rect.width,
+        zIndex: 1000,
+      });
+    } else {
+      setMenuStyle({
+        position: "fixed",
+        top: rect.bottom + 6,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 1000,
+      });
+    }
   }, [open]);
 
   const handleSelect = (option: Option) => {
@@ -199,6 +215,7 @@ export const FilterSelection = ({
         onClick={() => handleSelect(option)}
       >
         <span className={s.optionLabel}>{optionLabel}</span>
+        {option.description ? <span className={s.optionDescription}>{option.description}</span> : null}
         {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
       </button>
     );
