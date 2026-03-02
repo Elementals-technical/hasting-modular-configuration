@@ -430,7 +430,7 @@ export const CabinetBuilderPage = () => {
         if (handleGrooveColor) batchConfig.HandleGrooveColor = handleGrooveColor;
 
         if (Object.keys(batchConfig).length) {
-          await setConfigBatch(existingIds, batchConfig);
+          await setConfigBatch({}, batchConfig);
         }
       }
 
