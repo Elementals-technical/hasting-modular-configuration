@@ -6,7 +6,10 @@ import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
+  addProductPreset,
   removeProductId,
+  resetCabinetBuilderBootstrap,
+  resetProducts,
   setActiveCabinetType,
   setActiveCountertopThickness,
   setPlacedCabinetStyle,
@@ -25,13 +28,16 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import {
   getDimensionOptions,
   getCabinetCatalog,
+  getCabinetColor,
   getActiveCountertopColor,
   getActiveCountertopThickness,
+  getProductsPresets,
   getSinkType,
   getSelectedDimensions,
   getIsDrawerOpen,
   getSelectedSceneProduct,
   getSelectedProductConfig,
+  getHandleGrooveColor,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -45,6 +51,8 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import { ROUTES } from "@/shared";
+import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "028";
@@ -72,6 +80,7 @@ export const PlayCanvasIntegration = () => {
   });
 
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
+  const [isCustomizeModePromptOpen, setIsCustomizeModePromptOpen] = useState(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const countertopPopoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -80,6 +89,7 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+  const isPrebuiltRef = useRef(isPrebuilt);
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
@@ -87,9 +97,12 @@ export const PlayCanvasIntegration = () => {
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
+  const cabinetColor = useAppSelector(getCabinetColor);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
+  const productsPresets = useAppSelector(getProductsPresets);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
 
   const saveSnapshot = useHistorySnapshot();
 
@@ -617,6 +630,73 @@ export const PlayCanvasIntegration = () => {
     [handleSwapProducts, productIds, selectedSceneProduct],
   );
 
+  useEffect(() => {
+    isPrebuiltRef.current = isPrebuilt;
+    if (!isPrebuilt) setIsCustomizeModePromptOpen(false);
+  }, [isPrebuilt]);
+
+  // Double-click detection via iframe contentDocument (same-origin).
+  // window.mousedown does NOT fire for clicks inside an iframe, so we must
+  // attach directly to the iframe's own document.
+  useEffect(() => {
+    const iframeEl = containerRef.current;
+    if (!iframeEl) return;
+
+    let prevClickTime = 0;
+    const DOUBLE_CLICK_MS = 300;
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (!isPrebuiltRef.current) return;
+
+      const now = Date.now();
+      if (now - prevClickTime < DOUBLE_CLICK_MS) {
+        setIsCustomizeModePromptOpen(true);
+        prevClickTime = 0;
+      } else {
+        prevClickTime = now;
+      }
+    };
+
+    const attach = () => {
+      const doc = iframeEl.contentDocument;
+      if (!doc) return () => {};
+      doc.addEventListener("mousedown", onMouseDown);
+      return () => doc.removeEventListener("mousedown", onMouseDown);
+    };
+
+    if (iframeEl.contentDocument) {
+      return attach();
+    }
+
+    const onLoad = () => attach();
+    iframeEl.addEventListener("load", onLoad);
+    return () => iframeEl.removeEventListener("load", onLoad);
+  }, []);
+
+  const handleCustomizeFromPrompt = useCallback(() => {
+    setIsCustomizeModePromptOpen(false);
+    if (!productsPresets.length) return;
+
+    // Overwrite preset colors with the values the user configured on prebuilt.
+    // preset.X ?? reduxDefault uses ?? so a non-null preset value wins;
+    // updating the presets here ensures CabinetBuilderPage bootstrap renders
+    // the correct colors without needing a route visit to trigger them.
+    const updatedPresets = productsPresets.map((preset) => ({
+      ...preset,
+      CabinetColor: cabinetColor || preset.CabinetColor,
+      CountertopColor: activeCountertopColor || preset.CountertopColor,
+      sinkType: activeBasinStyle || preset.sinkType,
+      HandleGrooveColor: handleGrooveColor || preset.HandleGrooveColor,
+    }));
+
+    dispatch(addProductPreset(updatedPresets));
+    dispatch(resetProducts());
+    dispatch(resetCabinetBuilderBootstrap());
+
+    navigate(ROUTES.CUSTOM);
+  }, [productsPresets, cabinetColor, activeCountertopColor, activeBasinStyle, handleGrooveColor, dispatch, navigate]);
+
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
     setDropdownState((prev) => ({ ...prev, visible: false }));
@@ -999,6 +1079,14 @@ export const PlayCanvasIntegration = () => {
         >
           {!isPrebuilt && <NestedDropdown style={{ width: "200px" }} items={countertopPopoverItems} />}
         </div>
+      )}
+
+      {isPrebuilt && (
+        <CustomizeModePrompt
+          isOpening={isCustomizeModePromptOpen}
+          setIsOpening={setIsCustomizeModePromptOpen}
+          onConfirm={handleCustomizeFromPrompt}
+        />
       )}
     </div>
   );

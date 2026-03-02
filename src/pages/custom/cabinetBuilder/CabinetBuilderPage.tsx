@@ -416,18 +416,22 @@ export const CabinetBuilderPage = () => {
           CabinetColor: preset.CabinetColor ?? cabinetColor,
           sinkType: preset.sinkType ?? sinkType,
           CountertopColor: preset.CountertopColor ?? countertopColor,
-          // HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
+          HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
         }));
 
         await removeAllProducts();
         await addPreset(mergedPresets);
       } else {
-        await setConfigBatch(existingIds, {
-          CabinetColor: "Pulpis Chiaro TKH",
-          sinkType: "Top_HPLPrisma",
-          CountertopColor: "Pietra Di Savoia Antracite TQ6",
-          // HandleGrooveColor: handleGrooveColor,
-        });
+        const batchConfig: Record<string, unknown> = {};
+
+        if (cabinetColor) batchConfig.CabinetColor = cabinetColor;
+        if (sinkType) batchConfig.sinkType = sinkType;
+        if (countertopColor) batchConfig.CountertopColor = countertopColor;
+        if (handleGrooveColor) batchConfig.HandleGrooveColor = handleGrooveColor;
+
+        if (Object.keys(batchConfig).length) {
+          await setConfigBatch(existingIds, batchConfig);
+        }
       }
 
       const orderedIds = existingIds.length ? existingIds : getOrderedProductIds();
