@@ -115,6 +115,8 @@ export const CabinetBuilderPage = () => {
 
   const bootstrappedRef = useRef(false);
   const autoAddSignatureRef = useRef<string | null>(null);
+  // Set to true by explicit user selection after deletion, allowing auto-add to fire once more
+  const allowNextAutoAddRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
@@ -236,6 +238,8 @@ export const CabinetBuilderPage = () => {
   };
 
   const handleSelectDrawerStyle = (id: number) => {
+    autoAddSignatureRef.current = null;
+    if (!hasProducts) allowNextAutoAddRef.current = true;
     setActiveStyleId(id);
 
     const option = cabinetStyleOptions.find((item) => item.id === id);
@@ -345,6 +349,11 @@ export const CabinetBuilderPage = () => {
   const setActiveCabinet = (id: string, name?: string) => {
     console.log("name", name);
 
+    autoAddSignatureRef.current = null;
+    if (!hasProducts) {
+      allowNextAutoAddRef.current = true;
+      setActiveStyleId(null); // Reset stale style from previous session so auto-add waits for explicit style pick
+    }
     dispatch(setActiveCabinetType(id));
     setAccordionValue(CABINET_STYLE_ID);
 
@@ -720,8 +729,8 @@ export const CabinetBuilderPage = () => {
   // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
-    // Don't proceed if already bootstrapped, canvas is not ready, or scene already has products
-    if (hasBootstrappedCabinetBuilder || !canvasReady || hasProducts) return;
+    // Don't proceed if already bootstrapped (unless user explicitly re-selected after deletion), canvas is not ready, or scene already has products
+    if ((hasBootstrappedCabinetBuilder && !allowNextAutoAddRef.current) || !canvasReady || hasProducts) return;
     // Need at least a cabinet type selected
     if (!activeCabinetType) return;
 
@@ -794,6 +803,7 @@ export const CabinetBuilderPage = () => {
             }
           }
 
+          allowNextAutoAddRef.current = false;
           // Mark as bootstrapped to save configuration when navigating back
           dispatch(setHasBootstrappedCabinetBuilder(true));
 
@@ -805,6 +815,7 @@ export const CabinetBuilderPage = () => {
         }
       } catch (error) {
         autoAddSignatureRef.current = null;
+        allowNextAutoAddRef.current = false;
         console.error("Failed to add product to scene:", error);
       }
     }

@@ -27,7 +27,7 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
-import { addProductId, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
+import { addProductId, setPlacedCabinetStyle, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -233,6 +233,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
 
       dispatch(addProductId(productId));
+
+      const drawers = productConfig?.Drawers as string | undefined;
+      const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
+      if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
 
       // Close sidebar and reset accordion to default state
       dispatch(setOpenStyleSidebar(false));

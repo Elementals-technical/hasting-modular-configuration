@@ -9,6 +9,7 @@ import {
   removeProductId,
   setActiveCabinetType,
   setActiveCountertopThickness,
+  setPlacedCabinetStyle,
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
@@ -561,6 +562,11 @@ export const PlayCanvasIntegration = () => {
 
         await setConfig(productId, mergedConfig);
         dispatch(addProductId(productId));
+
+        const drawers = mergedConfig.Drawers as string | undefined;
+        const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
+        if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+
         updateDimensionDataForProduct(productId, mergedConfig);
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
