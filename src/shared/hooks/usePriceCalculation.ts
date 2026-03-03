@@ -320,7 +320,7 @@ export function usePriceCalculation() {
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: preset.Drawers ?? null,
-          handle: selectedProductConfig?.Handle || preset.Handle || null,
+          handle: (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null,
           pattern: drawerPanelFluting || null,
           width: preset.Width ?? null,
           height: selectedDimensions.height ?? preset.Height ?? null,

@@ -192,7 +192,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   useEffect(() => {
     const currentHandle = selectedProductConfig?.Handle;
     const prevHandle = prevHandleRef.current;
-    prevHandleRef.current = currentHandle;
+    prevHandleRef.current = currentHandle as string | undefined;
 
     if (!currentHandle || currentHandle === prevHandle) return;
     if (!selectedProducts.length) return;
@@ -251,7 +251,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       dispatch(addProductId(productId));
 
-      const drawers = productConfig?.Drawers as string | undefined;
+      const drawers = (productConfig as Record<string, unknown>)?.Drawers as string | undefined;
       const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
       if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
 
