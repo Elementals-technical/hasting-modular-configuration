@@ -27,7 +27,12 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
-import { addProductId, setPlacedCabinetStyle, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
+import {
+  addProductId,
+  setPlacedCabinetStyle,
+  setSelectedDimensions,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -37,6 +42,7 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 
 interface RightCabinetStyleSidebarProps {
@@ -162,13 +168,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    setConfigBatch(
-      {},
-      {
-        Height: selectedDimensions.height,
-        Depth: selectedDimensions.depth,
-      },
-    );
+    const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
+    setConfigBatch({}, dimConfig);
+
+    selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
   }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
 
   const prevHandleRef = useRef<string | undefined>(undefined);
