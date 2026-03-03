@@ -642,27 +642,17 @@ export const PlayCanvasIntegration = () => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
-    let prevClickTime = 0;
-    const DOUBLE_CLICK_MS = 300;
-
-    const onMouseDown = (e: MouseEvent) => {
+    const onDblClick = (e: MouseEvent) => {
       if (e.button !== 0) return;
       if (!isPrebuiltRef.current) return;
-
-      const now = Date.now();
-      if (now - prevClickTime < DOUBLE_CLICK_MS) {
-        setIsCustomizeModePromptOpen(true);
-        prevClickTime = 0;
-      } else {
-        prevClickTime = now;
-      }
+      setIsCustomizeModePromptOpen(true);
     };
 
     const attach = () => {
       const doc = iframeEl.contentDocument;
       if (!doc) return () => {};
-      doc.addEventListener("mousedown", onMouseDown);
-      return () => doc.removeEventListener("mousedown", onMouseDown);
+      doc.addEventListener("dblclick", onDblClick);
+      return () => doc.removeEventListener("dblclick", onDblClick);
     };
 
     if (iframeEl.contentDocument) {
