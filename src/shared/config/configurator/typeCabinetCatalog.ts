@@ -8,9 +8,9 @@ export type TypeCabinetRuleConfig = {
   isOpen?: boolean;
   handlesAllowed?: string[];
   handleUrbanBotcutRequiresDrawers?: string[];
-  handlePtoForcedHeightCm?: number | null;
-  handleUrbanTopcutForcedHeightCm?: number | null;
-  handleUrbanBotcutForcedHeightCm?: number | null;
+  handlePtoForcedHeightCm?: string | null;
+  handleUrbanTopcutForcedHeightCm?: string | null;
+  handleUrbanBotcutForcedHeightCm?: string | null;
   supportsHeight?: number[];
 };
 

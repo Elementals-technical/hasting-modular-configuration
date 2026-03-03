@@ -1,0 +1,59 @@
+.instrPopup {
+  width: 525px;
+  background-color: #fff;
+  border-radius: 10px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e6ea;
+
+    .title {
+      color: #282828;
+      font-family: Poppins;
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 26px;
+    }
+
+    .button {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-bottom: 1px solid #e5e6ea;
+
+    p {
+      margin: 0;
+      color: #5a5a5a;
+      font-size: 14px;
+      line-height: 22px;
+    }
+  }
+
+  .footer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+
+    > div {
+      padding: 20px;
+
+      &:first-child {
+        border-right: 1px solid #e5e6ea;
+      }
+    }
+  }
+}
+
+.header,
+.content {
+  padding: 20px;
+}

@@ -78,6 +78,12 @@ export const CustomAccessoriesPage = () => {
 
   const sidePanelAvailability = useAppSelector(selectSidePanelAvailability);
 
+  const isEdgeCabinet = useMemo(() => {
+    if (!activeCabinetId || !isPlayCanvasReady) return false;
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    return activeCabinetId === leftCabinetId || activeCabinetId === rightCabinetId;
+  }, [activeCabinetId, isPlayCanvasReady]);
+
   const sidePanelOptions = useMemo(() => {
     const allowed = new Set<string>(["None"]);
     sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
@@ -410,12 +416,7 @@ export const CustomAccessoriesPage = () => {
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
-    if (!value || !activeCabinetId) return;
-
-    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const isEdge = activeCabinetId === leftCabinetId || activeCabinetId === rightCabinetId;
-
-    if (!isEdge) return;
+    if (!value || !activeCabinetId || !isEdgeCabinet) return;
 
     await saveSnapshot();
     await setConfigBatch(
@@ -528,11 +529,17 @@ export const CustomAccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid
-            data={sidePanelOptions}
-            handleAdd={handleSidePanelsChange}
-            activeValue={activeSidePanels}
-          />
+          {activeCabinetId && !isEdgeCabinet ? (
+            <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>
+              Side panels can only be installed on edge cabinets.
+            </p>
+          ) : (
+            <ProductOptionsGrid
+              data={sidePanelOptions}
+              handleAdd={handleSidePanelsChange}
+              activeValue={activeSidePanels}
+            />
+          )}
         </>
       ),
     },

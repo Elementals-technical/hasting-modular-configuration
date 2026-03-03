@@ -27,7 +27,12 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
 } from "@/entities/product/model/store/selectors";
-import { addProductId, setSelectedDimensions, setSelectedProductConfig } from "@/entities/product/model/store/slice";
+import {
+  addProductId,
+  setPlacedCabinetStyle,
+  setSelectedDimensions,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -37,6 +42,7 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 
 interface RightCabinetStyleSidebarProps {
@@ -162,14 +168,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    setConfigBatch(
-      {},
-      {
-        Height: selectedDimensions.height,
-        Depth: selectedDimensions.depth,
-      },
-    );
+    const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
+    setConfigBatch({}, dimConfig);
+
+    selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
   }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
+
+  const prevHandleRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
@@ -182,6 +187,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       );
     }
   }, [dispatch, selectedProductConfig, handlesDisabled]);
+
+  // Sync handle to PlayCanvas when it changes (e.g. auto-reset due to rule change)
+  useEffect(() => {
+    const currentHandle = selectedProductConfig?.Handle;
+    const prevHandle = prevHandleRef.current;
+    prevHandleRef.current = currentHandle as string | undefined;
+
+    if (!currentHandle || currentHandle === prevHandle) return;
+    if (!selectedProducts.length) return;
+
+    setConfigBatch(selectedProducts, { Handle: currentHandle });
+  }, [selectedProductConfig?.Handle, selectedProducts]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
@@ -233,6 +250,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
 
       dispatch(addProductId(productId));
+
+      const drawers = (productConfig as Record<string, unknown>)?.Drawers as string | undefined;
+      const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
+      if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
 
       // Close sidebar and reset accordion to default state
       dispatch(setOpenStyleSidebar(false));

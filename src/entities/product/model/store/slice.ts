@@ -165,6 +165,20 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
     height: ruleResult.nextSelection.height,
     depth: ruleResult.nextSelection.depth,
   };
+
+  const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
+  if (currentHandle && ruleResult.availableOptions.handles.length > 0) {
+    const handleOption = ruleResult.availableOptions.handles.find((h) => h.value === currentHandle);
+    if (handleOption && !handleOption.enabled) {
+      const firstEnabled = ruleResult.availableOptions.handles.find((h) => h.enabled);
+      if (state.selectedProductConfig) {
+        state.selectedProductConfig = {
+          ...state.selectedProductConfig,
+          Handle: firstEnabled ? (String(firstEnabled.value) as HandleOption) : undefined,
+        };
+      }
+    }
+  }
 };
 
 const createInitialState = (): ProductState => {

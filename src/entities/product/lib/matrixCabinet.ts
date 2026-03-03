@@ -61,9 +61,9 @@ const toRule = (row: ProductDatatableRow): TypeCabinetRuleConfig | null => {
     handleUrbanBotcutRequiresDrawers: parseDelimitedList(normalizedRow.handle_urban_botcut_requires_drawers).map(
       normalizeDrawerConfig,
     ),
-    handlePtoForcedHeightCm: Number(normalizedRow.handle_pto_forced_height_cm || "") || null,
-    handleUrbanTopcutForcedHeightCm: Number(normalizedRow.handle_urban_topcut_forced_height_cm || "") || null,
-    handleUrbanBotcutForcedHeightCm: Number(normalizedRow.handle_urban_botcut_forced_height_cm || "") || null,
+    handlePtoForcedHeightCm: normalizedRow.handle_pto_forced_height_cm?.trim() || null,
+    handleUrbanTopcutForcedHeightCm: normalizedRow.handle_urban_topcut_forced_height_cm?.trim() || null,
+    handleUrbanBotcutForcedHeightCm: normalizedRow.handle_urban_botcut_forced_height_cm?.trim() || null,
     supportsHeight: supportsHeight.length ? supportsHeight : undefined,
   };
 
