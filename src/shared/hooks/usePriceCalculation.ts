@@ -201,9 +201,9 @@ export function usePriceCalculation() {
             (typeof cfg.type === "string" && cfg.type) ||
             (typeof cfg.name === "string" && cfg.name) ||
             null,
-          Width: toolWidth ?? (typeof cfg.Width === "number" ? cfg.Width : null),
-          Height: toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
-          Depth: toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
+          Width: (typeof cfg.Width === "number" ? cfg.Width : null) ?? toolWidth,
+          Height: selectedDimensions.height ?? toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
+          Depth: selectedDimensions.depth ?? toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
           Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
           Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
           CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
@@ -320,11 +320,11 @@ export function usePriceCalculation() {
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: preset.Drawers ?? null,
-          handle: preset.Handle ?? null,
+          handle: selectedProductConfig?.Handle || preset.Handle || null,
           pattern: drawerPanelFluting || null,
           width: preset.Width ?? null,
-          height: preset.Height ?? null,
-          depth: preset.Depth ?? null,
+          height: selectedDimensions.height ?? preset.Height ?? null,
+          depth: selectedDimensions.depth ?? preset.Depth ?? null,
           cab: cabinetColorSku
             ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
             : null,
