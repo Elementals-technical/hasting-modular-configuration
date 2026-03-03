@@ -642,17 +642,18 @@ export const PlayCanvasIntegration = () => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
-    const onDblClick = (e: MouseEvent) => {
+    const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 0) return;
       if (!isPrebuiltRef.current) return;
+      if (e.detail !== 2) return;
       setIsCustomizeModePromptOpen(true);
     };
 
     const attach = () => {
       const doc = iframeEl.contentDocument;
       if (!doc) return () => {};
-      doc.addEventListener("dblclick", onDblClick);
-      return () => doc.removeEventListener("dblclick", onDblClick);
+      doc.addEventListener("mousedown", onMouseDown);
+      return () => doc.removeEventListener("mousedown", onMouseDown);
     };
 
     if (iframeEl.contentDocument) {
