@@ -67,30 +67,17 @@ export const handleRule = (
   const { selection } = context;
   const activeRule = catalog.typeCabinetRules.find((rule) => rule.code === selection.cabinetType);
   const allowedHandles = activeRule?.handlesAllowed?.length ? activeRule.handlesAllowed : DEFAULT_ALLOWED_HANDLES;
+  const heightLocked = ruleResult.heightLocked;
+  const heightLockedReason =
+    typeof heightLocked === "number"
+      ? `Not available for current configuration height (${heightLocked}cm locked)`
+      : null;
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;
   const requiresDrawers = activeRule?.handleUrbanBotcutRequiresDrawers ?? [];
   const isDrawerAllowed =
     requiresDrawers.length === 0 ||
     (hasDrawerSelection && requiresDrawers.includes(selection.drawers as string));
-
-  const handles: OptionState<string>[] = allowedHandles.length
-    ? HANDLE_OPTIONS.map((option) => {
-        if (!allowedHandles.includes(option.value)) {
-          return { ...option, enabled: false, reason: "Not available for selected cabinet type" };
-        }
-
-    if (option.value !== "handle_urban_botcut") {
-      return { ...option, enabled: true };
-    }
-
-    if (!isDrawerAllowed) {
-      return { ...option, enabled: false, reason: CENTRAL_GROOVE_REASON };
-    }
-
-        return { ...option, enabled: true };
-      })
-    : [];
 
   let heightOptions = ruleResult.availableOptions.height;
   const violations = [...ruleResult.violations];
@@ -109,6 +96,42 @@ export const handleRule = (
     if (!drawers) return null;
     return parseHeightMapping(raw)[drawers] ?? null;
   };
+
+  const resolvePossibleForcedHeights = (handleValue: string): number[] => {
+    const raw = getRawMapping(handleValue);
+    if (!raw) return [];
+    return Object.values(parseHeightMapping(raw)).filter((value) => Number.isFinite(value));
+  };
+
+  const isHandleLockedConflict = (handleValue: string): boolean => {
+    if (typeof heightLocked !== "number") return false;
+
+    if (hasDrawerSelection) {
+      const forced = resolveForcedHeight(handleValue, selection.drawers);
+      return typeof forced === "number" && forced !== heightLocked;
+    }
+
+    const possible = resolvePossibleForcedHeights(handleValue);
+    return possible.length > 0 && !possible.includes(heightLocked);
+  };
+
+  const handles: OptionState<string>[] = allowedHandles.length
+    ? HANDLE_OPTIONS.map((option) => {
+        if (!allowedHandles.includes(option.value)) {
+          return { ...option, enabled: false, reason: "Not available for selected cabinet type" };
+        }
+
+        if (option.value === "handle_urban_botcut" && !isDrawerAllowed) {
+          return { ...option, enabled: false, reason: CENTRAL_GROOVE_REASON };
+        }
+
+        if (heightLockedReason && isHandleLockedConflict(option.value)) {
+          return { ...option, enabled: false, reason: heightLockedReason };
+        }
+
+        return { ...option, enabled: true };
+      })
+    : [];
 
   const handleIsAllowed = selection.handle ? allowedHandles.includes(selection.handle) : false;
 
@@ -131,16 +154,18 @@ export const handleRule = (
   }
 
   const forcedHeight = effectiveHandle ? resolveForcedHeight(effectiveHandle, selection.drawers) : null;
+  const forcedHeightConflictsLock =
+    typeof heightLocked === "number" && typeof forcedHeight === "number" && forcedHeight !== heightLocked;
   const hasForcedHeight =
     typeof forcedHeight === "number" &&
     heightOptions.some((option) => option.value === forcedHeight && option.enabled) &&
     supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
 
-  if (effectiveHandle === "handle_pto" && hasForcedHeight) {
+  if (effectiveHandle === "handle_pto" && hasForcedHeight && !forcedHeightConflictsLock) {
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
-  } else if (effectiveHandle === "handle_urban_topcut" && hasForcedHeight) {
+  } else if (effectiveHandle === "handle_urban_topcut" && hasForcedHeight && !forcedHeightConflictsLock) {
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight, DEFAULT_HANDLE_HEIGHT_REASON);
-  } else if (effectiveHandle === "handle_urban_botcut" && hasForcedHeight && isDrawerAllowed) {
+  } else if (effectiveHandle === "handle_urban_botcut" && hasForcedHeight && isDrawerAllowed && !forcedHeightConflictsLock) {
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
   }
 

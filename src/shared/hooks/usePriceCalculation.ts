@@ -763,9 +763,7 @@ export function usePriceCalculation() {
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)
 
   useEffect(() => {
-    const hasExtraProducts = shouldUsePresets
-      ? productIds.length > productsPresets.length
-      : productIds.length > 0;
+    const hasExtraProducts = shouldUsePresets ? productIds.length > productsPresets.length : productIds.length > 0;
     if (!hasExtraProducts) return;
 
     const timer = setTimeout(() => {

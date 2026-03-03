@@ -26,6 +26,7 @@ import {
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedProductConfig,
+  getHeightLocked,
 } from "@/entities/product/model/store/selectors";
 import {
   addProductId,
@@ -61,6 +62,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
+  const heightLocked = useAppSelector(getHeightLocked);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -70,6 +72,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const saveSnapshot = useHistorySnapshot();
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandleType, setPendingHandleType] = useState<string | null>(null);
+  const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
 
   const handleOptions = useMemo(
     () =>
@@ -154,6 +157,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   const handleSetHandleType = async (handleType: string) => {
+    if (typeof heightLocked === "number") {
+      const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
+      if (option?.disabled && option.reason?.startsWith("Not available for current configuration height")) {
+        setHandleLockNotice(
+          `A module with only ${heightLocked}cm height is present (e.g. Side Shelf). While it is on the scene, only handles for ${heightLocked}cm are available.`,
+        );
+        return;
+      }
+    }
+
     await applyHandleType(handleType);
 
     if (selectedProducts.length > 0) {
@@ -268,6 +281,27 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   return (
     <>
+      <PopupCenterContent isOpening={handleLockNotice !== null} onClose={() => setHandleLockNotice(null)}>
+        <div className={s.confirmPopup}>
+          <div className={s.confirmHeader}>
+            <div className={s.confirmTitle}>Handle Change Blocked</div>
+            <div className={s.confirmClose} onClick={() => setHandleLockNotice(null)}>
+              <CloseBtnIcon />
+            </div>
+          </div>
+          <div className={s.confirmContent}>
+            <p>{handleLockNotice}</p>
+          </div>
+          <div className={s.confirmFooter}>
+            <div>
+              <BaseButton onClick={() => setHandleLockNotice(null)} fullWidth={true}>
+                Ok
+              </BaseButton>
+            </div>
+          </div>
+        </div>
+      </PopupCenterContent>
+
       <PopupCenterContent isOpening={pendingHandleType !== null} onClose={() => setPendingHandleType(null)}>
         <div className={s.confirmPopup}>
           <div className={s.confirmHeader}>
