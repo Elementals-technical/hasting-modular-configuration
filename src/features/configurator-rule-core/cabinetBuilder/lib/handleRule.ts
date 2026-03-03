@@ -13,6 +13,17 @@ const CENTRAL_GROOVE_REASON = "Available only for selected drawers";
 const HANDLE_HEIGHT_REASON = "Required for selected handle";
 const DEFAULT_HANDLE_HEIGHT_REASON = "Required for selected handle and all products";
 
+const parseHeightMapping = (raw: string): Record<string, number> =>
+  Object.fromEntries(
+    raw.split("|").flatMap((entry) => {
+      const colonIdx = entry.indexOf(":");
+      if (colonIdx === -1) return [];
+      const key = entry.slice(0, colonIdx).trim();
+      const num = Number(entry.slice(colonIdx + 1).trim());
+      return key && Number.isFinite(num) ? [[key, num]] : [];
+    }),
+  );
+
 const supportsHeightForAllProducts = (
   productIds: string[] | undefined,
   catalog: ConfiguratorCatalog,
@@ -59,7 +70,9 @@ export const handleRule = (
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;
   const requiresDrawers = activeRule?.handleUrbanBotcutRequiresDrawers ?? [];
-  const isDrawerAllowed = !hasDrawerSelection || requiresDrawers.length === 0 || requiresDrawers.includes(selection.drawers as string);
+  const isDrawerAllowed =
+    requiresDrawers.length === 0 ||
+    (hasDrawerSelection && requiresDrawers.includes(selection.drawers as string));
 
   const handles: OptionState<string>[] = allowedHandles.length
     ? HANDLE_OPTIONS.map((option) => {
@@ -80,33 +93,60 @@ export const handleRule = (
     : [];
 
   let heightOptions = ruleResult.availableOptions.height;
+  const violations = [...ruleResult.violations];
 
-  const resolveForcedHeight = (handleValue: string) => {
+  const getRawMapping = (handleValue: string): string | null => {
     if (!activeRule) return null;
-
     if (handleValue === "handle_pto") return activeRule.handlePtoForcedHeightCm ?? null;
     if (handleValue === "handle_urban_topcut") return activeRule.handleUrbanTopcutForcedHeightCm ?? null;
     if (handleValue === "handle_urban_botcut") return activeRule.handleUrbanBotcutForcedHeightCm ?? null;
     return null;
   };
 
+  const resolveForcedHeight = (handleValue: string, drawers: string | null | undefined): number | null => {
+    const raw = getRawMapping(handleValue);
+    if (!raw) return null;
+    if (!drawers) return null;
+    return parseHeightMapping(raw)[drawers] ?? null;
+  };
+
   const handleIsAllowed = selection.handle ? allowedHandles.includes(selection.handle) : false;
-  const forcedHeight = selection.handle && handleIsAllowed ? resolveForcedHeight(selection.handle) : null;
+
+  // When no handle is explicitly selected, fall back to "handle_urban_topcut" for height computation.
+  // This ensures the correct forced height is applied even before the user picks a handle,
+  // since handle_urban_topcut is the default applied during auto-add.
+  const DEFAULT_HANDLE = "handle_urban_topcut";
+  const effectiveHandle =
+    selection.handle && handleIsAllowed
+      ? selection.handle
+      : allowedHandles.includes(DEFAULT_HANDLE)
+        ? DEFAULT_HANDLE
+        : null;
+
+  if (selection.handle && handleIsAllowed) {
+    const raw = getRawMapping(selection.handle);
+    if (raw && !selection.drawers) {
+      violations.push({ field: "drawers", reason: "Select drawers to determine height for selected handle" });
+    }
+  }
+
+  const forcedHeight = effectiveHandle ? resolveForcedHeight(effectiveHandle, selection.drawers) : null;
   const hasForcedHeight =
     typeof forcedHeight === "number" &&
     heightOptions.some((option) => option.value === forcedHeight && option.enabled) &&
     supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
 
-  if (selection.handle === "handle_pto" && hasForcedHeight) {
+  if (effectiveHandle === "handle_pto" && hasForcedHeight) {
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
-  } else if (selection.handle === "handle_urban_topcut" && hasForcedHeight) {
+  } else if (effectiveHandle === "handle_urban_topcut" && hasForcedHeight) {
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight, DEFAULT_HANDLE_HEIGHT_REASON);
-  } else if (selection.handle === "handle_urban_botcut" && hasForcedHeight && isDrawerAllowed) {
+  } else if (effectiveHandle === "handle_urban_botcut" && hasForcedHeight && isDrawerAllowed) {
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
   }
 
   return {
     ...ruleResult,
+    violations,
     availableOptions: {
       ...ruleResult.availableOptions,
       height: heightOptions,

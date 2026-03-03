@@ -171,6 +171,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     );
   }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
 
+  const prevHandleRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
     if (!handlesDisabled && !selectedProductConfig?.Handle && selectedProductConfig !== null) {
@@ -182,6 +184,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       );
     }
   }, [dispatch, selectedProductConfig, handlesDisabled]);
+
+  // Sync handle to PlayCanvas when it changes (e.g. auto-reset due to rule change)
+  useEffect(() => {
+    const currentHandle = selectedProductConfig?.Handle;
+    const prevHandle = prevHandleRef.current;
+    prevHandleRef.current = currentHandle;
+
+    if (!currentHandle || currentHandle === prevHandle) return;
+    if (!selectedProducts.length) return;
+
+    setConfigBatch(selectedProducts, { Handle: currentHandle });
+  }, [selectedProductConfig?.Handle, selectedProducts]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {

@@ -149,6 +149,8 @@ export const CabinetBuilderPage = () => {
   const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
     useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
 
+  console.log("matrixCabinetTable", matrixCabinetTable);
+
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
 
