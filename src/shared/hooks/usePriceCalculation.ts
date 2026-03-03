@@ -159,14 +159,16 @@ export function usePriceCalculation() {
       presetsCount: productsPresets.length,
     });
 
-    if (productsPresets.length > 0) {
-      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", "using presets");
-      setSceneConfigs([]);
-      return;
-    }
+    // When presets exist the bootstrap phase calls addProductId for each preset product first.
+    // Only products whose index is >= presetsCount are truly "extra" (added via sidebar).
+    const idsToFetch = productsPresets.length > 0 ? productIds.slice(productsPresets.length) : productIds;
 
-    if (productIds.length === 0) {
-      console.log(LOG_PREFIX, "fetchSceneConfigs skipped:", "no productIds");
+    if (idsToFetch.length === 0) {
+      console.log(
+        LOG_PREFIX,
+        "fetchSceneConfigs skipped:",
+        productsPresets.length > 0 ? "using presets, no extra products" : "no productIds",
+      );
       setSceneConfigs([]);
       return;
     }
@@ -181,7 +183,7 @@ export function usePriceCalculation() {
       return Number.isFinite(value) ? value : null;
     };
 
-    for (const id of productIds) {
+    for (const id of idsToFetch) {
       try {
         const raw = await getConfig(id);
 
@@ -337,6 +339,62 @@ export function usePriceCalculation() {
 
         skus.push(sku);
       });
+
+      // Extra products added on top of presets (e.g. via sidebar in prebuilt mode)
+      sceneConfigs.forEach((cfg, idx) => {
+        const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
+        const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+
+        if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
+          skus.push(
+            buildOpenShelfSku({
+              width: cfg.Width,
+              height: cfg.Height,
+              depth: cfg.Depth,
+              cabinetMaterialSku: cabinetColorSku || null,
+              cabinetColorCode: extractColorCode(cabinetColor),
+              grainDirection: grainSku,
+            }),
+          );
+          return;
+        }
+
+        if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
+          const side: "L" | "R" = idx === 0 ? "L" : "R";
+          skus.push(
+            buildOpenSideShelfSku({
+              side,
+              width: cfg.Width,
+              height: cfg.Height,
+              depth: cfg.Depth,
+              cabinetMaterialSku: cabinetColorSku || null,
+              cabinetColorCode: extractColorCode(cabinetColor),
+              grainDirection: grainSku,
+            }),
+          );
+          return;
+        }
+
+        skus.push(
+          buildProductSku({
+            cabinetType: resolvedType,
+            drawers: cfg.Drawers,
+            handle: (selectedProductConfig?.Handle as string | undefined) || cfg.Handle || null,
+            pattern: drawerPanelFluting || null,
+            width: cfg.Width,
+            height: cfg.Height,
+            depth: cfg.Depth,
+            cab: cabinetColorSku
+              ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+              : null,
+            hdl: handleMaterialSku
+              ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+              : null,
+            msp: null,
+            bkpl: null,
+          }),
+        );
+      });
     } else if (sceneConfigs.length > 0) {
       // Custom path: iterate all products from PlayCanvas
       // Color is global (same for all products on scene) → always use Redux cabinetColor
@@ -425,15 +483,27 @@ export function usePriceCalculation() {
     // Fallback: single selectedDimensions
     type ProductDims = { width: number | null; height: number | null; depth: number | null; sinkType: string | null };
     let productDimsList: ProductDims[];
-    const cabinetCount = shouldUsePresets ? productsPresets.length : sceneConfigs.length > 0 ? sceneConfigs.length : 1;
+    const cabinetCount = shouldUsePresets
+      ? productsPresets.length + sceneConfigs.length
+      : sceneConfigs.length > 0
+        ? sceneConfigs.length
+        : 1;
 
     if (shouldUsePresets) {
-      productDimsList = productsPresets.map((p) => ({
-        width: p.Width ?? null,
-        height: p.Height ?? null,
-        depth: p.Depth ?? null,
-        sinkType: p.sinkType ?? sinkType ?? null,
-      }));
+      productDimsList = [
+        ...productsPresets.map((p) => ({
+          width: p.Width ?? null,
+          height: p.Height ?? null,
+          depth: p.Depth ?? null,
+          sinkType: p.sinkType ?? sinkType ?? null,
+        })),
+        ...sceneConfigs.map((cfg) => ({
+          width: cfg.Width,
+          height: cfg.Height,
+          depth: cfg.Depth,
+          sinkType: sinkType || null,
+        })),
+      ];
     } else if (sceneConfigs.length > 0) {
       productDimsList = sceneConfigs.map((cfg) => ({
         width: cfg.Width,
@@ -693,7 +763,10 @@ export function usePriceCalculation() {
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)
 
   useEffect(() => {
-    if (shouldUsePresets || productIds.length === 0) return;
+    const hasExtraProducts = shouldUsePresets
+      ? productIds.length > productsPresets.length
+      : productIds.length > 0;
+    if (!hasExtraProducts) return;
 
     const timer = setTimeout(() => {
       // Clear price cache so new SKUs get fetched
