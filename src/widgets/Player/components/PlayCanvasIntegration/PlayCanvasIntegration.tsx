@@ -642,6 +642,8 @@ export const PlayCanvasIntegration = () => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
+    let detachListeners: (() => void) | null = null;
+
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 0) return;
       if (!isPrebuiltRef.current) return;
@@ -652,17 +654,69 @@ export const PlayCanvasIntegration = () => {
     const attach = () => {
       const doc = iframeEl.contentDocument;
       if (!doc) return () => {};
-      doc.addEventListener("mousedown", onMouseDown);
-      return () => doc.removeEventListener("mousedown", onMouseDown);
+      const href = doc.location?.href;
+      if (href === "about:blank") return () => {};
+
+      doc.addEventListener("mousedown", onMouseDown, true);
+      return () => {
+        doc.removeEventListener("mousedown", onMouseDown, true);
+      };
+    };
+
+    const attachSafe = () => {
+      if (detachListeners) {
+        detachListeners();
+        detachListeners = null;
+      }
+      detachListeners = attach();
     };
 
     if (iframeEl.contentDocument) {
-      return attach();
+      attachSafe();
     }
 
-    const onLoad = () => attach();
+    const onLoad = () => attachSafe();
     iframeEl.addEventListener("load", onLoad);
-    return () => iframeEl.removeEventListener("load", onLoad);
+    return () => {
+      iframeEl.removeEventListener("load", onLoad);
+      if (detachListeners) detachListeners();
+    };
+  }, []);
+
+  useEffect(() => {
+    const iframeEl = containerRef.current;
+    if (!iframeEl) return;
+
+    const onFrameMouseDown = (e: MouseEvent) => {
+      console.log("[CustomizeModePrompt] iframe element mousedown", {
+        button: e.button,
+        detail: e.detail,
+      });
+    };
+
+    const onFrameClick = (e: MouseEvent) => {
+      console.log("[CustomizeModePrompt] iframe element click", {
+        button: e.button,
+        detail: e.detail,
+      });
+    };
+
+    const onFrameDblClick = (e: MouseEvent) => {
+      console.log("[CustomizeModePrompt] iframe element dblclick", {
+        button: e.button,
+        detail: e.detail,
+      });
+    };
+
+    iframeEl.addEventListener("mousedown", onFrameMouseDown, true);
+    iframeEl.addEventListener("click", onFrameClick, true);
+    iframeEl.addEventListener("dblclick", onFrameDblClick, true);
+
+    return () => {
+      iframeEl.removeEventListener("mousedown", onFrameMouseDown, true);
+      iframeEl.removeEventListener("click", onFrameClick, true);
+      iframeEl.removeEventListener("dblclick", onFrameDblClick, true);
+    };
   }, []);
 
   const handleCustomizeFromPrompt = useCallback(() => {
