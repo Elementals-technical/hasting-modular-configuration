@@ -1,5 +1,10 @@
 .player {
   position: relative;
+  min-height: 520px;
+}
+
+.mobileStepNavigation {
+  display: none;
 }
 
 .rotateBlock {
@@ -82,4 +87,48 @@
   background-color: #ac5331;
 
   cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .mobileStepNavigation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    display: block;
+    background: #fff;
+  }
+
+  .player {
+    height: 530px;
+    min-height: 530px;
+    max-height: 530px;
+  }
+
+  .rotateBlock {
+    bottom: 26%;
+  }
+
+  .hintIcon {
+    right: 16px;
+    bottom: 12px;
+  }
+
+  .generateBtn {
+    bottom: 12px;
+  }
+
+  .shareIcon {
+    right: 16px;
+    bottom: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .player {
+    height: 286px;
+    min-height: 286px;
+    max-height: 286px;
+  }
 }

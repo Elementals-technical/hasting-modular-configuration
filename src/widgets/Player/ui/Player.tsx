@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
+import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -34,6 +35,7 @@ import {
   getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 
 import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 
@@ -69,6 +71,7 @@ export function Player() {
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const [saveConfiguration] = useSaveConfigurationMutation();
+  const activeStep = useAppSelector(getActiveStep);
 
   const handleSaveConfiguration = async () => {
     const ids = getOrderedProductIds();
@@ -202,6 +205,10 @@ export function Player() {
 
   return (
     <div className={s.player}>
+      <div className={s.mobileStepNavigation}>
+        <StepNavigationBar title={activeStep} flow={pathname.includes("/custom") ? "custom" : "prebuilt"} />
+      </div>
+
       <PlayCanvasIntegration />
 
       {showRotateHint && (
