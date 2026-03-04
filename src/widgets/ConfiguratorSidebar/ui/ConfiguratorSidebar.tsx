@@ -2,9 +2,11 @@ import { useEffect, type PropsWithChildren } from "react";
 import { useLocation } from "react-router-dom";
 
 import { BottomStickyBar } from "@/features";
+import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 import { setActiveStep } from "@/features/sidebar/model/store/slice";
+import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
 
-import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 
@@ -17,6 +19,7 @@ type ConfiguratorSidebarProps = PropsWithChildren<{
 export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: ConfiguratorSidebarProps) => {
   const location = useLocation();
 
+  const activeStep = useAppSelector(getActiveStep);
   const dispatch = useAppDispatch();
 
   usePriceCalculation();
@@ -31,6 +34,10 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
   return (
     <div className={s.configSidebar} data-flow={flow}>
+      <div className={s.desktopStepNavigation}>
+        <StepNavigationBar title={activeStep} flow={flow} />
+      </div>
+
       <div className={s.stepContent}>{children}</div>
 
       <BottomStickyBar flow={flow} />

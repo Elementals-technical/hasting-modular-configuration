@@ -10,6 +10,10 @@
   border-left: 1px solid #e5e6ea;
 }
 
+.desktopStepNavigation {
+  display: block;
+}
+
 .stepContent {
   flex: 1;
   min-height: 0;
@@ -37,6 +41,10 @@
 }
 
 @media (max-width: 1024px) {
+  .desktopStepNavigation {
+    display: none;
+  }
+
   .configSidebar {
     border-left: none;
     height: 100%;
