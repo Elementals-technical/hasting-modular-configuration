@@ -56,7 +56,25 @@
     height: 58px;
   }
 
+  .bottomBar > .total {
+    width: 50%;
+  }
+
+  .bottomBar > .nextStepWrapp {
+    width: 50%;
+  }
+
   .nextStepWrapp {
-    flex: 1.2;
+    flex: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .bottomBar > .total {
+    width: 40%;
+  }
+
+  .bottomBar > .nextStepWrapp {
+    width: 60%;
   }
 }
