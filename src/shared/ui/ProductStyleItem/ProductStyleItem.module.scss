@@ -113,3 +113,23 @@
     }
   }
 }
+
+@media (max-width: 767px) {
+  .productStyleItem {
+    .image {
+      img {
+        width: 65%;
+      }
+    }
+  }
+}
+
+@media (max-width: 567px) {
+  .productStyleItem {
+    .image {
+      img {
+        width: 75%;
+      }
+    }
+  }
+}

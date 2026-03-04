@@ -21,6 +21,12 @@
   }
 }
 
+@media (max-width: 767px) {
+  .optionsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .optionImage {
   border: 1px solid transparent;
   border-radius: 5px;
