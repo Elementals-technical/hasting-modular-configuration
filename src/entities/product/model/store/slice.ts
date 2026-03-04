@@ -39,6 +39,7 @@ type ProductState = {
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
   heightBeforePto: number | null;
+  heightLocked: number | null;
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
   cabinetCatalog: ConfiguratorCatalog;
@@ -142,6 +143,7 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
       drawers: [],
       handles: [],
     };
+    state.heightLocked = null;
     return;
   }
 
@@ -165,18 +167,51 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
     height: ruleResult.nextSelection.height,
     depth: ruleResult.nextSelection.depth,
   };
+  state.heightLocked = ruleResult.heightLocked;
 
   const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
   if (currentHandle && ruleResult.availableOptions.handles.length > 0) {
     const handleOption = ruleResult.availableOptions.handles.find((h) => h.value === currentHandle);
     if (handleOption && !handleOption.enabled) {
-      const firstEnabled = ruleResult.availableOptions.handles.find((h) => h.enabled);
+      const preferred =
+        typeof ruleResult.heightLocked === "number"
+          ? ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled)
+          : undefined;
+      const firstEnabled = preferred ?? ruleResult.availableOptions.handles.find((h) => h.enabled);
       if (state.selectedProductConfig) {
         state.selectedProductConfig = {
           ...state.selectedProductConfig,
           Handle: firstEnabled ? (String(firstEnabled.value) as HandleOption) : undefined,
         };
       }
+    }
+  }
+
+  if (!currentHandle && typeof ruleResult.heightLocked === "number") {
+    const preferred = ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled);
+    if (preferred && state.selectedProductConfig) {
+      state.selectedProductConfig = {
+        ...state.selectedProductConfig,
+        Handle: "handle_pto",
+      };
+    }
+  }
+
+  if (
+    typeof ruleResult.heightLocked === "number" &&
+    ruleResult.heightLocked === 50 &&
+    state.selectedProductConfig &&
+    mapHandleConfigToRule(state.selectedProductConfig.Handle) !== "handle_pto"
+  ) {
+    const preferred = ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled);
+    if (preferred) {
+      if (mapHandleConfigToRule(state.selectedProductConfig.Handle) !== "handle_pto") {
+        state.heightBeforePto = state.selectedDimensions.height;
+      }
+      state.selectedProductConfig = {
+        ...state.selectedProductConfig,
+        Handle: "handle_pto",
+      };
     }
   }
 };
@@ -189,6 +224,7 @@ const createInitialState = (): ProductState => {
     selectedProductConfig: null,
     selectedDimensions: DEFAULT_DIMENSIONS,
     heightBeforePto: null,
+    heightLocked: null,
 
     hasBootstrappedCabinetBuilder: false,
 
@@ -249,6 +285,7 @@ const productSlice = createSlice({
       if (!id) return;
       const next = [...state.productIds.filter((pid) => pid !== id), id];
       state.productIds = next;
+      applyRulesToState(state);
     },
     insertProductIdRelative(state, action: PayloadAction<{ id: string; prevId: string; side: "left" | "right" }>) {
       const { id, prevId, side } = action.payload;
@@ -266,6 +303,7 @@ const productSlice = createSlice({
       const insertIndex = side === "left" ? prevIndex : prevIndex + 1;
       next.splice(insertIndex, 0, id);
       state.productIds = next;
+      applyRulesToState(state);
     },
     removeProductId(state, action: PayloadAction<string>) {
       const lastIndex = state.productIds.lastIndexOf(action.payload);
@@ -275,6 +313,7 @@ const productSlice = createSlice({
       }
 
       delete state.placedCabinetStyles[action.payload];
+      applyRulesToState(state);
     },
     swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
       const { idA, idB } = action.payload;
@@ -287,6 +326,7 @@ const productSlice = createSlice({
       next[indexA] = idB;
       next[indexB] = idA;
       state.productIds = next;
+      applyRulesToState(state);
     },
     reset(state) {
       return {
@@ -297,6 +337,7 @@ const productSlice = createSlice({
     resetProducts(state) {
       state.productIds = [];
       state.placedCabinetStyles = {};
+      applyRulesToState(state);
     },
     resetCabinetBuilderBootstrap(state) {
       state.hasBootstrappedCabinetBuilder = false;

@@ -15,6 +15,8 @@ export const getDimensionOptions = (state: RootState) => state.rootStateUI.produ
 
 export const getSelectedDimensions = (state: RootState) => state.rootStateUI.product.selectedDimensions;
 
+export const getHeightLocked = (state: RootState) => state.rootStateUI.product.heightLocked;
+
 export const getHasBootstrappedCabinetBuilder = (state: RootState) =>
   state.rootStateUI.product.hasBootstrappedCabinetBuilder;
 

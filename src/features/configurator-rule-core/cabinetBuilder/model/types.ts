@@ -40,6 +40,7 @@ export type Violation = {
 export type RuleResult = {
   availableOptions: AvailableOptions;
   violations: Violation[];
+  heightLocked: number | null;
 };
 
 export type AutoChangeEntry = {
