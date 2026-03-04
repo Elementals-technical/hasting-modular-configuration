@@ -132,3 +132,9 @@
 //     overflow: hidden;
 //   }
 // }
+
+@media (max-width: 767px) {
+  .optionImage {
+    width: auto;
+  }
+}
