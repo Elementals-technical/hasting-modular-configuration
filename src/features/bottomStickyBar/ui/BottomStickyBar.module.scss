@@ -44,3 +44,37 @@
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 1024px) {
+  .bottomBar {
+    position: sticky;
+    bottom: 0;
+  }
+
+  .bottomBar > div {
+    padding: 14px 16px;
+    height: 58px;
+  }
+
+  .bottomBar > .total {
+    width: 50%;
+  }
+
+  .bottomBar > .nextStepWrapp {
+    width: 50%;
+  }
+
+  .nextStepWrapp {
+    flex: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .bottomBar > .total {
+    width: 40%;
+  }
+
+  .bottomBar > .nextStepWrapp {
+    width: 60%;
+  }
+}

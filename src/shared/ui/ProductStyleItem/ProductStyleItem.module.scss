@@ -103,3 +103,33 @@
     align-items: center;
   }
 }
+
+@media (max-width: 1024px) {
+  .productStyleItem {
+    .image {
+      img {
+        width: 45%;
+      }
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .productStyleItem {
+    .image {
+      img {
+        width: 65%;
+      }
+    }
+  }
+}
+
+@media (max-width: 567px) {
+  .productStyleItem {
+    .image {
+      img {
+        width: 75%;
+      }
+    }
+  }
+}

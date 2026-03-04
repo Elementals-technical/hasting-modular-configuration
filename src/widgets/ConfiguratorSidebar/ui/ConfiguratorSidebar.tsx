@@ -34,7 +34,9 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
   return (
     <div className={s.configSidebar} data-flow={flow}>
-      <StepNavigationBar title={activeStep} flow={flow} />
+      <div className={s.desktopStepNavigation}>
+        <StepNavigationBar title={activeStep} flow={flow} />
+      </div>
 
       <div className={s.stepContent}>{children}</div>
 

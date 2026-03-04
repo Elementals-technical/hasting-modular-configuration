@@ -15,7 +15,7 @@
   display: grid;
   grid-template-columns: 1fr 670px;
   gap: 0;
-  height: calc(100vh - var(--header-height) - var(--banner-height));
+  height: calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px));
   overflow: hidden;
 
   @media (max-width: 1400px) {
@@ -24,6 +24,11 @@
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px));
+    height: calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px));
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
@@ -33,18 +38,21 @@
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
   }
 
-  /* ConfiguratorSidebar is the 3rd child (navWrap is 1st, Player is 2nd) */
-  & > :nth-child(3) {
-    order: 1;
-    border-left: none;
-    border-right: 1px solid #e5e6ea;
-  }
+  @media (min-width: 1025px) {
+    /* ConfiguratorSidebar is the 3rd child (navWrap is 1st, Player is 2nd) */
+    & > :nth-child(3) {
+      order: 1;
+      border-left: none;
+      border-right: 1px solid #e5e6ea;
+    }
 
-  /* Player is the 2nd child */
-  & > :nth-child(2) {
-    order: 2;
+    /* Player is the 2nd child */
+    & > :nth-child(2) {
+      order: 2;
+    }
   }
 }
 
@@ -116,4 +124,46 @@
 
 .opened {
   transform: translateX(0);
+}
+
+@media (max-width: 1024px) {
+  .navWrap {
+    width: 100%;
+    max-width: 360px;
+    padding: 20px;
+  }
+
+  .content > :nth-child(2) {
+    min-height: 530px;
+    height: 530px;
+    max-height: 530px;
+    border-bottom: 1px solid #e5e6ea;
+  }
+
+  .content > :nth-child(3) {
+    min-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    max-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 767px) {
+  .content > :nth-child(2) {
+    min-height: 286px;
+    height: 286px;
+    max-height: 286px;
+  }
+
+  .content > :nth-child(3) {
+    min-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+    height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+    max-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+    min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+    height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+    max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+  }
 }

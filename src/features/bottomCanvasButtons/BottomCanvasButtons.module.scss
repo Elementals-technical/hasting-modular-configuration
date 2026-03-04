@@ -8,6 +8,17 @@
   gap: 12px;
 }
 
+@media (max-width: 1024px) {
+  .bottomCanvasButtons {
+    left: 16px;
+    bottom: 12px;
+    gap: 8px;
+    max-width: calc(100% - 88px);
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+}
+
 .disabledButton {
   opacity: 0.4;
   pointer-events: none;

@@ -33,3 +33,15 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+@media (max-width: 1024px) and (min-width: 768px) {
+  .optionsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .optionsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

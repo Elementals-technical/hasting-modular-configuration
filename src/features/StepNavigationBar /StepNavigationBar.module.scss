@@ -44,3 +44,15 @@
   display: flex;
   align-items: center;
 }
+
+@media (max-width: 1024px) {
+  .stepNavigationBar {
+    padding: 14px 16px;
+  }
+
+  .stepNavigationBar_title {
+    font-size: 14px;
+    line-height: 28px;
+    text-align: center;
+  }
+}
