@@ -75,7 +75,7 @@ export type SyntesiSidePanelRuleResult = {
 export type SidePanelAvailabilityInput = {
   height?: number | null;
   handleType?: "1D" | "2D" | null;
-  cabinetType?: "SBSC" | "OS" | null;
+  cabinetType?: "SBSC" | "OS" | "OSS" | null;
 };
 
 export type SidePanelAvailabilityResult = {

@@ -529,7 +529,11 @@ export const CustomAccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          {activeCabinetId && !isEdgeCabinet ? (
+          {sidePanelAvailability.reason ? (
+            <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>
+              {sidePanelAvailability.reason}
+            </p>
+          ) : activeCabinetId && !isEdgeCabinet ? (
             <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>
               Side panels can only be installed on edge cabinets.
             </p>
