@@ -11,6 +11,8 @@ export interface DropdownItem {
   trailing?: ReactNode;
   children?: DropdownItem[];
   onClick?: () => void;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 interface NestedDropdownProps {
@@ -29,8 +31,10 @@ const MenuItem = ({ item, renderItems }: MenuItemProps) => {
 
   return (
     <div
-      className={clsx(s.item, hasChildren && s.hasChildren)}
+      className={clsx(s.item, hasChildren && s.hasChildren, item.disabled && s.disabled)}
+      title={item.disabled && item.disabledReason ? item.disabledReason : undefined}
       onClick={() => {
+        if (item.disabled) return;
         if (!hasChildren) item.onClick?.();
       }}
     >

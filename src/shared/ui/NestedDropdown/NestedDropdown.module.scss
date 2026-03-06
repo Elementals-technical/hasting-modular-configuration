@@ -111,3 +111,13 @@
   opacity: 1;
   pointer-events: auto;
 }
+
+.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+.disabled:hover {
+  background: none;
+}
