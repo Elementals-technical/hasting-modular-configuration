@@ -105,6 +105,19 @@
   }
 }
 
+@media (max-width: 768px) {
+  .productOption {
+    .image {
+      height: 82px;
+    }
+
+    .title,
+    .desc {
+      display: none;
+    }
+  }
+}
+
 .titleDisabled {
   color: #e5e6ea !important;
 }

@@ -65,7 +65,9 @@ const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
 
   const val = cabinetType.toLowerCase();
 
-  if (val.includes("open-shelf") || val.includes("side-shelf") || val === "os") return "OS";
+  if (val.includes("side-shelf") || val === "oss") return "OSS";
+
+  if (val.includes("open-shelf") || val === "os") return "OS";
 
   if (
     val.includes("sink-base") ||

@@ -101,11 +101,13 @@ export const AccessoriesPage = () => {
 
     const name = firstPreset.name ?? null;
     const cabinetType =
-      name === "Open-Shelf" || name === "Side-Shelf" || name === "OS"
-        ? "OS"
-        : name === "Sink-Base" || name === "Sink-Cabinet" || name === "Side-Cabinet" || name === "SB" || name === "SC"
-          ? "SBSC"
-          : null;
+      name === "Side-Shelf" || name === "OSS"
+        ? "OSS"
+        : name === "Open-Shelf" || name === "OS"
+          ? "OS"
+          : name === "Sink-Base" || name === "Sink-Cabinet" || name === "Side-Cabinet" || name === "SB" || name === "SC"
+            ? "SBSC"
+            : null;
 
     const drawers = firstPreset.Drawers ?? null;
     const handleType =
@@ -460,11 +462,17 @@ export const AccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ProductOptionsGrid
-            data={sidePanelOptions}
-            handleAdd={handleSidePanelsChange}
-            activeValue={activeSidePanels}
-          />
+          {sidePanelAvailability.reason ? (
+            <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>
+              {sidePanelAvailability.reason}
+            </p>
+          ) : (
+            <ProductOptionsGrid
+              data={sidePanelOptions}
+              handleAdd={handleSidePanelsChange}
+              activeValue={activeSidePanels}
+            />
+          )}
         </>
       ),
     },

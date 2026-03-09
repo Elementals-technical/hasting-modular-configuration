@@ -38,6 +38,7 @@ import {
   getSelectedSceneProduct,
   getSelectedProductConfig,
   getHandleGrooveColor,
+  getActiveCabinetRule,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -103,6 +104,7 @@ export const PlayCanvasIntegration = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const productsPresets = useAppSelector(getProductsPresets);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const activeCabinetRule = useAppSelector(getActiveCabinetRule);
 
   const saveSnapshot = useHistorySnapshot();
 
@@ -150,20 +152,39 @@ export const PlayCanvasIntegration = () => {
   }, [selectedProductConfig, selectedSceneProduct]);
 
   const handleOptions = useMemo(() => {
+    const isOpenCabinet = Boolean(activeCabinetRule?.isOpen);
+    const openReason = "Not available for open cabinets";
+
     if (dimensionOptions.handles?.length) {
       return dimensionOptions.handles.map((h) => ({
         label: String(h.name ?? h.value),
         value: String(h.value),
-        disabled: h.disabled,
+        disabled: isOpenCabinet ? true : h.disabled,
+        reason: isOpenCabinet ? openReason : h.reason,
       }));
     }
 
     return [
-      { label: "Push to open", value: "handle_pto" },
-      { label: "Upper Groove", value: "handle_urban_topcut" },
-      { label: "Central Groove", value: "handle_urban_botcut" },
+      {
+        label: "Push to open",
+        value: "handle_pto",
+        disabled: isOpenCabinet || undefined,
+        reason: isOpenCabinet ? openReason : undefined,
+      },
+      {
+        label: "Upper Groove",
+        value: "handle_urban_topcut",
+        disabled: isOpenCabinet || undefined,
+        reason: isOpenCabinet ? openReason : undefined,
+      },
+      {
+        label: "Central Groove",
+        value: "handle_urban_botcut",
+        disabled: isOpenCabinet || undefined,
+        reason: isOpenCabinet ? openReason : undefined,
+      },
     ];
-  }, [dimensionOptions.handles]);
+  }, [activeCabinetRule?.isOpen, dimensionOptions.handles]);
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
@@ -460,6 +481,9 @@ export const PlayCanvasIntegration = () => {
 
   const handleSetHandleType = useCallback(
     async (handleType: string) => {
+      const option = dimensionOptions.handles.find((h) => String(h.value) === handleType);
+      if (option?.disabled) return;
+
       try {
         await saveSnapshot();
         pendingHandleSyncRef.current = true;
@@ -474,7 +498,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [dispatch, productIds, saveSnapshot, selectedProductConfig],
+    [dispatch, dimensionOptions.handles, productIds, saveSnapshot, selectedProductConfig],
   );
 
   // After a handle selection forces a new height via the rules engine, push it to PlayCanvas.
@@ -957,6 +981,8 @@ export const PlayCanvasIntegration = () => {
                     id: option.value,
                     label: option.label,
                     trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
+                    disabled: option.disabled,
+                    disabledReason: option.reason,
                     onClick: () => handleSetHandleType(option.value),
                   })),
                 },

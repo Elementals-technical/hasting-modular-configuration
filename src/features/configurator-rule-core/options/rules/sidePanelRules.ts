@@ -71,6 +71,14 @@ export const sidePanelAvailabilityRule = ({
 }: SidePanelAvailabilityInput): SidePanelAvailabilityResult => {
   const allowed = new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">();
 
+  if (cabinetType === "OSS") {
+    return { allowed, reason: "Side panels are not available for Side-Shelf cabinets." };
+  }
+
+  if (cabinetType === "OS") {
+    return { allowed, reason: "Side panels are not available when an Open-Shelf cabinet is used as an end cabinet." };
+  }
+
   const heightToken = mapHeightToken(height);
   if (!heightToken || !cabinetType) {
     return { allowed };
