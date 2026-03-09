@@ -45,7 +45,8 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
   const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
   const rawT = input.thickness?.trim();
-  const t = rawT ? `${rawT}H` : FALLBACK;
+  const parsedT = rawT ? parseFloat(rawT) : null;
+  const t = parsedT != null && !isNaN(parsedT) ? `${parsedT.toFixed(1)}H` : FALLBACK;
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
   // Material block: -CT-{MaterialSKU}-{ColorCode}

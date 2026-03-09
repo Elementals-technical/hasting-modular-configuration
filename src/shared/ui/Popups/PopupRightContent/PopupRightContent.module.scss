@@ -6,3 +6,10 @@
 
   z-index: 100;
 }
+
+@media (max-width: 1024px) {
+  .rightContent {
+    bottom: 0%;
+    transform: translate(-86%, 101%);
+  }
+}

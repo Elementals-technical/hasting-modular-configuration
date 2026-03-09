@@ -31,6 +31,15 @@
 @media (max-width: 1024px) {
   .optionsGrid {
     grid-template-columns: repeat(4, 1fr);
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .optionsGrid {
+    grid-template-columns: repeat(4, 82px);
+    grid-auto-rows: 82px;
+    grid-row-gap: 12px;
   }
 }
 
