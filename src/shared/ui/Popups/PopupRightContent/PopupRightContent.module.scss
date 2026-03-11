@@ -10,6 +10,19 @@
 @media (max-width: 1024px) {
   .rightContent {
     bottom: 0%;
+    transform: translate(-102%, 25%);
+  }
+}
+
+@media (max-width: 767px) {
+  .rightContent {
     transform: translate(-86%, 101%);
+  }
+}
+
+/* iPhone SE (375x667 and similar short mobile viewports) */
+@media (max-width: 375px) and (max-height: 700px) {
+  .rightContent {
+    transform: translate(-86%, 66%);
   }
 }

@@ -1,6 +1,7 @@
 .instrPopup {
-  width: 520px;
+  width: min(520px, calc(100vw - 32px));
   background-color: #fff;
+  box-sizing: border-box;
 
   border-radius: 10px;
 
@@ -73,7 +74,7 @@
 
 @media (max-width: 430px) {
   .instrPopup {
-    width: 389px;
+    width: 349px;
   }
 }
 

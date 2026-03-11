@@ -90,6 +90,12 @@ const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
+const CABINET_TYPE_ORDER: Record<string, number> = {
+  "Sink-Base": 0,
+  "Side-Cabinet": 1,
+  "Open-Shelf": 2,
+  "Side-Shelf": 3,
+};
 
 const mapDrawerValueToConfig = (value?: string) => {
   if (value === "1") return "1D";
@@ -198,7 +204,14 @@ export const CabinetBuilderPage = () => {
 
   const cabinetTypeOptions = useMemo(
     () =>
-      cabinetCatalog.typeCabinetRules.map((rule) => {
+      [...cabinetCatalog.typeCabinetRules]
+        .sort((a, b) => {
+          const aOrder = CABINET_TYPE_ORDER[a.code] ?? Number.MAX_SAFE_INTEGER;
+          const bOrder = CABINET_TYPE_ORDER[b.code] ?? Number.MAX_SAFE_INTEGER;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return a.code.localeCompare(b.code);
+        })
+        .map((rule) => {
         const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
         const heightValue = selectedDimensions.height ?? 0;
 

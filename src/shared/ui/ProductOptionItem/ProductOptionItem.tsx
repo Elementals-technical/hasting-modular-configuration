@@ -35,6 +35,7 @@ interface ProductOptionItemI {
   setActive?: (id: number | string) => void;
   metadata?: ProductOptionMetadata;
   onPreview?: (title: string, metadata?: ProductOptionMetadata) => void;
+  variant?: "cabinetType";
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
@@ -51,6 +52,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   setActive,
   metadata,
   onPreview,
+  variant,
 }) => {
   const available = isAvailable ?? true; // undefined as available
   const productName = name ?? title;
@@ -61,7 +63,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 
   return (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""}`}
       onClick={() => {
         onClick?.(productName, config);
         setActive?.(id);

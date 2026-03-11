@@ -17,6 +17,8 @@ interface SharePopupI {
 export const SharePopup: React.FC<SharePopupI> = ({ isOpening, setIsOpening, shareValue = "", onCopy }) => {
   const [isCopied, setIsCopied] = useState(false);
   const resetTimerRef = useRef<number | null>(null);
+  const normalizedShareValue = shareValue.trim();
+  const canCopy = /^https?:\/\//i.test(normalizedShareValue);
 
   useEffect(() => {
     if (!isOpening) {
@@ -32,7 +34,7 @@ export const SharePopup: React.FC<SharePopupI> = ({ isOpening, setIsOpening, sha
   }, [isOpening]);
 
   const handleCopy = async () => {
-    if (!shareValue) return;
+    if (!canCopy) return;
 
     await onCopy?.();
     setIsCopied(true);
@@ -76,7 +78,7 @@ export const SharePopup: React.FC<SharePopupI> = ({ isOpening, setIsOpening, sha
 
         <div className={s.footer}>
           <div className={s.footerInner}>
-            <BaseButton onClick={handleCopy} fullWidth={true} disabled={!shareValue}>
+            <BaseButton onClick={handleCopy} fullWidth={true} disabled={!canCopy}>
               {isCopied ? "Copied" : "Copy to clipboard"}
             </BaseButton>
           </div>
