@@ -20,4 +20,4 @@ export {
 } from "./cabinetSkuMaps";
 export { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
 export { buildVesselSku, type VesselSkuInput } from "./buildVesselSku";
-export { vesselSeriesSkuMap, vesselHeightCmMap } from "./vesselSkuMaps";
+export { vesselSeriesSkuMap, vesselHeightCmMap, vesselAllowedMaterialsMap } from "./vesselSkuMaps";

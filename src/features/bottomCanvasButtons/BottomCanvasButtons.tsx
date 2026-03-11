@@ -190,6 +190,7 @@ export const BottomCanvasButtons = () => {
 
       setShareValue("No products to save");
       setIsShareOpening(true);
+      return;
     }
 
     const configs = await Promise.all(ids.map((id) => getConfig(id)));

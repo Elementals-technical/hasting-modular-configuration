@@ -49,10 +49,12 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const t = parsedT != null && !isNaN(parsedT) ? `${parsedT.toFixed(1)}H` : FALLBACK;
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
-  // Material block: -CT-{MaterialSKU}-{ColorCode}
+  const isVessel = styleValue === "vessel";
+
+  // Material block: -CT-{MaterialSKU}-{ColorCode} — omitted for vessel style
   const mat = input.countertopMaterialSku?.trim() || null;
   const color = input.countertopColorCode?.trim() || null;
-  const matBlock = mat ? `-CT-${mat}${color ? `-${color}` : ""}` : "";
+  const matBlock = !isVessel && mat ? `-CT-${mat}${color ? `-${color}` : ""}` : "";
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
   const series = mat ? `UR${mat}` : "URFX";
@@ -62,13 +64,14 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const lines: string[] = [top];
 
   const isIntegrated = styleValue === "integrated";
-  const isVessel = styleValue === "vessel";
 
   // Basin — only for integrated / vessel
   if ((isIntegrated || isVessel) && input.basinType) {
     const basinSku = resolve(basinSkuMap, input.basinType);
     if (basinSku !== FALLBACK) {
-      lines.push(`${CATEGORY}-${series}-${basinSku}`);
+      const basinMat = mat ?? FALLBACK;
+      const basinColor = color ? `-${color}` : "";
+      lines.push(`${CATEGORY}-${series}-${basinSku}-${t}-${basinMat}${basinColor}`);
     }
   }
 

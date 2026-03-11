@@ -127,7 +127,7 @@ export function Player() {
     }
   };
 
-  const handleGenerateQuote = () => {
+  const handleGenerateQuote = async () => {
     const content = document.getElementById("summary-content");
     if (!content) return;
 
@@ -141,6 +141,32 @@ export function Player() {
     };
 
     window.addEventListener("afterprint", restore);
+
+    const images = Array.from(clone.querySelectorAll("img"));
+    if (images.length) {
+      await Promise.all(
+        images.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete && img.naturalWidth > 0) {
+                resolve();
+                return;
+              }
+
+              const done = () => {
+                img.removeEventListener("load", done);
+                img.removeEventListener("error", done);
+                resolve();
+              };
+
+              img.addEventListener("load", done, { once: true });
+              img.addEventListener("error", done, { once: true });
+            }),
+        ),
+      );
+    }
+
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     window.print();
   };
 

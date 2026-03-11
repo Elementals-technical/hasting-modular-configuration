@@ -1,10 +1,29 @@
 /** PlayCanvas vessel type → SKU series code */
 export const vesselSeriesSkuMap: Record<string, string> = {
   Vessel_UrbanModo: "URMOD",
+  Vessel_UrbanModo_Flat: "URMOD",
+  Vessel_UrbanModo_Seam: "URMOD",
+  Vessel_UrbanModo_Cover: "URMOD",
+  Vessel_UrbanKant: "URKNT",
   Vessel_UrbanMorris: "URMOR",
   Vessel_Blade18: "BLD18",
   Vessel_Blade11: "BLD11",
-  // Vessel_Frame, Vessel_Iris, Vessel_Aquarius — series TBD
+  Vessel_Cody: "CODY",
+  Vessel_Milo: "MILO",
+  Vessel_MiloR: "MILOR",
+  Vessel_Oliver: "OLIV",
+  Vessel_OliverR: "OLIVR",
+  // Vessel_Frame, Vessel_Iris — series TBD
+};
+
+/**
+ * PlayCanvas vessel type → fixed material SKU.
+ * Overrides whatever materialSku is passed to buildVesselSku.
+ */
+export const vesselMaterialSkuMap: Record<string, string> = {
+  // Ceramic only — all other vessels use the selected countertop materialSku
+  Vessel_Blade11: "CER",
+  Vessel_Blade18: "CER",
 };
 
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
@@ -29,4 +48,28 @@ export const vesselFixedDepthInMap: Record<string, string> = {
   Vessel_Blade11: "15",
   Vessel_UrbanMorris: "14.6",
   Vessel_Blade18: "15",
+};
+
+/**
+ * PlayCanvas vessel type → allowed countertop material tokens (pre-normalized).
+ *
+ * Vessel is shown only when the selected countertop material matches at least
+ * one token. Tokens use the same format as normalizeMaterialToken()
+ * (lowercase, alphanumeric only).
+ *
+ * Series mapping:
+ *   BLD  (Blade11/18)   → ceramic                        — hidden for all other materials
+ *   URMOD (UrbanModo)   → solidsurface, hpl, porcelain
+ *   URMOR (UrbanMorris) → fenix, tekorlux
+ */
+export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
+  // BLD — Ceramic only, hidden when other materials are selected
+  Vessel_Blade11: ["ceramic"],
+  Vessel_Blade18: ["ceramic"],
+
+  // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), HPL, Porcelain
+  Vessel_UrbanModo: ["solidsurface", "hpl", "porcelain"],
+
+  // URMOR — Tekorlux SSTKR TAL / TAM only (matched via color code, not material name)
+  Vessel_UrbanMorris: ["tal", "tam"],
 };

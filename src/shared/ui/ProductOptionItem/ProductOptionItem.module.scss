@@ -69,6 +69,11 @@
 .materialOption {
   --is-material: 1;
 
+  .image {
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
   > div {
     > div {
       img {
@@ -114,6 +119,44 @@
     .title,
     .desc {
       display: none;
+    }
+  }
+
+  .cabinetTypeItem {
+    .image {
+      height: 92px;
+      border-radius: 10px;
+    }
+
+    .title {
+      display: block;
+      margin-top: 8px;
+      margin-bottom: 2px;
+      font-size: 12px;
+      line-height: 14px;
+      min-height: 26px;
+    }
+
+    .desc {
+      display: block;
+      font-size: 11px;
+      line-height: 13px;
+      color: #4f4f4f;
+      min-height: 24px;
+    }
+
+    .withVisual {
+      img {
+        transform: scale(1.12);
+        transform-origin: center;
+      }
+    }
+  }
+
+  .materialOption {
+    .image {
+      height: auto;
+      aspect-ratio: 1 / 1;
     }
   }
 }

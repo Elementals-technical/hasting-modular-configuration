@@ -13,6 +13,15 @@
     box-sizing: border-box;
     background: #fff;
 
+    /* Request exact background/color rendering for browser print-to-PDF. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+
+    * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
     [class*="copyHint"],
     [class*="copyButton"],
     [class*="copyIcon"],

@@ -107,6 +107,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
             setActive={handleSetActive}
             name={playcanvasValue}
             isMaterial={isMaterial}
+            variant={variant}
             onPreview={isMaterial ? (title, metadata) => setPreviewItem({ title, metadata }) : undefined}
           />
         );

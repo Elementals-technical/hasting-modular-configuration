@@ -555,8 +555,8 @@ export function usePriceCalculation() {
         width: dims.width,
         height: vesselHeightCmMap[vesselType] ?? null,
         depth: dims.depth,
-        materialSku: null,
-        colorCode: null,
+        materialSku: countertopColorSku || null,
+        colorCode: extractColorCode(countertopColor),
       });
       if (!seenVesselSkus.has(vesselSku)) {
         seenVesselSkus.add(vesselSku);
@@ -566,34 +566,32 @@ export function usePriceCalculation() {
     });
 
     // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
-    const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
-    const towelColorCode = extractColorCode(towelBarColor);
     const hasTowel = towelBarOption && towelBarOption !== "None";
     const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
     const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
 
-    if (hasTowel && hasRight && towelMaterialSku) {
+    if (hasTowel && hasRight) {
       const sku = buildTowelBarSku({
         side: "R",
         width: TOWEL_BAR_DEFAULTS.width,
         height: TOWEL_BAR_DEFAULTS.height,
         depth: TOWEL_BAR_DEFAULTS.depth,
-        materialSku: towelMaterialSku,
-        colorCode: towelColorCode,
+        materialSku: "LACM",
+        colorCode: null,
       });
       if (sku) {
         skus.push(sku);
       }
     }
 
-    if (hasTowel && hasLeft && towelMaterialSku) {
+    if (hasTowel && hasLeft) {
       const sku = buildTowelBarSku({
         side: "L",
         width: TOWEL_BAR_DEFAULTS.width,
         height: TOWEL_BAR_DEFAULTS.height,
         depth: TOWEL_BAR_DEFAULTS.depth,
-        materialSku: towelMaterialSku,
-        colorCode: towelColorCode,
+        materialSku: "LACM",
+        colorCode: null,
       });
       if (sku) {
         skus.push(sku);
@@ -611,6 +609,7 @@ export function usePriceCalculation() {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
+          materialSku: cabinetColorSku || null,
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);

@@ -1,5 +1,5 @@
 import { cmToInches } from "./cmToInches";
-import { vesselSeriesSkuMap, vesselFixedWidthInMap, vesselFixedDepthInMap } from "./vesselSkuMaps";
+import { vesselSeriesSkuMap, vesselFixedWidthInMap, vesselFixedDepthInMap, vesselMaterialSkuMap } from "./vesselSkuMaps";
 
 export type VesselSkuInput = {
   /** PlayCanvas vessel type, e.g. "Vessel_Blade11", "Vessel_UrbanModo" */
@@ -39,9 +39,17 @@ export function buildVesselSku(input: VesselSkuInput): string {
   const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
   const d = fixedD ? `${fixedD}D` : normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
-  const mat = input.materialSku?.trim() || null;
+  // Fixed material SKU per vessel type takes priority over the passed-in value
+  const fixedMat = input.vesselType ? vesselMaterialSkuMap[input.vesselType] : undefined;
+  const mat = fixedMat ?? input.materialSku?.trim() ?? null;
   const color = input.colorCode?.trim() || null;
-  const matBlock = mat ? `-${CATEGORY}-${mat}${color ? `-${color}` : ""}` : "";
+  // CER: -VES-CER-{color}; SS/SSTKR: -{mat} {color}; others (HPL/POR/FX...): -{mat} only
+  const matsWithColor = new Set(["SS", "SSTKR"]);
+  const matBlock = mat === "CER"
+    ? `-${CATEGORY}-${mat}${color ? `-${color}` : ""}`
+    : mat
+      ? `-${mat}${matsWithColor.has(mat) && color ? ` ${color}` : ""}`
+      : "";
 
   return `${CATEGORY}-${series}-${model}-${w}-${h}-${d}${matBlock}`;
 }

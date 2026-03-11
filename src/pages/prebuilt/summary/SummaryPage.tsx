@@ -12,8 +12,7 @@ import {
   getCabinetColorSku,
   getCountertopColorSku,
   getCountertopStyle,
-  // getDividersOption,
-  // getDividersStyle,
+  getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
@@ -190,6 +189,7 @@ export const SummaryPage = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const placedDividers = useAppSelector(getPlacedDividers);
+  const dividersStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
@@ -594,8 +594,8 @@ export const SummaryPage = () => {
           width: totalCountertopWidth,
           height: vesselHeightCmMap[sinkType] ?? null,
           depth: selectedDimensions.depth,
-          materialSku: null,
-          colorCode: null,
+          materialSku: countertopColorSku || null,
+          colorCode: extractColorCode(countertopColor),
         })
       : null;
 
@@ -646,33 +646,32 @@ export const SummaryPage = () => {
     ].filter(Boolean) as SummaryItem[];
 
     // Towel bar full product SKUs
-    const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
-    const towelColorCode = extractColorCode(towelBarColor);
+    const towelMaterialSku = "LACM";
     const hasTowel = towelBarOption && towelBarOption !== "None";
     const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
     const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
 
     const towelBarRightSku =
-      hasTowel && hasRight && towelMaterialSku
+      hasTowel && hasRight
         ? buildTowelBarSku({
             side: "R",
             width: TOWEL_BAR_DEFAULTS.width,
             height: TOWEL_BAR_DEFAULTS.height,
             depth: TOWEL_BAR_DEFAULTS.depth,
             materialSku: towelMaterialSku,
-            colorCode: towelColorCode,
+            colorCode: null,
           })
         : null;
 
     const towelBarLeftSku =
-      hasTowel && hasLeft && towelMaterialSku
+      hasTowel && hasLeft
         ? buildTowelBarSku({
             side: "L",
             width: TOWEL_BAR_DEFAULTS.width,
             height: TOWEL_BAR_DEFAULTS.height,
             depth: TOWEL_BAR_DEFAULTS.depth,
             materialSku: towelMaterialSku,
-            colorCode: towelColorCode,
+            colorCode: null,
           })
         : null;
 
@@ -696,6 +695,7 @@ export const SummaryPage = () => {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
+          materialSku: cabinetColorSku || null,
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);
@@ -720,22 +720,42 @@ export const SummaryPage = () => {
 
     const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
 
-    const dividerItems: SummaryItem[] = placedDividers.map((divider, index) => {
-      const style = typeToStyleMap[divider.type];
-      const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
-      // const image = buildImageSrc(resolveDividerImage(style));
-      const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
-      return {
-        id: `accessories-dividers-${divider.key}-${index}`,
-        title: "Dividers",
-        subtitle: sku ?? undefined,
-        sku: sku ?? undefined,
-        // swatch: style && image ? { label: "Divider", value: style, color: "#ffffff", image } : undefined,
-        price: formatPrice(unitPrice),
-        copyable: !!sku,
-        description: { "Product Category": "Divider", "Divider Style": style },
-      };
-    });
+    const dividerItems: SummaryItem[] = (() => {
+      if (placedDividers.length > 0) {
+        return placedDividers.map((divider, index) => {
+          const style = typeToStyleMap[divider.type];
+          const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
+          const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
+          return {
+            id: `accessories-dividers-${divider.key}-${index}`,
+            title: "Dividers",
+            subtitle: sku ?? undefined,
+            sku: sku ?? undefined,
+            price: formatPrice(unitPrice),
+            copyable: !!sku,
+            description: { "Product Category": "Divider", "Divider Style": style },
+          };
+        });
+      }
+
+      // Fallback: style selected but no individual dividers placed — one per cabinet
+      if (dividersStyle && dividersStyle !== "None") {
+        const sku = buildDividerSku({ dividerStyle: dividersStyle });
+        if (!sku) return [];
+        const unitPrice = priceBySku[sku] ?? 0;
+        return Array.from({ length: cabinetCount }, (_, index) => ({
+          id: `accessories-dividers-style-${index}`,
+          title: "Dividers",
+          subtitle: sku,
+          sku,
+          price: formatPrice(unitPrice),
+          copyable: true,
+          description: { "Product Category": "Divider", "Divider Style": dividersStyle },
+        }));
+      }
+
+      return [];
+    })();
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,

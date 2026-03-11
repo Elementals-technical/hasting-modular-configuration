@@ -2,11 +2,11 @@ export const GRAIN_HORIZONTAL = "GrainHorizontal";
 export const GRAIN_VERTICAL = "GrainVertical";
 
 export const HPL_NO_GRAIN_FINISHES = new Set(["TKP", "TKQ", "TKN"]);
-export const THREE_D_NO_GRAIN_FINISHES = new Set(["10B", "10G", "10N", "1PE"]);
+export const THREE_D_NO_GRAIN_FINISHES = new Set(["10B", "10F", "1A1", "1A2", "1A3", "1A4", "1A5", "1PE"]);
 
 export const HPL_NO_GRAIN_LABEL = "TKP, TKQ, TKN (Cepp Stone, Rox Black, Brera Brown)";
 export const THREE_D_NO_GRAIN_LABEL =
-  "10B, 10G, 10N, 1PE (Colortech Bianco, Colortech Grigio, Colortech Nero, Pelle Pecari Tortora)";
+  "10B, 10F, 1A1, 1A2, 1A3, 1A4, 1A5, 1PE (Colortech Bianco, Colortech Grigio fume, Cemento Cenere, Cemento Tortora, Cemento Creta, Cemento Oltremare, Cemento Ghiaccio, Pelle Pecari Tortora)";
 
 export const GRAIN_DIRECTION_VALUES = [
   { value: GRAIN_HORIZONTAL, label: "Horizontal" },

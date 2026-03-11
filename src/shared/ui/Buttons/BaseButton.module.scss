@@ -80,3 +80,10 @@
   font-size: 13px;
   padding: 8px 16px;
 }
+
+@media (max-width: 768px) {
+  .primary {
+    padding: 9px 8px;
+    font-size: 14px;
+  }
+}

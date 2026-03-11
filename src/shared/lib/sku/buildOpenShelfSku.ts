@@ -1,3 +1,4 @@
+import { cmToInches } from "./cmToInches";
 import { toSkuDepth } from "./toSkuDepth";
 
 export type OpenShelfSkuInput = {
@@ -27,9 +28,10 @@ const FALLBACK = "X";
  *   VAN-UROS-2S-60W-53H-46D-CAB-HPL-FE
  */
 export function buildOpenShelfSku(input: OpenShelfSkuInput): string {
-  const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
-  const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : `${FALLBACK}D`;
+  const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
+  const normalizedDepth = input.depth != null ? toSkuDepth(input.depth) : null;
+  const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
   let sku = `VAN-UROS-2S-${w}-${h}-${d}`;
 
