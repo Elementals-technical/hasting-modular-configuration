@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -56,6 +57,8 @@ import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/
 const COUNTERTOP_OPTION = "Counertops materials";
 
 export const CountertopPage = () => {
+  const [searchParams] = useSearchParams();
+
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
   const presetsProducts = useAppSelector(getProductsPresets);
@@ -72,7 +75,7 @@ export const CountertopPage = () => {
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
 
-  const { data: counterTopMaterials } = useGetConfiguratorQuery({
+  const { data: counterTopMaterials, isFetching: isFetchingcounterTopMaterials } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
     serialize: true,
@@ -133,7 +136,10 @@ export const CountertopPage = () => {
   );
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter(
+      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Cabinet Color" || g.proxyName === "Vessels",
+    );
+
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
@@ -154,11 +160,17 @@ export const CountertopPage = () => {
       return Array.from(tokens);
     };
 
+    const seen = new Set<string>();
+
     return groups.flatMap((group) =>
       group.options.flatMap((option) =>
         option.variants
           .filter((variant) => variant.enabled)
-          .map((variant) => {
+          .flatMap((variant) => {
+            const normalizedName = variant.name.trim().toLowerCase();
+            if (seen.has(normalizedName)) return [];
+            seen.add(normalizedName);
+
             const meta = getVariantMeta(variant);
             const metaMaterial = meta.material ?? option.name;
             const metaColor = meta.color;
@@ -166,26 +178,30 @@ export const CountertopPage = () => {
             const metaHex = meta.hex;
             const descSource = option.name || group.proxyName || variant.name;
 
-            return {
-              id: variant.id,
-              title: meta.label ?? variant.name,
-              name: variant.name,
-              desc: normalizeMaterialLabel(descSource),
-              isShortDesc: false,
-              metadata: {
-                image: meta.image,
-                value: meta.value ?? variant.name,
-                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
-                materials: buildMaterialTokens(
-                  option.name || variant.name,
-                  metaMaterial,
-                  group.proxyName ? [group.proxyName] : [],
-                ),
-                colors: toStringArrayFromCsv(metaColor),
-                looks: toStringArrayFromCsv(metaLook),
-                hex: metaHex?.trim(),
+            const isCemento = variant.name.toLowerCase().startsWith("cemento");
+
+            return [
+              {
+                id: variant.id,
+                title: meta.label ?? variant.name,
+                name: variant.name,
+                desc: normalizeMaterialLabel(descSource),
+                isShortDesc: false,
+                metadata: {
+                  image: meta.image,
+                  value: meta.value ?? variant.name,
+                  sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                  materials: buildMaterialTokens(
+                    option.name || variant.name,
+                    metaMaterial,
+                    [...(group.proxyName ? [group.proxyName] : []), ...(isCemento ? ["Cemento"] : [])],
+                  ),
+                  colors: toStringArrayFromCsv(metaColor),
+                  looks: toStringArrayFromCsv(metaLook),
+                  hex: metaHex?.trim(),
+                },
               },
-            };
+            ];
           }),
       ),
     );
@@ -224,7 +240,9 @@ export const CountertopPage = () => {
   );
 
   const materialFilters = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter(
+      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Cabinet Color" || g.proxyName === "Vessels",
+    );
     if (!groups.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();
@@ -249,6 +267,11 @@ export const CountertopPage = () => {
             .filter(Boolean)
             .map((value) => normalizeMaterialAlias(value)) as string[];
 
+          if (group.proxyName === "Vessels") {
+            materialSet.add(option.name);
+            return;
+          }
+
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
             candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
@@ -260,6 +283,10 @@ export const CountertopPage = () => {
               materialSet.add(value);
             }
           });
+
+          if (variant.name.toLowerCase().startsWith("cemento")) {
+            materialSet.add("Cemento");
+          }
 
           toStringArrayFromCsv(metaColor).forEach((value) => colorSet.add(value));
           toStringArrayFromCsv(metaLook).forEach((value) => lookSet.add(value));
@@ -310,26 +337,6 @@ export const CountertopPage = () => {
     ],
   );
 
-  useEffect(() => {
-    console.log("[prebuilt][countertop][rules]", {
-      selectedDimensions,
-      activeCountertopColor,
-      activeMaterialTokens,
-      activeThickness,
-      activeBasinStyle,
-      allowedMaterials: Array.from(ruleState.allowedMaterials),
-      allowedBasinTokens: Array.from(ruleState.allowedBasinTokens),
-    });
-  }, [
-    selectedDimensions,
-    activeCountertopColor,
-    activeMaterialTokens,
-    activeThickness,
-    activeBasinStyle,
-    ruleState.allowedMaterials,
-    ruleState.allowedBasinTokens,
-  ]);
-
   const allowedMaterials = ruleState.allowedMaterials;
 
   const hasApiOptions = countertopOptionsFromApi.length > 0;
@@ -358,6 +365,7 @@ export const CountertopPage = () => {
         ? filteredByUi
         : filteredByUi.filter((option) => {
             const materials = option.metadata?.materials ?? [];
+            if (materials.some((m) => m.toLowerCase() === "vessels")) return true;
             return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
           });
 
@@ -530,15 +538,11 @@ export const CountertopPage = () => {
     };
   }, [selectedProducts, containsSinkBase]);
 
-  const presetNames = presetsProducts.map((i) => {
-    return i.name;
-  });
+  const presetNames = presetsProducts.map((i) => i.name);
 
   const handleChangeCountertopColor = async (colorName: string) => {
     if (!colorName) return;
     await saveSnapshot();
-
-    console.log("Countertop Color", colorName);
 
     presetNames.forEach((productName) => {
       setConfigBatch({ productType: productName }, { CountertopColor: colorName });
@@ -559,7 +563,6 @@ export const CountertopPage = () => {
   const handleAddThickness = useCallback(
     async (thickness: string) => {
       await saveSnapshot();
-      console.log("thickness prebuilt", thickness);
 
       setConfigBatch({}, { Thickness: thickness });
 
@@ -635,12 +638,12 @@ export const CountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          {/* <ViewModePanel /> */}
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedCountertopOptions}
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
+            isLoading={isFetchingcounterTopMaterials}
           />
         </>
       ),
@@ -682,9 +685,17 @@ export const CountertopPage = () => {
     },
   ];
 
+  const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString();
+  const [accordionValue, setAccordionValue] = useState(defaultValue);
+
+  useEffect(() => {
+    const target = searchParams.get("accordion");
+    if (target) setAccordionValue(target);
+  }, [searchParams]);
+
   return (
     <div className="countertop">
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup defaultValue={defaultValue} value={accordionValue} onValueChange={setAccordionValue}>
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}
