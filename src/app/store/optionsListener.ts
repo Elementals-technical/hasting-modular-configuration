@@ -102,11 +102,15 @@ optionsListenerMiddleware.startListening({
     const availability = selectSidePanelAvailability(state);
     if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
 
-    listenerApi.dispatch(setSidePanelsOption("None"));
+    const GROOVE_ORDER = ["NoG", "UpperG", "CenterG", "DoubleG"] as const;
+    const newValue =
+      GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
+
+    listenerApi.dispatch(setSidePanelsOption(newValue));
 
     const productConfig = getSelectedProductConfig(state);
     const cabinetColor = getCabinetColor(state);
-    const resetPayload = { ...productConfig, CabinetColor: cabinetColor, SidePanel: "None" };
+    const resetPayload = { ...productConfig, CabinetColor: cabinetColor, SidePanel: newValue };
 
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const edgeIds = [leftCabinetId, rightCabinetId].filter(Boolean) as string[];
