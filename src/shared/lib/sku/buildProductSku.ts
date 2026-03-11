@@ -1,6 +1,6 @@
 import { cabinetTypeSkuMap, drawerSkuMap, handleSkuMap, patternSkuMap } from "./cabinetSkuMaps";
+import { cmToInches } from "./cmToInches";
 import { toSkuDepth } from "./toSkuDepth";
-// import { cmToInches } from "./cmToInches";
 
 export type ElementMaterial = {
   materialSku: string | null;
@@ -74,22 +74,19 @@ function buildTriplet(code: string, el: ElementMaterial | null): string | null {
 }
 
 /**
- * Builds a single unified cabinet product SKU (dimensions in cm).
+ * Builds a single unified cabinet product SKU (dimensions in inches).
  *
  * Example output:
- * VAN-URSTD-SB/2DW/PTO/X-105W-50H-50D-HDL-3D
+ * VAN-URSTD-SB/2DW/PTO/X-41.3W-19.7H-19.7D-HDL-3D
  */
 export function buildProductSku(input: ProductSkuInput): string {
   const configBlock = buildConfigBlock(input);
 
-  // Dimensions: cm, W-H-D order with suffixes
-  // TODO: uncomment cmToInches when backend switches to inches
-  // const w = input.width != null ? `${cmToInches(input.width)}W` : FALLBACK;
-  // const h = input.height != null ? `${cmToInches(input.height)}H` : FALLBACK;
-  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : FALLBACK;
-  const w = input.width != null ? `${input.width}W` : FALLBACK;
-  const h = input.height != null ? `${input.height}H` : FALLBACK;
-  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : FALLBACK;
+  // Dimensions: inches, W-H-D order with suffixes
+  const w = input.width != null ? `${cmToInches(input.width)}W` : FALLBACK;
+  const h = input.height != null ? `${cmToInches(input.height)}H` : FALLBACK;
+  const normalizedDepth = input.depth != null ? toSkuDepth(input.depth) : null;
+  const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : FALLBACK;
 
   // Element triplets (order matches spec)
   const triplets = [
@@ -105,17 +102,18 @@ export function buildProductSku(input: ProductSkuInput): string {
 }
 
 /**
- * Builds a base cabinet SKU with raw cm dimensions and no materials.
+ * Builds a base cabinet SKU with inch dimensions and no materials.
  *
  * Example output:
- * VAN-URSTD-SB/2DW/UG/X-60W-56H-50D
+ * VAN-URSTD-SB/2DW/UG/X-23.6W-22H-19.7D
  */
 export function buildProductBaseSku(input: ProductSkuInput): string {
   const configBlock = buildConfigBlock(input);
 
-  const w = input.width != null ? `${input.width}W` : FALLBACK;
-  const h = input.height != null ? `${input.height}H` : FALLBACK;
-  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : FALLBACK;
+  const w = input.width != null ? `${cmToInches(input.width)}W` : FALLBACK;
+  const h = input.height != null ? `${cmToInches(input.height)}H` : FALLBACK;
+  const normalizedDepth = input.depth != null ? toSkuDepth(input.depth) : null;
+  const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : FALLBACK;
 
   return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}`;
 }
