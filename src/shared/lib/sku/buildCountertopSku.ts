@@ -69,7 +69,9 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   if ((isIntegrated || isVessel) && input.basinType) {
     const basinSku = resolve(basinSkuMap, input.basinType);
     if (basinSku !== FALLBACK) {
-      lines.push(`${CATEGORY}-${series}-${basinSku}`);
+      const basinMat = mat ?? FALLBACK;
+      const basinColor = color ? `-${color}` : "";
+      lines.push(`${CATEGORY}-${series}-${basinSku}-${t}-${basinMat}${basinColor}`);
     }
   }
 
