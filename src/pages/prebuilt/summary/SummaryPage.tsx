@@ -12,8 +12,7 @@ import {
   getCabinetColorSku,
   getCountertopColorSku,
   getCountertopStyle,
-  // getDividersOption,
-  // getDividersStyle,
+  getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
@@ -190,6 +189,7 @@ export const SummaryPage = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const placedDividers = useAppSelector(getPlacedDividers);
+  const dividersStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
@@ -721,22 +721,42 @@ export const SummaryPage = () => {
 
     const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
 
-    const dividerItems: SummaryItem[] = placedDividers.map((divider, index) => {
-      const style = typeToStyleMap[divider.type];
-      const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
-      // const image = buildImageSrc(resolveDividerImage(style));
-      const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
-      return {
-        id: `accessories-dividers-${divider.key}-${index}`,
-        title: "Dividers",
-        subtitle: sku ?? undefined,
-        sku: sku ?? undefined,
-        // swatch: style && image ? { label: "Divider", value: style, color: "#ffffff", image } : undefined,
-        price: formatPrice(unitPrice),
-        copyable: !!sku,
-        description: { "Product Category": "Divider", "Divider Style": style },
-      };
-    });
+    const dividerItems: SummaryItem[] = (() => {
+      if (placedDividers.length > 0) {
+        return placedDividers.map((divider, index) => {
+          const style = typeToStyleMap[divider.type];
+          const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
+          const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
+          return {
+            id: `accessories-dividers-${divider.key}-${index}`,
+            title: "Dividers",
+            subtitle: sku ?? undefined,
+            sku: sku ?? undefined,
+            price: formatPrice(unitPrice),
+            copyable: !!sku,
+            description: { "Product Category": "Divider", "Divider Style": style },
+          };
+        });
+      }
+
+      // Fallback: style selected but no individual dividers placed — one per cabinet
+      if (dividersStyle && dividersStyle !== "None") {
+        const sku = buildDividerSku({ dividerStyle: dividersStyle });
+        if (!sku) return [];
+        const unitPrice = priceBySku[sku] ?? 0;
+        return Array.from({ length: cabinetCount }, (_, index) => ({
+          id: `accessories-dividers-style-${index}`,
+          title: "Dividers",
+          subtitle: sku,
+          sku,
+          price: formatPrice(unitPrice),
+          copyable: true,
+          description: { "Product Category": "Divider", "Divider Style": dividersStyle },
+        }));
+      }
+
+      return [];
+    })();
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
