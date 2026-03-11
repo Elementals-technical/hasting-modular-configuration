@@ -696,6 +696,7 @@ export const SummaryPage = () => {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
+          materialSku: cabinetColorSku || null,
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);

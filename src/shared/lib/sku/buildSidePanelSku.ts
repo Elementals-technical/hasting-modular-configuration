@@ -1,4 +1,4 @@
-// import { cmToInches } from "./cmToInches";
+import { cmToInches } from "./cmToInches";
 import { toSkuDepth } from "./toSkuDepth";
 
 export type SidePanelSkuInput = {
@@ -10,6 +10,8 @@ export type SidePanelSkuInput = {
   height: number | null;
   /** Cabinet depth in cm */
   depth: number | null;
+  /** Cabinet material SKU (e.g. "HPL", "LACM", "3D") */
+  materialSku?: string | null;
 };
 
 const FALLBACK = "X";
@@ -32,20 +34,24 @@ export const SIDE_PANEL_WIDTH_CM = 1;
  *
  * Dimensions are converted from cm → inches.
  *
- * Example: VAN-URSP-0G-.4W-19.7H-17.9D
+ * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-HPL  (1cm wide, 53cm tall, 50cm deep, HPL material)
  */
 export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   if (!input.panelType || input.panelType === "None") return null;
 
   const code = sidePanelPricingMap[input.panelType] ?? FALLBACK;
 
-  // TODO: uncomment cmToInches when backend switches to inches
-  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
-  // const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
-  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
-  const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
-  const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${toSkuDepth(input.depth)}D` : `${FALLBACK}D`;
+  const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
+  // Side-panel canvas depth map: canvas value → nominal cm before inches conversion
+  const SIDE_PANEL_DEPTH_MAP: Record<number, number> = { 46: 45.5 };
+  const normalizedDepth = input.depth != null
+    ? (SIDE_PANEL_DEPTH_MAP[input.depth] ?? toSkuDepth(input.depth))
+    : null;
+  const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
-  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}`;
+  const mat = input.materialSku?.trim() || null;
+  const matSuffix = mat ? `-${mat}` : "";
+
+  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}${matSuffix}`;
 }
