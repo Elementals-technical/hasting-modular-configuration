@@ -133,7 +133,9 @@ export const CustomCountertopPage = () => {
   };
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter(
+      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Cabinet Color" || g.proxyName === "Vessels",
+    );
 
     if (!groups.length) return [];
 
@@ -155,11 +157,17 @@ export const CustomCountertopPage = () => {
       return Array.from(tokens);
     };
 
+    const seen = new Set<string>();
+
     return groups.flatMap((group) =>
       group.options.flatMap((option) =>
         option.variants
           .filter((variant) => variant.enabled)
-          .map((variant) => {
+          .flatMap((variant) => {
+            const normalizedName = variant.name.trim().toLowerCase();
+            if (seen.has(normalizedName)) return [];
+            seen.add(normalizedName);
+
             const meta = getVariantMeta(variant);
             const metaMaterial = meta.material ?? option.name;
             const metaColor = meta.color;
@@ -167,26 +175,30 @@ export const CustomCountertopPage = () => {
             const metaHex = meta.hex;
             const descSource = option.name || group.proxyName || variant.name;
 
-            return {
-              id: variant.id,
-              title: meta.label ?? variant.name,
-              name: variant.name,
-              desc: normalizeMaterialLabel(descSource),
-              isShortDesc: false,
-              metadata: {
-                image: meta.image,
-                value: meta.value ?? variant.name,
-                sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
-                materials: buildMaterialTokens(
-                  option.name || variant.name,
-                  metaMaterial,
-                  group.proxyName ? [group.proxyName] : [],
-                ),
-                colors: toStringArrayFromCsv(metaColor),
-                looks: toStringArrayFromCsv(metaLook),
-                hex: metaHex?.trim(),
+            const isCemento = variant.name.toLowerCase().startsWith("cemento");
+
+            return [
+              {
+                id: variant.id,
+                title: meta.label ?? variant.name,
+                name: variant.name,
+                desc: normalizeMaterialLabel(descSource),
+                isShortDesc: false,
+                metadata: {
+                  image: meta.image,
+                  value: meta.value ?? variant.name,
+                  sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                  materials: buildMaterialTokens(
+                    option.name || variant.name,
+                    metaMaterial,
+                    [...(group.proxyName ? [group.proxyName] : []), ...(isCemento ? ["Cemento"] : [])],
+                  ),
+                  colors: toStringArrayFromCsv(metaColor),
+                  looks: toStringArrayFromCsv(metaLook),
+                  hex: metaHex?.trim(),
+                },
               },
-            };
+            ];
           }),
       ),
     );
@@ -262,7 +274,9 @@ export const CustomCountertopPage = () => {
   const allowedMaterials = ruleState.allowedMaterials;
 
   const materialFilters = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter(
+      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Cabinet Color" || g.proxyName === "Vessels",
+    );
     if (!groups.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();
@@ -287,6 +301,11 @@ export const CustomCountertopPage = () => {
             .filter(Boolean)
             .map((value) => normalizeMaterialAlias(value)) as string[];
 
+          if (group.proxyName === "Vessels") {
+            materialSet.add(option.name);
+            return;
+          }
+
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
             candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
@@ -298,6 +317,10 @@ export const CustomCountertopPage = () => {
               materialSet.add(value);
             }
           });
+
+          if (variant.name.toLowerCase().startsWith("cemento")) {
+            materialSet.add("Cemento");
+          }
 
           toStringArrayFromCsv(metaColor).forEach((value) => colorSet.add(value));
           toStringArrayFromCsv(metaLook).forEach((value) => lookSet.add(value));
@@ -345,6 +368,7 @@ export const CustomCountertopPage = () => {
         ? filteredByUi
         : filteredByUi.filter((option) => {
             const materials = option.metadata?.materials ?? [];
+            if (materials.some((m) => m.toLowerCase() === "vessels")) return true;
             return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
           });
 
@@ -377,11 +401,8 @@ export const CustomCountertopPage = () => {
     const vesselSinkNames = new Set([
       "Vessel_Blade11",
       "Vessel_Blade18",
-      "Vessel_Frame",
-      "Vessel_Iris",
       "Vessel_UrbanModo",
       "Vessel_UrbanMorris",
-      "Vessel_Aquarius",
     ]);
 
     const integratedSinkNames = new Set([

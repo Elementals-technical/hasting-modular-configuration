@@ -592,8 +592,8 @@ export const CustomSummaryPage = () => {
           width: totalCountertopWidth,
           height: vesselHeightCmMap[sinkType] ?? null,
           depth: selectedDimensions.depth,
-          materialSku: null,
-          colorCode: null,
+          materialSku: countertopColorSku || null,
+          colorCode: extractColorCode(countertopColor),
         })
       : null;
 

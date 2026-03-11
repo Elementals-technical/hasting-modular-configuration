@@ -555,8 +555,8 @@ export function usePriceCalculation() {
         width: dims.width,
         height: vesselHeightCmMap[vesselType] ?? null,
         depth: dims.depth,
-        materialSku: null,
-        colorCode: null,
+        materialSku: countertopColorSku || null,
+        colorCode: extractColorCode(countertopColor),
       });
       if (!seenVesselSkus.has(vesselSku)) {
         seenVesselSkus.add(vesselSku);
