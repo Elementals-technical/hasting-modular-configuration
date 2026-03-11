@@ -9,14 +9,26 @@ import {
   setGrainDirection,
   setActiveCabinetType,
   setSelectedProductConfig,
+  setSelectedDimensions,
+  setSidePanelsOption,
 } from "@/entities/product/model/store/slice";
-import { getBookMatching, getDrawerPanelFluting, getGrainDirection, getSelectedProducts } from "@/entities/product/model/store/selectors";
+import {
+  getBookMatching,
+  getCabinetColor,
+  getDrawerPanelFluting,
+  getGrainDirection,
+  getSelectedProductConfig,
+  getSelectedProducts,
+  getSidePanelsOption,
+} from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
+  selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -73,5 +85,32 @@ optionsListenerMiddleware.startListening({
     if (!flutingState.available && currentFluting) {
       listenerApi.dispatch(setDrawerPanelFluting(""));
     }
+  },
+});
+
+// When handle (Drawers) or dimensions change — re-check side panel availability.
+// If the currently selected side panel is no longer allowed, reset to "None" and sync PlayCanvas
+// for both edge cabinets (left and right).
+optionsListenerMiddleware.startListening({
+  matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions),
+  effect: async (_, listenerApi) => {
+    const state = listenerApi.getState() as RootState;
+    const currentSidePanels = getSidePanelsOption(state);
+
+    if (!currentSidePanels || currentSidePanels === "None") return;
+
+    const availability = selectSidePanelAvailability(state);
+    if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
+
+    listenerApi.dispatch(setSidePanelsOption("None"));
+
+    const productConfig = getSelectedProductConfig(state);
+    const cabinetColor = getCabinetColor(state);
+    const resetPayload = { ...productConfig, CabinetColor: cabinetColor, SidePanel: "None" };
+
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    const edgeIds = [leftCabinetId, rightCabinetId].filter(Boolean) as string[];
+
+    await Promise.all(edgeIds.map((cabinetId) => setConfigBatch({ cabinetId }, resetPayload)));
   },
 });

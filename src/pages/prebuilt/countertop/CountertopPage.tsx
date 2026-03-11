@@ -47,6 +47,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
+import { vesselAllowedMaterialsMap, extractColorCode } from "@/shared/lib/sku";
 
 import s from "./CountertopPage.module.scss";
 import { BaseButton } from "@/shared";
@@ -389,11 +390,8 @@ export const CountertopPage = () => {
     const vesselSinkNames = new Set([
       "Vessel_Blade11",
       "Vessel_Blade18",
-      "Vessel_Frame",
-      "Vessel_Iris",
       "Vessel_UrbanModo",
       "Vessel_UrbanMorris",
-      "Vessel_Aquarius",
     ]);
 
     const integratedSinkNames = new Set([
@@ -429,7 +427,22 @@ export const CountertopPage = () => {
 
     if (normalizedStyle === "vessel") {
       if (allowedStyles.size && !allowedStyles.has("vessel")) return [];
-      return optionsMockData3.filter((option) => vesselSinkNames.has(option.name ?? ""));
+
+      const activeColorCode = activeCountertopColor
+        ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
+        : null;
+
+      return optionsMockData3.filter((option) => {
+        const name = option.name ?? "";
+        if (!vesselSinkNames.has(name)) return false;
+        if (!normalizedActiveMaterials.length) return true;
+
+        const allowedMats = vesselAllowedMaterialsMap[name];
+        if (allowedMats === null || allowedMats === undefined) return true;
+        return allowedMats.some(
+          (mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode,
+        );
+      });
     }
 
     if (!allowedBasinTokens.size) return [];
@@ -458,7 +471,7 @@ export const CountertopPage = () => {
 
       return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
+  }, [activeCountertopColor, activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;

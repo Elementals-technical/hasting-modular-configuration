@@ -49,3 +49,27 @@ export const vesselFixedDepthInMap: Record<string, string> = {
   Vessel_UrbanMorris: "14.6",
   Vessel_Blade18: "15",
 };
+
+/**
+ * PlayCanvas vessel type → allowed countertop material tokens (pre-normalized).
+ *
+ * Vessel is shown only when the selected countertop material matches at least
+ * one token. Tokens use the same format as normalizeMaterialToken()
+ * (lowercase, alphanumeric only).
+ *
+ * Series mapping:
+ *   BLD  (Blade11/18)   → ceramic                        — hidden for all other materials
+ *   URMOD (UrbanModo)   → solidsurface, hpl, porcelain
+ *   URMOR (UrbanMorris) → fenix, tekorlux
+ */
+export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
+  // BLD — Ceramic only, hidden when other materials are selected
+  Vessel_Blade11: ["ceramic"],
+  Vessel_Blade18: ["ceramic"],
+
+  // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), HPL, Porcelain
+  Vessel_UrbanModo: ["solidsurface", "hpl", "porcelain"],
+
+  // URMOR — Tekorlux SSTKR TAL / TAM only (matched via color code, not material name)
+  Vessel_UrbanMorris: ["tal", "tam"],
+};

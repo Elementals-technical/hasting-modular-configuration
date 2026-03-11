@@ -30,6 +30,7 @@ import {
   setCountertopStyle,
   setCountertopColorSku,
 } from "@/entities/product/model/store/slice";
+import { vesselAllowedMaterialsMap, extractColorCode } from "@/shared/lib/sku";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
@@ -438,7 +439,22 @@ export const CustomCountertopPage = () => {
 
     if (normalizedStyle === "vessel") {
       if (allowedStyles.size && !allowedStyles.has("vessel")) return [];
-      return optionsMockData3.filter((option) => vesselSinkNames.has(option.name ?? ""));
+
+      const activeColorCode = activeCountertopColor
+        ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
+        : null;
+
+      return optionsMockData3.filter((option) => {
+        const name = option.name ?? "";
+        if (!vesselSinkNames.has(name)) return false;
+        if (!normalizedActiveMaterials.length) return true;
+
+        const allowedMats = vesselAllowedMaterialsMap[name];
+        if (allowedMats === null || allowedMats === undefined) return true;
+        return allowedMats.some(
+          (mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode,
+        );
+      });
     }
 
     if (!allowedBasinTokens.size) return [];
@@ -469,7 +485,7 @@ export const CustomCountertopPage = () => {
 
       return Array.from(allowedBasinTokens).some((token) => normalized === token);
     });
-  }, [activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
+  }, [activeCountertopColor, activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
