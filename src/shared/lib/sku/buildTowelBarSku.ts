@@ -1,4 +1,4 @@
-// import { cmToInches } from "./cmToInches";
+import { cmToInches } from "./cmToInches";
 
 export type TowelBarSkuInput = {
   /** "L" (left) or "R" (right) */
@@ -23,7 +23,7 @@ const sideConfigMap: Record<string, string> = {
 };
 
 /** Default towel-bar dimensions (current model: TowelBar40) */
-export const TOWEL_BAR_DEFAULTS = { width: 40, height: 5, depth: 3 } as const;
+export const TOWEL_BAR_DEFAULTS = { width: 40, height: 3.5, depth: 5 } as const;
 
 /**
  * Builds a full product SKU for a towel-bar accessory.
@@ -38,16 +38,9 @@ export function buildTowelBarSku(input: TowelBarSkuInput): string | null {
 
   const config = sideConfigMap[input.side];
 
-  // TODO: uncomment cmToInches when backend switches to inches
-  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
-  // const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
-  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
-  const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
-  const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
+  const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
+  const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
+  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
-  const color = input.colorCode?.trim();
-  const triplet = color ? `TWLBR-${mat}-${color}` : `TWLBR-${mat}`;
-
-  return `${CATEGORY}-${SERIES}-${config}-${w}-${h}-${d}-${triplet}`;
+  return `${CATEGORY}-${SERIES}-${config}-${w}-${h}-${d}-${mat}`;
 }

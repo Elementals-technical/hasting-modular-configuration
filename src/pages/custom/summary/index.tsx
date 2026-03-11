@@ -687,33 +687,32 @@ export const CustomSummaryPage = () => {
     })();
 
     // Towel bar full product SKUs
-    const towelMaterialSku = colorSkuByName.get(towelBarColor) || null;
-    const towelColorCode = extractColorCode(towelBarColor);
+    const towelMaterialSku = "LACM";
     const hasTowel = towelBarOption && towelBarOption !== "None";
     const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
     const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
 
     const towelBarRightSku =
-      hasTowel && hasRight && towelMaterialSku
+      hasTowel && hasRight
         ? buildTowelBarSku({
             side: "R",
             width: TOWEL_BAR_DEFAULTS.width,
             height: TOWEL_BAR_DEFAULTS.height,
             depth: TOWEL_BAR_DEFAULTS.depth,
             materialSku: towelMaterialSku,
-            colorCode: towelColorCode,
+            colorCode: null,
           })
         : null;
 
     const towelBarLeftSku =
-      hasTowel && hasLeft && towelMaterialSku
+      hasTowel && hasLeft
         ? buildTowelBarSku({
             side: "L",
             width: TOWEL_BAR_DEFAULTS.width,
             height: TOWEL_BAR_DEFAULTS.height,
             depth: TOWEL_BAR_DEFAULTS.depth,
             materialSku: towelMaterialSku,
-            colorCode: towelColorCode,
+            colorCode: null,
           })
         : null;
 

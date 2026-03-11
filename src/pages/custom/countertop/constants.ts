@@ -15,7 +15,7 @@ import rayoImage from "@/shared/assets/images/jpeg/basin/Rayo.jpg";
 import rectangularImage from "@/shared/assets/images/jpeg/basin/Rectangular.jpg";
 import rollImage from "@/shared/assets/images/jpeg/basin/Roll.jpg";
 import ronImage from "@/shared/assets/images/jpeg/basin/Ron.jpg";
-import syntesiImage from "@/shared/assets/images/jpeg/basin/Syntesi.jpg";
+// import syntesiImage from "@/shared/assets/images/jpeg/basin/Syntesi.jpg";
 import tiviImage from "@/shared/assets/images/jpeg/basin/Tivi.jpg";
 import tripImage from "@/shared/assets/images/jpeg/basin/Trip.jpg";
 import integratedImage from "@/shared/assets/images/png/countertop/Integrated.png";
@@ -295,15 +295,15 @@ export const optionsMockData3 = [
       image: stripImage,
     },
   },
-  {
-    id: 3023,
-    title: "HPL Syntesi 48",
-    name: "Top_Syntesi",
-    isShortDesc: false,
-    metadata: {
-      image: syntesiImage,
-    },
-  },
+  // {
+  //   id: 3023,
+  //   title: "HPL Syntesi 48",
+  //   name: "Top_Syntesi",
+  //   isShortDesc: false,
+  //   metadata: {
+  //     image: syntesiImage,
+  //   },
+  // },
   {
     id: 3024,
     title: "Tekorlux Quadra 50",
