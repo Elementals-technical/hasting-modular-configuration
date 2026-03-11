@@ -328,7 +328,7 @@ export const CabinetPage = () => {
   }, []);
 
   const extractFinishToken = useCallback((value: string) => {
-    const match = value.match(/\b(TKP|TKQ|TKN|10B|10G|10N|1PE)\b/);
+    const match = value.match(/\b(TKP|TKQ|TKN|10B|10F|10G|10N|1PE|1A1|1A2|1A3|1A4|1A5)\b/);
     return match?.[1] ?? "";
   }, []);
 
