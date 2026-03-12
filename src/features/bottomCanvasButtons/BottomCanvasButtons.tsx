@@ -28,10 +28,13 @@ import {
   getLastPastSnapshot,
   getLastFutureSnapshot,
 } from "@/entities/history/model/store/selectors";
-import { undo, redo } from "@/entities/history/model/store/slice";
+import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
 import { store, type RootState } from "@/app/store";
+import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
+import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
+import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -96,13 +99,20 @@ export const BottomCanvasButtons = () => {
   const handleUndo = async () => {
     if (!canUndo || !lastPastSnapshot || isRestoring) return;
     setIsRestoring(true);
+    dispatch(setHistoryRestoring(true));
+    const cameraState = captureOrbitCameraState();
     try {
       const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
       dispatch(undo(currentSnapshot));
+      dispatch(setOpenStyleSidebar(false));
+      dispatch(setIsDrawerOpen(false));
+      dispatch(setSelectedSceneProduct(""));
       await restoreSnapshot(lastPastSnapshot, dispatch);
+      restoreOrbitCameraState(cameraState);
     } catch (error) {
       console.error("[History] Undo failed", error);
     } finally {
+      dispatch(setHistoryRestoring(false));
       setIsRestoring(false);
     }
   };
@@ -110,13 +120,20 @@ export const BottomCanvasButtons = () => {
   const handleRedo = async () => {
     if (!canRedo || !lastFutureSnapshot || isRestoring) return;
     setIsRestoring(true);
+    dispatch(setHistoryRestoring(true));
+    const cameraState = captureOrbitCameraState();
     try {
       const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
       dispatch(redo(currentSnapshot));
+      dispatch(setOpenStyleSidebar(false));
+      dispatch(setIsDrawerOpen(false));
+      dispatch(setSelectedSceneProduct(""));
       await restoreSnapshot(lastFutureSnapshot, dispatch);
+      restoreOrbitCameraState(cameraState);
     } catch (error) {
       console.error("[History] Redo failed", error);
     } finally {
+      dispatch(setHistoryRestoring(false));
       setIsRestoring(false);
     }
   };
