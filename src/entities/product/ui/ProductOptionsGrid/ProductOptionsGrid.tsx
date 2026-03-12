@@ -25,6 +25,7 @@ export type ProductOptionData = {
   name?: string;
   desc?: string;
   isAvailable?: boolean;
+  disabledReason?: string;
   isShortDesc: boolean;
   config?: addProductConfigI;
   metadata?: ProductOptionMetadata;
@@ -99,6 +100,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
             title={i.title}
             desc={i.desc}
             isAvailable={i.isAvailable}
+            disabledReason={i.disabledReason}
             isShortDesc={i.isShortDesc}
             metadata={i.metadata}
             config={i.config}

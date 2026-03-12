@@ -60,6 +60,7 @@ import {
   getProductsPresets,
   getHasBootstrappedCabinetBuilder,
   getDominantDrawerGroup,
+  getSinkBaseCount,
 } from "@/entities/product/model/store/selectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -151,6 +152,7 @@ export const CabinetBuilderPage = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const dominantDrawerGroup = useAppSelector(getDominantDrawerGroup);
+  const sinkBaseCount = useAppSelector(getSinkBaseCount);
 
   const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
     useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
@@ -215,18 +217,24 @@ export const CabinetBuilderPage = () => {
         const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
         const heightValue = selectedDimensions.height ?? 0;
 
+        const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
+
         return {
           id: rule.code,
           title: meta.title ?? rule.code.replace(/-/g, " "),
           name: rule.code,
           desc: meta.desc,
           isShortDesc: meta.isShortDesc ?? false,
+          isAvailable: !isSinkBaseDisabled,
+          disabledReason: isSinkBaseDisabled
+            ? "Vanity configurations allow a maximum of two Sink Base units."
+            : undefined,
           metadata: {
             image: resolveCabinetTypeImage(rule.code, heightValue, meta.image),
           },
         };
       }),
-    [cabinetCatalog.typeCabinetRules, selectedDimensions.height],
+    [cabinetCatalog.typeCabinetRules, selectedDimensions.height, sinkBaseCount],
   );
 
   const handleClose = () => {

@@ -39,6 +39,7 @@ import {
   getSelectedProductConfig,
   getHandleGrooveColor,
   getActiveCabinetRule,
+  getSinkBaseCount,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -94,6 +95,7 @@ export const PlayCanvasIntegration = () => {
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -990,7 +992,9 @@ export const PlayCanvasIntegration = () => {
             } as DropdownItem,
           ]
         : []),
-      { id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct },
+      ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
+        ? []
+        : [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]),
       { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
     ];
 
@@ -1015,6 +1019,8 @@ export const PlayCanvasIntegration = () => {
     handleOptions,
     handleSetHandleType,
     selectedProductConfig,
+    selectedSceneProduct,
+    sinkBaseCount,
   ]);
 
   const handleCountertopThicknessSelect = useCallback(
