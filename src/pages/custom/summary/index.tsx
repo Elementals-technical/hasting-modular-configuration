@@ -46,6 +46,8 @@ import {
   SIDE_PANEL_WIDTH_CM,
   buildDividerSku,
   buildBookMatchingSku,
+  buildOpenShelfSku,
+  buildOpenSideShelfSku,
   extractColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -380,27 +382,51 @@ export const CustomSummaryPage = () => {
             const swatch = resolveSwatch(swatchValue);
 
             const productCabinetType = name ?? activeCabinetType;
+            const normalizedName = (productCabinetType ?? "").toLowerCase();
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-            const sku = buildProductSku({
-              cabinetType: productCabinetType,
-              drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-              handle: typeof config.Handle === "string" ? config.Handle : null,
-              pattern:
-                typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
-              width: width ?? null,
-              height: height ?? null,
-              depth: depth ?? null,
-              cab: cabinetColorSku
-                ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
-                : null,
-              hdl: handleMaterialSku
-                ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                : null,
-              msp: null,
-              bkpl: null,
-            });
+            let sku: string;
+            if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
+              sku = buildOpenShelfSku({
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cabinetMaterialSku: cabinetColorSku || null,
+                cabinetColorCode: extractColorCode(swatchValue),
+                grainDirection: grainSku,
+              });
+            } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
+              const side: "L" | "R" = index === 0 ? "L" : "R";
+              sku = buildOpenSideShelfSku({
+                side,
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cabinetMaterialSku: cabinetColorSku || null,
+                cabinetColorCode: extractColorCode(swatchValue),
+                grainDirection: grainSku,
+              });
+            } else {
+              sku = buildProductSku({
+                cabinetType: productCabinetType,
+                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+                handle: typeof config.Handle === "string" ? config.Handle : null,
+                pattern:
+                  typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cab: cabinetColorSku
+                  ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+                  : null,
+                hdl: handleMaterialSku
+                  ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                  : null,
+                msp: null,
+                bkpl: null,
+              });
+            }
 
             return {
               id: `cabinet-${index}`,
@@ -445,23 +471,46 @@ export const CustomSummaryPage = () => {
 
               const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-              const sku = buildProductSku({
-                cabinetType: preset.name ?? activeCabinetType,
-                drawers: preset.Drawers ?? null,
-                handle: preset.Handle ?? null,
-                pattern: drawerPanelFluting || null,
-                width: preset.Width ?? null,
-                height: preset.Height ?? null,
-                depth: preset.Depth ?? null,
-                cab: cabinetColorSku
-                  ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
-                  : null,
-                hdl: handleMaterialSku
-                  ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                  : null,
-                msp: null,
-                bkpl: null,
-              });
+              let sku: string;
+              if (preset.name === "Open-Shelf") {
+                sku = buildOpenShelfSku({
+                  width: preset.Width ?? null,
+                  height: preset.Height ?? null,
+                  depth: preset.Depth ?? null,
+                  cabinetMaterialSku: cabinetColorSku || null,
+                  cabinetColorCode: extractColorCode(swatchValue),
+                  grainDirection: grainSku,
+                });
+              } else if (preset.name === "Side-Shelf") {
+                const side: "L" | "R" = index === 0 ? "L" : "R";
+                sku = buildOpenSideShelfSku({
+                  side,
+                  width: preset.Width ?? null,
+                  height: preset.Height ?? null,
+                  depth: preset.Depth ?? null,
+                  cabinetMaterialSku: cabinetColorSku || null,
+                  cabinetColorCode: extractColorCode(swatchValue),
+                  grainDirection: grainSku,
+                });
+              } else {
+                sku = buildProductSku({
+                  cabinetType: preset.name ?? activeCabinetType,
+                  drawers: preset.Drawers ?? null,
+                  handle: preset.Handle ?? null,
+                  pattern: drawerPanelFluting || null,
+                  width: preset.Width ?? null,
+                  height: preset.Height ?? null,
+                  depth: preset.Depth ?? null,
+                  cab: cabinetColorSku
+                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+                    : null,
+                  hdl: handleMaterialSku
+                    ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                    : null,
+                  msp: null,
+                  bkpl: null,
+                });
+              }
 
               return {
                 id: `cabinet-${index}`,
