@@ -4,7 +4,7 @@ import clsx from "clsx";
 import s from "./BaseButton.module.scss";
 
 type BaseButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "filterBtn";
   size?: "md" | "lg" | "sm";
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;

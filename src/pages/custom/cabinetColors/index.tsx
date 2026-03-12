@@ -298,7 +298,7 @@ export const CustomCabinetColorsPage = () => {
       />
 
       {Object.values(selectedFilter).some(Boolean) && (
-        <BaseButton onClick={clearAllFilters} size="sm">
+        <BaseButton variant="filterBtn" onClick={clearAllFilters}>
           Clear All
         </BaseButton>
       )}
@@ -336,7 +336,7 @@ export const CustomCabinetColorsPage = () => {
       />
 
       {Object.values(selectedGrooveFilter).some(Boolean) && (
-        <BaseButton onClick={clearAllFilters} size="sm">
+        <BaseButton variant="filterBtn" onClick={clearAllFilters}>
           Clear All
         </BaseButton>
       )}
