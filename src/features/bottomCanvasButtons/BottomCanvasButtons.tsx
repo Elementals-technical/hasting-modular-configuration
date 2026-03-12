@@ -20,6 +20,7 @@ import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
+import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import {
   getCanUndo,
@@ -51,6 +52,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
+import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon";
 
 export const BottomCanvasButtons = () => {
   const [isDimensionsEnabled, setIsDimensionsEnabled] = useState(false);
@@ -429,6 +431,10 @@ export const BottomCanvasButtons = () => {
           <>
             <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
               <ShareIcon />
+            </BaseButton>
+
+            <BaseButton variant="ghost" onClick={() => downloadSceneImage()}>
+              <DownloadImageIcon />
             </BaseButton>
 
             {/* <BaseButton
