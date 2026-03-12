@@ -29,8 +29,7 @@ export const DrawerStyleConflictPopup: React.FC<DrawerStyleConflictPopupProps> =
 
         <div className={s.content}>
           <p>
-            Switching to <strong>{newStyleTitle}</strong> requires a fresh start. All current cabinets will be removed
-            from your design.
+            Switching to <strong>{newStyleTitle}</strong> will update all cabinets in your design to this style.
           </p>
           <p>Are you sure you want to proceed?</p>
         </div>
@@ -43,7 +42,7 @@ export const DrawerStyleConflictPopup: React.FC<DrawerStyleConflictPopupProps> =
           </div>
           <div>
             <BaseButton onClick={onConfirm} fullWidth={true}>
-              Clear All
+              Approve
             </BaseButton>
           </div>
         </div>
