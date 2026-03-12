@@ -140,6 +140,53 @@
   justify-content: space-between;
 }
 
+.categoryLabelBtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  flex: 1 1 auto;
+  cursor: pointer;
+}
+
+.categoryCaretBtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 8px;
+  margin: 0;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    background-color: #eadccf;
+    box-shadow: inset 0 0 0 1px #d1b9a8;
+  }
+
+  &:focus-visible {
+    outline: none;
+    background-color: #eadccf;
+    box-shadow: inset 0 0 0 1px #9e5a3e;
+  }
+}
+
+.categoryItem:hover .categoryCaretBtn {
+  background-color: #eadccf;
+  box-shadow: inset 0 0 0 1px #d1b9a8;
+}
+
 .categoryItemExpanded {
   font-weight: 500;
   color: #9e5a3e;

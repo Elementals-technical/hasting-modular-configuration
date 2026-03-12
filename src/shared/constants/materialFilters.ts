@@ -36,39 +36,82 @@ type MaterialGroup = {
   label: string;
   value: string;
   childValues: string[];
+  aliases?: string[];
 };
 
 const MATERIAL_HIERARCHY: MaterialGroup[] = [
   {
-    label: "Solid-Surface",
+    label: "Solid Surface",
     value: "solid-surface",
     childValues: ["Tekorlux", "Mineralmarmo", "Tekormud", "Ocritech"],
+    aliases: ["Solid-Surface", "Solid Surface", "SolidSurface"],
   },
   {
     label: "Glass",
     value: "glass",
     childValues: ["Glass MT", "Glass GL", "Glass"],
+    aliases: ["Glass"],
   },
 ];
 
+const normalizeGroupToken = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+
 export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): FilterOption[] => {
   const childToParent = new Map<string, MaterialGroup>();
+  const parentAliasToGroup = new Map<string, MaterialGroup>();
+
   for (const group of MATERIAL_HIERARCHY) {
     for (const childValue of group.childValues) {
-      childToParent.set(childValue.toLowerCase(), group);
+      childToParent.set(normalizeGroupToken(childValue), group);
     }
+
+    const aliasValues = [group.label, group.value, ...(group.aliases ?? [])];
+    aliasValues.forEach((alias) => parentAliasToGroup.set(normalizeGroupToken(alias), group));
   }
 
   const topLevel: FilterOption[] = [];
   const grouped = new Map<string, FilterOption[]>();
+  const standaloneParentOption = new Map<string, FilterOption>();
+
+  const mergeChildren = (children: FilterOption[], standalone?: FilterOption): FilterOption[] => {
+    const next = [...children];
+    if (!standalone) return next;
+
+    const normalizedStandalone = normalizeGroupToken(standalone.value || standalone.label);
+    const alreadyExists = next.some(
+      (child) => normalizeGroupToken(child.value || child.label) === normalizedStandalone,
+    );
+
+    if (!alreadyExists) {
+      next.unshift(standalone);
+    }
+
+    return next;
+  };
 
   for (const option of flatOptions) {
-    const parentGroup = childToParent.get(option.value.toLowerCase());
+    const normalizedValue = normalizeGroupToken(option.value);
+    const normalizedLabel = normalizeGroupToken(option.label);
+    const parentGroup = childToParent.get(normalizedValue) ?? childToParent.get(normalizedLabel);
 
     if (parentGroup) {
       const existing = grouped.get(parentGroup.value) ?? [];
       existing.push(option);
       grouped.set(parentGroup.value, existing);
+      continue;
+    }
+
+    const parentAliasGroup = parentAliasToGroup.get(normalizedValue) ?? parentAliasToGroup.get(normalizedLabel);
+
+    if (parentAliasGroup) {
+      if (!standaloneParentOption.has(parentAliasGroup.value)) {
+        standaloneParentOption.set(parentAliasGroup.value, option);
+      }
+      continue;
     } else {
       topLevel.push(option);
     }
@@ -85,11 +128,15 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
         const group = MATERIAL_HIERARCHY.find((g) => g.value === groupValue);
         const children = grouped.get(groupValue);
         if (group && children && children.length > 0) {
+          const mergedChildren = mergeChildren(children, standaloneParentOption.get(groupValue));
           result.push({
             label: group.label,
-            value: group.value,
-            children: children.sort((a, b) => a.label.localeCompare(b.label)),
+            value: group.label,
+            children: mergedChildren.sort((a, b) => a.label.localeCompare(b.label)),
           });
+        } else if (group) {
+          const standalone = standaloneParentOption.get(groupValue);
+          if (standalone) result.push(standalone);
         }
       }
       hierarchyInserted = true;
@@ -102,11 +149,15 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
       const group = MATERIAL_HIERARCHY.find((g) => g.value === groupValue);
       const children = grouped.get(groupValue);
       if (group && children && children.length > 0) {
+        const mergedChildren = mergeChildren(children, standaloneParentOption.get(groupValue));
         result.push({
           label: group.label,
-          value: group.value,
-          children: children.sort((a, b) => a.label.localeCompare(b.label)),
+          value: group.label,
+          children: mergedChildren.sort((a, b) => a.label.localeCompare(b.label)),
         });
+      } else if (group) {
+        const standalone = standaloneParentOption.get(groupValue);
+        if (standalone) result.push(standalone);
       }
     }
   }
