@@ -1,5 +1,5 @@
 import { cmToInches } from "./cmToInches";
-import { countertopStyleSkuMap, basinSkuMap } from "./countertopSkuMaps";
+import { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
 
 export type CountertopSkuInput = {
   /** "plain" | "integrated" | "vessel" | "undermount" */
@@ -23,9 +23,30 @@ export type CountertopSkuInput = {
 const FALLBACK = "X";
 const CATEGORY = "CT";
 
-const resolve = (map: Record<string, string>, value: string | null): string => {
+const resolve = (
+  map: Record<string, string>,
+  value: string | null,
+  options: { caseInsensitiveKey?: boolean; allowMappedValue?: boolean } = {},
+): string => {
   if (!value) return FALLBACK;
-  return map[value] ?? FALLBACK;
+
+  const { caseInsensitiveKey = false, allowMappedValue = false } = options;
+  const normalizedValue = value.trim();
+  if (!normalizedValue) return FALLBACK;
+
+  if (map[normalizedValue]) return map[normalizedValue];
+
+  if (allowMappedValue) {
+    const mappedValue = Object.values(map).find((code) => code.toLowerCase() === normalizedValue.toLowerCase());
+    if (mappedValue) return mappedValue;
+  }
+
+  if (caseInsensitiveKey) {
+    const matchedKey = Object.keys(map).find((key) => key.toLowerCase() === normalizedValue.toLowerCase());
+    if (matchedKey) return map[matchedKey];
+  }
+
+  return FALLBACK;
 };
 
 /**
@@ -39,8 +60,8 @@ const resolve = (map: Record<string, string>, value: string | null): string => {
  * SERIES is derived from material SKU: "UR" + materialSku (e.g. FX → URFX, HPL → URHPL)
  */
 export function buildCountertopSku(input: CountertopSkuInput): string[] {
-  const styleValue = (input.style?.trim() || "plain").toLowerCase();
-  const styleSku = resolve(countertopStyleSkuMap, styleValue);
+  const styleValue = input.style?.trim() || "plain";
+  const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true });
 
   // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
   const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
@@ -49,10 +70,14 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const t = parsedT != null && !isNaN(parsedT) ? `${parsedT.toFixed(1)}H` : FALLBACK;
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
-  const isVessel = styleValue === "vessel";
+  const isVessel = styleValue.toLowerCase() === "vessel";
 
   // Material block: -CT-{MaterialSKU}-{ColorCode} — omitted for vessel style
-  const mat = input.countertopMaterialSku?.trim() || null;
+  const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
+    caseInsensitiveKey: true,
+    allowMappedValue: true,
+  });
+  const mat = resolvedMaterial !== FALLBACK ? resolvedMaterial : null;
   const color = input.countertopColorCode?.trim() || null;
   const matBlock = !isVessel && mat ? `-CT-${mat}${color ? `-${color}` : ""}` : "";
 
@@ -63,11 +88,9 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const top = `${CATEGORY}-${series}-${styleSku}-${w}-${t}-${d}${matBlock}`;
   const lines: string[] = [top];
 
-  const isIntegrated = styleValue === "integrated";
-
-  // Basin — only for integrated / vessel
-  if ((isIntegrated || isVessel) && input.basinType) {
-    const basinSku = resolve(basinSkuMap, input.basinType);
+  // Basin — present whenever a basin style is selected
+  if (input.basinType) {
+    const basinSku = resolve(basinSkuMap, input.basinType, { caseInsensitiveKey: true, allowMappedValue: true });
     if (basinSku !== FALLBACK) {
       const basinMat = mat ?? FALLBACK;
       const basinColor = color ? `-${color}` : "";

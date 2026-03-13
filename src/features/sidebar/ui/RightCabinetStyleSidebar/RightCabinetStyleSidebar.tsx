@@ -50,6 +50,16 @@ interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
 }
 
+interface PendingHandleChange {
+  next: string;
+  previous: string | undefined;
+  previousDimensions: {
+    width: number | null;
+    height: number | null;
+    depth: number | null;
+  };
+}
+
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
@@ -71,7 +81,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const saveSnapshot = useHistorySnapshot();
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
-  const [pendingHandleType, setPendingHandleType] = useState<string | null>(null);
+  const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
 
   const handleOptions = useMemo(
@@ -156,6 +166,50 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     }
   };
 
+  const restoreHandleType = async (
+    handleType: string | undefined,
+    previousDimensions: { width: number | null; height: number | null; depth: number | null },
+  ) => {
+    if (!handleType) return;
+
+    dispatch(
+      setSelectedProductConfig({
+        ...(selectedProductConfig ?? {}),
+        Handle: handleType,
+      }),
+    );
+
+    if (selectedProducts.length) {
+      await setConfigBatch(selectedProducts, { Handle: handleType });
+    }
+
+    dispatch(setSelectedDimensions(previousDimensions));
+
+    const dimConfig: { Height?: number; Depth?: number } = {};
+    if (typeof previousDimensions.height === "number") {
+      dimConfig.Height = previousDimensions.height;
+    }
+    if (typeof previousDimensions.depth === "number") {
+      dimConfig.Depth = previousDimensions.depth;
+    }
+
+    if (selectedProducts.length && Object.keys(dimConfig).length > 0) {
+      await setConfigBatch({}, dimConfig);
+      selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
+    }
+  };
+
+  const closePendingHandleChange = async (isConfirmed = false) => {
+    if (!pendingHandleChange) return;
+
+    const { previous, next, previousDimensions } = pendingHandleChange;
+    setPendingHandleChange(null);
+
+    if (isConfirmed || previous === next) return;
+
+    await restoreHandleType(previous, previousDimensions);
+  };
+
   const handleSetHandleType = async (handleType: string) => {
     if (typeof heightLocked === "number") {
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
@@ -167,10 +221,21 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       }
     }
 
+    const previousHandle = selectedProductConfig?.Handle as string | undefined;
+    if (previousHandle === handleType) return;
+
     await applyHandleType(handleType);
 
     if (selectedProducts.length > 0) {
-      setPendingHandleType(handleType);
+      setPendingHandleChange({
+        next: handleType,
+        previous: previousHandle,
+        previousDimensions: {
+          width: selectedDimensions.width,
+          height: selectedDimensions.height,
+          depth: selectedDimensions.depth,
+        },
+      });
     }
   };
 
@@ -302,11 +367,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         </div>
       </PopupCenterContent>
 
-      <PopupCenterContent isOpening={pendingHandleType !== null} onClose={() => setPendingHandleType(null)}>
+      <PopupCenterContent isOpening={pendingHandleChange !== null} onClose={() => void closePendingHandleChange()}>
         <div className={s.confirmPopup}>
           <div className={s.confirmHeader}>
             <div className={s.confirmTitle}>Handle Style Updated</div>
-            <div className={s.confirmClose} onClick={() => setPendingHandleType(null)}>
+            <div className={s.confirmClose} onClick={() => void closePendingHandleChange()}>
               <CloseBtnIcon />
             </div>
           </div>
@@ -314,8 +379,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             <p>The handle style has been updated for all drawer cabinets.</p>
           </div>
           <div className={s.confirmFooter}>
-            <div>
-              <BaseButton onClick={() => setPendingHandleType(null)} fullWidth={true}>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <BaseButton variant="ghost" onClick={() => void closePendingHandleChange()} fullWidth={true}>
+                Cancel
+              </BaseButton>
+              <BaseButton onClick={() => void closePendingHandleChange(true)} fullWidth={true}>
                 Confirm
               </BaseButton>
             </div>

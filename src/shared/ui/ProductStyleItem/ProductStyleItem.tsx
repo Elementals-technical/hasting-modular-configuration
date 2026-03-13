@@ -31,12 +31,12 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   // const isClickable = isAvailable && !isMixingRestricted;
 
   const handleClick = () => {
-    if (!isAvailable) return;
-
     if (isMixingRestricted) {
       onMixingRestrictedSelect?.(id);
       return;
     }
+
+    if (!isAvailable) return;
 
     onSelectStyle?.(id);
     handleOpenStyleSidebar();

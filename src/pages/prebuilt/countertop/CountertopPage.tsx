@@ -624,7 +624,7 @@ export const CountertopPage = () => {
       />
 
       {Object.values(selectedFilter).some(Boolean) && (
-        <BaseButton onClick={clearAllFilters} size="sm">
+        <BaseButton variant="filterBtn" onClick={clearAllFilters}>
           Clear All
         </BaseButton>
       )}

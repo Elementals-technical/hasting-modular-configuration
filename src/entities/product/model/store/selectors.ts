@@ -74,6 +74,9 @@ export const getPlacedDividers = (state: RootState) => state.rootStateUI.product
 
 export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;
 
+export const getSinkBaseCount = (state: RootState) =>
+  state.rootStateUI.product.productIds.filter((id) => id.startsWith("Sink-Base-")).length;
+
 /** Returns which drawer group currently dominates the scene.
  *  "single" = at least one 1DW or 1DWID placed (no 2DW)
  *  "double" = at least one 2DW placed

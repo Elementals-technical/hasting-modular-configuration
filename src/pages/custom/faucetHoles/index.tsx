@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
@@ -101,10 +101,30 @@ export const CustomFaucetHolesPage = () => {
     dispatch(setFaucetHolesSpacing(String(value)));
   };
 
+  useEffect(() => {
+    if (!filteredFaucetHolesAmountData.length) return;
+
+    const currentStillValid = filteredFaucetHolesAmountData.some((option) => String(option.title ?? option.id) === faucetAmount);
+
+    if (!currentStillValid) {
+      const first = filteredFaucetHolesAmountData[0];
+      const defaultAmount = String(first.title ?? first.id);
+      dispatch(setFaucetHolesAmount(defaultAmount));
+    }
+  }, [dispatch, faucetAmount, filteredFaucetHolesAmountData]);
+
+  useEffect(() => {
+    const defaultSpacing = String(faucetHolesSpacingOptions[0]?.value ?? "");
+    if (!defaultSpacing) return;
+    if (!faucetSpacing) {
+      dispatch(setFaucetHolesSpacing(defaultSpacing));
+    }
+  }, [dispatch, faucetSpacing]);
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "faucet-holes-amount",
-      title: "Faucet Holes Amount",
+      title: "Faucet Holes",
       defaultOpen: true,
       content: (
         <>
@@ -118,7 +138,7 @@ export const CustomFaucetHolesPage = () => {
     },
     {
       id: "faucet-holes-spacing",
-      title: "Faucet Holes Spacing",
+      title: "Faucet Hole Spacing",
       content: (
         <>
           <FilterSelection

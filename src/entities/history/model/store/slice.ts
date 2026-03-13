@@ -41,6 +41,7 @@ export type SceneSnapshot = {
 type HistoryState = {
   past: SceneSnapshot[];
   future: SceneSnapshot[];
+  isRestoring: boolean;
 };
 
 const MAX_HISTORY_SIZE = 30;
@@ -48,6 +49,7 @@ const MAX_HISTORY_SIZE = 30;
 const initialState: HistoryState = {
   past: [],
   future: [],
+  isRestoring: false,
 };
 
 const historySlice = createSlice({
@@ -55,6 +57,7 @@ const historySlice = createSlice({
   initialState,
   reducers: {
     pushSnapshot(state, action: PayloadAction<SceneSnapshot>) {
+      if (state.isRestoring) return;
       state.past.push(action.payload);
       if (state.past.length > MAX_HISTORY_SIZE) {
         state.past.shift();
@@ -74,8 +77,11 @@ const historySlice = createSlice({
     clearHistory() {
       return initialState;
     },
+    setHistoryRestoring(state, action: PayloadAction<boolean>) {
+      state.isRestoring = action.payload;
+    },
   },
 });
 
-export const { pushSnapshot, undo, redo, clearHistory } = historySlice.actions;
+export const { pushSnapshot, undo, redo, clearHistory, setHistoryRestoring } = historySlice.actions;
 export const historyReducer = historySlice.reducer;

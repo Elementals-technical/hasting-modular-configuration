@@ -11,13 +11,13 @@ import {
   setSelectedProductConfig,
   setSelectedDimensions,
   setSidePanelsOption,
+  switchAllCabinetsDrawerStyle,
 } from "@/entities/product/model/store/slice";
 import {
   getBookMatching,
   getCabinetColor,
   getDrawerPanelFluting,
   getGrainDirection,
-  getSelectedProductConfig,
   getSelectedProducts,
   getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
@@ -92,7 +92,7 @@ optionsListenerMiddleware.startListening({
 // If the currently selected side panel is no longer allowed, reset to "None" and sync PlayCanvas
 // for both edge cabinets (left and right).
 optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions),
+  matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions, setActiveCabinetType, switchAllCabinetsDrawerStyle),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const currentSidePanels = getSidePanelsOption(state);
@@ -108,9 +108,10 @@ optionsListenerMiddleware.startListening({
 
     listenerApi.dispatch(setSidePanelsOption(newValue));
 
-    const productConfig = getSelectedProductConfig(state);
     const cabinetColor = getCabinetColor(state);
-    const resetPayload = { ...productConfig, CabinetColor: cabinetColor, SidePanel: newValue };
+    // Do not spread selected product config here: it may contain stale dimensions/drawers
+    // and accidentally roll back height after drawer-style approve.
+    const resetPayload = { CabinetColor: cabinetColor, SidePanel: newValue };
 
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const edgeIds = [leftCabinetId, rightCabinetId].filter(Boolean) as string[];

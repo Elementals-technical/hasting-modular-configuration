@@ -39,6 +39,7 @@ import {
   getSelectedProductConfig,
   getHandleGrooveColor,
   getActiveCabinetRule,
+  getSinkBaseCount,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -94,6 +95,7 @@ export const PlayCanvasIntegration = () => {
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -776,6 +778,11 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
+  const handleOpenAccessories = useCallback(() => {
+    navigate("/custom/accessories");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
+
   const isCountertopEntity = useCallback((entityName: string | null, config?: Record<string, unknown>) => {
     if (!entityName) return false;
     const candidates = [
@@ -986,11 +993,19 @@ export const PlayCanvasIntegration = () => {
                     onClick: () => handleSetHandleType(option.value),
                   })),
                 },
+                {
+                  id: "accessories",
+                  label: "Accessories",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: handleOpenAccessories,
+                },
               ],
             } as DropdownItem,
           ]
         : []),
-      { id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct },
+      ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
+        ? []
+        : [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]),
       { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
     ];
 
@@ -1009,12 +1024,15 @@ export const PlayCanvasIntegration = () => {
     handleMoveProduct,
     handleOpenCabinetStyle,
     handleOpenCabinetColor,
+    handleOpenAccessories,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
     isDrawerCabinet,
     handleOptions,
     handleSetHandleType,
     selectedProductConfig,
+    selectedSceneProduct,
+    sinkBaseCount,
   ]);
 
   const handleCountertopThicknessSelect = useCallback(

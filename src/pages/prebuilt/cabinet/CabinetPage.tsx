@@ -368,7 +368,7 @@ export const CabinetPage = () => {
       />
 
       {Object.values(selectedFilter).some(Boolean) && (
-        <BaseButton onClick={clearAllFilters} size="sm">
+        <BaseButton variant="filterBtn" onClick={clearAllFilters}>
           Clear All
         </BaseButton>
       )}
@@ -406,7 +406,7 @@ export const CabinetPage = () => {
       />
 
       {Object.values(selectedGrooveFilter).some(Boolean) && (
-        <BaseButton onClick={clearAllFilters} size="sm">
+        <BaseButton variant="filterBtn" onClick={clearAllFilters}>
           Clear All
         </BaseButton>
       )}

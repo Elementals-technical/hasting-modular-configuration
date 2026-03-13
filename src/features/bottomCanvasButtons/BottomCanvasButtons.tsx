@@ -20,6 +20,7 @@ import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
+import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import {
   getCanUndo,
@@ -27,10 +28,13 @@ import {
   getLastPastSnapshot,
   getLastFutureSnapshot,
 } from "@/entities/history/model/store/selectors";
-import { undo, redo } from "@/entities/history/model/store/slice";
+import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
 import { store, type RootState } from "@/app/store";
+import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
+import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
+import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -51,6 +55,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
+import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon";
 
 export const BottomCanvasButtons = () => {
   const [isDimensionsEnabled, setIsDimensionsEnabled] = useState(false);
@@ -94,13 +99,20 @@ export const BottomCanvasButtons = () => {
   const handleUndo = async () => {
     if (!canUndo || !lastPastSnapshot || isRestoring) return;
     setIsRestoring(true);
+    dispatch(setHistoryRestoring(true));
+    const cameraState = captureOrbitCameraState();
     try {
       const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
       dispatch(undo(currentSnapshot));
+      dispatch(setOpenStyleSidebar(false));
+      dispatch(setIsDrawerOpen(false));
+      dispatch(setSelectedSceneProduct(""));
       await restoreSnapshot(lastPastSnapshot, dispatch);
+      restoreOrbitCameraState(cameraState);
     } catch (error) {
       console.error("[History] Undo failed", error);
     } finally {
+      dispatch(setHistoryRestoring(false));
       setIsRestoring(false);
     }
   };
@@ -108,13 +120,20 @@ export const BottomCanvasButtons = () => {
   const handleRedo = async () => {
     if (!canRedo || !lastFutureSnapshot || isRestoring) return;
     setIsRestoring(true);
+    dispatch(setHistoryRestoring(true));
+    const cameraState = captureOrbitCameraState();
     try {
       const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
       dispatch(redo(currentSnapshot));
+      dispatch(setOpenStyleSidebar(false));
+      dispatch(setIsDrawerOpen(false));
+      dispatch(setSelectedSceneProduct(""));
       await restoreSnapshot(lastFutureSnapshot, dispatch);
+      restoreOrbitCameraState(cameraState);
     } catch (error) {
       console.error("[History] Redo failed", error);
     } finally {
+      dispatch(setHistoryRestoring(false));
       setIsRestoring(false);
     }
   };
@@ -429,6 +448,10 @@ export const BottomCanvasButtons = () => {
           <>
             <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
               <ShareIcon />
+            </BaseButton>
+
+            <BaseButton variant="ghost" onClick={() => downloadSceneImage()}>
+              <DownloadImageIcon />
             </BaseButton>
 
             {/* <BaseButton

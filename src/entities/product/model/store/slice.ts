@@ -356,6 +356,41 @@ const productSlice = createSlice({
     setPlacedCabinetStyle(state, action: PayloadAction<{ id: string; value: string }>) {
       state.placedCabinetStyles[action.payload.id] = action.payload.value;
     },
+    updateAllPlacedCabinetStyles(state, action: PayloadAction<string>) {
+      Object.keys(state.placedCabinetStyles).forEach((id) => {
+        state.placedCabinetStyles[id] = action.payload;
+      });
+    },
+    /** Atomically switches drawer style for all placed cabinets + updates selectedProductConfig in one reducer call,
+     *  ensuring dominantDrawerGroup and dimensionOptions are both correct in the same render cycle.
+     *  forcedHeight: the height already sent to PlayCanvas by the caller — used to override the
+     *  rule engine result when supportsHeightForAllProducts would otherwise block the height change. */
+    switchAllCabinetsDrawerStyle(
+      state,
+      action: PayloadAction<{ configValue: string; rawValue: string; forcedHeight?: number | null; forcedHandle?: string | null }>,
+    ) {
+      const { configValue, rawValue, forcedHeight, forcedHandle } = action.payload;
+
+      if (state.selectedProductConfig) {
+        state.selectedProductConfig = { ...state.selectedProductConfig, Drawers: configValue };
+      } else {
+        state.selectedProductConfig = { Drawers: configValue };
+      }
+
+      Object.keys(state.placedCabinetStyles).forEach((id) => {
+        state.placedCabinetStyles[id] = rawValue;
+      });
+
+      applyRulesToState(state);
+
+      // Override with values already applied to PlayCanvas so Redux stays in sync
+      if (typeof forcedHeight === "number") {
+        state.selectedDimensions.height = forcedHeight;
+      }
+      if (forcedHandle && state.selectedProductConfig) {
+        state.selectedProductConfig = { ...state.selectedProductConfig, Handle: forcedHandle as HandleOption };
+      }
+    },
     setDrawerProduct(state, action: PayloadAction<string>) {
       state.activeDrawerProduct = action.payload;
     },
@@ -584,5 +619,7 @@ export const {
   resetCabinetBuilderBootstrap,
   setHasBootstrappedCabinetBuilder,
   restoreProductState,
+  updateAllPlacedCabinetStyles,
+  switchAllCabinetsDrawerStyle,
 } = productSlice.actions;
 export const productReducer = productSlice.reducer;

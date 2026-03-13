@@ -269,7 +269,7 @@ export const ModelPage = () => {
             />
 
             {(sizeFilter !== "all" || styleFilter !== "all") && (
-              <BaseButton size="sm" onClick={clearAllFilters}>
+              <BaseButton variant="filterBtn" onClick={clearAllFilters}>
                 Clear All
               </BaseButton>
             )}

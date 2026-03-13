@@ -26,6 +26,7 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  disabledReason?: string;
   isMaterial?: boolean;
   name?: string;
   isShortDesc: boolean;
@@ -43,6 +44,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   title,
   desc,
   isAvailable,
+  disabledReason,
   isShortDesc,
   name,
   config,
@@ -65,12 +67,13 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     <div
       className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""}`}
       onClick={() => {
+        if (!available) return;
         onClick?.(productName, config);
         setActive?.(id);
       }}
     >
       <div className={s.imageContainer}>
-        <div className={`${s.image} ${hasVisual ? s.withVisual : ""}`}>
+        <div className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""}`}>
           {hasImage ? (
             <img src={imageSrc} alt="color image" />
           ) : hasHexColor ? (
@@ -110,7 +113,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
           )}
         </div>
       ) : (
-        <Hint className={s.optionHint} content={"Not available for Mineralmaro Countertop"}>
+        <Hint className={s.optionHint} content={disabledReason ?? "Not available for Mineralmaro Countertop"}>
           <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
         </Hint>
       )}

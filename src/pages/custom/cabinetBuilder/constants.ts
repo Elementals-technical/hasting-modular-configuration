@@ -52,10 +52,10 @@ export const optionsMockData = [
       Height: 56,
       Depth: 46,
       Width: 60,
-      CabinetColor: "Ardesia DD GL",
+      CabinetColor: "Pulpis Chiaro TKH",
       sinkType: "Top_HPLPrisma",
-      HandleGrooveColor: "Ardesia DD GL",
-      CountertopColor: "Blu Pavone A6 MT",
+      HandleGrooveColor: "Pulpis Chiaro TKH",
+      CountertopColor: "Pietra Di Savoia Antracite TQ6",
     },
   },
   {
@@ -70,7 +70,7 @@ export const optionsMockData = [
     config: {
       Height: 53,
       Depth: 46,
-      CabinetColor: "Ardesia DD GL",
+      CabinetColor: "Pulpis Chiaro TKH",
       Width: 60,
     },
   },
@@ -85,7 +85,7 @@ export const optionsMockData = [
     config: {
       Height: 56,
       Depth: 46,
-      CabinetColor: "Ardesia DD GL",
+      CabinetColor: "Pulpis Chiaro TKH",
       Width: 60,
     },
   },
@@ -100,7 +100,7 @@ export const optionsMockData = [
     config: {
       Height: 56,
       Depth: 46,
-      CabinetColor: "Ardesia DD GL",
+      CabinetColor: "Pulpis Chiaro TKH",
       Width: 60,
     },
   },

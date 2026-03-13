@@ -146,21 +146,17 @@ export const FilterSelection = ({
   };
 
   const handleCategoryClick = (option: Option) => {
-    if (option.children && option.children.length > 0) {
-      setExpandedCategories((prev) => {
-        const next = new Set(prev);
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
 
-        if (next.has(option.value)) {
-          next.delete(option.value);
-        } else {
-          next.add(option.value);
-        }
+      if (next.has(option.value)) {
+        next.delete(option.value);
+      } else {
+        next.add(option.value);
+      }
 
-        return next;
-      });
-    } else {
-      handleSelect(option);
-    }
+      return next;
+    });
   };
 
   const classes = className ? `${s.filterSelection} ${className}` : s.filterSelection;
@@ -176,16 +172,32 @@ export const FilterSelection = ({
     if (hasChildren) {
       return (
         <div key={option.value}>
-          <button
-            type="button"
-            className={[s.menuItem, s.categoryItem, isExpanded ? s.categoryItemExpanded : ""].filter(Boolean).join(" ")}
-            onClick={() => handleCategoryClick(option)}
+          <div
+            className={[
+              s.menuItem,
+              s.categoryItem,
+              isExpanded ? s.categoryItemExpanded : "",
+              isSelected ? s.activeItem : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            role="option"
+            aria-selected={isSelected}
           >
-            <span className={s.optionLabel}>{optionLabel}</span>
-            <span className={`${s.caret} ${isExpanded ? s.caretUp : ""}`}>
-              <ArrowDown width="8" />
-            </span>
-          </button>
+            <button type="button" className={s.categoryLabelBtn} onClick={() => handleSelect(option)}>
+              <span className={s.optionLabel}>{optionLabel}</span>
+            </button>
+            <button
+              type="button"
+              className={s.categoryCaretBtn}
+              aria-label={isExpanded ? `Collapse ${optionLabel}` : `Expand ${optionLabel}`}
+              onClick={() => handleCategoryClick(option)}
+            >
+              <span className={`${s.caret} ${isExpanded ? s.caretUp : ""}`}>
+                <ArrowDown width="8" />
+              </span>
+            </button>
+          </div>
 
           {isExpanded && (
             <div className={s.childrenGroup}>{option.children!.map((child) => renderOption(child, true))}</div>
