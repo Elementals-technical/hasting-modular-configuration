@@ -346,6 +346,11 @@ export const CustomSummaryPage = () => {
 
   const summarySections: SummarySection[] = useMemo(() => {
     const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
+    const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
+      cabinetColorSku ||
+      (swatchValue ? colorSkuByName.get(swatchValue) : null) ||
+      colorSkuByName.get(cabinetColor) ||
+      null;
     const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
     const cabinetCount =
       cabinetConfigs.length > 0 ? cabinetConfigs.length : productsPresets.length > 0 ? productsPresets.length : 1;
@@ -383,6 +388,7 @@ export const CustomSummaryPage = () => {
 
             const productCabinetType = name ?? activeCabinetType;
             const normalizedName = (productCabinetType ?? "").toLowerCase();
+            const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
@@ -392,7 +398,7 @@ export const CustomSummaryPage = () => {
                 width: width ?? null,
                 height: height ?? null,
                 depth: depth ?? null,
-                cabinetMaterialSku: cabinetColorSku || null,
+                cabinetMaterialSku: cabinetMaterialSku,
                 cabinetColorCode: extractColorCode(swatchValue),
                 grainDirection: grainSku,
               });
@@ -403,7 +409,7 @@ export const CustomSummaryPage = () => {
                 width: width ?? null,
                 height: height ?? null,
                 depth: depth ?? null,
-                cabinetMaterialSku: cabinetColorSku || null,
+                cabinetMaterialSku: cabinetMaterialSku,
                 cabinetColorCode: extractColorCode(swatchValue),
                 grainDirection: grainSku,
               });
@@ -417,8 +423,12 @@ export const CustomSummaryPage = () => {
                 width: width ?? null,
                 height: height ?? null,
                 depth: depth ?? null,
-                cab: cabinetColorSku
-                  ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+                cab: cabinetMaterialSku
+                  ? {
+                      materialSku: cabinetMaterialSku,
+                      colorCode: extractColorCode(swatchValue),
+                      grainDirection: grainSku,
+                    }
                   : null,
                 hdl: handleMaterialSku
                   ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -453,7 +463,7 @@ export const CustomSummaryPage = () => {
                 height: height ?? null,
                 depth: depth ?? null,
                 cabColor: swatchValue,
-                cabMaterialSku: cabinetColorSku || null,
+                cabMaterialSku: cabinetMaterialSku,
                 hdlColor: handleGrooveColor,
                 hdlMaterialSku: handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null,
               }),
@@ -468,6 +478,7 @@ export const CustomSummaryPage = () => {
               const subtitle = [drawers, dims].filter(Boolean).join(" | ");
               const swatchValue = preset.CabinetColor ?? cabinetColor;
               const swatch = resolveSwatch(swatchValue);
+              const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
               const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
@@ -477,7 +488,7 @@ export const CustomSummaryPage = () => {
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
                   depth: preset.Depth ?? null,
-                  cabinetMaterialSku: cabinetColorSku || null,
+                  cabinetMaterialSku: cabinetMaterialSku,
                   cabinetColorCode: extractColorCode(swatchValue),
                   grainDirection: grainSku,
                 });
@@ -488,7 +499,7 @@ export const CustomSummaryPage = () => {
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
                   depth: preset.Depth ?? null,
-                  cabinetMaterialSku: cabinetColorSku || null,
+                  cabinetMaterialSku: cabinetMaterialSku,
                   cabinetColorCode: extractColorCode(swatchValue),
                   grainDirection: grainSku,
                 });
@@ -501,8 +512,12 @@ export const CustomSummaryPage = () => {
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
                   depth: preset.Depth ?? null,
-                  cab: cabinetColorSku
-                    ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+                  cab: cabinetMaterialSku
+                    ? {
+                        materialSku: cabinetMaterialSku,
+                        colorCode: extractColorCode(swatchValue),
+                        grainDirection: grainSku,
+                      }
                     : null,
                   hdl: handleMaterialSku
                     ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -534,7 +549,7 @@ export const CustomSummaryPage = () => {
                   height: preset.Height ?? null,
                   depth: preset.Depth ?? null,
                   cabColor: swatchValue,
-                  cabMaterialSku: cabinetColorSku || null,
+                  cabMaterialSku: cabinetMaterialSku,
                   hdlColor: handleGrooveColor,
                   hdlMaterialSku: handleMaterialSku,
                 }),
@@ -543,6 +558,7 @@ export const CustomSummaryPage = () => {
           : [
               (() => {
                 const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+                const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
 
                 const sku = buildProductSku({
                   cabinetType: activeCabinetType,
@@ -552,9 +568,9 @@ export const CustomSummaryPage = () => {
                   width: selectedDimensions.width,
                   height: selectedDimensions.height,
                   depth: selectedDimensions.depth,
-                  cab: cabinetColorSku
+                  cab: cabinetMaterialSku
                     ? {
-                        materialSku: cabinetColorSku,
+                        materialSku: cabinetMaterialSku,
                         colorCode: extractColorCode(cabinetColor),
                         grainDirection: grainSku,
                       }
@@ -590,7 +606,7 @@ export const CustomSummaryPage = () => {
                     height: selectedDimensions.height,
                     depth: selectedDimensions.depth,
                     cabColor: cabinetColor,
-                    cabMaterialSku: cabinetColorSku || null,
+                    cabMaterialSku: cabinetMaterialSku,
                     hdlColor: handleGrooveColor,
                     hdlMaterialSku: handleMaterialSku,
                   }),
@@ -648,7 +664,7 @@ export const CustomSummaryPage = () => {
         })
       : null;
 
-    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Hole Quantity", "Faucet Hole Spacing", "Hole Cutout"];
+    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Faucet Hole Spacing", "Hole Cutout"];
 
     const countertopItems: SummaryItem[] = [
       // Main countertop item with swatch
@@ -872,7 +888,7 @@ export const CustomSummaryPage = () => {
       faucetHolesAmount
         ? {
             id: "faucet-holes-amount",
-            title: "Faucet Holes Amount",
+            title: "Faucet Holes",
             subtitle: faucetHolesAmount,
             price: "$0",
           }
@@ -880,7 +896,7 @@ export const CustomSummaryPage = () => {
       faucetHolesSpacing
         ? {
             id: "faucet-holes-spacing",
-            title: "Faucet Holes Spacing",
+            title: "Faucet Hole Spacing",
             subtitle: faucetHolesSpacing,
             price: "$0",
           }
