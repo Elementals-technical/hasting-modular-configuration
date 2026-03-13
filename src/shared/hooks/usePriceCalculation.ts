@@ -272,6 +272,8 @@ export function usePriceCalculation() {
 
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+    const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
+      cabinetColorSku || (swatchValue ? colorSkuByName.get(swatchValue) : null) || colorSkuByName.get(cabinetColor) || null;
 
     // 1) Product SKU(s) — Resolver 1
     if (shouldUsePresets) {
@@ -286,7 +288,7 @@ export function usePriceCalculation() {
             width: preset.Width ?? null,
             height: preset.Height ?? null,
             depth: preset.Depth ?? null,
-            cabinetMaterialSku: cabinetColorSku || null,
+            cabinetMaterialSku: resolveCabinetMaterialSku(swatchValue),
             cabinetColorCode: extractColorCode(swatchValue),
             grainDirection: grainSku,
           });
@@ -305,7 +307,7 @@ export function usePriceCalculation() {
             width: preset.Width ?? null,
             height: preset.Height ?? null,
             depth: preset.Depth ?? null,
-            cabinetMaterialSku: cabinetColorSku || null,
+            cabinetMaterialSku: resolveCabinetMaterialSku(swatchValue),
             cabinetColorCode: extractColorCode(swatchValue),
             grainDirection: grainSku,
           });
@@ -319,6 +321,7 @@ export function usePriceCalculation() {
         const resolvedType = name || resolveCabinetType(name || null) || activeCabinetType;
 
         const swatchValue = preset.CabinetColor ?? cabinetColor;
+        const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: preset.Drawers ?? null,
@@ -327,8 +330,8 @@ export function usePriceCalculation() {
           width: preset.Width ?? null,
           height: selectedDimensions.height ?? preset.Height ?? null,
           depth: selectedDimensions.depth ?? preset.Depth ?? null,
-          cab: cabinetColorSku
-            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+          cab: cabMaterialSku
+            ? { materialSku: cabMaterialSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
             : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -346,13 +349,14 @@ export function usePriceCalculation() {
         const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
 
         if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
+          const swatchValue = cfg.CabinetColor ?? cabinetColor;
           skus.push(
             buildOpenShelfSku({
               width: cfg.Width,
               height: cfg.Height,
               depth: cfg.Depth,
-              cabinetMaterialSku: cabinetColorSku || null,
-              cabinetColorCode: extractColorCode(cabinetColor),
+              cabinetMaterialSku: resolveCabinetMaterialSku(swatchValue),
+              cabinetColorCode: extractColorCode(swatchValue),
               grainDirection: grainSku,
             }),
           );
@@ -361,20 +365,23 @@ export function usePriceCalculation() {
 
         if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
           const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const swatchValue = cfg.CabinetColor ?? cabinetColor;
           skus.push(
             buildOpenSideShelfSku({
               side,
               width: cfg.Width,
               height: cfg.Height,
               depth: cfg.Depth,
-              cabinetMaterialSku: cabinetColorSku || null,
-              cabinetColorCode: extractColorCode(cabinetColor),
+              cabinetMaterialSku: resolveCabinetMaterialSku(swatchValue),
+              cabinetColorCode: extractColorCode(swatchValue),
               grainDirection: grainSku,
             }),
           );
           return;
         }
 
+        const swatchValue = cfg.CabinetColor ?? cabinetColor;
+        const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
         skus.push(
           buildProductSku({
             cabinetType: resolvedType,
@@ -384,8 +391,8 @@ export function usePriceCalculation() {
             width: cfg.Width,
             height: cfg.Height,
             depth: cfg.Depth,
-            cab: cabinetColorSku
-              ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+            cab: cabMaterialSku
+              ? { materialSku: cabMaterialSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
               : null,
             hdl: handleMaterialSku
               ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
@@ -397,10 +404,10 @@ export function usePriceCalculation() {
       });
     } else if (sceneConfigs.length > 0) {
       // Custom path: iterate all products from PlayCanvas
-      // Color is global (same for all products on scene) → always use Redux cabinetColor
       sceneConfigs.forEach((cfg, idx) => {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
         const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+        const swatchValue = cfg.CabinetColor ?? cabinetColor;
 
         // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
         if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
@@ -408,8 +415,8 @@ export function usePriceCalculation() {
             width: cfg.Width,
             height: cfg.Height,
             depth: cfg.Depth,
-            cabinetMaterialSku: cabinetColorSku || null,
-            cabinetColorCode: extractColorCode(cabinetColor),
+            cabinetMaterialSku: resolveCabinetMaterialSku(swatchValue),
+            cabinetColorCode: extractColorCode(swatchValue),
             grainDirection: grainSku,
           });
 
@@ -425,8 +432,8 @@ export function usePriceCalculation() {
             width: cfg.Width,
             height: cfg.Height,
             depth: cfg.Depth,
-            cabinetMaterialSku: cabinetColorSku || null,
-            cabinetColorCode: extractColorCode(cabinetColor),
+            cabinetMaterialSku: resolveCabinetMaterialSku(swatchValue),
+            cabinetColorCode: extractColorCode(swatchValue),
             grainDirection: grainSku,
           });
 
@@ -434,6 +441,7 @@ export function usePriceCalculation() {
           return;
         }
 
+        const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: cfg.Drawers,
@@ -442,8 +450,8 @@ export function usePriceCalculation() {
           width: cfg.Width,
           height: cfg.Height,
           depth: cfg.Depth,
-          cab: cabinetColorSku
-            ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+          cab: cabMaterialSku
+            ? { materialSku: cabMaterialSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
             : null,
           hdl: handleMaterialSku
             ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }

@@ -95,6 +95,8 @@ const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
+const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
+const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Pietra Di Savoia Antracite TQ6";
 const CABINET_TYPE_ORDER: Record<string, number> = {
   "Sink-Base": 0,
   "Side-Cabinet": 1,
@@ -334,7 +336,7 @@ export const CabinetBuilderPage = () => {
         depth: selectedDimensions.depth ?? 0,
         height: selectedDimensions.height ?? 0,
         drawers: drawerRawValue,
-        handle: selectedProductConfig?.Handle ? selectedProductConfig.Handle : undefined,
+        handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined,
       },
       undefined,
       { selectedProductIds: [] },
@@ -342,7 +344,7 @@ export const CabinetBuilderPage = () => {
     );
 
     // Handle: replicate applyRulesToState auto-change logic so PlayCanvas stays in sync
-    const currentHandle = selectedProductConfig?.Handle || null;
+    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
     let newHandle: string | null = currentHandle;
     const handles = rulesResult.availableOptions.handles;
 
@@ -506,6 +508,8 @@ export const CabinetBuilderPage = () => {
     bootstrappedRef.current = false;
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
+    dispatch(setCabinetColor(CUSTOM_DEFAULT_CABINET_COLOR));
+    dispatch(setActiveCountertopColor(CUSTOM_DEFAULT_COUNTERTOP_COLOR));
 
     if (canvasReady) {
       removeAllProducts();
@@ -528,25 +532,34 @@ export const CabinetBuilderPage = () => {
       if (!existingIds.length) {
         const mergedPresets = productsPresets.map((preset) => ({
           ...preset,
-          CabinetColor: preset.CabinetColor ?? cabinetColor,
+          CabinetColor: CUSTOM_DEFAULT_CABINET_COLOR,
           sinkType: preset.sinkType ?? sinkType,
-          CountertopColor: preset.CountertopColor ?? countertopColor,
-          HandleGrooveColor: preset.HandleGrooveColor ?? handleGrooveColor,
+          CountertopColor: CUSTOM_DEFAULT_COUNTERTOP_COLOR,
+          HandleGrooveColor: CUSTOM_DEFAULT_CABINET_COLOR,
         }));
 
         await removeAllProducts();
         await addPreset(mergedPresets);
-      } else {
-        const batchConfig: Record<string, unknown> = {};
 
-        if (cabinetColor) batchConfig.CabinetColor = cabinetColor;
+        // Keep UI state in sync with forced custom defaults used for scene bootstrap.
+        dispatch(setCabinetColor(CUSTOM_DEFAULT_CABINET_COLOR));
+        dispatch(setActiveCountertopColor(CUSTOM_DEFAULT_COUNTERTOP_COLOR));
+        dispatch(setHandleGrooveColor(CUSTOM_DEFAULT_CABINET_COLOR));
+      } else {
+        const batchConfig: Record<string, unknown> = {
+          CabinetColor: CUSTOM_DEFAULT_CABINET_COLOR,
+          CountertopColor: CUSTOM_DEFAULT_COUNTERTOP_COLOR,
+          HandleGrooveColor: CUSTOM_DEFAULT_CABINET_COLOR,
+        };
         if (sinkType) batchConfig.sinkType = sinkType;
-        if (countertopColor) batchConfig.CountertopColor = countertopColor;
-        if (handleGrooveColor) batchConfig.HandleGrooveColor = handleGrooveColor;
 
         if (Object.keys(batchConfig).length) {
           await setConfigBatch({}, batchConfig);
         }
+
+        dispatch(setCabinetColor(CUSTOM_DEFAULT_CABINET_COLOR));
+        dispatch(setActiveCountertopColor(CUSTOM_DEFAULT_COUNTERTOP_COLOR));
+        dispatch(setHandleGrooveColor(CUSTOM_DEFAULT_CABINET_COLOR));
       }
 
       const orderedIds = existingIds.length ? existingIds : getOrderedProductIds();
