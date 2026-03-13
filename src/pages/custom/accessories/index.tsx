@@ -99,17 +99,13 @@ export const CustomAccessoriesPage = () => {
     const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
     if (!groups.length) return [];
 
-    const allowedCodes = ["20B", "243", "2M6", "2M7", "203"];
-    const allowedLabels = ["Bianco", "Carbone", "Creta", "Copper", "Nero"];
+    const allowedCodes = ["0B MT", "43 MT", "M6 MT", "M7 MT", "03 MT"];
     const lacqueredMtMarkers = ["lacquered mt", "lacquer mt", "lacquered matte", "lacquer matte"];
 
     const isAllowedTowelColor = (text: string | undefined | null) => {
       if (!text) return false;
       const normalized = text.toLowerCase();
-      return (
-        allowedCodes.some((code) => normalized.includes(code.toLowerCase())) ||
-        allowedLabels.some((label) => normalized.includes(label.toLowerCase()))
-      );
+      return allowedCodes.some((code) => normalized.includes(code.toLowerCase()));
     };
 
     const isLacqueredMt = (text: string | undefined | null) => {
