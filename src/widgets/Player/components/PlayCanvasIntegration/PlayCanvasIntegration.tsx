@@ -778,6 +778,11 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
+  const handleOpenAccessories = useCallback(() => {
+    navigate("/custom/accessories");
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
+
   const isCountertopEntity = useCallback((entityName: string | null, config?: Record<string, unknown>) => {
     if (!entityName) return false;
     const candidates = [
@@ -988,6 +993,12 @@ export const PlayCanvasIntegration = () => {
                     onClick: () => handleSetHandleType(option.value),
                   })),
                 },
+                {
+                  id: "accessories",
+                  label: "Accessories",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: handleOpenAccessories,
+                },
               ],
             } as DropdownItem,
           ]
@@ -1013,6 +1024,7 @@ export const PlayCanvasIntegration = () => {
     handleMoveProduct,
     handleOpenCabinetStyle,
     handleOpenCabinetColor,
+    handleOpenAccessories,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
     isDrawerCabinet,
