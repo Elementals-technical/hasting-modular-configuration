@@ -273,7 +273,10 @@ export function usePriceCalculation() {
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
     const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
-      cabinetColorSku || (swatchValue ? colorSkuByName.get(swatchValue) : null) || colorSkuByName.get(cabinetColor) || null;
+      cabinetColorSku ||
+      (swatchValue ? colorSkuByName.get(swatchValue) : null) ||
+      colorSkuByName.get(cabinetColor) ||
+      null;
 
     // 1) Product SKU(s) — Resolver 1
     if (shouldUsePresets) {
@@ -503,7 +506,7 @@ export function usePriceCalculation() {
           width: p.Width ?? null,
           height: p.Height ?? null,
           depth: p.Depth ?? null,
-          sinkType: p.sinkType ?? sinkType ?? null,
+          sinkType: sinkType ?? p.sinkType ?? null,
         })),
         ...sceneConfigs.map((cfg) => ({
           width: cfg.Width,
@@ -674,7 +677,6 @@ export function usePriceCalculation() {
     sinkType,
     drawerPanelFluting,
     towelBarOption,
-    towelBarColor,
     faucetHolesAmount,
     faucetHolesSpacing,
     sidePanelsOption,

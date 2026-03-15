@@ -1,5 +1,6 @@
 import type { CountertopMatrixRule } from "./types";
 import {
+  normalizeBasinKey,
   materialMatchesRule,
   matchesDepth,
   normalizeBasinToken,
@@ -22,6 +23,7 @@ export type CountertopRuleResult = {
   allowedMaterials: Set<string>;
   allowedThicknesses: Set<number>;
   allowedBasinTokens: Set<string>;
+  allowedBasinKeys: Set<string>;
   allowedFaucetHoles: Set<string>;
   allowedStyles: Set<string>;
 };
@@ -37,6 +39,7 @@ export const buildCountertopRuleState = ({
   const allowedMaterials = new Set<string>();
   const allowedThicknesses = new Set<number>();
   const allowedBasinTokens = new Set<string>();
+  const allowedBasinKeys = new Set<string>();
   const allowedFaucetHoles = new Set<string>();
   const allowedStyles = new Set<string>();
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
@@ -47,6 +50,7 @@ export const buildCountertopRuleState = ({
       allowedMaterials,
       allowedThicknesses,
       allowedBasinTokens,
+      allowedBasinKeys,
       allowedFaucetHoles,
       allowedStyles,
     };
@@ -89,6 +93,7 @@ export const buildCountertopRuleState = ({
 
     if (meetsMinSb(rule)) {
       allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
+      allowedBasinKeys.add(normalizeBasinKey(rule.basinStyle));
     }
   });
 
@@ -133,6 +138,7 @@ export const buildCountertopRuleState = ({
     allowedMaterials,
     allowedThicknesses,
     allowedBasinTokens,
+    allowedBasinKeys,
     allowedFaucetHoles,
     allowedStyles,
   };

@@ -22,6 +22,22 @@ export type CountertopSkuInput = {
 
 const FALLBACK = "X";
 const CATEGORY = "CT";
+const LOG_PREFIX = "[SKU/CT]";
+
+const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
+  const basin = basinType?.trim() ?? "";
+  if (!basin) return null;
+
+  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
+  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
+  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
+  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMLM";
+  if (basin.startsWith("Top_Porcelain_")) return "POR";
+  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
+  if (basin.startsWith("Top_HPL")) return "HPL";
+
+  return null;
+};
 
 const resolve = (
   map: Record<string, string>,
@@ -60,6 +76,7 @@ const resolve = (
  * SERIES is derived from material SKU: "UR" + materialSku (e.g. FX → URFX, HPL → URHPL)
  */
 export function buildCountertopSku(input: CountertopSkuInput): string[] {
+  console.log(LOG_PREFIX, "buildCountertopSku input", input);
   const styleValue = input.style?.trim() || "plain";
   const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true });
 
@@ -77,12 +94,25 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     caseInsensitiveKey: true,
     allowMappedValue: true,
   });
-  const mat = resolvedMaterial !== FALLBACK ? resolvedMaterial : null;
+  const inferredMaterial = inferMaterialSkuFromBasinType(input.basinType);
+  const mat = resolvedMaterial !== FALLBACK ? resolvedMaterial : inferredMaterial;
   const color = input.countertopColorCode?.trim() || null;
   const matBlock = !isVessel && mat ? `-CT-${mat}${color ? `-${color}` : ""}` : "";
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
   const series = mat ? `UR${mat}` : "URFX";
+  console.log(LOG_PREFIX, "material resolution", {
+    basinType: input.basinType,
+    countertopMaterialSkuInput: input.countertopMaterialSku,
+    resolvedMaterial,
+    inferredMaterial,
+    selectedMaterial: mat,
+    series,
+    thicknessRaw: input.thickness,
+    colorCode: color,
+    styleValue,
+    styleSku,
+  });
 
   // Top line — always present
   const top = `${CATEGORY}-${series}-${styleSku}-${w}-${t}-${d}${matBlock}`;
@@ -114,5 +144,6 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     lines.push(`${CATEGORY}-${series}-HCUT`);
   }
 
+  console.log(LOG_PREFIX, "buildCountertopSku output", lines);
   return lines;
 }

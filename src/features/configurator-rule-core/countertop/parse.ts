@@ -3,11 +3,24 @@ import type { CountertopDatatable } from "@/entities/countertop/api/types";
 import type { CountertopMatrixRule } from "./types";
 
 const MATERIAL_ALIASES: Record<string, string[]> = {
-  tekorund: ["tekormud"],
-  tekormud: ["tekorund"],
+  tekorund: ["tekormud", "sstm"],
+  tekormud: ["tekorund", "sstm"],
   glass: ["glassmt", "glassgl"],
   glassmt: ["glass"],
   glassgl: ["glass"],
+  // Material SKU aliases used in pricing/config payloads.
+  ssocr: ["ocritech"],
+  ocritech: ["ssocr"],
+  sstkr: ["tekorlux"],
+  tekorlux: ["sstkr"],
+  sstm: ["tekormud", "tekorund"],
+  ssmlm: ["mineralmarmo", "minermalmaro"],
+  mineralmarmo: ["ssmlm"],
+  minermalmaro: ["ssmlm"],
+  fx: ["fenix"],
+  fenix: ["fx"],
+  por: ["porcelain"],
+  porcelain: ["por"],
 };
 
 const normalizeToken = (value: string) =>
@@ -22,9 +35,14 @@ const parseStringList = (raw?: string): string[] =>
     .map((value) => value.trim())
     .filter(Boolean) ?? [];
 
+const parseLocaleNumber = (raw: string): number => {
+  const normalized = raw.replace(",", ".");
+  return Number.parseFloat(normalized);
+};
+
 const parseNumberList = (raw?: string): number[] =>
   parseStringList(raw)
-    .map((value) => Number.parseFloat(value))
+    .map((value) => parseLocaleNumber(value))
     .filter((value) => Number.isFinite(value));
 
 const parseBoolean = (raw?: string): boolean | null => {
@@ -37,7 +55,7 @@ const parseBoolean = (raw?: string): boolean | null => {
 
 const parseNullableNumber = (raw?: string): number | null => {
   if (!raw) return null;
-  const value = Number.parseFloat(raw);
+  const value = parseLocaleNumber(raw);
   return Number.isFinite(value) ? value : null;
 };
 
@@ -71,6 +89,16 @@ export const normalizeBasinToken = (value: string): string => {
   return cleaned.length > 0 ? cleaned : normalizeToken(value);
 };
 
+export const normalizeBasinKey = (value: string): string => {
+  const normalized = value.trim().toLowerCase();
+  const cleaned = normalized
+    .replace(/^top[_\s-]*/g, "")
+    .replace(/[/_\s-]+/g, "")
+    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass)/g, "");
+
+  return cleaned.length > 0 ? cleaned : normalizeToken(value);
+};
+
 export const parseThicknessValue = (raw: string): number | null => {
   const value = raw.trim();
   if (!value) return null;
@@ -93,7 +121,8 @@ export const parseThicknessValue = (raw: string): number | null => {
   }
 
   const numeric = Number.parseFloat(value);
-  return Number.isFinite(numeric) ? numeric : null;
+  const normalizedNumeric = Number.parseFloat(value.replace(",", "."));
+  return Number.isFinite(normalizedNumeric) ? normalizedNumeric : Number.isFinite(numeric) ? numeric : null;
 };
 
 export const matchesDepth = (rule: CountertopMatrixRule, depth: number | null): boolean => {
