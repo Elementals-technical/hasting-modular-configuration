@@ -5,6 +5,9 @@ import type { CountertopMatrixRule } from "./types";
 const MATERIAL_ALIASES: Record<string, string[]> = {
   tekorund: ["tekormud"],
   tekormud: ["tekorund"],
+  glass: ["glassmt", "glassgl"],
+  glassmt: ["glass"],
+  glassgl: ["glass"],
 };
 
 const normalizeToken = (value: string) =>

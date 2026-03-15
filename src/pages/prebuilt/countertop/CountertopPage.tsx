@@ -168,8 +168,10 @@ export const CountertopPage = () => {
           .filter((variant) => variant.enabled)
           .flatMap((variant) => {
             const normalizedName = variant.name.trim().toLowerCase();
-            if (seen.has(normalizedName)) return [];
-            seen.add(normalizedName);
+            const normalizedMaterialName = (option.name ?? "").trim().toLowerCase();
+            const dedupeKey = `${normalizedMaterialName}::${normalizedName}`;
+            if (seen.has(dedupeKey)) return [];
+            seen.add(dedupeKey);
 
             const meta = getVariantMeta(variant);
             const metaMaterial = meta.material ?? option.name;
@@ -250,8 +252,6 @@ export const CountertopPage = () => {
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
 
-    matrixMaterials.forEach((material) => materialSet.add(normalizeMaterialAlias(material)));
-
     groups.forEach((group) => {
       group.options.forEach((option) => {
         option.variants?.forEach((variant) => {
@@ -263,7 +263,7 @@ export const CountertopPage = () => {
           const metaLook = meta.look;
           const metaHex = meta.hex;
 
-          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)]
+          const candidateMaterials = [option.name, ...toStringArrayFromCsv(metaMaterial)]
             .filter(Boolean)
             .map((value) => normalizeMaterialAlias(value)) as string[];
 
@@ -274,15 +274,13 @@ export const CountertopPage = () => {
 
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
-            candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
+            candidateMaterials.some((value) =>
+              getMaterialAliases(value).some((alias) => normalizedMatrixMaterials.has(alias)),
+            );
 
           if (!matchesMatrix) return;
 
-          candidateMaterials.forEach((value) => {
-            if (normalizedMatrixMaterials.size === 0 || normalizedMatrixMaterials.has(normalizeMaterialToken(value))) {
-              materialSet.add(value);
-            }
-          });
+          if (option.name) materialSet.add(normalizeMaterialAlias(option.name));
 
           if (variant.name.toLowerCase().startsWith("cemento")) {
             materialSet.add("Cemento");
@@ -357,8 +355,61 @@ export const CountertopPage = () => {
 
   const tierOptions = useMemo(() => buildTierFilterOptions(countertopOptions), [countertopOptions]);
 
+  const selectedMaterialValues = useMemo(() => {
+    const selected = selectedFilter.material;
+    if (!selected) return [];
+
+    const findOptionInTree = (
+      options: Array<{ value: string; children?: Array<{ value: string }> }>,
+      target: string,
+    ): { value: string; children?: Array<{ value: string }> } | null => {
+      for (const option of options) {
+        if (option.value === target) return option;
+        if (option.children?.length) {
+          const found = findOptionInTree(
+            option.children.map((child) => ({ value: child.value })),
+            target,
+          );
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const selectedNode = findOptionInTree(filteredMaterialFilters.materials, selected);
+    if (selectedNode?.children?.length) {
+      return selectedNode.children.map((child) => child.value);
+    }
+
+    return [selected];
+  }, [filteredMaterialFilters.materials, selectedFilter.material]);
+
+  const materialsMatchSelection = useCallback((optionMaterial: string, selectedMaterial: string) => {
+    const optionNormalized = normalizeMaterialToken(optionMaterial);
+    const selectedNormalized = normalizeMaterialToken(selectedMaterial);
+
+    if (optionNormalized === selectedNormalized) return true;
+
+    const optionAliases = getMaterialAliases(optionMaterial);
+    const selectedAliases = getMaterialAliases(selectedMaterial);
+
+    return optionAliases.includes(selectedNormalized) || selectedAliases.includes(optionNormalized);
+  }, []);
+
   const filteredCountertopOptions = useMemo(() => {
-    const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
+    const filteredByUiBase = filterOptionsByMaterialSelection(countertopOptions, {
+      ...selectedFilter,
+      material: undefined,
+    });
+    const filteredByUi =
+      selectedMaterialValues.length === 0
+        ? filteredByUiBase
+        : filteredByUiBase.filter((option) => {
+            const materials = option.metadata?.materials ?? [];
+            return selectedMaterialValues.some((selectedMaterial) =>
+              materials.some((optionMaterial) => materialsMatchSelection(optionMaterial, selectedMaterial)),
+            );
+          });
 
     const filteredByMaterial =
       !allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)
@@ -370,7 +421,15 @@ export const CountertopPage = () => {
           });
 
     return filterOptionsByTier(filteredByMaterial, selectedFilter.tier);
-  }, [allowedMaterials, countertopOptions, hasAllowedOptionMatch, hasApiOptions, selectedFilter]);
+  }, [
+    allowedMaterials,
+    countertopOptions,
+    hasAllowedOptionMatch,
+    hasApiOptions,
+    materialsMatchSelection,
+    selectedFilter,
+    selectedMaterialValues,
+  ]);
 
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;
