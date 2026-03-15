@@ -450,6 +450,13 @@ export const optionsMockData4 = [
     isSwatchWithHint: true,
   },
   {
+    id: 17,
+    title: "0.4”",
+    value: "0.4",
+    isShortDesc: false,
+    isSwatchWithHint: false,
+  },
+  {
     id: 11,
     title: "½”",
     value: "0.5",
