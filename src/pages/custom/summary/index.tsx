@@ -354,7 +354,46 @@ export const CustomSummaryPage = () => {
     const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
     const cabinetCount =
       cabinetConfigs.length > 0 ? cabinetConfigs.length : productsPresets.length > 0 ? productsPresets.length : 1;
-
+    const resolveNameFromRaw = (v: string) => {
+      const lastDash = v.lastIndexOf("-");
+      if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
+      return v;
+    };
+    const isSinkBaseName = (value: string | null | undefined) => {
+      if (!value) return false;
+      const normalized = value.toLowerCase();
+      return normalized.includes("sink-base") || normalized.includes("sinkbase");
+    };
+    const sinkBaseCountForHcut = Math.max(
+      1,
+      cabinetConfigs.length > 0
+        ? cabinetConfigs.filter((config) => {
+            const rawName =
+              typeof config.ProductType === "string"
+                ? config.ProductType
+                : typeof config.productType === "string"
+                  ? config.productType
+                  : typeof config.entityName === "string"
+                    ? resolveNameFromRaw(config.entityName)
+                    : typeof config._productId === "string"
+                      ? resolveNameFromRaw(config._productId)
+                      : typeof config.name === "string"
+                        ? config.name
+                        : null;
+            return isSinkBaseName(rawName);
+          }).length
+        : productsPresets.length > 0
+          ? productsPresets.filter((preset) => isSinkBaseName(preset.name ?? null)).length
+          : isSinkBaseName(
+                typeof selectedProductConfig?.name === "string"
+                  ? selectedProductConfig.name
+                  : typeof activeCabinetType === "string"
+                    ? activeCabinetType
+                    : null,
+              )
+            ? 1
+            : 0,
+    );
     const cabinetItems =
       cabinetConfigs.length > 0
         ? cabinetConfigs.map((config, index) => {
@@ -365,11 +404,6 @@ export const CustomSummaryPage = () => {
 
             const dims = [width, depth, height].every((v) => v !== undefined) ? `${width}x${depth}x${height}` : "";
             const subtitle = [drawers, dims].filter(Boolean).join(" | ");
-            const resolveNameFromRaw = (v: string) => {
-              const lastDash = v.lastIndexOf("-");
-              if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
-              return v;
-            };
             const name =
               typeof config.ProductType === "string"
                 ? config.ProductType
@@ -652,6 +686,9 @@ export const CustomSummaryPage = () => {
       countertopMaterialSku: countertopColorSku || null,
       countertopColorCode: extractColorCode(countertopColor),
     });
+    const hcutPricingSku = countertopSkuLines.find((line) => line.endsWith("-HCUT")) ?? "CT-URHPL-HCUT";
+    const hcutUnitPrice = priceBySku[hcutPricingSku] ?? 0;
+    const hcutTotalPrice = formatPrice(hcutUnitPrice * sinkBaseCountForHcut);
 
     const vesselSku = sinkType?.startsWith("Vessel_")
       ? buildVesselSku({
@@ -938,6 +975,20 @@ export const CustomSummaryPage = () => {
                   price: resolveItemPrice(vesselSku),
                   copyable: true,
                   description: { "Product Category": "Vessel", Type: sinkType },
+                },
+                {
+                  id: "basin-hcut-sku",
+                  title: "HCUT - Basin",
+                  subtitle: "VES-URMOD-X-19.7W-5.5H-13D-HPL",
+                  sku: "VES-URMOD-X-19.7W-5.5H-13D-HPL",
+                  price: hcutTotalPrice,
+                  copyable: true,
+                  description: {
+                    "Product Category": "HCUT - Basin",
+                    Type: "Vessel",
+                    Quantity: sinkBaseCountForHcut,
+                    "Pricing SKU": hcutPricingSku,
+                  },
                 },
               ],
             },
