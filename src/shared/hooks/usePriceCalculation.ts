@@ -20,7 +20,6 @@ import {
   getBookMatching,
   getProductsPresets,
   getTowelBarOption,
-  getTowelBarColor,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
   getSidePanelsOption,
@@ -126,7 +125,6 @@ export function usePriceCalculation() {
   const bookMatching = useAppSelector(getBookMatching);
 
   const towelBarOption = useAppSelector(getTowelBarOption);
-  const towelBarColor = useAppSelector(getTowelBarColor);
 
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
