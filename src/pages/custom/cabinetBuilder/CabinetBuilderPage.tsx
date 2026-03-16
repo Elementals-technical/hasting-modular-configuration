@@ -201,6 +201,7 @@ export const CabinetBuilderPage = () => {
         title: meta.title,
         value: String(value),
         isAvailable: ruleOption ? !ruleOption.disabled : true,
+        disabledReason: ruleOption?.reason,
         isMixingRestricted,
         isShortDesc: meta.isShortDesc ?? false,
         metadata: {

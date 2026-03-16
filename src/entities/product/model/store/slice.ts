@@ -253,7 +253,7 @@ const createInitialState = (): ProductState => {
       DrawerPanelFluting: "",
       GrainDirection: "",
       BookMatching: "",
-      CountertopStyle: "",
+      CountertopStyle: "integrated",
       SidePanels: "",
       LedOption: "",
       DividersOption: "",

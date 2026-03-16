@@ -10,6 +10,7 @@ import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/st
 
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
 
@@ -82,10 +83,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   };
 
   const handleConfirmLeave = async () => {
-    removeAllProducts();
-
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
-    await setConfigBatch({}, { SidePanel: "None" });
+    await resetSidePanels();
+    await removeAllProducts();
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());

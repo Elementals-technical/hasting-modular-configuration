@@ -12,6 +12,7 @@ interface ProductStyleGridI {
     name?: string | undefined;
     desc?: string | undefined;
     isAvailable?: boolean;
+    disabledReason?: string;
     isMixingRestricted?: boolean;
     isShortDesc: boolean;
     value?: string;
@@ -57,6 +58,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             isActive={isItemActive}
             isAvailable={i.isAvailable}
+            disabledReason={i.disabledReason}
             isMixingRestricted={i.isMixingRestricted}
             onSelectStyle={onSelectStyle}
             onMixingRestrictedSelect={onMixingRestrictedSelect}

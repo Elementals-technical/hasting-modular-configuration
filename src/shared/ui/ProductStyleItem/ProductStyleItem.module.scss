@@ -1,4 +1,6 @@
 .productStyleItem {
+  cursor: pointer;
+
   .title {
     color: #282828;
     font-family: Poppins;
@@ -46,6 +48,7 @@
 
   &.disabled {
     opacity: 0.5;
+    cursor: not-allowed;
 
     .image {
       cursor: not-allowed;
@@ -54,6 +57,7 @@
 
   &.restricted {
     opacity: 0.5;
+    cursor: pointer;
 
     .image {
       cursor: pointer;

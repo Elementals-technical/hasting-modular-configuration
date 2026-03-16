@@ -4,6 +4,8 @@ import { PlusIcon } from "@/shared/assets/images/svg/PlusIcon.tsx";
 import { ROUTES } from "@/shared";
 import { useAppDispatch } from "@/shared/hooks/store/redux.ts";
 import { resetPrebuiltProducts } from "@/entities/product/model/store/slice.ts";
+import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 
 import s from "./CreateModelBtn.module.scss";
 
@@ -11,7 +13,9 @@ export const CreateModelBtn = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleNavigate = () => {
+  const handleNavigate = async () => {
+    await resetSidePanels();
+    await removeAllProducts();
     dispatch(resetPrebuiltProducts());
 
     navigate(ROUTES.CUSTOM);

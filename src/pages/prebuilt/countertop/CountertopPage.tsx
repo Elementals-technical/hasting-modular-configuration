@@ -37,8 +37,9 @@ import { useGetConfiguratorQuery } from "@/entities";
 import {
   buildCountertopRuleState,
   getMaterialAliases,
-  normalizeBasinToken,
+  normalizeBasinKey,
   normalizeMaterialToken,
+  parseThicknessValue,
   parseCountertopMatrix,
 } from "@/features/configurator-rule-core/countertop";
 
@@ -137,7 +138,7 @@ export const CountertopPage = () => {
 
   const countertopOptionsFromApi = useMemo(() => {
     const groups = (counterTopMaterials?.availableOptions ?? []).filter(
-      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Cabinet Color" || g.proxyName === "Vessels",
+      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels",
     );
 
     if (!groups.length) return [];
@@ -168,8 +169,10 @@ export const CountertopPage = () => {
           .filter((variant) => variant.enabled)
           .flatMap((variant) => {
             const normalizedName = variant.name.trim().toLowerCase();
-            if (seen.has(normalizedName)) return [];
-            seen.add(normalizedName);
+            const normalizedMaterialName = (option.name ?? "").trim().toLowerCase();
+            const dedupeKey = `${normalizedMaterialName}::${normalizedName}`;
+            if (seen.has(dedupeKey)) return [];
+            seen.add(dedupeKey);
 
             const meta = getVariantMeta(variant);
             const metaMaterial = meta.material ?? option.name;
@@ -191,11 +194,10 @@ export const CountertopPage = () => {
                   image: meta.image,
                   value: meta.value ?? variant.name,
                   sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
-                  materials: buildMaterialTokens(
-                    option.name || variant.name,
-                    metaMaterial,
-                    [...(group.proxyName ? [group.proxyName] : []), ...(isCemento ? ["Cemento"] : [])],
-                  ),
+                  materials: buildMaterialTokens(option.name || variant.name, metaMaterial, [
+                    ...(group.proxyName ? [group.proxyName] : []),
+                    ...(isCemento ? ["Cemento"] : []),
+                  ]),
                   colors: toStringArrayFromCsv(metaColor),
                   looks: toStringArrayFromCsv(metaLook),
                   hex: metaHex?.trim(),
@@ -211,8 +213,28 @@ export const CountertopPage = () => {
 
   const findSkuByColorName = useCallback(
     (colorName: string): string => {
+      const materialSkuByToken: Record<string, string> = {
+        fenix: "FX",
+        hpl: "HPL",
+        porcelain: "POR",
+        glass: "GLSM",
+        glassmt: "GLSM",
+        glassgl: "GLSG",
+        mineralmarmo: "SSMLM",
+        minermalmaro: "SSMLM",
+        ocritech: "SSOCR",
+        tekorlux: "SSTKR",
+        tekormud: "SSTM",
+        tekorund: "SSTM",
+      };
+
       for (const option of countertopOptionsFromApi) {
         if (option.metadata?.value === colorName || option.name === colorName) {
+          const materials = option.metadata?.materials ?? [];
+          for (const token of materials) {
+            const mapped = materialSkuByToken[normalizeMaterialToken(token)];
+            if (mapped) return mapped;
+          }
           return option.metadata?.sku ?? "";
         }
       }
@@ -241,7 +263,7 @@ export const CountertopPage = () => {
 
   const materialFilters = useMemo(() => {
     const groups = (counterTopMaterials?.availableOptions ?? []).filter(
-      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Cabinet Color" || g.proxyName === "Vessels",
+      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels",
     );
     if (!groups.length) return defaultMaterialFilters;
 
@@ -249,8 +271,6 @@ export const CountertopPage = () => {
     const colorSet = new Set<string>();
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
-
-    matrixMaterials.forEach((material) => materialSet.add(normalizeMaterialAlias(material)));
 
     groups.forEach((group) => {
       group.options.forEach((option) => {
@@ -263,7 +283,7 @@ export const CountertopPage = () => {
           const metaLook = meta.look;
           const metaHex = meta.hex;
 
-          const candidateMaterials = [group.proxyName, option.name, ...toStringArrayFromCsv(metaMaterial)]
+          const candidateMaterials = [option.name, ...toStringArrayFromCsv(metaMaterial)]
             .filter(Boolean)
             .map((value) => normalizeMaterialAlias(value)) as string[];
 
@@ -274,15 +294,13 @@ export const CountertopPage = () => {
 
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
-            candidateMaterials.some((value) => normalizedMatrixMaterials.has(normalizeMaterialToken(value)));
+            candidateMaterials.some((value) =>
+              getMaterialAliases(value).some((alias) => normalizedMatrixMaterials.has(alias)),
+            );
 
           if (!matchesMatrix) return;
 
-          candidateMaterials.forEach((value) => {
-            if (normalizedMatrixMaterials.size === 0 || normalizedMatrixMaterials.has(normalizeMaterialToken(value))) {
-              materialSet.add(value);
-            }
-          });
+          if (option.name) materialSet.add(normalizeMaterialAlias(option.name));
 
           if (variant.name.toLowerCase().startsWith("cemento")) {
             materialSet.add("Cemento");
@@ -306,7 +324,7 @@ export const CountertopPage = () => {
       looks: toOptions(lookSet),
       hex: toOptions(hexSet),
     };
-  }, [counterTopMaterials, defaultMaterialFilters, matrixMaterials, normalizedMatrixMaterials, getVariantMeta]);
+  }, [counterTopMaterials, defaultMaterialFilters, normalizedMatrixMaterials, getVariantMeta]);
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];
@@ -357,8 +375,61 @@ export const CountertopPage = () => {
 
   const tierOptions = useMemo(() => buildTierFilterOptions(countertopOptions), [countertopOptions]);
 
+  const selectedMaterialValues = useMemo(() => {
+    const selected = selectedFilter.material;
+    if (!selected) return [];
+
+    const findOptionInTree = (
+      options: Array<{ value: string; children?: Array<{ value: string }> }>,
+      target: string,
+    ): { value: string; children?: Array<{ value: string }> } | null => {
+      for (const option of options) {
+        if (option.value === target) return option;
+        if (option.children?.length) {
+          const found = findOptionInTree(
+            option.children.map((child) => ({ value: child.value })),
+            target,
+          );
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const selectedNode = findOptionInTree(filteredMaterialFilters.materials, selected);
+    if (selectedNode?.children?.length) {
+      return selectedNode.children.map((child) => child.value);
+    }
+
+    return [selected];
+  }, [filteredMaterialFilters.materials, selectedFilter.material]);
+
+  const materialsMatchSelection = useCallback((optionMaterial: string, selectedMaterial: string) => {
+    const optionNormalized = normalizeMaterialToken(optionMaterial);
+    const selectedNormalized = normalizeMaterialToken(selectedMaterial);
+
+    if (optionNormalized === selectedNormalized) return true;
+
+    const optionAliases = getMaterialAliases(optionMaterial);
+    const selectedAliases = getMaterialAliases(selectedMaterial);
+
+    return optionAliases.includes(selectedNormalized) || selectedAliases.includes(optionNormalized);
+  }, []);
+
   const filteredCountertopOptions = useMemo(() => {
-    const filteredByUi = filterOptionsByMaterialSelection(countertopOptions, selectedFilter);
+    const filteredByUiBase = filterOptionsByMaterialSelection(countertopOptions, {
+      ...selectedFilter,
+      material: undefined,
+    });
+    const filteredByUi =
+      selectedMaterialValues.length === 0
+        ? filteredByUiBase
+        : filteredByUiBase.filter((option) => {
+            const materials = option.metadata?.materials ?? [];
+            return selectedMaterialValues.some((selectedMaterial) =>
+              materials.some((optionMaterial) => materialsMatchSelection(optionMaterial, selectedMaterial)),
+            );
+          });
 
     const filteredByMaterial =
       !allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)
@@ -366,11 +437,21 @@ export const CountertopPage = () => {
         : filteredByUi.filter((option) => {
             const materials = option.metadata?.materials ?? [];
             if (materials.some((m) => m.toLowerCase() === "vessels")) return true;
-            return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
+            return materials.some((material) =>
+              getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)),
+            );
           });
 
     return filterOptionsByTier(filteredByMaterial, selectedFilter.tier);
-  }, [allowedMaterials, countertopOptions, hasAllowedOptionMatch, hasApiOptions, selectedFilter]);
+  }, [
+    allowedMaterials,
+    countertopOptions,
+    hasAllowedOptionMatch,
+    hasApiOptions,
+    materialsMatchSelection,
+    selectedFilter,
+    selectedMaterialValues,
+  ]);
 
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;
@@ -387,6 +468,9 @@ export const CountertopPage = () => {
   const allowedBasinTokens = useMemo(() => {
     return ruleState.allowedBasinTokens;
   }, [ruleState.allowedBasinTokens]);
+  const allowedBasinKeys = useMemo(() => {
+    return ruleState.allowedBasinKeys;
+  }, [ruleState.allowedBasinKeys]);
 
   const filteredBasinOptions = useMemo(() => {
     if (!optionsMockData3.length) return [];
@@ -394,13 +478,18 @@ export const CountertopPage = () => {
     const normalizedStyle = activeCountertopStyle ? activeCountertopStyle.trim().toLowerCase() : "";
     const allowedStyles = ruleState.allowedStyles;
     const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+    console.log("[BASIN/DEBUG][prebuilt][start]", {
+      normalizedStyle,
+      activeCountertopColor,
+      activeThickness,
+      activeBasinStyle,
+      normalizedActiveMaterials,
+      allowedMaterials: Array.from(allowedMaterials),
+      allowedBasinTokens: Array.from(allowedBasinTokens),
+      allowedStyles: Array.from(allowedStyles),
+    });
 
-    const vesselSinkNames = new Set([
-      "Vessel_Blade11",
-      "Vessel_Blade18",
-      "Vessel_UrbanModo",
-      "Vessel_UrbanMorris",
-    ]);
+    const vesselSinkNames = new Set(["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris"]);
 
     const integratedSinkNames = new Set([
       "Top_HPLPrisma",
@@ -440,22 +529,45 @@ export const CountertopPage = () => {
         ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
         : null;
 
-      return optionsMockData3.filter((option) => {
+      const vesselOptions = optionsMockData3.filter((option) => {
         const name = option.name ?? "";
         if (!vesselSinkNames.has(name)) return false;
         if (!normalizedActiveMaterials.length) return true;
 
         const allowedMats = vesselAllowedMaterialsMap[name];
         if (allowedMats === null || allowedMats === undefined) return true;
-        return allowedMats.some(
-          (mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode,
-        );
+        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
       });
+
+      console.log("[BASIN/DEBUG][prebuilt][vessel]", {
+        normalizedStyle,
+        activeCountertopColor,
+        activeThickness,
+        activeBasinStyle,
+        normalizedActiveMaterials,
+        allowedStyles: Array.from(allowedStyles),
+        vesselOptions: vesselOptions.map((item) => item.name ?? item.title),
+      });
+
+      return vesselOptions;
     }
 
-    if (!allowedBasinTokens.size) return [];
+    if (!allowedBasinKeys.size) {
+      console.log("[BASIN/DEBUG][prebuilt][integrated-empty]", {
+        normalizedStyle,
+        activeCountertopColor,
+        activeThickness,
+        activeBasinStyle,
+        normalizedActiveMaterials,
+        allowedMaterials: Array.from(allowedMaterials),
+        allowedBasinTokens: Array.from(allowedBasinTokens),
+        allowedBasinKeys: Array.from(allowedBasinKeys),
+        allowedStyles: Array.from(allowedStyles),
+      });
+      return [];
+    }
 
-    return optionsMockData3.filter((option) => {
+    const integratedOptions = optionsMockData3.filter((option) => {
       if (!integratedSinkNames.has(option.name ?? "")) return false;
       const label = option.title ?? option.name ?? "";
       if (!label) return false;
@@ -467,29 +579,215 @@ export const CountertopPage = () => {
             .map((token) => normalizeMaterialToken(token))
             .filter(Boolean)
         : [];
-      const isMaterialSpecific = materialTokens.some((token) => allowedMaterials.has(token));
+      const isMaterialSpecific = materialTokens.some((token) =>
+        getMaterialAliases(token).some((alias) => allowedMaterials.has(alias)),
+      );
 
       if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
-        const matchesMaterial = materialTokens.some((token) => normalizedActiveMaterials.includes(token));
+        const matchesMaterial = materialTokens.some((token) =>
+          getMaterialAliases(token).some((alias) => normalizedActiveMaterials.includes(alias)),
+        );
         if (!matchesMaterial) return false;
       }
 
       const basinLabel = isMaterialSpecific ? restTokens.join(" ") : label;
-      const normalized = normalizeBasinToken(basinLabel);
+      const normalized = normalizeBasinKey(basinLabel);
 
-      return Array.from(allowedBasinTokens).some((token) => normalized === token);
+      return Array.from(allowedBasinKeys).some((token) => normalized === token);
     });
-  }, [activeCountertopColor, activeCountertopStyle, activeMaterialTokens, allowedBasinTokens, allowedMaterials, ruleState.allowedStyles]);
+
+    console.log("[BASIN/DEBUG][prebuilt][integrated]", {
+      normalizedStyle,
+      activeCountertopColor,
+      activeThickness,
+      activeBasinStyle,
+      normalizedActiveMaterials,
+      allowedMaterials: Array.from(allowedMaterials),
+      allowedBasinTokens: Array.from(allowedBasinTokens),
+      allowedBasinKeys: Array.from(allowedBasinKeys),
+      allowedStyles: Array.from(allowedStyles),
+      integratedOptions: integratedOptions.map((item) => item.name ?? item.title),
+    });
+
+    return integratedOptions;
+  }, [
+    activeCountertopColor,
+    activeCountertopStyle,
+    activeMaterialTokens,
+    allowedBasinKeys,
+    allowedBasinTokens,
+    allowedMaterials,
+    ruleState.allowedStyles,
+    activeBasinStyle,
+    activeThickness,
+  ]);
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
-    if (!allowed.size) return optionsMockData2;
+    const width = selectedDimensions.width;
+    const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+    const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+    const activeColorCode = activeCountertopColor
+      ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
+      : null;
 
-    return optionsMockData2.map((option) => ({
-      ...option,
-      isAvailable: allowed.has(option.title.toLowerCase()),
-    }));
-  }, [ruleState.allowedStyles]);
+    const vesselSinkNames = ["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris"];
+    const integratedSinkNames = new Set([
+      "Top_HPLPrisma",
+      "Top_Glass_Nettuno",
+      "Top_HPLQuadra",
+      "Top_HPLCover",
+      "Top_HPLStrip",
+      "Top_HPL/Fenix_Cover_Gres",
+      "Top_HPL/Fenix_Prisma_Gres",
+      "Top_HPL/Fenix_Quadra_Gres",
+      "Top_HPL/Fenix_Strip_Gres",
+      "Fenix_Strip_Gres",
+      "Top_Glass_Ovale",
+      "Top_Mineralmarmo_Diamond",
+      "Top_Ocritech_Oly55",
+      "Top_Ocritech_Oly56",
+      "Top_Ocritech_Orion",
+      "Top_Ocritech_Quadra",
+      "Top_Ocritech_Rayo",
+      "Top_Ocritech_Roll",
+      "Top_Porcelain_Cover",
+      "Top_Porcelain_Prisma",
+      "Top_Porcelain_Quadra",
+      "Top_Porcelain_Strip",
+      "Top_Syntesi",
+      "Top_Tekorlux_Quadra",
+      "Top_Tekorlux_Rectangular",
+      "Top_Tekorlux_Ron",
+      "Top_Tekorlux_Trip",
+      "Top_Tekormud_Tivi",
+    ]);
+    const hasVesselByDedicatedRules =
+      hasSelectedMaterial &&
+      vesselSinkNames.some((name) => {
+        const allowedMats = vesselAllowedMaterialsMap[name];
+        if (allowedMats === null || allowedMats === undefined) return true;
+        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
+      });
+    const hasVesselBasinOptions =
+      hasSelectedMaterial &&
+      optionsMockData3.some((option) => {
+        const name = option.name ?? "";
+        if (!vesselSinkNames.includes(name)) return false;
+        const allowedMats = vesselAllowedMaterialsMap[name];
+        if (allowedMats === null || allowedMats === undefined) return true;
+        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
+      });
+    const hasIntegratedBasinOptions =
+      hasSelectedMaterial &&
+      allowedBasinKeys.size > 0 &&
+      optionsMockData3.some((option) => {
+        if (!integratedSinkNames.has(option.name ?? "")) return false;
+        const label = option.title ?? option.name ?? "";
+        if (!label) return false;
+
+        const [firstToken, ...restTokens] = label.trim().split(/\s+/);
+        const materialTokens = firstToken
+          ? firstToken
+              .split("/")
+              .map((token) => normalizeMaterialToken(token))
+              .filter(Boolean)
+          : [];
+        const isMaterialSpecific = materialTokens.some((token) =>
+          getMaterialAliases(token).some((alias) => allowedMaterials.has(alias)),
+        );
+
+        if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
+          const matchesMaterial = materialTokens.some((token) =>
+            getMaterialAliases(token).some((alias) => normalizedActiveMaterials.includes(alias)),
+          );
+          if (!matchesMaterial) return false;
+        }
+
+        const basinLabel = isMaterialSpecific ? restTokens.join(" ") : label;
+        const normalized = normalizeBasinKey(basinLabel);
+        return Array.from(allowedBasinKeys).some((token) => normalized === token);
+      });
+
+    const rulesForThickness = ruleState.matchingRules.filter((rule) => {
+      if (activeThicknessValue === null) return true;
+      const values = rule.topThicknesses
+        .map((value) => parseThicknessValue(value))
+        .filter((value): value is number => value !== null);
+      return values.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+    });
+
+    const minSbRequirement = rulesForThickness
+      .map((rule) => rule.minSbCm)
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((min, value) => (min === null ? value : Math.min(min, value)), null);
+
+    const maxIntegratedLimit = rulesForThickness
+      .map((rule) => rule.maxIntegratedCm)
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
+
+    const maxVesselLimit = rulesForThickness
+      .map((rule) => rule.maxVesselCm)
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
+
+    const buildDisabledReason = (styleKey: string): string => {
+      if (!hasSelectedMaterial) return "Select countertop color first.";
+      if (!activeThickness) return "Select thickness first.";
+
+      if (styleKey === "integrated") {
+        if (!hasIntegratedBasinOptions) {
+          return "No Integrated basin options for current material.";
+        }
+        if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
+        if (width && minSbRequirement !== null && width < minSbRequirement) {
+          return `Requires cabinet width at least ${minSbRequirement} cm.`;
+        }
+        if (width && maxIntegratedLimit !== null && width > maxIntegratedLimit) {
+          return `Integrated is available up to ${maxIntegratedLimit} cm.`;
+        }
+        return "Integrated is not available for current basin/material.";
+      }
+
+      if (styleKey === "vessel") {
+        if (!hasVesselBasinOptions) {
+          return "No Vessel basin options for current material.";
+        }
+        if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
+        if (width && maxVesselLimit !== null && width > maxVesselLimit) {
+          return `Vessel is available up to ${maxVesselLimit} cm.`;
+        }
+        return "Vessel is not available for current material/thickness.";
+      }
+
+      if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
+      return "Not available for current configuration.";
+    };
+
+    return optionsMockData2.map((option) => {
+      const styleKey = option.title.toLowerCase();
+      const isAvailable =
+        styleKey === "vessel"
+          ? (allowed.has(styleKey) || hasVesselByDedicatedRules) && hasVesselBasinOptions
+          : allowed.has(styleKey);
+      return {
+        ...option,
+        isAvailable,
+        disabledReason: isAvailable ? undefined : buildDisabledReason(styleKey),
+      };
+    });
+  }, [
+    activeCountertopColor,
+    activeMaterialTokens,
+    activeThickness,
+    allowedBasinKeys,
+    allowedMaterials,
+    hasSelectedMaterial,
+    ruleState.allowedStyles,
+    ruleState.matchingRules,
+    selectedDimensions.width,
+  ]);
 
   const sortedCountertopOptions = useMemo(
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -560,6 +858,15 @@ export const CountertopPage = () => {
     dispatch(setActiveBasinStyle(basinStyle));
   };
 
+  const applyBasinStyleFallback = useCallback(
+    (basinStyle: string) => {
+      if (!basinStyle) return;
+      setConfigBatch({}, { sinkType: basinStyle });
+      dispatch(setActiveBasinStyle(basinStyle));
+    },
+    [dispatch],
+  );
+
   const handleAddThickness = useCallback(
     async (thickness: string) => {
       await saveSnapshot();
@@ -583,6 +890,43 @@ export const CountertopPage = () => {
       handleAddThickness(value);
     }
   }, [filteredThicknessOptions, activeThickness, handleAddThickness]);
+
+  useEffect(() => {
+    if (!hasSelectedMaterial || !activeThickness || isSinkDisabled) return;
+    if (!filteredBasinOptions.length) return;
+
+    const currentStillValid =
+      activeBasinStyle && filteredBasinOptions.some((option) => (option.name ?? option.title) === activeBasinStyle);
+
+    if (!currentStillValid) {
+      const first = filteredBasinOptions[0];
+      const basinValue = first?.name ?? first?.title;
+      if (basinValue) {
+        applyBasinStyleFallback(basinValue);
+      }
+    }
+  }, [
+    activeBasinStyle,
+    activeThickness,
+    applyBasinStyleFallback,
+    filteredBasinOptions,
+    hasSelectedMaterial,
+    isSinkDisabled,
+  ]);
+
+  useEffect(() => {
+    const currentStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
+    if (currentStyle !== "vessel") return;
+
+    const vesselOption = filteredStyleOptions.find((option) => option.title.toLowerCase() === "vessel");
+    if (vesselOption?.isAvailable !== false) return;
+    if (vesselOption?.disabledReason !== "No Vessel basin options for current material.") return;
+
+    const integratedOption = filteredStyleOptions.find((option) => option.title.toLowerCase() === "integrated");
+    if (!integratedOption?.isAvailable) return;
+
+    dispatch(setCountertopStyle("Integrated"));
+  }, [activeCountertopStyle, dispatch, filteredStyleOptions]);
 
   const handleCountertopStyle = (style: string) => {
     if (!style) return;

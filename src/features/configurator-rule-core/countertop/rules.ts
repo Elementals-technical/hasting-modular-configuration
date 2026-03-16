@@ -1,5 +1,6 @@
 import type { CountertopMatrixRule } from "./types";
 import {
+  normalizeBasinKey,
   materialMatchesRule,
   matchesDepth,
   normalizeBasinToken,
@@ -22,6 +23,7 @@ export type CountertopRuleResult = {
   allowedMaterials: Set<string>;
   allowedThicknesses: Set<number>;
   allowedBasinTokens: Set<string>;
+  allowedBasinKeys: Set<string>;
   allowedFaucetHoles: Set<string>;
   allowedStyles: Set<string>;
 };
@@ -31,12 +33,12 @@ export const buildCountertopRuleState = ({
   activeMaterialTokens,
   width,
   depth,
-  activeBasinStyle,
   activeThickness,
 }: CountertopRuleInput): CountertopRuleResult => {
   const allowedMaterials = new Set<string>();
   const allowedThicknesses = new Set<number>();
   const allowedBasinTokens = new Set<string>();
+  const allowedBasinKeys = new Set<string>();
   const allowedFaucetHoles = new Set<string>();
   const allowedStyles = new Set<string>();
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
@@ -47,6 +49,7 @@ export const buildCountertopRuleState = ({
       allowedMaterials,
       allowedThicknesses,
       allowedBasinTokens,
+      allowedBasinKeys,
       allowedFaucetHoles,
       allowedStyles,
     };
@@ -79,8 +82,6 @@ export const buildCountertopRuleState = ({
     });
   });
 
-  const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : null;
-
   const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
   const meetsMinSb = (rule: CountertopMatrixRule) => !width || !rule.minSbCm || width >= rule.minSbCm;
 
@@ -89,6 +90,7 @@ export const buildCountertopRuleState = ({
 
     if (meetsMinSb(rule)) {
       allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
+      allowedBasinKeys.add(normalizeBasinKey(rule.basinStyle));
     }
   });
 
@@ -109,7 +111,6 @@ export const buildCountertopRuleState = ({
   matchingRules.forEach((rule) => {
     if (!meetsMinSb(rule)) return;
     if (!matchesActiveThickness(rule)) return;
-    if (activeBasinToken && normalizeBasinToken(rule.basinStyle) !== activeBasinToken) return;
 
     if (isWidthValid(rule.maxIntegratedCm)) {
       if (
@@ -133,6 +134,7 @@ export const buildCountertopRuleState = ({
     allowedMaterials,
     allowedThicknesses,
     allowedBasinTokens,
+    allowedBasinKeys,
     allowedFaucetHoles,
     allowedStyles,
   };

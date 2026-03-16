@@ -24,6 +24,7 @@ import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPo
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 
 import s from "./ModelPage.module.scss";
 
@@ -146,12 +147,16 @@ export const ModelPage = () => {
     }
   };
 
+  const resetAccessoriesForCustomTransition = useCallback(async () => {
+    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await resetSidePanels();
+  }, []);
+
   const handleCustomizePreset = async (presetProducts?: PresetProduct[]) => {
     if (!presetProducts?.length) return;
 
-    removeAllProducts();
-    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
-    await setConfigBatch({}, { SidePanel: "None" });
+    await resetAccessoriesForCustomTransition();
+    await removeAllProducts();
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
@@ -169,8 +174,8 @@ export const ModelPage = () => {
 
     const currentPresets = productsPresets;
 
-    removeAllProducts();
-    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
+    await resetAccessoriesForCustomTransition();
+    await removeAllProducts();
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
@@ -183,9 +188,8 @@ export const ModelPage = () => {
   const handleConfirmLeave = async () => {
     const currentPresets = productsPresets;
 
-    removeAllProducts();
-    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
-    await setConfigBatch({}, { SidePanel: "None" });
+    await resetAccessoriesForCustomTransition();
+    await removeAllProducts();
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
