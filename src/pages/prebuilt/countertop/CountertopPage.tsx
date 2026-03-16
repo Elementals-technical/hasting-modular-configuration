@@ -437,6 +437,10 @@ export const CountertopPage = () => {
         : filteredByUi.filter((option) => {
             const materials = option.metadata?.materials ?? [];
             if (materials.some((m) => m.toLowerCase() === "vessels")) return true;
+            const isGlassOption = materials.some((material) =>
+              getMaterialAliases(material).some((alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl"),
+            );
+            if (isGlassOption) return true;
             return materials.some((material) =>
               getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)),
             );
@@ -625,11 +629,15 @@ export const CountertopPage = () => {
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
     const width = selectedDimensions.width;
+    const depth = selectedDimensions.depth;
     const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
     const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
     const activeColorCode = activeCountertopColor
       ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
       : null;
+    const isGlassSelected = normalizedActiveMaterials.some((token) =>
+      getMaterialAliases(token).some((alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl"),
+    );
 
     const vesselSinkNames = ["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris"];
     const integratedSinkNames = new Set([
@@ -737,6 +745,21 @@ export const CountertopPage = () => {
       if (!activeThickness) return "Select thickness first.";
 
       if (styleKey === "integrated") {
+        if (isGlassSelected) {
+          const hints: string[] = [];
+          if (activeThicknessValue === null || Math.abs(activeThicknessValue - 0.5) > 0.001) {
+            hints.push('set Thickness to 1/2".');
+          }
+          if (typeof depth !== "number" || Math.abs(depth - 50.5) > 0.01) {
+            hints.push("set Depth to 50.5 cm.");
+          }
+          if (typeof width === "number" && width < 70) {
+            hints.push("set Sink Base width to at least 70 cm.");
+          }
+          if (hints.length > 0) {
+            return `For Glass Integrated, ${hints.join(" ")}`;
+          }
+        }
         if (!hasIntegratedBasinOptions) {
           return "No Integrated basin options for current material.";
         }
@@ -751,6 +774,9 @@ export const CountertopPage = () => {
       }
 
       if (styleKey === "vessel") {
+        if (isGlassSelected) {
+          return "Vessel is unavailable for Glass. Change countertop material to HPL, Porcelain, Solid Surface, or Tekorlux TAL/TAM.";
+        }
         if (!hasVesselBasinOptions) {
           return "No Vessel basin options for current material.";
         }
@@ -786,6 +812,7 @@ export const CountertopPage = () => {
     hasSelectedMaterial,
     ruleState.allowedStyles,
     ruleState.matchingRules,
+    selectedDimensions.depth,
     selectedDimensions.width,
   ]);
 
