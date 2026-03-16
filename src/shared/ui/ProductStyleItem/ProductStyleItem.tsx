@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import none_img from "../../assets/images/png/img_png.png";
+import { Hint } from "../Hint/Hint";
 
 import s from "./ProductStyleItem.module.scss";
 
@@ -13,6 +14,7 @@ interface ProductStyleItemI {
   isActive?: boolean;
   onSelectStyle?: (id: number) => void;
   isAvailable?: boolean;
+  disabledReason?: string;
   isMixingRestricted?: boolean;
   onMixingRestrictedSelect?: (id: number) => void;
 }
@@ -25,11 +27,10 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   isActive = false,
   onSelectStyle,
   isAvailable = true,
+  disabledReason,
   isMixingRestricted = false,
   onMixingRestrictedSelect,
 }) => {
-  // const isClickable = isAvailable && !isMixingRestricted;
-
   const handleClick = () => {
     if (isMixingRestricted) {
       onMixingRestrictedSelect?.(id);
@@ -52,13 +53,32 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
     .join(" ");
 
   return (
-    <div className={itemClass}>
-      <div className={s.image} onClick={handleClick}>
+    <div className={itemClass} onClick={handleClick}>
+      <div className={s.image}>
         <img src={imageSrc ?? none_img} alt="image" />
       </div>
-      <div className={s.title}>{title}</div>
+      {!isAvailable ? (
+        <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
+          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+        </Hint>
+      ) : isMixingRestricted ? (
+        <Hint
+          className={s.optionHint}
+          content={"Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration."}
+        >
+          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+        </Hint>
+      ) : (
+        <div className={s.title}>{title}</div>
+      )}
 
-      <Link className={s.link} to={`#`}>
+      <Link
+        className={s.link}
+        to={`#`}
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
         <span>Product Details</span>
         <span className={s.linkIcon}>
           <ArrowTopRight color={"#ad5534"} />
