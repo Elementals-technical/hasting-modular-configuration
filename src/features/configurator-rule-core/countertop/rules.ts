@@ -33,7 +33,6 @@ export const buildCountertopRuleState = ({
   activeMaterialTokens,
   width,
   depth,
-  activeBasinStyle,
   activeThickness,
 }: CountertopRuleInput): CountertopRuleResult => {
   const allowedMaterials = new Set<string>();
@@ -83,8 +82,6 @@ export const buildCountertopRuleState = ({
     });
   });
 
-  const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : null;
-
   const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
   const meetsMinSb = (rule: CountertopMatrixRule) => !width || !rule.minSbCm || width >= rule.minSbCm;
 
@@ -114,7 +111,6 @@ export const buildCountertopRuleState = ({
   matchingRules.forEach((rule) => {
     if (!meetsMinSb(rule)) return;
     if (!matchesActiveThickness(rule)) return;
-    if (activeBasinToken && normalizeBasinToken(rule.basinStyle) !== activeBasinToken) return;
 
     if (isWidthValid(rule.maxIntegratedCm)) {
       if (

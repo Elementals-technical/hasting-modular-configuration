@@ -39,6 +39,7 @@ import {
   getMaterialAliases,
   normalizeBasinKey,
   normalizeMaterialToken,
+  parseThicknessValue,
   parseCountertopMatrix,
 } from "@/features/configurator-rule-core/countertop";
 
@@ -623,13 +624,170 @@ export const CountertopPage = () => {
 
   const filteredStyleOptions = useMemo(() => {
     const allowed = ruleState.allowedStyles;
-    if (!allowed.size) return optionsMockData2;
+    const width = selectedDimensions.width;
+    const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+    const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+    const activeColorCode = activeCountertopColor
+      ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
+      : null;
 
-    return optionsMockData2.map((option) => ({
-      ...option,
-      isAvailable: allowed.has(option.title.toLowerCase()),
-    }));
-  }, [ruleState.allowedStyles]);
+    const vesselSinkNames = ["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris"];
+    const integratedSinkNames = new Set([
+      "Top_HPLPrisma",
+      "Top_Glass_Nettuno",
+      "Top_HPLQuadra",
+      "Top_HPLCover",
+      "Top_HPLStrip",
+      "Top_HPL/Fenix_Cover_Gres",
+      "Top_HPL/Fenix_Prisma_Gres",
+      "Top_HPL/Fenix_Quadra_Gres",
+      "Top_HPL/Fenix_Strip_Gres",
+      "Fenix_Strip_Gres",
+      "Top_Glass_Ovale",
+      "Top_Mineralmarmo_Diamond",
+      "Top_Ocritech_Oly55",
+      "Top_Ocritech_Oly56",
+      "Top_Ocritech_Orion",
+      "Top_Ocritech_Quadra",
+      "Top_Ocritech_Rayo",
+      "Top_Ocritech_Roll",
+      "Top_Porcelain_Cover",
+      "Top_Porcelain_Prisma",
+      "Top_Porcelain_Quadra",
+      "Top_Porcelain_Strip",
+      "Top_Syntesi",
+      "Top_Tekorlux_Quadra",
+      "Top_Tekorlux_Rectangular",
+      "Top_Tekorlux_Ron",
+      "Top_Tekorlux_Trip",
+      "Top_Tekormud_Tivi",
+    ]);
+    const hasVesselByDedicatedRules =
+      hasSelectedMaterial &&
+      vesselSinkNames.some((name) => {
+        const allowedMats = vesselAllowedMaterialsMap[name];
+        if (allowedMats === null || allowedMats === undefined) return true;
+        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
+      });
+    const hasVesselBasinOptions =
+      hasSelectedMaterial &&
+      optionsMockData3.some((option) => {
+        const name = option.name ?? "";
+        if (!vesselSinkNames.includes(name)) return false;
+        const allowedMats = vesselAllowedMaterialsMap[name];
+        if (allowedMats === null || allowedMats === undefined) return true;
+        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
+      });
+    const hasIntegratedBasinOptions =
+      hasSelectedMaterial &&
+      allowedBasinKeys.size > 0 &&
+      optionsMockData3.some((option) => {
+        if (!integratedSinkNames.has(option.name ?? "")) return false;
+        const label = option.title ?? option.name ?? "";
+        if (!label) return false;
+
+        const [firstToken, ...restTokens] = label.trim().split(/\s+/);
+        const materialTokens = firstToken
+          ? firstToken
+              .split("/")
+              .map((token) => normalizeMaterialToken(token))
+              .filter(Boolean)
+          : [];
+        const isMaterialSpecific = materialTokens.some((token) =>
+          getMaterialAliases(token).some((alias) => allowedMaterials.has(alias)),
+        );
+
+        if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
+          const matchesMaterial = materialTokens.some((token) =>
+            getMaterialAliases(token).some((alias) => normalizedActiveMaterials.includes(alias)),
+          );
+          if (!matchesMaterial) return false;
+        }
+
+        const basinLabel = isMaterialSpecific ? restTokens.join(" ") : label;
+        const normalized = normalizeBasinKey(basinLabel);
+        return Array.from(allowedBasinKeys).some((token) => normalized === token);
+      });
+
+    const rulesForThickness = ruleState.matchingRules.filter((rule) => {
+      if (activeThicknessValue === null) return true;
+      const values = rule.topThicknesses
+        .map((value) => parseThicknessValue(value))
+        .filter((value): value is number => value !== null);
+      return values.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+    });
+
+    const minSbRequirement = rulesForThickness
+      .map((rule) => rule.minSbCm)
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((min, value) => (min === null ? value : Math.min(min, value)), null);
+
+    const maxIntegratedLimit = rulesForThickness
+      .map((rule) => rule.maxIntegratedCm)
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
+
+    const maxVesselLimit = rulesForThickness
+      .map((rule) => rule.maxVesselCm)
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
+
+    const buildDisabledReason = (styleKey: string): string => {
+      if (!hasSelectedMaterial) return "Select countertop color first.";
+      if (!activeThickness) return "Select thickness first.";
+
+      if (styleKey === "integrated") {
+        if (!hasIntegratedBasinOptions) {
+          return "No Integrated basin options for current material.";
+        }
+        if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
+        if (width && minSbRequirement !== null && width < minSbRequirement) {
+          return `Requires cabinet width at least ${minSbRequirement} cm.`;
+        }
+        if (width && maxIntegratedLimit !== null && width > maxIntegratedLimit) {
+          return `Integrated is available up to ${maxIntegratedLimit} cm.`;
+        }
+        return "Integrated is not available for current basin/material.";
+      }
+
+      if (styleKey === "vessel") {
+        if (!hasVesselBasinOptions) {
+          return "No Vessel basin options for current material.";
+        }
+        if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
+        if (width && maxVesselLimit !== null && width > maxVesselLimit) {
+          return `Vessel is available up to ${maxVesselLimit} cm.`;
+        }
+        return "Vessel is not available for current material/thickness.";
+      }
+
+      if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
+      return "Not available for current configuration.";
+    };
+
+    return optionsMockData2.map((option) => {
+      const styleKey = option.title.toLowerCase();
+      const isAvailable =
+        styleKey === "vessel"
+          ? (allowed.has(styleKey) || hasVesselByDedicatedRules) && hasVesselBasinOptions
+          : allowed.has(styleKey);
+      return {
+        ...option,
+        isAvailable,
+        disabledReason: isAvailable ? undefined : buildDisabledReason(styleKey),
+      };
+    });
+  }, [
+    activeCountertopColor,
+    activeMaterialTokens,
+    activeThickness,
+    allowedBasinKeys,
+    allowedMaterials,
+    hasSelectedMaterial,
+    ruleState.allowedStyles,
+    ruleState.matchingRules,
+    selectedDimensions.width,
+  ]);
 
   const sortedCountertopOptions = useMemo(
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -755,6 +913,20 @@ export const CountertopPage = () => {
     hasSelectedMaterial,
     isSinkDisabled,
   ]);
+
+  useEffect(() => {
+    const currentStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
+    if (currentStyle !== "vessel") return;
+
+    const vesselOption = filteredStyleOptions.find((option) => option.title.toLowerCase() === "vessel");
+    if (vesselOption?.isAvailable !== false) return;
+    if (vesselOption?.disabledReason !== "No Vessel basin options for current material.") return;
+
+    const integratedOption = filteredStyleOptions.find((option) => option.title.toLowerCase() === "integrated");
+    if (!integratedOption?.isAvailable) return;
+
+    dispatch(setCountertopStyle("Integrated"));
+  }, [activeCountertopStyle, dispatch, filteredStyleOptions]);
 
   const handleCountertopStyle = (style: string) => {
     if (!style) return;

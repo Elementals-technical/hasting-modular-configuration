@@ -23,6 +23,7 @@ export type CountertopSkuInput = {
 const FALLBACK = "X";
 const CATEGORY = "CT";
 const LOG_PREFIX = "[SKU/CT]";
+const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -84,7 +85,8 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
   const rawT = input.thickness?.trim();
   const parsedT = rawT ? parseFloat(rawT) : null;
-  const t = parsedT != null && !isNaN(parsedT) ? `${parsedT.toFixed(1)}H` : FALLBACK;
+  const thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
+  const t = thicknessForSku != null ? `${thicknessForSku.toFixed(1)}H` : FALLBACK;
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
   const isVessel = styleValue.toLowerCase() === "vessel";
