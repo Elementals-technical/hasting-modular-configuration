@@ -778,6 +778,12 @@ export const CountertopPage = () => {
           return "Vessel is unavailable for Glass. Change countertop material to HPL, Porcelain, Solid Surface, or Tekorlux TAL/TAM.";
         }
         if (!hasVesselBasinOptions) {
+          const isTekorluxSelected = normalizedActiveMaterials.some((token) =>
+            getMaterialAliases(token).some((alias) => alias === "tekorlux" || alias === "sstkr"),
+          );
+          if (isTekorluxSelected && activeColorCode !== "tal" && activeColorCode !== "tam") {
+            return "Vessel will appear only if the selected Tekorlux color code is TAL or TAM.";
+          }
           return "No Vessel basin options for current material.";
         }
         if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
