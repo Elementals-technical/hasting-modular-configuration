@@ -47,21 +47,19 @@
       list-style: none;
       margin-bottom: 12px;
 
-      a {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        text-decoration: none;
-        color: #282828;
-        font-size: 12px;
-      }
-
       &:last-child {
         margin-bottom: 0;
       }
     }
   }
+}
+
+.breakdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #282828;
+  font-size: 12px;
 }
 
 .stepIcon {

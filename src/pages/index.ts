@@ -6,6 +6,7 @@ export * from "./custom/countertop";
 export * from "./custom/faucetHoles";
 export * from "./custom/summary";
 export * from "./custom/cabinetBuilder/CabinetBuilderPage.tsx";
+export * from "./custom/cabinetStyleDetails";
 
 export * from "./prebuilt/accessories/AccessoriesPage.tsx";
 export * from "./prebuilt/cabinet/CabinetPage.tsx";

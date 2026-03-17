@@ -15,6 +15,7 @@ import {
   CabinetPage,
   ModelDetailsPage,
   ArDownloadPage,
+  CabinetStyleDetailsPage,
 } from "@/pages";
 
 import { ROUTES } from "@/shared";
@@ -50,6 +51,7 @@ export const routerConfig = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="cabinet-builder" replace /> },
           { path: "cabinet-builder", element: <CabinetBuilderPage /> },
+          { path: "cabinet-builder/details/style", element: <CabinetStyleDetailsPage /> },
           { path: "cabinet-colors", element: <CustomCabinetColorsPage /> },
           { path: "countertop", element: <CustomCountertopPage /> },
           { path: "accessories", element: <CustomAccessoriesPage /> },
