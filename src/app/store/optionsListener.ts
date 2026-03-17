@@ -17,6 +17,7 @@ import {
   getBookMatching,
   getDrawerPanelFluting,
   getGrainDirection,
+  getSelectedProducts,
   getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
 import {
@@ -93,8 +94,13 @@ optionsListenerMiddleware.startListening({
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const currentSidePanels = getSidePanelsOption(state);
+    const selectedProducts = getSelectedProducts(state);
 
     if (!currentSidePanels || currentSidePanels === "None") return;
+    // SidePanels option is global in Redux state. Auto-reset is safe only for single-cabinet scenes.
+    // In multi-cabinet scenes (e.g. Sink Base + Open Shelf), selected-cabinet availability can
+    // incorrectly clear a side panel applied on the opposite edge.
+    if (selectedProducts.length !== 1) return;
 
     const availability = selectSidePanelAvailability(state);
     if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
