@@ -9,6 +9,7 @@ import {
   getDividersOption,
   getDividersStyle,
   getProductsPresets,
+  getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
   getTowelBarColor,
@@ -59,6 +60,7 @@ export const AccessoriesPage = () => {
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const selectedProducts = useAppSelector(getSelectedProducts);
   const productsPresets = useAppSelector(getProductsPresets);
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
@@ -357,7 +359,15 @@ export const AccessoriesPage = () => {
     if (!isEdge) return;
 
     await saveSnapshot();
-    await setConfigBatch({ cabinetId: selectedSceneProduct }, { SidePanel: value });
+    const side: "left" | "right" | "both" =
+      selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+        ? "both"
+        : selectedSceneProduct === leftCabinetId
+          ? "left"
+          : selectedSceneProduct === rightCabinetId
+            ? "right"
+            : "both";
+    await setConfigBatch({}, { SidePanel: value, SidePanelSide: side });
 
     dispatch(setSidePanelsOption(value));
   };

@@ -15,10 +15,8 @@ import {
 } from "@/entities/product/model/store/slice";
 import {
   getBookMatching,
-  getCabinetColor,
   getDrawerPanelFluting,
   getGrainDirection,
-  getSelectedProducts,
   getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
 import {
@@ -28,7 +26,6 @@ import {
   selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -89,8 +86,8 @@ optionsListenerMiddleware.startListening({
 });
 
 // When handle (Drawers) or dimensions change — re-check side panel availability.
-// If the currently selected side panel is no longer allowed, reset to "None" and sync PlayCanvas
-// for both edge cabinets (left and right).
+// If the currently selected side panel is no longer allowed, pick a valid fallback and
+// sync PlayCanvas via SidePanelSide="both".
 optionsListenerMiddleware.startListening({
   matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions, setActiveCabinetType, switchAllCabinetsDrawerStyle),
   effect: async (_, listenerApi) => {
@@ -107,15 +104,6 @@ optionsListenerMiddleware.startListening({
       GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
 
     listenerApi.dispatch(setSidePanelsOption(newValue));
-
-    const cabinetColor = getCabinetColor(state);
-    // Do not spread selected product config here: it may contain stale dimensions/drawers
-    // and accidentally roll back height after drawer-style approve.
-    const resetPayload = { CabinetColor: cabinetColor, SidePanel: newValue };
-
-    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const edgeIds = [leftCabinetId, rightCabinetId].filter(Boolean) as string[];
-
-    await Promise.all(edgeIds.map((cabinetId) => setConfigBatch({ cabinetId }, resetPayload)));
+    await setConfigBatch({}, { SidePanel: newValue, SidePanelSide: "both" });
   },
 });

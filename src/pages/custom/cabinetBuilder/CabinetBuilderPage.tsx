@@ -787,7 +787,7 @@ export const CabinetBuilderPage = () => {
         if (uiSidePanels || sidePanelValue) {
           const sidePanel = uiSidePanels || sidePanelValue;
           if (sidePanel) {
-            await setConfigBatch({ productType: "SidePanel" }, { SidePanel: sidePanel });
+            await setConfigBatch({}, { SidePanel: sidePanel, SidePanelSide: "both" });
             dispatch(setSidePanelsOption(sidePanel));
           }
         }
