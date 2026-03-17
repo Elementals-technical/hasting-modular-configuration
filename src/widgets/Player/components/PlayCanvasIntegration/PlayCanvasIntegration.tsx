@@ -45,6 +45,8 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
+import { getRememberedSidePanels, setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
@@ -59,6 +61,27 @@ import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/C
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "030";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
+
+const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
+  if (!cabinetType) return null;
+
+  const val = cabinetType.toLowerCase();
+
+  if (val.includes("side-shelf") || val === "oss") return "OSS";
+  if (val.includes("open-shelf") || val === "os") return "OS";
+  if (
+    val.includes("sink-base") ||
+    val.includes("sink-cabinet") ||
+    val.includes("side-cabinet") ||
+    val === "sb" ||
+    val === "sc" ||
+    val === "sbsc"
+  ) {
+    return "SBSC";
+  }
+
+  return null;
+};
 
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
@@ -630,13 +653,54 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
+  const enforceSidePanelEligibilityForEdgeCabinets = useCallback(async () => {
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    const remembered = getRememberedSidePanels();
+    const targets: Array<{ side: "left" | "right"; cabinetId: string | null; opposite: "left" | "right" }> = [
+      { side: "left", opposite: "right", cabinetId: leftCabinetId },
+      { side: "right", opposite: "left", cabinetId: rightCabinetId },
+    ];
+
+    const sideEligibility: Record<"left" | "right", boolean> = {
+      left: true,
+      right: true,
+    };
+
+    for (const target of targets) {
+      if (!target.cabinetId) continue;
+      const cfg = await getConfig(target.cabinetId);
+      const config = cfg && typeof cfg === "object" ? (cfg as Record<string, unknown>) : null;
+      const rawType =
+        (typeof config?.productType === "string" && config.productType) ||
+        (typeof config?.ProductType === "string" && config.ProductType) ||
+        (typeof config?.name === "string" && config.name) ||
+        target.cabinetId;
+      const group = mapCabinetTypeToGroup(rawType);
+      sideEligibility[target.side] = group !== "OS" && group !== "OSS";
+    }
+
+    for (const target of targets) {
+      if (sideEligibility[target.side]) continue;
+      const currentType = remembered[target.side];
+      if (!currentType || currentType === "None") continue;
+
+      if (sideEligibility[target.opposite] && remembered[target.opposite] === "None") {
+        await setSidePanel(currentType, target.opposite);
+      }
+
+      await setSidePanel("None", target.side);
+    }
+  }, []);
+
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
       await saveSnapshot();
       swapProducts(idA, idB);
       dispatch(swapProductIds({ idA, idB }));
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 0));
+      await enforceSidePanelEligibilityForEdgeCabinets();
     },
-    [dispatch, saveSnapshot],
+    [dispatch, enforceSidePanelEligibilityForEdgeCabinets, saveSnapshot],
   );
 
   const handleMoveProduct = useCallback(

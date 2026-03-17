@@ -26,7 +26,7 @@ import {
   selectGrainDirectionState,
   selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -110,6 +110,6 @@ optionsListenerMiddleware.startListening({
       GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
 
     listenerApi.dispatch(setSidePanelsOption(newValue));
-    await setConfigBatch({}, { SidePanel: newValue, SidePanelSide: "both" });
+    await setSidePanel(newValue, "both");
   },
 });

@@ -30,6 +30,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
@@ -421,7 +422,7 @@ export const CustomAccessoriesPage = () => {
             ? "right"
             : "both";
 
-    await setConfigBatch({}, { SidePanel: value, SidePanelSide: side });
+    await setSidePanel(value, side);
 
     dispatch(setSidePanelsOption(value));
   };
