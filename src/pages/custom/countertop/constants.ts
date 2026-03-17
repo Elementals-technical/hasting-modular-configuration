@@ -19,6 +19,8 @@ import ronImage from "@/shared/assets/images/jpeg/basin/Ron.jpg";
 import tiviImage from "@/shared/assets/images/jpeg/basin/Tivi.jpg";
 import tripImage from "@/shared/assets/images/jpeg/basin/Trip.jpg";
 import integratedImage from "@/shared/assets/images/png/countertop/Integrated.png";
+import nettunoImage from "@/shared/assets/images/png/countertop/integrated/Nettuno.png";
+import ovaleImage from "@/shared/assets/images/png/countertop/integrated/Ovale.png";
 import vesselImage from "@/shared/assets/images/png/countertop/Vessel.png";
 import vesselAquarius48Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Aquarius48.png";
 import vesselBlade11Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Blade11.png";
@@ -189,12 +191,18 @@ export const optionsMockData3 = [
     title: "Glass Nettuno",
     name: "Top_Glass_Nettuno",
     isShortDesc: false,
+    metadata: {
+      image: nettunoImage,
+    },
   },
   {
     id: 3011,
     title: "Glass Ovale",
     name: "Top_Glass_Ovale",
     isShortDesc: false,
+    metadata: {
+      image: ovaleImage,
+    },
   },
   {
     id: 3012,

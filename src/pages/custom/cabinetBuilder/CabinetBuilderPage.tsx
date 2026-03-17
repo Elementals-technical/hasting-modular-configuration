@@ -238,11 +238,11 @@ export const CabinetBuilderPage = () => {
               ? "Vanity configurations allow a maximum of two Sink Base units."
               : undefined,
             metadata: {
-              image: resolveCabinetTypeImage(rule.code, heightValue, meta.image),
+              image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
             },
           };
         }),
-    [cabinetCatalog.typeCabinetRules, selectedDimensions.height, sinkBaseCount],
+    [cabinetCatalog.typeCabinetRules, selectedDimensions.height, sinkBaseCount, dominantDrawerGroup],
   );
 
   const handleClose = () => {
@@ -314,7 +314,14 @@ export const CabinetBuilderPage = () => {
 
     setPendingMixingStyle(null);
 
-    const cabinetIdsToUpdate = Object.keys(placedCabinetStyles);
+    const isDrawerCabinetId = (productId: string) =>
+      cabinetCatalog.typeCabinetRules.some(
+        (rule) => !rule.isOpen && productId.toLowerCase().includes(rule.code.toLowerCase()),
+      );
+
+    const cabinetIdsToUpdate = Array.from(
+      new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),
+    );
     const inferredCabinetType =
       cabinetIdsToUpdate
         .map((productId) =>
@@ -437,6 +444,9 @@ export const CabinetBuilderPage = () => {
     // 2. Atomically update Redux: selectedProductConfig.Drawers + all placedCabinetStyles in one action
     //    to ensure dominantDrawerGroup and cabinetStyleOptions recompute in the same render cycle.
     setActiveStyleId(id);
+    cabinetIdsToUpdate.forEach((productId) => {
+      dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+    });
     dispatch(
       switchAllCabinetsDrawerStyle({
         configValue: mappedValue,

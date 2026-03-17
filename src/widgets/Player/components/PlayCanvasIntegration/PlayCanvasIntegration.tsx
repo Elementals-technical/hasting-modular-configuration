@@ -57,7 +57,7 @@ import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "028";
+const PLAYCANVAS_VERSION = "030";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 export const PlayCanvasIntegration = () => {
@@ -796,6 +796,20 @@ export const PlayCanvasIntegration = () => {
     return candidates.some((value) => value.startsWith("Top_"));
   }, []);
 
+  const isSidePanelEntity = useMemo(() => {
+    const candidates = [
+      selectedSceneProduct,
+      typeof selectedProductConfig?.ProductType === "string" ? (selectedProductConfig.ProductType as string) : null,
+      typeof selectedProductConfig?.productType === "string" ? (selectedProductConfig.productType as string) : null,
+      typeof selectedProductConfig?.type === "string" ? (selectedProductConfig.type as string) : null,
+      typeof selectedProductConfig?.entityName === "string" ? (selectedProductConfig.entityName as string) : null,
+    ]
+      .filter(Boolean)
+      .map((value) => String(value).toLowerCase());
+
+    return candidates.some((value) => value.includes("sidepanel") || value.includes("side-panel"));
+  }, [selectedProductConfig, selectedSceneProduct]);
+
   const selectToolAttachedRef = useRef(false);
   const selectTool = getSelectTool();
 
@@ -904,6 +918,10 @@ export const PlayCanvasIntegration = () => {
   }, [dispatch, resolveCabinetTypeId, selectedSceneProduct]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
+    if (isSidePanelEntity) {
+      return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
+    }
+
     const widthOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const depthOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
 
@@ -1028,6 +1046,7 @@ export const PlayCanvasIntegration = () => {
     handleAddAdditionalProduct,
     handleDuplicateProduct,
     isDrawerCabinet,
+    isSidePanelEntity,
     handleOptions,
     handleSetHandleType,
     selectedProductConfig,

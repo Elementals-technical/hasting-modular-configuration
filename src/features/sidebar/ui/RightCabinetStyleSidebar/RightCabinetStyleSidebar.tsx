@@ -27,6 +27,7 @@ import {
   getSelectedProducts,
   getSelectedProductConfig,
   getHeightLocked,
+  getSinkType,
 } from "@/entities/product/model/store/selectors";
 import {
   addProductId,
@@ -78,6 +79,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
+  const sinkType = useAppSelector(getSinkType);
 
   const saveSnapshot = useHistorySnapshot();
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
@@ -321,7 +323,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       if (!productId) return;
 
       if (productConfig) {
-        await setConfig(productId, productConfig);
+        const isSinkBase = activeDrawerProduct.toLowerCase().includes("sink-base");
+        const nextConfig =
+          isSinkBase && sinkType
+            ? {
+                ...productConfig,
+                sinkType,
+              }
+            : productConfig;
+
+        await setConfig(productId, nextConfig);
       }
 
       const storedConfig = await getConfig(productId);
@@ -342,7 +353,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     };
 
     setHandleButtonClick(onPlusClick);
-  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, dispatch, onProductAdded, saveSnapshot]);
+  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, sinkType, dispatch, onProductAdded, saveSnapshot]);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import img_desc from "@/shared/assets/images/png/descr_image.png";
 
@@ -15,11 +15,42 @@ export const ModelDetailsPage = () => {
 
   const hasPresetProducts = presetProducts.length > 0;
 
-  const totalWidthCm = presetProducts.reduce((acc, item) => acc + (item.Width ?? 0), 0);
-  const maxDepthCm = presetProducts.reduce((acc, item) => Math.max(acc, item.Depth ?? 0), 0);
-  const maxHeightCm = presetProducts.reduce((acc, item) => Math.max(acc, item.Height ?? 0), 0);
   const cmToIn = (value: number) => value / 2.54;
-  const formatInches = (value: number) => `${Math.round(value)}"`;
+  const roundOneDecimal = (value: number) => Number(value.toFixed(1));
+  const formatInches = (value: number) => {
+    const roundedToOne = Number(value.toFixed(1));
+    return `${roundedToOne % 1 === 0 ? roundedToOne.toFixed(0) : roundedToOne.toFixed(1)}"`;
+  };
+
+  const getCabinetLabel = (name: string) => {
+    if (name === "Sink-Base") return "Sink Base";
+    if (name === "Sink-Cabinet") return "Side Cabinet";
+    if (name === "Open-Shelf") return "Open Shelf";
+    if (name === "Side-Shelf") return "Side Shelf";
+    return name.replace(/-/g, " ");
+  };
+
+  const getDrawerLabel = (drawers?: string) => {
+    if (drawers === "1D") return "1-Drawer";
+    if (drawers === "2D") return "2-Drawer";
+    if (drawers === "1DWID") return "1-DWID";
+    return "";
+  };
+
+  const formatInchesFromCm = (value?: number) => {
+    if (typeof value !== "number") return null;
+    const inches = roundOneDecimal(value / 2.54);
+    return `${inches % 1 === 0 ? inches.toFixed(0) : inches.toFixed(1)}"`;
+  };
+
+  const totalWidthInches = roundOneDecimal(
+    presetProducts.reduce((acc, item) => acc + roundOneDecimal(cmToIn(item.Width ?? 0)), 0),
+  );
+  const maxDepthInches = presetProducts.reduce((acc, item) => Math.max(acc, roundOneDecimal(cmToIn(item.Depth ?? 0))), 0);
+  const maxHeightInches = presetProducts.reduce(
+    (acc, item) => Math.max(acc, roundOneDecimal(cmToIn(item.Height ?? 0))),
+    0,
+  );
 
   return (
     <div className={s.modelDetails}>
@@ -32,9 +63,9 @@ export const ModelDetailsPage = () => {
             <h4 className={s.title}>Dimensions</h4>
             {hasPresetProducts ? (
               <>
-                <p>{formatInches(cmToIn(totalWidthCm))} Wide</p>
-                <p>{formatInches(cmToIn(maxDepthCm))} Deep</p>
-                <p>{formatInches(cmToIn(maxHeightCm))} High</p>
+                <p>{formatInches(totalWidthInches)} Wide</p>
+                <p>{formatInches(maxDepthInches)} Deep</p>
+                <p>{formatInches(maxHeightInches)} High</p>
               </>
             ) : (
               <>
@@ -50,12 +81,19 @@ export const ModelDetailsPage = () => {
 
             <ul>
               {presetProducts.map((i, index) => {
+                const widthInches = formatInchesFromCm(i.Width);
+                const drawerLabel = getDrawerLabel(i.Drawers);
+                const detailsParts = [widthInches, drawerLabel].filter(Boolean).join(" ");
+
                 return (
                   <li key={`${i.name}-${index}`}>
-                    <Link to={"#"}>
+                    <span className={s.breakdownItem}>
                       <span className={s.stepIcon}>{stepLabels[index]}</span>
-                      <span>{i.name}</span>
-                    </Link>
+                      <span>
+                        {getCabinetLabel(i.name)}
+                        {detailsParts ? ` | ${detailsParts}` : ""}
+                      </span>
+                    </span>
                   </li>
                 );
               })}

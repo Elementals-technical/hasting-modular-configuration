@@ -10,6 +10,7 @@ interface ProductStyleItemI {
   id: number;
   title: string;
   imageSrc?: string;
+  detailsTo?: string;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
   onSelectStyle?: (id: number) => void;
@@ -23,6 +24,7 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   id,
   title,
   imageSrc,
+  detailsTo = "#",
   handleOpenStyleSidebar,
   isActive = false,
   onSelectStyle,
@@ -74,7 +76,7 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
 
       <Link
         className={s.link}
-        to={`#`}
+        to={detailsTo}
         onClick={(event) => {
           event.stopPropagation();
         }}
