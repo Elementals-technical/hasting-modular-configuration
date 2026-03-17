@@ -531,8 +531,29 @@ export function usePriceCalculation() {
       ];
     }
 
-    // 2) Countertop SKUs — Resolver 2 (per product)
+    // 2) Countertop SKUs — Resolver 2
+    // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
     const seenCountertopSkus = new Set<string>();
+    const totalCountertopWidth = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0) || null;
+    const aggregateCountertopLines = buildCountertopSku({
+      style: countertopStyle || null,
+      width: totalCountertopWidth,
+      depth: selectedDimensions.depth,
+      thickness: countertopThickness || null,
+      basinType: sinkType || null,
+      faucetHolesAmount: faucetHolesAmount || null,
+      faucetHolesSpacing: faucetHolesSpacing || null,
+      countertopMaterialSku: countertopColorSku || null,
+      countertopColorCode: extractColorCode(countertopColor),
+    });
+    aggregateCountertopLines.forEach((line) => {
+      if (!seenCountertopSkus.has(line)) {
+        seenCountertopSkus.add(line);
+        skus.push(line);
+      }
+    });
+
+    // Keep per-product countertop SKUs too (used by existing pricing flows).
     productDimsList.forEach((dims) => {
       const countertopSkuLines = buildCountertopSku({
         style: countertopStyle || null,

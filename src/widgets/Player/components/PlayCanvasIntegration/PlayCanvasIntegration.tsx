@@ -774,14 +774,14 @@ export const PlayCanvasIntegration = () => {
   }, [navigate]);
 
   const handleOpenCabinetColor = useCallback(() => {
-    navigate("/custom/cabinet-colors?accordion=cabinet-color");
+    navigate(isPrebuilt ? "/prebuilt/color" : "/custom/cabinet-colors?accordion=cabinet-color");
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [isPrebuilt, navigate]);
 
   const handleOpenAccessories = useCallback(() => {
-    navigate("/custom/accessories");
+    navigate(isPrebuilt ? "/prebuilt/accessories" : "/custom/accessories");
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [isPrebuilt, navigate]);
 
   const isCountertopEntity = useCallback((entityName: string | null, config?: Record<string, unknown>) => {
     if (!entityName) return false;
@@ -918,6 +918,24 @@ export const PlayCanvasIntegration = () => {
   }, [dispatch, resolveCabinetTypeId, selectedSceneProduct]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
+    if (isPrebuilt) {
+      return [
+        {
+          id: "color",
+          label: "Color",
+          children: [
+            {
+              id: "cabinet-select-color",
+              label: "Select Color",
+              trailing: <ArrowTopRight color={"#333"} />,
+              onClick: handleOpenCabinetColor,
+            },
+          ],
+        },
+        { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: handleOpenAccessories },
+      ];
+    }
+
     if (isSidePanelEntity) {
       return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
     }
@@ -1045,6 +1063,7 @@ export const PlayCanvasIntegration = () => {
     handleOpenAccessories,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
+    isPrebuilt,
     isDrawerCabinet,
     isSidePanelEntity,
     handleOptions,
@@ -1066,22 +1085,22 @@ export const PlayCanvasIntegration = () => {
   );
 
   const handleOpenCountertopColor = useCallback(() => {
-    navigate("/custom/countertop?accordion=counter-top-color");
+    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=counter-top-color" : "/custom/countertop?accordion=counter-top-color");
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [isPrebuilt, navigate]);
 
   const handleOpenCountertopStyle = useCallback(() => {
-    navigate("/custom/countertop?accordion=countertop-style");
+    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style");
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [isPrebuilt, navigate]);
 
   const handleOpenBasinStyle = useCallback(() => {
-    navigate("/custom/countertop?accordion=basin-style");
+    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [isPrebuilt, navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
     return [
@@ -1170,7 +1189,7 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1000,
           }}
         >
-          {!isPrebuilt && <NestedDropdown items={dropdownItems} />}
+          <NestedDropdown items={dropdownItems} />
         </div>
       )}
 
@@ -1185,7 +1204,7 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1000,
           }}
         >
-          {!isPrebuilt && <NestedDropdown style={{ width: "200px" }} items={countertopPopoverItems} />}
+          <NestedDropdown style={{ width: "200px" }} items={countertopPopoverItems} />
         </div>
       )}
 

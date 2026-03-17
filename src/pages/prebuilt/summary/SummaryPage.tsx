@@ -422,32 +422,56 @@ export const SummaryPage = () => {
             const swatch = resolveSwatch(swatchValue);
 
             const productCabinetType = name ?? activeCabinetType;
+            const normalizedName = (productCabinetType ?? "").toLowerCase();
             const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
 
-            const sku = buildProductSku({
-              cabinetType: productCabinetType,
-              drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-              handle: typeof config.Handle === "string" ? config.Handle : null,
-              pattern:
-                typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
-              width: width ?? null,
-              height: height ?? null,
-              depth: depth ?? null,
-              cab: cabinetMaterialSku
-                ? {
-                    materialSku: cabinetMaterialSku,
-                    colorCode: extractColorCode(swatchValue),
-                    grainDirection: grainSku,
-                  }
-                : null,
-              hdl: handleMaterialSku
-                ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                : null,
-              msp: null,
-              bkpl: null,
-            });
+            let sku: string;
+            if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
+              sku = buildOpenShelfSku({
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cabinetMaterialSku: cabinetMaterialSku,
+                cabinetColorCode: extractColorCode(swatchValue),
+                grainDirection: grainSku,
+              });
+            } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
+              const side: "L" | "R" = index === 0 ? "L" : "R";
+              sku = buildOpenSideShelfSku({
+                side,
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cabinetMaterialSku: cabinetMaterialSku,
+                cabinetColorCode: extractColorCode(swatchValue),
+                grainDirection: grainSku,
+              });
+            } else {
+              sku = buildProductSku({
+                cabinetType: productCabinetType,
+                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+                handle: typeof config.Handle === "string" ? config.Handle : null,
+                pattern:
+                  typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+                width: width ?? null,
+                height: height ?? null,
+                depth: depth ?? null,
+                cab: cabinetMaterialSku
+                  ? {
+                      materialSku: cabinetMaterialSku,
+                      colorCode: extractColorCode(swatchValue),
+                      grainDirection: grainSku,
+                    }
+                  : null,
+                hdl: handleMaterialSku
+                  ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                  : null,
+                msp: null,
+                bkpl: null,
+              });
+            }
 
             return {
               id: `cabinet-${index}`,
@@ -1014,6 +1038,7 @@ export const SummaryPage = () => {
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,
+    dividersStyle,
   ]);
 
   const fullSkuJson = useMemo(() => {
