@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -45,6 +45,14 @@ import {
   wrapExitTopView,
   wrapShowTopView,
 } from "@/utils/functions/playcanvas/dividers";
+import {
+  exportCameraState,
+  getZoom,
+  importCameraState,
+  setAutoFraming,
+  setZoom,
+  zoomOut,
+} from "@/utils/functions/playcanvas/camera";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -63,6 +71,8 @@ export const CustomAccessoriesPage = () => {
 
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
+  const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
+  const isDrawerCameraManagedRef = useRef(false);
 
   const activeCabinetId = selectedSceneProduct;
 
@@ -161,6 +171,42 @@ export const CustomAccessoriesPage = () => {
     [selectedDividerType],
   );
 
+  const cloneCameraState = useCallback((state: Record<string, unknown> | null) => {
+    if (!state) return null;
+    try {
+      return JSON.parse(JSON.stringify(state)) as Record<string, unknown>;
+    } catch {
+      return state;
+    }
+  }, []);
+
+  const applyOpenDrawerCameraMode = useCallback(() => {
+    if (!isDrawerCameraManagedRef.current) {
+      drawerCameraStateRef.current = cloneCameraState(exportCameraState() as Record<string, unknown> | null);
+      setAutoFraming(false);
+      isDrawerCameraManagedRef.current = true;
+    }
+
+    const currentZoom = getZoom();
+    if (typeof currentZoom === "number") {
+      setZoom(currentZoom * 1.85);
+    } else {
+      zoomOut(0.4);
+    }
+  }, [cloneCameraState]);
+
+  const restoreDrawerCameraMode = useCallback(() => {
+    if (isDrawerCameraManagedRef.current) {
+      if (drawerCameraStateRef.current) {
+        importCameraState(drawerCameraStateRef.current);
+      }
+      setAutoFraming(true);
+    }
+
+    drawerCameraStateRef.current = null;
+    isDrawerCameraManagedRef.current = false;
+  }, []);
+
   // Get the drawerType.
   useEffect(() => {
     if (!isPlayCanvasReady) return;
@@ -174,6 +220,8 @@ export const CustomAccessoriesPage = () => {
       },
 
       onAfterSelect: (cabinetId, drawerType) => {
+        applyOpenDrawerCameraMode();
+
         if (dividerSelection === "Customize") {
           console.log("[Dividers] auto-init after Open Drawer", { cabinetId, drawerType });
 
@@ -186,11 +234,13 @@ export const CustomAccessoriesPage = () => {
     if (!wrapped) {
       console.log("[Drawer] showTopView not ready or already wrapped");
     }
-  }, [dispatch, isPlayCanvasReady, dividerSelection]);
+  }, [dispatch, isPlayCanvasReady, dividerSelection, applyOpenDrawerCameraMode]);
 
   useEffect(() => {
     const exitTopView = wrapExitTopView({
       onExit: () => {
+        restoreDrawerCameraMode();
+
         console.log("[Drawer] exitTopView triggered by Close");
 
         setActiveDrawerType(null);
@@ -201,7 +251,13 @@ export const CustomAccessoriesPage = () => {
     if (!exitTopView) {
       console.warn("[Drawer] exitTopView not ready");
     }
-  }, [dispatch]);
+  }, [dispatch, restoreDrawerCameraMode]);
+
+  useEffect(() => {
+    return () => {
+      restoreDrawerCameraMode();
+    };
+  }, [restoreDrawerCameraMode]);
 
   // Side panel invalidation is handled by global listener middleware.
 
@@ -433,6 +489,8 @@ export const CustomAccessoriesPage = () => {
     if (value === "None") {
       const exitTopView = wrapExitTopView({
         onExit: () => {
+          restoreDrawerCameraMode();
+
           console.log("[Drawer] exitTopView triggered by Dividers None");
           setActiveDrawerType(null);
           dispatch(setIsDrawerOpen(false));
