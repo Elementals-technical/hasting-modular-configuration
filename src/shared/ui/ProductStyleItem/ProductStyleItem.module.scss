@@ -42,6 +42,8 @@
       height: 100%;
       object-fit: cover;
       border-radius: 10px;
+      transform: scale(0.88);
+      transform-origin: center;
     }
   }
 
@@ -62,7 +64,7 @@
   }
 
   &.restricted {
-    opacity: 0.5;
+    opacity: 1;
     cursor: pointer;
 
     .image {
