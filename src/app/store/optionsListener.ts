@@ -27,6 +27,7 @@ import {
   selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -106,8 +107,7 @@ optionsListenerMiddleware.startListening({
     if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
 
     const GROOVE_ORDER = ["NoG", "UpperG", "CenterG", "DoubleG"] as const;
-    const newValue =
-      GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
+    const newValue = GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
 
     listenerApi.dispatch(setSidePanelsOption(newValue));
     await setSidePanel(newValue, "both");

@@ -32,7 +32,7 @@ const inferMaterialSkuFromBasinType = (basinType: string | null): string | null 
   if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
   if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
   if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
-  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMLM";
+  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
   if (basin.startsWith("Top_Porcelain_")) return "POR";
   if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
   if (basin.startsWith("Top_HPL")) return "HPL";
