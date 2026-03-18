@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
+import { MobileNestedMenu } from "@/shared/ui/NestedDropdown/MobileNestedMenu";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -57,6 +58,7 @@ import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
+import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "030";
@@ -89,6 +91,7 @@ const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
 export const PlayCanvasIntegration = () => {
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
+  const isMobileMediaQueryRef = useRef<MediaQueryList | null>(null);
   const [dropdownState, setDropdownState] = useState<{ visible: boolean; x: number; y: number }>({
     visible: false,
     x: 0,
@@ -109,6 +112,8 @@ export const PlayCanvasIntegration = () => {
 
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
   const [isCustomizeModePromptOpen, setIsCustomizeModePromptOpen] = useState(false);
+  const [isMobileMenu, setIsMobileMenu] = useState(false);
+  const [mobilePreviewImage, setMobilePreviewImage] = useState<string | null>(null);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const countertopPopoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -353,6 +358,11 @@ export const PlayCanvasIntegration = () => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
+    if (isMobileMediaQueryRef.current?.matches) {
+      setDropdownState((prev) => ({ ...prev, visible: true }));
+      return;
+    }
+
     const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current);
     setDropdownState({ visible: true, x: pos.x, y: pos.y });
   }, []);
@@ -360,6 +370,11 @@ export const PlayCanvasIntegration = () => {
   const showCountertopPopoverForEntity = useCallback((entityName: string) => {
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
+
+    if (isMobileMediaQueryRef.current?.matches) {
+      setCountertopPopoverState((prev) => ({ ...prev, visible: true, entityName }));
+      return;
+    }
 
     const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
       width: 360,
@@ -377,6 +392,18 @@ export const PlayCanvasIntegration = () => {
   // We listen on both: postMessage from the iframe (preferred) and mousemove on
   // the parent window (fallback — gives the last known position before the
   // cursor enters the iframe).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+    isMobileMediaQueryRef.current = mediaQuery;
+    const sync = () => setIsMobileMenu(mediaQuery.matches);
+
+    sync();
+    mediaQuery.addEventListener("change", sync);
+    return () => mediaQuery.removeEventListener("change", sync);
+  }, []);
+
   useEffect(() => {
     const iframeEl = containerRef.current;
 
@@ -950,6 +977,33 @@ export const PlayCanvasIntegration = () => {
   }, [closeCountertopPopover, countertopPopoverState.visible]);
 
   useEffect(() => {
+    if (!isMobileMenu) {
+      setMobilePreviewImage(null);
+      return;
+    }
+
+    if (!dropdownState.visible && !countertopPopoverState.visible) {
+      setMobilePreviewImage(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadPreview = async () => {
+      const image = await captureScreenshot();
+      if (!isCancelled) {
+        setMobilePreviewImage(image);
+      }
+    };
+
+    void loadPreview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [countertopPopoverState.visible, dropdownState.visible, isMobileMenu, selectedSceneProduct]);
+
+  useEffect(() => {
     const entityName = countertopPopoverState.entityName;
     if (!countertopPopoverState.visible || !entityName) return;
 
@@ -1269,7 +1323,7 @@ export const PlayCanvasIntegration = () => {
         }}
       />
 
-      {dropdownState.visible && !isDrawerOpen && (
+      {dropdownState.visible && !isDrawerOpen && !isMobileMenu && (
         <div
           style={{
             position: "absolute",
@@ -1283,7 +1337,7 @@ export const PlayCanvasIntegration = () => {
         </div>
       )}
 
-      {countertopPopoverState.visible && !isDrawerOpen && (
+      {countertopPopoverState.visible && !isDrawerOpen && !isMobileMenu && (
         <div
           ref={countertopPopoverRef}
           style={{
@@ -1304,6 +1358,45 @@ export const PlayCanvasIntegration = () => {
           setIsOpening={setIsCustomizeModePromptOpen}
           onConfirm={handleCustomizeFromPrompt}
         />
+      )}
+
+      {!isDrawerOpen && isMobileMenu && dropdownState.visible && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1100,
+          }}
+        >
+          <MobileNestedMenu
+            key={`mobile-dropdown-${selectedSceneProduct ?? "unknown"}`}
+            items={dropdownItems}
+            onClose={() => setDropdownState((prev) => ({ ...prev, visible: false }))}
+            previewLabel={selectedSceneProduct}
+            previewImage={mobilePreviewImage}
+            selectedDimensions={selectedDimensions}
+          />
+        </div>
+      )}
+
+      {!isDrawerOpen && isMobileMenu && countertopPopoverState.visible && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1100,
+          }}
+        >
+          <MobileNestedMenu
+            key={`mobile-countertop-${countertopPopoverState.entityName ?? "unknown"}`}
+            items={countertopPopoverItems}
+            onClose={closeCountertopPopover}
+            title="Select Countertop Configuration"
+            previewLabel={countertopPopoverState.entityName}
+            previewImage={mobilePreviewImage}
+            selectedDimensions={selectedDimensions}
+          />
+        </div>
       )}
     </div>
   );

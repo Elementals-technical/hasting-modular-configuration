@@ -68,7 +68,7 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
           className={s.optionHint}
           content={"Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration."}
         >
-          <div className={s.title}>{title}</div>
+          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
         </Hint>
       ) : (
         <div className={s.title}>{title}</div>
