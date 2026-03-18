@@ -40,6 +40,8 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import {
   buildCountertopRuleState,
   getMaterialAliases,
+  materialMatchesRule,
+  matchesDepth,
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
@@ -442,7 +444,9 @@ export const CustomCountertopPage = () => {
             const materials = option.metadata?.materials ?? [];
             if (materials.some((m) => m.toLowerCase() === "vessels")) return true;
             const isGlassOption = materials.some((material) =>
-              getMaterialAliases(material).some((alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl"),
+              getMaterialAliases(material).some(
+                (alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl",
+              ),
             );
             if (isGlassOption) return true;
             return materials.some((material) =>
@@ -890,26 +894,113 @@ export const CustomCountertopPage = () => {
     dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
   };
 
+  const applyBasinStyleByDependencies = useCallback(
+    async (basinStyle: string) => {
+      if (!basinStyle) return;
+
+      const extractWidth = (config: Record<string, unknown>): number | null => {
+        const raw = config.Width;
+        if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+        if (typeof raw === "string") {
+          const parsed = Number(raw.replace(",", "."));
+          return Number.isFinite(parsed) ? parsed : null;
+        }
+        if (raw && typeof raw === "object") {
+          const key = Object.keys(raw as Record<string, unknown>)[0];
+          if (key) {
+            const parsed = Number(key.replace(",", "."));
+            return Number.isFinite(parsed) ? parsed : null;
+          }
+        }
+        return null;
+      };
+
+      const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+      const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+      const selectedDepth = selectedDimensions.depth ?? null;
+      const basinOption = optionsMockData3.find((option) => (option.name ?? option.title) === basinStyle);
+      const basinLabel = basinOption?.title ?? basinOption?.name ?? basinStyle;
+      const basinKey = normalizeBasinKey(basinLabel);
+      const isVesselBasin = basinStyle.startsWith("Vessel_");
+
+      const applicableRules = countertopRules.filter((rule) => {
+        if (!matchesDepth(rule, selectedDepth)) return false;
+
+        if (activeThicknessValue !== null) {
+          const matchesThickness = rule.topThicknesses
+            .map((value) => parseThicknessValue(value))
+            .filter((value): value is number => value !== null)
+            .some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+          if (!matchesThickness) return false;
+        }
+
+        if (!normalizedActiveMaterials.length) return true;
+        return normalizedActiveMaterials.some((material) => materialMatchesRule(material, rule.material));
+      });
+
+      const basinRules = applicableRules.filter((rule) => normalizeBasinKey(rule.basinStyle) === basinKey);
+
+      const canUseBasinAtWidth = (width: number | null) => {
+        if (width === null) return false;
+
+        if (isVesselBasin) {
+          return applicableRules.some((rule) => !rule.maxVesselCm || width <= rule.maxVesselCm);
+        }
+
+        return basinRules.some((rule) => {
+          if (rule.minSbCm && width < rule.minSbCm) return false;
+          if (rule.maxIntegratedCm && width > rule.maxIntegratedCm) return false;
+          if (
+            rule.integratedAllowedSizesOnly.length > 0 &&
+            !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
+          ) {
+            return false;
+          }
+          return true;
+        });
+      };
+
+      const orderedIds = getOrderedProductIds(selectedProducts);
+      if (!orderedIds.length) return;
+
+      const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
+      const targetIds = orderedIds.filter((_, index) => {
+        const rawConfig = configs[index];
+        if (!rawConfig || typeof rawConfig !== "object") return false;
+        const config = rawConfig as Record<string, unknown>;
+        if (!containsSinkBase(config)) return false;
+        return canUseBasinAtWidth(extractWidth(config));
+      });
+
+      if (targetIds.length > 0) {
+        await setConfigBatch(targetIds, { sinkType: basinStyle });
+      }
+
+      dispatch(setActiveBasinStyle(basinStyle));
+    },
+    [
+      activeMaterialTokens,
+      activeThickness,
+      selectedDimensions.depth,
+      countertopRules,
+      selectedProducts,
+      containsSinkBase,
+      dispatch,
+    ],
+  );
+
   const handleAddbasinStyle = async (basinStyle: string) => {
     await saveSnapshot();
     console.log("basinStyle", basinStyle);
-
-    setConfigBatch(selectedProducts, {
-      sinkType: basinStyle,
-    });
-
-    dispatch(setActiveBasinStyle(basinStyle));
+    await applyBasinStyleByDependencies(basinStyle);
   };
 
   const applyBasinStyleFallback = useCallback(
-    (basinStyle: string) => {
+    async (basinStyle: string) => {
       if (!basinStyle) return;
-      setConfigBatch(selectedProducts, {
-        sinkType: basinStyle,
-      });
-      dispatch(setActiveBasinStyle(basinStyle));
+      await applyBasinStyleByDependencies(basinStyle);
     },
-    [dispatch, selectedProducts],
+    [applyBasinStyleByDependencies],
   );
 
   const handleAddThickness = useCallback(
