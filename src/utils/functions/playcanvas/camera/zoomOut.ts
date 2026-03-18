@@ -1,20 +1,11 @@
+import { getCameraMethod } from "./api";
+
 export function zoomOut(step?: number) {
-  // @ts-ignore
-  const containerRef = window.containerRef;
-  const canvasIframe = containerRef?.current?.contentWindow as any;
-
-  const zoomOut = canvasIframe?.ConfiguratorAPI?.camera?.zoomOut;
-
-  console.log("call zoomOut", zoomOut);
-  console.log("step zoomOut", step);
-
-  if (!zoomOut) {
-    console.warn("[PlayCanvas] ConfiguratorAPI.camera.zoomOut not ready");
-    return null;
-  }
+  const zoomOutMethod = getCameraMethod<(step?: number) => number | null>("zoomOut");
+  if (!zoomOutMethod) return null;
 
   try {
-    return zoomOut(step);
+    return zoomOutMethod(step);
   } catch (error) {
     console.error("[PlayCanvas] Failed to zoom out", error);
     return null;
