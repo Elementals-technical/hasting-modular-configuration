@@ -62,6 +62,9 @@ import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/C
 const PLAYCANVAS_VERSION = "030";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
+const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
+const GLOBAL_CAMERA_PADDING_TALL = 2.6;
+
 const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
   if (!cabinetType) return null;
 
@@ -421,6 +424,20 @@ export const PlayCanvasIntegration = () => {
       const addProduct = api?.addProduct || cw?.addProduct;
       if (typeof addProduct === "function") {
         cw.addProduct = api?.addProduct ? api.addProduct.bind(api) : addProduct.bind(api || cw);
+
+        const cameraApi = api?.camera;
+        if (cameraApi) {
+          try {
+            cameraApi.setFramingConfig?.({
+              paddingWide: GLOBAL_CAMERA_PADDING_WIDE,
+              paddingTall: GLOBAL_CAMERA_PADDING_TALL,
+            });
+            cameraApi.focusCamera?.();
+          } catch (error) {
+            console.warn("[PlayCanvasIntegration] Failed to apply global camera zoom-out settings", error);
+          }
+        }
+
         markReady();
         return true;
       }
@@ -1149,13 +1166,19 @@ export const PlayCanvasIntegration = () => {
   );
 
   const handleOpenCountertopColor = useCallback(() => {
-    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=counter-top-color" : "/custom/countertop?accordion=counter-top-color");
+    navigate(
+      isPrebuilt
+        ? "/prebuilt/countertop?accordion=counter-top-color"
+        : "/custom/countertop?accordion=counter-top-color",
+    );
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
 
   const handleOpenCountertopStyle = useCallback(() => {
-    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style");
+    navigate(
+      isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style",
+    );
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
