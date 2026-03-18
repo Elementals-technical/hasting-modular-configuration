@@ -68,6 +68,7 @@ export const AccessoriesPage = () => {
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
   const isDrawerCameraManagedRef = useRef(false);
+  const drawerZoomTargetRef = useRef<number | null>(null);
 
   const selectedDividerType =
     dividerStyle?.trim() === "Option B"
@@ -106,11 +107,20 @@ export const AccessoriesPage = () => {
 
     const currentZoom = getZoom();
     if (typeof currentZoom === "number") {
-      setZoom(currentZoom * 1.85);
+      const targetZoom = currentZoom * 1.85;
+      drawerZoomTargetRef.current = targetZoom;
+      setZoom(targetZoom);
     } else {
       zoomOut(0.4);
     }
   }, [cloneCameraState]);
+
+  const enforceDrawerZoom = useCallback(() => {
+    if (!isDrawerCameraManagedRef.current) return;
+    if (typeof drawerZoomTargetRef.current === "number") {
+      setZoom(drawerZoomTargetRef.current);
+    }
+  }, []);
 
   const restoreDrawerCameraMode = useCallback(() => {
     if (isDrawerCameraManagedRef.current) {
@@ -122,6 +132,7 @@ export const AccessoriesPage = () => {
 
     drawerCameraStateRef.current = null;
     isDrawerCameraManagedRef.current = false;
+    drawerZoomTargetRef.current = null;
   }, []);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
@@ -251,6 +262,7 @@ export const AccessoriesPage = () => {
         if (dividerSelection === "Customize") {
           setVisibleDividerSlotButtons(true);
           showIconDividerSlots(cabinetId, drawerType);
+          enforceDrawerZoom();
         }
       },
     });
@@ -258,7 +270,7 @@ export const AccessoriesPage = () => {
     if (!wrapped) {
       console.log("[Drawer] showTopView not ready or already wrapped");
     }
-  }, [dispatch, isPlayCanvasReady, dividerSelection, applyOpenDrawerCameraMode]);
+  }, [dispatch, isPlayCanvasReady, dividerSelection, applyOpenDrawerCameraMode, enforceDrawerZoom]);
 
   useEffect(() => {
     const exitTopView = wrapExitTopView({
@@ -295,6 +307,7 @@ export const AccessoriesPage = () => {
 
     if (activeDrawerType) {
       showIconDividerSlots(selectedSceneProduct, activeDrawerType);
+      enforceDrawerZoom();
     }
 
     const onAddHandler = setOnAddSlotClick(async (slotInfo) => {
@@ -328,6 +341,7 @@ export const AccessoriesPage = () => {
         }),
       );
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
+      enforceDrawerZoom();
     });
 
     const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
@@ -337,6 +351,7 @@ export const AccessoriesPage = () => {
       dispatch(removePlacedDivider(compositeKey));
       if (drawerType) {
         showIconDividerSlots(slotInfo.cabinetId, drawerType);
+        enforceDrawerZoom();
       }
     });
 
@@ -347,6 +362,7 @@ export const AccessoriesPage = () => {
           const legacyRemoveKey = `${slotInfo.cabinetId}::${slotInfo.drawerType}::${slotInfo.zone}::${slotInfo.key}`;
           dispatch(removePlacedDivider(legacyRemoveKey));
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
+          enforceDrawerZoom();
           return;
         }
 
@@ -386,6 +402,7 @@ export const AccessoriesPage = () => {
           }),
         );
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
+        enforceDrawerZoom();
       });
     }
   }, [
@@ -396,6 +413,7 @@ export const AccessoriesPage = () => {
     selectedDividerType,
     resolveDividerType,
     isPlayCanvasReady,
+    enforceDrawerZoom,
   ]);
 
   // Side panel invalidation is handled by global listener middleware.
