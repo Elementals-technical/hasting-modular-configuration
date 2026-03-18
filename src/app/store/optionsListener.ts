@@ -15,7 +15,6 @@ import {
 } from "@/entities/product/model/store/slice";
 import {
   getBookMatching,
-  getCabinetColor,
   getDrawerPanelFluting,
   getGrainDirection,
   getSelectedProducts,
@@ -27,8 +26,8 @@ import {
   selectGrainDirectionState,
   selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -89,33 +88,28 @@ optionsListenerMiddleware.startListening({
 });
 
 // When handle (Drawers) or dimensions change — re-check side panel availability.
-// If the currently selected side panel is no longer allowed, reset to "None" and sync PlayCanvas
-// for both edge cabinets (left and right).
+// If the currently selected side panel is no longer allowed, pick a valid fallback and
+// sync PlayCanvas via SidePanelSide="both".
 optionsListenerMiddleware.startListening({
   matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions, setActiveCabinetType, switchAllCabinetsDrawerStyle),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const currentSidePanels = getSidePanelsOption(state);
+    const selectedProducts = getSelectedProducts(state);
 
     if (!currentSidePanels || currentSidePanels === "None") return;
+    // SidePanels option is global in Redux state. Auto-reset is safe only for single-cabinet scenes.
+    // In multi-cabinet scenes (e.g. Sink Base + Open Shelf), selected-cabinet availability can
+    // incorrectly clear a side panel applied on the opposite edge.
+    if (selectedProducts.length !== 1) return;
 
     const availability = selectSidePanelAvailability(state);
     if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
 
     const GROOVE_ORDER = ["NoG", "UpperG", "CenterG", "DoubleG"] as const;
-    const newValue =
-      GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
+    const newValue = GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
 
     listenerApi.dispatch(setSidePanelsOption(newValue));
-
-    const cabinetColor = getCabinetColor(state);
-    // Do not spread selected product config here: it may contain stale dimensions/drawers
-    // and accidentally roll back height after drawer-style approve.
-    const resetPayload = { CabinetColor: cabinetColor, SidePanel: newValue };
-
-    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const edgeIds = [leftCabinetId, rightCabinetId].filter(Boolean) as string[];
-
-    await Promise.all(edgeIds.map((cabinetId) => setConfigBatch({ cabinetId }, resetPayload)));
+    await setSidePanel(newValue, "both");
   },
 });

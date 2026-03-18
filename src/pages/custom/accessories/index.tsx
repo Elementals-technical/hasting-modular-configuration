@@ -6,11 +6,9 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
-  getCabinetColor,
   getDividersOption,
   getDividersStyle,
-  getSelectedProductConfig,
-  // getSelectedProducts,
+  getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
   getTowelBarColor,
@@ -32,6 +30,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
@@ -59,15 +58,12 @@ export const CustomAccessoriesPage = () => {
   const towelSelection = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const activeSidePanels = useAppSelector(getSidePanelsOption);
-  // const selectedProducts = useAppSelector(getSelectedProducts);
+  const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
-
-  const getActiveCabinetColor = useAppSelector(getCabinetColor);
 
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
 
-  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const activeCabinetId = selectedSceneProduct;
 
   const { data: configuratorData } = useGetConfiguratorQuery({
@@ -415,14 +411,18 @@ export const CustomAccessoriesPage = () => {
     if (!value || !activeCabinetId || !isEdgeCabinet) return;
 
     await saveSnapshot();
-    await setConfigBatch(
-      { cabinetId: activeCabinetId },
-      {
-        ...selectedProductConfig,
-        CabinetColor: getActiveCabinetColor,
-        SidePanel: value,
-      },
-    );
+
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    const side: "left" | "right" | "both" =
+      selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+        ? "both"
+        : activeCabinetId === leftCabinetId
+          ? "left"
+          : activeCabinetId === rightCabinetId
+            ? "right"
+            : "both";
+
+    await setSidePanel(value, side);
 
     dispatch(setSidePanelsOption(value));
   };

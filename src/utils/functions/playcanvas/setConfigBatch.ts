@@ -1,6 +1,13 @@
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 
-type ConfigBatchIds = string[] | { productType?: string; productIds?: string[]; cabinetId?: string };
+type ConfigBatchFilter = (productId: string, config: Record<string, unknown>) => boolean;
+type ConfigBatchSelector = {
+  productType?: string;
+  productIds?: string[];
+  cabinetId?: string;
+  filter?: ConfigBatchFilter;
+};
+type ConfigBatchIds = string[] | ConfigBatchSelector;
 
 // When multiple products are available, the first batch grows, the second one may appear earlier, and conflicts arise, forcing you to select options twice. This is serialized setConfigBatch so that the batches are executed strictly in sequence.
 let batchQueue: Promise<unknown> = Promise.resolve();

@@ -9,6 +9,7 @@ import {
   getDividersOption,
   getDividersStyle,
   getProductsPresets,
+  getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
   getTowelBarColor,
@@ -31,6 +32,7 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
@@ -59,6 +61,7 @@ export const AccessoriesPage = () => {
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const selectedProducts = useAppSelector(getSelectedProducts);
   const productsPresets = useAppSelector(getProductsPresets);
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
@@ -357,7 +360,15 @@ export const AccessoriesPage = () => {
     if (!isEdge) return;
 
     await saveSnapshot();
-    await setConfigBatch({ cabinetId: selectedSceneProduct }, { SidePanel: value });
+    const side: "left" | "right" | "both" =
+      selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+        ? "both"
+        : selectedSceneProduct === leftCabinetId
+          ? "left"
+          : selectedSceneProduct === rightCabinetId
+            ? "right"
+            : "both";
+    await setSidePanel(value, side);
 
     dispatch(setSidePanelsOption(value));
   };

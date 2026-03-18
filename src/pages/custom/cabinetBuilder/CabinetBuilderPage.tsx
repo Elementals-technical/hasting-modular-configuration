@@ -77,6 +77,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
@@ -324,8 +325,10 @@ export const CabinetBuilderPage = () => {
     );
     const inferredCabinetType =
       cabinetIdsToUpdate
-        .map((productId) =>
-          cabinetCatalog.typeCabinetRules.find((rule) => productId.toLowerCase().includes(rule.code.toLowerCase()))?.code,
+        .map(
+          (productId) =>
+            cabinetCatalog.typeCabinetRules.find((rule) => productId.toLowerCase().includes(rule.code.toLowerCase()))
+              ?.code,
         )
         .find((code): code is string => Boolean(code)) ?? activeCabinetType;
 
@@ -787,7 +790,7 @@ export const CabinetBuilderPage = () => {
         if (uiSidePanels || sidePanelValue) {
           const sidePanel = uiSidePanels || sidePanelValue;
           if (sidePanel) {
-            await setConfigBatch({ productType: "SidePanel" }, { SidePanel: sidePanel });
+            await setSidePanel(sidePanel, "both");
             dispatch(setSidePanelsOption(sidePanel));
           }
         }
@@ -1012,6 +1015,7 @@ export const CabinetBuilderPage = () => {
     dispatch,
     handleResetToDefaultState,
     saveSnapshot,
+    cabinetCatalog,
   ]);
 
   useEffect(() => {
