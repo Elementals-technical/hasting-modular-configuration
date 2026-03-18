@@ -6,7 +6,10 @@ import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/Product
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
+import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
+import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
@@ -126,6 +129,7 @@ export const CabinetBuilderPage = () => {
   const [pendingMixingStyle, setPendingMixingStyle] = useState<{ id: number; value: string; title: string } | null>(
     null,
   );
+  const [isPtoSwitchPromptOpen, setIsPtoSwitchPromptOpen] = useState(false);
 
   const bootstrappedRef = useRef(false);
   const autoAddSignatureRef = useRef<string | null>(null);
@@ -213,6 +217,9 @@ export const CabinetBuilderPage = () => {
     });
   }, [selectedDimensions.height, dimensionOptions.drawers, activeCabinetType, dominantDrawerGroup]);
 
+  const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
+  const isOssBlockedByHandle = Boolean(selectedHandle && selectedHandle !== "handle_pto");
+
   const cabinetTypeOptions = useMemo(
     () =>
       [...cabinetCatalog.typeCabinetRules]
@@ -226,25 +233,47 @@ export const CabinetBuilderPage = () => {
           const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
           const heightValue = selectedDimensions.height ?? 0;
 
-          const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
-
-          return {
-            id: rule.code,
-            title: meta.title ?? rule.code.replace(/-/g, " "),
-            name: rule.code,
-            desc: meta.desc,
-            isShortDesc: meta.isShortDesc ?? false,
-            isAvailable: !isSinkBaseDisabled,
-            disabledReason: isSinkBaseDisabled
+            const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
+            const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
+            const isDisabled = isSinkBaseDisabled || isSideShelfHandleBlocked;
+            const disabledReason = isSinkBaseDisabled
               ? "Vanity configurations allow a maximum of two Sink Base units."
-              : undefined,
-            metadata: {
-              image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
-            },
-          };
-        }),
-    [cabinetCatalog.typeCabinetRules, selectedDimensions.height, sinkBaseCount, dominantDrawerGroup],
+              : isSideShelfHandleBlocked
+                ? "This cabinet type is only compatible with a PTO handle."
+                : undefined;
+
+            return {
+              id: rule.code,
+              title: meta.title ?? rule.code.replace(/-/g, " "),
+              name: rule.code,
+              desc: meta.desc,
+              isShortDesc: meta.isShortDesc ?? false,
+              isAvailable: !isDisabled,
+              disabledReason,
+              disabledActionLabel: isSideShelfHandleBlocked ? "Switch to PTO handle here" : undefined,
+              onDisabledAction: isSideShelfHandleBlocked ? () => setIsPtoSwitchPromptOpen(true) : undefined,
+              metadata: {
+                image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
+              },
+            };
+          }),
+    [cabinetCatalog.typeCabinetRules, selectedDimensions.height, sinkBaseCount, dominantDrawerGroup, isOssBlockedByHandle],
   );
+
+  const handleApprovePtoSwitch = useCallback(async () => {
+    setIsPtoSwitchPromptOpen(false);
+    await saveSnapshot();
+    dispatch(
+      setSelectedProductConfig({
+        ...(selectedProductConfig ?? {}),
+        Handle: "handle_pto",
+      }),
+    );
+    await setConfigBatch({}, { Handle: "handle_pto" });
+    dispatch(setActiveCabinetType("Side-Shelf"));
+    dispatch(setDrawerProduct("Side-Shelf"));
+    dispatch(setOpenStyleSidebar(true));
+  }, [dispatch, saveSnapshot, selectedProductConfig]);
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -955,6 +984,9 @@ export const CabinetBuilderPage = () => {
         }
 
         await saveSnapshot();
+        if (productName === "Side-Shelf") {
+          await setSidePanel("None", "right");
+        }
         const productId = await addProduct(productName, productConfig);
 
         if (productId) {
@@ -1092,6 +1124,30 @@ export const CabinetBuilderPage = () => {
         onConfirm={handleMixingConfirm}
         onCancel={handleMixingCancel}
       />
+      <PopupCenterContent isOpening={isPtoSwitchPromptOpen} onClose={() => setIsPtoSwitchPromptOpen(false)}>
+        <div className={s.confirmPopup}>
+          <div className={s.confirmHeader}>
+            <div className={s.confirmTitle}>Switch Handle Style?</div>
+            <div className={s.confirmClose} onClick={() => setIsPtoSwitchPromptOpen(false)}>
+              <CloseBtnIcon />
+            </div>
+          </div>
+          <div className={s.confirmContent}>
+            <p>This cabinet type is only compatible with a PTO handle.</p>
+            <p>Switch to PTO handle here?</p>
+          </div>
+          <div className={s.confirmFooter}>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <BaseButton variant="ghost" onClick={() => setIsPtoSwitchPromptOpen(false)} fullWidth={true}>
+                Cancel
+              </BaseButton>
+              <BaseButton onClick={() => void handleApprovePtoSwitch()} fullWidth={true}>
+                Approve
+              </BaseButton>
+            </div>
+          </div>
+        </div>
+      </PopupCenterContent>
     </>
   );
 };

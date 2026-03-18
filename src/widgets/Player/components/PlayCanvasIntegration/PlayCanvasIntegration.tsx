@@ -636,6 +636,9 @@ export const PlayCanvasIntegration = () => {
         console.log("mergedConfig", mergedConfig);
 
         const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
+        if (typeof productType === "string" && productType.toLowerCase().includes("side-shelf")) {
+          await setSidePanel("None", side);
+        }
         const productId = await setProductByParams(productType, entityId, side);
         if (!productId) return;
 
