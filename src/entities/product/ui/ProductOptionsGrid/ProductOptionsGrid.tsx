@@ -26,6 +26,8 @@ export type ProductOptionData = {
   desc?: string;
   isAvailable?: boolean;
   disabledReason?: string;
+  disabledActionLabel?: string;
+  onDisabledAction?: () => void | Promise<void>;
   isShortDesc: boolean;
   config?: addProductConfigI;
   metadata?: ProductOptionMetadata;
@@ -99,11 +101,13 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
             id={i.id}
             title={i.title}
             desc={i.desc}
-            isAvailable={i.isAvailable}
-            disabledReason={i.disabledReason}
-            isShortDesc={i.isShortDesc}
-            metadata={i.metadata}
-            config={i.config}
+              isAvailable={i.isAvailable}
+              disabledReason={i.disabledReason}
+              disabledActionLabel={i.disabledActionLabel}
+              onDisabledAction={i.onDisabledAction}
+              isShortDesc={i.isShortDesc}
+              metadata={i.metadata}
+              config={i.config}
             onClick={handleAdd}
             isActive={isActive}
             setActive={handleSetActive}

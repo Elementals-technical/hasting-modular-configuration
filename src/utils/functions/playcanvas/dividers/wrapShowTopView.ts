@@ -27,11 +27,12 @@ export function wrapShowTopView({ onSelect, onAfterSelect }: WrapShowTopViewOpti
     api.__activeDrawerCabinetId = cabinetId;
     api.__activeDrawerType = drawerType;
     onSelect(cabinetId, drawerType);
+    api.openDrawer?.(cabinetId, drawerType);
+    const result = originalShowTopView(cabinetId, drawerType);
     if (onAfterSelect) {
       onAfterSelect(cabinetId, drawerType);
     }
-    api.openDrawer?.(cabinetId, drawerType);
-    return originalShowTopView(cabinetId, drawerType);
+    return result;
   };
   api.__wrappedShowTopView = true;
   return true;

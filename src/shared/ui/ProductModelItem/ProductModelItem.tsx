@@ -16,7 +16,7 @@ interface ProductModelGridI {
   isProductModel: boolean;
   price?: string;
   presetProducts?: PresetProduct[];
-  onSelect: (presetProducts?: PresetProduct[]) => void;
+  onSelect: (presetProducts?: PresetProduct[], presetId?: number) => void;
   onCustomize?: (presetProducts?: PresetProduct[]) => void;
   isActive?: boolean;
 }
@@ -34,7 +34,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
   isActive,
 }) => {
   const className = [s.productModelItem, isActive ? s.active : ""].filter(Boolean).join(" ");
-  const handleSelect = () => onSelect(presetProducts);
+  const handleSelect = () => onSelect(presetProducts, id);
   const handleCustomize = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
 
@@ -43,7 +43,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
       return;
     }
 
-    onSelect(presetProducts);
+    onSelect(presetProducts, id);
   };
 
   return (

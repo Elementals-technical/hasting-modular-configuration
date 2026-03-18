@@ -27,6 +27,8 @@ interface ProductOptionItemI {
   desc?: string | undefined;
   isAvailable?: boolean;
   disabledReason?: string;
+  disabledActionLabel?: string;
+  onDisabledAction?: () => void | Promise<void>;
   isMaterial?: boolean;
   name?: string;
   isShortDesc: boolean;
@@ -45,6 +47,8 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   desc,
   isAvailable,
   disabledReason,
+  disabledActionLabel,
+  onDisabledAction,
   isShortDesc,
   name,
   config,
@@ -113,9 +117,23 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
           )}
         </div>
       ) : (
-        <Hint className={s.optionHint} content={disabledReason ?? "Not available for Mineralmaro Countertop"}>
-          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-        </Hint>
+        <>
+          <Hint className={s.optionHint} content={disabledReason ?? "Not available for Mineralmaro Countertop"}>
+            <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+          </Hint>
+          {disabledActionLabel && onDisabledAction && (
+            <button
+              type="button"
+              className={s.disabledAction}
+              onClick={(e) => {
+                e.stopPropagation();
+                void onDisabledAction();
+              }}
+            >
+              {disabledActionLabel}
+            </button>
+          )}
+        </>
       )}
 
       <div className={s.desc}>{desc}</div>

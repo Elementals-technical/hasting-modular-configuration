@@ -23,11 +23,10 @@
   }
 
   .image {
-    height: 158px;
-    border-radius: 10px;
-
-    height: 141px;
     width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    border-radius: 10px;
 
     display: flex;
     align-items: center;
@@ -112,10 +111,6 @@
 
 @media (max-width: 768px) {
   .productOption {
-    .image {
-      height: 82px;
-    }
-
     .title,
     .desc {
       display: none;
@@ -123,11 +118,6 @@
   }
 
   .cabinetTypeItem {
-    .image {
-      height: 92px;
-      border-radius: 10px;
-    }
-
     .title {
       display: block;
       margin-top: 8px;
@@ -177,6 +167,21 @@
 
 .optionHint_descr {
   max-width: 150px;
+}
+
+.disabledAction {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ac5331;
+  font-family: Poppins;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 14px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .titleHint {

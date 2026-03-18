@@ -31,6 +31,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import {
   addProductId,
+  removeProductId,
   setPlacedCabinetStyle,
   setSelectedDimensions,
   setSelectedProductConfig,
@@ -46,6 +47,8 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -59,6 +62,17 @@ interface PendingHandleChange {
     height: number | null;
     depth: number | null;
   };
+}
+
+interface PendingOssHandleChange {
+  next: string;
+  previous: string | undefined;
+  previousDimensions: {
+    width: number | null;
+    height: number | null;
+    depth: number | null;
+  };
+  ossIds: string[];
 }
 
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
@@ -84,6 +98,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const saveSnapshot = useHistorySnapshot();
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
+  const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
 
   const handleOptions = useMemo(
@@ -226,6 +241,22 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const previousHandle = selectedProductConfig?.Handle as string | undefined;
     if (previousHandle === handleType) return;
 
+    const isSwitchingAwayFromPto = previousHandle === "handle_pto" && handleType !== "handle_pto";
+    const ossIds = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
+    if (isSwitchingAwayFromPto && ossIds.length > 0) {
+      setPendingOssHandleChange({
+        next: handleType,
+        previous: previousHandle,
+        previousDimensions: {
+          width: selectedDimensions.width,
+          height: selectedDimensions.height,
+          depth: selectedDimensions.depth,
+        },
+        ossIds,
+      });
+      return;
+    }
+
     await applyHandleType(handleType);
 
     if (selectedProducts.length > 0) {
@@ -237,6 +268,31 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           height: selectedDimensions.height,
           depth: selectedDimensions.depth,
         },
+      });
+    }
+  };
+
+  const closePendingOssHandleChange = () => {
+    setPendingOssHandleChange(null);
+  };
+
+  const confirmPendingOssHandleChange = async () => {
+    if (!pendingOssHandleChange) return;
+    const { next, previous, previousDimensions, ossIds } = pendingOssHandleChange;
+    setPendingOssHandleChange(null);
+
+    for (const ossId of ossIds) {
+      await removeProduct(ossId);
+      dispatch(removeProductId(ossId));
+    }
+
+    await applyHandleType(next);
+
+    if (selectedProducts.length - ossIds.length > 0) {
+      setPendingHandleChange({
+        next,
+        previous,
+        previousDimensions,
       });
     }
   };
@@ -317,6 +373,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!activeDrawerProduct) return;
 
+      if (activeDrawerProduct === "Side-Shelf") {
+        await setSidePanel("None", side);
+      }
+
       await saveSnapshot();
       const productId = await setProductByParams(activeDrawerProduct, entityId, side);
 
@@ -396,6 +456,31 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
               </BaseButton>
               <BaseButton onClick={() => void closePendingHandleChange(true)} fullWidth={true}>
                 Confirm
+              </BaseButton>
+            </div>
+          </div>
+        </div>
+      </PopupCenterContent>
+
+      <PopupCenterContent isOpening={pendingOssHandleChange !== null} onClose={closePendingOssHandleChange}>
+        <div className={s.confirmPopup}>
+          <div className={s.confirmHeader}>
+            <div className={s.confirmTitle}>Remove Side Shelf?</div>
+            <div className={s.confirmClose} onClick={closePendingOssHandleChange}>
+              <CloseBtnIcon />
+            </div>
+          </div>
+          <div className={s.confirmContent}>
+            <p>Side Shelf cabinets are only compatible with a PTO handle.</p>
+            <p>Switching to another handle will remove all Side Shelf cabinets. Continue?</p>
+          </div>
+          <div className={s.confirmFooter}>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <BaseButton variant="ghost" onClick={closePendingOssHandleChange} fullWidth={true}>
+                Cancel
+              </BaseButton>
+              <BaseButton onClick={() => void confirmPendingOssHandleChange()} fullWidth={true}>
+                Approve
               </BaseButton>
             </div>
           </div>
