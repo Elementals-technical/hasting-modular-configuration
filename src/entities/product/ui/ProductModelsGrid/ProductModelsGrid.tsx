@@ -1756,7 +1756,7 @@ export const productMockData: ProductModel[] = (
 interface ProductModelsGridI {
   data?: ProductModel[];
   createModelBtn?: React.ReactNode;
-  handleAddPreset: (presetProducts?: PresetProduct[]) => void;
+  handleAddPreset: (presetProducts?: PresetProduct[], presetId?: number) => void;
   handleCustomizePreset: (presetProducts?: PresetProduct[]) => void;
   activePresetId?: number | null;
 }

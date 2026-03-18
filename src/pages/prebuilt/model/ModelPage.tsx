@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Outlet, useMatch, useNavigate } from "react-router-dom";
+import { Outlet, useMatch, useNavigate, useSearchParams } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
@@ -52,6 +52,7 @@ const arePresetsEqual = (left: PresetProduct[] = [], right: PresetProduct[] = []
 export const ModelPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
@@ -68,6 +69,21 @@ export const ModelPage = () => {
       return true;
     });
   }, [sizeFilter, styleFilter]);
+
+  const presetIdFromUrl = useMemo(() => {
+    const rawPresetId = searchParams.get("preset");
+    if (!rawPresetId) return null;
+
+    const parsedPresetId = Number(rawPresetId);
+    if (!Number.isFinite(parsedPresetId)) return null;
+
+    return parsedPresetId;
+  }, [searchParams]);
+
+  const presetFromUrl = useMemo(() => {
+    if (presetIdFromUrl === null) return null;
+    return productMockData.find((item) => item.id === presetIdFromUrl) ?? null;
+  }, [presetIdFromUrl]);
 
   const handleSizeFilter = useCallback((value?: string | number) => {
     if (value === undefined) {
@@ -136,16 +152,25 @@ export const ModelPage = () => {
     return match?.id ?? productMockData[0]?.id ?? null;
   }, [productsPresets]);
 
-  const handleAddPreset = async (presetProducts?: PresetProduct[]) => {
-    try {
-      await addPreset(presetProducts);
+  const handleAddPreset = useCallback(
+    async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean }) => {
+      try {
+        await addPreset(presetProducts);
 
-      if (presetProducts) dispatch(addProductPreset(presetProducts));
-      await updateSelectedDimensionsFromScene(presetProducts);
-    } catch (error) {
-      console.error("[ProductModelItem] Failed to apply preset", error);
-    }
-  };
+        if (presetProducts) dispatch(addProductPreset(presetProducts));
+        await updateSelectedDimensionsFromScene(presetProducts);
+
+        if (presetId && options?.syncUrl !== false) {
+          const nextSearchParams = new URLSearchParams(searchParams);
+          nextSearchParams.set("preset", String(presetId));
+          setSearchParams(nextSearchParams);
+        }
+      } catch (error) {
+        console.error("[ProductModelItem] Failed to apply preset", error);
+      }
+    },
+    [dispatch, searchParams, setSearchParams, updateSelectedDimensionsFromScene],
+  );
 
   const resetAccessoriesForCustomTransition = useCallback(async () => {
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
@@ -205,11 +230,11 @@ export const ModelPage = () => {
     const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";
 
     if (!canvasReady || isDefinedProductsRef.current) return;
-    if (hasInitialized && productsPresets.length) return;
+    if (hasInitialized && productsPresets.length && !presetFromUrl) return;
 
     isDefinedProductsRef.current = true;
 
-    const presetProducts = productsPresets.length ? productsPresets : productMockData[0].presetProducts;
+    const presetProducts = presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : productMockData[0].presetProducts);
 
     const run = async () => {
       try {
@@ -226,7 +251,19 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady, dispatch, productsPresets, updateSelectedDimensionsFromScene]);
+  }, [canvasReady, dispatch, presetFromUrl, productsPresets, updateSelectedDimensionsFromScene]);
+
+  useEffect(() => {
+    if (!canvasReady || !presetFromUrl) return;
+    if (!productsPresets.length) return;
+    if (arePresetsEqual(productsPresets, presetFromUrl.presetProducts)) return;
+
+    const run = async () => {
+      await handleAddPreset(presetFromUrl.presetProducts, presetFromUrl.id, { syncUrl: false });
+    };
+
+    run();
+  }, [canvasReady, handleAddPreset, presetFromUrl, productsPresets]);
 
   const clearAllFilters = () => {
     setSizeFilter("all");
