@@ -27,12 +27,24 @@ export function wrapShowTopView({ onSelect, onAfterSelect }: WrapShowTopViewOpti
     api.__activeDrawerCabinetId = cabinetId;
     api.__activeDrawerType = drawerType;
     onSelect(cabinetId, drawerType);
-    api.openDrawer?.(cabinetId, drawerType);
-    const result = originalShowTopView(cabinetId, drawerType);
-    if (onAfterSelect) {
-      onAfterSelect(cabinetId, drawerType);
+    // Keep animation-first flow: wait until openDrawer animation finishes, then enter top view.
+    const openResult = api.openDrawer?.(cabinetId, drawerType) as unknown;
+    const maybePromise = openResult as Promise<unknown> | undefined;
+    const isThenable = !!maybePromise && typeof maybePromise.then === "function";
+
+    const runShowTopView = () => {
+      const result = originalShowTopView(cabinetId, drawerType);
+      if (onAfterSelect) {
+        onAfterSelect(cabinetId, drawerType);
+      }
+      return result;
+    };
+
+    if (isThenable) {
+      return maybePromise.catch(() => null).then(runShowTopView);
     }
-    return result;
+
+    return runShowTopView();
   };
   api.__wrappedShowTopView = true;
   return true;
