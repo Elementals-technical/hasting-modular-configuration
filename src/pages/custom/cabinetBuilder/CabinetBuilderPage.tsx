@@ -103,6 +103,7 @@ const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Pietra Di Savoia Antracite TQ6";
 const CABINET_TYPE_ORDER: Record<string, number> = {
   "Sink-Base": 0,
+  "Sink-Cabinet": 1,
   "Side-Cabinet": 1,
   "Open-Shelf": 2,
   "Side-Shelf": 3,
