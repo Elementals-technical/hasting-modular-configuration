@@ -230,7 +230,11 @@ export const CustomCabinetColorsPage = () => {
   const [selectedGrooveFilter, setSelectedGrooveFilter] = useState<MaterialFilterSelection>({});
 
   const filteredBasePanelOptions = useMemo(
-    () => filterOptionsByTier(filterOptionsByMaterialSelection(basePanelOptionsFromApi, selectedFilter), selectedFilter.tier),
+    () =>
+      filterOptionsByTier(
+        filterOptionsByMaterialSelection(basePanelOptionsFromApi, selectedFilter),
+        selectedFilter.tier,
+      ),
     [basePanelOptionsFromApi, selectedFilter],
   );
 
@@ -240,7 +244,11 @@ export const CustomCabinetColorsPage = () => {
   );
 
   const filteredGrooveOptions = useMemo(
-    () => filterOptionsByTier(filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter), selectedGrooveFilter.tier),
+    () =>
+      filterOptionsByTier(
+        filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter),
+        selectedGrooveFilter.tier,
+      ),
     [grooveOptionsFromApi, selectedGrooveFilter],
   );
 

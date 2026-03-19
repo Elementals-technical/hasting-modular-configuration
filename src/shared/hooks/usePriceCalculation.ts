@@ -20,6 +20,7 @@ import {
   getBookMatching,
   getProductsPresets,
   getTowelBarOption,
+  getTowelBarColor,
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
   getSidePanelsOption,
@@ -125,6 +126,7 @@ export function usePriceCalculation() {
   const bookMatching = useAppSelector(getBookMatching);
 
   const towelBarOption = useAppSelector(getTowelBarOption);
+  const towelBarColor = useAppSelector(getTowelBarColor);
 
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
@@ -607,7 +609,7 @@ export function usePriceCalculation() {
         height: TOWEL_BAR_DEFAULTS.height,
         depth: TOWEL_BAR_DEFAULTS.depth,
         materialSku: "LACM",
-        colorCode: null,
+        colorCode: towelBarColor || null,
       });
       if (sku) {
         skus.push(sku);
@@ -621,7 +623,7 @@ export function usePriceCalculation() {
         height: TOWEL_BAR_DEFAULTS.height,
         depth: TOWEL_BAR_DEFAULTS.depth,
         materialSku: "LACM",
-        colorCode: null,
+        colorCode: towelBarColor || null,
       });
       if (sku) {
         skus.push(sku);
@@ -696,6 +698,7 @@ export function usePriceCalculation() {
     sinkType,
     drawerPanelFluting,
     towelBarOption,
+    towelBarColor,
     faucetHolesAmount,
     faucetHolesSpacing,
     sidePanelsOption,
