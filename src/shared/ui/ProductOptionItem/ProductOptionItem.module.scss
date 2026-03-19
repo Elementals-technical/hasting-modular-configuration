@@ -170,18 +170,20 @@
 }
 
 .disabledAction {
-  margin-top: 8px;
+  margin-top: 0;
   padding: 0;
   border: none;
   background: transparent;
   color: #ac5331;
   font-family: Poppins;
-  font-size: 12px;
+  font-size: 10px;
   font-style: normal;
   font-weight: 600;
   line-height: 14px;
   text-decoration: underline;
   cursor: pointer;
+
+  text-align: left;
 }
 
 .titleHint {

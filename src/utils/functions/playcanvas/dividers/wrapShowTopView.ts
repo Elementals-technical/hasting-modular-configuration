@@ -1,4 +1,4 @@
-export type DrawerType = "Top" | "Bot";
+export type DrawerType = "Top" | "TopFull" | "Bot";
 
 type ShowTopView = (cabinetId: string, drawerType: DrawerType) => unknown;
 

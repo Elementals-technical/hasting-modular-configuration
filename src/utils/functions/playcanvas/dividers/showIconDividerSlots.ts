@@ -1,4 +1,4 @@
-export function showIconDividerSlots(cabinetId: string, drawerType: "Top" | "Bot") {
+export function showIconDividerSlots(cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;

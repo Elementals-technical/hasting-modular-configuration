@@ -1,6 +1,6 @@
 export type OccupiedSlotInfo = {
   cabinetId: string;
-  drawerType: "Top" | "Bot";
+  drawerType: "Top" | "TopFull" | "Bot";
   zone: string;
   key: string;
   isOccupied: boolean;

@@ -18,7 +18,12 @@ export function getAvailableDividerTypes(slot: DividerSlotKey) {
   }
 
   try {
-    return apiMethod(slot);
+    return apiMethod({
+      cabinetId: slot.cabinetId,
+      drawerType: slot.drawerType,
+      zone: slot.zone,
+      slotKey: slot.key,
+    });
   } catch (error) {
     console.error("[PlayCanvas] Failed to getAvailableDividerTypes", error);
     return null;

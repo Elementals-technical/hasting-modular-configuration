@@ -3,6 +3,7 @@ import { type CSSProperties, type ReactNode } from "react";
 import clsx from "clsx";
 
 import s from "./NestedDropdown.module.scss";
+import { ArrowRightNestedIcon } from "@/shared/assets/images/svg/ArrowRightNestedIcon";
 
 export interface DropdownItem {
   id: string;
@@ -44,14 +45,14 @@ const MenuItem = ({ item, renderItems }: MenuItemProps) => {
       </div>
       <div className={s.right}>
         {item.trailing && <span className={s.trailing}>{item.trailing}</span>}
-        {hasChildren && <span className={s.caret}>›</span>}
+        {hasChildren && (
+          <span className={s.caret}>
+            <ArrowRightNestedIcon />
+          </span>
+        )}
       </div>
 
-      {hasChildren && (
-        <div className={s.subWrapper}>
-          {renderItems(item.children ?? [], true)}
-        </div>
-      )}
+      {hasChildren && <div className={s.subWrapper}>{renderItems(item.children ?? [], true)}</div>}
     </div>
   );
 };
