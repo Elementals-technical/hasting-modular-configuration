@@ -32,12 +32,7 @@ const renderItemTrail = (item: DropdownItem) => {
   return null;
 };
 
-export const MobileNestedMenu = ({
-  items,
-  onClose,
-  title = "Select Cabinet Configuration",
-  className,
-}: MobileNestedMenuProps) => {
+export const MobileNestedMenu = ({ items, onClose, className }: MobileNestedMenuProps) => {
   const [path, setPath] = useState<string[]>([]);
 
   const resolveTrail = (ids: string[]) => {
