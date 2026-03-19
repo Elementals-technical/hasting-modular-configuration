@@ -57,6 +57,7 @@ import {
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
+import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -70,7 +71,7 @@ export const CustomAccessoriesPage = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
 
   const isPlayCanvasReady = usePlayCanvasReady();
-  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
+  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "TopFull" | "Bot" | null>(null);
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
   const isDrawerCameraManagedRef = useRef(false);
   const drawerZoomTargetRef = useRef<number | null>(null);
@@ -216,6 +217,83 @@ export const CustomAccessoriesPage = () => {
     drawerCameraStateRef.current = null;
     isDrawerCameraManagedRef.current = false;
     drawerZoomTargetRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    onDrawerWidgetRender((drawerInfo, parentEl) => {
+      parentEl.innerHTML = "";
+      parentEl.style.display = "flex";
+      parentEl.style.flexDirection = "column";
+      parentEl.style.alignItems = "center";
+      parentEl.style.gap = "6px";
+      parentEl.style.pointerEvents = "auto";
+
+      if (drawerInfo.hasOccupiedDividers) {
+        const indicator = document.createElement("div");
+        indicator.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        indicator.style.background = "#262b31";
+        indicator.style.color = "#fff";
+        indicator.style.borderRadius = "999px";
+        indicator.style.width = "42px";
+        indicator.style.height = "42px";
+        indicator.style.display = "flex";
+        indicator.style.alignItems = "center";
+        indicator.style.justifyContent = "center";
+        indicator.style.boxShadow = "0 1px 2px rgba(0,0,0,0.25)";
+        parentEl.appendChild(indicator);
+      }
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Open Drawer";
+      button.style.background = "#A05535";
+      button.style.color = "#fff";
+      button.style.border = "none";
+      button.style.borderRadius = "999px";
+      button.style.padding = "5px 12px";
+      button.style.cursor = "pointer";
+      button.style.fontSize = "11px";
+      button.style.lineHeight = "1.1";
+      button.style.fontFamily = "Poppins, sans-serif";
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        // @ts-ignore
+        const containerRef = window.containerRef;
+        const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
+        api?.showTopView?.(drawerInfo.cabinetId, drawerInfo.drawerType);
+      });
+      parentEl.appendChild(button);
+    });
+
+    onDrawerCloseWidgetRender((_, parentEl) => {
+      parentEl.innerHTML = "";
+      parentEl.style.pointerEvents = "auto";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Close";
+      button.style.background = "#282828";
+      button.style.color = "#fff";
+      button.style.border = "none";
+      button.style.borderRadius = "12px";
+      button.style.padding = "4px 10px";
+      button.style.cursor = "pointer";
+      button.style.fontSize = "11px";
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        // @ts-ignore
+        const containerRef = window.containerRef;
+        const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
+        api?.exitTopView?.();
+      });
+      parentEl.appendChild(button);
+    });
+
+    return () => {
+      onDrawerWidgetRender(null);
+      onDrawerCloseWidgetRender(null);
+    };
   }, []);
 
   // Get the drawerType.
@@ -408,7 +486,7 @@ export const CustomAccessoriesPage = () => {
 
         const addSlotInfo = slotInfo as {
           cabinetId: string;
-          drawerType: "Top" | "Bot";
+          drawerType: "Top" | "TopFull" | "Bot";
           zone: string;
           key: string;
           availableTypes?: string[];
