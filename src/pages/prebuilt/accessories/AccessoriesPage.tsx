@@ -290,7 +290,8 @@ export const AccessoriesPage = () => {
         // @ts-ignore
         const containerRef = window.containerRef;
         const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
-        api?.showTopView?.(drawerInfo.cabinetId, drawerInfo.drawerType);
+        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
+        api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
       });
       parentEl.appendChild(button);
     });
