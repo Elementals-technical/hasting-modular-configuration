@@ -1068,6 +1068,9 @@ export const CustomSummaryPage = () => {
         <div key={section.id} className={s.section}>
           <div className={s.sectionHeader}>
             <div className={s.sectionTitle}>{section.title}</div>
+            <button type="button" className={s.editButton} aria-label={`Edit ${section.title}`}>
+              Edit
+            </button>
           </div>
 
           <div className={s.sectionList}>
@@ -1137,6 +1140,9 @@ export const CustomSummaryPage = () => {
       <div className={s.section}>
         <div className={s.sectionHeader}>
           <div className={s.sectionTitle}>Swatches</div>
+          <button type="button" className={s.editButton} aria-label="Edit Swatches">
+            Edit
+          </button>
         </div>
 
         <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
