@@ -8,6 +8,7 @@ import {
   getActiveCountertopThickness,
   getCountertopStyle,
   getProductsPresets,
+  getSelectedSceneProduct,
   getSelectedProducts,
   getSelectedDimensions,
   getSinkType,
@@ -70,6 +71,7 @@ export const CountertopPage = () => {
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
+  const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const hasSelectedMaterial = Boolean(activeCountertopColor);
   const [hasSinkBase, setHasSinkBase] = useState(false);
@@ -888,7 +890,7 @@ export const CountertopPage = () => {
   };
 
   const applyBasinStyleByDependencies = useCallback(
-    async (basinStyle: string) => {
+    async (basinStyle: string, selectedOnlyProductId?: string | null) => {
       if (!basinStyle) return;
 
       const extractWidth = (config: Record<string, unknown>): number | null => {
@@ -964,9 +966,12 @@ export const CountertopPage = () => {
         if (!containsSinkBase(config)) return false;
         return canUseBasinAtWidth(extractWidth(config));
       });
+      const finalTargetIds = selectedOnlyProductId
+        ? targetIds.filter((productId) => productId === selectedOnlyProductId)
+        : targetIds;
 
-      if (targetIds.length > 0) {
-        await setConfigBatch(targetIds, { sinkType: basinStyle });
+      if (finalTargetIds.length > 0) {
+        await setConfigBatch(finalTargetIds, { sinkType: basinStyle });
       }
 
       dispatch(setActiveBasinStyle(basinStyle));
@@ -990,9 +995,9 @@ export const CountertopPage = () => {
   const applyBasinStyleFallback = useCallback(
     async (basinStyle: string) => {
       if (!basinStyle) return;
-      await applyBasinStyleByDependencies(basinStyle);
+      await applyBasinStyleByDependencies(basinStyle, selectedSceneProduct);
     },
-    [applyBasinStyleByDependencies],
+    [applyBasinStyleByDependencies, selectedSceneProduct],
   );
 
   const handleAddThickness = useCallback(
