@@ -52,13 +52,13 @@
   }
 
   &.activeItem,
-  &:hover {
+  &:not(.disabledOption):hover {
     .image {
       border: 1px solid #ac5331;
     }
   }
 
-  &:hover {
+  &:not(.disabledOption):hover {
     .expandBtn {
       opacity: 1;
     }
@@ -153,6 +153,15 @@
 
 .titleDisabled {
   color: #e5e6ea !important;
+}
+
+.disabledOption {
+  cursor: not-allowed;
+
+  .title,
+  .desc {
+    color: #e5e6ea !important;
+  }
 }
 
 .imageDisabled {

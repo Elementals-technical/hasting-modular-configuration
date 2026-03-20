@@ -67,9 +67,9 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const hasVisual = hasImage || hasHexColor;
   const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
 
-  return (
+  const optionContent = (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""} ${!available && variant === "cabinetType" ? s.disabledOption : ""}`}
       onClick={() => {
         if (!available) return;
         onClick?.(productName, config);
@@ -118,9 +118,13 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
         </div>
       ) : (
         <>
-          <Hint className={s.optionHint} content={disabledReason ?? "Not available for Mineralmaro Countertop"}>
+          {variant === "cabinetType" ? (
             <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-          </Hint>
+          ) : (
+            <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
+              <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+            </Hint>
+          )}
           {disabledActionLabel && onDisabledAction && (
             <button
               type="button"
@@ -139,4 +143,14 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
       <div className={s.desc}>{desc}</div>
     </div>
   );
+
+  if (!available && variant === "cabinetType") {
+    return (
+      <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
+        {optionContent}
+      </Hint>
+    );
+  }
+
+  return optionContent;
 };
