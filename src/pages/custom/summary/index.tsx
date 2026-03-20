@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
@@ -164,7 +165,17 @@ const swatches = [
 ];
 
 export const CustomSummaryPage = () => {
+  const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const editPathBySectionId: Record<string, string> = {
+    cabinet: "/custom/cabinet-colors",
+    "cabinet-options": "/custom/cabinet-colors",
+    countertop: "/custom/countertop",
+    basin: "/custom/countertop",
+    accessories: "/custom/accessories",
+    faucet: "/custom/faucet-holes",
+    swatches: "/custom/cabinet-colors",
+  };
 
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
@@ -208,6 +219,14 @@ export const CustomSummaryPage = () => {
       setTimeout(() => setCopiedId(null), 1500);
     });
   };
+  const handleEditSection = useCallback(
+    (sectionId: string) => {
+      const path = editPathBySectionId[sectionId];
+      if (path) navigate(path);
+    },
+    [navigate, editPathBySectionId],
+  );
+
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
   const materialLookup = useMemo(() => {
@@ -1068,7 +1087,12 @@ export const CustomSummaryPage = () => {
         <div key={section.id} className={s.section}>
           <div className={s.sectionHeader}>
             <div className={s.sectionTitle}>{section.title}</div>
-            <button type="button" className={s.editButton} aria-label={`Edit ${section.title}`}>
+            <button
+              type="button"
+              className={s.editButton}
+              aria-label={`Edit ${section.title}`}
+              onClick={() => handleEditSection(section.id)}
+            >
               Edit
             </button>
           </div>
@@ -1140,7 +1164,12 @@ export const CustomSummaryPage = () => {
       <div className={s.section}>
         <div className={s.sectionHeader}>
           <div className={s.sectionTitle}>Swatches</div>
-          <button type="button" className={s.editButton} aria-label="Edit Swatches">
+          <button
+            type="button"
+            className={s.editButton}
+            aria-label="Edit Swatches"
+            onClick={() => handleEditSection("swatches")}
+          >
             Edit
           </button>
         </div>

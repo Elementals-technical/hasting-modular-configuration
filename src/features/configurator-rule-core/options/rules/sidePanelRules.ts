@@ -15,7 +15,12 @@ const isSidePanelsEnabled = (value?: string | null) => {
   return value.trim() !== "" && value.trim() !== SIDE_PANELS_NONE;
 };
 
-export const sidePanelSpecRule = ({ sidePanels, cabinetHeight, cabinetDepth, heightType }: SidePanelSpecInput): SidePanelSpecResult => {
+export const sidePanelSpecRule = ({
+  sidePanels,
+  cabinetHeight,
+  cabinetDepth,
+  heightType,
+}: SidePanelSpecInput): SidePanelSpecResult => {
   if (!isSidePanelsEnabled(sidePanels)) {
     return { enabled: false };
   }
@@ -76,7 +81,7 @@ export const sidePanelAvailabilityRule = ({
   }
 
   if (cabinetType === "OS") {
-    return { allowed, reason: "Side panels are not available when an Open-Shelf cabinet is used as an end cabinet." };
+    return { allowed, reason: "Side panels are not available when an Open Shelf cabinet is used as an end cabinet." };
   }
 
   const heightToken = mapHeightToken(height);
