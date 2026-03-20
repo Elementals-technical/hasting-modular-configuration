@@ -572,38 +572,43 @@ export const CabinetBuilderPage = () => {
       dispatch(resetProducts());
 
       const existingIds = getOrderedProductIds();
+      const [firstPreset] = productsPresets;
+      const preferredCabinetColor = firstPreset?.CabinetColor ?? cabinetColor ?? CUSTOM_DEFAULT_CABINET_COLOR;
+      const preferredCountertopColor =
+        firstPreset?.CountertopColor ?? countertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
+      const preferredHandleGrooveColor = firstPreset?.HandleGrooveColor ?? handleGrooveColor ?? preferredCabinetColor;
+      const preferredSinkType = firstPreset?.sinkType ?? sinkType;
 
       if (!existingIds.length) {
         const mergedPresets = productsPresets.map((preset) => ({
           ...preset,
-          CabinetColor: CUSTOM_DEFAULT_CABINET_COLOR,
-          sinkType: preset.sinkType ?? sinkType,
-          CountertopColor: CUSTOM_DEFAULT_COUNTERTOP_COLOR,
-          HandleGrooveColor: CUSTOM_DEFAULT_CABINET_COLOR,
+          CabinetColor: preset.CabinetColor ?? preferredCabinetColor,
+          sinkType: preset.sinkType ?? preferredSinkType,
+          CountertopColor: preset.CountertopColor ?? preferredCountertopColor,
+          HandleGrooveColor: preset.HandleGrooveColor ?? preferredHandleGrooveColor,
         }));
 
         await removeAllProducts();
         await addPreset(mergedPresets);
 
-        // Keep UI state in sync with forced custom defaults used for scene bootstrap.
-        dispatch(setCabinetColor(CUSTOM_DEFAULT_CABINET_COLOR));
-        dispatch(setActiveCountertopColor(CUSTOM_DEFAULT_COUNTERTOP_COLOR));
-        dispatch(setHandleGrooveColor(CUSTOM_DEFAULT_CABINET_COLOR));
+        dispatch(setCabinetColor(preferredCabinetColor));
+        dispatch(setActiveCountertopColor(preferredCountertopColor));
+        dispatch(setHandleGrooveColor(preferredHandleGrooveColor));
       } else {
         const batchConfig: Record<string, unknown> = {
-          CabinetColor: CUSTOM_DEFAULT_CABINET_COLOR,
-          CountertopColor: CUSTOM_DEFAULT_COUNTERTOP_COLOR,
-          HandleGrooveColor: CUSTOM_DEFAULT_CABINET_COLOR,
+          CabinetColor: preferredCabinetColor,
+          CountertopColor: preferredCountertopColor,
+          HandleGrooveColor: preferredHandleGrooveColor,
         };
-        if (sinkType) batchConfig.sinkType = sinkType;
+        if (preferredSinkType) batchConfig.sinkType = preferredSinkType;
 
         if (Object.keys(batchConfig).length) {
           await setConfigBatch({}, batchConfig);
         }
 
-        dispatch(setCabinetColor(CUSTOM_DEFAULT_CABINET_COLOR));
-        dispatch(setActiveCountertopColor(CUSTOM_DEFAULT_COUNTERTOP_COLOR));
-        dispatch(setHandleGrooveColor(CUSTOM_DEFAULT_CABINET_COLOR));
+        dispatch(setCabinetColor(preferredCabinetColor));
+        dispatch(setActiveCountertopColor(preferredCountertopColor));
+        dispatch(setHandleGrooveColor(preferredHandleGrooveColor));
       }
 
       const orderedIds = existingIds.length ? existingIds : getOrderedProductIds();
@@ -618,7 +623,6 @@ export const CabinetBuilderPage = () => {
         }
       });
 
-      const [firstPreset] = productsPresets;
       if (firstPreset?.name) {
         dispatch(setDrawerProduct(firstPreset.name));
       }
