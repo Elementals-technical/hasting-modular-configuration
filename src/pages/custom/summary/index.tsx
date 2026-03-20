@@ -802,7 +802,7 @@ export const CustomSummaryPage = () => {
             height: TOWEL_BAR_DEFAULTS.height,
             depth: TOWEL_BAR_DEFAULTS.depth,
             materialSku: towelMaterialSku,
-            colorCode: null,
+            colorCode: towelBarColor || null,
           })
         : null;
 
@@ -814,7 +814,7 @@ export const CustomSummaryPage = () => {
             height: TOWEL_BAR_DEFAULTS.height,
             depth: TOWEL_BAR_DEFAULTS.depth,
             materialSku: towelMaterialSku,
-            colorCode: null,
+            colorCode: towelBarColor || null,
           })
         : null;
 

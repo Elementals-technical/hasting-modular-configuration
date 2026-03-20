@@ -32,6 +32,12 @@ export const PopupOverlay: React.FC<PopupOverlayPropsI> = ({
     setAnimationIn(isOpening);
   }, [isOpening]);
 
+  useEffect(() => {
+    if (!isOpening) return;
+
+    window.dispatchEvent(new Event("global-modal-opened"));
+  }, [isOpening]);
+
   return (
     <PortalBody>
       <div className={`${s.popupWrapper} ${position ? s[position] : ""}`}>

@@ -78,15 +78,9 @@ export const CabinetPage = () => {
     const firstPreset = presetsProducts[0];
     if (!firstPreset) return selectorFlutingState;
 
-    const name = firstPreset.name ?? null;
-    const isOpenShelf = name === "Open-Shelf" || name === "Side-Shelf";
-    const drawers = firstPreset.Drawers ?? null;
-
     return flutingRule({
       targetPart: "CABINET",
-      isOpenShelf,
       material: cabinetMaterial,
-      drawers,
     });
   }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial]);
 

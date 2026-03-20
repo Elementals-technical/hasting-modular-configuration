@@ -61,7 +61,7 @@ import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/C
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "030";
+const PLAYCANVAS_VERSION = "031";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
@@ -975,6 +975,16 @@ export const PlayCanvasIntegration = () => {
     window.addEventListener("mousedown", handleClickOutside);
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [closeCountertopPopover, countertopPopoverState.visible]);
+
+  useEffect(() => {
+    const handleGlobalModalOpened = () => {
+      setDropdownState((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+      setCountertopPopoverState((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+    };
+
+    window.addEventListener("global-modal-opened", handleGlobalModalOpened);
+    return () => window.removeEventListener("global-modal-opened", handleGlobalModalOpened);
+  }, []);
 
   useEffect(() => {
     if (!isMobileMenu) {
