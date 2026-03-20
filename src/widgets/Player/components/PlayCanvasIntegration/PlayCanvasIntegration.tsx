@@ -977,6 +977,16 @@ export const PlayCanvasIntegration = () => {
   }, [closeCountertopPopover, countertopPopoverState.visible]);
 
   useEffect(() => {
+    const handleGlobalModalOpened = () => {
+      setDropdownState((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+      setCountertopPopoverState((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+    };
+
+    window.addEventListener("global-modal-opened", handleGlobalModalOpened);
+    return () => window.removeEventListener("global-modal-opened", handleGlobalModalOpened);
+  }, []);
+
+  useEffect(() => {
     if (!isMobileMenu) {
       setMobilePreviewImage(null);
       return;

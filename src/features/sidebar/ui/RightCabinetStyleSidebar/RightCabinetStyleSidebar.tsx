@@ -100,6 +100,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
+  const hasModalOpen =
+    pendingHandleChange !== null || pendingOssHandleChange !== null || handleLockNotice !== null;
 
   const handleOptions = useMemo(
     () =>
@@ -348,6 +350,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   // Close sidebar when clicking outside of it.
   useEffect(() => {
     if (!isOpenedStyleSidebar) return;
+    if (hasModalOpen) return;
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!sidebarRef.current) return;
@@ -362,7 +365,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [dispatch, isOpenedStyleSidebar]);
+  }, [dispatch, hasModalOpen, isOpenedStyleSidebar]);
 
   // Set the product to the desired side (left/right).
   useEffect(() => {
