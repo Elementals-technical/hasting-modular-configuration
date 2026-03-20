@@ -651,12 +651,25 @@ export function usePriceCalculation() {
       });
     }
 
-    // Dividers — one per placed divider
-    if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
+    // Dividers — prefer per-slot placed types (A/B/C). Fallback to selected style per cabinet.
+    if (placedDividers.length > 0) {
+      const typeToStyle: Record<"A" | "B" | "C", "Option A" | "Option B" | "Option C"> = {
+        A: "Option A",
+        B: "Option B",
+        C: "Option C",
+      };
+
+      placedDividers.forEach((divider, index) => {
+        const style = typeToStyle[divider.type];
+        const divSku = style ? buildDividerSku({ dividerStyle: style }) : null;
+        if (!divSku) return;
+        console.log(LOG_PREFIX, `Resolver 4 (Divider #${index + 1}):`, divSku, divider);
+        skus.push(divSku);
+      });
+    } else if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
       const divSku = buildDividerSku({ dividerStyle: dividersStyle });
       if (divSku) {
-        const count = placedDividers.length > 0 ? placedDividers.length : cabinetCount;
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < cabinetCount; i++) {
           console.log(LOG_PREFIX, `Resolver 4 (Divider #${i + 1}):`, divSku);
           skus.push(divSku);
         }
@@ -703,7 +716,7 @@ export function usePriceCalculation() {
     faucetHolesSpacing,
     sidePanelsOption,
     dividersStyle,
-    placedDividers.length,
+    placedDividers,
     colorSkuByName,
     resolveCabinetType,
   ]);

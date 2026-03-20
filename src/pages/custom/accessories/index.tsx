@@ -629,13 +629,25 @@ export const CustomAccessoriesPage = () => {
     const isNone = value === "None";
     const side = value.toLowerCase() as "left" | "right" | "both";
 
+    // Force-remove existing towel bars first so side switches (e.g. Left -> Right)
+    // do not keep stale meshes enabled in the scene.
     await setConfigBatch(
       {},
       {
-        TowelBar: isNone ? "None" : "TowelBar40_R",
-        TowelBarSide: isNone ? "both" : side,
+        TowelBar: "None",
+        TowelBarSide: "both",
       },
     );
+
+    if (!isNone) {
+      await setConfigBatch(
+        {},
+        {
+          TowelBar: "TowelBar40_R",
+          TowelBarSide: side,
+        },
+      );
+    }
 
     if (isNone) {
       dispatch(setTowelBarColor(""));

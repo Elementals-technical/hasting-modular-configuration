@@ -22,6 +22,7 @@ import {
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { setProductByParams } from "@/utils/functions/playcanvas/setProductByParams";
@@ -59,6 +60,7 @@ import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/conf
 import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
+import { formatCmWithInches } from "@/utils/units";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "031";
@@ -66,6 +68,53 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
+const SIDE_SHELF_WIDTH_CM = 15;
+
+const stripRuntimeEntitySuffix = (value: string): string => {
+  const trimmed = value.trim();
+  const lastDash = trimmed.lastIndexOf("-");
+  if (lastDash <= 0) return trimmed;
+
+  const suffix = trimmed.slice(lastDash + 1);
+  if (/^[a-z0-9]{6,}$/i.test(suffix)) {
+    return trimmed.slice(0, lastDash);
+  }
+
+  return trimmed;
+};
+
+const humanizeDisplayName = (value: string): string => {
+  const base = stripRuntimeEntitySuffix(value).replace(/[_-]+/g, " ").trim();
+  if (!base) return value;
+  return base
+    .split(/\s+/)
+    .map((token) => token.charAt(0).toUpperCase() + token.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const toDimensionDisplayName = (productType: string, fallback?: string): string => {
+  const normalizedType = stripRuntimeEntitySuffix(productType).toLowerCase();
+  if (normalizedType === "top_solid" || normalizedType === "top-solid") return "Top Solid";
+  if (normalizedType === "sink-base") return "Sink Base";
+  if (normalizedType === "sink-cabinet") return "Sink Cabinet";
+  return humanizeDisplayName(productType || fallback || "");
+};
+
+const toFiniteNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+};
+
+const thicknessToCm = (thickness: number): number => Number((thickness * 2.54).toFixed(3));
+const formatThicknessLabel = (thickness: number): string => {
+  const normalizedInches = Number(thickness.toFixed(3));
+  const cm = thicknessToCm(normalizedInches);
+  return `${normalizedInches}" (${cm} cm)`;
+};
 
 const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
   if (!cabinetType) return null;
@@ -218,6 +267,145 @@ export const PlayCanvasIntegration = () => {
       },
     ];
   }, [activeCabinetRule?.isOpen, dimensionOptions.handles]);
+
+  const getCompositionProducts = useCallback((): Record<string, any> | null => {
+    // @ts-ignore
+    const rootContainerRef = window.containerRef;
+    const canvasIframe = rootContainerRef?.current?.contentWindow as any;
+    const compositionManager = canvasIframe?.ConfiguratorAPI?.config?.compositionManager;
+    const composition = compositionManager?.getActiveComposition?.();
+    const allProducts = composition?.getAllProducts?.();
+
+    if (!allProducts || typeof allProducts !== "object") return null;
+    return allProducts as Record<string, any>;
+  }, []);
+
+  const getCountertopSyncData = useCallback(() => {
+    const allProducts = getCompositionProducts();
+    if (!allProducts) return null;
+
+    let hasCabinets = false;
+    let summedWidth = 0;
+    let sidePanelsCount = 0;
+    let primaryCabinetHeight: number | null = null;
+    let fallbackCabinetHeight: number | null = null;
+    let countertopId: string | null = null;
+    let currentCountertopWidth: number | null = null;
+    let currentCountertopHeight: number | null = null;
+
+    Object.entries(allProducts).forEach(([id, product]) => {
+      if (!product || typeof product !== "object") return;
+
+      const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+      const productType = typeof product.productType === "string" ? product.productType : "";
+      const normalizedType = productType.toLowerCase();
+
+      if (category === "cabinets") {
+        hasCabinets = true;
+        if (normalizedType.includes("side-shelf")) {
+          summedWidth += SIDE_SHELF_WIDTH_CM;
+        } else if (typeof product.Width === "number" && Number.isFinite(product.Width)) {
+          summedWidth += product.Width;
+        }
+        if (typeof product.Height === "number" && Number.isFinite(product.Height)) {
+          fallbackCabinetHeight = fallbackCabinetHeight === null ? product.Height : fallbackCabinetHeight;
+          if (!normalizedType.includes("side-shelf")) {
+            primaryCabinetHeight = primaryCabinetHeight === null ? product.Height : primaryCabinetHeight;
+          }
+        }
+      }
+
+      if (productType === "SidePanel_Left" || productType === "SidePanel_Right") {
+        sidePanelsCount += 1;
+      }
+
+      if (category === "countertops" && !countertopId) {
+        countertopId = id;
+        currentCountertopWidth = typeof product.Width === "number" ? product.Width : null;
+        currentCountertopHeight = typeof product.Height === "number" ? product.Height : null;
+      }
+    });
+
+    if (!hasCabinets || !countertopId) return null;
+
+    return {
+      countertopId,
+      currentWidth: currentCountertopWidth,
+      currentHeight: currentCountertopHeight,
+      targetWidth: Number((summedWidth + sidePanelsCount).toFixed(2)),
+      targetHeight: primaryCabinetHeight ?? fallbackCabinetHeight,
+    };
+  }, [getCompositionProducts]);
+
+  const syncCountertopConfig = useCallback(async () => {
+    const syncData = getCountertopSyncData();
+    if (!syncData) return;
+
+    const nextConfig: { Width?: number; Height?: number } = {};
+
+    if (typeof syncData.targetWidth === "number") {
+      if (typeof syncData.currentWidth !== "number" || Math.abs(syncData.currentWidth - syncData.targetWidth) >= 0.01) {
+        nextConfig.Width = syncData.targetWidth;
+      }
+    }
+
+    if (typeof syncData.targetHeight === "number") {
+      if (
+        typeof syncData.currentHeight !== "number" ||
+        Math.abs(syncData.currentHeight - syncData.targetHeight) >= 0.01
+      ) {
+        nextConfig.Height = syncData.targetHeight;
+      }
+    }
+
+    if (!Object.keys(nextConfig).length) {
+      return;
+    }
+
+    await setConfig(syncData.countertopId, nextConfig);
+
+    const updatedCountertopConfig = await getConfig(syncData.countertopId);
+    if (updatedCountertopConfig) {
+      setCountertopDimensionData(syncData.countertopId, updatedCountertopConfig as Record<string, unknown>);
+    }
+  }, [getCountertopSyncData]);
+
+  const patchDimensionToolDisplayName = useCallback(() => {
+    const tool = getDimensionTool() as any;
+    if (!tool || tool.__displayNamePatched) return false;
+
+    const originalGetDisplayName =
+      typeof tool._getDisplayName === "function" ? tool._getDisplayName.bind(tool) : undefined;
+
+    tool._getDisplayName = (productType: string) => {
+      const fromRegistry = originalGetDisplayName?.(productType);
+      return toDimensionDisplayName(productType, typeof fromRegistry === "string" ? fromRegistry : undefined);
+    };
+    tool.__displayNamePatched = true;
+    return true;
+  }, []);
+
+  function setCountertopDimensionData(productId: string, config: Record<string, unknown>) {
+    const dimensionTool = getDimensionTool() as any;
+    if (!dimensionTool) {
+      updateDimensionDataForProduct(productId, config);
+      return;
+    }
+
+    const width = toFiniteNumber(config.Width);
+    const depth = toFiniteNumber(config.Depth);
+    const heightKey = toFiniteNumber(config.Height);
+    const thicknessValue = toFiniteNumber(config.Thickness) ?? toFiniteNumber(activeCountertopThickness);
+    const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
+
+    const nextData: Record<string, unknown> = { productId };
+    if (width !== null) nextData.Width = { [String(width)]: formatCmWithInches(width) };
+    if (depth !== null) nextData.Depth = { [String(depth)]: formatCmWithInches(depth) };
+    if (heightKey !== null && thicknessLabel) nextData.Height = { [String(heightKey)]: thicknessLabel };
+
+    if (!nextData.Width && !nextData.Depth && !nextData.Height) return;
+    dimensionTool.setDimensionData(nextData);
+  }
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
@@ -405,6 +593,28 @@ export const PlayCanvasIntegration = () => {
   }, []);
 
   useEffect(() => {
+    let timerId: number | null = null;
+
+    const tryPatch = () => {
+      if (patchDimensionToolDisplayName() && timerId !== null) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+    };
+
+    tryPatch();
+    window.addEventListener("playcanvas-ready", tryPatch);
+    timerId = window.setInterval(tryPatch, 500);
+
+    return () => {
+      window.removeEventListener("playcanvas-ready", tryPatch);
+      if (timerId !== null) {
+        window.clearInterval(timerId);
+      }
+    };
+  }, [patchDimensionToolDisplayName]);
+
+  useEffect(() => {
     const iframeEl = containerRef.current;
 
     const onMessage = (e: MessageEvent) => {
@@ -519,6 +729,7 @@ export const PlayCanvasIntegration = () => {
       try {
         await saveSnapshot();
         await setConfig(selectedSceneProduct, { Width: width });
+        await syncCountertopConfig();
 
         dispatch(setSelectedDimensions({ width }));
       } catch (error) {
@@ -527,7 +738,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot, dispatch],
+    [selectedSceneProduct, saveSnapshot, dispatch, syncCountertopConfig],
   );
 
   const handleSetDepth = useCallback(
@@ -547,6 +758,11 @@ export const PlayCanvasIntegration = () => {
     },
     [productIds, saveSnapshot, dispatch],
   );
+
+  useEffect(() => {
+    if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
+    void syncCountertopConfig();
+  }, [selectedDimensions.height, syncCountertopConfig]);
 
   const handleSetHandleType = useCallback(
     async (handleType: string) => {
@@ -942,12 +1158,42 @@ export const PlayCanvasIntegration = () => {
           // replace any previous selection
           selectTool?.setSelectedByName(firstSelected.name ?? "", { mode: "replace" });
 
-          updateDimensionDataForProduct(firstSelected.name ?? "", config);
+          const configForDimensions = { ...config };
 
-          if (isCountertopEntity(firstSelected.name ?? "", config)) {
+          if (isCountertopEntity(firstSelected.name ?? "", configForDimensions)) {
+            const syncData = getCountertopSyncData();
+            if (syncData && syncData.countertopId === (firstSelected.name ?? "")) {
+              const nextCountertopConfig: { Width?: number; Height?: number } = {};
+
+              if (
+                typeof syncData.currentWidth !== "number" ||
+                Math.abs(syncData.currentWidth - syncData.targetWidth) >= 0.01
+              ) {
+                nextCountertopConfig.Width = syncData.targetWidth;
+              }
+
+              if (
+                typeof syncData.targetHeight === "number" &&
+                (typeof syncData.currentHeight !== "number" ||
+                  Math.abs(syncData.currentHeight - syncData.targetHeight) >= 0.01)
+              ) {
+                nextCountertopConfig.Height = syncData.targetHeight;
+              }
+
+              if (Object.keys(nextCountertopConfig).length) {
+                await setConfig(firstSelected.name ?? "", nextCountertopConfig);
+              }
+
+              configForDimensions.Width = syncData.targetWidth;
+            }
+          }
+
+          if (isCountertopEntity(firstSelected.name ?? "", configForDimensions)) {
+            setCountertopDimensionData(firstSelected.name ?? "", configForDimensions as Record<string, unknown>);
             setDropdownState((prev) => ({ ...prev, visible: false }));
             showCountertopPopoverForEntity(firstSelected.name ?? "");
           } else {
+            updateDimensionDataForProduct(firstSelected.name ?? "", configForDimensions);
             setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
             showDropdownForEntity(firstSelected.name ?? "");
           }

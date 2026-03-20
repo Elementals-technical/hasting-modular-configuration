@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
@@ -164,7 +165,17 @@ const swatches = [
 ];
 
 export const SummaryPage = () => {
+  const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const editPathBySectionId: Record<string, string> = {
+    cabinet: "/prebuilt/color",
+    "cabinet-options": "/prebuilt/color",
+    countertop: "/prebuilt/countertop",
+    basin: "/prebuilt/countertop",
+    accessories: "/prebuilt/accessories",
+    faucet: "/prebuilt/faucet-holes",
+    swatches: "/prebuilt/color",
+  };
 
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
@@ -208,6 +219,14 @@ export const SummaryPage = () => {
       setTimeout(() => setCopiedId(null), 1500);
     });
   };
+
+  const handleEditSection = useCallback(
+    (sectionId: string) => {
+      const path = editPathBySectionId[sectionId];
+      if (path) navigate(path);
+    },
+    [navigate, editPathBySectionId],
+  );
 
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
@@ -1066,6 +1085,14 @@ export const SummaryPage = () => {
         <div key={section.id} className={s.section}>
           <div className={s.sectionHeader}>
             <div className={s.sectionTitle}>{section.title}</div>
+            <button
+              type="button"
+              className={s.editButton}
+              aria-label={`Edit ${section.title}`}
+              onClick={() => handleEditSection(section.id)}
+            >
+              Edit
+            </button>
           </div>
 
           <div className={s.sectionList}>
@@ -1139,6 +1166,14 @@ export const SummaryPage = () => {
       <div className={s.section}>
         <div className={s.sectionHeader}>
           <div className={s.sectionTitle}>Swatches</div>
+          <button
+            type="button"
+            className={s.editButton}
+            aria-label="Edit Swatches"
+            onClick={() => handleEditSection("swatches")}
+          >
+            Edit
+          </button>
         </div>
 
         <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
