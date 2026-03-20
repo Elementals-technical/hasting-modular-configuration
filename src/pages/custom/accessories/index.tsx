@@ -745,6 +745,7 @@ export const CustomAccessoriesPage = () => {
               data={towelBarOptionsFromApi}
               handleAdd={handleTowelBarColorChange}
               activeValue={towelBarColor}
+              groupByDesc
             />
           )}
         </>

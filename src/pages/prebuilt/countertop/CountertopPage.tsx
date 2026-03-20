@@ -1121,6 +1121,7 @@ export const CountertopPage = () => {
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
             isLoading={isFetchingcounterTopMaterials}
+            groupByDesc
           />
         </>
       ),

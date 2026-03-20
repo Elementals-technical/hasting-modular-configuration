@@ -1138,6 +1138,7 @@ export const CustomCountertopPage = () => {
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
             isLoading={isFetchingcounterTopMaterials}
+            groupByDesc
           />
         </>
       ),

@@ -520,6 +520,7 @@ export const CustomCabinetColorsPage = () => {
             handleAdd={handleChangeColor}
             activeValue={activeCabinetColor}
             isLoading={isFetchingCabinetColors}
+            groupByDesc
           />
         </>
       ),
@@ -536,6 +537,7 @@ export const CustomCabinetColorsPage = () => {
             handleAdd={handleChangeGrooveColor}
             activeValue={activeGrooveColor}
             isLoading={isFetchingCabinetColors}
+            groupByDesc
           />
         </>
       ),
