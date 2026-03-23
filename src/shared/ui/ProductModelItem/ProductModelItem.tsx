@@ -34,6 +34,13 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
   isActive,
 }) => {
   const className = [s.productModelItem, isActive ? s.active : ""].filter(Boolean).join(" ");
+  const handleDetailsClick = () => {
+    const container = document.querySelector('[data-scroll-container="step-content"]');
+    if (!(container instanceof HTMLElement)) return;
+
+    sessionStorage.setItem("prebuilt:model:scrollTop", String(container.scrollTop));
+    sessionStorage.setItem("prebuilt:model:restore-scroll", "1");
+  };
   const handleSelect = () => onSelect(presetProducts, id);
   const handleCustomize = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -67,7 +74,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
       {desc && <div className={s.desc}>{desc}</div>}
 
       {isProductModel && (
-        <Link className={s.link} to={`/prebuilt/model/${id}`}>
+        <Link className={s.link} to={`/prebuilt/model/${id}`} onClick={handleDetailsClick}>
           <span>Product Details</span>
           <span className={s.linkIcon}>
             <ArrowTopRight color={"#ad5534"} />

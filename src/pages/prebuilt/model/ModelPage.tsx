@@ -50,6 +50,7 @@ const arePresetsEqual = (left: PresetProduct[] = [], right: PresetProduct[] = []
 };
 
 export const ModelPage = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +62,13 @@ export const ModelPage = () => {
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
   const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
+  const modelScrollPositionKey = "prebuilt:model:scrollTop";
+  const modelScrollRestoreFlagKey = "prebuilt:model:restore-scroll";
+
+  const getStepContentContainer = useCallback(() => {
+    const container = rootRef.current?.closest('[data-scroll-container="step-content"]');
+    return container instanceof HTMLElement ? container : null;
+  }, []);
 
   const filteredData = useMemo(() => {
     return productMockData.filter((item) => {
@@ -265,13 +273,33 @@ export const ModelPage = () => {
     run();
   }, [canvasReady, handleAddPreset, presetFromUrl, productsPresets]);
 
+  useEffect(() => {
+    if (isDetail) return;
+
+    const container = getStepContentContainer();
+    if (!container) return;
+
+    if (sessionStorage.getItem(modelScrollRestoreFlagKey) !== "1") return;
+
+    const storedTop = Number(sessionStorage.getItem(modelScrollPositionKey));
+    if (!Number.isFinite(storedTop)) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        container.scrollTop = storedTop;
+      });
+    });
+
+    sessionStorage.removeItem(modelScrollRestoreFlagKey);
+  }, [getStepContentContainer, isDetail]);
+
   const clearAllFilters = () => {
     setSizeFilter("all");
     setStyleFilter("all");
   };
 
   return (
-    <div>
+    <div ref={rootRef}>
       {!isDetail && (
         <>
           <ModeSwitcher onClick={handleNavigate} />
