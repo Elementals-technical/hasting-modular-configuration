@@ -151,6 +151,10 @@
   text-align: left;
   flex: 1 1 auto;
   cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 }
 
 .categoryCaretBtn {
@@ -180,11 +184,23 @@
     background-color: #eadccf;
     box-shadow: inset 0 0 0 1px #9e5a3e;
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background-color: transparent;
+    box-shadow: none;
+  }
 }
 
 .categoryItem:hover .categoryCaretBtn {
   background-color: #eadccf;
   box-shadow: inset 0 0 0 1px #d1b9a8;
+}
+
+.categoryItem.disabledItem:hover .categoryCaretBtn {
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .categoryItemExpanded {

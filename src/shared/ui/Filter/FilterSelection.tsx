@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { ArrowDown } from "@/shared/assets/images/svg/ArrowDown.tsx";
+import { Hint } from "@/shared/ui/Hint/Hint";
 
 import s from "./FilterSelection.module.scss";
 
@@ -167,37 +168,55 @@ export const FilterSelection = ({
     const isSelected = option.value === selectedValue;
     const isDisabled = Boolean(option.disabled);
     const optionLabel = option.label ?? option.name;
-    const optionTitle = isDisabled ? option.reason : undefined;
+    const optionHint = isDisabled ? option.reason : undefined;
 
     if (hasChildren) {
+      const categoryContent = (
+        <div
+          className={[
+            s.menuItem,
+            s.categoryItem,
+            isExpanded ? s.categoryItemExpanded : "",
+            isSelected ? s.activeItem : "",
+            isDisabled ? s.disabledItem : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          role="option"
+          aria-selected={isSelected}
+          aria-disabled={isDisabled}
+        >
+          <button
+            type="button"
+            className={s.categoryLabelBtn}
+            disabled={isDisabled}
+            onClick={() => handleSelect(option)}
+          >
+            <span className={s.optionLabel}>{optionLabel}</span>
+          </button>
+          <button
+            type="button"
+            className={s.categoryCaretBtn}
+            aria-label={isExpanded ? `Collapse ${optionLabel}` : `Expand ${optionLabel}`}
+            disabled={isDisabled}
+            onClick={() => handleCategoryClick(option)}
+          >
+            <span className={`${s.caret} ${isExpanded ? s.caretUp : ""}`}>
+              <ArrowDown width="8" />
+            </span>
+          </button>
+        </div>
+      );
+
       return (
         <div key={option.value}>
-          <div
-            className={[
-              s.menuItem,
-              s.categoryItem,
-              isExpanded ? s.categoryItemExpanded : "",
-              isSelected ? s.activeItem : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            role="option"
-            aria-selected={isSelected}
-          >
-            <button type="button" className={s.categoryLabelBtn} onClick={() => handleSelect(option)}>
-              <span className={s.optionLabel}>{optionLabel}</span>
-            </button>
-            <button
-              type="button"
-              className={s.categoryCaretBtn}
-              aria-label={isExpanded ? `Collapse ${optionLabel}` : `Expand ${optionLabel}`}
-              onClick={() => handleCategoryClick(option)}
-            >
-              <span className={`${s.caret} ${isExpanded ? s.caretUp : ""}`}>
-                <ArrowDown width="8" />
-              </span>
-            </button>
-          </div>
+          {isDisabled && optionHint ? (
+            <Hint content={optionHint} placement="right">
+              <div>{categoryContent}</div>
+            </Hint>
+          ) : (
+            categoryContent
+          )}
 
           {isExpanded && (
             <div className={s.childrenGroup}>{option.children!.map((child) => renderOption(child, true))}</div>
@@ -215,7 +234,7 @@ export const FilterSelection = ({
       .filter(Boolean)
       .join(" ");
 
-    return (
+    const itemContent = (
       <button
         key={option.value}
         type="button"
@@ -223,14 +242,22 @@ export const FilterSelection = ({
         role="option"
         aria-selected={isSelected}
         disabled={isDisabled}
-        title={optionTitle}
         onClick={() => handleSelect(option)}
       >
         <span className={s.optionLabel}>{optionLabel}</span>
         {option.description ? <span className={s.optionDescription}>{option.description}</span> : null}
-        {isDisabled && option.reason ? <span className={s.optionReason}>{option.reason}</span> : null}
       </button>
     );
+
+    if (isDisabled && optionHint) {
+      return (
+        <Hint key={option.value} content={optionHint} placement="right">
+          <div>{itemContent}</div>
+        </Hint>
+      );
+    }
+
+    return itemContent;
   };
 
   return (

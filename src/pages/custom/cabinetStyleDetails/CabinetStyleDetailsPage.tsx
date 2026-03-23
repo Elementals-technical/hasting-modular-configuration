@@ -179,7 +179,11 @@ export const CabinetStyleDetailsPage = () => {
 
       <div className={s.topSection}>
         <div className={s.previewCard}>
-          {previewImage ? <img src={previewImage} alt={displayTitle} /> : <div className={s.previewPlaceholder}>No image</div>}
+          {previewImage ? (
+            <img src={previewImage} alt={displayTitle} />
+          ) : (
+            <div className={s.previewPlaceholder}>No image</div>
+          )}
         </div>
 
         <div className={s.aboutPanel}>

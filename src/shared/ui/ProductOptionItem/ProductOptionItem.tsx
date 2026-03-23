@@ -118,13 +118,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
         </div>
       ) : (
         <>
-          {variant === "cabinetType" ? (
-            <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-          ) : (
-            <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
-              <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-            </Hint>
-          )}
+          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
           {disabledActionLabel && onDisabledAction && (
             <button
               type="button"
@@ -144,7 +138,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     </div>
   );
 
-  if (!available && variant === "cabinetType") {
+  if (!available) {
     return (
       <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
         {optionContent}
