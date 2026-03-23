@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
+import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -1093,7 +1094,7 @@ export const CustomSummaryPage = () => {
               aria-label={`Edit ${section.title}`}
               onClick={() => handleEditSection(section.id)}
             >
-              Edit
+              <EditPenIcon />
             </button>
           </div>
 
@@ -1165,7 +1166,7 @@ export const CustomSummaryPage = () => {
             aria-label="Edit Swatches"
             onClick={() => handleEditSection("swatches")}
           >
-            Edit
+            <EditPenIcon />
           </button>
         </div>
 
