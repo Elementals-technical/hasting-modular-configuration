@@ -66,7 +66,9 @@ export const AccessoriesPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const productsPresets = useAppSelector(getProductsPresets);
   const isPlayCanvasReady = usePlayCanvasReady();
-  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "TopFull" | "Bot" | null>(null);
+  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
+  const normalizeDividerDrawerType = (drawerType: "Top" | "TopFull" | "Bot" | null | undefined): "Top" | "Bot" | null =>
+    drawerType === "TopFull" ? "Top" : drawerType ?? null;
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
   const isDrawerCameraManagedRef = useRef(false);
   const drawerZoomTargetRef = useRef<number | null>(null);
@@ -290,8 +292,7 @@ export const AccessoriesPage = () => {
         // @ts-ignore
         const containerRef = window.containerRef;
         const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
-        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
-        api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
+        api?.showTopView?.(drawerInfo.cabinetId, "Top");
       });
       parentEl.appendChild(button);
     });
@@ -331,7 +332,7 @@ export const AccessoriesPage = () => {
 
     const wrapped = wrapShowTopView({
       onSelect: (_, drawerType) => {
-        setActiveDrawerType(drawerType);
+        setActiveDrawerType(normalizeDividerDrawerType(drawerType));
         dispatch(setIsDrawerOpen(true));
       },
 
@@ -340,7 +341,9 @@ export const AccessoriesPage = () => {
 
         if (dividerSelection === "Customize") {
           setVisibleDividerSlotButtons(true);
-          showIconDividerSlots(cabinetId, drawerType);
+          const normalizedDrawerType = normalizeDividerDrawerType(drawerType);
+          if (!normalizedDrawerType) return;
+          showIconDividerSlots(cabinetId, normalizedDrawerType);
           enforceDrawerZoom();
         }
       },
@@ -395,13 +398,13 @@ export const AccessoriesPage = () => {
           ? slotInfo.availableTypes
           : getAvailableDividerTypes({
               cabinetId: slotInfo.cabinetId,
-              drawerType: slotInfo.drawerType,
+              drawerType: normalizeDividerDrawerType(slotInfo.drawerType) ?? "Top",
               zone: slotInfo.zone,
               key: slotInfo.key,
             }) || [];
 
       const selectedType = resolveDividerType(available);
-      const drawerType = slotInfo.drawerType ?? activeDrawerType;
+      const drawerType = normalizeDividerDrawerType(slotInfo.drawerType) ?? activeDrawerType;
 
       if (!drawerType) {
         console.warn("[Dividers] drawerType not resolved for add slot");
@@ -424,12 +427,13 @@ export const AccessoriesPage = () => {
     });
 
     const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
-      const drawerType = slotInfo.drawerType ?? activeDrawerType;
+      const drawerType = normalizeDividerDrawerType(slotInfo.drawerType) ?? activeDrawerType;
       await removeDividerFromSlot(slotInfo);
-      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+      const normalizedDrawerType = drawerType ?? "Top";
+      const compositeKey = `${slotInfo.cabinetId}::${normalizedDrawerType}::${slotInfo.zone}::${slotInfo.key}`;
       dispatch(removePlacedDivider(compositeKey));
-      if (drawerType) {
-        showIconDividerSlots(slotInfo.cabinetId, drawerType);
+      if (normalizedDrawerType) {
+        showIconDividerSlots(slotInfo.cabinetId, normalizedDrawerType);
         enforceDrawerZoom();
       }
     });
@@ -438,9 +442,10 @@ export const AccessoriesPage = () => {
       setDividerSlotClickHandler(async (slotInfo) => {
         if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
           await removeDividerFromSlot(slotInfo);
-          const legacyRemoveKey = `${slotInfo.cabinetId}::${slotInfo.drawerType}::${slotInfo.zone}::${slotInfo.key}`;
+          const normalizedLegacyDrawerType = normalizeDividerDrawerType(slotInfo.drawerType) ?? "Top";
+          const legacyRemoveKey = `${slotInfo.cabinetId}::${normalizedLegacyDrawerType}::${slotInfo.zone}::${slotInfo.key}`;
           dispatch(removePlacedDivider(legacyRemoveKey));
-          showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
+          showIconDividerSlots(slotInfo.cabinetId, normalizedLegacyDrawerType);
           enforceDrawerZoom();
           return;
         }
@@ -463,7 +468,7 @@ export const AccessoriesPage = () => {
         };
 
         const selectedType = resolveDividerType(available);
-        const drawerType = normalizedAddSlotInfo.drawerType ?? activeDrawerType;
+        const drawerType = normalizeDividerDrawerType(normalizedAddSlotInfo.drawerType) ?? activeDrawerType;
         if (!drawerType) {
           console.warn("[Dividers] drawerType not resolved for legacy add slot");
           return;
