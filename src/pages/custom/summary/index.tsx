@@ -1115,12 +1115,7 @@ export const CustomSummaryPage = () => {
                       <Hint className={s.copyHint} content={"Copy SKU"}>
                         <button
                           className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                          onClick={() =>
-                            handleCopy(
-                              JSON.stringify({ sku: item.sku, skuInches: convertSkuToInches(item.sku!) }, null, 2),
-                              item.id,
-                            )
-                          }
+                          onClick={() => handleCopy(item.sku!, item.id)}
                           aria-label="Copy SKU"
                         >
                           <span className={s.copyIcon} />
