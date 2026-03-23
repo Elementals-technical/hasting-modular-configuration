@@ -74,6 +74,7 @@ export const CustomCountertopPage = () => {
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
   const hasSelectedMaterial = Boolean(activeCountertopColor);
+  const isVesselStyle = (activeCountertopStyle ?? "").trim().toLowerCase() === "vessel";
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
@@ -172,7 +173,8 @@ export const CustomCountertopPage = () => {
           .flatMap((variant) => {
             const normalizedName = variant.name.trim().toLowerCase();
             const normalizedMaterialName = (option.name ?? "").trim().toLowerCase();
-            const dedupeKey = `${normalizedMaterialName}::${normalizedName}`;
+            const normalizedProxyName = (group.proxyName ?? "").trim().toLowerCase();
+            const dedupeKey = `${normalizedProxyName}::${normalizedMaterialName}::${normalizedName}`;
             if (seen.has(dedupeKey)) return [];
             seen.add(dedupeKey);
 
@@ -301,9 +303,7 @@ export const CustomCountertopPage = () => {
   const allowedMaterials = ruleState.allowedMaterials;
 
   const materialFilters = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter(
-      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels",
-    );
+    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
     if (!groups.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();
@@ -325,11 +325,6 @@ export const CustomCountertopPage = () => {
           const candidateMaterials = [option.name, ...toStringArrayFromCsv(metaMaterial)]
             .filter(Boolean)
             .map((value) => normalizeMaterialAlias(value)) as string[];
-
-          if (group.proxyName === "Vessels") {
-            materialSet.add(option.name);
-            return;
-          }
 
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
@@ -365,23 +360,86 @@ export const CustomCountertopPage = () => {
     };
   }, [counterTopMaterials, defaultMaterialFilters, matrixMaterials, normalizedMatrixMaterials, getVariantMeta]);
 
-  const hasApiOptions = countertopOptionsFromApi.length > 0;
+  const scopedCountertopOptions = useMemo(
+    () =>
+      countertopOptions.filter((option) => {
+        const hasVesselsToken = (option.metadata?.materials ?? []).some(
+          (material) => normalizeMaterialToken(material) === "vessels",
+        );
+        if (!isVesselStyle) return !hasVesselsToken;
+
+        const hasIntegratedCompatibleMaterial = (option.metadata?.materials ?? []).some((material) => {
+          const aliases = getMaterialAliases(material);
+          return aliases.some((alias) => alias === "fenix" || alias === "fx" || alias === "hpl" || alias === "porcelain" || alias === "por");
+        });
+
+        return hasVesselsToken || hasIntegratedCompatibleMaterial;
+      }),
+    [countertopOptions, isVesselStyle],
+  );
+
+  const styleScopedFilters = useMemo(() => {
+    if (!scopedCountertopOptions.length) return defaultMaterialFilters;
+
+    const materialSet = new Set<string>();
+    const colorSet = new Set<string>();
+    const lookSet = new Set<string>();
+    const hexSet = new Set<string>();
+
+    scopedCountertopOptions.forEach((option) => {
+      if (isVesselStyle) {
+        const vesselMaterial = (option.desc ?? "").trim();
+        if (vesselMaterial) {
+          materialSet.add(normalizeMaterialAlias(vesselMaterial));
+        }
+        materialSet.add("Fenix");
+        materialSet.add("HPL");
+        materialSet.add("Porcelain");
+      } else {
+        (option.metadata?.materials ?? []).forEach((material) => {
+          if (normalizeMaterialToken(material) === "vessels") return;
+          materialSet.add(normalizeMaterialAlias(material));
+        });
+      }
+
+      (option.metadata?.colors ?? []).forEach((value) => colorSet.add(value));
+      (option.metadata?.looks ?? []).forEach((value) => lookSet.add(value));
+      const hex = option.metadata?.hex?.trim();
+      if (hex) hexSet.add(hex);
+    });
+
+    const toOptions = (set: Set<string>) =>
+      Array.from(set)
+        .sort((a, b) => a.localeCompare(b))
+        .map((value) => ({ label: value, value }));
+
+    return {
+      materials: toOptions(materialSet),
+      colors: toOptions(colorSet),
+      looks: toOptions(lookSet),
+      hex: toOptions(hexSet),
+    };
+  }, [defaultMaterialFilters, isVesselStyle, scopedCountertopOptions]);
+
+  const displayedMaterialFilters = isVesselStyle ? styleScopedFilters : materialFilters;
+  const hasApiOptions = scopedCountertopOptions.length > 0;
   const hasAllowedOptionMatch = useMemo(() => {
+    if (isVesselStyle) return true;
     if (!allowedMaterials.size) return true;
     if (!hasApiOptions) return true;
 
-    return countertopOptionsFromApi.some((option) => {
+    return scopedCountertopOptions.some((option) => {
       const materials = option.metadata?.materials ?? [];
       return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
     });
-  }, [allowedMaterials, countertopOptionsFromApi, hasApiOptions]);
+  }, [allowedMaterials, hasApiOptions, isVesselStyle, scopedCountertopOptions]);
 
   const filteredMaterialFilters = useMemo(
-    () => ({ ...materialFilters, materials: groupMaterialsHierarchically(materialFilters.materials) }),
-    [materialFilters],
+    () => ({ ...displayedMaterialFilters, materials: groupMaterialsHierarchically(displayedMaterialFilters.materials) }),
+    [displayedMaterialFilters],
   );
 
-  const tierOptions = useMemo(() => buildTierFilterOptions(countertopOptions), [countertopOptions]);
+  const tierOptions = useMemo(() => buildTierFilterOptions(scopedCountertopOptions), [scopedCountertopOptions]);
 
   const selectedMaterialValues = useMemo(() => {
     const selected = selectedFilter.material;
@@ -425,7 +483,7 @@ export const CustomCountertopPage = () => {
   }, []);
 
   const filteredCountertopOptions = useMemo(() => {
-    const filteredByUiBase = filterOptionsByMaterialSelection(countertopOptions, {
+    const filteredByUiBase = filterOptionsByMaterialSelection(scopedCountertopOptions, {
       ...selectedFilter,
       material: undefined,
     });
@@ -439,12 +497,12 @@ export const CustomCountertopPage = () => {
             );
           });
 
-    const filteredByMaterial =
-      !allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)
+    const filteredByMaterial = isVesselStyle
+      ? filteredByUi
+      : !allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)
         ? filteredByUi
         : filteredByUi.filter((option) => {
             const materials = option.metadata?.materials ?? [];
-            if (materials.some((m) => m.toLowerCase() === "vessels")) return true;
             const isGlassOption = materials.some((material) =>
               getMaterialAliases(material).some(
                 (alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl",
@@ -459,10 +517,11 @@ export const CustomCountertopPage = () => {
     return filterOptionsByTier(filteredByMaterial, selectedFilter.tier);
   }, [
     allowedMaterials,
-    countertopOptions,
-    hasAllowedOptionMatch,
     hasApiOptions,
+    hasAllowedOptionMatch,
+    isVesselStyle,
     materialsMatchSelection,
+    scopedCountertopOptions,
     selectedFilter,
     selectedMaterialValues,
   ]);
@@ -638,201 +697,15 @@ export const CustomCountertopPage = () => {
     activeThickness,
   ]);
 
-  const filteredStyleOptions = useMemo(() => {
-    const allowed = ruleState.allowedStyles;
-    const width = selectedDimensions.width;
-    const depth = selectedDimensions.depth;
-    const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
-    const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
-    const activeColorCode = activeCountertopColor
-      ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
-      : null;
-    const isGlassSelected = normalizedActiveMaterials.some((token) =>
-      getMaterialAliases(token).some((alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl"),
-    );
-
-    const vesselSinkNames = ["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris"];
-    const integratedSinkNames = new Set([
-      "Top_HPLPrisma",
-      "Top_Glass_Nettuno",
-      "Top_HPLQuadra",
-      "Top_HPLCover",
-      "Top_HPLStrip",
-      "Top_HPL/Fenix_Cover_Gres",
-      "Top_HPL/Fenix_Prisma_Gres",
-      "Top_HPL/Fenix_Quadra_Gres",
-      "Top_HPL/Fenix_Strip_Gres",
-      "Fenix_Strip_Gres",
-      "Top_Glass_Ovale",
-      "Top_Mineralmarmo_Diamond",
-      "Top_Ocritech_Oly55",
-      "Top_Ocritech_Oly56",
-      "Top_Ocritech_Orion",
-      "Top_Ocritech_Quadra",
-      "Top_Ocritech_Rayo",
-      "Top_Ocritech_Roll",
-      "Top_Porcelain_Cover",
-      "Top_Porcelain_Prisma",
-      "Top_Porcelain_Quadra",
-      "Top_Porcelain_Strip",
-      "Top_Syntesi",
-      "Top_Tekorlux_Quadra",
-      "Top_Tekorlux_Rectangular",
-      "Top_Tekorlux_Ron",
-      "Top_Tekorlux_Trip",
-      "Top_Tekormud_Tivi",
-    ]);
-    const hasVesselByDedicatedRules =
-      hasSelectedMaterial &&
-      vesselSinkNames.some((name) => {
-        const allowedMats = vesselAllowedMaterialsMap[name];
-        if (allowedMats === null || allowedMats === undefined) return true;
-        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
-      });
-    const hasVesselBasinOptions =
-      hasSelectedMaterial &&
-      optionsMockData3.some((option) => {
-        const name = option.name ?? "";
-        if (!vesselSinkNames.includes(name)) return false;
-        const allowedMats = vesselAllowedMaterialsMap[name];
-        if (allowedMats === null || allowedMats === undefined) return true;
-        return allowedMats.some((mat) => normalizedActiveMaterials.includes(mat) || mat === activeColorCode);
-      });
-    const hasIntegratedBasinOptions =
-      hasSelectedMaterial &&
-      allowedBasinKeys.size > 0 &&
-      optionsMockData3.some((option) => {
-        if (!integratedSinkNames.has(option.name ?? "")) return false;
-        const label = option.title ?? option.name ?? "";
-        if (!label) return false;
-
-        const [firstToken, ...restTokens] = label.trim().split(/\s+/);
-        const materialTokens = firstToken
-          ? firstToken
-              .split("/")
-              .map((token) => normalizeMaterialToken(token))
-              .filter(Boolean)
-          : [];
-        const isMaterialSpecific = materialTokens.some((token) =>
-          getMaterialAliases(token).some((alias) => allowedMaterials.has(alias)),
-        );
-
-        if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
-          const matchesMaterial = materialTokens.some((token) =>
-            getMaterialAliases(token).some((alias) => normalizedActiveMaterials.includes(alias)),
-          );
-          if (!matchesMaterial) return false;
-        }
-
-        const basinLabel = isMaterialSpecific ? restTokens.join(" ") : label;
-        const normalized = normalizeBasinKey(basinLabel);
-        return Array.from(allowedBasinKeys).some((token) => normalized === token);
-      });
-
-    const rulesForThickness = ruleState.matchingRules.filter((rule) => {
-      if (activeThicknessValue === null) return true;
-      const values = rule.topThicknesses
-        .map((value) => parseThicknessValue(value))
-        .filter((value): value is number => value !== null);
-      return values.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
-    });
-
-    const minSbRequirement = rulesForThickness
-      .map((rule) => rule.minSbCm)
-      .filter((value): value is number => value !== null)
-      .reduce<number | null>((min, value) => (min === null ? value : Math.min(min, value)), null);
-
-    const maxIntegratedLimit = rulesForThickness
-      .map((rule) => rule.maxIntegratedCm)
-      .filter((value): value is number => value !== null)
-      .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
-
-    const maxVesselLimit = rulesForThickness
-      .map((rule) => rule.maxVesselCm)
-      .filter((value): value is number => value !== null)
-      .reduce<number | null>((max, value) => (max === null ? value : Math.max(max, value)), null);
-
-    const buildDisabledReason = (styleKey: string): string => {
-      if (!hasSelectedMaterial) return "Select countertop color first.";
-      if (!activeThickness) return "Select thickness first.";
-
-      if (styleKey === "integrated") {
-        if (isGlassSelected) {
-          const hints: string[] = [];
-          if (activeThicknessValue === null || Math.abs(activeThicknessValue - 0.5) > 0.001) {
-            hints.push('set Thickness to 1/2".');
-          }
-          if (typeof depth !== "number" || Math.abs(depth - 50.5) > 0.01) {
-            hints.push("set Depth to 50.5 cm.");
-          }
-          if (typeof width === "number" && width < 70) {
-            hints.push("set Sink Base width to at least 70 cm.");
-          }
-          if (hints.length > 0) {
-            return `For Glass Integrated, ${hints.join(" ")}`;
-          }
-        }
-        if (!hasIntegratedBasinOptions) {
-          return "No Integrated basin options for current material.";
-        }
-        if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
-        if (width && minSbRequirement !== null && width < minSbRequirement) {
-          return `Requires cabinet width at least ${minSbRequirement} cm.`;
-        }
-        if (width && maxIntegratedLimit !== null && width > maxIntegratedLimit) {
-          return `Integrated is available up to ${maxIntegratedLimit} cm.`;
-        }
-        return "Integrated is not available for current basin/material.";
-      }
-
-      if (styleKey === "vessel") {
-        if (isGlassSelected) {
-          return "Vessel is unavailable for Glass. Change countertop material to HPL, Porcelain, Solid Surface, or Tekorlux TAL/TAM.";
-        }
-        if (!hasVesselBasinOptions) {
-          const isTekorluxSelected = normalizedActiveMaterials.some((token) =>
-            getMaterialAliases(token).some((alias) => alias === "tekorlux" || alias === "sstkr"),
-          );
-          if (isTekorluxSelected && activeColorCode !== "tal" && activeColorCode !== "tam") {
-            return "Vessel will appear only if the selected Tekorlux color code is TAL or TAM.";
-          }
-          return "No Vessel basin options for current material.";
-        }
-        if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
-        if (width && maxVesselLimit !== null && width > maxVesselLimit) {
-          return `Vessel is available up to ${maxVesselLimit} cm.`;
-        }
-        return "Vessel is not available for current material/thickness.";
-      }
-
-      if (!rulesForThickness.length) return "No rule for selected thickness/depth.";
-      return "Not available for current configuration.";
-    };
-
-    return optionsMockData2.map((option) => {
-      const styleKey = option.title.toLowerCase();
-      const isAvailable =
-        styleKey === "vessel"
-          ? (allowed.has(styleKey) || hasVesselByDedicatedRules) && hasVesselBasinOptions
-          : allowed.has(styleKey);
-      return {
+  const filteredStyleOptions = useMemo(
+    () =>
+      optionsMockData2.map((option) => ({
         ...option,
-        isAvailable,
-        disabledReason: isAvailable ? undefined : buildDisabledReason(styleKey),
-      };
-    });
-  }, [
-    activeCountertopColor,
-    activeMaterialTokens,
-    activeThickness,
-    allowedBasinKeys,
-    allowedMaterials,
-    hasSelectedMaterial,
-    ruleState.allowedStyles,
-    ruleState.matchingRules,
-    selectedDimensions.depth,
-    selectedDimensions.width,
-  ]);
+        isAvailable: true,
+        disabledReason: undefined,
+      })),
+    [],
+  );
 
   const sortedCountertopOptions = useMemo(
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -923,7 +796,6 @@ export const CustomCountertopPage = () => {
       const basinOption = optionsMockData3.find((option) => (option.name ?? option.title) === basinStyle);
       const basinLabel = basinOption?.title ?? basinOption?.name ?? basinStyle;
       const basinKey = normalizeBasinKey(basinLabel);
-      const isVesselBasin = basinStyle.startsWith("Vessel_");
 
       const applicableRules = countertopRules.filter((rule) => {
         if (!matchesDepth(rule, selectedDepth)) return false;
@@ -944,10 +816,6 @@ export const CustomCountertopPage = () => {
 
       const canUseBasinAtWidth = (width: number | null) => {
         if (width === null) return false;
-
-        if (isVesselBasin) {
-          return applicableRules.some((rule) => !rule.maxVesselCm || width <= rule.maxVesselCm);
-        }
 
         return basinRules.some((rule) => {
           if (rule.minSbCm && width < rule.minSbCm) return false;
@@ -997,15 +865,25 @@ export const CustomCountertopPage = () => {
   const handleAddbasinStyle = async (basinStyle: string) => {
     await saveSnapshot();
     console.log("basinStyle", basinStyle);
+    if (basinStyle.startsWith("Vessel_")) {
+      await setConfigBatch(selectedProducts, { sinkType: basinStyle });
+      dispatch(setActiveBasinStyle(basinStyle));
+      return;
+    }
     await applyBasinStyleByDependencies(basinStyle);
   };
 
   const applyBasinStyleFallback = useCallback(
     async (basinStyle: string) => {
       if (!basinStyle) return;
+      if (basinStyle.startsWith("Vessel_")) {
+        await setConfigBatch(selectedProducts, { sinkType: basinStyle });
+        dispatch(setActiveBasinStyle(basinStyle));
+        return;
+      }
       await applyBasinStyleByDependencies(basinStyle, selectedSceneProduct);
     },
-    [applyBasinStyleByDependencies, selectedSceneProduct],
+    [applyBasinStyleByDependencies, dispatch, selectedProducts, selectedSceneProduct],
   );
 
   const handleAddThickness = useCallback(
@@ -1061,20 +939,6 @@ export const CustomCountertopPage = () => {
     isSinkDisabled,
   ]);
 
-  useEffect(() => {
-    const currentStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
-    if (currentStyle !== "vessel") return;
-
-    const vesselOption = filteredStyleOptions.find((option) => option.title.toLowerCase() === "vessel");
-    if (vesselOption?.isAvailable !== false) return;
-    if (vesselOption?.disabledReason !== "No Vessel basin options for current material.") return;
-
-    const integratedOption = filteredStyleOptions.find((option) => option.title.toLowerCase() === "integrated");
-    if (!integratedOption?.isAvailable) return;
-
-    dispatch(setCountertopStyle("Integrated"));
-  }, [activeCountertopStyle, dispatch, filteredStyleOptions]);
-
   const handleCountertopStyle = (style: string) => {
     if (!style) return;
     dispatch(setCountertopStyle(style));
@@ -1097,14 +961,14 @@ export const CustomCountertopPage = () => {
 
       <FilterItem
         label="Color"
-        options={materialFilters.colors}
+        options={displayedMaterialFilters.colors}
         value={selectedFilter.color}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, color: value as string }))}
       />
 
       <FilterItem
         label="Look"
-        options={materialFilters.looks}
+        options={displayedMaterialFilters.looks}
         value={selectedFilter.look}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, look: value as string }))}
       />
@@ -1127,7 +991,7 @@ export const CustomCountertopPage = () => {
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "counter-top-color",
-      title: "Countertop Color",
+      title: isVesselStyle ? "Vessel Color" : "Countertop Color",
       defaultOpen: true,
       content: (
         <>
@@ -1138,6 +1002,7 @@ export const CustomCountertopPage = () => {
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
             isLoading={isFetchingcounterTopMaterials}
+            groupByDesc
           />
         </>
       ),

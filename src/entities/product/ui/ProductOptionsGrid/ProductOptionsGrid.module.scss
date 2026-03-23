@@ -1,15 +1,42 @@
-.optionsGrid {
+.optionsContainer {
   position: relative;
+  height: 100%;
+}
 
+.optionsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-column-gap: 12px;
   grid-row-gap: 12px;
+}
 
+.flatOptions {
   height: 100%;
   max-height: 392px;
   min-height: 185px;
   overflow-y: auto;
+}
+
+.groupedOptions {
+  height: 100%;
+  max-height: 392px;
+  min-height: 185px;
+  overflow-y: auto;
+}
+
+.groupSection + .groupSection {
+  margin-top: 16px;
+}
+
+.groupTitle {
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e5e6ea;
+  color: #282828;
+  font-family: Poppins;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 @media (max-width: 1400px) {
@@ -19,8 +46,12 @@
 }
 
 @media (max-width: 1024px) {
-  .optionsGrid {
-    grid-template-columns: repeat(4, 1fr);
+  .optionsGrid,
+  .groupedOptions .optionsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .flatOptions {
     max-height: none;
   }
 }
@@ -36,6 +67,17 @@
     grid-auto-rows: auto;
     grid-column-gap: 8px;
     grid-row-gap: 8px;
+  }
+
+  .groupedOptions {
+    max-height: none;
+    min-height: 0;
+  }
+
+  .groupTitle {
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 16px;
   }
 }
 

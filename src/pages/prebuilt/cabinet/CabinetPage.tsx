@@ -491,6 +491,7 @@ export const CabinetPage = () => {
             data={sortedBasePanelOptions}
             handleAdd={handleChangeColor}
             activeValue={activeCabinetColor}
+            groupByDesc
           />
         </>
       ),
@@ -506,6 +507,7 @@ export const CabinetPage = () => {
             data={grooveColorOptions}
             handleAdd={handleChangeGrooveColor}
             activeValue={activeGrooveColor}
+            groupByDesc
           />
         </>
       ),
