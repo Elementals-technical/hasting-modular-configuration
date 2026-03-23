@@ -71,14 +71,12 @@ export const CustomAccessoriesPage = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
 
   const isPlayCanvasReady = usePlayCanvasReady();
-  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "Bot" | null>(null);
+  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "TopFull" | "Bot" | null>(null);
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
   const isDrawerCameraManagedRef = useRef(false);
   const drawerZoomTargetRef = useRef<number | null>(null);
 
   const activeCabinetId = selectedSceneProduct;
-  const normalizeDividerDrawerType = (drawerType: "Top" | "TopFull" | "Bot" | null | undefined): "Top" | "Bot" | null =>
-    drawerType === "TopFull" ? "Top" : drawerType ?? null;
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -263,7 +261,8 @@ export const CustomAccessoriesPage = () => {
         // @ts-ignore
         const containerRef = window.containerRef;
         const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
-        api?.showTopView?.(drawerInfo.cabinetId, "Top");
+        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
+        api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
       });
       parentEl.appendChild(button);
     });
@@ -306,7 +305,7 @@ export const CustomAccessoriesPage = () => {
       onSelect: (cabinetId, drawerType) => {
         console.log("[Drawer] selected", { cabinetId, drawerType });
 
-        setActiveDrawerType(normalizeDividerDrawerType(drawerType));
+        setActiveDrawerType(drawerType);
         dispatch(setIsDrawerOpen(true));
       },
 
@@ -317,9 +316,7 @@ export const CustomAccessoriesPage = () => {
           console.log("[Dividers] auto-init after Open Drawer", { cabinetId, drawerType });
 
           setVisibleDividerSlotButtons(true);
-          const normalizedDrawerType = normalizeDividerDrawerType(drawerType);
-          if (!normalizedDrawerType) return;
-          showIconDividerSlots(cabinetId, normalizedDrawerType);
+          showIconDividerSlots(cabinetId, drawerType);
           enforceDrawerZoom();
         }
       },
@@ -404,14 +401,14 @@ export const CustomAccessoriesPage = () => {
           ? slotInfo.availableTypes
           : getAvailableDividerTypes({
               cabinetId: slotInfo.cabinetId,
-              drawerType: normalizeDividerDrawerType(slotInfo.drawerType) ?? "Top",
+              drawerType: slotInfo.drawerType,
               zone: slotInfo.zone,
               key: slotInfo.key,
             }) || [];
       console.log("[Dividers] available types", available);
 
       const selectedType = resolveDividerType(available);
-      const drawerType = normalizeDividerDrawerType(slotInfo.drawerType) ?? activeDrawerType;
+      const drawerType = slotInfo.drawerType ?? activeDrawerType;
       console.log("[Dividers] resolved", { selectedType, drawerType });
 
       if (!drawerType) {
@@ -455,7 +452,7 @@ export const CustomAccessoriesPage = () => {
         dividerType: slotInfo?.dividerType,
       });
 
-      const drawerType = normalizeDividerDrawerType(slotInfo.drawerType) ?? activeDrawerType;
+      const drawerType = slotInfo.drawerType ?? activeDrawerType;
       console.log("[Dividers] resolved drawerType for occupied", drawerType);
       console.log("[Dividers] removeDividerFromSlot start", {
         cabinetId: slotInfo.cabinetId,
@@ -465,11 +462,10 @@ export const CustomAccessoriesPage = () => {
       });
       await removeDividerFromSlot(slotInfo);
       console.log("[Dividers] removeDividerFromSlot done");
-      const normalizedDrawerType = drawerType ?? "Top";
-      const compositeKey = `${slotInfo.cabinetId}::${normalizedDrawerType}::${slotInfo.zone}::${slotInfo.key}`;
+      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
       dispatch(removePlacedDivider(compositeKey));
-      if (normalizedDrawerType) {
-        showIconDividerSlots(slotInfo.cabinetId, normalizedDrawerType);
+      if (drawerType) {
+        showIconDividerSlots(slotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
         console.log("[Dividers] showIconDividerSlots after remove");
       }
@@ -482,10 +478,9 @@ export const CustomAccessoriesPage = () => {
         if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
           console.log("[Dividers] legacy occupied - remove");
           await removeDividerFromSlot(slotInfo);
-          const normalizedLegacyDrawerType = normalizeDividerDrawerType(slotInfo.drawerType) ?? "Top";
-          const legacyRemoveKey = `${slotInfo.cabinetId}::${normalizedLegacyDrawerType}::${slotInfo.zone}::${slotInfo.key}`;
+          const legacyRemoveKey = `${slotInfo.cabinetId}::${slotInfo.drawerType}::${slotInfo.zone}::${slotInfo.key}`;
           dispatch(removePlacedDivider(legacyRemoveKey));
-          showIconDividerSlots(slotInfo.cabinetId, normalizedLegacyDrawerType);
+          showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
           enforceDrawerZoom();
           return;
         }
@@ -511,7 +506,7 @@ export const CustomAccessoriesPage = () => {
         const selectedType = resolveDividerType(available);
         console.log("[Dividers] legacy add click", { selectedType, slotInfo: normalizedAddSlotInfo });
 
-        const drawerType = normalizeDividerDrawerType(normalizedAddSlotInfo.drawerType) ?? activeDrawerType;
+        const drawerType = normalizedAddSlotInfo.drawerType ?? activeDrawerType;
         console.log("[Dividers] legacy resolved", { selectedType, drawerType });
         if (!drawerType) {
           console.warn("[Dividers] drawerType not resolved for legacy add slot");

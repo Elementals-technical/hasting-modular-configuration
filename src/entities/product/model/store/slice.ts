@@ -27,7 +27,7 @@ type DimensionOptionGroup = {
 export type PlacedDivider = {
   key: string;
   cabinetId: string;
-  drawerType: "Top" | "Bot";
+  drawerType: "Top" | "TopFull" | "Bot";
   zone: string;
   type: "A" | "B" | "C";
 };
