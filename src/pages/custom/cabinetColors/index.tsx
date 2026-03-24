@@ -52,6 +52,7 @@ import {
 } from "@/entities/product/model/store/slice";
 
 export const CustomCabinetColorsPage = () => {
+  const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
@@ -61,6 +62,7 @@ export const CustomCabinetColorsPage = () => {
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
   const isPlayCanvasReady = usePlayCanvasReady();
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
   const bookMatchingState = useAppSelector(selectBookMatchingState);
@@ -526,23 +528,27 @@ export const CustomCabinetColorsPage = () => {
         </>
       ),
     },
-    {
-      id: "groove-color",
-      title: "Handle Groove Color (Optional)",
-      content: (
-        <>
-          {/* <ViewModePanel /> */}
-          {renderGrooveFilters()}
-          <ProductOptionsGrid
-            data={grooveColorOptions}
-            handleAdd={handleChangeGrooveColor}
-            activeValue={activeGrooveColor}
-            isLoading={isFetchingCabinetColors}
-            groupByDesc
-          />
-        </>
-      ),
-    },
+    ...(isUrbanHandleSelected
+      ? [
+          {
+            id: "groove-color",
+            title: "Handle Groove Color (Optional)",
+            content: (
+              <>
+                {/* <ViewModePanel /> */}
+                {renderGrooveFilters()}
+                <ProductOptionsGrid
+                  data={grooveColorOptions}
+                  handleAdd={handleChangeGrooveColor}
+                  activeValue={activeGrooveColor}
+                  isLoading={isFetchingCabinetColors}
+                  groupByDesc
+                />
+              </>
+            ),
+          } as AccordionConfig,
+        ]
+      : []),
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
