@@ -419,11 +419,12 @@ export const CustomCabinetColorsPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    console.log("HandleGrooveColor", colorName);
-
-    setConfigBatch(selectedProducts, {
-      HandleGrooveColor: colorName,
-    });
+    setConfigBatch(
+      {},
+      {
+        HandleGrooveColor: colorName,
+      },
+    );
 
     dispatch(
       setSelectedProductConfig({

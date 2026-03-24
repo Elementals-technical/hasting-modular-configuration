@@ -30,7 +30,6 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import {
   getDimensionOptions,
   getCabinetCatalog,
-  getCabinetColor,
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getProductsPresets,
@@ -39,7 +38,6 @@ import {
   getIsDrawerOpen,
   getSelectedSceneProduct,
   getSelectedProductConfig,
-  getHandleGrooveColor,
   getActiveCabinetRule,
   getSinkBaseCount,
 } from "@/entities/product/model/store/selectors";
@@ -185,12 +183,10 @@ export const PlayCanvasIntegration = () => {
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
-  const cabinetColor = useAppSelector(getCabinetColor);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
   const productsPresets = useAppSelector(getProductsPresets);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
 
   const saveSnapshot = useHistorySnapshot();
@@ -538,6 +534,7 @@ export const PlayCanvasIntegration = () => {
   const widthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     if (!baseOptions.length) return baseOptions;
+    if (activeCabinetRule?.code === "Sink-Cabinet") return baseOptions;
     if (!activeMaterialTokens.length || !countertopRules.length) return baseOptions;
 
     const selectedDepth = selectedDimensions.depth ?? null;
@@ -572,7 +569,7 @@ export const PlayCanvasIntegration = () => {
       if (!Number.isFinite(numeric)) return true;
       return isWidthAllowedByAnyRule(numeric);
     });
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+  }, [activeCabinetRule?.code, activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
 
   const depthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
@@ -930,11 +927,19 @@ export const PlayCanvasIntegration = () => {
   const handleDuplicateProduct = useCallback(() => {
     if (!selectedSceneProduct) return;
     setDuplicateSourceId(selectedSceneProduct);
-    setVisibleButtons(true);
+    const duplicateProductType = resolveProductTypeFromId(
+      selectedSceneProduct,
+      selectedProductConfig as Record<string, unknown> | undefined,
+    );
+    const options =
+      typeof duplicateProductType === "string" && duplicateProductType.toLowerCase().includes("side-shelf")
+        ? { productType: "Side-Shelf" }
+        : undefined;
+    setVisibleButtons(true, options);
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [selectedSceneProduct]);
+  }, [resolveProductTypeFromId, selectedProductConfig, selectedSceneProduct]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
@@ -1142,20 +1147,43 @@ export const PlayCanvasIntegration = () => {
     };
   }, []);
 
-  const handleCustomizeFromPrompt = useCallback(() => {
+  const handleCustomizeFromPrompt = useCallback(async () => {
     setIsCustomizeModePromptOpen(false);
     if (!productsPresets.length) return;
 
-    // Overwrite preset colors with the values the user configured on prebuilt.
-    // preset.X ?? reduxDefault uses ?? so a non-null preset value wins;
-    // updating the presets here ensures CabinetBuilderPage bootstrap renders
-    // the correct colors without needing a route visit to trigger them.
+    // Read current scene values first so default prebuilt colors are preserved
+    // and explicit user overrides on prebuilt are also transferred to custom.
+    const getNonEmptyString = (value: unknown): string | undefined =>
+      typeof value === "string" && value.trim() ? value : undefined;
+
+    let sceneCabinetColor: string | undefined;
+    let sceneCountertopColor: string | undefined;
+    let sceneSinkType: string | undefined;
+    let sceneHandleGrooveColor: string | undefined;
+
+    const orderedIds = getOrderedProductIds();
+    for (const productId of orderedIds) {
+      const config = await getConfig(productId);
+      if (!config || typeof config !== "object") continue;
+
+      sceneCabinetColor = sceneCabinetColor ?? getNonEmptyString((config as Record<string, unknown>).CabinetColor);
+      sceneCountertopColor =
+        sceneCountertopColor ?? getNonEmptyString((config as Record<string, unknown>).CountertopColor);
+      sceneSinkType = sceneSinkType ?? getNonEmptyString((config as Record<string, unknown>).sinkType);
+      sceneHandleGrooveColor =
+        sceneHandleGrooveColor ?? getNonEmptyString((config as Record<string, unknown>).HandleGrooveColor);
+
+      if (sceneCabinetColor && sceneCountertopColor && sceneSinkType && sceneHandleGrooveColor) {
+        break;
+      }
+    }
+
     const updatedPresets = productsPresets.map((preset) => ({
       ...preset,
-      CabinetColor: cabinetColor || preset.CabinetColor,
-      CountertopColor: activeCountertopColor || preset.CountertopColor,
-      sinkType: activeBasinStyle || preset.sinkType,
-      HandleGrooveColor: handleGrooveColor || preset.HandleGrooveColor,
+      CabinetColor: sceneCabinetColor ?? preset.CabinetColor,
+      CountertopColor: sceneCountertopColor ?? preset.CountertopColor,
+      sinkType: sceneSinkType ?? preset.sinkType,
+      HandleGrooveColor: sceneHandleGrooveColor ?? preset.HandleGrooveColor,
     }));
 
     dispatch(addProductPreset(updatedPresets));
@@ -1163,7 +1191,7 @@ export const PlayCanvasIntegration = () => {
     dispatch(resetCabinetBuilderBootstrap());
 
     navigate(ROUTES.CUSTOM);
-  }, [productsPresets, cabinetColor, activeCountertopColor, activeBasinStyle, handleGrooveColor, dispatch, navigate]);
+  }, [productsPresets, dispatch, navigate]);
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");

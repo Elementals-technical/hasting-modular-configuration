@@ -24,6 +24,7 @@ const FALLBACK = "X";
 const CATEGORY = "CT";
 const LOG_PREFIX = "[SKU/CT]";
 const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
+const formatThicknessToken = (value: number): string => value.toFixed(1).replace(/^0(?=\.)/, "");
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -68,7 +69,7 @@ const resolve = (
 
 /**
  * Returns an array of SKU lines for the countertop:
- *  [0] Top        — always present  CT-{SERIES}-{STYLE}-{W}W-{THICKNESS}H-{D}D-CT-{MatSKU}-{Color}
+ *  [0] Top        — always present  CT-{SERIES}-{STYLE}-{W}W-{THICKNESS}H-{D}D-{MatSKU}-{Color}
  *  [1] Basin      — if style is integrated or vessel  CT-{SERIES}-{BASIN}
  *  [2] Faucet Qty — if faucet holes > 0  CT-{SERIES}-FAHO/{QTY}
  *  [3] Faucet Spc — if faucet holes > 0  CT-{SERIES}-FAHOS/{SPACING}
@@ -86,12 +87,12 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const rawT = input.thickness?.trim();
   const parsedT = rawT ? parseFloat(rawT) : null;
   const thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
-  const t = thicknessForSku != null ? `${thicknessForSku.toFixed(1)}H` : FALLBACK;
+  const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
   const isVessel = styleValue.toLowerCase() === "vessel";
 
-  // Material block: -CT-{MaterialSKU}-{ColorCode} — omitted for vessel style
+  // Material block: -{MaterialSKU}-{ColorCode} — omitted for vessel style
   const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
     caseInsensitiveKey: true,
     allowMappedValue: true,
@@ -99,7 +100,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const inferredMaterial = inferMaterialSkuFromBasinType(input.basinType);
   const mat = resolvedMaterial !== FALLBACK ? resolvedMaterial : inferredMaterial;
   const color = input.countertopColorCode?.trim() || null;
-  const matBlock = !isVessel && mat ? `-CT-${mat}${color ? `-${color}` : ""}` : "";
+  const matBlock = !isVessel && mat ? `-${mat}${color ? `-${color}` : ""}` : "";
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
   const series = mat ? `UR${mat}` : "URFX";

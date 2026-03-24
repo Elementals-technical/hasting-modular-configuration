@@ -100,8 +100,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
-  const hasModalOpen =
-    pendingHandleChange !== null || pendingOssHandleChange !== null || handleLockNotice !== null;
+  const hasModalOpen = pendingHandleChange !== null || pendingOssHandleChange !== null || handleLockNotice !== null;
 
   const handleOptions = useMemo(
     () =>
@@ -340,12 +339,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
-    setVisibleButtons(isOpenedStyleSidebar);
+    const options =
+      isOpenedStyleSidebar && activeDrawerProduct === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
+    setVisibleButtons(isOpenedStyleSidebar, options);
 
     return () => {
       setVisibleButtons(false);
     };
-  }, [isOpenedStyleSidebar]);
+  }, [activeDrawerProduct, isOpenedStyleSidebar]);
 
   // Close sidebar when clicking outside of it.
   useEffect(() => {
