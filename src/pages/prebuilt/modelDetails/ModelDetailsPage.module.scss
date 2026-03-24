@@ -9,6 +9,11 @@
 
   margin-bottom: 40px;
 
+  .imageWithMarkers {
+    position: relative;
+    width: 250px;
+  }
+
   .image {
     width: 250px;
     height: 250px;
@@ -22,6 +27,26 @@
       width: 185px;
     }
   }
+}
+
+.imageMarkers {
+  position: absolute;
+  left: 50%;
+  width: 185px;
+  height: 20px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.imageMarkerIcon {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 16px !important;
+  height: 16px !important;
+
+  font-size: 11px !important;
 }
 
 .title {
