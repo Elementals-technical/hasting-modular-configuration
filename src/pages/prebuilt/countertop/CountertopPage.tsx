@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { ProductOptionsGrid, type ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getActiveCountertopColor,
@@ -480,7 +480,7 @@ export const CountertopPage = () => {
   }, []);
 
   const isMaterialOptionCompatibleBySceneSize = useCallback(
-    (option: (typeof scopedCountertopOptions)[number]) => {
+    (option: ProductOptionData) => {
       const optionMaterials = option.metadata?.materials ?? [];
       if (!optionMaterials.length) return true;
 

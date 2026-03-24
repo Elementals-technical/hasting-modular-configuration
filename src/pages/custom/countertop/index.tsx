@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { ProductOptionsGrid, type ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
@@ -481,7 +481,7 @@ export const CustomCountertopPage = () => {
   }, []);
 
   const isMaterialOptionCompatibleBySceneSize = useCallback(
-    (option: (typeof scopedCountertopOptions)[number]) => {
+    (option: ProductOptionData) => {
       const optionMaterials = option.metadata?.materials ?? [];
       if (!optionMaterials.length) return true;
 
