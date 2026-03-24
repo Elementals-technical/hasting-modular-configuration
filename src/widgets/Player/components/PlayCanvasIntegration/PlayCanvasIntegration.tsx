@@ -538,6 +538,7 @@ export const PlayCanvasIntegration = () => {
   const widthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     if (!baseOptions.length) return baseOptions;
+    if (activeCabinetRule?.code === "Sink-Cabinet") return baseOptions;
     if (!activeMaterialTokens.length || !countertopRules.length) return baseOptions;
 
     const selectedDepth = selectedDimensions.depth ?? null;
@@ -572,7 +573,7 @@ export const PlayCanvasIntegration = () => {
       if (!Number.isFinite(numeric)) return true;
       return isWidthAllowedByAnyRule(numeric);
     });
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+  }, [activeCabinetRule?.code, activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
 
   const depthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
