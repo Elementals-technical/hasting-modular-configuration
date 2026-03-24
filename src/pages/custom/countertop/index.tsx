@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { ProductOptionsGrid, type ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
@@ -55,6 +55,15 @@ import { BaseButton } from "@/shared";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 
 const COUNTERTOP_OPTION = "Counertops materials";
+const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
+
+type MaterialFilterOption = {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  reason?: string;
+  children?: MaterialFilterOption[];
+};
 
 export const CustomCountertopPage = () => {
   const [searchParams] = useSearchParams();
@@ -422,17 +431,6 @@ export const CustomCountertopPage = () => {
   }, [defaultMaterialFilters, isVesselStyle, scopedCountertopOptions]);
 
   const displayedMaterialFilters = isVesselStyle ? styleScopedFilters : materialFilters;
-  const hasApiOptions = scopedCountertopOptions.length > 0;
-  const hasAllowedOptionMatch = useMemo(() => {
-    if (isVesselStyle) return true;
-    if (!allowedMaterials.size) return true;
-    if (!hasApiOptions) return true;
-
-    return scopedCountertopOptions.some((option) => {
-      const materials = option.metadata?.materials ?? [];
-      return materials.some((material) => getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)));
-    });
-  }, [allowedMaterials, hasApiOptions, isVesselStyle, scopedCountertopOptions]);
 
   const filteredMaterialFilters = useMemo(
     () => ({ ...displayedMaterialFilters, materials: groupMaterialsHierarchically(displayedMaterialFilters.materials) }),
@@ -482,6 +480,82 @@ export const CustomCountertopPage = () => {
     return optionAliases.includes(selectedNormalized) || selectedAliases.includes(optionNormalized);
   }, []);
 
+  const isMaterialOptionCompatibleBySceneSize = useCallback(
+    (option: ProductOptionData) => {
+      const optionMaterials = option.metadata?.materials ?? [];
+      if (!optionMaterials.length) return true;
+
+      const selectedDepth = selectedDimensions.depth ?? null;
+      const selectedWidth = selectedDimensions.width ?? null;
+
+      const applicableRules = countertopRules.filter((rule) => {
+        if (!matchesDepth(rule, selectedDepth)) return false;
+
+        return optionMaterials.some((material) => materialMatchesRule(material, rule.material));
+      });
+
+      if (!applicableRules.length) {
+        const hasCeramicMaterial = optionMaterials.some((material) => normalizeMaterialToken(material) === "ceramic");
+        return hasCeramicMaterial;
+      }
+
+      if (!selectedWidth) return true;
+
+      return applicableRules.some((rule) => {
+        if (rule.minSbCm && selectedWidth < rule.minSbCm) return false;
+
+        const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
+          (value): value is number => value !== null,
+        );
+        if (maxLimits.length > 0 && !maxLimits.some((limit) => selectedWidth <= limit)) return false;
+
+        if (
+          rule.integratedAllowedSizesOnly.length > 0 &&
+          !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - selectedWidth) < 0.01)
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+    },
+    [countertopRules, selectedDimensions.depth, selectedDimensions.width],
+  );
+
+  const hasAnyCompatibleOptionForMaterialFilter = useCallback(
+    (materialValue: string) =>
+      scopedCountertopOptions.some((option) => {
+        if (!isMaterialOptionCompatibleBySceneSize(option)) return false;
+        const materials = option.metadata?.materials ?? [];
+        return materials.some((optionMaterial) => materialsMatchSelection(optionMaterial, materialValue));
+      }),
+    [isMaterialOptionCompatibleBySceneSize, materialsMatchSelection, scopedCountertopOptions],
+  );
+
+  const materialFilterOptions = useMemo(() => {
+    const annotate = (option: MaterialFilterOption): MaterialFilterOption => {
+      if (option.children?.length) {
+        const children = option.children.map((child) => annotate(child));
+        const isDisabled = children.every((child) => child.disabled);
+        return {
+          ...option,
+          children,
+          disabled: isDisabled,
+          reason: isDisabled ? MATERIAL_FILTER_DISABLED_REASON : undefined,
+        };
+      }
+
+      const isAvailable = hasAnyCompatibleOptionForMaterialFilter(option.value);
+      return {
+        ...option,
+        disabled: !isAvailable,
+        reason: !isAvailable ? MATERIAL_FILTER_DISABLED_REASON : undefined,
+      };
+    };
+
+    return (filteredMaterialFilters.materials as MaterialFilterOption[]).map((option) => annotate(option));
+  }, [filteredMaterialFilters.materials, hasAnyCompatibleOptionForMaterialFilter]);
+
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUiBase = filterOptionsByMaterialSelection(scopedCountertopOptions, {
       ...selectedFilter,
@@ -497,29 +571,20 @@ export const CustomCountertopPage = () => {
             );
           });
 
-    const filteredByMaterial = isVesselStyle
-      ? filteredByUi
-      : !allowedMaterials.size || (hasApiOptions && !hasAllowedOptionMatch)
-        ? filteredByUi
-        : filteredByUi.filter((option) => {
-            const materials = option.metadata?.materials ?? [];
-            const isGlassOption = materials.some((material) =>
-              getMaterialAliases(material).some(
-                (alias) => alias === "glass" || alias === "glassmt" || alias === "glassgl",
-              ),
-            );
-            if (isGlassOption) return true;
-            return materials.some((material) =>
-              getMaterialAliases(material).some((alias) => allowedMaterials.has(alias)),
-            );
-          });
+    const tierFiltered = filterOptionsByTier(filteredByUi, selectedFilter.tier);
 
-    return filterOptionsByTier(filteredByMaterial, selectedFilter.tier);
+    return tierFiltered.map((option) => {
+      const isAvailable = isMaterialOptionCompatibleBySceneSize(option);
+      return {
+        ...option,
+        isAvailable,
+        disabledReason: isAvailable
+          ? undefined
+          : "Not available for current cabinet width/depth/thickness on scene",
+      };
+    });
   }, [
-    allowedMaterials,
-    hasApiOptions,
-    hasAllowedOptionMatch,
-    isVesselStyle,
+    isMaterialOptionCompatibleBySceneSize,
     materialsMatchSelection,
     scopedCountertopOptions,
     selectedFilter,
@@ -954,7 +1019,7 @@ export const CustomCountertopPage = () => {
     <FilterRow className={s.innerRow}>
       <FilterItem
         label="Material"
-        options={filteredMaterialFilters.materials}
+        options={materialFilterOptions}
         value={selectedFilter.material}
         onSelect={(value) => setSelectedFilter((prev) => ({ ...prev, material: value as string }))}
       />

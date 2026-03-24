@@ -4,6 +4,8 @@ type FilterOption = {
   label: string;
   value: string;
   description?: string;
+  disabled?: boolean;
+  reason?: string;
   children?: FilterOption[];
 };
 

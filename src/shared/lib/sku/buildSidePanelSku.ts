@@ -12,6 +12,8 @@ export type SidePanelSkuInput = {
   depth: number | null;
   /** Cabinet material SKU (e.g. "HPL", "LACM", "3D") */
   materialSku?: string | null;
+  /** Cabinet color code (e.g. "37", "A6", "FE") */
+  colorCode?: string | null;
 };
 
 const FALLBACK = "X";
@@ -34,7 +36,8 @@ export const SIDE_PANEL_WIDTH_CM = 1;
  *
  * Dimensions are converted from cm → inches.
  *
- * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-HPL  (1cm wide, 53cm tall, 50cm deep, HPL material)
+ * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-LACG-37
+ * (1cm wide, 53cm tall, 50cm deep, LACG material, color code 37)
  */
 export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   if (!input.panelType || input.panelType === "None") return null;
@@ -51,7 +54,8 @@ export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
   const mat = input.materialSku?.trim() || null;
-  const matSuffix = mat ? `-${mat}` : "";
+  const color = input.colorCode?.trim() || null;
+  const matSuffix = mat ? (color ? `-${mat}-${color}` : `-${mat}`) : "";
 
   return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}${matSuffix}`;
 }

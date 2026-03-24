@@ -47,21 +47,15 @@
 }
 
 .editButton {
-  padding: 3px 8px;
-  border: 1px solid #e3e4e8;
-  border-radius: 8px;
+  border: none;
   background: transparent;
   color: #6e7380;
-  font-size: 12px;
-  line-height: 1.2;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
     color 0.2s ease,
     background-color 0.2s ease;
 
   &:hover {
-    border-color: #c9cdd6;
     color: #404551;
     background: #f7f8fa;
   }
@@ -91,14 +85,14 @@
 
 .itemRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: 360px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 6px 0;
 }
 
 .noSwatch {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 360px auto;
 }
 
 .itemInfo {

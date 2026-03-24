@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
+import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -857,7 +858,8 @@ export const CustomSummaryPage = () => {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          materialSku: cabinetColorSku || null,
+          materialSku: resolveCabinetMaterialSku(),
+          colorCode: extractColorCode(cabinetColor),
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);
@@ -1093,7 +1095,7 @@ export const CustomSummaryPage = () => {
               aria-label={`Edit ${section.title}`}
               onClick={() => handleEditSection(section.id)}
             >
-              Edit
+              <EditPenIcon />
             </button>
           </div>
 
@@ -1115,12 +1117,7 @@ export const CustomSummaryPage = () => {
                       <Hint className={s.copyHint} content={"Copy SKU"}>
                         <button
                           className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                          onClick={() =>
-                            handleCopy(
-                              JSON.stringify({ sku: item.sku, skuInches: convertSkuToInches(item.sku!) }, null, 2),
-                              item.id,
-                            )
-                          }
+                          onClick={() => handleCopy(item.sku!, item.id)}
                           aria-label="Copy SKU"
                         >
                           <span className={s.copyIcon} />
@@ -1170,7 +1167,7 @@ export const CustomSummaryPage = () => {
             aria-label="Edit Swatches"
             onClick={() => handleEditSection("swatches")}
           >
-            Edit
+            <EditPenIcon />
           </button>
         </div>
 

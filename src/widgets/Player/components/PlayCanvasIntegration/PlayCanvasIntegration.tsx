@@ -56,14 +56,19 @@ import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
-import { buildCountertopRuleState, parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import {
+  buildCountertopRuleState,
+  materialMatchesRule,
+  matchesDepth,
+  parseCountertopMatrix,
+} from "@/features/configurator-rule-core/countertop";
 import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "032";
+const PLAYCANVAS_VERSION = "033";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
@@ -529,6 +534,71 @@ export const PlayCanvasIntegration = () => {
     () => Array.from(ruleState.allowedThicknesses).sort((a, b) => a - b),
     [ruleState.allowedThicknesses],
   );
+
+  const widthOptions = useMemo(() => {
+    const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
+    if (!baseOptions.length) return baseOptions;
+    if (!activeMaterialTokens.length || !countertopRules.length) return baseOptions;
+
+    const selectedDepth = selectedDimensions.depth ?? null;
+    const matchingRules = countertopRules.filter((rule) => {
+      if (!matchesDepth(rule, selectedDepth)) return false;
+      return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+    });
+
+    if (!matchingRules.length) return baseOptions;
+
+    const isWidthAllowedByAnyRule = (width: number) =>
+      matchingRules.some((rule) => {
+        if (rule.minSbCm !== null && width < rule.minSbCm) return false;
+
+        const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
+          (value): value is number => value !== null,
+        );
+        if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
+
+        if (
+          rule.integratedAllowedSizesOnly.length > 0 &&
+          !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+
+    return baseOptions.filter((value) => {
+      const numeric = typeof value === "number" ? value : Number(String(value).replace(",", "."));
+      if (!Number.isFinite(numeric)) return true;
+      return isWidthAllowedByAnyRule(numeric);
+    });
+  }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+
+  const depthOptions = useMemo(() => {
+    const baseOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
+    if (!baseOptions.length) return baseOptions;
+    if (!activeMaterialTokens.length || !countertopRules.length) return baseOptions;
+
+    const allowedDepths = new Set<number>();
+    countertopRules.forEach((rule) => {
+      const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+      if (!matchesMaterial) return;
+
+      [...rule.depths, ...rule.depthOnlyCm].forEach((depth) => {
+        if (Number.isFinite(depth)) {
+          allowedDepths.add(Number(depth.toFixed(3)));
+        }
+      });
+    });
+
+    if (!allowedDepths.size) return baseOptions;
+
+    return baseOptions.filter((value) => {
+      const numeric = typeof value === "number" ? value : Number(String(value).replace(",", "."));
+      if (!Number.isFinite(numeric)) return true;
+      return Array.from(allowedDepths).some((depth) => Math.abs(depth - numeric) < 0.01);
+    });
+  }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -1334,9 +1404,6 @@ export const PlayCanvasIntegration = () => {
       return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
     }
 
-    const widthOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
-    const depthOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
-
     const items: DropdownItem[] = [
       {
         id: "resize",
@@ -1448,8 +1515,6 @@ export const PlayCanvasIntegration = () => {
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
-    dimensionOptions.depth,
-    dimensionOptions.width,
     productIds.length,
     handleMoveProduct,
     handleOpenCabinetStyle,
@@ -1457,6 +1522,8 @@ export const PlayCanvasIntegration = () => {
     handleOpenAccessories,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
+    widthOptions,
+    depthOptions,
     isPrebuilt,
     isDrawerCabinet,
     isSidePanelEntity,
