@@ -1,7 +1,7 @@
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 
 import s from "./BottomStickyBar.module.scss";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { type PropsWithChildren } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
@@ -60,6 +60,9 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
           ) : (
             formatPrice(priceTotal)
           )}
+        </span>
+        <span>
+          <Link to="#">Find a showroom</Link>
         </span>
       </div>
       <div className={s.nextStepWrapp}>
