@@ -13,6 +13,6 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ["hasting-modular-configuration-v3aur.ondigitalocean.app"],
+    allowedHosts: ["hasting-modular-configuration-v3aur.ondigitalocean.app", "hastings-modular.vivid3d.tech"],
   },
 });
