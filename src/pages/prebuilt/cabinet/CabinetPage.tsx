@@ -264,7 +264,11 @@ export const CabinetPage = () => {
   );
 
   const filteredGrooveOptions = useMemo(
-    () => filterOptionsByTier(filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter), selectedGrooveFilter.tier),
+    () =>
+      filterOptionsByTier(
+        filterOptionsByMaterialSelection(grooveOptionsFromApi, selectedGrooveFilter),
+        selectedGrooveFilter.tier,
+      ),
     [grooveOptionsFromApi, selectedGrooveFilter],
   );
 
@@ -434,11 +438,7 @@ export const CabinetPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    console.log("HandleGrooveColor", colorName);
-
-    presetNames.forEach((productName) => {
-      setConfigBatch({ productType: productName }, { HandleGrooveColor: colorName });
-    });
+    setConfigBatch({}, { HandleGrooveColor: colorName });
 
     dispatch(
       setSelectedProductConfig({
