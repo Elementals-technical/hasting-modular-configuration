@@ -927,11 +927,19 @@ export const PlayCanvasIntegration = () => {
   const handleDuplicateProduct = useCallback(() => {
     if (!selectedSceneProduct) return;
     setDuplicateSourceId(selectedSceneProduct);
-    setVisibleButtons(true);
+    const duplicateProductType = resolveProductTypeFromId(
+      selectedSceneProduct,
+      selectedProductConfig as Record<string, unknown> | undefined,
+    );
+    const options =
+      typeof duplicateProductType === "string" && duplicateProductType.toLowerCase().includes("side-shelf")
+        ? { productType: "Side-Shelf" }
+        : undefined;
+    setVisibleButtons(true, options);
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [selectedSceneProduct]);
+  }, [resolveProductTypeFromId, selectedProductConfig, selectedSceneProduct]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
