@@ -53,6 +53,7 @@ import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
 
 export const CabinetPage = () => {
+  const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
   const presetsProducts = useAppSelector(getProductsPresets);
@@ -62,6 +63,7 @@ export const CabinetPage = () => {
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const cabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
@@ -496,22 +498,26 @@ export const CabinetPage = () => {
         </>
       ),
     },
-    {
-      id: "handle-groove",
-      title: "Handle Groove Color (Optional)",
-      content: (
-        <>
-          {/* <ViewModePanel /> */}
-          {renderGrooveFilters()}
-          <ProductOptionsGrid
-            data={grooveColorOptions}
-            handleAdd={handleChangeGrooveColor}
-            activeValue={activeGrooveColor}
-            groupByDesc
-          />
-        </>
-      ),
-    },
+    ...(isUrbanHandleSelected
+      ? [
+          {
+            id: "handle-groove",
+            title: "Handle Groove Color (Optional)",
+            content: (
+              <>
+                {/* <ViewModePanel /> */}
+                {renderGrooveFilters()}
+                <ProductOptionsGrid
+                  data={grooveColorOptions}
+                  handleAdd={handleChangeGrooveColor}
+                  activeValue={activeGrooveColor}
+                  groupByDesc
+                />
+              </>
+            ),
+          } as AccordionConfig,
+        ]
+      : []),
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
