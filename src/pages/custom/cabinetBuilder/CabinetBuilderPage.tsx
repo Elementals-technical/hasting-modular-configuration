@@ -221,6 +221,19 @@ export const CabinetBuilderPage = () => {
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
   const isOssBlockedByHandle = Boolean(selectedHandle && selectedHandle !== "handle_pto");
 
+  const hasBaseOrSideCabinetOnScene = useMemo(
+    () =>
+      selectedProducts.some((productId) => {
+        const matchedRuleCode = cabinetCatalog.typeCabinetRules.find((rule) =>
+          productId.toLowerCase().includes(rule.code.toLowerCase()),
+        )?.code;
+        return (
+          matchedRuleCode === "Sink-Base" || matchedRuleCode === "Sink-Cabinet" || matchedRuleCode === "Side-Cabinet"
+        );
+      }),
+    [selectedProducts, cabinetCatalog.typeCabinetRules],
+  );
+
   const cabinetTypeOptions = useMemo(
     () =>
       [...cabinetCatalog.typeCabinetRules]
@@ -234,31 +247,46 @@ export const CabinetBuilderPage = () => {
           const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
           const heightValue = selectedDimensions.height ?? 0;
 
-            const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
-            const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
-            const isDisabled = isSinkBaseDisabled || isSideShelfHandleBlocked;
-            const disabledReason = isSinkBaseDisabled
-              ? "Vanity configurations allow a maximum of two Sink Base units."
+          const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
+          const isShelfRequiresBaseCabinet =
+            (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
+          const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
+          const isDisabled = isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked;
+          const disabledReason = isSinkBaseDisabled
+            ? "Vanity configurations allow a maximum of two Sink Base units."
+            : isShelfRequiresBaseCabinet
+              ? "Add at least one Sink Base or Side Cabinet first."
               : isSideShelfHandleBlocked
                 ? "This cabinet type is only compatible with a PTO handle."
                 : undefined;
 
-            return {
-              id: rule.code,
-              title: meta.title ?? rule.code.replace(/-/g, " "),
-              name: rule.code,
-              desc: meta.desc,
-              isShortDesc: meta.isShortDesc ?? false,
-              isAvailable: !isDisabled,
-              disabledReason,
-              disabledActionLabel: isSideShelfHandleBlocked ? "Switch to PTO handle here" : undefined,
-              onDisabledAction: isSideShelfHandleBlocked ? () => setIsPtoSwitchPromptOpen(true) : undefined,
-              metadata: {
-                image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
-              },
-            };
-          }),
-    [cabinetCatalog.typeCabinetRules, selectedDimensions.height, sinkBaseCount, dominantDrawerGroup, isOssBlockedByHandle],
+          return {
+            id: rule.code,
+            title: meta.title ?? rule.code.replace(/-/g, " "),
+            name: rule.code,
+            desc: meta.desc,
+            isShortDesc: meta.isShortDesc ?? false,
+            isAvailable: !isDisabled,
+            disabledReason,
+            disabledActionLabel:
+              !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked ? "Switch to PTO handle here" : undefined,
+            onDisabledAction:
+              !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked
+                ? () => setIsPtoSwitchPromptOpen(true)
+                : undefined,
+            metadata: {
+              image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
+            },
+          };
+        }),
+    [
+      cabinetCatalog.typeCabinetRules,
+      selectedDimensions.height,
+      sinkBaseCount,
+      dominantDrawerGroup,
+      isOssBlockedByHandle,
+      hasBaseOrSideCabinetOnScene,
+    ],
   );
 
   const handleApprovePtoSwitch = useCallback(async () => {
@@ -509,6 +537,10 @@ export const CabinetBuilderPage = () => {
 
   const setActiveCabinet = (id: string, name?: string) => {
     console.log("name", name);
+
+    if ((id === "Open-Shelf" || id === "Side-Shelf") && !hasBaseOrSideCabinetOnScene) {
+      return;
+    }
 
     autoAddSignatureRef.current = null;
     if (!hasProducts) {
