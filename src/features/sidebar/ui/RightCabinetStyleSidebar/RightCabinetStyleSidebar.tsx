@@ -49,6 +49,13 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { useGetConfiguratorQuery } from "@/entities";
+import {
+  filterDepthValuesByCountertopRules,
+  filterWidthValuesByCountertopRules,
+  parseCountertopMatrix,
+} from "@/features/configurator-rule-core/countertop";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -96,6 +103,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const sinkType = useAppSelector(getSinkType);
 
   const saveSnapshot = useHistorySnapshot();
+  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+  const { data: counterTopMaterials } = useGetConfiguratorQuery({
+    id: 4,
+    view: "full",
+    serialize: true,
+  });
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
@@ -123,6 +136,134 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (value === "handle_pto") return ptoHandleImage;
     return image;
   }, [selectedProductConfig?.Handle]);
+
+  const normalizeMaterialLabel = (value: string) => {
+    const parts = value
+      .split(":")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    return parts.length > 1 ? parts[parts.length - 1] : value;
+  };
+
+  const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+
+  const toStringArrayFromCsv = (value: unknown): string[] => {
+    if (typeof value !== "string") return [];
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  };
+
+  const countertopOptionsFromApi = useMemo(() => {
+    const availableOptions = ((counterTopMaterials as { availableOptions?: Array<Record<string, unknown>> } | undefined)
+      ?.availableOptions ?? []) as Array<Record<string, unknown>>;
+    const groups = availableOptions.filter((group) => group.proxyName === "Countertop Color");
+    if (!groups.length) return [];
+
+    const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
+      const tokens = new Set<string>();
+      if (metaMaterial) {
+        toStringArrayFromCsv(metaMaterial).forEach((token) => tokens.add(token));
+      }
+      if (name) tokens.add(name);
+      extraTokens.forEach((token) => {
+        if (token) tokens.add(token);
+      });
+
+      const parts = name
+        .split(":")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length > 1) tokens.add(parts[parts.length - 1]);
+      return Array.from(tokens);
+    };
+
+    return groups.flatMap((group) => {
+      const options = (group.options as Array<Record<string, unknown>> | undefined) ?? [];
+      return options.flatMap((option) => {
+        const variants = (option.variants as Array<Record<string, unknown>> | undefined) ?? [];
+        return variants
+          .filter((variant) => variant.enabled)
+          .map((variant) => {
+            const variantMeta =
+              typeof variant.metadata === "object" && variant.metadata
+                ? (variant.metadata as Record<string, unknown>)
+                : ({} as Record<string, unknown>);
+            const nestedMeta =
+              typeof variantMeta.metadata === "object" && variantMeta.metadata
+                ? (variantMeta.metadata as Record<string, unknown>)
+                : ({} as Record<string, unknown>);
+
+            const pick = (...values: unknown[]): string | undefined => {
+              for (const value of values) {
+                const str = toOptionalString(value);
+                if (str) return str;
+              }
+              return undefined;
+            };
+
+            const metaMaterial = pick(nestedMeta.Material, variantMeta.Material);
+            const descSource = String(option.name ?? group.proxyName ?? variant.name ?? "");
+
+            return {
+              name: String(variant.name ?? ""),
+              title: pick(variantMeta.label, variantMeta.Label, nestedMeta.label, nestedMeta.Label, variant.name) ?? "",
+              desc: normalizeMaterialLabel(descSource),
+              metadata: {
+                value: pick(variantMeta.value, nestedMeta.value, variant.name) ?? String(variant.name ?? ""),
+                materials: buildMaterialTokens(
+                  String(option.name ?? variant.name ?? ""),
+                  metaMaterial,
+                  typeof group.proxyName === "string" ? [group.proxyName] : [],
+                ),
+              },
+            };
+          });
+      });
+    });
+  }, [counterTopMaterials]);
+
+  const activeMaterialTokens = useMemo(() => {
+    if (!countertopColor) return [];
+    const match = countertopOptionsFromApi.find((option) => {
+      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
+      return candidate === countertopColor;
+    });
+    return match?.metadata?.materials ?? [];
+  }, [countertopColor, countertopOptionsFromApi]);
+
+  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+
+  const widthOptions = useMemo(() => {
+    const values = dimensionOptions.width.map((option) => option.value);
+    const filteredValues = filterWidthValuesByCountertopRules({
+      values,
+      activeCabinetCode: activeCabinetRule?.code,
+      activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
+      activeMaterialTokens,
+      rules: countertopRules,
+      selectedDepth: selectedDimensions.depth ?? null,
+    });
+    return dimensionOptions.width.filter((option) => filteredValues.includes(option.value));
+  }, [
+    activeCabinetRule?.code,
+    activeMaterialTokens,
+    countertopRules,
+    dimensionOptions.width,
+    selectedDimensions.depth,
+    activeCabinetRule?.isOpen,
+  ]);
+
+  const depthOptions = useMemo(() => {
+    const values = dimensionOptions.depth.map((option) => option.value);
+    const filteredValues = filterDepthValuesByCountertopRules({
+      values,
+      activeMaterialTokens,
+      rules: countertopRules,
+    });
+    return dimensionOptions.depth.filter((option) => filteredValues.includes(option.value));
+  }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
 
   const productConfig = useMemo(() => {
     if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {
@@ -500,8 +641,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             <div>Width</div>
             <FilterSelection
               label={"Width"}
-              options={dimensionOptions.width}
+              options={widthOptions}
               value={selectedDimensions.width ?? ""}
+              hintPlacement="left"
+              showHints={false}
               onSelect={(value) => handleChangeWidth(value)}
             />
           </div>
@@ -510,8 +653,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             <div>Depth</div>
             <FilterSelection
               label={"Depth"}
-              options={dimensionOptions.depth}
+              options={depthOptions}
               value={selectedDimensions.depth ?? ""}
+              hintPlacement="left"
+              showHints={false}
               onSelect={(value) => handleChangeDepth(value)}
             />
           </div>
@@ -533,6 +678,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
                 label={"Handle"}
                 options={handleOptions}
                 value={selectedProductConfig?.Handle as string | undefined}
+                hintPlacement="left"
+                showHints={false}
                 onSelect={(value) => {
                   if (value === undefined) return;
                   handleSetHandleType(String(value));

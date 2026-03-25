@@ -36,6 +36,8 @@ export type SceneSnapshot = {
     depth: number | null;
   };
   placedDividers?: PlacedDivider[];
+  selectedProductConfig?: Record<string, unknown> | null;
+  placedCabinetStyles?: Record<string, string>;
 };
 
 type HistoryState = {

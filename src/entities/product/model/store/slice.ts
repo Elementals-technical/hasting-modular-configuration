@@ -561,14 +561,26 @@ const productSlice = createSlice({
         activeCabinetType: string | null;
         selectedDimensions: { width: number | null; height: number | null; depth: number | null };
         placedDividers?: PlacedDivider[];
+        selectedProductConfig?: ProductConfig | null;
+        placedCabinetStyles?: Record<string, string>;
       }>,
     ) {
-      const { productIds, productOptions, activeCabinetType, selectedDimensions, placedDividers } = action.payload;
+      const {
+        productIds,
+        productOptions,
+        activeCabinetType,
+        selectedDimensions,
+        placedDividers,
+        selectedProductConfig,
+        placedCabinetStyles,
+      } = action.payload;
       state.productIds = productIds;
       state.productOptions = productOptions;
       state.activeCabinetType = activeCabinetType;
       state.selectedDimensions = selectedDimensions;
       state.placedDividers = placedDividers ?? [];
+      state.selectedProductConfig = selectedProductConfig ?? null;
+      state.placedCabinetStyles = placedCabinetStyles ?? {};
       applyRulesToState(state);
     },
   },

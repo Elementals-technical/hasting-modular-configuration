@@ -54,22 +54,19 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
     .filter(Boolean)
     .join(" ");
 
-  return (
+  const hintContent = !isAvailable
+    ? disabledReason ?? "Not available for selected configuration"
+    : isMixingRestricted
+      ? "Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration."
+      : null;
+
+  const card = (
     <div className={itemClass} onClick={handleClick}>
       <div className={s.image}>
         <img src={imageSrc ?? none_img} alt="image" />
       </div>
-      {!isAvailable ? (
-        <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
-          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-        </Hint>
-      ) : isMixingRestricted ? (
-        <Hint
-          className={s.optionHint}
-          content={"Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration."}
-        >
-          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-        </Hint>
+      {!isAvailable || isMixingRestricted ? (
+        <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
       ) : (
         <div className={s.title}>{title}</div>
       )}
@@ -87,5 +84,13 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
         </span>
       </Link>
     </div>
+  );
+
+  if (!hintContent) return card;
+
+  return (
+    <Hint className={s.optionHint} content={hintContent} placement="top">
+      {card}
+    </Hint>
   );
 };

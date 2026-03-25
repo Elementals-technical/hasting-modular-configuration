@@ -58,8 +58,8 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
-  materialMatchesRule,
-  matchesDepth,
+  filterDepthValuesByCountertopRules,
+  filterWidthValuesByCountertopRules,
   parseCountertopMatrix,
 } from "@/features/configurator-rule-core/countertop";
 import { ROUTES } from "@/shared";
@@ -565,41 +565,13 @@ export const PlayCanvasIntegration = () => {
 
   const widthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
-    if (!baseOptions.length) return baseOptions;
-    if (activeCabinetRule?.code === "Sink-Cabinet") return baseOptions;
-    if (!activeMaterialTokens.length || !countertopRules.length) return baseOptions;
-
-    const selectedDepth = selectedDimensions.depth ?? null;
-    const matchingRules = countertopRules.filter((rule) => {
-      if (!matchesDepth(rule, selectedDepth)) return false;
-      return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
-    });
-
-    if (!matchingRules.length) return baseOptions;
-
-    const isWidthAllowedByAnyRule = (width: number) =>
-      matchingRules.some((rule) => {
-        if (rule.minSbCm !== null && width < rule.minSbCm) return false;
-
-        const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
-          (value): value is number => value !== null,
-        );
-        if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
-
-        if (
-          rule.integratedAllowedSizesOnly.length > 0 &&
-          !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
-        ) {
-          return false;
-        }
-
-        return true;
-      });
-
-    return baseOptions.filter((value) => {
-      const numeric = typeof value === "number" ? value : Number(String(value).replace(",", "."));
-      if (!Number.isFinite(numeric)) return true;
-      return isWidthAllowedByAnyRule(numeric);
+    return filterWidthValuesByCountertopRules({
+      values: baseOptions,
+      activeCabinetCode: activeCabinetRule?.code,
+      activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
+      activeMaterialTokens,
+      rules: countertopRules,
+      selectedDepth: selectedDimensions.depth ?? null,
     });
   }, [
     activeCabinetRule?.code,
@@ -607,31 +579,15 @@ export const PlayCanvasIntegration = () => {
     countertopRules,
     dimensionOptions.width,
     selectedDimensions.depth,
+    activeCabinetRule?.isOpen,
   ]);
 
   const depthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
-    if (!baseOptions.length) return baseOptions;
-    if (!activeMaterialTokens.length || !countertopRules.length) return baseOptions;
-
-    const allowedDepths = new Set<number>();
-    countertopRules.forEach((rule) => {
-      const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
-      if (!matchesMaterial) return;
-
-      [...rule.depths, ...rule.depthOnlyCm].forEach((depth) => {
-        if (Number.isFinite(depth)) {
-          allowedDepths.add(Number(depth.toFixed(3)));
-        }
-      });
-    });
-
-    if (!allowedDepths.size) return baseOptions;
-
-    return baseOptions.filter((value) => {
-      const numeric = typeof value === "number" ? value : Number(String(value).replace(",", "."));
-      if (!Number.isFinite(numeric)) return true;
-      return Array.from(allowedDepths).some((depth) => Math.abs(depth - numeric) < 0.01);
+    return filterDepthValuesByCountertopRules({
+      values: baseOptions,
+      activeMaterialTokens,
+      rules: countertopRules,
     });
   }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
 
