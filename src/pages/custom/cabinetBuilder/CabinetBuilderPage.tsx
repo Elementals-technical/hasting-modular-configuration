@@ -219,6 +219,19 @@ export const CabinetBuilderPage = () => {
     return addableCatalogWidths.some((width) => width <= remainingCountertopLength + 0.01);
   }, [addableCatalogWidths, hasProducts, remainingCountertopLength]);
 
+  const hasAddableWidthForActiveType = useMemo(() => {
+    if (!hasProducts) return true;
+    if (remainingCountertopLength === null) return true;
+
+    const activeTypeWidths = dimensionOptions.width
+      .filter((option) => !option.disabled)
+      .map((option) => Number(option.value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+
+    if (!activeTypeWidths.length) return false;
+    return activeTypeWidths.some((width) => width <= remainingCountertopLength + 0.01);
+  }, [dimensionOptions.width, hasProducts, remainingCountertopLength]);
+
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
 
@@ -250,8 +263,13 @@ export const CabinetBuilderPage = () => {
         id: meta.id,
         title: meta.title,
         value: String(value),
-        isAvailable: ruleOption ? !ruleOption.disabled : true,
-        disabledReason: ruleOption?.reason,
+        isAvailable: (ruleOption ? !ruleOption.disabled : true) && hasAddableWidthForActiveType,
+        disabledReason:
+          !hasAddableWidthForActiveType && hasProducts
+            ? `Maximum composition length reached for the selected countertop setup${
+                maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+              }.`
+            : ruleOption?.reason,
         isMixingRestricted,
         isShortDesc: meta.isShortDesc ?? false,
         metadata: {
@@ -260,7 +278,15 @@ export const CabinetBuilderPage = () => {
         },
       };
     });
-  }, [selectedDimensions.height, dimensionOptions.drawers, activeCabinetType, dominantDrawerGroup]);
+  }, [
+    selectedDimensions.height,
+    dimensionOptions.drawers,
+    activeCabinetType,
+    dominantDrawerGroup,
+    hasAddableWidthForActiveType,
+    hasProducts,
+    maxCountertopLength,
+  ]);
 
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
   const isOssBlockedByHandle = Boolean(selectedHandle && selectedHandle !== "handle_pto");
@@ -290,12 +316,16 @@ export const CabinetBuilderPage = () => {
         .map((rule) => {
           const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
           const heightValue = selectedDimensions.height ?? 0;
+          const typeHasFittingWidth =
+            !hasProducts ||
+            remainingCountertopLength === null ||
+            (rule.widths ?? []).some((width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01);
 
           const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
           const isShelfRequiresBaseCabinet =
             (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
           const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
-          const isLengthLimited = hasProducts && !canAddCabinetByLength;
+          const isLengthLimited = hasProducts && !typeHasFittingWidth;
           const isDisabled = isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
           const disabledReason = isSinkBaseDisabled
             ? "Vanity configurations allow a maximum of two Sink Base units."
@@ -336,7 +366,7 @@ export const CabinetBuilderPage = () => {
       isOssBlockedByHandle,
       hasBaseOrSideCabinetOnScene,
       hasProducts,
-      canAddCabinetByLength,
+      remainingCountertopLength,
       maxCountertopLength,
     ],
   );
@@ -592,6 +622,16 @@ export const CabinetBuilderPage = () => {
 
     if (hasProducts && !canAddCabinetByLength) {
       return;
+    }
+
+    if (hasProducts && remainingCountertopLength !== null) {
+      const targetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id);
+      const canFitThisType = (targetRule?.widths ?? []).some(
+        (width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01,
+      );
+      if (!canFitThisType) {
+        return;
+      }
     }
 
     if ((id === "Open-Shelf" || id === "Side-Shelf") && !hasBaseOrSideCabinetOnScene) {

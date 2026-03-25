@@ -511,14 +511,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
+    const hasAddableWidth = widthOptions.length > 0;
     const options =
       isOpenedStyleSidebar && activeDrawerProduct === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
-    setVisibleButtons(isOpenedStyleSidebar, options);
+    setVisibleButtons(isOpenedStyleSidebar && hasAddableWidth, options);
 
     return () => {
       setVisibleButtons(false);
     };
-  }, [activeDrawerProduct, isOpenedStyleSidebar]);
+  }, [activeDrawerProduct, isOpenedStyleSidebar, widthOptions.length]);
 
   // Close sidebar when clicking outside of it.
   useEffect(() => {
