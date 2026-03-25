@@ -68,7 +68,7 @@ import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreensho
 import { formatCmWithInches } from "@/utils/units";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "033";
+const PLAYCANVAS_VERSION = "034";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
