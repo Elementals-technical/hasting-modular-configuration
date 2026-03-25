@@ -10,7 +10,14 @@ import customVideo from "../../../../assets/video/custom.webm";
 import s from "./HowToStart.module.scss";
 import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
 
-const steps = [
+type HowToStartStep = {
+  title: string;
+  description: string;
+  image?: string;
+  video?: string;
+};
+
+const steps: HowToStartStep[] = [
   {
     title: "Choose How to Start",
     description:
