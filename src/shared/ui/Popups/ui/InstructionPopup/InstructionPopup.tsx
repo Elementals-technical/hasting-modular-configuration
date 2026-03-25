@@ -3,9 +3,9 @@ import { useState } from "react";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { BaseButton } from "@/shared";
-import img_1 from "../../../../assets/images/png/first_inst.png";
-import img_2 from "../../../../assets/images/png/sec_inst.png";
-import img_3 from "../../../../assets/images/png/third_inst.png";
+import img_1 from "../../../../assets/images/png/popup/Step_1.png";
+import img_2 from "../../../../assets/images/png/popup/Step_2.png";
+import img_3 from "../../../../assets/images/png/popup/Step_3.png";
 
 import s from "./InstructionPopup.module.scss";
 
@@ -27,7 +27,9 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
       <div className={s.instrPopup}>
         <div className={s.header}>
           <div className={s.title}>Instructions</div>
-          <div
+          <button
+            type="button"
+            aria-label="Close instructions"
             className={s.button}
             onClick={() => {
               setIsOpening(false);
@@ -35,7 +37,7 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
             }}
           >
             <CloseBtnIcon />
-          </div>
+          </button>
         </div>
 
         <div className={s.content}>
@@ -54,9 +56,9 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
           </div>
 
           <div className={s.contentBlock}>
-            <div>3. To edit, tap a piece, then click an action you want</div>
+            <div>3. To edit, tap a piece, then click an action you want.</div>
             <div className={s.contentBlock_img}>
-              <img src={img_3} alt="first image" />
+              <img src={img_3} alt="third image" />
             </div>
           </div>
         </div>

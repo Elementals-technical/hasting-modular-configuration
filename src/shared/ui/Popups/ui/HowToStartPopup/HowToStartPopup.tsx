@@ -3,36 +3,35 @@ import { useState } from "react";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { BaseButton } from "@/shared";
 
-import howToStartVideo from "../../../../assets/video/how to start.webm";
-import prebuildVideo from "../../../../assets/video/prebuild.webm";
+import howToStartVideo from "../../../../assets/video/howtostart-faster.webm";
+import prebuildVideo from "../../../../assets/video/prebuild-faster.webm";
 import customVideo from "../../../../assets/video/custom.webm";
-import summaryImage from "../../../../assets/images/png/summary.png";
 
 import s from "./HowToStart.module.scss";
 import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
 
-const steps = [
+type HowToStartStep = {
+  title: string;
+  description: string;
+  image?: string;
+  video?: string;
+};
+
+const steps: HowToStartStep[] = [
   {
     title: "Choose How to Start",
     description:
-      "Begin with one of our Pre-Built Concepts — ready-made designs — or build your own custom concept with drag-and-drop control.",
+      "Start with one of our pre-built, ready-made designs—or create your own custom concept using drag-and-drop controls.",
   },
   {
-    title: "Choose How to Start",
-    description: `If you chose a Pre-Built model, you can: add lighting, towel bars, internal organizers, and other accessories, select sink hole options and placement, pick your colors and materials. If you want even more control, click Edit to switch to the Custom Configurator.`,
+    title: "Pre-Built Mode",
+    description: `Customize your design from pre-made solutions:\n- Sort by size and style\n- Choose your colors and materials\n- Select your countertop and sink style\n- Add internal organizers, towel bars and more\nIf you want even more control click 'customize' to transition to custom mode for full design control`,
     video: prebuildVideo,
   },
   {
     title: "Custom Mode",
-    description:
-      "In Custom Configurator, you can: add new cabinets by clicking the “+” button, mix and match different cabinet types, countertops, basins, and add-ons, choose materials, colors, and finishes, adjust layout and sizes to create your ideal setup",
+    description: `Create a custom design with our cabinet builder\n- Add, remove, resize, reposition cabinets with ease\n- Utilize the in-scene editor for fast-paced editing\n- Tailor your colorways, countertop details and more\n- Accessorize with drawer dividers, towel bars and more`,
     video: customVideo,
-  },
-  {
-    title: "Summary",
-    description:
-      "In the Summary section, review all your selected components. Once you’re happy, download the specification PDF — it includes all details and technical drawings of your vanity design.",
-    image: summaryImage,
   },
 ];
 
@@ -93,7 +92,17 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose }) => {
           </div>
 
           <div className={s.title}>{steps[activeStep].title}</div>
-          <p className={s.content}>{steps[activeStep].description}</p>
+          <div className={s.content}>
+            {steps[activeStep].description.split("\n").map((line, i) =>
+              line.startsWith("- ") ? (
+                <ul key={i} className={s.contentList}>
+                  <li>{line.slice(2)}</li>
+                </ul>
+              ) : (
+                <p key={i}>{line}</p>
+              )
+            )}
+          </div>
 
           <div className={s.footer}>
             <BaseButton onClick={handleNext}>Next</BaseButton>
