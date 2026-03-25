@@ -3,6 +3,7 @@ import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
+import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 
 function resolveProductType(productId: string, config: Record<string, unknown>): string {
@@ -42,21 +43,43 @@ function normalizeProductType(value: string, productId: string): string {
   return value;
 }
 
+function mapConfigToDrawerValue(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+
+  const normalized = value.trim();
+  if (normalized === "1D" || normalized === "1") return "1";
+  if (normalized === "2D" || normalized === "2") return "2";
+  if (normalized === "1DWID" || normalized === "1+inner") return "1+inner";
+
+  return null;
+}
+
 export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDispatch): Promise<void> {
   await removeAllProducts();
 
   const newProductIds: string[] = [];
+  const restoredPlacedCabinetStyles: Record<string, string> = {};
+  let restoredSelectedProductConfig: Record<string, unknown> | null = snapshot.selectedProductConfig ?? null;
 
   for (const oldId of snapshot.productIds) {
     const config = snapshot.productConfigs[oldId];
     if (!config) continue;
 
     const productType = resolveProductType(oldId, config);
-    const newId = await addProduct(productType, config as any);
+    const newId = await addProduct(productType, config as addProductConfigI);
 
     if (newId) {
       await setConfig(newId, config);
       newProductIds.push(newId);
+
+      if (!restoredSelectedProductConfig) {
+        restoredSelectedProductConfig = { ...config };
+      }
+
+      const drawerRawValue = mapConfigToDrawerValue(config.Drawers);
+      if (drawerRawValue) {
+        restoredPlacedCabinetStyles[newId] = drawerRawValue;
+      }
     }
   }
 
@@ -67,6 +90,11 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
       activeCabinetType: snapshot.activeCabinetType,
       selectedDimensions: snapshot.selectedDimensions,
       placedDividers: snapshot.placedDividers,
+      selectedProductConfig: restoredSelectedProductConfig,
+      placedCabinetStyles:
+        Object.keys(restoredPlacedCabinetStyles).length > 0
+          ? restoredPlacedCabinetStyles
+          : (snapshot.placedCabinetStyles ?? {}),
     }),
   );
 }
