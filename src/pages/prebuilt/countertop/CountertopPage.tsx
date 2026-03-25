@@ -57,9 +57,11 @@ import { vesselAllowedMaterialsMap, extractColorCode } from "@/shared/lib/sku";
 import s from "./CountertopPage.module.scss";
 import { BaseButton } from "@/shared";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
+import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
+const MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON = "Not available for current total cabinets width on scene";
 
 type MaterialFilterOption = {
   label: string;
@@ -82,6 +84,7 @@ export const CountertopPage = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
   const hasSelectedMaterial = Boolean(activeCountertopColor);
   const isVesselStyle = (activeCountertopStyle ?? "").trim().toLowerCase() === "vessel";
   const [hasSinkBase, setHasSinkBase] = useState(false);
@@ -479,12 +482,13 @@ export const CountertopPage = () => {
     return optionAliases.includes(selectedNormalized) || selectedAliases.includes(optionNormalized);
   }, []);
 
-  const isMaterialOptionCompatibleBySceneSize = useCallback(
-    (option: ProductOptionData) => {
+  const evaluateMaterialOptionCompatibility = useCallback(
+    (option: ProductOptionData): { isCompatible: boolean; failedBy: "total" | "selected" | null } => {
       const optionMaterials = option.metadata?.materials ?? [];
-      if (!optionMaterials.length) return true;
+      if (!optionMaterials.length) return { isCompatible: true, failedBy: null };
 
       const selectedDepth = selectedDimensions.depth ?? null;
+      const totalWidth = sceneTotalWidth ?? selectedDimensions.width ?? null;
       const selectedWidth = selectedDimensions.width ?? null;
 
       const applicableRules = countertopRules.filter((rule) => {
@@ -495,30 +499,58 @@ export const CountertopPage = () => {
 
       if (!applicableRules.length) {
         const hasCeramicMaterial = optionMaterials.some((material) => normalizeMaterialToken(material) === "ceramic");
-        return hasCeramicMaterial;
+        return { isCompatible: hasCeramicMaterial, failedBy: hasCeramicMaterial ? null : "total" };
       }
 
-      if (!selectedWidth) return true;
+      const matchesWidth = (width: number) =>
+        applicableRules.some((rule) => {
+          if (rule.minSbCm && width < rule.minSbCm) return false;
 
-      return applicableRules.some((rule) => {
-        if (rule.minSbCm && selectedWidth < rule.minSbCm) return false;
+          const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
+            (value): value is number => value !== null,
+          );
+          if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
 
-        const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
-          (value): value is number => value !== null,
-        );
-        if (maxLimits.length > 0 && !maxLimits.some((limit) => selectedWidth <= limit)) return false;
+          if (
+            rule.integratedAllowedSizesOnly.length > 0 &&
+            !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
+          ) {
+            return false;
+          }
 
-        if (
-          rule.integratedAllowedSizesOnly.length > 0 &&
-          !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - selectedWidth) < 0.01)
-        ) {
-          return false;
-        }
+          return true;
+        });
 
-        return true;
-      });
+      if (totalWidth && !matchesWidth(totalWidth)) {
+        return { isCompatible: false, failedBy: "total" };
+      }
+
+      if (selectedWidth && !matchesWidth(selectedWidth)) {
+        return { isCompatible: false, failedBy: "selected" };
+      }
+
+      return { isCompatible: true, failedBy: null };
     },
-    [countertopRules, selectedDimensions.depth, selectedDimensions.width],
+    [countertopRules, sceneTotalWidth, selectedDimensions.depth, selectedDimensions.width],
+  );
+
+  const isMaterialOptionCompatibleBySceneSize = useCallback(
+    (option: ProductOptionData) => {
+      return evaluateMaterialOptionCompatibility(option).isCompatible;
+    },
+    [evaluateMaterialOptionCompatibility],
+  );
+
+  const getMaterialOptionDisabledReason = useCallback(
+    (option: ProductOptionData) => {
+      const evaluation = evaluateMaterialOptionCompatibility(option);
+      if (evaluation.isCompatible) return undefined;
+      if (evaluation.failedBy === "total") {
+        return "Not available for current total cabinets width on scene";
+      }
+      return "Not available for selected cabinet width/depth/thickness on scene";
+    },
+    [evaluateMaterialOptionCompatibility],
   );
 
   const hasAnyCompatibleOptionForMaterialFilter = useCallback(
@@ -531,29 +563,86 @@ export const CountertopPage = () => {
     [isMaterialOptionCompatibleBySceneSize, materialsMatchSelection, scopedCountertopOptions],
   );
 
+  const getMaterialMaxWidthForCurrentDepth = useCallback(
+    (materialValue: string): number | null => {
+      const selectedDepth = selectedDimensions.depth ?? null;
+
+      const relevantRules = countertopRules.filter((rule) => {
+        if (!matchesDepth(rule, selectedDepth)) return false;
+        return materialMatchesRule(materialValue, rule.material);
+      });
+      if (!relevantRules.length) return null;
+
+      const maxLimits = relevantRules
+        .flatMap((rule) => [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm])
+        .filter((value): value is number => value !== null);
+
+      if (!maxLimits.length) return null;
+      return Math.max(...maxLimits);
+    },
+    [countertopRules, selectedDimensions.depth],
+  );
+
+  const getMaterialFilterDisabledReason = useCallback(
+    (materialValue: string) => {
+      const matchingOptions = scopedCountertopOptions.filter((option) => {
+        const materials = option.metadata?.materials ?? [];
+        return materials.some((optionMaterial) => materialsMatchSelection(optionMaterial, materialValue));
+      });
+
+      if (!matchingOptions.length) return MATERIAL_FILTER_DISABLED_REASON;
+
+      const evaluations = matchingOptions.map((option) => evaluateMaterialOptionCompatibility(option));
+      if (evaluations.some((item) => item.isCompatible)) return undefined;
+
+      const hasSelectedFailure = evaluations.some((item) => item.failedBy === "selected");
+      if (hasSelectedFailure) return MATERIAL_FILTER_DISABLED_REASON;
+
+      const maxWidth = getMaterialMaxWidthForCurrentDepth(materialValue);
+      const currentTotalWidth = sceneTotalWidth ?? selectedDimensions.width ?? null;
+      if (maxWidth !== null && typeof currentTotalWidth === "number") {
+        return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. Current ${currentTotalWidth} cm, ${materialValue} max ${maxWidth} cm.`;
+      }
+      if (maxWidth !== null) {
+        return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. ${materialValue} max ${maxWidth} cm.`;
+      }
+      return MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON;
+    },
+    [
+      evaluateMaterialOptionCompatibility,
+      getMaterialMaxWidthForCurrentDepth,
+      materialsMatchSelection,
+      sceneTotalWidth,
+      scopedCountertopOptions,
+      selectedDimensions.width,
+    ],
+  );
+
   const materialFilterOptions = useMemo(() => {
     const annotate = (option: MaterialFilterOption): MaterialFilterOption => {
       if (option.children?.length) {
         const children = option.children.map((child) => annotate(child));
         const isDisabled = children.every((child) => child.disabled);
+        const firstChildReason = children.find((child) => child.reason)?.reason;
         return {
           ...option,
           children,
           disabled: isDisabled,
-          reason: isDisabled ? MATERIAL_FILTER_DISABLED_REASON : undefined,
+          reason: isDisabled ? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON : undefined,
         };
       }
 
       const isAvailable = hasAnyCompatibleOptionForMaterialFilter(option.value);
+      const reason = !isAvailable ? getMaterialFilterDisabledReason(option.value) : undefined;
       return {
         ...option,
         disabled: !isAvailable,
-        reason: !isAvailable ? MATERIAL_FILTER_DISABLED_REASON : undefined,
+        reason,
       };
     };
 
     return (filteredMaterialFilters.materials as MaterialFilterOption[]).map((option) => annotate(option));
-  }, [filteredMaterialFilters.materials, hasAnyCompatibleOptionForMaterialFilter]);
+  }, [filteredMaterialFilters.materials, getMaterialFilterDisabledReason, hasAnyCompatibleOptionForMaterialFilter]);
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUiBase = filterOptionsByMaterialSelection(scopedCountertopOptions, {
@@ -577,18 +666,18 @@ export const CountertopPage = () => {
       return {
         ...option,
         isAvailable,
-        disabledReason: isAvailable
-          ? undefined
-          : "Not available for current cabinet width/depth/thickness on scene",
+        disabledReason: isAvailable ? undefined : getMaterialOptionDisabledReason(option),
       };
     });
   }, [
+    getMaterialOptionDisabledReason,
     isMaterialOptionCompatibleBySceneSize,
     materialsMatchSelection,
     scopedCountertopOptions,
     selectedFilter,
     selectedMaterialValues,
   ]);
+
 
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;

@@ -51,8 +51,11 @@ import {
 import {
   getActiveCabinetType,
   getActiveCabinetRule,
+  getActiveCountertopThickness,
   getCabinetCatalog,
   getCabinetColor,
+  getCountertopColorSku,
+  getCountertopStyle,
   getHandleGrooveColor,
   getActiveCountertopColor,
   getSelectedProducts,
@@ -70,6 +73,8 @@ import {
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { applyConfiguratorRules } from "@/features/configurator-rule-core/cabinetBuilder";
+import { parseCountertopMatrix, resolveCountertopMaxLengthByRules } from "@/features/configurator-rule-core/countertop";
+import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -86,6 +91,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useGetProductDatatableQuery } from "@/entities/product/api";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 
 type AccordionConfig = {
@@ -99,6 +105,7 @@ const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
+const MATRIX_COUNTERTOP_DATATABLE_ID = 438;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Pietra Di Savoia Antracite TQ6";
 const CABINET_TYPE_ORDER: Record<string, number> = {
@@ -157,6 +164,9 @@ export const CabinetBuilderPage = () => {
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const sinkType = useAppSelector(getSinkType);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
@@ -169,11 +179,44 @@ export const CabinetBuilderPage = () => {
 
   const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
     useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
+  const { data: counterTopData } = useGetCountertopDatatableQuery(MATRIX_COUNTERTOP_DATATABLE_ID);
 
   console.log("matrixCabinetTable", matrixCabinetTable);
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
+  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
+  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+
+  const maxCountertopLength = useMemo(
+    () =>
+      resolveCountertopMaxLengthByRules({
+        rules: countertopRules,
+        materialTokens: countertopColorSku ? [countertopColorSku] : [],
+        style: countertopStyle ?? null,
+        depth: selectedDimensions.depth ?? null,
+        thickness: countertopThickness ?? null,
+      }),
+    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth],
+  );
+
+  const remainingCountertopLength =
+    maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+
+  const minAddableCabinetWidth = useMemo(() => {
+    const values = dimensionOptions.width
+      .filter((option) => !option.disabled)
+      .map((option) => Number(option.value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (!values.length) return null;
+    return Math.min(...values);
+  }, [dimensionOptions.width]);
+
+  const canAddCabinetByLength = useMemo(() => {
+    if (!hasProducts) return true;
+    if (remainingCountertopLength === null || minAddableCabinetWidth === null) return true;
+    return remainingCountertopLength + 0.01 >= minAddableCabinetWidth;
+  }, [hasProducts, minAddableCabinetWidth, remainingCountertopLength]);
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
@@ -251,13 +294,18 @@ export const CabinetBuilderPage = () => {
           const isShelfRequiresBaseCabinet =
             (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
           const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
-          const isDisabled = isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked;
+          const isLengthLimited = hasProducts && !canAddCabinetByLength;
+          const isDisabled = isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
           const disabledReason = isSinkBaseDisabled
             ? "Vanity configurations allow a maximum of two Sink Base units."
             : isShelfRequiresBaseCabinet
               ? "Add at least one Sink Base or Side Cabinet first."
               : isSideShelfHandleBlocked
                 ? "This cabinet type is only compatible with a PTO handle."
+                : isLengthLimited
+                  ? `Maximum composition length reached for the selected countertop setup${
+                      maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+                    }.`
                 : undefined;
 
           return {
@@ -286,6 +334,9 @@ export const CabinetBuilderPage = () => {
       dominantDrawerGroup,
       isOssBlockedByHandle,
       hasBaseOrSideCabinetOnScene,
+      hasProducts,
+      canAddCabinetByLength,
+      maxCountertopLength,
     ],
   );
 
@@ -537,6 +588,10 @@ export const CabinetBuilderPage = () => {
 
   const setActiveCabinet = (id: string, name?: string) => {
     console.log("name", name);
+
+    if (hasProducts && !canAddCabinetByLength) {
+      return;
+    }
 
     if ((id === "Open-Shelf" || id === "Side-Shelf") && !hasBaseOrSideCabinetOnScene) {
       return;

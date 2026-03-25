@@ -38,10 +38,11 @@ export const filterWidthValuesByCountertopRules = ({
   });
 
   if (!matchingRules.length) return values;
+  const shouldEnforceMinSb = activeCabinetCode === "Sink-Base";
 
   const isWidthAllowedByAnyRule = (width: number) =>
     matchingRules.some((rule) => {
-      if (rule.minSbCm !== null && width < rule.minSbCm) return false;
+      if (shouldEnforceMinSb && rule.minSbCm !== null && width < rule.minSbCm) return false;
 
       const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
         (value): value is number => value !== null,

@@ -58,6 +58,7 @@ import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwa
 import { useGetConfiguratorQuery } from "@/entities";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
+import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -85,6 +86,9 @@ export const CustomAccessoriesPage = () => {
   });
 
   const sidePanelAvailability = useAppSelector(selectSidePanelAvailability);
+  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
+  const sidePanelsBlockedByLength340 = sceneTotalWidth !== null && Math.abs(sceneTotalWidth - 340) < 0.01;
+  const sidePanelsLengthReason = "Side panels are not available when total vanity length is exactly 340 cm.";
 
   const isEdgeCabinet = useMemo(() => {
     if (!activeCabinetId || !isPlayCanvasReady) return false;
@@ -93,6 +97,10 @@ export const CustomAccessoriesPage = () => {
   }, [activeCabinetId, isPlayCanvasReady]);
 
   const sidePanelOptions = useMemo(() => {
+    if (sidePanelsBlockedByLength340) {
+      return optionsSidePanelsData.filter((option) => option.metadata?.value === "None");
+    }
+
     const allowed = new Set<string>(["None"]);
     sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
 
@@ -101,7 +109,15 @@ export const CustomAccessoriesPage = () => {
       if (!value) return true;
       return allowed.has(value);
     });
-  }, [sidePanelAvailability.allowed]);
+  }, [sidePanelAvailability.allowed, sidePanelsBlockedByLength340]);
+
+  useEffect(() => {
+    if (!sidePanelsBlockedByLength340) return;
+    if (!activeSidePanels || activeSidePanels === "None") return;
+
+    dispatch(setSidePanelsOption("None"));
+    setSidePanel("None", "both");
+  }, [activeSidePanels, dispatch, sidePanelsBlockedByLength340]);
 
   const towelBarOptionsFromApi = useMemo(() => {
     const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
@@ -562,6 +578,7 @@ export const CustomAccessoriesPage = () => {
 
   const handleSidePanelsChange = async (value: string) => {
     if (!value || !activeCabinetId || !isEdgeCabinet) return;
+    if (sidePanelsBlockedByLength340 && value !== "None") return;
 
     await saveSnapshot();
 
@@ -692,7 +709,9 @@ export const CustomAccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          {sidePanelAvailability.reason ? (
+          {sidePanelsBlockedByLength340 ? (
+            <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>{sidePanelsLengthReason}</p>
+          ) : sidePanelAvailability.reason ? (
             <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>
               {sidePanelAvailability.reason}
             </p>

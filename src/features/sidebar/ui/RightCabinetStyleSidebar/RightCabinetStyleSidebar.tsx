@@ -18,8 +18,11 @@ import {
   getDimensionOptions,
   getDrawerProduct,
   getCabinetColor,
+  getCountertopColorSku,
+  getCountertopStyle,
   getHandleGrooveColor,
   getActiveCountertopColor,
+  getActiveCountertopThickness,
   getActiveCabinetRule,
   getDrawerPanelFluting,
   getGrainDirection,
@@ -55,7 +58,9 @@ import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
   parseCountertopMatrix,
+  resolveCountertopMaxLengthByRules,
 } from "@/features/configurator-rule-core/countertop";
+import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -98,9 +103,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
   const sinkType = useAppSelector(getSinkType);
+  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
 
   const saveSnapshot = useHistorySnapshot();
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
@@ -234,9 +243,22 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   }, [countertopColor, countertopOptionsFromApi]);
 
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+  const maxCountertopLength = useMemo(
+    () =>
+      resolveCountertopMaxLengthByRules({
+        rules: countertopRules,
+        materialTokens: countertopColorSku ? [countertopColorSku] : [],
+        style: countertopStyle ?? null,
+        depth: selectedDimensions.depth ?? null,
+        thickness: countertopThickness ?? null,
+      }),
+    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth],
+  );
+  const remainingCountertopLength =
+    maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
 
   const widthOptions = useMemo(() => {
-    const values = dimensionOptions.width.map((option) => option.value);
+    const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({
       values,
       activeCabinetCode: activeCabinetRule?.code,
@@ -245,12 +267,20 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
     });
-    return dimensionOptions.width.filter((option) => filteredValues.includes(option.value));
+    return dimensionOptions.width.filter((option) => {
+      if (option.disabled) return false;
+      if (!filteredValues.includes(option.value)) return false;
+      if (remainingCountertopLength === null) return true;
+      const numericWidth = Number(option.value);
+      if (!Number.isFinite(numericWidth)) return false;
+      return numericWidth <= remainingCountertopLength + 0.01;
+    });
   }, [
     activeCabinetRule?.code,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
+    remainingCountertopLength,
     selectedDimensions.depth,
     activeCabinetRule?.isOpen,
   ]);
@@ -517,6 +547,20 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       console.log("Clicked Plus Button", entityId, side);
 
       if (!activeDrawerProduct) return;
+      if (
+        maxCountertopLength !== null &&
+        sceneTotalWidth !== null &&
+        selectedProducts.length > 0 &&
+        typeof selectedDimensions.width === "number" &&
+        sceneTotalWidth + selectedDimensions.width > maxCountertopLength + 0.01
+      ) {
+        console.warn("[RightCabinetStyleSidebar] Add blocked by countertop max length", {
+          maxCountertopLength,
+          sceneTotalWidth,
+          requestedWidth: selectedDimensions.width,
+        });
+        return;
+      }
 
       if (activeDrawerProduct === "Side-Shelf") {
         await setSidePanel("None", side);
@@ -558,7 +602,19 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     };
 
     setHandleButtonClick(onPlusClick);
-  }, [isPlayCanvasReady, activeDrawerProduct, productConfig, sinkType, dispatch, onProductAdded, saveSnapshot]);
+  }, [
+    isPlayCanvasReady,
+    activeDrawerProduct,
+    maxCountertopLength,
+    onProductAdded,
+    productConfig,
+    saveSnapshot,
+    sceneTotalWidth,
+    selectedDimensions.width,
+    selectedProducts.length,
+    sinkType,
+    dispatch,
+  ]);
 
   return (
     <>
