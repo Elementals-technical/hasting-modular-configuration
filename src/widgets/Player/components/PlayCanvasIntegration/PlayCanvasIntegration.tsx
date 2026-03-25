@@ -47,6 +47,8 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import { getRememberedSidePanels, setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
+import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
@@ -166,6 +168,8 @@ export const PlayCanvasIntegration = () => {
   const [isCustomizeModePromptOpen, setIsCustomizeModePromptOpen] = useState(false);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [mobilePreviewImage, setMobilePreviewImage] = useState<string | null>(null);
+  const openDrawerButtonsTargetRef = useRef<string | null>(null);
+  const suppressNextDropdownOpenRef = useRef(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const countertopPopoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -232,6 +236,34 @@ export const PlayCanvasIntegration = () => {
     const openShelfTypes = ["open-shelf", "side-shelf", "os", "oss"];
 
     return !openShelfTypes.includes(baseType);
+  }, [selectedProductConfig, selectedSceneProduct]);
+
+  const isOneOrTwoDrawerProduct = useMemo(() => {
+    const drawersRaw =
+      (typeof selectedProductConfig?.Drawers === "string" && selectedProductConfig.Drawers) ||
+      (typeof selectedProductConfig?.drawers === "string" && selectedProductConfig.drawers) ||
+      "";
+    const normalizedDrawers = drawersRaw.trim().toUpperCase();
+
+    if (normalizedDrawers === "1D" || normalizedDrawers === "2D") {
+      return true;
+    }
+
+    const candidates = [
+      selectedSceneProduct,
+      typeof selectedProductConfig?.ProductType === "string" ? (selectedProductConfig.ProductType as string) : null,
+      typeof selectedProductConfig?.productType === "string" ? (selectedProductConfig.productType as string) : null,
+      typeof selectedProductConfig?.type === "string" ? (selectedProductConfig.type as string) : null,
+      typeof selectedProductConfig?.entityName === "string" ? (selectedProductConfig.entityName as string) : null,
+    ]
+      .filter(Boolean)
+      .map((value) =>
+        String(value)
+          .toLowerCase()
+          .replace(/[_\s-]/g, ""),
+      );
+
+    return candidates.some((value) => value.includes("1drawer") || value.includes("2drawer"));
   }, [selectedProductConfig, selectedSceneProduct]);
 
   const handleOptions = useMemo(() => {
@@ -569,7 +601,13 @@ export const PlayCanvasIntegration = () => {
       if (!Number.isFinite(numeric)) return true;
       return isWidthAllowedByAnyRule(numeric);
     });
-  }, [activeCabinetRule?.code, activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+  }, [
+    activeCabinetRule?.code,
+    activeMaterialTokens,
+    countertopRules,
+    dimensionOptions.width,
+    selectedDimensions.depth,
+  ]);
 
   const depthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
@@ -1208,6 +1246,199 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
 
+  const isTopViewActive = useCallback((): boolean => {
+    const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
+      | {
+          isTopViewActive?: () => boolean;
+        }
+      | undefined;
+    try {
+      return Boolean(api?.isTopViewActive?.());
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const hideOpenDrawerButtons = useCallback(() => {
+    if (isTopViewActive()) return;
+    onDrawerWidgetRender(null);
+    setVisibleDrawerButtons(false);
+    openDrawerButtonsTargetRef.current = null;
+  }, [isTopViewActive]);
+
+  const handleOpenDrawerButtonsForSelectedProduct = useCallback(() => {
+    if (!selectedSceneProduct) return;
+
+    onDrawerWidgetRender((drawerInfo, parentEl) => {
+      if (drawerInfo.cabinetId !== selectedSceneProduct) {
+        parentEl.innerHTML = "";
+        parentEl.style.display = "none";
+        return;
+      }
+
+      parentEl.innerHTML = "";
+      parentEl.style.display = "flex";
+      parentEl.style.flexDirection = "column";
+      parentEl.style.alignItems = "center";
+      parentEl.style.gap = "6px";
+      parentEl.style.pointerEvents = "auto";
+
+      if (drawerInfo.hasOccupiedDividers) {
+        const indicator = document.createElement("div");
+        indicator.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        indicator.style.background = "#262b31";
+        indicator.style.color = "#fff";
+        indicator.style.borderRadius = "999px";
+        indicator.style.width = "42px";
+        indicator.style.height = "42px";
+        indicator.style.display = "flex";
+        indicator.style.alignItems = "center";
+        indicator.style.justifyContent = "center";
+        indicator.style.boxShadow = "0 1px 2px rgba(0,0,0,0.25)";
+        parentEl.appendChild(indicator);
+      }
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Open Drawer";
+      button.style.background = "#A05535";
+      button.style.color = "#fff";
+      button.style.border = "none";
+      button.style.borderRadius = "999px";
+      button.style.padding = "5px 12px";
+      button.style.cursor = "pointer";
+      button.style.fontSize = "11px";
+      button.style.lineHeight = "1.1";
+      button.style.fontFamily = "Poppins, sans-serif";
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
+          | {
+              showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
+              dividers?: {
+                showIconDividerSlots?: (
+                  cabinetId: string,
+                  drawerType: "Top" | "TopFull" | "Bot",
+                  show?: boolean,
+                ) => unknown;
+              };
+            }
+          | undefined;
+        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
+
+        const hideDividerSlots = () => {
+          api?.setVisibleDividerSlotButtons?.(false);
+          api?.dividers?.showIconDividerSlots?.(drawerInfo.cabinetId, normalizedDrawerType, false);
+          api?.dividers?.showIconDividerSlots?.(drawerInfo.cabinetId, drawerInfo.drawerType, false);
+
+          // Fallback: force-hide divider slot DOM overlays inside iframe (both + and occupied/check states).
+          const iframeDocument = containerRef.current?.contentWindow?.document;
+          if (!iframeDocument) return;
+
+          const nodes = iframeDocument.querySelectorAll(
+            "#divider-slot-overlay-layer, .divider-slot-btn, .divider-slot-add, .divider-slot-occupied",
+          );
+          nodes.forEach((node) => {
+            const el = node as HTMLElement;
+            el.style.display = "none";
+            el.style.visibility = "hidden";
+            el.style.pointerEvents = "none";
+          });
+        };
+
+        // Preview-only mode: hide divider slot "+" controls.
+        hideDividerSlots();
+        const openResult = api?.openDrawer?.(drawerInfo.cabinetId, normalizedDrawerType) as Promise<unknown> | unknown;
+        const isThenable = !!openResult && typeof (openResult as Promise<unknown>).then === "function";
+        if (isThenable) {
+          (openResult as Promise<unknown>)
+            .catch(() => null)
+            .then(() => {
+              api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
+            });
+        } else {
+          api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
+        }
+        window.setTimeout(hideDividerSlots, 0);
+        window.setTimeout(hideDividerSlots, 250);
+
+        // After closing top view, auto-hide preview buttons and restore outline on the selected product.
+        const watchTopViewClose = () => {
+          if (isTopViewActive()) {
+            window.requestAnimationFrame(watchTopViewClose);
+            return;
+          }
+
+          // Keep "Open Drawer" buttons visible in preview mode after close.
+          setVisibleDrawerButtons(true);
+
+          if (selectedSceneProduct) {
+            selectTool?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+          }
+        };
+        window.requestAnimationFrame(watchTopViewClose);
+      });
+      parentEl.appendChild(button);
+    });
+
+    onDrawerCloseWidgetRender((drawerInfo, parentEl) => {
+      parentEl.innerHTML = "";
+      parentEl.style.pointerEvents = "auto";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Close";
+      button.style.background = "#282828";
+      button.style.color = "#fff";
+      button.style.border = "none";
+      button.style.borderRadius = "12px";
+      button.style.padding = "4px 10px";
+      button.style.cursor = "pointer";
+      button.style.fontSize = "11px";
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
+          | {
+              closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              exitTopView?: () => unknown;
+            }
+          | undefined;
+
+        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
+        const closeResult = api?.closeDrawer?.(drawerInfo.cabinetId, normalizedDrawerType) as
+          | Promise<unknown>
+          | unknown;
+        const isThenable = !!closeResult && typeof (closeResult as Promise<unknown>).then === "function";
+
+        const finishClose = () => {
+          api?.exitTopView?.();
+          setVisibleDrawerButtons(true);
+          setDropdownState((prev) => ({ ...prev, visible: false }));
+          setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+          if (selectedSceneProduct) {
+            suppressNextDropdownOpenRef.current = true;
+            getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+          }
+        };
+
+        if (isThenable) {
+          (closeResult as Promise<unknown>).catch(() => null).then(finishClose);
+        } else {
+          finishClose();
+        }
+      });
+      parentEl.appendChild(button);
+    });
+
+    setVisibleDrawerButtons(true);
+    openDrawerButtonsTargetRef.current = selectedSceneProduct;
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+  }, [selectedSceneProduct]);
+
   const isCountertopEntity = useCallback((entityName: string | null, config?: Record<string, unknown>) => {
     if (!entityName) return false;
     const candidates = [
@@ -1245,6 +1476,10 @@ export const PlayCanvasIntegration = () => {
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
 
       if (firstSelected) {
+        if (openDrawerButtonsTargetRef.current && firstSelected.name !== openDrawerButtonsTargetRef.current) {
+          hideOpenDrawerButtons();
+        }
+
         console.log(`Выбран объект: ${firstSelected.name}`);
 
         (async () => {
@@ -1289,15 +1524,26 @@ export const PlayCanvasIntegration = () => {
           if (isCountertopEntity(firstSelected.name ?? "", configForDimensions)) {
             setCountertopDimensionData(firstSelected.name ?? "", configForDimensions as Record<string, unknown>);
             setDropdownState((prev) => ({ ...prev, visible: false }));
+            if (suppressNextDropdownOpenRef.current) {
+              suppressNextDropdownOpenRef.current = false;
+              return;
+            }
             showCountertopPopoverForEntity(firstSelected.name ?? "");
           } else {
             updateDimensionDataForProduct(firstSelected.name ?? "", configForDimensions);
             setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+            if (suppressNextDropdownOpenRef.current) {
+              suppressNextDropdownOpenRef.current = false;
+              return;
+            }
             showDropdownForEntity(firstSelected.name ?? "");
           }
         })();
       } else {
         console.log("клик в пустоту");
+        if (openDrawerButtonsTargetRef.current) {
+          hideOpenDrawerButtons();
+        }
         // dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
         setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -1424,7 +1670,9 @@ export const PlayCanvasIntegration = () => {
             },
           ],
         },
-        { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: handleOpenAccessories },
+        ...(isOneOrTwoDrawerProduct
+          ? [{ id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: handleOpenAccessories }]
+          : []),
       ];
     }
 
@@ -1531,7 +1779,16 @@ export const PlayCanvasIntegration = () => {
       ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
         ? []
         : [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]),
-      { id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: () => {} },
+      ...(isOneOrTwoDrawerProduct
+        ? [
+            {
+              id: "open",
+              label: "Open",
+              trailing: <OpenMenuIcon />,
+              onClick: handleOpenDrawerButtonsForSelectedProduct,
+            },
+          ]
+        : []),
     ];
 
     if (productIds.length) {
@@ -1548,12 +1805,14 @@ export const PlayCanvasIntegration = () => {
     handleOpenCabinetStyle,
     handleOpenCabinetColor,
     handleOpenAccessories,
+    handleOpenDrawerButtonsForSelectedProduct,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
     widthOptions,
     depthOptions,
     isPrebuilt,
     isDrawerCabinet,
+    isOneOrTwoDrawerProduct,
     isSidePanelEntity,
     handleOptions,
     handleSetHandleType,
