@@ -254,9 +254,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       }),
     [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth],
   );
-  const remainingCountertopLength =
-    maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
-
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({
@@ -267,20 +264,24 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
     });
+    const remainingForAdd =
+      maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+
     return dimensionOptions.width.filter((option) => {
       if (option.disabled) return false;
       if (!filteredValues.includes(option.value)) return false;
-      if (remainingCountertopLength === null) return true;
+      if (remainingForAdd === null) return true;
       const numericWidth = Number(option.value);
       if (!Number.isFinite(numericWidth)) return false;
-      return numericWidth <= remainingCountertopLength + 0.01;
+      return numericWidth <= remainingForAdd + 0.01;
     });
   }, [
     activeCabinetRule?.code,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
-    remainingCountertopLength,
+    maxCountertopLength,
+    sceneTotalWidth,
     selectedDimensions.depth,
     activeCabinetRule?.isOpen,
   ]);
@@ -547,20 +548,42 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       console.log("Clicked Plus Button", entityId, side);
 
       if (!activeDrawerProduct) return;
-      if (
-        maxCountertopLength !== null &&
-        sceneTotalWidth !== null &&
-        selectedProducts.length > 0 &&
-        typeof selectedDimensions.width === "number" &&
-        sceneTotalWidth + selectedDimensions.width > maxCountertopLength + 0.01
-      ) {
+      const availableAddWidths = filterWidthValuesByCountertopRules({
+        values: dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value),
+        activeCabinetCode: activeCabinetRule?.code,
+        activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
+        activeMaterialTokens,
+        rules: countertopRules,
+        selectedDepth: selectedDimensions.depth ?? null,
+      })
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value) && value > 0);
+
+      const remainingForAdd =
+        maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+      const fittingAddWidths =
+        remainingForAdd === null
+          ? availableAddWidths
+          : availableAddWidths.filter((width) => width <= remainingForAdd + 0.01);
+
+      if (maxCountertopLength !== null && sceneTotalWidth !== null && selectedProducts.length > 0 && !fittingAddWidths.length) {
         console.warn("[RightCabinetStyleSidebar] Add blocked by countertop max length", {
           maxCountertopLength,
           sceneTotalWidth,
           requestedWidth: selectedDimensions.width,
+          availableAddWidths,
+          fittingAddWidths,
         });
         return;
       }
+
+      const selectedWidthIsFitting =
+        typeof selectedDimensions.width === "number" &&
+        Number.isFinite(selectedDimensions.width) &&
+        (remainingForAdd === null || selectedDimensions.width <= remainingForAdd + 0.01);
+      const fallbackWidth =
+        fittingAddWidths.length > 0 ? fittingAddWidths.reduce((max, width) => (width > max ? width : max), fittingAddWidths[0]) : null;
+      const widthForAddedCabinet = selectedWidthIsFitting ? selectedDimensions.width : fallbackWidth;
 
       if (activeDrawerProduct === "Side-Shelf") {
         await setSidePanel("None", side);
@@ -571,15 +594,19 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!productId) return;
 
-      if (productConfig) {
+      if (productConfig || widthForAddedCabinet !== null) {
         const isSinkBase = activeDrawerProduct.toLowerCase().includes("sink-base");
-        const nextConfig =
+        const nextConfig: Record<string, unknown> =
           isSinkBase && sinkType
             ? {
                 ...productConfig,
                 sinkType,
               }
-            : productConfig;
+            : { ...(productConfig ?? {}) };
+
+        if (widthForAddedCabinet !== null) {
+          nextConfig.Width = widthForAddedCabinet;
+        }
 
         await setConfig(productId, nextConfig);
       }
@@ -612,6 +639,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProducts.length,
+    activeCabinetRule?.code,
+    activeCabinetRule?.isOpen,
+    activeMaterialTokens,
+    countertopRules,
+    dimensionOptions.width,
+    selectedDimensions.depth,
     sinkType,
     dispatch,
   ]);

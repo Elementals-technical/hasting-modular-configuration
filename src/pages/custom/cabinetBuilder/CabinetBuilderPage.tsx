@@ -203,20 +203,21 @@ export const CabinetBuilderPage = () => {
   const remainingCountertopLength =
     maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
 
-  const minAddableCabinetWidth = useMemo(() => {
-    const values = dimensionOptions.width
-      .filter((option) => !option.disabled)
-      .map((option) => Number(option.value))
+  const addableCatalogWidths = useMemo(() => {
+    const values = cabinetCatalog.typeCabinetRules
+      .flatMap((rule) => rule.widths ?? [])
       .filter((value) => Number.isFinite(value) && value > 0);
-    if (!values.length) return null;
-    return Math.min(...values);
-  }, [dimensionOptions.width]);
+
+    if (!values.length) return [];
+    return Array.from(new Set(values)).sort((a, b) => a - b);
+  }, [cabinetCatalog.typeCabinetRules]);
 
   const canAddCabinetByLength = useMemo(() => {
     if (!hasProducts) return true;
-    if (remainingCountertopLength === null || minAddableCabinetWidth === null) return true;
-    return remainingCountertopLength + 0.01 >= minAddableCabinetWidth;
-  }, [hasProducts, minAddableCabinetWidth, remainingCountertopLength]);
+    if (remainingCountertopLength === null) return true;
+    if (!addableCatalogWidths.length) return true;
+    return addableCatalogWidths.some((width) => width <= remainingCountertopLength + 0.01);
+  }, [addableCatalogWidths, hasProducts, remainingCountertopLength]);
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));

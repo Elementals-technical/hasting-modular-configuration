@@ -621,18 +621,29 @@ export const PlayCanvasIntegration = () => {
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
     });
-    if (remainingCountertopLength === null) return filteredByRules;
+    if (
+      maxCountertopLength === null ||
+      sceneTotalWidth === null ||
+      typeof selectedDimensions.width !== "number" ||
+      !Number.isFinite(selectedDimensions.width)
+    ) {
+      return filteredByRules;
+    }
+
+    const maxSelectableWidth = maxCountertopLength - (sceneTotalWidth - selectedDimensions.width);
     return filteredByRules.filter((value) => {
       const numericWidth = Number(value);
-      return Number.isFinite(numericWidth) && numericWidth <= remainingCountertopLength + 0.01;
+      return Number.isFinite(numericWidth) && numericWidth <= maxSelectableWidth + 0.01;
     });
   }, [
     activeCabinetRule?.code,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
-    remainingCountertopLength,
+    maxCountertopLength,
+    sceneTotalWidth,
     selectedDimensions.depth,
+    selectedDimensions.width,
     activeCabinetRule?.isOpen,
   ]);
 
