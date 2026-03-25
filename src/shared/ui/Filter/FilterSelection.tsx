@@ -24,6 +24,8 @@ type FilterSelectionProps = {
   className?: string;
   allowShowAll?: boolean;
   showAllLabel?: string;
+  hintPlacement?: "top" | "bottom" | "left" | "right";
+  showHints?: boolean;
 };
 
 const findOptionInTree = (options: Option[], targetValue: string | number): Option | undefined => {
@@ -45,6 +47,8 @@ export const FilterSelection = ({
   className,
   allowShowAll = false,
   showAllLabel = "Show all",
+  hintPlacement = "right",
+  showHints = true,
 }: FilterSelectionProps) => {
   const [open, setOpen] = useState(false);
   const [internalValue, setInternalValue] = useState<string | number | undefined>(value);
@@ -210,8 +214,8 @@ export const FilterSelection = ({
 
       return (
         <div key={option.value}>
-          {isDisabled && optionHint ? (
-            <Hint content={optionHint} placement="right">
+          {showHints && isDisabled && optionHint ? (
+            <Hint content={optionHint} placement={hintPlacement}>
               <div>{categoryContent}</div>
             </Hint>
           ) : (
@@ -249,9 +253,9 @@ export const FilterSelection = ({
       </button>
     );
 
-    if (isDisabled && optionHint) {
+    if (showHints && isDisabled && optionHint) {
       return (
-        <Hint key={option.value} content={optionHint} placement="right">
+        <Hint key={option.value} content={optionHint} placement={hintPlacement}>
           <div>{itemContent}</div>
         </Hint>
       );
