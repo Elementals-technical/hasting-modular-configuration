@@ -55,6 +55,28 @@
   line-height: 20px; /* 142.857% */
 
   margin-bottom: 40px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.contentList {
+  margin: 0;
+  padding-left: 26px;
+  list-style: disc;
+
+  li {
+    color: #282828;
+    font-family: Poppins;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+
+    &::marker {
+      font-weight: 300;
+    }
+  }
 }
 
 .closeBtn {
