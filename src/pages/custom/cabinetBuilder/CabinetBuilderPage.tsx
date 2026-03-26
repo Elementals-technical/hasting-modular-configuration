@@ -107,7 +107,7 @@ const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
 const MATRIX_COUNTERTOP_DATATABLE_ID = 438;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
-const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Pietra Di Savoia Antracite TQ6";
+const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const CABINET_TYPE_ORDER: Record<string, number> = {
   "Sink-Base": 0,
   "Sink-Cabinet": 1,

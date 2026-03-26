@@ -160,7 +160,7 @@ export const BottomCanvasButtons = () => {
   //     CabinetColor: "Ardesia DD GL",
   //     Width: defaultRule?.widths[0] ?? 60,
   //     sinkType: defaultRule?.hasSink ? "Top_HPLPrisma" : undefined,
-  //     CountertopColor: "Rosso Rubino 19 MT",
+  //     CountertopColor: "Cacao Orinoco FF MT",
   //     HandleGrooveColor: "Blu Pavone A6 MT",
   //   };
 

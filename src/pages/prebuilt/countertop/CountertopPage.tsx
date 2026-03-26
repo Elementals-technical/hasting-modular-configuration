@@ -52,7 +52,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
-import { vesselAllowedMaterialsMap, extractColorCode } from "@/shared/lib/sku";
+import { vesselAllowedMaterialsMap, extractColorCode, resolveDefaultBasinByCountertopColor } from "@/shared/lib/sku";
 
 import s from "./CountertopPage.module.scss";
 import { BaseButton } from "@/shared";
@@ -1066,6 +1066,15 @@ export const CountertopPage = () => {
   useEffect(() => {
     if (!hasSelectedMaterial || !activeThickness || isSinkDisabled) return;
     if (!filteredBasinOptions.length) return;
+
+    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(activeCountertopColor);
+    const hasColorDrivenDefault =
+      !!colorDrivenDefaultBasin &&
+      filteredBasinOptions.some((option) => (option.name ?? option.title) === colorDrivenDefaultBasin);
+    if (hasColorDrivenDefault && (activeBasinStyle === "Top_HPLPrisma" || !activeBasinStyle)) {
+      applyBasinStyleFallback(colorDrivenDefaultBasin!);
+      return;
+    }
 
     const currentStillValid =
       activeBasinStyle && filteredBasinOptions.some((option) => (option.name ?? option.title) === activeBasinStyle);

@@ -51,12 +51,30 @@ import {
   buildOpenShelfSku,
   buildOpenSideShelfSku,
   extractColorCode,
+  resolveDefaultBasinByCountertopColor,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
 
 import s from "./SummaryPage.module.scss";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
+const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+
+const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
+  const basin = basinType?.trim() ?? "";
+  if (!basin) return null;
+  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
+  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
+  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
+  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
+  if (basin.startsWith("Top_Porcelain_")) return "POR";
+  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
+  if (basin.startsWith("Top_HPL")) return "HPL";
+  return null;
+};
 
 const buildImageSrc = (imagePath?: string) => {
   if (!imagePath) return undefined;
@@ -271,6 +289,8 @@ export const CustomSummaryPage = () => {
     view: "full",
     serialize: true,
   });
+  const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
+  const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
   const colorSkuByName = useMemo(() => {
     const map = new Map<string, string>();
@@ -669,7 +689,51 @@ export const CustomSummaryPage = () => {
             ];
 
     // const grooveSwatch = resolveSwatch(handleGrooveColor);
-    const countertopSwatch = resolveSwatch(countertopColor);
+    const firstPreset = productsPresets[0];
+    const firstSceneCabinetConfig = cabinetConfigs[0];
+    const sceneCountertopColor =
+      firstSceneCabinetConfig && typeof firstSceneCabinetConfig.CountertopColor === "string"
+        ? firstSceneCabinetConfig.CountertopColor
+        : null;
+    const sceneSinkType =
+      firstSceneCabinetConfig && typeof firstSceneCabinetConfig.sinkType === "string"
+        ? firstSceneCabinetConfig.sinkType
+        : null;
+    const shouldUsePresetCountertopColor =
+      countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
+    const shouldUsePresetSinkType = sinkType === DEFAULT_SINK_TYPE && Boolean(firstPreset?.sinkType);
+    const resolvedCountertopColor =
+      sceneCountertopColor ?? (shouldUsePresetCountertopColor ? firstPreset?.CountertopColor ?? null : null) ?? countertopColor;
+    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
+    const resolvedSinkType =
+      sceneSinkType ??
+      (shouldUsePresetSinkType && colorDrivenDefaultBasin
+        ? colorDrivenDefaultBasin
+        : shouldUsePresetSinkType
+          ? firstPreset?.sinkType ?? null
+          : null) ??
+      sinkType;
+    const resolvedCountertopMaterialSku =
+      countertopColorSku ||
+      colorSkuByName.get(resolvedCountertopColor) ||
+      colorSkuByName.get(countertopColor) ||
+      null;
+    const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
+    const matrixDefaultThickness = resolveDefaultThicknessFromRules({
+      rules: countertopRules,
+      activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
+      depth:
+        selectedDimensions.depth ??
+        (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
+        (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Depth === "number" ? firstSceneCabinetConfig.Depth : null),
+    });
+    const resolvedCountertopThickness =
+      (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Thickness === "string"
+        ? firstSceneCabinetConfig.Thickness
+        : null) ??
+      countertopThickness ??
+      matrixDefaultThickness;
+    const countertopSwatch = resolveSwatch(resolvedCountertopColor);
 
     const cabinetOptionItems: SummaryItem[] = [
       drawerPanelFluting
@@ -699,25 +763,26 @@ export const CustomSummaryPage = () => {
       style: countertopStyle || null,
       width: totalCountertopWidth,
       depth: selectedDimensions.depth,
-      thickness: countertopThickness || null,
-      basinType: sinkType || null,
+      thickness: resolvedCountertopThickness,
+      basinType: resolvedSinkType || null,
       faucetHolesAmount: faucetHolesAmount || null,
       faucetHolesSpacing: faucetHolesSpacing || null,
-      countertopMaterialSku: countertopColorSku || null,
-      countertopColorCode: extractColorCode(countertopColor),
+      countertopMaterialSku: resolvedCountertopMaterialSku,
+      countertopColorCode: extractColorCode(resolvedCountertopColor),
     });
     const hcutPricingSku = countertopSkuLines.find((line) => line.endsWith("-HCUT")) ?? "CT-URHPL-HCUT";
     const hcutUnitPrice = priceBySku[hcutPricingSku] ?? 0;
     const hcutTotalPrice = formatPrice(hcutUnitPrice * sinkBaseCountForHcut);
 
-    const vesselSku = sinkType?.startsWith("Vessel_")
+    const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    const vesselSku = vesselType
       ? buildVesselSku({
-          vesselType: sinkType,
+          vesselType,
           width: totalCountertopWidth,
-          height: vesselHeightCmMap[sinkType] ?? null,
+          height: vesselHeightCmMap[vesselType] ?? null,
           depth: selectedDimensions.depth,
-          materialSku: countertopColorSku || null,
-          colorCode: extractColorCode(countertopColor),
+          materialSku: resolvedCountertopMaterialSku,
+          colorCode: extractColorCode(resolvedCountertopColor),
         })
       : null;
 
@@ -728,11 +793,11 @@ export const CustomSummaryPage = () => {
       {
         id: "countertop-1",
         title: "Countertop",
-        subtitle: countertopThickness ? `${countertopThickness}` : undefined,
+        subtitle: resolvedCountertopThickness ? `${resolvedCountertopThickness}` : undefined,
         sku: countertopSkuLines[0],
         swatch: {
           label: "Countertop",
-          value: countertopColor,
+          value: resolvedCountertopColor,
           color: countertopSwatch.color,
           image: countertopSwatch.image,
         },
@@ -742,10 +807,12 @@ export const CustomSummaryPage = () => {
           "Product Category": "Countertop",
           Style: countertopStyle || "Plain",
           Width: totalCountertopWidth,
-          Thickness: countertopThickness || null,
+          Thickness: resolvedCountertopThickness || null,
           Depth: selectedDimensions.depth,
-          Material: countertopColorSku ? (materialSkuLabelMap[countertopColorSku] ?? countertopColorSku) : null,
-          "Color Code": countertopColor,
+          Material: resolvedCountertopMaterialSku
+            ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
+            : null,
+          "Color Code": resolvedCountertopColor,
         },
       },
       countertopStyle
@@ -995,7 +1062,7 @@ export const CustomSummaryPage = () => {
                   sku: vesselSku,
                   price: resolveItemPrice(vesselSku),
                   copyable: true,
-                  description: { "Product Category": "Vessel", Type: sinkType },
+                  description: { "Product Category": "Vessel", Type: resolvedSinkType },
                 },
                 {
                   id: "basin-hcut-sku",
@@ -1048,6 +1115,7 @@ export const CustomSummaryPage = () => {
     productsPresets,
     productConfigs,
     colorSkuByName,
+    countertopRules,
     selectedDimensions.depth,
     selectedDimensions.height,
     selectedDimensions.width,

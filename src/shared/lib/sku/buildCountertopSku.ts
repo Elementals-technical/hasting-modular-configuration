@@ -98,7 +98,11 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     allowMappedValue: true,
   });
   const inferredMaterial = inferMaterialSkuFromBasinType(input.basinType);
-  const mat = resolvedMaterial !== FALLBACK ? resolvedMaterial : inferredMaterial;
+  // Basin type is the most reliable source of countertop material for integrated tops.
+  // Prefer it over color-derived/material token when present.
+  const mat =
+    inferredMaterial ??
+    (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
   const color = input.countertopColorCode?.trim() || null;
   const matBlock = !isVessel && mat ? `-${mat}${color ? `-${color}` : ""}` : "";
 

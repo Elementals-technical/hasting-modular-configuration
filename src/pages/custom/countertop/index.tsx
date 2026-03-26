@@ -31,7 +31,7 @@ import {
   setCountertopStyle,
   setCountertopColorSku,
 } from "@/entities/product/model/store/slice";
-import { vesselAllowedMaterialsMap, extractColorCode } from "@/shared/lib/sku";
+import { vesselAllowedMaterialsMap, extractColorCode, resolveDefaultBasinByCountertopColor } from "@/shared/lib/sku";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
@@ -1073,6 +1073,15 @@ export const CustomCountertopPage = () => {
   useEffect(() => {
     if (!hasSelectedMaterial || !activeThickness || isSinkDisabled) return;
     if (!filteredBasinOptions.length) return;
+
+    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(activeCountertopColor);
+    const hasColorDrivenDefault =
+      !!colorDrivenDefaultBasin &&
+      filteredBasinOptions.some((option) => (option.name ?? option.title) === colorDrivenDefaultBasin);
+    if (hasColorDrivenDefault && (activeBasinStyle === "Top_HPLPrisma" || !activeBasinStyle)) {
+      applyBasinStyleFallback(colorDrivenDefaultBasin!);
+      return;
+    }
 
     const currentStillValid =
       activeBasinStyle && filteredBasinOptions.some((option) => (option.name ?? option.title) === activeBasinStyle);

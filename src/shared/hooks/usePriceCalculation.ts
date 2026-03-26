@@ -42,8 +42,11 @@ import {
   TOWEL_BAR_DEFAULTS,
   SIDE_PANEL_WIDTH_CM,
   extractColorCode,
+  resolveDefaultBasinByCountertopColor,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
 import {
   useLazyGetProductPriceBySkuQuery,
   useLazyGetProductPriceBySkuV2ResolveQuery,
@@ -82,6 +85,7 @@ type ProductConfigSnapshot = {
   Width: number | null;
   Height: number | null;
   Depth: number | null;
+  Thickness: string | null;
   Drawers: string | null;
   Handle: string | null;
   CabinetColor: string | null;
@@ -91,6 +95,21 @@ type ProductConfigSnapshot = {
 
 const DEBOUNCE_MS = 300;
 const LOG_PREFIX = "[SKU/Price]";
+const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+
+const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
+  const basin = basinType?.trim() ?? "";
+  if (!basin) return null;
+  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
+  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
+  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
+  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
+  if (basin.startsWith("Top_Porcelain_")) return "POR";
+  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
+  if (basin.startsWith("Top_HPL")) return "HPL";
+  return null;
+};
 
 export function usePriceCalculation() {
   const dispatch = useAppDispatch();
@@ -204,6 +223,7 @@ export function usePriceCalculation() {
           Width: (typeof cfg.Width === "number" ? cfg.Width : null) ?? toolWidth,
           Height: selectedDimensions.height ?? toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
           Depth: selectedDimensions.depth ?? toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
+          Thickness: typeof cfg.Thickness === "string" ? cfg.Thickness : null,
           Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
           Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
           CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
@@ -234,6 +254,8 @@ export function usePriceCalculation() {
     view: "full",
     serialize: true,
   });
+  const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
+  const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
   const colorSkuByName = useMemo(() => {
     const map = new Map<string, string>();
@@ -270,11 +292,41 @@ export function usePriceCalculation() {
 
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+    const firstPreset = productsPresets[0];
     const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
       cabinetColorSku ||
       (swatchValue ? colorSkuByName.get(swatchValue) : null) ||
       colorSkuByName.get(cabinetColor) ||
       null;
+    const shouldUsePresetCountertopColor =
+      shouldUsePresets && countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
+    const shouldUsePresetSinkType =
+      shouldUsePresets && sinkType === DEFAULT_SINK_TYPE && Boolean(firstPreset?.sinkType);
+    const resolvedCountertopColor = shouldUsePresetCountertopColor
+      ? (firstPreset?.CountertopColor as string)
+      : countertopColor;
+    const resolvedCountertopMaterialSku =
+      countertopColorSku ||
+      (resolvedCountertopColor ? colorSkuByName.get(resolvedCountertopColor) : null) ||
+      colorSkuByName.get(countertopColor) ||
+      null;
+    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
+    const resolvedSinkType =
+      shouldUsePresetSinkType && colorDrivenDefaultBasin
+        ? colorDrivenDefaultBasin
+        : shouldUsePresetSinkType
+          ? (firstPreset?.sinkType as string)
+          : sinkType || null;
+    const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
+    const matrixDefaultThickness = resolveDefaultThicknessFromRules({
+      rules: countertopRules,
+      activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
+      depth:
+        selectedDimensions.depth ??
+        (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
+        (sceneConfigs[0]?.Depth ?? null),
+    });
+    const resolvedCountertopThickness = sceneConfigs[0]?.Thickness || countertopThickness || matrixDefaultThickness || null;
 
     // 1) Product SKU(s) — Resolver 1
     if (shouldUsePresets) {
@@ -504,13 +556,13 @@ export function usePriceCalculation() {
           width: p.Width ?? null,
           height: p.Height ?? null,
           depth: p.Depth ?? null,
-          sinkType: sinkType ?? p.sinkType ?? null,
+          sinkType: shouldUsePresetSinkType ? p.sinkType ?? resolvedSinkType : resolvedSinkType,
         })),
         ...sceneConfigs.map((cfg) => ({
           width: cfg.Width,
           height: cfg.Height,
           depth: cfg.Depth,
-          sinkType: sinkType || null,
+          sinkType: resolvedSinkType,
         })),
       ];
     } else if (sceneConfigs.length > 0) {
@@ -518,7 +570,7 @@ export function usePriceCalculation() {
         width: cfg.Width,
         height: cfg.Height,
         depth: cfg.Depth,
-        sinkType: sinkType || null,
+        sinkType: resolvedSinkType,
       }));
     } else {
       productDimsList = [
@@ -526,7 +578,7 @@ export function usePriceCalculation() {
           width: selectedDimensions.width,
           height: selectedDimensions.height,
           depth: selectedDimensions.depth,
-          sinkType: sinkType || null,
+          sinkType: resolvedSinkType,
         },
       ];
     }
@@ -539,12 +591,12 @@ export function usePriceCalculation() {
       style: countertopStyle || null,
       width: totalCountertopWidth,
       depth: selectedDimensions.depth,
-      thickness: countertopThickness || null,
-      basinType: sinkType || null,
+      thickness: resolvedCountertopThickness,
+      basinType: resolvedSinkType,
       faucetHolesAmount: faucetHolesAmount || null,
       faucetHolesSpacing: faucetHolesSpacing || null,
-      countertopMaterialSku: countertopColorSku || null,
-      countertopColorCode: extractColorCode(countertopColor),
+      countertopMaterialSku: resolvedCountertopMaterialSku,
+      countertopColorCode: extractColorCode(resolvedCountertopColor),
     });
     aggregateCountertopLines.forEach((line) => {
       if (!seenCountertopSkus.has(line)) {
@@ -553,18 +605,28 @@ export function usePriceCalculation() {
       }
     });
 
+    // Always keep a default faucet-holes pricing SKU in the pool (including "0"),
+    // with dynamic material resolved from basin/material context.
+    const faucetHolesQty = (faucetHolesAmount ?? "").trim() || "0";
+    const faucetMaterialSku = inferMaterialSkuFromBasinType(resolvedSinkType) ?? resolvedCountertopMaterialSku ?? "HPL";
+    const defaultFaucetSku = `CT-UR${faucetMaterialSku}-FAHO/${faucetHolesQty}`;
+    if (!seenCountertopSkus.has(defaultFaucetSku)) {
+      seenCountertopSkus.add(defaultFaucetSku);
+      skus.push(defaultFaucetSku);
+    }
+
     // Keep per-product countertop SKUs too (used by existing pricing flows).
     productDimsList.forEach((dims) => {
       const countertopSkuLines = buildCountertopSku({
         style: countertopStyle || null,
         width: dims.width,
         depth: dims.depth,
-        thickness: countertopThickness || null,
+        thickness: resolvedCountertopThickness,
         basinType: dims.sinkType,
         faucetHolesAmount: faucetHolesAmount || null,
         faucetHolesSpacing: faucetHolesSpacing || null,
-        countertopMaterialSku: countertopColorSku || null,
-        countertopColorCode: extractColorCode(countertopColor),
+        countertopMaterialSku: resolvedCountertopMaterialSku,
+        countertopColorCode: extractColorCode(resolvedCountertopColor),
       });
       countertopSkuLines.forEach((line) => {
         if (!seenCountertopSkus.has(line)) {
@@ -585,8 +647,8 @@ export function usePriceCalculation() {
         width: dims.width,
         height: vesselHeightCmMap[vesselType] ?? null,
         depth: dims.depth,
-        materialSku: countertopColorSku || null,
-        colorCode: extractColorCode(countertopColor),
+        materialSku: resolvedCountertopMaterialSku,
+        colorCode: extractColorCode(resolvedCountertopColor),
       });
       if (!seenVesselSkus.has(vesselSku)) {
         seenVesselSkus.add(vesselSku);
@@ -718,6 +780,7 @@ export function usePriceCalculation() {
     placedDividers,
     colorSkuByName,
     resolveCabinetType,
+    countertopRules,
   ]);
 
   // ── Stable key for the SKU list (avoid effect re-runs on same content) ─

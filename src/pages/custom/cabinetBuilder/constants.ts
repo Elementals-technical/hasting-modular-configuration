@@ -53,9 +53,9 @@ export const optionsMockData = [
       Depth: 46,
       Width: 60,
       CabinetColor: "Pulpis Chiaro TKH",
-      sinkType: "Top_HPLPrisma",
+      sinkType: "Top_Tekorlux_Rectangular",
       HandleGrooveColor: "Pulpis Chiaro TKH",
-      CountertopColor: "Pietra Di Savoia Antracite TQ6",
+      CountertopColor: "Cacao Orinoco FF MT",
     },
   },
   {

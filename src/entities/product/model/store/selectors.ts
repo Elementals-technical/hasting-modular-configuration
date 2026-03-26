@@ -112,8 +112,8 @@ export const getHasPrebuiltSelections = (state: RootState) => {
 
   return (
     options.CabinetColor !== "Ardesia DD GL" ||
-    options.sinkType !== "Top_HPLPrisma" ||
-    options.CountertopColor !== "Rosso Rubino 19 MT" ||
+    options.sinkType !== "Top_Tekorlux_Rectangular" ||
+    options.CountertopColor !== "Cacao Orinoco FF MT" ||
     options.HandleGrooveColor !== "Blu Pavone A6 MT" ||
     options.Handle !== "" ||
     options.Thickness !== "" ||
@@ -127,7 +127,7 @@ export const getHasPrebuiltSelections = (state: RootState) => {
     options.DividersStyle !== "" ||
     options.TowelBarOption !== "None" ||
     options.TowelBarColor !== "" ||
-    options.FaucetHolesAmount !== "" ||
+    options.FaucetHolesAmount !== "0" ||
     options.FaucetHolesSpacing !== '4"'
   );
 };

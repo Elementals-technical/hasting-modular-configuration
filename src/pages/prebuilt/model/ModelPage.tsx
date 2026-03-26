@@ -16,6 +16,8 @@ import {
   addProductPreset,
   reset,
   resetCabinetBuilderBootstrap,
+  setActiveBasinStyle,
+  setActiveCountertopColor,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -34,9 +36,23 @@ const presetKeys: Array<keyof PresetProduct> = [
   "Height",
   "Depth",
   "CabinetColor",
+  "CountertopColor",
   "Drawers",
   "sinkType",
 ];
+
+const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]) => {
+  if (!presetProducts?.length) return {};
+
+  const firstWithCountertop = presetProducts.find((p) => typeof p.CountertopColor === "string" && p.CountertopColor.trim());
+  const firstWithSink = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType.trim());
+
+  const globalConfig: Record<string, string> = {};
+  if (firstWithCountertop?.CountertopColor) globalConfig.CountertopColor = firstWithCountertop.CountertopColor;
+  if (firstWithSink?.sinkType) globalConfig.sinkType = firstWithSink.sinkType;
+
+  return globalConfig;
+};
 
 const arePresetsEqual = (left: PresetProduct[] = [], right: PresetProduct[] = []) => {
   if (left.length !== right.length) return false;
@@ -163,9 +179,14 @@ export const ModelPage = () => {
   const handleAddPreset = useCallback(
     async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean }) => {
       try {
-        await addPreset(presetProducts);
+        const globalConfig = resolvePresetSceneDefaults(presetProducts);
+        await addPreset(presetProducts, globalConfig);
 
-        if (presetProducts) dispatch(addProductPreset(presetProducts));
+        if (presetProducts) {
+          dispatch(addProductPreset(presetProducts));
+          if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+          if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
+        }
         await updateSelectedDimensionsFromScene(presetProducts);
 
         if (presetId && options?.syncUrl !== false) {
@@ -246,10 +267,13 @@ export const ModelPage = () => {
 
     const run = async () => {
       try {
-        await addPreset(presetProducts);
+        const globalConfig = resolvePresetSceneDefaults(presetProducts);
+        await addPreset(presetProducts, globalConfig);
 
         if (!productsPresets.length) {
           dispatch(addProductPreset(presetProducts));
+          if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+          if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
         }
 
         await updateSelectedDimensionsFromScene(presetProducts);

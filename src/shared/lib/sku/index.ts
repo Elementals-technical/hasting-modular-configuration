@@ -21,3 +21,4 @@ export {
 export { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
 export { buildVesselSku, type VesselSkuInput } from "./buildVesselSku";
 export { vesselSeriesSkuMap, vesselHeightCmMap, vesselAllowedMaterialsMap } from "./vesselSkuMaps";
+export { resolveDefaultBasinByCountertopColor } from "./resolveDefaultBasinByCountertopColor";
