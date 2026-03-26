@@ -31,6 +31,8 @@ import {
   getDimensionOptions,
   getCabinetCatalog,
   getActiveCountertopColor,
+  getCountertopColorSku,
+  getCountertopStyle,
   getActiveCountertopThickness,
   getProductsPresets,
   getSinkType,
@@ -61,7 +63,9 @@ import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
   parseCountertopMatrix,
+  resolveCountertopMaxLengthByRules,
 } from "@/features/configurator-rule-core/countertop";
+import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -184,14 +188,18 @@ export const PlayCanvasIntegration = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const countertopStyle = useAppSelector(getCountertopStyle);
   const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
+  const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
 
   const saveSnapshot = useHistorySnapshot();
 
@@ -537,6 +545,46 @@ export const PlayCanvasIntegration = () => {
   }, [activeCountertopColor, countertopOptionsFromApi]);
 
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+  const maxCountertopLength = useMemo(
+    () =>
+      resolveCountertopMaxLengthByRules({
+        rules: countertopRules,
+        materialTokens: countertopColorSku ? [countertopColorSku] : [],
+        style: countertopStyle ?? null,
+        depth: selectedDimensions.depth ?? null,
+        thickness: activeCountertopThickness ?? null,
+      }),
+    [activeCountertopThickness, countertopColorSku, countertopRules, countertopStyle, selectedDimensions.depth],
+  );
+  const remainingCountertopLength =
+    maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+
+  const addableCabinetWidths = useMemo(() => {
+    const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
+    return filterWidthValuesByCountertopRules({
+      values: baseOptions,
+      activeCabinetCode: null,
+      activeCabinetIsOpen: false,
+      activeMaterialTokens,
+      rules: countertopRules,
+      selectedDepth: selectedDimensions.depth ?? null,
+    })
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+  }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+
+  const canAddAnotherCabinet = useMemo(() => {
+    if (!addableCabinetWidths.length) return false;
+    if (remainingCountertopLength === null) return true;
+    return addableCabinetWidths.some((width) => width <= remainingCountertopLength + 0.01);
+  }, [addableCabinetWidths, remainingCountertopLength]);
+
+  const canDuplicateSelectedCabinet = useMemo(() => {
+    if (!canAddAnotherCabinet) return false;
+    if (remainingCountertopLength === null) return true;
+    if (typeof selectedDimensions.width !== "number") return false;
+    return selectedDimensions.width <= remainingCountertopLength + 0.01;
+  }, [canAddAnotherCabinet, remainingCountertopLength, selectedDimensions.width]);
 
   const ruleState = useMemo(
     () =>
@@ -565,7 +613,7 @@ export const PlayCanvasIntegration = () => {
 
   const widthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
-    return filterWidthValuesByCountertopRules({
+    const filteredByRules = filterWidthValuesByCountertopRules({
       values: baseOptions,
       activeCabinetCode: activeCabinetRule?.code,
       activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
@@ -573,12 +621,29 @@ export const PlayCanvasIntegration = () => {
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
     });
+    if (
+      maxCountertopLength === null ||
+      sceneTotalWidth === null ||
+      typeof selectedDimensions.width !== "number" ||
+      !Number.isFinite(selectedDimensions.width)
+    ) {
+      return filteredByRules;
+    }
+
+    const maxSelectableWidth = maxCountertopLength - (sceneTotalWidth - selectedDimensions.width);
+    return filteredByRules.filter((value) => {
+      const numericWidth = Number(value);
+      return Number.isFinite(numericWidth) && numericWidth <= maxSelectableWidth + 0.01;
+    });
   }, [
     activeCabinetRule?.code,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
+    maxCountertopLength,
+    sceneTotalWidth,
     selectedDimensions.depth,
+    selectedDimensions.width,
     activeCabinetRule?.isOpen,
   ]);
 
@@ -781,8 +846,6 @@ export const PlayCanvasIntegration = () => {
   //   tool?.setEnabled(true);
   // }, [playCanvasReady]);
 
-  const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
-
   const handleSetWidth = useCallback(
     async (width: number) => {
       if (!selectedSceneProduct) return;
@@ -919,7 +982,7 @@ export const PlayCanvasIntegration = () => {
   );
 
   const handleDuplicateProduct = useCallback(() => {
-    if (!selectedSceneProduct) return;
+    if (!selectedSceneProduct || !canDuplicateSelectedCabinet) return;
     setDuplicateSourceId(selectedSceneProduct);
     const duplicateProductType = resolveProductTypeFromId(
       selectedSceneProduct,
@@ -933,13 +996,22 @@ export const PlayCanvasIntegration = () => {
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [resolveProductTypeFromId, selectedProductConfig, selectedSceneProduct]);
+  }, [canDuplicateSelectedCabinet, resolveProductTypeFromId, selectedProductConfig, selectedSceneProduct]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
 
     const onPlusClick = async (entityId: string, side: "left" | "right") => {
       try {
+        if (
+          maxCountertopLength !== null &&
+          sceneTotalWidth !== null &&
+          typeof selectedDimensions.width === "number" &&
+          sceneTotalWidth + selectedDimensions.width > maxCountertopLength + 0.01
+        ) {
+          return;
+        }
+
         await saveSnapshot();
         const config = await getConfig(duplicateSourceId);
         if (!config) return;
@@ -975,15 +1047,25 @@ export const PlayCanvasIntegration = () => {
     return () => {
       setVisibleButtons(false);
     };
-  }, [dispatch, duplicateSourceId, resolveProductTypeFromId, selectedProductConfig, saveSnapshot]);
+  }, [
+    dispatch,
+    duplicateSourceId,
+    maxCountertopLength,
+    resolveProductTypeFromId,
+    saveSnapshot,
+    sceneTotalWidth,
+    selectedDimensions.width,
+    selectedProductConfig,
+  ]);
 
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
   const handleAddAdditionalProduct = useCallback(() => {
+    if (!canAddAnotherCabinet) return;
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [canAddAnotherCabinet, navigate]);
 
   const enforceSidePanelEligibilityForEdgeCabinets = useCallback(async () => {
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
@@ -1681,21 +1763,23 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      {
-        id: "add",
-        label: "Add",
-        trailing: "",
-        children: [
-          // { id: "add-left", label: "Add to left", onClick: () => handleAddLeft(activeDrawerProduct) },
-          // { id: "add-right", label: "Add to right", onClick: () => handleAddRight(activeDrawerProduct) },
-          {
-            id: "add-right",
-            label: "Add Cabinet",
-            trailing: <ArrowTopRight color={"#333"} />,
-            onClick: () => handleAddAdditionalProduct(),
-          },
-        ],
-      },
+      ...(canAddAnotherCabinet
+        ? [
+            {
+              id: "add",
+              label: "Add",
+              trailing: "",
+              children: [
+                {
+                  id: "add-right",
+                  label: "Add Cabinet",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: () => handleAddAdditionalProduct(),
+                },
+              ],
+            } as DropdownItem,
+          ]
+        : []),
       ...(isDrawerCabinet
         ? [
             {
@@ -1734,7 +1818,9 @@ export const PlayCanvasIntegration = () => {
         : []),
       ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
         ? []
-        : [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]),
+        : canDuplicateSelectedCabinet
+          ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
+          : []),
       ...(isOneOrTwoDrawerProduct
         ? [
             {
@@ -1764,6 +1850,8 @@ export const PlayCanvasIntegration = () => {
     handleOpenDrawerButtonsForSelectedProduct,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
+    canAddAnotherCabinet,
+    canDuplicateSelectedCabinet,
     widthOptions,
     depthOptions,
     isPrebuilt,

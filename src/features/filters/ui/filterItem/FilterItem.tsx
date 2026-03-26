@@ -15,6 +15,7 @@ interface FilterItemI {
   value?: string | number;
   onSelect?: (value?: string | number) => void;
   allowShowAll?: boolean;
+  hintPlacement?: "top" | "bottom" | "left" | "right";
 }
 
 const hasAllOption = (options: FilterOption[]) =>
@@ -24,7 +25,7 @@ const hasAllOption = (options: FilterOption[]) =>
     return optionLabel === "all" || optionLabel === "show all" || optionValue === "all";
   });
 
-export const FilterItem: React.FC<FilterItemI> = ({ label, options, value, onSelect, allowShowAll }) => {
+export const FilterItem: React.FC<FilterItemI> = ({ label, options, value, onSelect, allowShowAll, hintPlacement }) => {
   const handleSelect = (val?: string | number) => {
     onSelect?.(val);
   };
@@ -38,6 +39,7 @@ export const FilterItem: React.FC<FilterItemI> = ({ label, options, value, onSel
       value={value}
       onSelect={handleSelect}
       allowShowAll={showAllEnabled}
+      hintPlacement={hintPlacement}
     />
   );
 };
