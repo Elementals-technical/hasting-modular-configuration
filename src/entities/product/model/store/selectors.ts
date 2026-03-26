@@ -51,6 +51,7 @@ export const getIsDrawerOpen = (state: RootState) => state.rootStateUI.product.i
 export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColor;
 
 export const getCountertopColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColorSku;
+export const getVesselColor = (state: RootState) => state.rootStateUI.product.productOptions.VesselColor;
 
 export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;
 

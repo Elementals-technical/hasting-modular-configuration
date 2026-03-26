@@ -12,6 +12,7 @@ import {
   getHandleGrooveColorSku,
   getActiveCountertopColor,
   getCountertopColorSku,
+  getVesselColor,
   getActiveCountertopThickness,
   getCountertopStyle,
   getSinkType,
@@ -130,6 +131,7 @@ export function usePriceCalculation() {
 
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const vesselColor = useAppSelector(getVesselColor);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sinkType = useAppSelector(getSinkType);
@@ -310,6 +312,9 @@ export function usePriceCalculation() {
       (resolvedCountertopColor ? colorSkuByName.get(resolvedCountertopColor) : null) ||
       colorSkuByName.get(countertopColor) ||
       null;
+    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
+    const resolvedVesselMaterialSku =
+      (resolvedVesselColor ? colorSkuByName.get(resolvedVesselColor) : null) || resolvedCountertopMaterialSku;
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
     const resolvedSinkType =
       shouldUsePresetSinkType && colorDrivenDefaultBasin
@@ -647,8 +652,8 @@ export function usePriceCalculation() {
         width: dims.width,
         height: vesselHeightCmMap[vesselType] ?? null,
         depth: dims.depth,
-        materialSku: resolvedCountertopMaterialSku,
-        colorCode: extractColorCode(resolvedCountertopColor),
+        materialSku: resolvedVesselMaterialSku,
+        colorCode: extractColorCode(resolvedVesselColor),
       });
       if (!seenVesselSkus.has(vesselSku)) {
         seenVesselSkus.add(vesselSku);
@@ -765,6 +770,7 @@ export function usePriceCalculation() {
     handleGrooveColorSku,
     countertopColor,
     countertopColorSku,
+    vesselColor,
     countertopThickness,
     countertopStyle,
     grainSku,

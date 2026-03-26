@@ -12,6 +12,7 @@ export type SceneSnapshot = {
     sinkType: string;
     CountertopColor: string;
     CountertopColorSku: string;
+    VesselColor: string;
     HandleGrooveColor: string;
     HandleGrooveColorSku: string;
     Handle: HandleOption;

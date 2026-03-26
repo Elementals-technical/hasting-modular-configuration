@@ -86,7 +86,10 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   dispatch(
     restoreProductState({
       productIds: newProductIds,
-      productOptions: snapshot.productOptions,
+      productOptions: {
+        ...snapshot.productOptions,
+        VesselColor: snapshot.productOptions?.VesselColor ?? "",
+      },
       activeCabinetType: snapshot.activeCabinetType,
       selectedDimensions: snapshot.selectedDimensions,
       placedDividers: snapshot.placedDividers,

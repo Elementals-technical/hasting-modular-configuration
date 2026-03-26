@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { ProductOptionsGrid, type ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import {
+  ProductOptionsGrid,
+  type ProductOptionData,
+} from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getCountertopStyle,
+  getVesselColor,
   getProductsPresets,
   getSelectedSceneProduct,
   getSelectedProducts,
@@ -19,6 +23,7 @@ import {
   setActiveCountertopThickness,
   setCountertopStyle,
   setCountertopColorSku,
+  setVesselColor,
 } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -81,6 +86,7 @@ export const CountertopPage = () => {
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
+  const storedVesselColor = useAppSelector(getVesselColor);
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -89,9 +95,15 @@ export const CountertopPage = () => {
   const isVesselStyle = (activeCountertopStyle ?? "").trim().toLowerCase() === "vessel";
   const [hasSinkBase, setHasSinkBase] = useState(false);
   const isSinkDisabled = !hasSinkBase;
+  const [activeVesselColor, setActiveVesselColor] = useState(storedVesselColor);
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
+  const [selectedVesselFilter, setSelectedVesselFilter] = useState<MaterialFilterSelection>({});
   const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
+
+  useEffect(() => {
+    setActiveVesselColor(storedVesselColor);
+  }, [storedVesselColor]);
 
   const { data: counterTopMaterials, isFetching: isFetchingcounterTopMaterials } = useGetConfiguratorQuery({
     id: 4,
@@ -144,6 +156,7 @@ export const CountertopPage = () => {
         material: pick(nested.Material, meta.Material),
         color: pick(nested.Color, meta.Color),
         look: pick(nested.Look, meta.Look),
+        codeColor: pick(nested.codeColor, nested.codecolor, meta.codeColor, meta.codecolor),
         hex: pick(nested.hex, meta.hex),
         image: pick(nested.image, meta.image, variant.image),
         value: pick(meta.value, nested.value, variant.name),
@@ -196,16 +209,28 @@ export const CountertopPage = () => {
             const metaMaterial = meta.material ?? option.name;
             const metaColor = meta.color;
             const metaLook = meta.look;
+            const metaCodeColor = meta.codeColor?.trim();
             const metaHex = meta.hex;
             const descSource = option.name || group.proxyName || variant.name;
 
             const isCemento = variant.name.toLowerCase().startsWith("cemento");
+            const baseColors = toStringArrayFromCsv(metaColor);
+            const colors = baseColors.length > 0 ? baseColors : metaCodeColor ? [metaCodeColor] : [];
+
+            const baseLooks = toStringArrayFromCsv(metaLook);
+            const codeTokens = (metaCodeColor ?? "").split(/\s+/).filter(Boolean);
+            const inferredLook =
+              codeTokens.length > 1 && /^[A-Za-z]{2,3}$/.test(codeTokens[codeTokens.length - 1])
+                ? codeTokens[codeTokens.length - 1]
+                : undefined;
+            const looks = baseLooks.length > 0 ? baseLooks : inferredLook ? [inferredLook] : [];
 
             return [
               {
-                id: variant.id,
+                id: `${normalizedProxyName}:${option.id}:${variant.id}`,
                 title: meta.label ?? variant.name,
                 name: variant.name,
+                sourceGroup: normalizedProxyName,
                 desc: normalizeMaterialLabel(descSource),
                 isShortDesc: false,
                 metadata: {
@@ -216,8 +241,8 @@ export const CountertopPage = () => {
                     ...(group.proxyName ? [group.proxyName] : []),
                     ...(isCemento ? ["Cemento"] : []),
                   ]),
-                  colors: toStringArrayFromCsv(metaColor),
-                  looks: toStringArrayFromCsv(metaLook),
+                  colors,
+                  looks,
                   hex: metaHex?.trim(),
                 },
               },
@@ -227,7 +252,35 @@ export const CountertopPage = () => {
     );
   }, [counterTopMaterials, getVariantMeta]);
 
-  const countertopOptions = useMemo(() => countertopOptionsFromApi, [countertopOptionsFromApi]);
+  const isVesselApiOption = useCallback(
+    (option: ProductOptionData & { sourceGroup?: string }) => option.sourceGroup === "vessels",
+    [],
+  );
+
+  const isVesselCompatibleCountertopOption = useCallback(
+    (option: ProductOptionData) => {
+      if (isVesselApiOption(option)) return false;
+      const allowed = new Set(["hpl", "porcelain", "fenix", "tekorlux", "tal", "tam", "solidsurface"]);
+      const materials = option.metadata?.materials ?? [];
+      return materials.some((material) => getMaterialAliases(material).some((alias) => allowed.has(alias)));
+    },
+    [isVesselApiOption],
+  );
+
+  const isVesselColorOption = useCallback(
+    (option: ProductOptionData) => isVesselApiOption(option) || isVesselCompatibleCountertopOption(option),
+    [isVesselApiOption, isVesselCompatibleCountertopOption],
+  );
+
+  const countertopOptions = useMemo(
+    () => countertopOptionsFromApi.filter((option) => !isVesselApiOption(option)),
+    [countertopOptionsFromApi, isVesselApiOption],
+  );
+
+  const vesselColorOptions = useMemo(
+    () => countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
+    [countertopOptionsFromApi, isVesselColorOption],
+  );
 
   const findSkuByColorName = useCallback(
     (colorName: string): string => {
@@ -346,6 +399,15 @@ export const CountertopPage = () => {
     return match?.metadata?.materials ?? [];
   }, [activeCountertopColor, countertopOptions]);
 
+  const activeVesselMaterialTokens = useMemo(() => {
+    if (!activeVesselColor) return [];
+    const match = vesselColorOptions.find((option) => {
+      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
+      return candidate === activeVesselColor;
+    });
+    return match?.metadata?.materials ?? [];
+  }, [activeVesselColor, vesselColorOptions]);
+
   const ruleState = useMemo(
     () =>
       buildCountertopRuleState({
@@ -368,56 +430,43 @@ export const CountertopPage = () => {
 
   const allowedMaterials = ruleState.allowedMaterials;
 
-  const scopedCountertopOptions = useMemo(
-    () =>
-      countertopOptions.filter((option) => {
-        const hasVesselsToken = (option.metadata?.materials ?? []).some(
-          (material) => normalizeMaterialToken(material) === "vessels",
-        );
-        if (!isVesselStyle) return !hasVesselsToken;
+  const scopedCountertopOptions = useMemo(() => countertopOptions, [countertopOptions]);
 
-        const hasIntegratedCompatibleMaterial = (option.metadata?.materials ?? []).some((material) => {
-          const aliases = getMaterialAliases(material);
-          return aliases.some(
-            (alias) =>
-              alias === "fenix" || alias === "fx" || alias === "hpl" || alias === "porcelain" || alias === "por",
-          );
-        });
+  const displayedMaterialFilters = materialFilters;
 
-        return hasVesselsToken || hasIntegratedCompatibleMaterial;
-      }),
-    [countertopOptions, isVesselStyle],
+  const filteredMaterialFilters = useMemo(
+    () => ({
+      ...displayedMaterialFilters,
+      materials: groupMaterialsHierarchically(displayedMaterialFilters.materials),
+    }),
+    [displayedMaterialFilters],
   );
 
-  const styleScopedFilters = useMemo(() => {
-    if (!scopedCountertopOptions.length) return defaultMaterialFilters;
+  const tierOptions = useMemo(() => buildTierFilterOptions(scopedCountertopOptions), [scopedCountertopOptions]);
+
+  const vesselMaterialFilters = useMemo(() => {
+    if (!vesselColorOptions.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();
     const colorSet = new Set<string>();
     const lookSet = new Set<string>();
     const hexSet = new Set<string>();
 
-    scopedCountertopOptions.forEach((option) => {
-      if (isVesselStyle) {
-        const vesselMaterial = (option.desc ?? "").trim();
-        if (vesselMaterial) {
-          materialSet.add(normalizeMaterialAlias(vesselMaterial));
-        }
-        materialSet.add("Fenix");
-        materialSet.add("HPL");
-        materialSet.add("Porcelain");
-      } else {
-        (option.metadata?.materials ?? []).forEach((material) => {
-          if (normalizeMaterialToken(material) === "vessels") return;
-          materialSet.add(normalizeMaterialAlias(material));
-        });
-      }
+    vesselColorOptions.forEach((option) => {
+      if (!isVesselColorOption(option)) return;
 
+      const vesselMaterial = (option.desc ?? "").trim();
+      if (vesselMaterial) materialSet.add(normalizeMaterialAlias(vesselMaterial));
       (option.metadata?.colors ?? []).forEach((value) => colorSet.add(value));
       (option.metadata?.looks ?? []).forEach((value) => lookSet.add(value));
       const hex = option.metadata?.hex?.trim();
       if (hex) hexSet.add(hex);
     });
+    // Explicit vessel-related countertop material filters requested by product.
+    materialSet.add("HPL");
+    materialSet.add("Porcelain");
+    materialSet.add("Fenix");
+    materialSet.add("Tekorlux");
 
     const toOptions = (set: Set<string>) =>
       Array.from(set)
@@ -430,16 +479,121 @@ export const CountertopPage = () => {
       looks: toOptions(lookSet),
       hex: toOptions(hexSet),
     };
-  }, [defaultMaterialFilters, isVesselStyle, scopedCountertopOptions]);
+  }, [defaultMaterialFilters, isVesselColorOption, vesselColorOptions]);
 
-  const displayedMaterialFilters = isVesselStyle ? styleScopedFilters : materialFilters;
-
-  const filteredMaterialFilters = useMemo(
-    () => ({ ...displayedMaterialFilters, materials: groupMaterialsHierarchically(displayedMaterialFilters.materials) }),
-    [displayedMaterialFilters],
+  const filteredVesselMaterialFilters = useMemo(
+    () => ({
+      ...vesselMaterialFilters,
+      materials: groupMaterialsHierarchically(vesselMaterialFilters.materials).map((option) => {
+        if (!option.children?.length) return option;
+        const parentToken = normalizeMaterialToken(option.value);
+        const children = option.children.filter((child) => normalizeMaterialToken(child.value) !== parentToken);
+        return { ...option, children };
+      }),
+    }),
+    [vesselMaterialFilters],
   );
 
-  const tierOptions = useMemo(() => buildTierFilterOptions(scopedCountertopOptions), [scopedCountertopOptions]);
+  const vesselTierOptions = useMemo(() => buildTierFilterOptions(vesselColorOptions), [vesselColorOptions]);
+
+  const selectedVesselMaterialValues = useMemo(() => {
+    const selected = selectedVesselFilter.material;
+    if (!selected) return [];
+
+    const findOptionInTree = (
+      options: Array<{ value: string; children?: Array<{ value: string }> }>,
+      target: string,
+    ): { value: string; children?: Array<{ value: string }> } | null => {
+      for (const option of options) {
+        if (option.value === target) return option;
+        if (option.children?.length) {
+          const found = findOptionInTree(
+            option.children.map((child) => ({ value: child.value })),
+            target,
+          );
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const selectedNode = findOptionInTree(filteredVesselMaterialFilters.materials, selected);
+    if (selectedNode?.children?.length) {
+      return [selectedNode.value, ...selectedNode.children.map((child) => child.value)];
+    }
+
+    return [selected];
+  }, [filteredVesselMaterialFilters.materials, selectedVesselFilter.material]);
+
+  const filteredVesselColorOptions = useMemo(() => {
+    const getOptionMaterialTokens = (option: ProductOptionData): Set<string> => {
+      const tokens = new Set<string>();
+      const add = (raw?: string) => {
+        if (!raw) return;
+        const normalized = normalizeMaterialToken(raw);
+        if (normalized) tokens.add(normalized);
+        raw
+          .split(/[\\/,&]/g)
+          .map((chunk) => normalizeMaterialToken(chunk))
+          .filter(Boolean)
+          .forEach((chunk) => tokens.add(chunk));
+      };
+
+      add(option.desc ?? "");
+      (option.metadata?.materials ?? []).forEach((material) => {
+        add(material);
+        getMaterialAliases(material).forEach((alias) => tokens.add(alias));
+      });
+      return tokens;
+    };
+
+    const getSelectedMaterialTokens = (selectedMaterial: string): Set<string> => {
+      const normalized = normalizeMaterialToken(selectedMaterial);
+      const tokens = new Set<string>([normalized, ...getMaterialAliases(selectedMaterial)]);
+
+      if (normalized === "hpl") tokens.add("hplfenix");
+      if (normalized === "fenix") tokens.add("hplfenix");
+      if (normalized === "tekorlux") {
+        tokens.add("tal");
+        tokens.add("tam");
+      }
+
+      return tokens;
+    };
+
+    const vesselMaterialsMatchSelection = (option: ProductOptionData, selectedMaterial: string) => {
+      const optionTokens = getOptionMaterialTokens(option);
+      const selectedTokens = getSelectedMaterialTokens(selectedMaterial);
+      return Array.from(optionTokens).some((token) => selectedTokens.has(token));
+    };
+
+    const vesselOnlyOptions = vesselColorOptions.filter((option) => isVesselColorOption(option));
+    const hasTekorluxSelection = normalizeMaterialToken(selectedVesselFilter.material ?? "") === "tekorlux";
+
+    const filteredByUiBase = filterOptionsByMaterialSelection(vesselOnlyOptions, {
+      ...selectedVesselFilter,
+      material: undefined,
+    });
+    const filteredByUi =
+      selectedVesselMaterialValues.length === 0
+        ? filteredByUiBase
+        : hasTekorluxSelection
+          ? filteredByUiBase.filter((option) => {
+              const optionDesc = normalizeMaterialToken(option.desc ?? "");
+              const optionMaterials = option.metadata?.materials ?? [];
+              return (
+                optionDesc === "tekorlux" ||
+                optionMaterials.some((optionMaterial) => normalizeMaterialToken(optionMaterial) === "tekorlux")
+              );
+            })
+          : filteredByUiBase.filter((option) => {
+              return selectedVesselMaterialValues.some((selectedMaterial) =>
+                vesselMaterialsMatchSelection(option, selectedMaterial),
+              );
+            });
+
+    return filterOptionsByTier(filteredByUi, selectedVesselFilter.tier);
+  }, [isVesselColorOption, selectedVesselFilter, selectedVesselMaterialValues, vesselColorOptions]);
 
   const selectedMaterialValues = useMemo(() => {
     const selected = selectedFilter.material;
@@ -628,7 +782,7 @@ export const CountertopPage = () => {
           ...option,
           children,
           disabled: isDisabled,
-          reason: isDisabled ? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON : undefined,
+          reason: isDisabled ? (firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON) : undefined,
         };
       }
 
@@ -678,7 +832,6 @@ export const CountertopPage = () => {
     selectedMaterialValues,
   ]);
 
-
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;
     if (!allowed.size) return optionsMockData4;
@@ -703,7 +856,11 @@ export const CountertopPage = () => {
 
     const normalizedStyle = activeCountertopStyle ? activeCountertopStyle.trim().toLowerCase() : "";
     const allowedStyles = ruleState.allowedStyles;
-    const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+    const activeMaterialsSource =
+      normalizedStyle === "vessel" && activeVesselMaterialTokens.length > 0
+        ? activeVesselMaterialTokens
+        : activeMaterialTokens;
+    const normalizedActiveMaterials = activeMaterialsSource.map((material) => normalizeMaterialToken(material));
     console.log("[BASIN/DEBUG][prebuilt][start]", {
       normalizedStyle,
       activeCountertopColor,
@@ -751,8 +908,9 @@ export const CountertopPage = () => {
     if (normalizedStyle === "vessel") {
       if (allowedStyles.size && !allowedStyles.has("vessel")) return [];
 
-      const activeColorCode = activeCountertopColor
-        ? normalizeMaterialToken(extractColorCode(activeCountertopColor) ?? "")
+      const effectiveVesselColor = activeVesselColor || activeCountertopColor;
+      const activeColorCode = effectiveVesselColor
+        ? normalizeMaterialToken(extractColorCode(effectiveVesselColor) ?? "")
         : null;
 
       const vesselOptions = optionsMockData3.filter((option) => {
@@ -838,6 +996,8 @@ export const CountertopPage = () => {
     return integratedOptions;
   }, [
     activeCountertopColor,
+    activeVesselColor,
+    activeVesselMaterialTokens,
     activeCountertopStyle,
     activeMaterialTokens,
     allowedBasinKeys,
@@ -861,6 +1021,10 @@ export const CountertopPage = () => {
   const sortedCountertopOptions = useMemo(
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [filteredCountertopOptions],
+  );
+  const sortedVesselColorOptions = useMemo(
+    () => [...filteredVesselColorOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [filteredVesselColorOptions],
   );
 
   const containsSinkBase = useCallback((value: unknown, visited = new Set<unknown>()): boolean => {
@@ -917,6 +1081,28 @@ export const CountertopPage = () => {
 
     dispatch(setActiveCountertopColor(colorName));
     dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
+  };
+
+  const handleChangeVesselColor = async (colorName: string) => {
+    if (!colorName) return;
+    await saveSnapshot();
+
+    const orderedIds = getOrderedProductIds(selectedProducts);
+    if (!orderedIds.length) return;
+
+    const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
+    const sinkBaseIds = orderedIds.filter((_, index) => {
+      const rawConfig = configs[index];
+      if (!rawConfig || typeof rawConfig !== "object") return false;
+      return containsSinkBase(rawConfig);
+    });
+
+    if (!sinkBaseIds.length) return;
+
+    await setConfigBatch(sinkBaseIds, { CountertopColor: colorName });
+
+    setActiveVesselColor(colorName);
+    dispatch(setVesselColor(colorName));
   };
 
   const applyBasinStyleByDependencies = useCallback(
@@ -1093,6 +1279,7 @@ export const CountertopPage = () => {
     filteredBasinOptions,
     hasSelectedMaterial,
     isSinkDisabled,
+    activeCountertopColor,
   ]);
 
   const handleCountertopStyle = (style: string) => {
@@ -1102,6 +1289,9 @@ export const CountertopPage = () => {
 
   const clearAllFilters = () => {
     setSelectedFilter({});
+  };
+  const clearVesselFilters = () => {
+    setSelectedVesselFilter({});
   };
 
   const renderFilters = () => (
@@ -1142,10 +1332,48 @@ export const CountertopPage = () => {
     </FilterRow>
   );
 
+  const renderVesselFilters = () => (
+    <FilterRow className={s.innerRow}>
+      <FilterItem
+        label="Material"
+        options={filteredVesselMaterialFilters.materials}
+        value={selectedVesselFilter.material}
+        onSelect={(value) => setSelectedVesselFilter((prev) => ({ ...prev, material: value as string }))}
+      />
+
+      <FilterItem
+        label="Color"
+        options={filteredVesselMaterialFilters.colors}
+        value={selectedVesselFilter.color}
+        onSelect={(value) => setSelectedVesselFilter((prev) => ({ ...prev, color: value as string }))}
+      />
+
+      <FilterItem
+        label="Look"
+        options={filteredVesselMaterialFilters.looks}
+        value={selectedVesselFilter.look}
+        onSelect={(value) => setSelectedVesselFilter((prev) => ({ ...prev, look: value as string }))}
+      />
+
+      <FilterItem
+        label="Price"
+        options={vesselTierOptions}
+        value={selectedVesselFilter.tier}
+        onSelect={(value) => setSelectedVesselFilter((prev) => ({ ...prev, tier: value as string | undefined }))}
+      />
+
+      {Object.values(selectedVesselFilter).some(Boolean) && (
+        <BaseButton variant="filterBtn" onClick={clearVesselFilters}>
+          Clear All
+        </BaseButton>
+      )}
+    </FilterRow>
+  );
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "countertop-color",
-      title: isVesselStyle ? "Vessel Color" : "Countertop Color",
+      title: "Countertop Color",
       defaultOpen: true,
       content: (
         <>
@@ -1184,7 +1412,7 @@ export const CountertopPage = () => {
     },
     {
       id: "basin-style",
-      title: "Basin style",
+      title: isVesselStyle ? "Vessel Style" : "Basin style",
       content: !hasSelectedMaterial ? (
         <div>Select a material first to enable basin styles.</div>
       ) : !activeThickness ? (
@@ -1195,6 +1423,26 @@ export const CountertopPage = () => {
         <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />
       ),
     },
+    ...(isVesselStyle
+      ? [
+          {
+            id: "vessel-color",
+            title: "Vessel Color",
+            content: (
+              <>
+                {renderVesselFilters()}
+                <ProductOptionsGrid
+                  data={sortedVesselColorOptions}
+                  handleAdd={handleChangeVesselColor}
+                  activeValue={activeVesselColor}
+                  isLoading={isFetchingcounterTopMaterials}
+                  groupByDesc
+                />
+              </>
+            ),
+          } as AccordionConfig,
+        ]
+      : []),
   ];
 
   const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString();

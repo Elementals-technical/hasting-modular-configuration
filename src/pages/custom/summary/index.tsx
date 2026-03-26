@@ -13,6 +13,7 @@ import {
   getCabinetColor,
   getCabinetColorSku,
   getCountertopColorSku,
+  getVesselColor,
   getCountertopStyle,
   getPlacedDividers,
   getDividersStyle,
@@ -208,6 +209,7 @@ export const CustomSummaryPage = () => {
   const cabinetColor = useAppSelector(getCabinetColor);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const vesselColor = useAppSelector(getVesselColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const handleGrooveColorSku = useAppSelector(getHandleGrooveColorSku);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -718,6 +720,9 @@ export const CustomSummaryPage = () => {
       colorSkuByName.get(resolvedCountertopColor) ||
       colorSkuByName.get(countertopColor) ||
       null;
+    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
+    const resolvedVesselMaterialSku =
+      colorSkuByName.get(resolvedVesselColor) || resolvedCountertopMaterialSku;
     const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
@@ -781,8 +786,8 @@ export const CustomSummaryPage = () => {
           width: totalCountertopWidth,
           height: vesselHeightCmMap[vesselType] ?? null,
           depth: selectedDimensions.depth,
-          materialSku: resolvedCountertopMaterialSku,
-          colorCode: extractColorCode(resolvedCountertopColor),
+          materialSku: resolvedVesselMaterialSku,
+          colorCode: extractColorCode(resolvedVesselColor),
         })
       : null;
 
@@ -1103,6 +1108,7 @@ export const CustomSummaryPage = () => {
     cabinetColorSku,
     countertopColorSku,
     countertopColor,
+    vesselColor,
     countertopThickness,
     countertopStyle,
     drawerPanelFluting,
