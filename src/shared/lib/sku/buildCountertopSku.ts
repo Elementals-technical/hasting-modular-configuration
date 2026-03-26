@@ -92,7 +92,9 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
 
   const isVessel = styleValue.toLowerCase() === "vessel";
 
-  // Material block: -{MaterialSKU}-{ColorCode} — omitted for vessel style
+  // Material block:
+  // - non-vessel: -{MaterialSKU}-{ColorCode}
+  // - vessel:     -{MaterialSKU}
   const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
     caseInsensitiveKey: true,
     allowMappedValue: true,
@@ -104,7 +106,11 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     inferredMaterial ??
     (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
   const color = input.countertopColorCode?.trim() || null;
-  const matBlock = !isVessel && mat ? `-${mat}${color ? `-${color}` : ""}` : "";
+  const matBlock = mat
+    ? isVessel
+      ? `-${mat}`
+      : `-${mat}${color ? `-${color}` : ""}`
+    : "";
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
   const series = mat ? `UR${mat}` : "URFX";

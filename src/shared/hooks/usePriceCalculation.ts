@@ -315,6 +315,13 @@ export function usePriceCalculation() {
     const resolvedVesselColor = vesselColor || resolvedCountertopColor;
     const resolvedVesselMaterialSku =
       (resolvedVesselColor ? colorSkuByName.get(resolvedVesselColor) : null) || resolvedCountertopMaterialSku;
+    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
+      ? resolvedVesselMaterialSku
+      : resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(
+      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
+    );
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
     const resolvedSinkType =
       shouldUsePresetSinkType && colorDrivenDefaultBasin
@@ -600,8 +607,8 @@ export function usePriceCalculation() {
       basinType: resolvedSinkType,
       faucetHolesAmount: faucetHolesAmount || null,
       faucetHolesSpacing: faucetHolesSpacing || null,
-      countertopMaterialSku: resolvedCountertopMaterialSku,
-      countertopColorCode: extractColorCode(resolvedCountertopColor),
+      countertopMaterialSku: effectiveCountertopMaterialSku,
+      countertopColorCode: effectiveCountertopColorCode,
     });
     aggregateCountertopLines.forEach((line) => {
       if (!seenCountertopSkus.has(line)) {
@@ -613,7 +620,7 @@ export function usePriceCalculation() {
     // Always keep a default faucet-holes pricing SKU in the pool (including "0"),
     // with dynamic material resolved from basin/material context.
     const faucetHolesQty = (faucetHolesAmount ?? "").trim() || "0";
-    const faucetMaterialSku = inferMaterialSkuFromBasinType(resolvedSinkType) ?? resolvedCountertopMaterialSku ?? "HPL";
+    const faucetMaterialSku = inferMaterialSkuFromBasinType(resolvedSinkType) ?? effectiveCountertopMaterialSku ?? "HPL";
     const defaultFaucetSku = `CT-UR${faucetMaterialSku}-FAHO/${faucetHolesQty}`;
     if (!seenCountertopSkus.has(defaultFaucetSku)) {
       seenCountertopSkus.add(defaultFaucetSku);
@@ -630,8 +637,8 @@ export function usePriceCalculation() {
         basinType: dims.sinkType,
         faucetHolesAmount: faucetHolesAmount || null,
         faucetHolesSpacing: faucetHolesSpacing || null,
-        countertopMaterialSku: resolvedCountertopMaterialSku,
-        countertopColorCode: extractColorCode(resolvedCountertopColor),
+        countertopMaterialSku: effectiveCountertopMaterialSku,
+        countertopColorCode: effectiveCountertopColorCode,
       });
       countertopSkuLines.forEach((line) => {
         if (!seenCountertopSkus.has(line)) {

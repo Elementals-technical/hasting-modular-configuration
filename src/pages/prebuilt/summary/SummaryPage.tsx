@@ -723,6 +723,13 @@ export const SummaryPage = () => {
     const resolvedVesselColor = vesselColor || resolvedCountertopColor;
     const resolvedVesselMaterialSku =
       colorSkuByName.get(resolvedVesselColor) || resolvedCountertopMaterialSku;
+    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
+      ? resolvedVesselMaterialSku
+      : resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(
+      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
+    );
     const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
@@ -772,8 +779,8 @@ export const SummaryPage = () => {
       basinType: resolvedSinkType || null,
       faucetHolesAmount: faucetHolesAmount || null,
       faucetHolesSpacing: faucetHolesSpacing || null,
-      countertopMaterialSku: resolvedCountertopMaterialSku,
-      countertopColorCode: extractColorCode(resolvedCountertopColor),
+      countertopMaterialSku: effectiveCountertopMaterialSku,
+      countertopColorCode: effectiveCountertopColorCode,
     });
     const hcutPricingSku = countertopSkuLines.find((line) => line.endsWith("-HCUT")) ?? "CT-URHPL-HCUT";
     const hcutUnitPrice = priceBySku[hcutPricingSku] ?? 0;
