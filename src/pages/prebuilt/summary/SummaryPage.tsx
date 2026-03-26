@@ -998,8 +998,8 @@ export const SummaryPage = () => {
                 {
                   id: "basin-hcut-sku",
                   title: "HCUT - Basin",
-                  subtitle: "VES-URMOD-X-19.7W-5.5H-13D-HPL",
-                  sku: "VES-URMOD-X-19.7W-5.5H-13D-HPL",
+                  subtitle: hcutPricingSku,
+                  sku: hcutPricingSku,
                   price: hcutTotalPrice,
                   copyable: true,
                   description: {

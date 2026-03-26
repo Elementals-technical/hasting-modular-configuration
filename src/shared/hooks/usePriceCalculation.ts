@@ -47,8 +47,6 @@ import { useGetConfiguratorQuery } from "@/entities";
 import {
   useLazyGetProductPriceBySkuQuery,
   useLazyGetProductPriceBySkuV2ResolveQuery,
-  useLazyResolveSkuPriceQuery,
-  useLazyDebugSkuSearchQuery,
 } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -98,8 +96,6 @@ export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
   const [triggerPriceBySkuV2Resolve] = useLazyGetProductPriceBySkuV2ResolveQuery();
-  const [triggerResolveSkuPrice] = useLazyResolveSkuPriceQuery();
-  const [triggerDebugSkuSearch] = useLazyDebugSkuSearchQuery();
 
   // ── Read all relevant state ───────────────────────────
 
@@ -763,23 +759,13 @@ export function usePriceCalculation() {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
-                const isVessel = sku.startsWith("VES-");
-                const isIntegratedCountertopV2 = /^CT-UR[^-]+-INTG(?:-|$)/.test(sku);
-                const data = isVessel
-                  ? await triggerResolveSkuPrice({ containerId: 1, sku }).unwrap()
-                  : isIntegratedCountertopV2
+                const isCountertopV2ResolveSku = /^CT-UR[^-]+-(?:INTG|VES)(?:-|$)/.test(sku);
+                const isLegacyVesselSku = sku.startsWith("VES-");
+                const data = isCountertopV2ResolveSku || isLegacyVesselSku
                     ? await triggerPriceBySkuV2Resolve(sku).unwrap()
                     : await triggerPriceBySku(sku).unwrap();
 
                 console.log(LOG_PREFIX, "Response for", sku, "→", data);
-
-                if (isVessel) {
-                  const searchParts = sku.split("-").filter(Boolean);
-                  triggerDebugSkuSearch({ tableId: 503, searchParts })
-                    .unwrap()
-                    .then((result) => console.log("[VESSEL]", "Debug SKU search for", sku, "→", result))
-                    .catch((err) => console.warn("[VESSEL]", "Debug SKU search failed for", sku, err));
-                }
 
                 const price = resolvePriceFromResponse(data);
                 if (typeof price === "number") next[sku] = price;
@@ -807,7 +793,7 @@ export function usePriceCalculation() {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skuKey, canCalculate, dispatch, triggerPriceBySku, triggerPriceBySkuV2Resolve, triggerResolveSkuPrice]);
+  }, [skuKey, canCalculate, dispatch, triggerPriceBySku, triggerPriceBySkuV2Resolve]);
 
   // ── Re-fetch scene configs when product options change ─
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)
