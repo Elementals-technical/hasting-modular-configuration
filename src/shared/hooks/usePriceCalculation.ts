@@ -46,6 +46,7 @@ import {
 import { useGetConfiguratorQuery } from "@/entities";
 import {
   useLazyGetProductPriceBySkuQuery,
+  useLazyGetProductPriceBySkuV2ResolveQuery,
   useLazyResolveSkuPriceQuery,
   useLazyDebugSkuSearchQuery,
 } from "@/entities/product/api";
@@ -96,6 +97,7 @@ const LOG_PREFIX = "[SKU/Price]";
 export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
+  const [triggerPriceBySkuV2Resolve] = useLazyGetProductPriceBySkuV2ResolveQuery();
   const [triggerResolveSkuPrice] = useLazyResolveSkuPriceQuery();
   const [triggerDebugSkuSearch] = useLazyDebugSkuSearchQuery();
 
@@ -762,9 +764,12 @@ export function usePriceCalculation() {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
                 const isVessel = sku.startsWith("VES-");
+                const isIntegratedCountertopV2 = /^CT-UR[^-]+-INTG(?:-|$)/.test(sku);
                 const data = isVessel
                   ? await triggerResolveSkuPrice({ containerId: 1, sku }).unwrap()
-                  : await triggerPriceBySku(sku).unwrap();
+                  : isIntegratedCountertopV2
+                    ? await triggerPriceBySkuV2Resolve(sku).unwrap()
+                    : await triggerPriceBySku(sku).unwrap();
 
                 console.log(LOG_PREFIX, "Response for", sku, "→", data);
 
@@ -802,7 +807,7 @@ export function usePriceCalculation() {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skuKey, canCalculate, dispatch, triggerPriceBySku]);
+  }, [skuKey, canCalculate, dispatch, triggerPriceBySku, triggerPriceBySkuV2Resolve, triggerResolveSkuPrice]);
 
   // ── Re-fetch scene configs when product options change ─
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)

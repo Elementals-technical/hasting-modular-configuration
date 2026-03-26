@@ -16,6 +16,11 @@ export const productApi = baseApi.injectEndpoints({
         url: routes.priceBySku(sku),
       }),
     }),
+    getProductPriceBySkuV2Resolve: builder.query<ProductSkuPriceResponse, string>({
+      query: (sku) => ({
+        url: routes.priceBySkuV2Resolve(sku),
+      }),
+    }),
     resolveSkuPrice: builder.query<SkuResolveResponse, { containerId: string | number; sku: string }>({
       query: ({ containerId, sku }) => ({
         url: routes.resolveSkuPrice(containerId, sku),
@@ -34,6 +39,8 @@ export const {
   useLazyGetProductDatatableQuery,
   useGetProductPriceBySkuQuery,
   useLazyGetProductPriceBySkuQuery,
+  useGetProductPriceBySkuV2ResolveQuery,
+  useLazyGetProductPriceBySkuV2ResolveQuery,
   useResolveSkuPriceQuery,
   useLazyResolveSkuPriceQuery,
   useDebugSkuSearchQuery,
