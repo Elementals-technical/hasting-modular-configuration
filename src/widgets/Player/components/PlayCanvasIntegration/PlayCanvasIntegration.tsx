@@ -1708,6 +1708,12 @@ export const PlayCanvasIntegration = () => {
             },
           ],
         },
+        {
+          id: "accessories",
+          label: "Accessories",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleOpenAccessories,
+        },
         ...(isOneOrTwoDrawerProduct
           ? [{ id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: handleOpenAccessories }]
           : []),
