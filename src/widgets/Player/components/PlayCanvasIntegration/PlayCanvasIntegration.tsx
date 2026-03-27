@@ -1821,7 +1821,14 @@ export const PlayCanvasIntegration = () => {
           onClick: handleOpenAccessories,
         },
         ...(isOneOrTwoDrawerProduct
-          ? [{ id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: handleOpenAccessories }]
+          ? [
+              {
+                id: "open",
+                label: "Open",
+                trailing: <OpenMenuIcon />,
+                onClick: handleOpenDrawerButtonsForSelectedProduct,
+              },
+            ]
           : []),
         { id: "add", label: "Add", trailing: "", onClick: handleAddFromPrebuilt },
         ...(selectedSceneProduct
