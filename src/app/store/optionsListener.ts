@@ -2,6 +2,11 @@ import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 
 import type { RootState } from "./index";
 import {
+  addProductId,
+  insertProductIdRelative,
+  removeProductId,
+  resetProducts,
+  restoreProductState,
   setBookMatching,
   setCabinetColorFinish,
   setCabinetColorMaterial,
@@ -50,6 +55,19 @@ optionsListenerMiddleware.startListening({
 
 optionsListenerMiddleware.startListening({
   actionCreator: setGrainDirection,
+  effect: async (_, listenerApi) => {
+    const state = listenerApi.getState() as RootState;
+    const bookState = selectBookMatchingState(state);
+    const currentBook = getBookMatching(state);
+
+    if (!bookState.enabled && currentBook) {
+      listenerApi.dispatch(setBookMatching(""));
+    }
+  },
+});
+
+optionsListenerMiddleware.startListening({
+  matcher: isAnyOf(addProductId, insertProductIdRelative, removeProductId, resetProducts, restoreProductState),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const bookState = selectBookMatchingState(state);
