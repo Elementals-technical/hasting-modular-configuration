@@ -1039,10 +1039,13 @@ export const CabinetBuilderPage = () => {
         if (uiHandleGrooveColor) batchConfig.HandleGrooveColor = uiHandleGrooveColor;
         if (uiSinkType) batchConfig.sinkType = uiSinkType;
         if (uiCountertopColor) batchConfig.CountertopColor = uiCountertopColor;
-        if (uiCountertopThickness) batchConfig.Thickness = uiCountertopThickness;
 
         if (Object.keys(batchConfig).length) {
           await setConfigBatch(orderedIds, batchConfig);
+        }
+
+        if (uiCountertopThickness) {
+          await setConfigBatch({}, { Thickness: uiCountertopThickness });
         }
 
         if (uiSidePanels || sidePanelValue) {
