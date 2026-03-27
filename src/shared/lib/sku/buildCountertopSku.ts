@@ -26,18 +26,6 @@ const CATEGORY = "CT";
 const LOG_PREFIX = "[SKU/CT]";
 const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
 const formatThicknessToken = (value: number): string => value.toFixed(1).replace(/^0(?=\.)/, "");
-const CM_PER_INCH = 2.54;
-const formatDimensionToken = (value: number): string => {
-  const fixed = value.toFixed(1);
-  const trimmed = fixed.replace(/\.?0+$/, "");
-  return trimmed.replace(/^0(?=\.)/, "");
-};
-const cmToInchesRoundUp = (cm: number, precision = 1): string => {
-  const factor = 10 ** precision;
-  const inches = cm / CM_PER_INCH;
-  const roundedUp = Math.ceil((inches - Number.EPSILON) * factor) / factor;
-  return formatDimensionToken(roundedUp);
-};
 const parseSkuThicknessToken = (value: string): number | null => {
   const numericPart = value.trim().replace(/h$/i, "");
   const parsed = Number.parseFloat(numericPart);
@@ -115,12 +103,13 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const mat =
     inferredMaterial ??
     (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
+  const vesselMaterial = isVessel ? mat ?? "FX" : mat;
   const color = input.countertopColorCode?.trim() || null;
 
   // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
   const w =
     input.width != null
-      ? `${isVessel ? cmToInchesRoundUp(input.width) : cmToInches(input.width)}W`
+      ? `${cmToInches(input.width)}W`
       : `${FALLBACK}W`;
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
   const rawT = input.thickness?.trim();
@@ -128,8 +117,8 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   let thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
 
   // Enforce material -> thickness dependency for dynamic vessel CT SKUs.
-  if (isVessel && mat) {
-    const allowedTokens = vesselDynamicThicknessByMaterialSku[mat] ?? [];
+  if (isVessel && vesselMaterial) {
+    const allowedTokens = vesselDynamicThicknessByMaterialSku[vesselMaterial] ?? [];
     if (allowedTokens.length > 0) {
       const currentToken = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : null;
       if (!currentToken || !allowedTokens.includes(currentToken)) {
@@ -140,14 +129,14 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   }
 
   const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
-  const matBlock = mat
+  const matBlock = vesselMaterial
     ? isVessel
-      ? `-${mat}`
-      : `-${mat}${color ? `-${color}` : ""}`
+      ? `-${vesselMaterial}`
+      : `-${vesselMaterial}${color ? `-${color}` : ""}`
     : "";
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
-  const series = mat ? `UR${mat}` : "URFX";
+  const series = vesselMaterial ? `UR${vesselMaterial}` : "URFX";
   console.log(LOG_PREFIX, "material resolution", {
     basinType: input.basinType,
     countertopMaterialSkuInput: input.countertopMaterialSku,

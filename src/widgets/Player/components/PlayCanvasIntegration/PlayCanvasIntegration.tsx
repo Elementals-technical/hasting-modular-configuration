@@ -146,7 +146,11 @@ const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
   return null;
 };
 
+const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
+
 export const PlayCanvasIntegration = () => {
+  type CustomizeModePromptAction = "default" | "add" | "delete";
+
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
   const isMobileMediaQueryRef = useRef<MediaQueryList | null>(null);
@@ -170,6 +174,8 @@ export const PlayCanvasIntegration = () => {
 
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
   const [isCustomizeModePromptOpen, setIsCustomizeModePromptOpen] = useState(false);
+  const [customizeModePromptAction, setCustomizeModePromptAction] = useState<CustomizeModePromptAction>("default");
+  const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [mobilePreviewImage, setMobilePreviewImage] = useState<string | null>(null);
   const openDrawerButtonsTargetRef = useRef<string | null>(null);
@@ -1067,6 +1073,35 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [canAddAnotherCabinet, navigate]);
 
+  const handleOpenCustomizeModePrompt = useCallback(
+    (action: CustomizeModePromptAction, deleteTarget: string | null = null) => {
+      setCustomizeModePromptAction(action);
+      setCustomizeModePromptDeleteTarget(deleteTarget);
+      setIsCustomizeModePromptOpen(true);
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+      setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+    },
+    [],
+  );
+
+  const handleCustomizeModePromptOpenChange = useCallback((isOpening: boolean) => {
+    setIsCustomizeModePromptOpen(isOpening);
+
+    if (!isOpening) {
+      setCustomizeModePromptAction("default");
+      setCustomizeModePromptDeleteTarget(null);
+    }
+  }, []);
+
+  const handleAddFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("add");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleDeleteFromPrebuilt = useCallback(() => {
+    if (!selectedSceneProduct) return;
+    handleOpenCustomizeModePrompt("delete", selectedSceneProduct);
+  }, [handleOpenCustomizeModePrompt, selectedSceneProduct]);
+
   const enforceSidePanelEligibilityForEdgeCabinets = useCallback(async () => {
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const remembered = getRememberedSidePanels();
@@ -1136,7 +1171,11 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     isPrebuiltRef.current = isPrebuilt;
-    if (!isPrebuilt) setIsCustomizeModePromptOpen(false);
+    if (!isPrebuilt) {
+      setIsCustomizeModePromptOpen(false);
+      setCustomizeModePromptAction("default");
+      setCustomizeModePromptDeleteTarget(null);
+    }
   }, [isPrebuilt]);
 
   // Double-click detection via iframe contentDocument (same-origin).
@@ -1152,6 +1191,8 @@ export const PlayCanvasIntegration = () => {
       if (e.button !== 0) return;
       if (!isPrebuiltRef.current) return;
       if (e.detail !== 2) return;
+      setCustomizeModePromptAction("default");
+      setCustomizeModePromptDeleteTarget(null);
       setIsCustomizeModePromptOpen(true);
     };
 
@@ -1225,6 +1266,10 @@ export const PlayCanvasIntegration = () => {
 
   const handleCustomizeFromPrompt = useCallback(async () => {
     setIsCustomizeModePromptOpen(false);
+    const action = customizeModePromptAction;
+    const deleteTargetId = customizeModePromptDeleteTarget;
+    setCustomizeModePromptAction("default");
+    setCustomizeModePromptDeleteTarget(null);
     if (!productsPresets.length) return;
 
     // Read current scene values first so default prebuilt colors are preserved
@@ -1254,7 +1299,7 @@ export const PlayCanvasIntegration = () => {
       }
     }
 
-    const updatedPresets = productsPresets.map((preset) => ({
+    let updatedPresets = productsPresets.map((preset) => ({
       ...preset,
       CabinetColor: sceneCabinetColor ?? preset.CabinetColor,
       CountertopColor: sceneCountertopColor ?? preset.CountertopColor,
@@ -1262,12 +1307,29 @@ export const PlayCanvasIntegration = () => {
       HandleGrooveColor: sceneHandleGrooveColor ?? preset.HandleGrooveColor,
     }));
 
+    if (action === "delete" && deleteTargetId) {
+      sessionStorage.setItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY, deleteTargetId);
+    } else {
+      sessionStorage.removeItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY);
+    }
+
     dispatch(addProductPreset(updatedPresets));
     dispatch(resetProducts());
     dispatch(resetCabinetBuilderBootstrap());
 
+    if (action === "add") {
+      navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      return;
+    }
+
     navigate(ROUTES.CUSTOM);
-  }, [productsPresets, dispatch, navigate]);
+  }, [
+    customizeModePromptAction,
+    customizeModePromptDeleteTarget,
+    dispatch,
+    navigate,
+    productsPresets,
+  ]);
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
@@ -1717,6 +1779,10 @@ export const PlayCanvasIntegration = () => {
         ...(isOneOrTwoDrawerProduct
           ? [{ id: "open", label: "Open", trailing: <OpenMenuIcon />, onClick: handleOpenAccessories }]
           : []),
+        { id: "add", label: "Add", trailing: "", onClick: handleAddFromPrebuilt },
+        ...(selectedSceneProduct
+          ? [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleDeleteFromPrebuilt }]
+          : []),
       ];
     }
 
@@ -1854,6 +1920,8 @@ export const PlayCanvasIntegration = () => {
     handleOpenCabinetColor,
     handleOpenAccessories,
     handleOpenDrawerButtonsForSelectedProduct,
+    handleAddFromPrebuilt,
+    handleDeleteFromPrebuilt,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
     canAddAnotherCabinet,
@@ -2015,7 +2083,7 @@ export const PlayCanvasIntegration = () => {
       {isPrebuilt && (
         <CustomizeModePrompt
           isOpening={isCustomizeModePromptOpen}
-          setIsOpening={setIsCustomizeModePromptOpen}
+          setIsOpening={handleCustomizeModePromptOpenChange}
           onConfirm={handleCustomizeFromPrompt}
         />
       )}
