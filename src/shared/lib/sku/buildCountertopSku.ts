@@ -1,5 +1,6 @@
 import { cmToInches } from "./cmToInches";
 import { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
+import { vesselDynamicThicknessByMaterialSku } from "./vesselSkuMaps";
 
 export type CountertopSkuInput = {
   /** "plain" | "integrated" | "vessel" | "undermount" */
@@ -24,7 +25,16 @@ const FALLBACK = "X";
 const CATEGORY = "CT";
 const LOG_PREFIX = "[SKU/CT]";
 const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
-const formatThicknessToken = (value: number): string => value.toFixed(1).replace(/^0(?=\.)/, "");
+const formatThicknessToken = (value: number): string => {
+  const fixed = value.toFixed(1);
+  const normalized = fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
+  return normalized.replace(/^0(?=\.)/, "");
+};
+const parseSkuThicknessToken = (value: string): number | null => {
+  const numericPart = value.trim().replace(/h$/i, "");
+  const parsed = Number.parseFloat(numericPart);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -82,28 +92,55 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const styleValue = input.style?.trim() || "plain";
   const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true });
 
-  // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
-  const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
-  const rawT = input.thickness?.trim();
-  const parsedT = rawT ? parseFloat(rawT) : null;
-  const thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
-  const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
-  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
-
   const isVessel = styleValue.toLowerCase() === "vessel";
 
-  // Material block: -{MaterialSKU}-{ColorCode} — omitted for vessel style
+  // Material block:
+  // - non-vessel: -{MaterialSKU}-{ColorCode}
+  // - vessel:     -{MaterialSKU}
   const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
     caseInsensitiveKey: true,
     allowMappedValue: true,
   });
   const inferredMaterial = inferMaterialSkuFromBasinType(input.basinType);
-  const mat = resolvedMaterial !== FALLBACK ? resolvedMaterial : inferredMaterial;
+  // Basin type is the most reliable source of countertop material for integrated tops.
+  // Prefer it over color-derived/material token when present.
+  const mat =
+    inferredMaterial ??
+    (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
+  const vesselMaterial = isVessel ? mat ?? "FX" : mat;
   const color = input.countertopColorCode?.trim() || null;
-  const matBlock = !isVessel && mat ? `-${mat}${color ? `-${color}` : ""}` : "";
+
+  // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
+  const w =
+    input.width != null
+      ? `${cmToInches(input.width)}W`
+      : `${FALLBACK}W`;
+  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
+  const rawT = input.thickness?.trim();
+  const parsedT = rawT ? parseFloat(rawT) : null;
+  let thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
+
+  // Enforce material -> thickness dependency for dynamic vessel CT SKUs.
+  if (isVessel && vesselMaterial) {
+    const allowedTokens = vesselDynamicThicknessByMaterialSku[vesselMaterial] ?? [];
+    if (allowedTokens.length > 0) {
+      const currentToken = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : null;
+      if (!currentToken || !allowedTokens.includes(currentToken)) {
+        const fallback = parseSkuThicknessToken(allowedTokens[0]);
+        if (fallback !== null) thicknessForSku = fallback;
+      }
+    }
+  }
+
+  const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
+  const matBlock = vesselMaterial
+    ? isVessel
+      ? `-${vesselMaterial}`
+      : `-${vesselMaterial}${color ? `-${color}` : ""}`
+    : "";
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
-  const series = mat ? `UR${mat}` : "URFX";
+  const series = vesselMaterial ? `UR${vesselMaterial}` : "URFX";
   console.log(LOG_PREFIX, "material resolution", {
     basinType: input.basinType,
     countertopMaterialSkuInput: input.countertopMaterialSku,

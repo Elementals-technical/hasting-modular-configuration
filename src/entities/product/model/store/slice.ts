@@ -54,6 +54,7 @@ type ProductState = {
     sinkType: string;
     CountertopColor: string;
     CountertopColorSku: string;
+    VesselColor: string;
     HandleGrooveColor: string;
     HandleGrooveColorSku: string;
     Handle: HandleOption;
@@ -243,9 +244,10 @@ const createInitialState = (): ProductState => {
       CabinetColorSku: "",
       CabinetColorMaterial: "",
       CabinetColorFinish: "",
-      sinkType: "Top_HPLPrisma",
-      CountertopColor: "Rosso Rubino 19 MT",
+      sinkType: "Top_Tekorlux_Rectangular",
+      CountertopColor: "Cacao Orinoco FF MT",
       CountertopColorSku: "",
+      VesselColor: "",
       HandleGrooveColor: "",
       HandleGrooveColorSku: "",
       Handle: "",
@@ -260,7 +262,7 @@ const createInitialState = (): ProductState => {
       DividersStyle: "",
       TowelBarOption: "None",
       TowelBarColor: "",
-      FaucetHolesAmount: "",
+      FaucetHolesAmount: "0",
       FaucetHolesSpacing: '4"',
     },
 
@@ -490,6 +492,9 @@ const productSlice = createSlice({
     setCountertopColorSku(state, action: PayloadAction<string>) {
       state.productOptions.CountertopColorSku = action.payload;
     },
+    setVesselColor(state, action: PayloadAction<string>) {
+      state.productOptions.VesselColor = action.payload;
+    },
     setActiveCountertopThickness(state, action: PayloadAction<string>) {
       state.productOptions.Thickness = action.payload;
     },
@@ -608,6 +613,7 @@ export const {
   setActiveBasinStyle,
   setActiveCountertopColor,
   setCountertopColorSku,
+  setVesselColor,
   setActiveCountertopThickness,
   setDrawerPanelFluting,
   setGrainDirection,

@@ -50,6 +50,8 @@ import {
   setHandleGrooveColorSku,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
+import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 export const CustomCabinetColorsPage = () => {
   const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
@@ -516,7 +518,7 @@ export const CustomCabinetColorsPage = () => {
       defaultOpen: true,
       content: (
         <>
-          {/* <ViewModePanel /> */}
+          <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedBasePanelOptions}
@@ -535,7 +537,7 @@ export const CustomCabinetColorsPage = () => {
             title: "Handle Groove Color (Optional)",
             content: (
               <>
-                {/* <ViewModePanel /> */}
+                <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
                 {renderGrooveFilters()}
                 <ProductOptionsGrid
                   data={grooveColorOptions}

@@ -81,7 +81,7 @@ export const sidePanelAvailabilityRule = ({
   }
 
   if (cabinetType === "OS") {
-    return { allowed, reason: "Side panels are not available when an Open Shelf cabinet is used as an end cabinet." };
+    return { allowed, reason: "Side panels are not available for use with Open Shelf cabinets." };
   }
 
   const heightToken = mapHeightToken(height);

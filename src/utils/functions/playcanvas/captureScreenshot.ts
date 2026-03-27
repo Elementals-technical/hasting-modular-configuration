@@ -1,14 +1,41 @@
+import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
+
+const loadImage = (src: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    image.src = src;
+  });
+
 export async function captureScreenshot(): Promise<string | null> {
   const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
-  const canvas = iframeEl?.contentDocument?.querySelector("canvas");
+  const sourceCanvas = iframeEl?.contentDocument?.querySelector("canvas");
 
-  if (!canvas) {
+  if (!sourceCanvas) {
     console.warn("[PlayCanvas] Canvas not found in iframe");
     return null;
   }
 
   try {
-    return canvas.toDataURL("image/png");
+    const outputCanvas = document.createElement("canvas");
+    outputCanvas.width = sourceCanvas.width;
+    outputCanvas.height = sourceCanvas.height;
+
+    const ctx = outputCanvas.getContext("2d");
+    if (!ctx) return sourceCanvas.toDataURL("image/png");
+
+    ctx.drawImage(sourceCanvas, 0, 0);
+
+    const logoImage = await loadImage(hastingsLogoUrl);
+    const margin = Math.max(16, Math.round(outputCanvas.width * 0.03));
+    const targetWidth = Math.min(Math.round(outputCanvas.width * 0.22), 260);
+    const scale = targetWidth / logoImage.naturalWidth;
+    const targetHeight = Math.round(logoImage.naturalHeight * scale);
+
+    ctx.drawImage(logoImage, margin, margin, targetWidth, targetHeight);
+
+    return outputCanvas.toDataURL("image/png");
   } catch (e) {
     console.error("[PlayCanvas] Screenshot failed", e);
     return null;

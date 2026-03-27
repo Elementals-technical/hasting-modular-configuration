@@ -5,7 +5,7 @@ import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
-import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -13,6 +13,7 @@ import {
   getCabinetColor,
   getCabinetColorSku,
   getCountertopColorSku,
+  getVesselColor,
   getCountertopStyle,
   getDividersStyle,
   getDrawerPanelFluting,
@@ -51,12 +52,32 @@ import {
   buildOpenShelfSku,
   buildOpenSideShelfSku,
   extractColorCode,
+  resolveDefaultBasinByCountertopColor,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
+import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
+import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
+import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
 
 import s from "./SummaryPage.module.scss";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
+const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+
+const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
+  const basin = basinType?.trim() ?? "";
+  if (!basin) return null;
+  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
+  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
+  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
+  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
+  if (basin.startsWith("Top_Porcelain_")) return "POR";
+  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
+  if (basin.startsWith("Top_HPL")) return "HPL";
+  return null;
+};
 
 const buildImageSrc = (imagePath?: string) => {
   if (!imagePath) return undefined;
@@ -156,16 +177,8 @@ const sidePanelLabelMap: Record<string, string> = {
   DoubleG: "Double Groove",
 };
 
-const swatches = [
-  { id: "sw-1", name: "Bianco", color: "#d9d7cd" },
-  { id: "sw-2", name: "Latte", color: "#d1cbbe" },
-  { id: "sw-3", name: "Mushroom", color: "#c0baad" },
-  { id: "sw-4", name: "Grigio", color: "#9e9b92" },
-  { id: "sw-5", name: "Caffe", color: "#857868" },
-  { id: "sw-6", name: "Nero", color: "#756c60" },
-];
-
 export const SummaryPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const editPathBySectionId: Record<string, string> = {
@@ -190,6 +203,7 @@ export const SummaryPage = () => {
   const cabinetColor = useAppSelector(getCabinetColor);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const vesselColor = useAppSelector(getVesselColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const handleGrooveColorSku = useAppSelector(getHandleGrooveColorSku);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -207,6 +221,8 @@ export const SummaryPage = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
+  const selectedSwatches = useAppSelector(getSelectedSwatches);
+  const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
 
   const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
 
@@ -266,12 +282,15 @@ export const SummaryPage = () => {
     },
     [materialLookup],
   );
+  const swatchesListPreview = useMemo(() => selectedSwatches.slice(0, 6).map((value) => resolveSwatch(value)), [selectedSwatches, resolveSwatch]);
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
     serialize: true,
   });
+  const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
+  const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
   const colorSkuByName = useMemo(() => {
     const map = new Map<string, string>();
@@ -669,7 +688,61 @@ export const SummaryPage = () => {
               })(),
             ];
 
-    const countertopSwatch = resolveSwatch(countertopColor);
+    const firstPreset = productsPresets[0];
+    const firstSceneCabinetConfig = cabinetConfigs[0];
+    const sceneCountertopColor =
+      firstSceneCabinetConfig && typeof firstSceneCabinetConfig.CountertopColor === "string"
+        ? firstSceneCabinetConfig.CountertopColor
+        : null;
+    const sceneSinkType =
+      firstSceneCabinetConfig && typeof firstSceneCabinetConfig.sinkType === "string"
+        ? firstSceneCabinetConfig.sinkType
+        : null;
+    const shouldUsePresetCountertopColor =
+      countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
+    const shouldUsePresetSinkType = sinkType === DEFAULT_SINK_TYPE && Boolean(firstPreset?.sinkType);
+    const resolvedCountertopColor =
+      sceneCountertopColor ?? (shouldUsePresetCountertopColor ? firstPreset?.CountertopColor ?? null : null) ?? countertopColor;
+    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
+    const resolvedSinkType =
+      sceneSinkType ??
+      (shouldUsePresetSinkType && colorDrivenDefaultBasin
+        ? colorDrivenDefaultBasin
+        : shouldUsePresetSinkType
+          ? firstPreset?.sinkType ?? null
+          : null) ??
+      sinkType;
+    const resolvedCountertopMaterialSku =
+      countertopColorSku ||
+      colorSkuByName.get(resolvedCountertopColor) ||
+      colorSkuByName.get(countertopColor) ||
+      null;
+    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
+    const resolvedVesselMaterialSku =
+      colorSkuByName.get(resolvedVesselColor) || resolvedCountertopMaterialSku;
+    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
+      ? resolvedVesselMaterialSku
+      : resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(
+      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
+    );
+    const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
+    const matrixDefaultThickness = resolveDefaultThicknessFromRules({
+      rules: countertopRules,
+      activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
+      depth:
+        selectedDimensions.depth ??
+        (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
+        (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Depth === "number" ? firstSceneCabinetConfig.Depth : null),
+    });
+    const resolvedCountertopThickness =
+      (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Thickness === "string"
+        ? firstSceneCabinetConfig.Thickness
+        : null) ??
+      countertopThickness ??
+      matrixDefaultThickness;
+    const countertopSwatch = resolveSwatch(resolvedCountertopColor);
 
     const cabinetOptionItems: SummaryItem[] = [
       drawerPanelFluting
@@ -699,25 +772,26 @@ export const SummaryPage = () => {
       style: countertopStyle || null,
       width: totalCountertopWidth,
       depth: selectedDimensions.depth,
-      thickness: countertopThickness || null,
-      basinType: sinkType || null,
+      thickness: resolvedCountertopThickness,
+      basinType: resolvedSinkType || null,
       faucetHolesAmount: faucetHolesAmount || null,
       faucetHolesSpacing: faucetHolesSpacing || null,
-      countertopMaterialSku: countertopColorSku || null,
-      countertopColorCode: extractColorCode(countertopColor),
+      countertopMaterialSku: effectiveCountertopMaterialSku,
+      countertopColorCode: effectiveCountertopColorCode,
     });
     const hcutPricingSku = countertopSkuLines.find((line) => line.endsWith("-HCUT")) ?? "CT-URHPL-HCUT";
     const hcutUnitPrice = priceBySku[hcutPricingSku] ?? 0;
     const hcutTotalPrice = formatPrice(hcutUnitPrice * sinkBaseCountForHcut);
 
-    const vesselSku = sinkType?.startsWith("Vessel_")
+    const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    const vesselSku = vesselType
       ? buildVesselSku({
-          vesselType: sinkType,
+          vesselType,
           width: totalCountertopWidth,
-          height: vesselHeightCmMap[sinkType] ?? null,
+          height: vesselHeightCmMap[vesselType] ?? null,
           depth: selectedDimensions.depth,
-          materialSku: countertopColorSku || null,
-          colorCode: extractColorCode(countertopColor),
+          materialSku: resolvedVesselMaterialSku,
+          colorCode: extractColorCode(resolvedVesselColor),
         })
       : null;
 
@@ -727,11 +801,11 @@ export const SummaryPage = () => {
       {
         id: "countertop-1",
         title: "Countertop",
-        subtitle: countertopThickness ? `${countertopThickness}` : undefined,
+        subtitle: resolvedCountertopThickness ? `${resolvedCountertopThickness}` : undefined,
         sku: countertopSkuLines[0],
         swatch: {
           label: "Countertop",
-          value: countertopColor,
+          value: resolvedCountertopColor,
           color: countertopSwatch.color,
           image: countertopSwatch.image,
         },
@@ -741,10 +815,12 @@ export const SummaryPage = () => {
           "Product Category": "Countertop",
           Style: countertopStyle || "Plain",
           Width: totalCountertopWidth,
-          Thickness: countertopThickness || null,
+          Thickness: resolvedCountertopThickness || null,
           Depth: selectedDimensions.depth,
-          Material: countertopColorSku ? (materialSkuLabelMap[countertopColorSku] ?? countertopColorSku) : null,
-          "Color Code": countertopColor,
+          Material: resolvedCountertopMaterialSku
+            ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
+            : null,
+          "Color Code": resolvedCountertopColor,
         },
       },
       countertopStyle
@@ -993,13 +1069,13 @@ export const SummaryPage = () => {
                   sku: vesselSku,
                   price: resolveItemPrice(vesselSku),
                   copyable: true,
-                  description: { "Product Category": "Vessel", Type: sinkType },
+                  description: { "Product Category": "Vessel", Type: resolvedSinkType },
                 },
                 {
                   id: "basin-hcut-sku",
                   title: "HCUT - Basin",
-                  subtitle: "VES-URMOD-X-19.7W-5.5H-13D-HPL",
-                  sku: "VES-URMOD-X-19.7W-5.5H-13D-HPL",
+                  subtitle: hcutPricingSku,
+                  sku: hcutPricingSku,
                   price: hcutTotalPrice,
                   copyable: true,
                   description: {
@@ -1034,6 +1110,7 @@ export const SummaryPage = () => {
     cabinetColorSku,
     countertopColorSku,
     countertopColor,
+    vesselColor,
     countertopThickness,
     countertopStyle,
     drawerPanelFluting,
@@ -1046,6 +1123,7 @@ export const SummaryPage = () => {
     productsPresets,
     productConfigs,
     colorSkuByName,
+    countertopRules,
     selectedDimensions.depth,
     selectedDimensions.height,
     selectedDimensions.width,
@@ -1156,7 +1234,7 @@ export const SummaryPage = () => {
         </div>
       ))}
 
-      <div className={s.section}>
+      <div className={s.section} data-summary-section="swatches">
         <div className={s.sectionHeader}>
           <div className={s.sectionTitle}>Swatches</div>
           <button
@@ -1172,19 +1250,37 @@ export const SummaryPage = () => {
         <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
 
         <label className={s.addSwatches}>
-          <input type="checkbox" />
+          <input
+            type="checkbox"
+            checked={isSwatchesEnabledInSummary}
+            onChange={(event) => dispatch(setSwatchesEnabledInSummary(event.target.checked))}
+          />
           <span className={s.addLabel}>Add free swatches</span>
         </label>
 
-        <div className={s.swatchesListHeader}>Swatches list</div>
+        <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledInSummary ? s.swatchesMuted : ""}`}>Swatches list</div>
 
-        <div className={s.swatchesList}>
-          {swatches.map((swatch) => (
-            <div key={swatch.id} className={s.swatchTile}>
-              <span className={s.tileColor} style={{ backgroundColor: swatch.color }} />
-              {/* <span className={s.tileLabel}>{swatch.name}</span> */}
-            </div>
-          ))}
+        <div className={`${s.swatchesList} ${!isSwatchesEnabledInSummary ? s.swatchesMuted : ""}`}>
+          {Array.from({ length: 6 }).map((_, index) => {
+            const swatch = swatchesListPreview[index];
+            if (!swatch) {
+              return <div key={`empty-${index}`} className={s.swatchTile}><span className={`${s.tileColor} ${s.tileEmpty}`} /></div>;
+            }
+
+            return (
+              <div key={swatch.value} className={s.swatchTile}>
+                <span
+                  className={s.tileColor}
+                  style={{
+                    backgroundColor: swatch.color,
+                    backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 

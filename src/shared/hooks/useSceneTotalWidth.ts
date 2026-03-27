@@ -54,13 +54,24 @@ export const useSceneTotalWidth = (selectedProducts: string[], fallbackWidth: nu
       }
 
       const sum = widths.reduce((acc, width) => acc + width, 0);
-      setTotalWidth(Number.isFinite(sum) ? sum : fallbackWidth);
+      const nextValue = Number.isFinite(sum) ? sum : fallbackWidth;
+      setTotalWidth((prev) => {
+        if (prev === null && nextValue === null) return prev;
+        if (typeof prev === "number" && typeof nextValue === "number" && Math.abs(prev - nextValue) < 0.01) {
+          return prev;
+        }
+        return nextValue;
+      });
     };
 
-    load();
+    void load();
+    const intervalId = window.setInterval(() => {
+      void load();
+    }, 350);
 
     return () => {
       cancelled = true;
+      window.clearInterval(intervalId);
     };
   }, [fallbackWidth, selectedProducts]);
 

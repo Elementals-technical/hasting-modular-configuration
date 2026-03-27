@@ -16,11 +16,13 @@ import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
+import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import {
   addProductId,
   reset,
   resetCabinetBuilderBootstrap,
   resetProducts,
+  removeProductId,
   setActiveBasinStyle,
   setActiveCabinetType,
   setActiveCountertopColor,
@@ -38,6 +40,7 @@ import {
   setLedOption,
   setSelectedDimensions,
   setSelectedProductConfig,
+  setSelectedSceneProduct,
   setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
@@ -107,7 +110,10 @@ const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
 const MATRIX_COUNTERTOP_DATATABLE_ID = 438;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
-const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Pietra Di Savoia Antracite TQ6";
+const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+
+const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
+
 const CABINET_TYPE_ORDER: Record<string, number> = {
   "Sink-Base": 0,
   "Sink-Cabinet": 1,
@@ -141,6 +147,7 @@ export const CabinetBuilderPage = () => {
 
   const bootstrappedRef = useRef(false);
   const autoAddSignatureRef = useRef<string | null>(null);
+  const handledPendingDeleteIdRef = useRef<string | null>(null);
   // Set to true by explicit user selection after deletion, allowing auto-add to fire once more
   const allowNextAutoAddRef = useRef(false);
 
@@ -319,14 +326,17 @@ export const CabinetBuilderPage = () => {
           const typeHasFittingWidth =
             !hasProducts ||
             remainingCountertopLength === null ||
-            (rule.widths ?? []).some((width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01);
+            (rule.widths ?? []).some(
+              (width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01,
+            );
 
           const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
           const isShelfRequiresBaseCabinet =
             (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
           const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
           const isLengthLimited = hasProducts && !typeHasFittingWidth;
-          const isDisabled = isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
+          const isDisabled =
+            isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
           const disabledReason = isSinkBaseDisabled
             ? "Vanity configurations allow a maximum of two Sink Base units."
             : isShelfRequiresBaseCabinet
@@ -337,7 +347,7 @@ export const CabinetBuilderPage = () => {
                   ? `Maximum composition length reached for the selected countertop setup${
                       maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
                     }.`
-                : undefined;
+                  : undefined;
 
           return {
             id: rule.code,
@@ -788,6 +798,92 @@ export const CabinetBuilderPage = () => {
     configId,
   ]);
 
+  useEffect(() => {
+    if (!canvasReady) return;
+    if (!hasBootstrappedCabinetBuilder) return;
+
+    const pendingDeleteId = sessionStorage.getItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY);
+    if (!pendingDeleteId) return;
+    if (handledPendingDeleteIdRef.current === pendingDeleteId) return;
+
+    handledPendingDeleteIdRef.current = pendingDeleteId;
+
+    const stripRuntimeSuffix = (value: string) => {
+      const trimmed = value.trim();
+      const lastDash = trimmed.lastIndexOf("-");
+      if (lastDash <= 0) return trimmed;
+
+      const suffix = trimmed.slice(lastDash + 1);
+      if (/^[a-z0-9]{6,}$/i.test(suffix)) {
+        return trimmed.slice(0, lastDash);
+      }
+
+      return trimmed;
+    };
+
+    const runDelete = async () => {
+      const orderedIds = getOrderedProductIds();
+      const deleteId =
+        orderedIds.find((id) => id === pendingDeleteId) ??
+        orderedIds.find((id) => stripRuntimeSuffix(id) === stripRuntimeSuffix(pendingDeleteId));
+
+      if (!deleteId) {
+        sessionStorage.removeItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY);
+        return;
+      }
+
+      try {
+        const deleteIndex = orderedIds.indexOf(deleteId);
+        if (deleteIndex >= 0 && deleteIndex < productsPresets.length) {
+          const nextPresets = productsPresets.filter((_, index) => index !== deleteIndex);
+          dispatch(addProductPreset(nextPresets));
+        }
+
+        await removeProduct(deleteId);
+        dispatch(removeProductId(deleteId));
+
+        const nextIds = getOrderedProductIds();
+        const nextSelectedId = nextIds[0];
+
+        if (nextSelectedId) {
+          const nextConfigRaw = await getConfig(nextSelectedId);
+          const nextConfig =
+            nextConfigRaw && typeof nextConfigRaw === "object"
+              ? (nextConfigRaw as Record<string, unknown>)
+              : ({} as Record<string, unknown>);
+
+          dispatch(setSelectedSceneProduct(nextSelectedId));
+          dispatch(setSelectedProductConfig(nextConfig));
+
+          const nextDimensions: { width?: number; height?: number; depth?: number } = {};
+          if (typeof nextConfig.Width === "number") nextDimensions.width = nextConfig.Width;
+          if (typeof nextConfig.Height === "number") nextDimensions.height = nextConfig.Height;
+          if (typeof nextConfig.Depth === "number") nextDimensions.depth = nextConfig.Depth;
+          if (Object.keys(nextDimensions).length) {
+            dispatch(setSelectedDimensions(nextDimensions));
+          }
+
+          const nextProductType =
+            (typeof nextConfig.ProductType === "string" && nextConfig.ProductType) ||
+            (typeof nextConfig.productType === "string" && nextConfig.productType) ||
+            (typeof nextConfig.type === "string" && nextConfig.type) ||
+            nextSelectedId;
+
+          dispatch(setDrawerProduct(nextProductType));
+
+          const nextTypeId = resolveCabinetTypeId(nextProductType);
+          if (nextTypeId !== null) {
+            dispatch(setActiveCabinetType(nextTypeId));
+          }
+        }
+      } finally {
+        sessionStorage.removeItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY);
+      }
+    };
+
+    void runDelete();
+  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, selectedProducts.length, resolveCabinetTypeId]);
+
   const handleRestoreConfiguration = useCallback(
     async (id: string | number) => {
       try {
@@ -943,10 +1039,13 @@ export const CabinetBuilderPage = () => {
         if (uiHandleGrooveColor) batchConfig.HandleGrooveColor = uiHandleGrooveColor;
         if (uiSinkType) batchConfig.sinkType = uiSinkType;
         if (uiCountertopColor) batchConfig.CountertopColor = uiCountertopColor;
-        if (uiCountertopThickness) batchConfig.Thickness = uiCountertopThickness;
 
         if (Object.keys(batchConfig).length) {
           await setConfigBatch(orderedIds, batchConfig);
+        }
+
+        if (uiCountertopThickness) {
+          await setConfigBatch({}, { Thickness: uiCountertopThickness });
         }
 
         if (uiSidePanels || sidePanelValue) {

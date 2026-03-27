@@ -28,6 +28,34 @@ export type CountertopRuleResult = {
   allowedStyles: Set<string>;
 };
 
+type ResolveDefaultThicknessInput = {
+  rules: CountertopMatrixRule[];
+  activeMaterialTokens: string[];
+  depth: number | null;
+};
+
+/** Returns first valid thickness (as string) for current material/depth matrix context. */
+export const resolveDefaultThicknessFromRules = ({
+  rules,
+  activeMaterialTokens,
+  depth,
+}: ResolveDefaultThicknessInput): string | null => {
+  const matchingRules = rules.filter((rule) => {
+    if (!matchesDepth(rule, depth)) return false;
+    if (!activeMaterialTokens.length) return true;
+    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+  });
+
+  for (const rule of matchingRules) {
+    for (const raw of rule.topThicknesses) {
+      const parsed = parseThicknessValue(raw);
+      if (parsed !== null) return String(parsed);
+    }
+  }
+
+  return null;
+};
+
 export const buildCountertopRuleState = ({
   rules,
   activeMaterialTokens,

@@ -51,6 +51,7 @@ export const getIsDrawerOpen = (state: RootState) => state.rootStateUI.product.i
 export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColor;
 
 export const getCountertopColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColorSku;
+export const getVesselColor = (state: RootState) => state.rootStateUI.product.productOptions.VesselColor;
 
 export const getActiveCountertopThickness = (state: RootState) => state.rootStateUI.product.productOptions.Thickness;
 
@@ -112,8 +113,8 @@ export const getHasPrebuiltSelections = (state: RootState) => {
 
   return (
     options.CabinetColor !== "Ardesia DD GL" ||
-    options.sinkType !== "Top_HPLPrisma" ||
-    options.CountertopColor !== "Rosso Rubino 19 MT" ||
+    options.sinkType !== "Top_Tekorlux_Rectangular" ||
+    options.CountertopColor !== "Cacao Orinoco FF MT" ||
     options.HandleGrooveColor !== "Blu Pavone A6 MT" ||
     options.Handle !== "" ||
     options.Thickness !== "" ||
@@ -127,7 +128,7 @@ export const getHasPrebuiltSelections = (state: RootState) => {
     options.DividersStyle !== "" ||
     options.TowelBarOption !== "None" ||
     options.TowelBarColor !== "" ||
-    options.FaucetHolesAmount !== "" ||
+    options.FaucetHolesAmount !== "0" ||
     options.FaucetHolesSpacing !== '4"'
   );
 };
