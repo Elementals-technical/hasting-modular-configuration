@@ -99,7 +99,7 @@ export const CountertopPage = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
-  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
+  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
   const hasSelectedMaterial = Boolean(activeCountertopColor);
   const isVesselStyle = (activeCountertopStyle ?? "").trim().toLowerCase() === "vessel";
   const [hasSinkBase, setHasSinkBase] = useState(false);
@@ -651,8 +651,9 @@ export const CountertopPage = () => {
       if (!optionMaterials.length) return { isCompatible: true, failedBy: null };
 
       const selectedDepth = selectedDimensions.depth ?? null;
-      const totalWidth = sceneTotalWidth ?? selectedDimensions.width ?? null;
+      const totalWidth = sceneTotalWidth;
       const selectedWidth = selectedDimensions.width ?? null;
+      const normalizedStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
 
       const applicableRules = countertopRules.filter((rule) => {
         if (!matchesDepth(rule, selectedDepth)) return false;
@@ -669,12 +670,19 @@ export const CountertopPage = () => {
         applicableRules.some((rule) => {
           if (rule.minSbCm && width < rule.minSbCm) return false;
 
-          const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
-            (value): value is number => value !== null,
-          );
+          const maxLimits = (
+            normalizedStyle === "integrated"
+              ? [rule.maxIntegratedCm]
+              : normalizedStyle === "vessel"
+                ? [rule.maxVesselCm]
+                : normalizedStyle === "undermount"
+                  ? [rule.maxUndermountCm]
+                  : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm]
+          ).filter((value): value is number => value !== null);
           if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
 
           if (
+            normalizedStyle === "integrated" &&
             rule.integratedAllowedSizesOnly.length > 0 &&
             !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
           ) {
@@ -684,17 +692,17 @@ export const CountertopPage = () => {
           return true;
         });
 
-      if (totalWidth && !matchesWidth(totalWidth)) {
+      if (typeof totalWidth === "number" && !matchesWidth(totalWidth)) {
         return { isCompatible: false, failedBy: "total" };
       }
 
-      if (selectedWidth && !matchesWidth(selectedWidth)) {
+      if (typeof selectedWidth === "number" && !matchesWidth(selectedWidth)) {
         return { isCompatible: false, failedBy: "selected" };
       }
 
       return { isCompatible: true, failedBy: null };
     },
-    [countertopRules, sceneTotalWidth, selectedDimensions.depth, selectedDimensions.width],
+    [activeCountertopStyle, countertopRules, sceneTotalWidth, selectedDimensions.depth, selectedDimensions.width],
   );
 
   const isMaterialOptionCompatibleBySceneSize = useCallback(
@@ -729,6 +737,7 @@ export const CountertopPage = () => {
   const getMaterialMaxWidthForCurrentDepth = useCallback(
     (materialValue: string): number | null => {
       const selectedDepth = selectedDimensions.depth ?? null;
+      const normalizedStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
 
       const relevantRules = countertopRules.filter((rule) => {
         if (!matchesDepth(rule, selectedDepth)) return false;
@@ -737,13 +746,21 @@ export const CountertopPage = () => {
       if (!relevantRules.length) return null;
 
       const maxLimits = relevantRules
-        .flatMap((rule) => [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm])
+        .flatMap((rule) =>
+          normalizedStyle === "integrated"
+            ? [rule.maxIntegratedCm]
+            : normalizedStyle === "vessel"
+              ? [rule.maxVesselCm]
+              : normalizedStyle === "undermount"
+                ? [rule.maxUndermountCm]
+                : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm],
+        )
         .filter((value): value is number => value !== null);
 
       if (!maxLimits.length) return null;
       return Math.max(...maxLimits);
     },
-    [countertopRules, selectedDimensions.depth],
+    [activeCountertopStyle, countertopRules, selectedDimensions.depth],
   );
 
   const getMaterialFilterDisabledReason = useCallback(
@@ -758,18 +775,23 @@ export const CountertopPage = () => {
       const evaluations = matchingOptions.map((option) => evaluateMaterialOptionCompatibility(option));
       if (evaluations.some((item) => item.isCompatible)) return undefined;
 
+      const hasTotalFailure = evaluations.some((item) => item.failedBy === "total");
+      if (hasTotalFailure) {
+        const maxWidth = getMaterialMaxWidthForCurrentDepth(materialValue);
+        const currentTotalWidth = sceneTotalWidth;
+        if (maxWidth !== null && typeof currentTotalWidth === "number") {
+          return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. Current ${currentTotalWidth} cm, ${materialValue} max ${maxWidth} cm.`;
+        }
+        if (maxWidth !== null) {
+          return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. ${materialValue} max ${maxWidth} cm.`;
+        }
+        return MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON;
+      }
+
       const hasSelectedFailure = evaluations.some((item) => item.failedBy === "selected");
       if (hasSelectedFailure) return MATERIAL_FILTER_DISABLED_REASON;
 
-      const maxWidth = getMaterialMaxWidthForCurrentDepth(materialValue);
-      const currentTotalWidth = sceneTotalWidth ?? selectedDimensions.width ?? null;
-      if (maxWidth !== null && typeof currentTotalWidth === "number") {
-        return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. Current ${currentTotalWidth} cm, ${materialValue} max ${maxWidth} cm.`;
-      }
-      if (maxWidth !== null) {
-        return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. ${materialValue} max ${maxWidth} cm.`;
-      }
-      return MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON;
+      return MATERIAL_FILTER_DISABLED_REASON;
     },
     [
       evaluateMaterialOptionCompatibility,
@@ -777,7 +799,6 @@ export const CountertopPage = () => {
       materialsMatchSelection,
       sceneTotalWidth,
       scopedCountertopOptions,
-      selectedDimensions.width,
     ],
   );
 
@@ -786,12 +807,17 @@ export const CountertopPage = () => {
       if (option.children?.length) {
         const children = option.children.map((child) => annotate(child));
         const isDisabled = children.every((child) => child.disabled);
-        const firstChildReason = children.find((child) => child.reason)?.reason;
+        const childReasons = children.map((child) => child.reason).filter((reason): reason is string => Boolean(reason));
+        const totalWidthReason = childReasons.find((reason) =>
+          reason.startsWith(MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON),
+        );
+        const selectedSizeReason = childReasons.find((reason) => reason === MATERIAL_FILTER_DISABLED_REASON);
+        const firstChildReason = childReasons[0];
         return {
           ...option,
           children,
           disabled: isDisabled,
-          reason: isDisabled ? (firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON) : undefined,
+          reason: isDisabled ? (totalWidthReason ?? selectedSizeReason ?? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON) : undefined,
         };
       }
 
