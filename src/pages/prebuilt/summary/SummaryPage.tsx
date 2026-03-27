@@ -5,7 +5,7 @@ import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
-import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -57,6 +57,8 @@ import {
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
+import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
+import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
 
 import s from "./SummaryPage.module.scss";
 
@@ -175,16 +177,8 @@ const sidePanelLabelMap: Record<string, string> = {
   DoubleG: "Double Groove",
 };
 
-const swatches = [
-  { id: "sw-1", name: "Bianco", color: "#d9d7cd" },
-  { id: "sw-2", name: "Latte", color: "#d1cbbe" },
-  { id: "sw-3", name: "Mushroom", color: "#c0baad" },
-  { id: "sw-4", name: "Grigio", color: "#9e9b92" },
-  { id: "sw-5", name: "Caffe", color: "#857868" },
-  { id: "sw-6", name: "Nero", color: "#756c60" },
-];
-
 export const SummaryPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const editPathBySectionId: Record<string, string> = {
@@ -227,6 +221,8 @@ export const SummaryPage = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
+  const selectedSwatches = useAppSelector(getSelectedSwatches);
+  const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
 
   const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
 
@@ -286,6 +282,7 @@ export const SummaryPage = () => {
     },
     [materialLookup],
   );
+  const swatchesListPreview = useMemo(() => selectedSwatches.slice(0, 6).map((value) => resolveSwatch(value)), [selectedSwatches, resolveSwatch]);
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
     id: 4,
@@ -1237,7 +1234,7 @@ export const SummaryPage = () => {
         </div>
       ))}
 
-      <div className={s.section}>
+      <div className={s.section} data-summary-section="swatches">
         <div className={s.sectionHeader}>
           <div className={s.sectionTitle}>Swatches</div>
           <button
@@ -1253,19 +1250,37 @@ export const SummaryPage = () => {
         <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
 
         <label className={s.addSwatches}>
-          <input type="checkbox" />
+          <input
+            type="checkbox"
+            checked={isSwatchesEnabledInSummary}
+            onChange={(event) => dispatch(setSwatchesEnabledInSummary(event.target.checked))}
+          />
           <span className={s.addLabel}>Add free swatches</span>
         </label>
 
-        <div className={s.swatchesListHeader}>Swatches list</div>
+        <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledInSummary ? s.swatchesMuted : ""}`}>Swatches list</div>
 
-        <div className={s.swatchesList}>
-          {swatches.map((swatch) => (
-            <div key={swatch.id} className={s.swatchTile}>
-              <span className={s.tileColor} style={{ backgroundColor: swatch.color }} />
-              {/* <span className={s.tileLabel}>{swatch.name}</span> */}
-            </div>
-          ))}
+        <div className={`${s.swatchesList} ${!isSwatchesEnabledInSummary ? s.swatchesMuted : ""}`}>
+          {Array.from({ length: 6 }).map((_, index) => {
+            const swatch = swatchesListPreview[index];
+            if (!swatch) {
+              return <div key={`empty-${index}`} className={s.swatchTile}><span className={`${s.tileColor} ${s.tileEmpty}`} /></div>;
+            }
+
+            return (
+              <div key={swatch.value} className={s.swatchTile}>
+                <span
+                  className={s.tileColor}
+                  style={{
+                    backgroundColor: swatch.color,
+                    backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 

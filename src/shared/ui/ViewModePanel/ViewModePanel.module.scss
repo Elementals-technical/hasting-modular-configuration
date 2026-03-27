@@ -6,7 +6,8 @@
   margin-bottom: 12px;
 
   > div {
-    a {
+    a,
+    button {
       color: #ac5331;
       font-family: Poppins;
       font-size: 12px;
@@ -23,6 +24,10 @@
       display: flex;
       align-items: center;
       gap: 6px;
+
+      border: none;
+      padding: 0;
+      background: transparent;
     }
   }
 }
@@ -34,7 +39,8 @@
 
 .leftText,
 .rightText {
-  a {
-    cursor: auto;
+  a,
+  button {
+    cursor: pointer;
   }
 }

@@ -36,6 +36,7 @@ import {
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
+import { getIsSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/selectors";
 
 import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 
@@ -69,6 +70,7 @@ export function Player() {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
+  const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
 
   const [saveConfiguration] = useSaveConfigurationMutation();
   const activeStep = useAppSelector(getActiveStep);
@@ -133,6 +135,11 @@ export function Player() {
 
     const clone = content.cloneNode(true) as HTMLElement;
     clone.id = "summary-print-clone";
+
+    if (!isSwatchesEnabledInSummary) {
+      clone.querySelector('[data-summary-section="swatches"]')?.remove();
+    }
+
     document.body.appendChild(clone);
 
     const restore = () => {

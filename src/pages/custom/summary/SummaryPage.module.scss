@@ -328,6 +328,11 @@
   flex-wrap: wrap;
 }
 
+.swatchesMuted {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
 .swatchTile {
   display: flex;
   flex-direction: column;
@@ -340,6 +345,11 @@
   height: 64px;
   border-radius: 10px;
   border: 1px solid #d7d4cf;
+}
+
+.tileEmpty {
+  border-style: dashed;
+  background: transparent;
 }
 
 .tileLabel {

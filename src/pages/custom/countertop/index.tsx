@@ -65,6 +65,7 @@ import { BaseButton } from "@/shared";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
@@ -1402,7 +1403,7 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel />
+          <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedCountertopOptions}
