@@ -1755,6 +1755,50 @@ export const PlayCanvasIntegration = () => {
     loadConfig();
   }, [dispatch, resolveCabinetTypeId, selectedSceneProduct]);
 
+  useEffect(() => {
+    if (!selectedSceneProduct) return;
+
+    let cancelled = false;
+
+    const syncSelectedDimensionsFromScene = async () => {
+      const config = await getConfig(selectedSceneProduct);
+      if (!config || cancelled) return;
+
+      const width = toFiniteNumber(config.Width);
+      const height = toFiniteNumber(config.Height);
+      const depth = toFiniteNumber(config.Depth);
+
+      const nextDimensions: { width?: number; height?: number; depth?: number } = {};
+
+      if (width !== null && (selectedDimensions.width === null || Math.abs(selectedDimensions.width - width) >= 0.01)) {
+        nextDimensions.width = width;
+      }
+
+      if (height !== null && (selectedDimensions.height === null || Math.abs(selectedDimensions.height - height) >= 0.01)) {
+        nextDimensions.height = height;
+      }
+
+      if (depth !== null && (selectedDimensions.depth === null || Math.abs(selectedDimensions.depth - depth) >= 0.01)) {
+        nextDimensions.depth = depth;
+      }
+
+      if (Object.keys(nextDimensions).length) {
+        dispatch(setSelectedDimensions(nextDimensions));
+        dispatch(setSelectedProductConfig(config));
+      }
+    };
+
+    void syncSelectedDimensionsFromScene();
+    const intervalId = window.setInterval(() => {
+      void syncSelectedDimensionsFromScene();
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [dispatch, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
       return [
