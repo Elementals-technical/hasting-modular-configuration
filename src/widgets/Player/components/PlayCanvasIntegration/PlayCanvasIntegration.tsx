@@ -153,6 +153,7 @@ export const PlayCanvasIntegration = () => {
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
+  const prevHandleRef = useRef<string | undefined>(undefined);
   const isMobileMediaQueryRef = useRef<MediaQueryList | null>(null);
   const [dropdownState, setDropdownState] = useState<{ visible: boolean; x: number; y: number }>({
     visible: false,
@@ -902,7 +903,7 @@ export const PlayCanvasIntegration = () => {
       try {
         await saveSnapshot();
         pendingHandleSyncRef.current = true;
-        dispatch(setSelectedProductConfig({ ...selectedProductConfig, Handle: handleType }));
+        dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
 
         if (productIds.length) {
           await setConfigBatch({}, { Handle: handleType });
@@ -926,6 +927,18 @@ export const PlayCanvasIntegration = () => {
     pendingHandleSyncRef.current = false;
     setConfigBatch({}, { Height: selectedDimensions.height });
   }, [selectedDimensions]);
+
+  useEffect(() => {
+    const currentHandle =
+      typeof selectedProductConfig?.Handle === "string" ? (selectedProductConfig.Handle as string) : undefined;
+    const prevHandle = prevHandleRef.current;
+    prevHandleRef.current = currentHandle;
+
+    if (!currentHandle || currentHandle === prevHandle) return;
+    if (!productIds.length) return;
+
+    setConfigBatch({}, { Handle: currentHandle });
+  }, [productIds.length, selectedProductConfig?.Handle]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -1299,7 +1312,7 @@ export const PlayCanvasIntegration = () => {
       }
     }
 
-    let updatedPresets = productsPresets.map((preset) => ({
+    const updatedPresets = productsPresets.map((preset) => ({
       ...preset,
       CabinetColor: sceneCabinetColor ?? preset.CabinetColor,
       CountertopColor: sceneCountertopColor ?? preset.CountertopColor,
@@ -1323,13 +1336,7 @@ export const PlayCanvasIntegration = () => {
     }
 
     navigate(ROUTES.CUSTOM);
-  }, [
-    customizeModePromptAction,
-    customizeModePromptDeleteTarget,
-    dispatch,
-    navigate,
-    productsPresets,
-  ]);
+  }, [customizeModePromptAction, customizeModePromptDeleteTarget, dispatch, navigate, productsPresets]);
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
@@ -1774,7 +1781,10 @@ export const PlayCanvasIntegration = () => {
         nextDimensions.width = width;
       }
 
-      if (height !== null && (selectedDimensions.height === null || Math.abs(selectedDimensions.height - height) >= 0.01)) {
+      if (
+        height !== null &&
+        (selectedDimensions.height === null || Math.abs(selectedDimensions.height - height) >= 0.01)
+      ) {
         nextDimensions.height = height;
       }
 
@@ -1784,7 +1794,6 @@ export const PlayCanvasIntegration = () => {
 
       if (Object.keys(nextDimensions).length) {
         dispatch(setSelectedDimensions(nextDimensions));
-        dispatch(setSelectedProductConfig(config));
       }
     };
 
