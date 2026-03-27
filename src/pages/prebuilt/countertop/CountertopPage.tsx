@@ -57,7 +57,12 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 import { optionsMockData2, optionsMockData3, optionsMockData4 } from "./constants";
-import { vesselAllowedMaterialsMap, extractColorCode, resolveDefaultBasinByCountertopColor } from "@/shared/lib/sku";
+import {
+  vesselAllowedMaterialsMap,
+  extractColorCode,
+  resolveDefaultBasinByCountertopColor,
+  resolveVesselDynamicAllowedThicknessTokens,
+} from "@/shared/lib/sku";
 
 import s from "./CountertopPage.module.scss";
 import { BaseButton } from "@/shared";
@@ -67,6 +72,10 @@ import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
 const MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON = "Not available for current total cabinets width on scene";
+const formatSkuThicknessToken = (value: number): string => {
+  const mapped = Math.abs(value - 2.5) < 0.001 ? 2.4 : value;
+  return `${mapped.toFixed(1).replace(/^0(?=\.)/, "")}H`;
+};
 
 type MaterialFilterOption = {
   label: string;
@@ -834,15 +843,25 @@ export const CountertopPage = () => {
 
   const filteredThicknessOptions = useMemo(() => {
     const allowed = ruleState.allowedThicknesses;
-    if (!allowed.size) return optionsMockData4;
+    const vesselMaterialTokens =
+      isVesselStyle && activeVesselMaterialTokens.length > 0 ? activeVesselMaterialTokens : activeMaterialTokens;
+    const vesselAllowedThicknessTokens = isVesselStyle
+      ? resolveVesselDynamicAllowedThicknessTokens(vesselMaterialTokens)
+      : null;
+    if (!allowed.size && !vesselAllowedThicknessTokens) return optionsMockData4;
 
     return optionsMockData4.filter((option) => {
       const rawValue = option.value ?? option.title;
       const numeric = Number.parseFloat(rawValue);
       if (!Number.isFinite(numeric)) return false;
-      return Array.from(allowed).some((value) => Math.abs(value - numeric) < 0.001);
+      const matchesMatrix = !allowed.size || Array.from(allowed).some((value) => Math.abs(value - numeric) < 0.001);
+      if (!matchesMatrix) return false;
+
+      if (!vesselAllowedThicknessTokens) return true;
+      const skuThicknessToken = formatSkuThicknessToken(numeric);
+      return vesselAllowedThicknessTokens.includes(skuThicknessToken);
     });
-  }, [ruleState.allowedThicknesses]);
+  }, [ruleState.allowedThicknesses, isVesselStyle, activeVesselMaterialTokens, activeMaterialTokens]);
 
   const allowedBasinTokens = useMemo(() => {
     return ruleState.allowedBasinTokens;

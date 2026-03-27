@@ -73,3 +73,65 @@ export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
   // URMOR — Tekorlux SSTKR TAL / TAM only (matched via color code, not material name)
   Vessel_UrbanMorris: ["tal", "tam"],
 };
+
+/**
+ * Dynamic countertop Vessel SKU dependencies:
+ *   CT-UR{MATERIAL}-VES-{W}W-{H}H-{D}D-{MATERIAL}
+ *
+ * Key: material SKU token used in CT-UR{...}
+ * Value: allowed thickness tokens for H-part (1 decimal), e.g. "5.1H"
+ */
+export const vesselDynamicThicknessByMaterialSku: Record<string, string[]> = {
+  SSOCR: ["5.5H"],
+  HPL: ["5.1H"],
+  POR: ["5.5H"],
+  SSTKR: ["5.1H", "5.5H"],
+  CER: ["6.1H"],
+  FX: [],
+};
+
+const normalizeToken = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+
+const materialTokenToSku: Record<string, string> = {
+  ssocr: "SSOCR",
+  ocritech: "SSOCR",
+  sstkr: "SSTKR",
+  tekorlux: "SSTKR",
+  tal: "SSTKR",
+  tam: "SSTKR",
+  hpl: "HPL",
+  por: "POR",
+  porcelain: "POR",
+  fx: "FX",
+  fenix: "FX",
+  cer: "CER",
+  ceramic: "CER",
+  solidsurface: "SSOCR",
+  sst1c: "SSOCR",
+  sst1d: "SSOCR",
+};
+
+export const resolveVesselDynamicMaterialSku = (materialTokens: string[]): string | null => {
+  for (const token of materialTokens) {
+    const normalized = normalizeToken(token);
+    if (!normalized) continue;
+    const mapped = materialTokenToSku[normalized];
+    if (mapped) return mapped;
+  }
+  return null;
+};
+
+/**
+ * Returns constrained H tokens for dynamic CT vessel SKUs by material.
+ * null means no extra material-specific thickness constraint.
+ */
+export const resolveVesselDynamicAllowedThicknessTokens = (materialTokens: string[]): string[] | null => {
+  const sku = resolveVesselDynamicMaterialSku(materialTokens);
+  if (!sku) return null;
+  const allowed = vesselDynamicThicknessByMaterialSku[sku];
+  return allowed && allowed.length > 0 ? allowed : null;
+};

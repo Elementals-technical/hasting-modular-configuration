@@ -20,5 +20,12 @@ export {
 } from "./cabinetSkuMaps";
 export { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
 export { buildVesselSku, type VesselSkuInput } from "./buildVesselSku";
-export { vesselSeriesSkuMap, vesselHeightCmMap, vesselAllowedMaterialsMap } from "./vesselSkuMaps";
+export {
+  vesselSeriesSkuMap,
+  vesselHeightCmMap,
+  vesselAllowedMaterialsMap,
+  vesselDynamicThicknessByMaterialSku,
+  resolveVesselDynamicMaterialSku,
+  resolveVesselDynamicAllowedThicknessTokens,
+} from "./vesselSkuMaps";
 export { resolveDefaultBasinByCountertopColor } from "./resolveDefaultBasinByCountertopColor";

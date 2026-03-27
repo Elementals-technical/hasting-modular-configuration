@@ -1,5 +1,6 @@
 import { cmToInches } from "./cmToInches";
 import { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
+import { vesselDynamicThicknessByMaterialSku } from "./vesselSkuMaps";
 
 export type CountertopSkuInput = {
   /** "plain" | "integrated" | "vessel" | "undermount" */
@@ -25,6 +26,23 @@ const CATEGORY = "CT";
 const LOG_PREFIX = "[SKU/CT]";
 const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
 const formatThicknessToken = (value: number): string => value.toFixed(1).replace(/^0(?=\.)/, "");
+const CM_PER_INCH = 2.54;
+const formatDimensionToken = (value: number): string => {
+  const fixed = value.toFixed(1);
+  const trimmed = fixed.replace(/\.?0+$/, "");
+  return trimmed.replace(/^0(?=\.)/, "");
+};
+const cmToInchesRoundUp = (cm: number, precision = 1): string => {
+  const factor = 10 ** precision;
+  const inches = cm / CM_PER_INCH;
+  const roundedUp = Math.ceil((inches - Number.EPSILON) * factor) / factor;
+  return formatDimensionToken(roundedUp);
+};
+const parseSkuThicknessToken = (value: string): number | null => {
+  const numericPart = value.trim().replace(/h$/i, "");
+  const parsed = Number.parseFloat(numericPart);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -82,14 +100,6 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const styleValue = input.style?.trim() || "plain";
   const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true });
 
-  // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
-  const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
-  const rawT = input.thickness?.trim();
-  const parsedT = rawT ? parseFloat(rawT) : null;
-  const thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
-  const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
-  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
-
   const isVessel = styleValue.toLowerCase() === "vessel";
 
   // Material block:
@@ -106,6 +116,30 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     inferredMaterial ??
     (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
   const color = input.countertopColorCode?.trim() || null;
+
+  // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
+  const w =
+    input.width != null
+      ? `${isVessel ? cmToInchesRoundUp(input.width) : cmToInches(input.width)}W`
+      : `${FALLBACK}W`;
+  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
+  const rawT = input.thickness?.trim();
+  const parsedT = rawT ? parseFloat(rawT) : null;
+  let thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
+
+  // Enforce material -> thickness dependency for dynamic vessel CT SKUs.
+  if (isVessel && mat) {
+    const allowedTokens = vesselDynamicThicknessByMaterialSku[mat] ?? [];
+    if (allowedTokens.length > 0) {
+      const currentToken = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : null;
+      if (!currentToken || !allowedTokens.includes(currentToken)) {
+        const fallback = parseSkuThicknessToken(allowedTokens[0]);
+        if (fallback !== null) thicknessForSku = fallback;
+      }
+    }
+  }
+
+  const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
   const matBlock = mat
     ? isVessel
       ? `-${mat}`
