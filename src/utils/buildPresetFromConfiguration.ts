@@ -4,29 +4,26 @@ type ConfigurationMap = Record<string, Record<string, unknown>>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
+const stripRuntimeSuffix = (value: string): string => {
+  const trimmed = value.trim();
+  const lastDash = trimmed.lastIndexOf("-");
+  if (lastDash > 0) {
+    const suffix = trimmed.slice(lastDash + 1);
+    if (suffix.length >= 6) return trimmed.slice(0, lastDash);
+  }
+  return trimmed;
+};
+
 const inferProductName = (id: string, config?: Record<string, unknown>) => {
   const productType = config?.productType;
-  if (typeof productType === "string" && productType.length) return productType;
+  if (typeof productType === "string" && productType.length) return stripRuntimeSuffix(productType);
 
   const entityName = config?.entityName;
   if (typeof entityName === "string" && entityName.length) {
-    if (entityName === id) {
-      const lastDash = entityName.lastIndexOf("-");
-      if (lastDash > 0) {
-        const suffix = entityName.slice(lastDash + 1);
-        if (suffix.length >= 6) return entityName.slice(0, lastDash);
-      }
-    }
-    return entityName;
+    return stripRuntimeSuffix(entityName);
   }
 
-  const lastDash = id.lastIndexOf("-");
-  if (lastDash > 0) {
-    const suffix = id.slice(lastDash + 1);
-    if (suffix.length >= 6) return id.slice(0, lastDash);
-  }
-
-  return id;
+  return stripRuntimeSuffix(id);
 };
 
 export const buildPresetFromConfiguration = (
