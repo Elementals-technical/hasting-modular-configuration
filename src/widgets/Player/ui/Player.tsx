@@ -5,15 +5,16 @@ import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasInt
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
 import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
+import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { HintIcon } from "@/shared/assets/images/svg/HintIcon";
-import { HelpPopup } from "@/shared/ui/Popups/ui/HelpPopup/HelpPopup";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
+import { HelpCenterPopup, type HelpCenterItem } from "@/widgets/helpCenter";
 
-import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -48,6 +49,7 @@ export function Player() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
 
   const isSummaryPage = pathname.includes("/summary");
 
@@ -236,6 +238,22 @@ export function Player() {
     );
   };
 
+  const helpItems: HelpCenterItem[] = [
+    { id: "configurator-how-tos", label: "Configurator How-Tos" },
+    { id: "product-questions-design-assistance", label: "Product Questions & Design Assistance" },
+    {
+      id: "order-free-swatches",
+      label: "Order Free Swatches",
+      onClick: () => {
+        dispatch(openSwatchSidebar());
+        handleClosePopup();
+      },
+    },
+    { id: "how-to-buy", label: "How To Buy" },
+    { id: "visit-our-showroom", label: "Visit our Showroom" },
+    { id: "general-product-information", label: "General Product Information" },
+  ];
+
   return (
     <div className={s.player}>
       <div className={s.mobileStepNavigation}>
@@ -274,7 +292,7 @@ export function Player() {
             <HintIcon fill="#fff" />
             <div>Help</div>
           </div>
-          <HelpPopup isOpening={isOpening} onClose={handleClosePopup} />
+          <HelpCenterPopup isOpening={isOpening} onClose={handleClosePopup} items={helpItems} />
         </div>
       ) : (
         <div className={s.shareIcon} onClick={handleSaveConfiguration}>
