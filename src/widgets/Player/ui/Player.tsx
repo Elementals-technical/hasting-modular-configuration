@@ -329,26 +329,97 @@ export function Player() {
     {
       id: "how-to-buy",
       label: "How To Buy",
-      children: [
-        { id: "buy-online", label: "Buy Online" },
-        { id: "buy-through-designer", label: "Buy Through a Designer" },
-      ],
+      content: {
+        title: "",
+        subtitle:
+          "Custom bathroom furniture leaves no room for shortcuts - we sweat the small stuff, so you don't have to.",
+        steps: [
+          {
+            number: "01",
+            title: "Configure & Submit Your Design",
+            text: "Share your design configuration through the form. Our team receives your design and reaches out within 24 hours to get the ball rolling.",
+          },
+          {
+            number: "02",
+            title: "Your Solution Specialist",
+            text: "We pair you with a dedicated specialist - your go-to to finalize your design. They support you and your team, making it a breeze. Here's how it works:",
+            bullets: [
+              {
+                title: "Sample Box Curation.",
+                text: "Confidence in your colorways is a must. We curate your box for review.",
+              },
+              {
+                title: "Vetting the details.",
+                text: "We ensure all the details are spot on for you.",
+              },
+              {
+                title: "Product Expertise.",
+                text: "We answer any and all your solution questions.",
+              },
+            ],
+          },
+          {
+            number: "03",
+            title: "Choose Your Purchase Path",
+            text: "After we finalize your design, you choose your purchase path - through our NYC Showroom or Dealer network",
+          },
+        ],
+      },
     },
     {
       id: "visit-our-showroom",
       label: "Visit our Showroom",
       children: [
-        { id: "showroom-locations", label: "Showroom Locations" },
-        { id: "book-showroom-visit", label: "Book a Visit" },
+        {
+          id: "schedule-a-visit",
+          label: "Schedule a Visit",
+          href: "https://meetings.hubspot.com/boni-osmani/showroom-meeting-scheduler-round-robin",
+          external: true,
+        },
+        {
+          id: "take-a-virtual-tour",
+          label: "Take a Virtual Tour",
+          href: "https://www.hastingsbathcollection.com/visit-our-nyc-showroom#anchor-3d-tour",
+          external: true,
+        },
+        {
+          id: "showroom-address",
+          label: "Showroom Address",
+          content: {
+            icon: "map-pin",
+            subtitle: "A&D Building",
+            intro: "150 East 58th St, 10th Floor, NY, NY, 10155",
+          },
+        },
       ],
     },
     {
       id: "general-product-information",
       label: "General Product Information",
-      children: [
-        { id: "materials-and-finishes", label: "Materials & Finishes" },
-        { id: "warranty-and-care", label: "Warranty & Care" },
-      ],
+      content: {
+        title: "Product Details",
+        bullets: [
+          "Special Order: All solutions are built-to order",
+          "Lead Time: 10-12 weeks",
+          "Country of Origin: Italy",
+          "Warranty: 36 months",
+          "All materials are Carb2 compliant",
+        ],
+        sections: [
+          {
+            title: "Custom Made, Not Pre-Made",
+            text: "At Hastings, each design is crafted and created for you. Our flexible, modular approach is built for adaptability which makes tailoring solutions that fit your look, space and lifestyle, seamless.",
+          },
+          {
+            title: "Uncompromising Italian Design",
+            text: "Exclusively made and designed in Italy, this chic series features sophisticated detailing, European ingenuity and Italian modern living.",
+          },
+          {
+            title: "Built for Longevity",
+            text: "Meticulous workmanship, modern engineering and premium materials are at the core of each design. All of which lay the groundwork for lasting durability.",
+          },
+        ],
+      },
     },
   ];
 

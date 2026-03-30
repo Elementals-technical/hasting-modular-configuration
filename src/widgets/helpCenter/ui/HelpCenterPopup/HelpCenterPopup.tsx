@@ -2,6 +2,7 @@ import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { PopupRightContent } from "@/shared/ui/Popups/PopupRightContent/PopupRightContent";
+import { MapPinIcon } from "@/shared/assets/images/svg/MapPinIcon";
 
 import s from "./HelpCenterPopup.module.scss";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
@@ -14,9 +15,25 @@ export interface HelpCenterNode {
   external?: boolean;
   children?: HelpCenterNode[];
   content?: {
-    title: string;
+    title?: string;
+    subtitle?: string;
     intro?: string;
+    icon?: "map-pin";
+    chipLabel?: string;
     bullets?: string[];
+    sections?: Array<{
+      title: string;
+      text: string;
+    }>;
+    steps?: Array<{
+      number: string;
+      title: string;
+      text: string;
+      bullets?: Array<{
+        title: string;
+        text: string;
+      }>;
+    }>;
     image?: string;
   };
 }
@@ -103,14 +120,35 @@ export const HelpCenterPopup: React.FC<HelpCenterPopupProps> = ({ isOpening, onC
                 <ArrowLeft />
               </button>
               <div className={s.sub_header__title}>
-                {!!breadcrumb.length && <div className={s.breadcrumb}>{breadcrumb.join(" / ")}</div>}
+                {!!breadcrumb.length && <div className={s.breadcrumb}>{breadcrumb[breadcrumb.length - 1]}</div>}
               </div>
+              <div></div>
             </div>
           )}
           {contentNode ? (
             <div className={s.contentDetails}>
-              <div className={s.contentTitle}>{contentNode.content?.title}</div>
-              {!!contentNode.content?.intro && <p>{contentNode.content.intro}</p>}
+              {!!contentNode.content?.title && <div className={s.contentTitle}>{contentNode.content.title}</div>}
+              {contentNode.content?.icon === "map-pin" ? (
+                <div className={s.addressRow}>
+                  <div className={s.contentIcon}>
+                    <MapPinIcon />
+                  </div>
+                  <div className={s.addressBlock}>
+                    {!!contentNode.content?.subtitle && (
+                      <p className={s.contentSubtitle}>{contentNode.content.subtitle}</p>
+                    )}
+                    {!!contentNode.content?.intro && <p>{contentNode.content.intro}</p>}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {!!contentNode.content?.subtitle && (
+                    <p className={s.contentSubtitle}>{contentNode.content.subtitle}</p>
+                  )}
+                  {!!contentNode.content?.intro && <p>{contentNode.content.intro}</p>}
+                </>
+              )}
+              {!!contentNode.content?.chipLabel && <div className={s.contentChip}>{contentNode.content.chipLabel}</div>}
               {!!contentNode.content?.bullets?.length && (
                 <ul className={s.contentBulletList}>
                   {contentNode.content.bullets.map((bullet) => (
@@ -118,8 +156,44 @@ export const HelpCenterPopup: React.FC<HelpCenterPopupProps> = ({ isOpening, onC
                   ))}
                 </ul>
               )}
+              {!!contentNode.content?.sections?.length && (
+                <div className={s.contentSections}>
+                  {contentNode.content.sections.map((section) => (
+                    <div key={section.title} className={s.contentSection}>
+                      <p className={s.contentSectionTitle}>{section.title}</p>
+                      <p className={s.contentSectionText}>{section.text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!!contentNode.content?.steps?.length && (
+                <div className={s.contentSteps}>
+                  {contentNode.content.steps.map((step) => (
+                    <div key={step.number} className={s.contentStep}>
+                      <div className={s.contentStepHeader}>
+                        <span className={s.contentStepNumber}>{step.number}</span>
+                        <span className={s.contentStepTitle}>{step.title}</span>
+                      </div>
+                      <p className={s.contentStepText}>{step.text}</p>
+                      {!!step.bullets?.length && (
+                        <ul className={s.contentStepBullets}>
+                          {step.bullets.map((bullet) => (
+                            <li key={`${step.number}-${bullet.title}`}>
+                              <strong>{bullet.title}</strong> {bullet.text}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               {!!contentNode.content?.image && (
-                <img className={s.contentImage} src={contentNode.content.image} alt={contentNode.content.title} />
+                <img
+                  className={s.contentImage}
+                  src={contentNode.content.image}
+                  alt={contentNode.content.title ?? "Help content"}
+                />
               )}
             </div>
           ) : (
