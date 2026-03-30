@@ -37,12 +37,16 @@ const steps: HowToStartStep[] = [
 
 interface HowToStartI {
   handleClose: () => void;
+  initialStep?: number;
 }
 
-export const HowToStart: React.FC<HowToStartI> = ({ handleClose }) => {
+export const HowToStart: React.FC<HowToStartI> = ({ handleClose, initialStep = 0 }) => {
   const [isOpening, setIsOpening] = useState(true);
 
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(() => {
+    if (initialStep < 0 || initialStep >= steps.length) return 0;
+    return initialStep;
+  });
   const activeMedia = steps[activeStep];
 
   const handleNext = () => setActiveStep((prevStep) => (prevStep + 1) % steps.length);
@@ -51,6 +55,7 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose }) => {
     <PopupCenterContent
       onClose={() => {
         setIsOpening(false);
+        handleClose();
       }}
       isOpening={isOpening}
     >

@@ -12,7 +12,9 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { HintIcon } from "@/shared/assets/images/svg/HintIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
-import { HelpCenterPopup, type HelpCenterItem } from "@/widgets/helpCenter";
+import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
+import quickEditorStep from "@/shared/assets/images/png/popup/Step_3.png";
+import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useSaveConfigurationMutation } from "@/entities";
@@ -55,6 +57,7 @@ export function Player() {
 
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
+  const [howToStep, setHowToStep] = useState<number | null>(null);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -204,10 +207,35 @@ export function Player() {
 
   const isOpening = searchParams.get("help") === "1";
   const hasHelpState = Boolean((location.state as { helpModal?: boolean } | null)?.helpModal);
+  const helpPath = (searchParams.get("helpPath") ?? "")
+    .split(".")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const setHelpPath = (nextPath: string[]) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (nextPath.length) {
+      nextParams.set("helpPath", nextPath.join("."));
+    } else {
+      nextParams.delete("helpPath");
+    }
+
+    const search = nextParams.toString();
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: search ? `?${search}` : "",
+      },
+      { replace: true, state: location.state },
+    );
+  };
 
   const handleOpenPopup = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("help", "1");
+    nextParams.delete("helpPath");
 
     navigate(
       {
@@ -227,6 +255,7 @@ export function Player() {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("help");
     nextParams.delete("step");
+    nextParams.delete("helpPath");
     const search = nextParams.toString();
 
     navigate(
@@ -238,20 +267,89 @@ export function Player() {
     );
   };
 
-  const helpItems: HelpCenterItem[] = [
-    { id: "configurator-how-tos", label: "Configurator How-Tos" },
-    { id: "product-questions-design-assistance", label: "Product Questions & Design Assistance" },
+  const helpNodes: HelpCenterNode[] = [
+    {
+      id: "configurator-how-tos",
+      label: "Configurator How-Tos",
+      children: [
+        {
+          id: "prebuilt-mode-tutorial",
+          label: "Pre-Built Mode tutorial",
+          action: () => {
+            setHowToStep(1);
+            handleClosePopup();
+          },
+        },
+        {
+          id: "custom-mode-tutorial",
+          label: "Custom Mode tutorial",
+          action: () => {
+            setHowToStep(2);
+            handleClosePopup();
+          },
+        },
+        {
+          id: "in-scene-quick-editor",
+          label: "In-scene quick editor",
+          content: {
+            title: "In-Scene Quick Editor",
+            intro: "Use the in-scene editor to make fast-paced edits:",
+            bullets: [
+              "Point and click any element to make edits",
+              "Resize, reposition, clone and duplicate cabinets",
+              "Modify countertop color, style, thickness, etc.",
+            ],
+            image: quickEditorStep,
+          },
+        },
+      ],
+    },
+    {
+      id: "product-questions-design-assistance",
+      label: "Product Questions & Design Assistance",
+      children: [
+        { id: "chat-with-product-expert", label: "Chat with a Product Expert", href: "#" },
+        {
+          id: "meet-virtually",
+          label: "Meet Virtually",
+          href: "https://meetings.hubspot.com/jennifer727/sdr-meeting-scheduler-round-robin",
+          external: true,
+        },
+        { id: "hubspot-phone", label: "+1 (631) 859-7174", href: "tel:+16318597174" },
+      ],
+    },
     {
       id: "order-free-swatches",
       label: "Order Free Swatches",
-      onClick: () => {
+      action: () => {
         dispatch(openSwatchSidebar());
         handleClosePopup();
       },
     },
-    { id: "how-to-buy", label: "How To Buy" },
-    { id: "visit-our-showroom", label: "Visit our Showroom" },
-    { id: "general-product-information", label: "General Product Information" },
+    {
+      id: "how-to-buy",
+      label: "How To Buy",
+      children: [
+        { id: "buy-online", label: "Buy Online" },
+        { id: "buy-through-designer", label: "Buy Through a Designer" },
+      ],
+    },
+    {
+      id: "visit-our-showroom",
+      label: "Visit our Showroom",
+      children: [
+        { id: "showroom-locations", label: "Showroom Locations" },
+        { id: "book-showroom-visit", label: "Book a Visit" },
+      ],
+    },
+    {
+      id: "general-product-information",
+      label: "General Product Information",
+      children: [
+        { id: "materials-and-finishes", label: "Materials & Finishes" },
+        { id: "warranty-and-care", label: "Warranty & Care" },
+      ],
+    },
   ];
 
   return (
@@ -292,7 +390,13 @@ export function Player() {
             <HintIcon fill="#fff" />
             <div>Help</div>
           </div>
-          <HelpCenterPopup isOpening={isOpening} onClose={handleClosePopup} items={helpItems} />
+          <HelpCenterPopup
+            isOpening={isOpening}
+            onClose={handleClosePopup}
+            nodes={helpNodes}
+            path={helpPath}
+            onPathChange={setHelpPath}
+          />
         </div>
       ) : (
         <div className={s.shareIcon} onClick={handleSaveConfiguration}>
@@ -307,6 +411,8 @@ export function Player() {
         shareValue={shareValue}
         onCopy={handleCopyShareValue}
       />
+
+      {howToStep !== null && <HowToStart handleClose={() => setHowToStep(null)} initialStep={howToStep} />}
     </div>
   );
 }
