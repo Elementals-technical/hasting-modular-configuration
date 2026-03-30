@@ -13,6 +13,7 @@ import { HintIcon } from "@/shared/assets/images/svg/HintIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
+import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
 import quickEditorStep from "@/shared/assets/images/png/popup/Step_3.png";
 import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
@@ -58,6 +59,7 @@ export function Player() {
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
   const [howToStep, setHowToStep] = useState<number | null>(null);
+  const [isCustomInstructionOpen, setIsCustomInstructionOpen] = useState(false);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -267,6 +269,22 @@ export function Player() {
     );
   };
 
+  const closePopupWithoutBack = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("help");
+    nextParams.delete("step");
+    nextParams.delete("helpPath");
+    const search = nextParams.toString();
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: search ? `?${search}` : "",
+      },
+      { replace: true },
+    );
+  };
+
   const helpNodes: HelpCenterNode[] = [
     {
       id: "configurator-how-tos",
@@ -277,15 +295,15 @@ export function Player() {
           label: "Pre-Built Mode tutorial",
           action: () => {
             setHowToStep(1);
-            handleClosePopup();
+            closePopupWithoutBack();
           },
         },
         {
           id: "custom-mode-tutorial",
           label: "Custom Mode tutorial",
           action: () => {
-            setHowToStep(2);
-            handleClosePopup();
+            setIsCustomInstructionOpen(true);
+            closePopupWithoutBack();
           },
         },
         {
@@ -484,6 +502,7 @@ export function Player() {
       />
 
       {howToStep !== null && <HowToStart handleClose={() => setHowToStep(null)} initialStep={howToStep} />}
+      {isCustomInstructionOpen && <InstructionPopup handleClose={() => setIsCustomInstructionOpen(false)} />}
     </div>
   );
 }
