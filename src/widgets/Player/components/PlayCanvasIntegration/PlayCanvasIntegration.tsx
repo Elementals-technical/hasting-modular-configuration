@@ -18,6 +18,8 @@ import {
   setSelectedProductConfig,
   setSelectedSceneProduct,
   swapProductIds,
+  setTowelBarOption,
+  setTowelBarColor,
 } from "@/entities/product/model/store/slice";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
@@ -42,6 +44,7 @@ import {
   getSelectedProductConfig,
   getActiveCabinetRule,
   getSinkBaseCount,
+  getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -206,6 +209,7 @@ export const PlayCanvasIntegration = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
+  const towelBarOption = useAppSelector(getTowelBarOption);
   const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
 
   const saveSnapshot = useHistorySnapshot();
@@ -947,11 +951,67 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isDrawerOpen]);
 
+
+  // Detects if the currently selected scene entity is a TowelBar addon.
+  // Entity names follow the pattern "TowelBar_Left-<randomId>" / "TowelBar_Right-<randomId>"
+  const isTowelBarEntity = useMemo(() => {
+    const candidates = [
+      selectedSceneProduct,
+      typeof selectedProductConfig?.productType === "string" ? (selectedProductConfig.productType as string) : null,
+      typeof selectedProductConfig?.entityName === "string" ? (selectedProductConfig.entityName as string) : null,
+    ]
+      .filter(Boolean)
+      .map((value) => String(value).toLowerCase().replace(/[_\s-]/g, ""));
+
+    return candidates.some((value) => value.startsWith("towelbar"));
+  }, [selectedProductConfig, selectedSceneProduct]);
+
   const handleRemoveProducts = useCallback(async () => {
     if (!selectedSceneProduct) return;
 
     try {
       await saveSnapshot();
+
+      // ── Towel Bar deletion ────────────────────────────────────────────────
+      // TowelBar entities are NOT cabinet products — they are managed entirely
+      // via setConfigBatch({ TowelBar, TowelBarSide }).
+      // We must NOT call removeProduct/removeProductId for them.
+      if (isTowelBarEntity) {
+        // Determine which side was deleted from the entity name
+        // e.g. "TowelBar_Left-abc123" → "left",  "TowelBar_Right-xyz789" → "right"
+        const nameLower = (selectedSceneProduct ?? "").toLowerCase();
+        const deletedSide: "left" | "right" | null = nameLower.includes("towelbar_left")
+          ? "left"
+          : nameLower.includes("towelbar_right")
+            ? "right"
+            : null;
+
+        // Deletion matrix:
+        //  Both + delete left  → Right
+        //  Both + delete right → Left
+        //  Both + unknown side → None  (safe fallback)
+        //  Left + delete left  → None
+        //  Right + delete right → None
+        let nextOption = "None";
+        if (towelBarOption === "Both") {
+          if (deletedSide === "left") nextOption = "Right";
+          else if (deletedSide === "right") nextOption = "Left";
+        }
+
+        // Sync PlayCanvas: clear all, then re-add the remaining side if any
+        await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both" });
+        if (nextOption !== "None") {
+          await setConfigBatch({}, { TowelBar: "TowelBar40_R", TowelBarSide: nextOption.toLowerCase() });
+        } else {
+          dispatch(setTowelBarColor(""));
+        }
+
+        dispatch(setTowelBarOption(nextOption));
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      // ── Cabinet / side panel deletion (existing logic) ────────────────────
       await removeProduct(selectedSceneProduct);
       dispatch(removeProductId(selectedSceneProduct));
     } catch (error) {
@@ -959,7 +1019,7 @@ export const PlayCanvasIntegration = () => {
     } finally {
       setDropdownState((prev) => ({ ...prev, visible: false }));
     }
-  }, [dispatch, selectedSceneProduct, saveSnapshot]);
+  }, [dispatch, isTowelBarEntity, selectedSceneProduct, towelBarOption, saveSnapshot]);
 
   const normalizeProductType = useCallback((value: string, productId: string) => {
     const lastDash = value.lastIndexOf("-");
@@ -1211,9 +1271,9 @@ export const PlayCanvasIntegration = () => {
 
     const attach = () => {
       const doc = iframeEl.contentDocument;
-      if (!doc) return () => {};
+      if (!doc) return () => { };
       const href = doc.location?.href;
-      if (href === "about:blank") return () => {};
+      if (href === "about:blank") return () => { };
 
       doc.addEventListener("mousedown", onMouseDown, true);
       return () => {
@@ -1356,8 +1416,8 @@ export const PlayCanvasIntegration = () => {
   const isTopViewActive = useCallback((): boolean => {
     const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
       | {
-          isTopViewActive?: () => boolean;
-        }
+        isTopViewActive?: () => boolean;
+      }
       | undefined;
     try {
       return Boolean(api?.isTopViewActive?.());
@@ -1422,17 +1482,17 @@ export const PlayCanvasIntegration = () => {
         event.stopPropagation();
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
-              showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-              openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-              setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
-              dividers?: {
-                showIconDividerSlots?: (
-                  cabinetId: string,
-                  drawerType: "Top" | "TopFull" | "Bot",
-                  show?: boolean,
-                ) => unknown;
-              };
-            }
+            showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+            openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+            setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
+            dividers?: {
+              showIconDividerSlots?: (
+                cabinetId: string,
+                drawerType: "Top" | "TopFull" | "Bot",
+                show?: boolean,
+              ) => unknown;
+            };
+          }
           | undefined;
         const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
 
@@ -1510,9 +1570,9 @@ export const PlayCanvasIntegration = () => {
 
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
-              closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-              exitTopView?: () => unknown;
-            }
+            closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+            exitTopView?: () => unknown;
+          }
           | undefined;
 
         const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
@@ -1831,13 +1891,13 @@ export const PlayCanvasIntegration = () => {
         },
         ...(isOneOrTwoDrawerProduct
           ? [
-              {
-                id: "open",
-                label: "Open",
-                trailing: <OpenMenuIcon />,
-                onClick: handleOpenDrawerButtonsForSelectedProduct,
-              },
-            ]
+            {
+              id: "open",
+              label: "Open",
+              trailing: <OpenMenuIcon />,
+              onClick: handleOpenDrawerButtonsForSelectedProduct,
+            },
+          ]
           : []),
         { id: "add", label: "Add", trailing: "", onClick: handleAddFromPrebuilt },
         ...(selectedSceneProduct
@@ -1847,6 +1907,10 @@ export const PlayCanvasIntegration = () => {
     }
 
     if (isSidePanelEntity) {
+      return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
+    }
+
+    if (isTowelBarEntity) {
       return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
     }
 
@@ -1897,56 +1961,56 @@ export const PlayCanvasIntegration = () => {
       },
       ...(canAddAnotherCabinet
         ? [
-            {
-              id: "add",
-              label: "Add",
-              trailing: "",
-              children: [
-                {
-                  id: "add-right",
-                  label: "Add Cabinet",
-                  trailing: <ArrowTopRight color={"#333"} />,
-                  onClick: () => handleAddAdditionalProduct(),
-                },
-              ],
-            } as DropdownItem,
-          ]
+          {
+            id: "add",
+            label: "Add",
+            trailing: "",
+            children: [
+              {
+                id: "add-right",
+                label: "Add Cabinet",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: () => handleAddAdditionalProduct(),
+              },
+            ],
+          } as DropdownItem,
+        ]
         : []),
       ...(isDrawerCabinet
         ? [
-            {
-              id: "details",
-              label: "Details",
-              trailing: "",
-              children: [
-                {
-                  id: "cabinet-style",
-                  label: "Cabinet Style",
-                  trailing: <ArrowTopRight color={"#333"} />,
-                  onClick: handleOpenCabinetStyle,
-                },
-                {
-                  id: "handle-style",
-                  label: "Handle Style",
-                  trailing: "",
-                  children: handleOptions.map((option) => ({
-                    id: option.value,
-                    label: option.label,
-                    trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
-                    disabled: option.disabled,
-                    disabledReason: option.reason,
-                    onClick: () => handleSetHandleType(option.value),
-                  })),
-                },
-                {
-                  id: "accessories",
-                  label: "Accessories",
-                  trailing: <ArrowTopRight color={"#333"} />,
-                  onClick: handleOpenAccessories,
-                },
-              ],
-            } as DropdownItem,
-          ]
+          {
+            id: "details",
+            label: "Details",
+            trailing: "",
+            children: [
+              {
+                id: "cabinet-style",
+                label: "Cabinet Style",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleOpenCabinetStyle,
+              },
+              {
+                id: "handle-style",
+                label: "Handle Style",
+                trailing: "",
+                children: handleOptions.map((option) => ({
+                  id: option.value,
+                  label: option.label,
+                  trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
+                  disabled: option.disabled,
+                  disabledReason: option.reason,
+                  onClick: () => handleSetHandleType(option.value),
+                })),
+              },
+              {
+                id: "accessories",
+                label: "Accessories",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleOpenAccessories,
+              },
+            ],
+          } as DropdownItem,
+        ]
         : []),
       ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
         ? []
@@ -1955,13 +2019,13 @@ export const PlayCanvasIntegration = () => {
           : []),
       ...(isOneOrTwoDrawerProduct
         ? [
-            {
-              id: "open",
-              label: "Open",
-              trailing: <OpenMenuIcon />,
-              onClick: handleOpenDrawerButtonsForSelectedProduct,
-            },
-          ]
+          {
+            id: "open",
+            label: "Open",
+            trailing: <OpenMenuIcon />,
+            onClick: handleOpenDrawerButtonsForSelectedProduct,
+          },
+        ]
         : []),
     ];
 
@@ -1992,6 +2056,8 @@ export const PlayCanvasIntegration = () => {
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,
     isSidePanelEntity,
+    isTowelBarEntity,
+    towelBarOption,
     handleOptions,
     handleSetHandleType,
     selectedProductConfig,
