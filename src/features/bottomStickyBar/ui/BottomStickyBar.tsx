@@ -51,7 +51,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
   return (
     <div className={s.bottomBar}>
       <div className={s.total}>
-        <span>Total</span>
+        <span className={s.total_text}>Total List Price</span>
         <span>
           {!activeSkus.length ? (
             "$0.00"
@@ -61,8 +61,28 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
             formatPrice(priceTotal)
           )}
         </span>
-        <span>
-          <Link to="#">Find a showroom</Link>
+        <span className={s.showroom_link}>
+          <Link to="#">
+            <span>Quote</span>
+            <span className={s.icon}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-download-icon lucide-download"
+              >
+                <path d="M12 15V3" />
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+            </span>
+          </Link>
         </span>
       </div>
       <div className={s.nextStepWrapp}>
