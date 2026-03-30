@@ -112,6 +112,8 @@ const MATRIX_COUNTERTOP_DATATABLE_ID = 438;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 
+const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
+
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
 const CABINET_TYPE_ORDER: Record<string, number> = {
@@ -1135,6 +1137,7 @@ export const CabinetBuilderPage = () => {
 
   // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {
+    if (!ENABLE_AUTO_ADD_FIRST_PRODUCT) return;
     if (!pathname.includes("/custom/cabinet-builder")) return;
     // Don't proceed if already bootstrapped (unless user explicitly re-selected after deletion), canvas is not ready, or scene already has products
     if ((hasBootstrappedCabinetBuilder && !allowNextAutoAddRef.current) || !canvasReady || hasProducts) return;
