@@ -1831,6 +1831,9 @@ export const PlayCanvasIntegration = () => {
     let cancelled = false;
 
     const syncSelectedDimensionsFromScene = async () => {
+      if (pendingHandleSyncRef.current) return;
+
+
       const config = await getConfig(selectedSceneProduct);
       if (!config || cancelled) return;
 
