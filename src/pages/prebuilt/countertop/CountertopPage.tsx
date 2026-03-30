@@ -68,6 +68,8 @@ import s from "./CountertopPage.module.scss";
 import { BaseButton } from "@/shared";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
+import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
@@ -1067,6 +1069,10 @@ export const CountertopPage = () => {
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [filteredCountertopOptions],
   );
+  const fullModeCountertopOptions = useMemo(
+    () => [...scopedCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [scopedCountertopOptions],
+  );
   const sortedVesselColorOptions = useMemo(
     () => [...filteredVesselColorOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [filteredVesselColorOptions],
@@ -1422,6 +1428,15 @@ export const CountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
+          <ViewModePanel
+            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            fullModeTitle="Countertop Color"
+            fullModeOptions={fullModeCountertopOptions}
+            fullModeActiveValue={activeCountertopColor}
+            onFullModeSelect={handleChangeCountertopColor}
+            fullModeGroupByDesc
+            fullModeLoading={isFetchingcounterTopMaterials}
+          />
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedCountertopOptions}
