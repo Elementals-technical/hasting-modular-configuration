@@ -518,7 +518,15 @@ export const CustomCabinetColorsPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
+          <ViewModePanel
+            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            fullModeTitle="Cabinet Color"
+            fullModeOptions={sortedBasePanelOptions}
+            fullModeActiveValue={activeCabinetColor}
+            onFullModeSelect={handleChangeColor}
+            fullModeGroupByDesc
+            fullModeLoading={isFetchingCabinetColors}
+          />
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedBasePanelOptions}
@@ -537,7 +545,15 @@ export const CustomCabinetColorsPage = () => {
             title: "Handle Groove Color (Optional)",
             content: (
               <>
-                <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
+                <ViewModePanel
+                  onOrderSwatches={() => dispatch(openSwatchSidebar())}
+                  fullModeTitle="Handle Groove Color"
+                  fullModeOptions={grooveColorOptions}
+                  fullModeActiveValue={activeGrooveColor}
+                  onFullModeSelect={handleChangeGrooveColor}
+                  fullModeGroupByDesc
+                  fullModeLoading={isFetchingCabinetColors}
+                />
                 {renderGrooveFilters()}
                 <ProductOptionsGrid
                   data={grooveColorOptions}

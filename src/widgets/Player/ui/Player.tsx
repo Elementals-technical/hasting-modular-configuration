@@ -5,15 +5,19 @@ import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasInt
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
 import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
+import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { HintIcon } from "@/shared/assets/images/svg/HintIcon";
-import { HelpPopup } from "@/shared/ui/Popups/ui/HelpPopup/HelpPopup";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
+import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
+import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
+import quickEditorStep from "@/shared/assets/images/png/popup/Step_3.png";
+import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
-import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -48,11 +52,14 @@ export function Player() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
 
   const isSummaryPage = pathname.includes("/summary");
 
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
+  const [howToStep, setHowToStep] = useState<number | null>(null);
+  const [isCustomInstructionOpen, setIsCustomInstructionOpen] = useState(false);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -202,10 +209,35 @@ export function Player() {
 
   const isOpening = searchParams.get("help") === "1";
   const hasHelpState = Boolean((location.state as { helpModal?: boolean } | null)?.helpModal);
+  const helpPath = (searchParams.get("helpPath") ?? "")
+    .split(".")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const setHelpPath = (nextPath: string[]) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (nextPath.length) {
+      nextParams.set("helpPath", nextPath.join("."));
+    } else {
+      nextParams.delete("helpPath");
+    }
+
+    const search = nextParams.toString();
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: search ? `?${search}` : "",
+      },
+      { replace: true, state: location.state },
+    );
+  };
 
   const handleOpenPopup = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("help", "1");
+    nextParams.delete("helpPath");
 
     navigate(
       {
@@ -225,6 +257,7 @@ export function Player() {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("help");
     nextParams.delete("step");
+    nextParams.delete("helpPath");
     const search = nextParams.toString();
 
     navigate(
@@ -235,6 +268,178 @@ export function Player() {
       { replace: true },
     );
   };
+
+  const closePopupWithoutBack = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("help");
+    nextParams.delete("step");
+    nextParams.delete("helpPath");
+    const search = nextParams.toString();
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: search ? `?${search}` : "",
+      },
+      { replace: true },
+    );
+  };
+
+  const helpNodes: HelpCenterNode[] = [
+    {
+      id: "configurator-how-tos",
+      label: "Configurator How-Tos",
+      children: [
+        {
+          id: "prebuilt-mode-tutorial",
+          label: "Pre-Built Mode tutorial",
+          action: () => {
+            setHowToStep(1);
+            closePopupWithoutBack();
+          },
+        },
+        {
+          id: "custom-mode-tutorial",
+          label: "Custom Mode tutorial",
+          action: () => {
+            setIsCustomInstructionOpen(true);
+            closePopupWithoutBack();
+          },
+        },
+        {
+          id: "in-scene-quick-editor",
+          label: "In-scene quick editor",
+          content: {
+            title: "In-Scene Quick Editor",
+            intro: "Use the in-scene editor to make fast-paced edits:",
+            bullets: [
+              "Point and click any element to make edits",
+              "Resize, reposition, clone and duplicate cabinets",
+              "Modify countertop color, style, thickness, etc.",
+            ],
+            image: quickEditorStep,
+          },
+        },
+      ],
+    },
+    {
+      id: "product-questions-design-assistance",
+      label: "Product Questions & Design Assistance",
+      children: [
+        { id: "chat-with-product-expert", label: "Chat with a Product Expert", href: "#" },
+        {
+          id: "meet-virtually",
+          label: "Meet Virtually",
+          href: "https://meetings.hubspot.com/jennifer727/sdr-meeting-scheduler-round-robin",
+          external: true,
+        },
+        { id: "hubspot-phone", label: "+1 (631) 859-7174", href: "tel:+16318597174" },
+      ],
+    },
+    {
+      id: "order-free-swatches",
+      label: "Order Free Swatches",
+      action: () => {
+        dispatch(openSwatchSidebar());
+        handleClosePopup();
+      },
+    },
+    {
+      id: "how-to-buy",
+      label: "How To Buy",
+      content: {
+        title: "",
+        subtitle:
+          "Custom bathroom furniture leaves no room for shortcuts - we sweat the small stuff, so you don't have to.",
+        steps: [
+          {
+            number: "01",
+            title: "Configure & Submit Your Design",
+            text: "Share your design configuration through the form. Our team receives your design and reaches out within 24 hours to get the ball rolling.",
+          },
+          {
+            number: "02",
+            title: "Your Solution Specialist",
+            text: "We pair you with a dedicated specialist - your go-to to finalize your design. They support you and your team, making it a breeze. Here's how it works:",
+            bullets: [
+              {
+                title: "Sample Box Curation.",
+                text: "Confidence in your colorways is a must. We curate your box for review.",
+              },
+              {
+                title: "Vetting the details.",
+                text: "We ensure all the details are spot on for you.",
+              },
+              {
+                title: "Product Expertise.",
+                text: "We answer any and all your solution questions.",
+              },
+            ],
+          },
+          {
+            number: "03",
+            title: "Choose Your Purchase Path",
+            text: "After we finalize your design, you choose your purchase path - through our NYC Showroom or Dealer network",
+          },
+        ],
+      },
+    },
+    {
+      id: "visit-our-showroom",
+      label: "Visit our Showroom",
+      children: [
+        {
+          id: "schedule-a-visit",
+          label: "Schedule a Visit",
+          href: "https://meetings.hubspot.com/boni-osmani/showroom-meeting-scheduler-round-robin",
+          external: true,
+        },
+        {
+          id: "take-a-virtual-tour",
+          label: "Take a Virtual Tour",
+          href: "https://www.hastingsbathcollection.com/visit-our-nyc-showroom#anchor-3d-tour",
+          external: true,
+        },
+        {
+          id: "showroom-address",
+          label: "Showroom Address",
+          content: {
+            icon: "map-pin",
+            subtitle: "A&D Building",
+            intro: "150 East 58th St, 10th Floor, NY, NY, 10155",
+          },
+        },
+      ],
+    },
+    {
+      id: "general-product-information",
+      label: "General Product Information",
+      content: {
+        title: "Product Details",
+        bullets: [
+          "Special Order: All solutions are built-to order",
+          "Lead Time: 10-12 weeks",
+          "Country of Origin: Italy",
+          "Warranty: 36 months",
+          "All materials are Carb2 compliant",
+        ],
+        sections: [
+          {
+            title: "Custom Made, Not Pre-Made",
+            text: "At Hastings, each design is crafted and created for you. Our flexible, modular approach is built for adaptability which makes tailoring solutions that fit your look, space and lifestyle, seamless.",
+          },
+          {
+            title: "Uncompromising Italian Design",
+            text: "Exclusively made and designed in Italy, this chic series features sophisticated detailing, European ingenuity and Italian modern living.",
+          },
+          {
+            title: "Built for Longevity",
+            text: "Meticulous workmanship, modern engineering and premium materials are at the core of each design. All of which lay the groundwork for lasting durability.",
+          },
+        ],
+      },
+    },
+  ];
 
   return (
     <div className={s.player}>
@@ -274,7 +479,13 @@ export function Player() {
             <HintIcon fill="#fff" />
             <div>Help</div>
           </div>
-          <HelpPopup isOpening={isOpening} onClose={handleClosePopup} />
+          <HelpCenterPopup
+            isOpening={isOpening}
+            onClose={handleClosePopup}
+            nodes={helpNodes}
+            path={helpPath}
+            onPathChange={setHelpPath}
+          />
         </div>
       ) : (
         <div className={s.shareIcon} onClick={handleSaveConfiguration}>
@@ -289,6 +500,9 @@ export function Player() {
         shareValue={shareValue}
         onCopy={handleCopyShareValue}
       />
+
+      {howToStep !== null && <HowToStart handleClose={() => setHowToStep(null)} initialStep={howToStep} />}
+      {isCustomInstructionOpen && <InstructionPopup handleClose={() => setIsCustomInstructionOpen(false)} />}
     </div>
   );
 }

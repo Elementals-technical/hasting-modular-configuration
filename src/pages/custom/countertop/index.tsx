@@ -1069,6 +1069,10 @@ export const CustomCountertopPage = () => {
     () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [filteredCountertopOptions],
   );
+  const fullModeCountertopOptions = useMemo(
+    () => [...scopedCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [scopedCountertopOptions],
+  );
   const sortedVesselColorOptions = useMemo(
     () => [...filteredVesselColorOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
     [filteredVesselColorOptions],
@@ -1429,7 +1433,15 @@ export const CustomCountertopPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
+          <ViewModePanel
+            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            fullModeTitle="Countertop Color"
+            fullModeOptions={fullModeCountertopOptions}
+            fullModeActiveValue={activeCountertopColor}
+            onFullModeSelect={handleChangeCountertopColor}
+            fullModeGroupByDesc
+            fullModeLoading={isFetchingcounterTopMaterials}
+          />
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedCountertopOptions}

@@ -72,10 +72,44 @@
 
 @media (max-width: 767px) {
   .bottomBar > .total {
-    width: 40%;
+    width: 60%;
+    gap: 13px;
   }
 
   .bottomBar > .nextStepWrapp {
-    width: 60%;
+    width: 40%;
   }
+}
+
+.showroom_link {
+  font-size: 10px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    color: #333;
+    text-decoration: none;
+
+    padding: 3px 8px;
+    border: 1px solid #333;
+    border-radius: 5px;
+
+    transition: all 0.1s ease-in;
+
+    .icon {
+      display: flex;
+      align-items: center;
+    }
+
+    &:hover {
+      background-color: #ac5331;
+      color: #fff;
+    }
+  }
+}
+
+.total_text {
+  white-space: nowrap;
 }

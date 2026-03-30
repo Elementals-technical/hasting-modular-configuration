@@ -22,6 +22,7 @@ import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
+import { hideDimensions, showDimensions } from "@/utils/functions/playcanvas/showDimensions";
 import {
   getCanUndo,
   getCanRedo,
@@ -56,9 +57,11 @@ import {
 
 import s from "./BottomCanvasButtons.module.scss";
 import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon";
+import { FullDimentionsIcon } from "@/shared/assets/images/svg/FullDimentionsIcon";
 
 export const BottomCanvasButtons = () => {
   const [isDimensionsEnabled, setIsDimensionsEnabled] = useState(false);
+  const [isFullDimensionsEnabled, setIsFullDimensionsEnabled] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
   const [isArGenerating, setIsArGenerating] = useState(false);
@@ -95,6 +98,86 @@ export const BottomCanvasButtons = () => {
 
   // const saveSnapshot = useHistorySnapshot();
   const [isRestoring, setIsRestoring] = useState(false);
+
+  const readNumericConfigValue = (config: unknown, key: "Width" | "Height" | "Depth") => {
+    if (!config || typeof config !== "object") return undefined;
+
+    const rawValue = (config as Record<string, unknown>)[key];
+
+    if (typeof rawValue !== "number" || Number.isNaN(rawValue)) return undefined;
+
+    return rawValue;
+  };
+
+  const formatInchesLabel = (value?: number) => {
+    if (typeof value !== "number") return "";
+
+    const normalized = Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
+
+    return `${normalized} "`;
+  };
+
+  const handleToggleFullDimensions = async () => {
+    const next = !isFullDimensionsEnabled;
+
+    if (!next) {
+      hideDimensions();
+
+      setIsFullDimensionsEnabled(false);
+      return;
+    }
+
+    const ids = getOrderedProductIds();
+    if (!ids.length) return;
+
+    const configs = await Promise.all(ids.map((id) => getConfig(id)));
+
+    const widthByNode = ids.map((id, index) => ({
+      node: id,
+      width: readNumericConfigValue(configs[index], "Width"),
+    }));
+
+    const totalWidth = widthByNode.reduce((sum, item) => sum + (item.width ?? 0), 0);
+
+    const maxHeight = configs.reduce((max, config) => {
+      const value = readNumericConfigValue(config, "Height");
+      return Math.max(max, value ?? 0);
+    }, 0);
+
+    const maxDepth = configs.reduce((max, config) => {
+      const value = readNumericConfigValue(config, "Depth");
+
+      return Math.max(max, value ?? 0);
+    }, 0);
+
+    const didShow = showDimensions({
+      box: {
+        nodes: ids,
+        width: { label: formatInchesLabel(totalWidth), offset: 0.05 },
+        height: { label: formatInchesLabel(maxHeight) },
+        depth: { label: formatInchesLabel(maxDepth) },
+      },
+      lines: widthByNode.map(({ node, width }) => ({
+        node,
+        axis: "x",
+        label: formatInchesLabel(width),
+      })),
+      labelSettings: {
+        offset: 0.05,
+        labelGap: "auto",
+        labelPosition: "center",
+        units: "in",
+        decimals: 2,
+      },
+    });
+
+    if (!didShow) return;
+
+    const tool = getDimensionTool();
+    tool?.setEnabled(false);
+    setIsDimensionsEnabled(false);
+    setIsFullDimensionsEnabled(true);
+  };
 
   const handleUndo = async () => {
     if (!canUndo || !lastPastSnapshot || isRestoring) return;
@@ -414,12 +497,25 @@ export const BottomCanvasButtons = () => {
           className={isDimensionsEnabled ? s.activeButton : undefined}
           onClick={() => {
             const next = !isDimensionsEnabled;
+            if (next && isFullDimensionsEnabled) {
+              hideDimensions();
+              setIsFullDimensionsEnabled(false);
+            }
+
             const tool = getDimensionTool();
             tool?.setEnabled(next);
             setIsDimensionsEnabled(next);
           }}
         >
           <DimentionsIcon />
+        </BaseButton>
+
+        <BaseButton
+          variant="ghost"
+          className={isFullDimensionsEnabled ? s.activeButton : undefined}
+          onClick={handleToggleFullDimensions}
+        >
+          <FullDimentionsIcon />
         </BaseButton>
 
         {!isSummaryPage && (
