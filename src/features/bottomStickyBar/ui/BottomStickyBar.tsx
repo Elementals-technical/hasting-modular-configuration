@@ -75,7 +75,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="lucide lucide-download-icon lucide-download"
+                className="lucide lucide-download-icon lucide-download"
               >
                 <path d="M12 15V3" />
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

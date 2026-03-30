@@ -38,6 +38,11 @@
     stroke: #fff;
   }
 
+  svg rect {
+    stroke: #fff;
+    fill: none;
+  }
+
   &:hover {
     background: #ac5431ce;
   }

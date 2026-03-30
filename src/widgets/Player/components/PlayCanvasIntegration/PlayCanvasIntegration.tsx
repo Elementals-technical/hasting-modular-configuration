@@ -951,7 +951,6 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isDrawerOpen]);
 
-
   // Detects if the currently selected scene entity is a TowelBar addon.
   // Entity names follow the pattern "TowelBar_Left-<randomId>" / "TowelBar_Right-<randomId>"
   const isTowelBarEntity = useMemo(() => {
@@ -961,7 +960,11 @@ export const PlayCanvasIntegration = () => {
       typeof selectedProductConfig?.entityName === "string" ? (selectedProductConfig.entityName as string) : null,
     ]
       .filter(Boolean)
-      .map((value) => String(value).toLowerCase().replace(/[_\s-]/g, ""));
+      .map((value) =>
+        String(value)
+          .toLowerCase()
+          .replace(/[_\s-]/g, ""),
+      );
 
     return candidates.some((value) => value.startsWith("towelbar"));
   }, [selectedProductConfig, selectedSceneProduct]);
@@ -1271,9 +1274,9 @@ export const PlayCanvasIntegration = () => {
 
     const attach = () => {
       const doc = iframeEl.contentDocument;
-      if (!doc) return () => { };
+      if (!doc) return () => {};
       const href = doc.location?.href;
-      if (href === "about:blank") return () => { };
+      if (href === "about:blank") return () => {};
 
       doc.addEventListener("mousedown", onMouseDown, true);
       return () => {
@@ -1416,8 +1419,8 @@ export const PlayCanvasIntegration = () => {
   const isTopViewActive = useCallback((): boolean => {
     const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
       | {
-        isTopViewActive?: () => boolean;
-      }
+          isTopViewActive?: () => boolean;
+        }
       | undefined;
     try {
       return Boolean(api?.isTopViewActive?.());
@@ -1482,17 +1485,17 @@ export const PlayCanvasIntegration = () => {
         event.stopPropagation();
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
-            showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-            openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-            setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
-            dividers?: {
-              showIconDividerSlots?: (
-                cabinetId: string,
-                drawerType: "Top" | "TopFull" | "Bot",
-                show?: boolean,
-              ) => unknown;
-            };
-          }
+              showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
+              dividers?: {
+                showIconDividerSlots?: (
+                  cabinetId: string,
+                  drawerType: "Top" | "TopFull" | "Bot",
+                  show?: boolean,
+                ) => unknown;
+              };
+            }
           | undefined;
         const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
 
@@ -1570,9 +1573,9 @@ export const PlayCanvasIntegration = () => {
 
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
-            closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-            exitTopView?: () => unknown;
-          }
+              closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              exitTopView?: () => unknown;
+            }
           | undefined;
 
         const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
@@ -1891,13 +1894,13 @@ export const PlayCanvasIntegration = () => {
         },
         ...(isOneOrTwoDrawerProduct
           ? [
-            {
-              id: "open",
-              label: "Open",
-              trailing: <OpenMenuIcon />,
-              onClick: handleOpenDrawerButtonsForSelectedProduct,
-            },
-          ]
+              {
+                id: "open",
+                label: "Open",
+                trailing: <OpenMenuIcon />,
+                onClick: handleOpenDrawerButtonsForSelectedProduct,
+              },
+            ]
           : []),
         { id: "add", label: "Add", trailing: "", onClick: handleAddFromPrebuilt },
         ...(selectedSceneProduct
@@ -1961,56 +1964,56 @@ export const PlayCanvasIntegration = () => {
       },
       ...(canAddAnotherCabinet
         ? [
-          {
-            id: "add",
-            label: "Add",
-            trailing: "",
-            children: [
-              {
-                id: "add-right",
-                label: "Add Cabinet",
-                trailing: <ArrowTopRight color={"#333"} />,
-                onClick: () => handleAddAdditionalProduct(),
-              },
-            ],
-          } as DropdownItem,
-        ]
+            {
+              id: "add",
+              label: "Add",
+              trailing: "",
+              children: [
+                {
+                  id: "add-right",
+                  label: "Add Cabinet",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: () => handleAddAdditionalProduct(),
+                },
+              ],
+            } as DropdownItem,
+          ]
         : []),
       ...(isDrawerCabinet
         ? [
-          {
-            id: "details",
-            label: "Details",
-            trailing: "",
-            children: [
-              {
-                id: "cabinet-style",
-                label: "Cabinet Style",
-                trailing: <ArrowTopRight color={"#333"} />,
-                onClick: handleOpenCabinetStyle,
-              },
-              {
-                id: "handle-style",
-                label: "Handle Style",
-                trailing: "",
-                children: handleOptions.map((option) => ({
-                  id: option.value,
-                  label: option.label,
-                  trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
-                  disabled: option.disabled,
-                  disabledReason: option.reason,
-                  onClick: () => handleSetHandleType(option.value),
-                })),
-              },
-              {
-                id: "accessories",
-                label: "Accessories",
-                trailing: <ArrowTopRight color={"#333"} />,
-                onClick: handleOpenAccessories,
-              },
-            ],
-          } as DropdownItem,
-        ]
+            {
+              id: "details",
+              label: "Details",
+              trailing: "",
+              children: [
+                {
+                  id: "cabinet-style",
+                  label: "Cabinet Style",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: handleOpenCabinetStyle,
+                },
+                {
+                  id: "handle-style",
+                  label: "Handle Style",
+                  trailing: "",
+                  children: handleOptions.map((option) => ({
+                    id: option.value,
+                    label: option.label,
+                    trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
+                    disabled: option.disabled,
+                    disabledReason: option.reason,
+                    onClick: () => handleSetHandleType(option.value),
+                  })),
+                },
+                {
+                  id: "accessories",
+                  label: "Accessories",
+                  trailing: <ArrowTopRight color={"#333"} />,
+                  onClick: handleOpenAccessories,
+                },
+              ],
+            } as DropdownItem,
+          ]
         : []),
       ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
         ? []
@@ -2019,13 +2022,13 @@ export const PlayCanvasIntegration = () => {
           : []),
       ...(isOneOrTwoDrawerProduct
         ? [
-          {
-            id: "open",
-            label: "Open",
-            trailing: <OpenMenuIcon />,
-            onClick: handleOpenDrawerButtonsForSelectedProduct,
-          },
-        ]
+            {
+              id: "open",
+              label: "Open",
+              trailing: <OpenMenuIcon />,
+              onClick: handleOpenDrawerButtonsForSelectedProduct,
+            },
+          ]
         : []),
     ];
 
@@ -2057,7 +2060,6 @@ export const PlayCanvasIntegration = () => {
     isOneOrTwoDrawerProduct,
     isSidePanelEntity,
     isTowelBarEntity,
-    towelBarOption,
     handleOptions,
     handleSetHandleType,
     selectedProductConfig,
