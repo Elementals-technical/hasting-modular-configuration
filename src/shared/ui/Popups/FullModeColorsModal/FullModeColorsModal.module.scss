@@ -1,0 +1,41 @@
+.modal {
+  width: min(1120px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: #f9f8f7;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e6ea;
+  background: #fff;
+}
+
+.title {
+  font-family: Poppins;
+  font-size: 14px;
+  font-weight: 600;
+  color: #282828;
+  line-height: 20px;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.content {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+}

@@ -489,7 +489,14 @@ export const CabinetPage = () => {
       defaultOpen: true,
       content: (
         <>
-          <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
+          <ViewModePanel
+            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            fullModeTitle="Cabinet Color"
+            fullModeOptions={sortedBasePanelOptions}
+            fullModeActiveValue={activeCabinetColor}
+            onFullModeSelect={handleChangeColor}
+            fullModeGroupByDesc
+          />
           {renderFilters()}
           <ProductOptionsGrid
             data={sortedBasePanelOptions}
@@ -507,7 +514,14 @@ export const CabinetPage = () => {
             title: "Handle Groove Color (Optional)",
             content: (
               <>
-                <ViewModePanel onOrderSwatches={() => dispatch(openSwatchSidebar())} />
+                <ViewModePanel
+                  onOrderSwatches={() => dispatch(openSwatchSidebar())}
+                  fullModeTitle="Handle Groove Color"
+                  fullModeOptions={grooveColorOptions}
+                  fullModeActiveValue={activeGrooveColor}
+                  onFullModeSelect={handleChangeGrooveColor}
+                  fullModeGroupByDesc
+                />
                 {renderGrooveFilters()}
                 <ProductOptionsGrid
                   data={grooveColorOptions}
