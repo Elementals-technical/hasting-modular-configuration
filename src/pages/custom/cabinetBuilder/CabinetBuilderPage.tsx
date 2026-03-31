@@ -96,6 +96,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 
 type AccordionConfig = {
   id: string;
@@ -683,6 +684,14 @@ export const CabinetBuilderPage = () => {
       dispatch(setCabinetCatalog(catalog));
     }
   }, [dispatch, matrixCabinetTable]);
+
+  useEffect(() => {
+    if (isStyleSidebarOpen && !hasProducts && canvasReady) {
+      showEmptyButton();
+    } else {
+      hideEmptyButton();
+    }
+  }, [isStyleSidebarOpen, hasProducts, canvasReady]);
 
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
