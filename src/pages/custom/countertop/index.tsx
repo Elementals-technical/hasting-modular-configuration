@@ -269,7 +269,7 @@ export const CustomCountertopPage = () => {
   const isVesselCompatibleCountertopOption = useCallback(
     (option: ProductOptionData) => {
       if (isVesselApiOption(option)) return false;
-      const allowed = new Set(["hpl", "porcelain", "fenix", "tekorlux", "tal", "tam", "solidsurface"]);
+      const allowed = new Set(["hpl", "porcelain", "tekorlux", "tal", "tam", "solidsurface"]);
       const materials = option.metadata?.materials ?? [];
       return materials.some((material) => getMaterialAliases(material).some((alias) => allowed.has(alias)));
     },
@@ -474,7 +474,6 @@ export const CustomCountertopPage = () => {
     // Explicit vessel-related countertop material filters requested by product.
     materialSet.add("HPL");
     materialSet.add("Porcelain");
-    materialSet.add("Fenix");
     materialSet.add("Tekorlux");
 
     const toOptions = (set: Set<string>) =>

@@ -21,7 +21,7 @@ export const DrawerStyleConflictPopup: React.FC<DrawerStyleConflictPopupProps> =
     <PopupCenterContent onClose={onCancel} isOpening={isOpening}>
       <div className={s.popup}>
         <div className={s.header}>
-          <div className={s.title}>Clear Design?</div>
+          <div className={s.title}>Update Design?</div>
           <div className={s.closeBtn} onClick={onCancel}>
             <CloseBtnIcon />
           </div>
@@ -29,7 +29,7 @@ export const DrawerStyleConflictPopup: React.FC<DrawerStyleConflictPopupProps> =
 
         <div className={s.content}>
           <p>
-            Switching to <strong>{newStyleTitle}</strong> will update all cabinets in your design to this style.
+            Switching to <strong>{newStyleTitle}</strong> will update drawer cabinets in your design to this style.
           </p>
           <p>Are you sure you want to proceed?</p>
         </div>

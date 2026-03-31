@@ -20,7 +20,7 @@ import {
   setActiveCountertopColor,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
-import { getHasPrebuiltSelections, getProductsPresets } from "@/entities/product/model/store/selectors";
+import { getProductsPresets } from "@/entities/product/model/store/selectors";
 import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
@@ -73,8 +73,6 @@ export const ModelPage = () => {
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
-  const hasPrebuiltSelections = useAppSelector(getHasPrebuiltSelections);
-
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
   const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
@@ -220,11 +218,6 @@ export const ModelPage = () => {
 
   const handleNavigate = async (tab: "prebuilt" | "custom") => {
     if (tab !== "custom") return;
-
-    if (hasPrebuiltSelections) {
-      setIsAttentionPopupOpen(true);
-      return;
-    }
 
     const currentPresets = productsPresets;
 

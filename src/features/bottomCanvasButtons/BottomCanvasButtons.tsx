@@ -494,7 +494,8 @@ export const BottomCanvasButtons = () => {
       <div className={s.bottomCanvasButtons}>
         <BaseButton
           variant="ghost"
-          className={isDimensionsEnabled ? s.activeButton : undefined}
+          className={`${s.tooltip}${isDimensionsEnabled ? ` ${s.activeButton}` : ""}`}
+          data-tooltip="Dimensions"
           onClick={() => {
             const next = !isDimensionsEnabled;
             if (next && isFullDimensionsEnabled) {
@@ -512,7 +513,8 @@ export const BottomCanvasButtons = () => {
 
         <BaseButton
           variant="ghost"
-          className={isFullDimensionsEnabled ? s.activeButton : undefined}
+          className={`${s.tooltip}${isFullDimensionsEnabled ? ` ${s.activeButton}` : ""}`}
+          data-tooltip="Full Dimensions"
           onClick={handleToggleFullDimensions}
         >
           <FullDimentionsIcon />
@@ -532,6 +534,8 @@ export const BottomCanvasButtons = () => {
 
         <BaseButton
           variant="ghost"
+          className={s.tooltip}
+          data-tooltip="View in Space"
           onClick={() => {
             setIsOpening(true);
             handleCreateArConfiguration();
@@ -542,11 +546,11 @@ export const BottomCanvasButtons = () => {
 
         {!isSummaryPage && (
           <>
-            <BaseButton variant="ghost" onClick={handleSaveConfiguration}>
+            <BaseButton variant="ghost" className={s.tooltip} data-tooltip="Share" onClick={handleSaveConfiguration}>
               <ShareIcon />
             </BaseButton>
 
-            <BaseButton variant="ghost" onClick={() => downloadSceneImage()}>
+            <BaseButton variant="ghost" className={s.tooltip} data-tooltip="Image" onClick={() => downloadSceneImage()}>
               <DownloadImageIcon />
             </BaseButton>
 

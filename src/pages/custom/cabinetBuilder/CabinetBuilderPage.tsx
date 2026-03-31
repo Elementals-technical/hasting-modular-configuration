@@ -96,6 +96,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 
 type AccordionConfig = {
   id: string;
@@ -156,7 +157,7 @@ export const CabinetBuilderPage = () => {
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
 
-  const { pathname } = useLocation();
+  const { pathname, key: locationKey } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
@@ -683,6 +684,14 @@ export const CabinetBuilderPage = () => {
       dispatch(setCabinetCatalog(catalog));
     }
   }, [dispatch, matrixCabinetTable]);
+
+  useEffect(() => {
+    if (isStyleSidebarOpen && !hasProducts && canvasReady) {
+      showEmptyButton();
+    } else {
+      hideEmptyButton();
+    }
+  }, [isStyleSidebarOpen, hasProducts, canvasReady]);
 
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
@@ -1289,7 +1298,7 @@ export const CabinetBuilderPage = () => {
     const target = searchParams.get("accordion");
 
     if (target) setAccordionValue(target);
-  }, [searchParams]);
+  }, [searchParams, locationKey]);
 
   const accordions: AccordionConfig[] = [
     {

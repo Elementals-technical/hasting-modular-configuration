@@ -45,6 +45,8 @@
     border-bottom: 1px solid #e5e6ea;
 
     flex-grow: 1;
+
+    gap: 15px;
   }
 
   .contentBlock {
@@ -86,4 +88,8 @@
   .footer {
     padding: 15px;
   }
+}
+
+.contentBlock_title {
+  margin-bottom: 22px;
 }

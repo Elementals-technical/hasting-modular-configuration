@@ -3,9 +3,9 @@ import { useState } from "react";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { BaseButton } from "@/shared";
 
-import howToStartVideo from "../../../../assets/video/howtostart-faster.webm";
-import prebuildVideo from "../../../../assets/video/prebuild-faster.webm";
-import customVideo from "../../../../assets/video/custom.webm";
+import howItWorks1 from "../../../../assets/video/HowItWorks1.webm";
+import howItWorks2 from "../../../../assets/video/HowItWorks2.webm";
+import howItWorks3 from "../../../../assets/video/HowItWorks3.webm";
 
 import s from "./HowToStart.module.scss";
 import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
@@ -22,16 +22,17 @@ const steps: HowToStartStep[] = [
     title: "Choose How to Start",
     description:
       "Start with one of our pre-built, ready-made designs—or create your own custom concept using drag-and-drop controls.",
+    video: howItWorks1,
   },
   {
     title: "Pre-Built Mode",
     description: `Customize your design from pre-made solutions:\n- Sort by size and style\n- Choose your colors and materials\n- Select your countertop and sink style\n- Add internal organizers, towel bars and more\nIf you want even more control click 'customize' to transition to custom mode for full design control`,
-    video: prebuildVideo,
+    video: howItWorks2,
   },
   {
     title: "Custom Mode",
     description: `Create a custom design with our cabinet builder\n- Add, remove, resize, reposition cabinets with ease\n- Utilize the in-scene editor for fast-paced editing\n- Tailor your colorways, countertop details and more\n- Accessorize with drawer dividers, towel bars and more`,
-    video: customVideo,
+    video: howItWorks3,
   },
 ];
 
@@ -62,7 +63,7 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose, initialStep = 0
       <div className={s.howToStart}>
         <div className={s.popupTopContent}>
           <div className={s.topHeader}>
-            <div className={s.topTitle}>How to use</div>
+            <div className={s.topTitle}>How it works</div>
             <div className={s.closeBtn} onClick={handleClose}>
               <CloseIcon fill="#333333" />
             </div>
@@ -73,7 +74,7 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose, initialStep = 0
           ) : (
             <video
               className={s.previewVideo}
-              src={activeMedia.video ?? howToStartVideo}
+              src={activeMedia.video}
               autoPlay
               muted
               loop
@@ -98,15 +99,41 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose, initialStep = 0
 
           <div className={s.title}>{steps[activeStep].title}</div>
           <div className={s.content}>
-            {steps[activeStep].description.split("\n").map((line, i) =>
-              line.startsWith("- ") ? (
-                <ul key={i} className={s.contentList}>
-                  <li>{line.slice(2)}</li>
-                </ul>
-              ) : (
-                <p key={i}>{line}</p>
-              )
-            )}
+            {(() => {
+              const lines = steps[activeStep].description.split("\n");
+              const result: React.ReactNode[] = [];
+              let listItems: string[] = [];
+
+              lines.forEach((line, i) => {
+                if (line.startsWith("- ")) {
+                  listItems.push(line.slice(2));
+                } else {
+                  if (listItems.length > 0) {
+                    result.push(
+                      <ul key={`ul-${i}`} className={s.contentList}>
+                        {listItems.map((item, j) => (
+                          <li key={j}>{item}</li>
+                        ))}
+                      </ul>,
+                    );
+                    listItems = [];
+                  }
+                  result.push(<p key={i}>{line}</p>);
+                }
+              });
+
+              if (listItems.length > 0) {
+                result.push(
+                  <ul key="ul-last" className={s.contentList}>
+                    {listItems.map((item, j) => (
+                      <li key={j}>{item}</li>
+                    ))}
+                  </ul>,
+                );
+              }
+
+              return result;
+            })()}
           </div>
 
           <div className={s.footer}>
