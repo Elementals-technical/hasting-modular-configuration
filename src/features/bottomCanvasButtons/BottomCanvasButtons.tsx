@@ -23,6 +23,7 @@ import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import { hideDimensions, showDimensions } from "@/utils/functions/playcanvas/showDimensions";
+import { cmToInch } from "@/utils/units";
 import {
   getCanUndo,
   getCanRedo,
@@ -112,7 +113,7 @@ export const BottomCanvasButtons = () => {
   const formatInchesLabel = (value?: number) => {
     if (typeof value !== "number") return "";
 
-    const normalized = Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
+    const normalized = Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.?0+$/, "");
 
     return `${normalized} "`;
   };
@@ -153,14 +154,14 @@ export const BottomCanvasButtons = () => {
     const didShow = showDimensions({
       box: {
         nodes: ids,
-        width: { label: formatInchesLabel(totalWidth), offset: 0.05 },
-        height: { label: formatInchesLabel(maxHeight) },
-        depth: { label: formatInchesLabel(maxDepth) },
+        width: { label: formatInchesLabel(cmToInch(totalWidth)), offset: 0.05 },
+        height: { label: formatInchesLabel(cmToInch(maxHeight)) },
+        depth: { label: formatInchesLabel(cmToInch(maxDepth)) },
       },
       lines: widthByNode.map(({ node, width }) => ({
         node,
         axis: "x",
-        label: formatInchesLabel(width),
+        label: formatInchesLabel(width != null ? cmToInch(width) : undefined),
       })),
       labelSettings: {
         offset: 0.05,
