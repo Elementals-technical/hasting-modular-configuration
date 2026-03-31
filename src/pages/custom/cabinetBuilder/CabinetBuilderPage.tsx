@@ -156,7 +156,7 @@ export const CabinetBuilderPage = () => {
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
 
-  const { pathname } = useLocation();
+  const { pathname, key: locationKey } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
@@ -1289,7 +1289,7 @@ export const CabinetBuilderPage = () => {
     const target = searchParams.get("accordion");
 
     if (target) setAccordionValue(target);
-  }, [searchParams]);
+  }, [searchParams, locationKey]);
 
   const accordions: AccordionConfig[] = [
     {
