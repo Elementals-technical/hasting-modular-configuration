@@ -42,21 +42,21 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
 
         <div className={s.content}>
           <div className={s.contentBlock}>
-            <div>1. Tap on the piece you’d like to add.</div>
+            <div className={s.contentBlock_title}>1. Tap on the piece you’d like to add.</div>
             <div className={s.contentBlock_img}>
               <img src={img_1} alt="first image" />
             </div>
           </div>
 
           <div className={s.contentBlock}>
-            <div>2. Tap on + icon to insert the selected piece.</div>
+            <div className={s.contentBlock_title}>2. Tap on + icon to insert the selected piece.</div>
             <div className={s.contentBlock_img}>
               <img src={img_2} alt="first image" />
             </div>
           </div>
 
           <div className={s.contentBlock}>
-            <div>3. To edit, tap a piece, then click an action you want.</div>
+            <div className={s.contentBlock_title}>3. To edit, tap a piece, then click an action you want.</div>
             <div className={s.contentBlock_img}>
               <img src={img_3} alt="third image" />
             </div>
