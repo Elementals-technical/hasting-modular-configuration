@@ -5,6 +5,7 @@ import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProduct
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
+import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 function resolveProductType(productId: string, config: Record<string, unknown>): string {
   const configProductType = typeof config?.productType === "string" ? config.productType : null;
@@ -100,4 +101,23 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
           : (snapshot.placedCabinetStyles ?? {}),
     }),
   );
+
+  // Re-apply global options to PlayCanvas since per-product getConfig may not include all settings
+  const opts = snapshot.productOptions;
+  const batchConfig: Record<string, unknown> = {};
+  if (opts.CabinetColor) batchConfig.CabinetColor = opts.CabinetColor;
+  if (opts.CountertopColor) batchConfig.CountertopColor = opts.CountertopColor;
+  if (opts.HandleGrooveColor) batchConfig.HandleGrooveColor = opts.HandleGrooveColor;
+  if (opts.sinkType) batchConfig.sinkType = opts.sinkType;
+  if (opts.CountertopStyle) batchConfig.CountertopStyle = opts.CountertopStyle;
+  if (opts.GrainDirection) batchConfig.GrainDirection = opts.GrainDirection;
+  if (opts.DrawerPanelFluting) batchConfig.DrawerPanelFluting = opts.DrawerPanelFluting;
+
+  if (newProductIds.length && Object.keys(batchConfig).length) {
+    await setConfigBatch(newProductIds, batchConfig);
+  }
+
+  if (opts.Thickness) {
+    await setConfigBatch({}, { Thickness: opts.Thickness });
+  }
 }

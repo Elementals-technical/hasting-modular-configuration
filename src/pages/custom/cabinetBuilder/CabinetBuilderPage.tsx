@@ -96,6 +96,9 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
+import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
+import { store, type RootState } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 
 type AccordionConfig = {
@@ -897,6 +900,7 @@ export const CabinetBuilderPage = () => {
 
   const handleRestoreConfiguration = useCallback(
     async (id: string | number) => {
+      dispatch(setHistoryRestoring(true));
       try {
         const result = await restoreConfiguration(id).unwrap();
 
@@ -1128,7 +1132,12 @@ export const CabinetBuilderPage = () => {
         if (cabinetTypeId !== null) {
           dispatch(setActiveCabinetType(cabinetTypeId));
         }
+
+        const snapshot = await captureSnapshot(() => store.getState() as RootState);
+        dispatch(setHistoryRestoring(false));
+        dispatch(pushSnapshot(snapshot));
       } catch (error) {
+        dispatch(setHistoryRestoring(false));
         console.error("[Configurations] Restore failed", error);
       }
     },
