@@ -35,6 +35,7 @@ import {
 import {
   addProductId,
   removeProductId,
+  setHasBootstrappedCabinetBuilder,
   setPlacedCabinetStyle,
   setSelectedDimensions,
   setSelectedProductConfig,
@@ -616,6 +617,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
 
       dispatch(addProductId(productId));
+      dispatch(setHasBootstrappedCabinetBuilder(true));
 
       const drawers = (productConfig as Record<string, unknown>)?.Drawers as string | undefined;
       const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
