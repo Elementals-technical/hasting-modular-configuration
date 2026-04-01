@@ -67,6 +67,7 @@ import {
   filterWidthValuesByCountertopRules,
   parseCountertopMatrix,
   resolveCountertopMaxLengthByRules,
+  resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { ROUTES } from "@/shared";
@@ -447,7 +448,11 @@ export const PlayCanvasIntegration = () => {
     const width = toFiniteNumber(config.Width);
     const depth = toFiniteNumber(config.Depth);
     const heightKey = toFiniteNumber(config.Height);
-    const thicknessValue = toFiniteNumber(config.Thickness) ?? toFiniteNumber(activeCountertopThickness);
+    const rawConfigThickness = toFiniteNumber(config.Thickness);
+    const thicknessValue =
+      rawConfigThickness !== null && rawConfigThickness > 0
+        ? rawConfigThickness
+        : toFiniteNumber(activeCountertopThickness);
     const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
 
     const nextData: Record<string, unknown> = { productId };
@@ -583,6 +588,27 @@ export const PlayCanvasIntegration = () => {
       .map((value) => Number(value))
       .filter((value) => Number.isFinite(value) && value > 0);
   }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+
+  // When a countertop material is known but no thickness has been set yet, resolve
+  // the default from the rules matrix and push it into both Redux and PlayCanvas.
+  // This ensures getConfig() returns a non-zero Thickness before the user clicks
+  // the countertop, avoiding the stale-closure "0" shown by the dimension tool.
+  useEffect(() => {
+    if (activeCountertopThickness) return;
+    if (!activeMaterialTokens.length) return;
+    if (!countertopRules.length) return;
+
+    const defaultThickness = resolveDefaultThicknessFromRules({
+      rules: countertopRules,
+      activeMaterialTokens,
+      depth: selectedDimensions.depth ?? null,
+    });
+
+    if (defaultThickness) {
+      dispatch(setActiveCountertopThickness(defaultThickness));
+      setConfigBatch({}, { Thickness: defaultThickness });
+    }
+  }, [activeCountertopThickness, activeMaterialTokens, countertopRules, selectedDimensions.depth, dispatch]);
 
   const canAddAnotherCabinet = useMemo(() => {
     if (!addableCabinetWidths.length) return false;
