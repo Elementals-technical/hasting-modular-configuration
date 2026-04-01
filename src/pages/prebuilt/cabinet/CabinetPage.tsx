@@ -140,6 +140,10 @@ export const CabinetPage = () => {
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
       const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+      const nested =
+        typeof meta.metadata === "object" && meta.metadata
+          ? (meta.metadata as Record<string, unknown>)
+          : ({} as Record<string, unknown>);
       const pick = (...values: unknown[]): string | undefined => {
         for (const v of values) {
           const str = toOptionalString(v);
@@ -148,13 +152,14 @@ export const CabinetPage = () => {
         return undefined;
       };
       return {
-        material: pick(meta.Material),
-        color: pick(meta.Color),
-        look: pick(meta.Look),
-        hex: pick(meta.hex),
-        image: pick(meta.image, variant.image),
-        value: pick(meta.value, variant.name),
-        label: pick(meta.label, meta.Label, variant.name),
+        material: pick(nested.Material, meta.Material),
+        color: pick(nested.Color, meta.Color),
+        look: pick(nested.Look, meta.Look),
+        hex: pick(nested.hex, meta.hex),
+        image: pick(nested.image, meta.image, variant.image),
+        value: pick(meta.value, nested.value, variant.name),
+        label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
+        sku: pick(meta.sku, nested.sku),
       };
     },
     [],
@@ -178,7 +183,7 @@ export const CabinetPage = () => {
                 metadata: {
                   image: meta.image,
                   value: meta.value ?? variant.name,
-                  sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
+                  sku: meta.sku,
                   materials: [
                     ...new Set([group.proxyName, option.name, ...toStringArrayFromCsv(meta.material)].filter(Boolean)),
                   ],

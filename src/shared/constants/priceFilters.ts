@@ -35,7 +35,16 @@ export const TIER_DEFINITIONS = [
 
 export const getTierForSku = (sku?: string): number | undefined => {
   if (!sku) return undefined;
-  return SKU_TIERS[sku.toUpperCase()] ?? SKU_TIERS[sku] ?? undefined;
+  const normalized = sku.trim().toUpperCase();
+  if (!normalized) return undefined;
+
+  const exact = SKU_TIERS[normalized] ?? SKU_TIERS[sku];
+  if (exact !== undefined) return exact;
+
+  const byPrefix = Object.entries(SKU_TIERS).find(([knownSku]) => normalized.startsWith(knownSku));
+  if (byPrefix) return byPrefix[1];
+
+  return undefined;
 };
 
 const normalizeToken = (value?: string) =>
@@ -67,6 +76,17 @@ const MATERIAL_TIER_MAP: Record<string, number> = {
   tekorund: 3,
 };
 
+const resolveTierFromMaterialToken = (token: string): number | undefined => {
+  const exact = MATERIAL_TIER_MAP[token];
+  if (exact !== undefined) return exact;
+
+  for (const [materialToken, tier] of Object.entries(MATERIAL_TIER_MAP)) {
+    if (token.includes(materialToken)) return tier;
+  }
+
+  return undefined;
+};
+
 const includesWhiteToken = (value?: string): boolean => {
   const normalized = normalizeToken(value);
   return normalized.includes("white") || normalized.includes("bianco");
@@ -85,6 +105,42 @@ const isWhiteLacquerOption = (option: ProductOptionData): boolean => {
   return includesWhiteToken(value);
 };
 
+const WHITE_LACQUER_TIER1_EXCEPTIONS = new Set([
+  "biancocalcedagl",
+  "biancomalefagl",
+  "biancocalcedamt",
+  "biancomalefamt",
+]);
+
+const isWhiteLacquerTier1Exception = (option: ProductOptionData): boolean => {
+  const tokens = [option.title, option.name, option.desc, option.metadata?.value]
+    .map((value) => normalizeToken(value))
+    .filter(Boolean);
+
+  return tokens.some((token) => WHITE_LACQUER_TIER1_EXCEPTIONS.has(token));
+};
+
+const WHITE_LACQUER_TIER1_MATERIAL_EXCLUSIONS = new Set(["glass", "glassmt", "glassgl", "tekorlux"]);
+
+const hasTier1ExcludedMaterial = (option: ProductOptionData): boolean => {
+  const materialTokens = [
+    ...(option.metadata?.materials ?? []),
+    option.desc,
+    option.title,
+    option.name,
+    option.metadata?.value,
+  ]
+    .map((value) => normalizeToken(value))
+    .filter(Boolean);
+
+  return materialTokens.some((token) => {
+    for (const excluded of WHITE_LACQUER_TIER1_MATERIAL_EXCLUSIONS) {
+      if (token.includes(excluded)) return true;
+    }
+    return false;
+  });
+};
+
 const isLacquerOption = (option: ProductOptionData): boolean => {
   const sku = option.metadata?.sku?.trim().toUpperCase();
   if (sku === "LACM" || sku === "LACG") return true;
@@ -98,15 +154,33 @@ const isLacquerOption = (option: ProductOptionData): boolean => {
 
 const getTierForOption = (option: ProductOptionData): number | undefined => {
   // Rule from table: Lacq MT/GL White => Tier 1.
-  if (isLacquerOption(option) && isWhiteLacquerOption(option)) return 1;
+  if (
+    isLacquerOption(option) &&
+    isWhiteLacquerOption(option) &&
+    !isWhiteLacquerTier1Exception(option) &&
+    !hasTier1ExcludedMaterial(option)
+  ) {
+    return 1;
+  }
 
   const bySku = getTierForSku(option.metadata?.sku);
   if (bySku !== undefined) return bySku;
 
-  // Fallback when sku is empty: derive tier from material tokens.
+  // Fallback when sku is empty: derive tier from material/name/description tokens.
   const materials = option.metadata?.materials ?? [];
-  for (const material of materials) {
-    const byMaterial = MATERIAL_TIER_MAP[normalizeToken(material)];
+  const candidates = [
+    ...materials,
+    option.desc,
+    option.title,
+    option.name,
+    option.metadata?.value,
+  ];
+
+  for (const candidate of candidates) {
+    const token = normalizeToken(candidate);
+    if (!token) continue;
+
+    const byMaterial = resolveTierFromMaterialToken(token);
     if (byMaterial !== undefined) return byMaterial;
   }
 
@@ -136,7 +210,7 @@ export const filterOptionsByTier = (options: ProductOptionData[], tierValue?: st
 
   return options.filter((option) => {
     const tier = getTierForOption(option);
-    if (tier === undefined) return true;
+    if (tier === undefined) return false;
     return tier === def.tier;
   });
 };
