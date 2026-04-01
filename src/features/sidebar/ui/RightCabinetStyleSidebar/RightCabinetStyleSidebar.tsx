@@ -260,10 +260,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const filteredValues = filterWidthValuesByCountertopRules({
       values,
       activeCabinetCode: activeCabinetRule?.code,
+      isSinkBaseCabinet: activeDrawerProduct?.toLowerCase().includes("sink-base"),
       activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
       activeMaterialTokens,
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
+      activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle: sinkType ?? null,
+      activeThickness: countertopThickness ?? null,
     });
     const remainingForAdd =
       maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
@@ -278,6 +282,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     });
   }, [
     activeCabinetRule?.code,
+    activeDrawerProduct,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
@@ -285,6 +290,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     sceneTotalWidth,
     selectedDimensions.depth,
     activeCabinetRule?.isOpen,
+    countertopStyle,
+    sinkType,
+    countertopThickness,
   ]);
 
   const depthOptions = useMemo(() => {

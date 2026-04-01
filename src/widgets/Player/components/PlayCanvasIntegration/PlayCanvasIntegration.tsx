@@ -653,10 +653,14 @@ export const PlayCanvasIntegration = () => {
     const filteredByRules = filterWidthValuesByCountertopRules({
       values: baseOptions,
       activeCabinetCode: activeCabinetRule?.code,
+      isSinkBaseCabinet: Boolean(selectedSceneProduct?.toLowerCase().startsWith("sink-base-")),
       activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
       activeMaterialTokens,
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
+      activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle,
+      activeThickness: activeCountertopThickness ?? null,
     });
     if (
       maxCountertopLength === null ||
@@ -674,6 +678,7 @@ export const PlayCanvasIntegration = () => {
     });
   }, [
     activeCabinetRule?.code,
+    selectedSceneProduct,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
@@ -682,6 +687,9 @@ export const PlayCanvasIntegration = () => {
     selectedDimensions.depth,
     selectedDimensions.width,
     activeCabinetRule?.isOpen,
+    activeBasinStyle,
+    activeCountertopThickness,
+    countertopStyle,
   ]);
 
   const depthOptions = useMemo(() => {

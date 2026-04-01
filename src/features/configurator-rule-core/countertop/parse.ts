@@ -84,7 +84,7 @@ export const normalizeBasinToken = (value: string): string => {
     .replace(/^top[_\s-]*/g, "")
     .replace(/[/_\s-]+/g, "")
     .replace(/[0-9]+/g, "")
-    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass)/g, "");
+    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass|gres)/g, "");
 
   return cleaned.length > 0 ? cleaned : normalizeToken(value);
 };
@@ -94,7 +94,7 @@ export const normalizeBasinKey = (value: string): string => {
   const cleaned = normalized
     .replace(/^top[_\s-]*/g, "")
     .replace(/[/_\s-]+/g, "")
-    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass)/g, "");
+    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass|gres)/g, "");
 
   return cleaned.length > 0 ? cleaned : normalizeToken(value);
 };
