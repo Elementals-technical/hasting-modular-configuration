@@ -1,5 +1,5 @@
 import { useEffect, type PropsWithChildren } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { BottomStickyBar } from "@/features";
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
@@ -25,6 +25,8 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
   usePriceCalculation();
 
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
+  const summaryStep = steps.find((step) => step.id === "summary");
+  const isSummaryPage = !!summaryStep && location.pathname.startsWith(summaryStep.path);
 
   useEffect(() => {
     const match = steps.find((s) => location.pathname.startsWith(s.path));
@@ -34,6 +36,13 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
   return (
     <div className={s.configSidebar} data-flow={flow}>
+      {summaryStep && !isSummaryPage && (
+        <Link className={s.summaryViewBtn} to={summaryStep.path}>
+          <span>Summary View</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      )}
+
       <div className={s.desktopStepNavigation}>
         <StepNavigationBar title={activeStep} flow={flow} />
       </div>
