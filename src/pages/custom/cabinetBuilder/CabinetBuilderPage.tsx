@@ -896,7 +896,14 @@ export const CabinetBuilderPage = () => {
     };
 
     void runDelete();
-  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, selectedProducts.length, resolveCabinetTypeId]);
+  }, [
+    canvasReady,
+    dispatch,
+    hasBootstrappedCabinetBuilder,
+    productsPresets,
+    selectedProducts.length,
+    resolveCabinetTypeId,
+  ]);
 
   const handleRestoreConfiguration = useCallback(
     async (id: string | number) => {
@@ -1007,6 +1014,22 @@ export const CabinetBuilderPage = () => {
           }
         }
 
+        let topConfigThickness: string | undefined;
+        for (const topId of topConfigIds) {
+          const cfg = configuration[topId];
+          if (cfg && typeof cfg === "object") {
+            const record = cfg as Record<string, unknown>;
+            if (typeof record.Thickness === "number" && isFinite(record.Thickness)) {
+              topConfigThickness = String(record.Thickness);
+              break;
+            }
+            if (typeof record.Thickness === "string" && record.Thickness) {
+              topConfigThickness = record.Thickness;
+              break;
+            }
+          }
+        }
+
         const uiCabinetColor =
           typeof uiStateValues?.CabinetColor === "string" ? (uiStateValues.CabinetColor as string) : undefined;
         const uiHandleGrooveColor =
@@ -1017,7 +1040,8 @@ export const CabinetBuilderPage = () => {
         const uiCountertopColor =
           typeof uiStateValues?.CountertopColor === "string" ? (uiStateValues.CountertopColor as string) : undefined;
         const uiCountertopThickness =
-          typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+          (typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined) ??
+          topConfigThickness;
         const uiDrawerPanelFluting =
           typeof uiStateValues?.DrawerPanelFluting === "string"
             ? (uiStateValues.DrawerPanelFluting as string)

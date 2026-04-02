@@ -108,6 +108,15 @@ const formatInches = (cm: number): string => {
   return str.startsWith("0.") ? str.slice(1) : str;
 };
 
+const normalizeCountertopThicknessForDisplay = (value: string | null): string | null => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number.parseFloat(trimmed);
+  if (!Number.isFinite(parsed)) return trimmed;
+  return Math.abs(parsed - 2.5) < 0.001 ? "2.4" : trimmed;
+};
+
 /** Converts dimension values (W/H/D) from cm to inches for SKUs that store cm.
  *  SKUs that already use inches (CT-, VES-) are returned unchanged. */
 const convertSkuToInches = (sku: string): string => {
@@ -742,6 +751,7 @@ export const CustomSummaryPage = () => {
         : null) ??
       countertopThickness ??
       matrixDefaultThickness;
+    const displayCountertopThickness = normalizeCountertopThicknessForDisplay(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(resolvedCountertopColor);
 
     const cabinetOptionItems: SummaryItem[] = [
@@ -802,7 +812,7 @@ export const CustomSummaryPage = () => {
       {
         id: "countertop-1",
         title: "Countertop",
-        subtitle: resolvedCountertopThickness ? `${resolvedCountertopThickness}` : undefined,
+        subtitle: displayCountertopThickness ?? undefined,
         sku: countertopSkuLines[0],
         swatch: {
           label: "Countertop",
@@ -816,7 +826,7 @@ export const CustomSummaryPage = () => {
           "Product Category": "Countertop",
           Style: countertopStyle || "Plain",
           Width: totalCountertopWidth,
-          Thickness: resolvedCountertopThickness || null,
+          Thickness: displayCountertopThickness,
           Depth: selectedDimensions.depth,
           Material: resolvedCountertopMaterialSku
             ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)

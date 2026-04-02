@@ -46,6 +46,7 @@ import {
   getSinkBaseCount,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
@@ -67,6 +68,7 @@ import {
   filterWidthValuesByCountertopRules,
   parseCountertopMatrix,
   resolveCountertopMaxLengthByRules,
+  resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { ROUTES } from "@/shared";
@@ -210,6 +212,7 @@ export const PlayCanvasIntegration = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const towelBarOption = useAppSelector(getTowelBarOption);
+  const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
 
   const saveSnapshot = useHistorySnapshot();
@@ -447,7 +450,11 @@ export const PlayCanvasIntegration = () => {
     const width = toFiniteNumber(config.Width);
     const depth = toFiniteNumber(config.Depth);
     const heightKey = toFiniteNumber(config.Height);
-    const thicknessValue = toFiniteNumber(config.Thickness) ?? toFiniteNumber(activeCountertopThickness);
+    const rawConfigThickness = toFiniteNumber(config.Thickness);
+    const thicknessValue =
+      rawConfigThickness !== null && rawConfigThickness > 0
+        ? rawConfigThickness
+        : toFiniteNumber(activeCountertopThickness);
     const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
 
     const nextData: Record<string, unknown> = { productId };
@@ -584,6 +591,27 @@ export const PlayCanvasIntegration = () => {
       .filter((value) => Number.isFinite(value) && value > 0);
   }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
 
+  // When a countertop material is known but no thickness has been set yet, resolve
+  // the default from the rules matrix and push it into both Redux and PlayCanvas.
+  // This ensures getConfig() returns a non-zero Thickness before the user clicks
+  // the countertop, avoiding the stale-closure "0" shown by the dimension tool.
+  useEffect(() => {
+    if (activeCountertopThickness) return;
+    if (!activeMaterialTokens.length) return;
+    if (!countertopRules.length) return;
+
+    const defaultThickness = resolveDefaultThicknessFromRules({
+      rules: countertopRules,
+      activeMaterialTokens,
+      depth: selectedDimensions.depth ?? null,
+    });
+
+    if (defaultThickness) {
+      dispatch(setActiveCountertopThickness(defaultThickness));
+      setConfigBatch({}, { Thickness: defaultThickness });
+    }
+  }, [activeCountertopThickness, activeMaterialTokens, countertopRules, selectedDimensions.depth, dispatch]);
+
   const canAddAnotherCabinet = useMemo(() => {
     if (!addableCabinetWidths.length) return false;
     if (remainingCountertopLength === null) return true;
@@ -627,10 +655,14 @@ export const PlayCanvasIntegration = () => {
     const filteredByRules = filterWidthValuesByCountertopRules({
       values: baseOptions,
       activeCabinetCode: activeCabinetRule?.code,
+      isSinkBaseCabinet: Boolean(selectedSceneProduct?.toLowerCase().startsWith("sink-base-")),
       activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
       activeMaterialTokens,
       rules: countertopRules,
       selectedDepth: selectedDimensions.depth ?? null,
+      activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle,
+      activeThickness: activeCountertopThickness ?? null,
     });
     if (
       maxCountertopLength === null ||
@@ -648,6 +680,7 @@ export const PlayCanvasIntegration = () => {
     });
   }, [
     activeCabinetRule?.code,
+    selectedSceneProduct,
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
@@ -656,6 +689,9 @@ export const PlayCanvasIntegration = () => {
     selectedDimensions.depth,
     selectedDimensions.width,
     activeCabinetRule?.isOpen,
+    activeBasinStyle,
+    activeCountertopThickness,
+    countertopStyle,
   ]);
 
   const depthOptions = useMemo(() => {
@@ -1827,13 +1863,12 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     if (!selectedSceneProduct) return;
+    if (isStyleSidebarOpen) return;
 
     let cancelled = false;
 
     const syncSelectedDimensionsFromScene = async () => {
       if (pendingHandleSyncRef.current) return;
-
-
       const config = await getConfig(selectedSceneProduct);
       if (!config || cancelled) return;
 
@@ -1872,7 +1907,7 @@ export const PlayCanvasIntegration = () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [dispatch, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
+  }, [dispatch, isStyleSidebarOpen, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {

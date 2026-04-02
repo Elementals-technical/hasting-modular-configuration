@@ -1,5 +1,5 @@
 import type { CountertopMatrixRule } from "./types";
-import { materialMatchesRule, matchesDepth } from "./parse";
+import { materialMatchesRule, matchesDepth, normalizeBasinKey, normalizeBasinToken, parseThicknessValue } from "./parse";
 
 const toNumericDimension = (value: string | number): number | null => {
   if (typeof value === "number") {
@@ -13,19 +13,27 @@ const toNumericDimension = (value: string | number): number | null => {
 type FilterWidthValuesParams = {
   values: Array<string | number>;
   activeCabinetCode?: string | null;
+  isSinkBaseCabinet?: boolean;
   activeCabinetIsOpen?: boolean;
   activeMaterialTokens: string[];
   rules: CountertopMatrixRule[];
   selectedDepth: number | null;
+  activeCountertopStyle?: string | null;
+  activeBasinStyle?: string | null;
+  activeThickness?: string | null;
 };
 
 export const filterWidthValuesByCountertopRules = ({
   values,
   activeCabinetCode,
+  isSinkBaseCabinet,
   activeCabinetIsOpen,
   activeMaterialTokens,
   rules,
   selectedDepth,
+  activeCountertopStyle,
+  activeBasinStyle,
+  activeThickness,
 }: FilterWidthValuesParams): Array<string | number> => {
   if (!values.length) return values;
   if (activeCabinetIsOpen) return values;
@@ -38,18 +46,62 @@ export const filterWidthValuesByCountertopRules = ({
   });
 
   if (!matchingRules.length) return values;
-  const shouldEnforceMinSb = activeCabinetCode === "Sink-Base";
+
+  const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
+  const basinLooksIntegrated =
+    Boolean(activeBasinStyle) && !String(activeBasinStyle).trim().toLowerCase().startsWith("vessel_");
+  const isIntegratedStyle = normalizedStyle === "integrated" || basinLooksIntegrated;
+  const isVesselStyle = normalizedStyle === "vessel";
+  const isUndermountStyle = normalizedStyle === "undermount";
+  const activeBasinKey = activeBasinStyle ? normalizeBasinKey(activeBasinStyle) : "";
+  const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+
+  const matchesThickness = (rule: CountertopMatrixRule): boolean => {
+    if (activeThicknessValue === null) return true;
+    return rule.topThicknesses
+      .map((value) => parseThicknessValue(value))
+      .filter((value): value is number => value !== null)
+      .some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+  };
+
+  const basinScopedRules = (() => {
+    if (!(isIntegratedStyle && activeBasinKey)) return matchingRules;
+
+    const keyMatched = matchingRules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
+    if (keyMatched.length > 0) return keyMatched;
+
+    const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : "";
+    if (!activeBasinToken) return matchingRules;
+
+    const tokenMatched = matchingRules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
+    return tokenMatched.length > 0 ? tokenMatched : matchingRules;
+  })();
+
+  const thicknessScopedRules = basinScopedRules.filter((rule) => matchesThickness(rule));
+
+  const rulesForWidth =
+    thicknessScopedRules.length > 0 ? thicknessScopedRules : basinScopedRules.length > 0 ? basinScopedRules : matchingRules;
+  const shouldEnforceMinSb =
+    Boolean(isSinkBaseCabinet) ||
+    (activeCabinetCode ? /(^|[-_\s])sink[-_\s]?base($|[-_\s])|^sb$/i.test(activeCabinetCode) : false);
 
   const isWidthAllowedByAnyRule = (width: number) =>
-    matchingRules.some((rule) => {
+    rulesForWidth.some((rule) => {
       if (shouldEnforceMinSb && rule.minSbCm !== null && width < rule.minSbCm) return false;
 
-      const maxLimits = [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm].filter(
-        (value): value is number => value !== null,
-      );
+      const maxLimits = (
+        isIntegratedStyle
+          ? [rule.maxIntegratedCm]
+          : isVesselStyle
+            ? [rule.maxVesselCm]
+            : isUndermountStyle
+              ? [rule.maxUndermountCm]
+              : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm]
+      ).filter((value): value is number => value !== null);
       if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
 
       if (
+        isIntegratedStyle &&
         rule.integratedAllowedSizesOnly.length > 0 &&
         !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
       ) {
