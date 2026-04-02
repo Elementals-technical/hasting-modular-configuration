@@ -299,8 +299,8 @@ export function usePriceCalculation() {
     const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
     const firstPreset = productsPresets[0];
     const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
-      cabinetColorSku ||
       (swatchValue ? colorSkuByName.get(swatchValue) : null) ||
+      cabinetColorSku ||
       colorSkuByName.get(cabinetColor) ||
       null;
     const shouldUsePresetCountertopColor =
@@ -452,25 +452,24 @@ export function usePriceCalculation() {
 
         const swatchValue = cfg.CabinetColor ?? cabinetColor;
         const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
-        skus.push(
-          buildProductSku({
-            cabinetType: resolvedType,
-            drawers: cfg.Drawers,
-            handle: (selectedProductConfig?.Handle as string | undefined) || cfg.Handle || null,
-            pattern: drawerPanelFluting || null,
-            width: cfg.Width,
-            height: cfg.Height,
-            depth: cfg.Depth,
-            cab: cabMaterialSku
-              ? { materialSku: cabMaterialSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
-              : null,
-            hdl: handleMaterialSku
-              ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-              : null,
-            msp: null,
-            bkpl: null,
-          }),
-        );
+        const sku = buildProductSku({
+          cabinetType: resolvedType,
+          drawers: cfg.Drawers,
+          handle: (selectedProductConfig?.Handle as string | undefined) || cfg.Handle || null,
+          pattern: drawerPanelFluting || null,
+          width: cfg.Width,
+          height: cfg.Height,
+          depth: cfg.Depth,
+          cab: cabMaterialSku
+            ? { materialSku: cabMaterialSku, colorCode: extractColorCode(swatchValue), grainDirection: grainSku }
+            : null,
+          hdl: handleMaterialSku
+            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            : null,
+          msp: null,
+          bkpl: null,
+        });
+        skus.push(sku);
       });
     } else if (sceneConfigs.length > 0) {
       // Custom path: iterate all products from PlayCanvas
