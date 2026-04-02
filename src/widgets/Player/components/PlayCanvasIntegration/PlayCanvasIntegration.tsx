@@ -425,7 +425,7 @@ export const PlayCanvasIntegration = () => {
     if (updatedCountertopConfig) {
       setCountertopDimensionData(syncData.countertopId, updatedCountertopConfig as Record<string, unknown>);
     }
-  }, [getCountertopSyncData]);
+  }, [getCountertopSyncData, setCountertopDimensionData]);
 
   const patchDimensionToolDisplayName = useCallback(() => {
     const tool = getDimensionTool() as any;
@@ -711,9 +711,7 @@ export const PlayCanvasIntegration = () => {
     const normalizedSku = normalizeMaterialToken(countertopColorSku ?? "");
 
     const hasTekormud =
-      normalizedTokens.has("tekormud") ||
-      normalizedColor.includes("tekormud") ||
-      normalizedSku.includes("tekormud");
+      normalizedTokens.has("tekormud") || normalizedColor.includes("tekormud") || normalizedSku.includes("tekormud");
 
     return hasTekormud;
   }, [activeMaterialTokens, activeCountertopColor, countertopColorSku]);
@@ -1930,7 +1928,14 @@ export const PlayCanvasIntegration = () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [dispatch, isStyleSidebarOpen, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
+  }, [
+    dispatch,
+    isStyleSidebarOpen,
+    selectedDimensions.depth,
+    selectedDimensions.height,
+    selectedDimensions.width,
+    selectedSceneProduct,
+  ]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
