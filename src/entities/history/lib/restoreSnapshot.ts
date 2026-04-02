@@ -135,4 +135,9 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   if (opts.TowelBarColor) {
     await setConfigBatch({}, { TowelBarColor: opts.TowelBarColor });
   }
+
+  // Re-apply VesselColor to PlayCanvas (Sink-Base only, fallback to CountertopColor when empty).
+  if (opts.VesselColor) {
+    await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: opts.VesselColor });
+  }
 }

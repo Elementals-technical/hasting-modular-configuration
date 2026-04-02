@@ -67,6 +67,7 @@ import {
   getSelectedProductConfig,
   getSelectedDimensions,
   getSinkType,
+  getVesselColor,
   getProductsPresets,
   getHasBootstrappedCabinetBuilder,
   getDominantDrawerGroup,
@@ -181,6 +182,7 @@ export const CabinetBuilderPage = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const sinkType = useAppSelector(getSinkType);
+  const vesselColor = useAppSelector(getVesselColor);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
@@ -279,9 +281,8 @@ export const CabinetBuilderPage = () => {
         isAvailable: (ruleOption ? !ruleOption.disabled : true) && hasAddableWidthForActiveType,
         disabledReason:
           !hasAddableWidthForActiveType && hasProducts
-            ? `Maximum composition length reached for the selected countertop setup${
-                maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
-              }.`
+            ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+            }.`
             : ruleOption?.reason,
         isMixingRestricted,
         isShortDesc: meta.isShortDesc ?? false,
@@ -350,9 +351,8 @@ export const CabinetBuilderPage = () => {
               : isSideShelfHandleBlocked
                 ? "This cabinet type is only compatible with a PTO handle."
                 : isLengthLimited
-                  ? `Maximum composition length reached for the selected countertop setup${
-                      maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
-                    }.`
+                  ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+                  }.`
                   : undefined;
 
           return {
@@ -540,18 +540,18 @@ export const CabinetBuilderPage = () => {
     const finalRulesResult =
       newHandle !== currentHandle
         ? applyConfiguratorRules(
-            {
-              cabinetType: inferredCabinetType,
-              width: selectedDimensions.width ?? 0,
-              depth: selectedDimensions.depth ?? 0,
-              height: selectedDimensions.height ?? 0,
-              drawers: drawerRawValue,
-              handle: newHandle || undefined,
-            },
-            undefined,
-            { selectedProductIds: [] },
-            cabinetCatalog,
-          )
+          {
+            cabinetType: inferredCabinetType,
+            width: selectedDimensions.width ?? 0,
+            depth: selectedDimensions.depth ?? 0,
+            height: selectedDimensions.height ?? 0,
+            drawers: drawerRawValue,
+            handle: newHandle || undefined,
+          },
+          undefined,
+          { selectedProductIds: [] },
+          cabinetCatalog,
+        )
         : rulesResult;
 
     const newHeight = finalRulesResult.nextSelection.height;
@@ -1253,11 +1253,15 @@ export const CabinetBuilderPage = () => {
           HandleGrooveColor: handleGrooveColor,
           Handle: resolvedHandle,
           Drawers: currentSelectedConfig.Drawers,
+          Thickness: countertopThickness || undefined,
         };
 
-        // Add sinkType if it's a Sink-Base
+        // Add sinkType and VesselColor if it's a Sink-Base
         if (selectedCabinetRule?.hasSink && sinkType) {
           productConfig.sinkType = sinkType;
+          if (vesselColor) {
+            productConfig.VesselColor = vesselColor;
+          }
         }
 
         await saveSnapshot();

@@ -924,7 +924,7 @@ export const CountertopPage = () => {
       allowedStyles: Array.from(allowedStyles),
     });
 
-    const vesselSinkNames = new Set(["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris"]);
+    const vesselSinkNames = new Set(["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris", "Vessel_Aquarius"]);
 
     const integratedSinkNames = new Set([
       "Top_HPLPrisma",
@@ -1143,19 +1143,7 @@ export const CountertopPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    const orderedIds = getOrderedProductIds(selectedProducts);
-    if (!orderedIds.length) return;
-
-    const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
-    const sinkBaseIds = orderedIds.filter((_, index) => {
-      const rawConfig = configs[index];
-      if (!rawConfig || typeof rawConfig !== "object") return false;
-      return containsSinkBase(rawConfig);
-    });
-
-    if (!sinkBaseIds.length) return;
-
-    await setConfigBatch(sinkBaseIds, { CountertopColor: colorName });
+    await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: colorName });
 
     setActiveVesselColor(colorName);
     dispatch(setVesselColor(colorName));
@@ -1257,9 +1245,18 @@ export const CountertopPage = () => {
   const handleAddBasinStyle = async (basinStyle: string) => {
     await saveSnapshot();
     if (basinStyle.startsWith("Vessel_")) {
+      // Toggle: clicking the already-selected vessel reverts to empty cutout
+      if (activeBasinStyle === basinStyle) {
+        await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
+        dispatch(setActiveBasinStyle(""));
+        return;
+      }
       presetNames.forEach((productName) => {
         setConfigBatch({ productType: productName }, { sinkType: basinStyle });
       });
+      if (activeVesselColor) {
+        await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: activeVesselColor });
+      }
       dispatch(setActiveBasinStyle(basinStyle));
       return;
     }
@@ -1276,9 +1273,9 @@ export const CountertopPage = () => {
         dispatch(setActiveBasinStyle(basinStyle));
         return;
       }
-      await applyBasinStyleByDependencies(basinStyle, selectedSceneProduct);
+      await applyBasinStyleByDependencies(basinStyle);
     },
-    [applyBasinStyleByDependencies, dispatch, presetNames, selectedSceneProduct],
+    [applyBasinStyleByDependencies, dispatch, presetNames],
   );
 
   const handleAddThickness = useCallback(
@@ -1308,6 +1305,8 @@ export const CountertopPage = () => {
   useEffect(() => {
     if (!hasSelectedMaterial || !activeThickness || isSinkDisabled) return;
     if (!filteredBasinOptions.length) return;
+    // Vessel style: user picks vessel manually (or leaves hole cutout empty)
+    if (isVesselStyle) return;
 
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(activeCountertopColor);
     const hasColorDrivenDefault =
@@ -1335,12 +1334,25 @@ export const CountertopPage = () => {
     filteredBasinOptions,
     hasSelectedMaterial,
     isSinkDisabled,
+    isVesselStyle,
     activeCountertopColor,
   ]);
 
-  const handleCountertopStyle = (style: string) => {
+  const handleCountertopStyle = async (style: string) => {
     if (!style) return;
+    await saveSnapshot();
     dispatch(setCountertopStyle(style));
+
+    if (style.toLowerCase() === "vessel") {
+      // Show hole cutout on countertop without any vessel model.
+      // sinkType targets Sink-Base cabinets only (not OS/SC).
+      await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
+      dispatch(setActiveBasinStyle(""));
+    } else {
+      // Leaving vessel style — reset VesselColor so it doesn't persist
+      await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: "" });
+      dispatch(setVesselColor(""));
+    }
   };
 
   const clearAllFilters = () => {
@@ -1484,6 +1496,8 @@ export const CountertopPage = () => {
         <div>Select a thickness first to enable basin styles.</div>
       ) : isSinkDisabled ? (
         <div>Select a cabinet type with sink support to enable basin styles.</div>
+      ) : filteredBasinOptions.length === 0 && isVesselStyle ? (
+        <div>No vessel styles available for the selected material.</div>
       ) : (
         <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />
       ),

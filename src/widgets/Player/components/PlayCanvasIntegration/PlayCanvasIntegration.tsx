@@ -46,6 +46,7 @@ import {
   getSinkBaseCount,
   getTowelBarOption,
   getSelectedProducts,
+  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
@@ -213,6 +214,9 @@ export const PlayCanvasIntegration = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
+  const vesselColor = useAppSelector(getVesselColor);
+  const vesselColorRef = useRef(vesselColor);
+  vesselColorRef.current = vesselColor;
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const towelBarOption = useAppSelector(getTowelBarOption);
@@ -1151,6 +1155,10 @@ export const PlayCanvasIntegration = () => {
         if (!productId) return;
 
         await setConfig(productId, mergedConfig);
+        // Re-apply VesselColor after duplicating a Sink-Base with vessel
+        if (vesselColorRef.current && typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel")) {
+          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColorRef.current });
+        }
         dispatch(addProductId(productId));
 
         const drawers = mergedConfig.Drawers as string | undefined;
