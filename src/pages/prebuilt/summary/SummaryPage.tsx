@@ -71,6 +71,7 @@ import s from "./SummaryPage.module.scss";
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -477,7 +478,7 @@ export const SummaryPage = () => {
     };
     const isSinkBaseName = (value: string | null | undefined) => {
       if (!value) return false;
-      const normalized = value.toLowerCase();
+      const normalized = normalizeCabinetToken(value);
       return normalized.includes("sink-base") || normalized.includes("sinkbase");
     };
     const sinkBaseCountForHcut = Math.max(
@@ -537,7 +538,7 @@ export const SummaryPage = () => {
             const swatch = resolveSwatch(swatchValue);
 
             const productCabinetType = name ?? activeCabinetType;
-            const normalizedName = (productCabinetType ?? "").toLowerCase();
+            const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
             const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
@@ -565,7 +566,7 @@ export const SummaryPage = () => {
               });
             } else {
               sku = buildProductSku({
-                cabinetType: productCabinetType,
+                cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
                 drawers: typeof config.Drawers === "string" ? config.Drawers : null,
                 handle: typeof config.Handle === "string" ? config.Handle : null,
                 pattern:

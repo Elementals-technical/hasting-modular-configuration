@@ -98,6 +98,7 @@ const DEBOUNCE_MS = 300;
 const LOG_PREFIX = "[SKU/Price]";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -160,8 +161,10 @@ export function usePriceCalculation() {
   const resolveCabinetType = useCallback(
     (productName: string | null): string | null => {
       if (!productName) return null;
-      const normalized = productName.toLowerCase();
-      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+      const normalized = normalizeCabinetToken(productName);
+      const match = cabinetCatalog.typeCabinetRules.find((rule) =>
+        normalized.includes(normalizeCabinetToken(rule.code)),
+      );
       return match?.code ?? null;
     },
     [cabinetCatalog.typeCabinetRules],
@@ -411,7 +414,7 @@ export function usePriceCalculation() {
       // Extra products added on top of presets (e.g. via sidebar in prebuilt mode)
       sceneConfigs.forEach((cfg, idx) => {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
-        const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+        const normalizedName = normalizeCabinetToken(cfg.name ?? cfg.id ?? "");
 
         if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
           const swatchValue = cfg.CabinetColor ?? cabinetColor;
@@ -471,7 +474,7 @@ export function usePriceCalculation() {
       // Custom path: iterate all products from PlayCanvas
       sceneConfigs.forEach((cfg, idx) => {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
-        const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+        const normalizedName = normalizeCabinetToken(cfg.name ?? cfg.id ?? "");
         const swatchValue = cfg.CabinetColor ?? cabinetColor;
 
         // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
