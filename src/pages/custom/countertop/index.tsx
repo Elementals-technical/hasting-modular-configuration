@@ -70,6 +70,20 @@ import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
 const MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON = "Not available for current total cabinets width on scene";
+
+const INTEGRATED_DEPTH_46_DISABLED_REASON =
+  'Integrated basin style not available for 46cm (18.1") depth configurations';
+const VESSEL_ONLY_DEPTH_CM = 46;
+const VESSEL_ONLY_DEPTH_MATERIAL_TOKENS = new Set([
+  "tekormud",
+  "tekorund",
+  "sstm",
+  "solidsurface",
+  "ssocr",
+  "sst1c",
+  "sst1d",
+]);
+
 const formatSkuThicknessToken = (value: number): string => {
   const mapped = Math.abs(value - 2.5) < 0.001 ? 2.4 : value;
   return `${mapped.toFixed(1).replace(/^0(?=\.)/, "")}H`;
@@ -358,6 +372,16 @@ export const CustomCountertopPage = () => {
     });
     return match?.metadata?.materials ?? [];
   }, [activeVesselColor, vesselColorOptions]);
+
+  const isDepth46VesselOnly = useMemo(() => {
+    const depth = selectedDimensions.depth;
+    if (typeof depth !== "number" || !Number.isFinite(depth)) return false;
+    if (Math.abs(depth - VESSEL_ONLY_DEPTH_CM) >= 0.01) return false;
+
+    return activeMaterialTokens
+      .map((token) => normalizeMaterialToken(token))
+      .some((token) => VESSEL_ONLY_DEPTH_MATERIAL_TOKENS.has(token));
+  }, [activeMaterialTokens, selectedDimensions.depth]);
 
   const ruleState = useMemo(
     () =>
@@ -806,7 +830,9 @@ export const CustomCountertopPage = () => {
       if (option.children?.length) {
         const children = option.children.map((child) => annotate(child));
         const isDisabled = children.every((child) => child.disabled);
-        const childReasons = children.map((child) => child.reason).filter((reason): reason is string => Boolean(reason));
+        const childReasons = children
+          .map((child) => child.reason)
+          .filter((reason): reason is string => Boolean(reason));
         const totalWidthReason = childReasons.find((reason) =>
           reason.startsWith(MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON),
         );
@@ -816,7 +842,9 @@ export const CustomCountertopPage = () => {
           ...option,
           children,
           disabled: isDisabled,
-          reason: isDisabled ? (totalWidthReason ?? selectedSizeReason ?? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON) : undefined,
+          reason: isDisabled
+            ? (totalWidthReason ?? selectedSizeReason ?? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON)
+            : undefined,
         };
       }
 
@@ -1056,12 +1084,17 @@ export const CustomCountertopPage = () => {
 
   const filteredStyleOptions = useMemo(
     () =>
-      optionsMockData2.map((option) => ({
-        ...option,
-        isAvailable: true,
-        disabledReason: undefined,
-      })),
-    [],
+      optionsMockData2.map((option) => {
+        const isIntegrated = option.title.trim().toLowerCase() === "integrated";
+        const blocked = isDepth46VesselOnly && isIntegrated;
+
+        return {
+          ...option,
+          isAvailable: !blocked,
+          disabledReason: blocked ? INTEGRATED_DEPTH_46_DISABLED_REASON : undefined,
+        };
+      }),
+    [isDepth46VesselOnly],
   );
 
   const sortedCountertopOptions = useMemo(
