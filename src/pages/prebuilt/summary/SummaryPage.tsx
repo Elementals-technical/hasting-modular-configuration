@@ -1259,12 +1259,19 @@ export const SummaryPage = () => {
 
   useEffect(() => {
     setSummarySkuJson(fullSkuJson);
+  }, [fullSkuJson]);
+
+  useEffect(() => {
     setSummaryTotal(summaryTotal);
-    return () => {
+  }, [summaryTotal]);
+
+  useEffect(
+    () => () => {
       setSummarySkuJson([]);
       setSummaryTotal(null);
-    };
-  }, [fullSkuJson, summaryTotal]);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!hasSelectedSwatches && isSwatchesEnabledInSummary) {

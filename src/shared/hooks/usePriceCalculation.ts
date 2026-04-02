@@ -627,27 +627,9 @@ export function usePriceCalculation() {
       skus.push(defaultFaucetSku);
     }
 
-    // Keep per-product countertop SKUs too (used by existing pricing flows).
-    productDimsList.forEach((dims) => {
-      const countertopSkuLines = buildCountertopSku({
-        style: countertopStyle || null,
-        width: dims.width,
-        depth: dims.depth,
-        thickness: resolvedCountertopThickness,
-        basinType: dims.sinkType,
-        faucetHolesAmount: faucetHolesAmount || null,
-        faucetHolesSpacing: faucetHolesSpacing || null,
-        countertopMaterialSku: effectiveCountertopMaterialSku,
-        countertopColorCode: effectiveCountertopColorCode,
-      });
-      countertopSkuLines.forEach((line) => {
-        if (!seenCountertopSkus.has(line)) {
-          seenCountertopSkus.add(line);
-
-          skus.push(line);
-        }
-      });
-    });
+    // Do not add per-product countertop lines to active pricing SKUs.
+    // They duplicate the aggregate countertop pricing line and inflate totals
+    // (e.g. counting both CT-UR...INTG-70.9W and CT-UR...INTG-23.6W).
 
     // 2b) Vessel basin SKU — Resolver 2b (when sinkType is a vessel type)
     const seenVesselSkus = new Set<string>();
