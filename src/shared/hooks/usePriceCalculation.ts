@@ -262,25 +262,31 @@ export function usePriceCalculation() {
   const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
   const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
-  const colorSkuByName = useMemo(() => {
-    const map = new Map<string, string>();
+  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuByName } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];
-
-    groups.forEach((group) => {
-      group.options.forEach((option) => {
-        option.variants?.forEach((variant) => {
-          if (!variant.enabled) return;
-          const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-          const value = (meta.value as string) || variant.name;
-          const sku = (meta.sku as string) || "";
-          if (value && sku) {
-            map.set(value, sku);
-          }
+    const buildMapForProxy = (proxyName: string) => {
+      const map = new Map<string, string>();
+      groups
+        .filter((group) => group.proxyName === proxyName)
+        .forEach((group) => {
+          group.options.forEach((option) => {
+            option.variants?.forEach((variant) => {
+              if (!variant.enabled) return;
+              const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+              const value = (meta.value as string) || variant.name;
+              const sku = (meta.sku as string) || "";
+              if (value && sku) map.set(value, sku);
+            });
+          });
         });
-      });
-    });
+      return map;
+    };
 
-    return map;
+    return {
+      cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
+      handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
+      countertopColorSkuByName: buildMapForProxy("Countertop Color"),
+    };
   }, [cabinetColors]);
 
   // ── Guard: minimum data required ──────────────────────
@@ -296,12 +302,12 @@ export function usePriceCalculation() {
     if (!canCalculate) return [];
 
     const skus: string[] = [];
-    const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+    const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
     const firstPreset = productsPresets[0];
     const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
-      (swatchValue ? colorSkuByName.get(swatchValue) : null) ||
+      (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
       cabinetColorSku ||
-      colorSkuByName.get(cabinetColor) ||
+      cabinetColorSkuByName.get(cabinetColor) ||
       null;
     const shouldUsePresetCountertopColor =
       shouldUsePresets && countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
@@ -312,12 +318,12 @@ export function usePriceCalculation() {
       : countertopColor;
     const resolvedCountertopMaterialSku =
       countertopColorSku ||
-      (resolvedCountertopColor ? colorSkuByName.get(resolvedCountertopColor) : null) ||
-      colorSkuByName.get(countertopColor) ||
+      (resolvedCountertopColor ? countertopColorSkuByName.get(resolvedCountertopColor) : null) ||
+      countertopColorSkuByName.get(countertopColor) ||
       null;
     const resolvedVesselColor = vesselColor || resolvedCountertopColor;
     const resolvedVesselMaterialSku =
-      (resolvedVesselColor ? colorSkuByName.get(resolvedVesselColor) : null) || resolvedCountertopMaterialSku;
+      (resolvedVesselColor ? countertopColorSkuByName.get(resolvedVesselColor) : null) || resolvedCountertopMaterialSku;
     const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
       ? resolvedVesselMaterialSku
@@ -777,7 +783,9 @@ export function usePriceCalculation() {
     sidePanelsOption,
     dividersStyle,
     placedDividers,
-    colorSkuByName,
+    cabinetColorSkuByName,
+    handleGrooveColorSkuByName,
+    countertopColorSkuByName,
     resolveCabinetType,
     countertopRules,
   ]);

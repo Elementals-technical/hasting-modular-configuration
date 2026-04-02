@@ -358,25 +358,31 @@ export const CustomSummaryPage = () => {
   const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
   const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
-  const colorSkuByName = useMemo(() => {
-    const map = new Map<string, string>();
+  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuByName } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];
-
-    groups.forEach((group) => {
-      group.options.forEach((option) => {
-        option.variants?.forEach((variant) => {
-          if (!variant.enabled) return;
-          const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-          const value = (meta.value as string) || variant.name;
-          const sku = (meta.sku as string) || "";
-          if (value && sku) {
-            map.set(value, sku);
-          }
+    const buildMapForProxy = (proxyName: string) => {
+      const map = new Map<string, string>();
+      groups
+        .filter((group) => group.proxyName === proxyName)
+        .forEach((group) => {
+          group.options.forEach((option) => {
+            option.variants?.forEach((variant) => {
+              if (!variant.enabled) return;
+              const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+              const value = (meta.value as string) || variant.name;
+              const sku = (meta.sku as string) || "";
+              if (value && sku) map.set(value, sku);
+            });
+          });
         });
-      });
-    });
+      return map;
+    };
 
-    return map;
+    return {
+      cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
+      handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
+      countertopColorSkuByName: buildMapForProxy("Countertop Color"),
+    };
   }, [cabinetColors]);
 
   useEffect(() => {
@@ -466,9 +472,9 @@ export const CustomSummaryPage = () => {
   const summarySections: SummarySection[] = useMemo(() => {
     const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
     const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
+      (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
       cabinetColorSku ||
-      (swatchValue ? colorSkuByName.get(swatchValue) : null) ||
-      colorSkuByName.get(cabinetColor) ||
+      cabinetColorSkuByName.get(cabinetColor) ||
       null;
     const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
     const cabinetCount =
@@ -543,7 +549,7 @@ export const CustomSummaryPage = () => {
             const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
             const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
-            const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+            const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
 
             let sku: string;
             if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
@@ -618,7 +624,7 @@ export const CustomSummaryPage = () => {
                 cabColor: swatchValue,
                 cabMaterialSku: cabinetMaterialSku,
                 hdlColor: handleGrooveColor,
-                hdlMaterialSku: handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null,
+                hdlMaterialSku: handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null,
               }),
             };
           })
@@ -633,7 +639,7 @@ export const CustomSummaryPage = () => {
               const swatch = resolveSwatch(swatchValue);
               const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
-              const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+              const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
               const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
               const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
               const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
@@ -713,7 +719,7 @@ export const CustomSummaryPage = () => {
             })
           : [
               (() => {
-                const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+                const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
                 const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
 
                 const sku = buildProductSku({
@@ -797,12 +803,12 @@ export const CustomSummaryPage = () => {
       sinkType;
     const resolvedCountertopMaterialSku =
       countertopColorSku ||
-      colorSkuByName.get(resolvedCountertopColor) ||
-      colorSkuByName.get(countertopColor) ||
+      countertopColorSkuByName.get(resolvedCountertopColor) ||
+      countertopColorSkuByName.get(countertopColor) ||
       null;
     const resolvedVesselColor = vesselColor || resolvedCountertopColor;
     const resolvedVesselMaterialSku =
-      colorSkuByName.get(resolvedVesselColor) || resolvedCountertopMaterialSku;
+      countertopColorSkuByName.get(resolvedVesselColor) || resolvedCountertopMaterialSku;
     const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
       ? resolvedVesselMaterialSku
@@ -1114,7 +1120,7 @@ export const CustomSummaryPage = () => {
       countertopSkuLines.find((sku) => sku.includes("-FAHO/"));
     const faucetHoleSpacingSku =
       extraCountertopItems.find((item) => item.title === "Faucet Hole Spacing" && item.sku)?.sku ??
-      countertopSkuLines.find((sku) => sku.includes("-FHSP/"));
+      countertopSkuLines.find((sku) => sku.includes("-FAHOS/"));
 
     const faucetItems: SummaryItem[] = [
       faucetHolesAmount
@@ -1226,7 +1232,9 @@ export const CustomSummaryPage = () => {
     handleGrooveColorSku,
     productsPresets,
     productConfigs,
-    colorSkuByName,
+    cabinetColorSkuByName,
+    handleGrooveColorSkuByName,
+    countertopColorSkuByName,
     countertopRules,
     selectedDimensions.depth,
     selectedDimensions.height,

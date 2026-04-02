@@ -12,6 +12,7 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
+  addProductPreset,
   setCabinetColor,
   setCabinetColorSku,
   setCabinetColorFinish,
@@ -427,6 +428,17 @@ export const CabinetPage = () => {
   const handleChangeColor = async (colorName?: string) => {
     if (!colorName) return;
     await saveSnapshot();
+
+    if (presetsProducts.length) {
+      dispatch(
+        addProductPreset(
+          presetsProducts.map((preset) => ({
+            ...preset,
+            CabinetColor: colorName,
+          })),
+        ),
+      );
+    }
 
     presetNames.forEach(() => {
       setConfigBatch({}, { CabinetColor: colorName });
