@@ -16,14 +16,15 @@ import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool"
 import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refreshFullDimensions";
+import { useFullDimensionsRefresh } from "@/shared/hooks/useFullDimensionsRefresh";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
-import { hideDimensions, showDimensions } from "@/utils/functions/playcanvas/showDimensions";
-import { cmToInch } from "@/utils/units";
+import { hideDimensions } from "@/utils/functions/playcanvas/showDimensions";
 import {
   getCanUndo,
   getCanRedo,
@@ -100,82 +101,23 @@ export const BottomCanvasButtons = () => {
   // const saveSnapshot = useHistorySnapshot();
   const [isRestoring, setIsRestoring] = useState(false);
 
-  const readNumericConfigValue = (config: unknown, key: "Width" | "Height" | "Depth") => {
-    if (!config || typeof config !== "object") return undefined;
-
-    const rawValue = (config as Record<string, unknown>)[key];
-
-    if (typeof rawValue !== "number" || Number.isNaN(rawValue)) return undefined;
-
-    return rawValue;
-  };
-
-  const formatInchesLabel = (value?: number) => {
-    if (typeof value !== "number") return "";
-
-    const normalized = Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.?0+$/, "");
-
-    return `${normalized} "`;
-  };
+  useFullDimensionsRefresh(isFullDimensionsEnabled, () => {
+    hideDimensions();
+    setIsFullDimensionsEnabled(false);
+  });
 
   const handleToggleFullDimensions = async () => {
     const next = !isFullDimensionsEnabled;
 
     if (!next) {
       hideDimensions();
-
       setIsFullDimensionsEnabled(false);
       return;
     }
 
-    const ids = getOrderedProductIds();
-    if (!ids.length) return;
-
-    const configs = await Promise.all(ids.map((id) => getConfig(id)));
-
-    const widthByNode = ids.map((id, index) => ({
-      node: id,
-      width: readNumericConfigValue(configs[index], "Width"),
-    }));
-
-    const totalWidth = widthByNode.reduce((sum, item) => sum + (item.width ?? 0), 0);
-
-    const maxHeight = configs.reduce((max, config) => {
-      const value = readNumericConfigValue(config, "Height");
-      return Math.max(max, value ?? 0);
-    }, 0);
-
-    const maxDepth = configs.reduce((max, config) => {
-      const value = readNumericConfigValue(config, "Depth");
-
-      return Math.max(max, value ?? 0);
-    }, 0);
-
-    const didShow = showDimensions({
-      box: {
-        nodes: ids,
-        width: { label: formatInchesLabel(cmToInch(totalWidth)), offset: 0.05 },
-        height: { label: formatInchesLabel(cmToInch(maxHeight)) },
-        depth: { label: formatInchesLabel(cmToInch(maxDepth)) },
-      },
-      lines: widthByNode.map(({ node, width }) => ({
-        node,
-        axis: "x",
-        label: formatInchesLabel(width != null ? cmToInch(width) : undefined),
-      })),
-      labelSettings: {
-        offset: 0.05,
-        labelGap: "auto",
-        labelPosition: "center",
-        units: "in",
-        decimals: 2,
-      },
-    });
-
+    const didShow = await computeAndShowFullDimensions();
     if (!didShow) return;
 
-    const tool = getDimensionTool();
-    tool?.setEnabled(false);
     setIsDimensionsEnabled(false);
     setIsFullDimensionsEnabled(true);
   };
