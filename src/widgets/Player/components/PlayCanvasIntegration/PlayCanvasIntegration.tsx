@@ -45,7 +45,9 @@ import {
   getActiveCabinetRule,
   getSinkBaseCount,
   getTowelBarOption,
+  getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
+import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -202,6 +204,8 @@ export const PlayCanvasIntegration = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const selectedProducts = useAppSelector(getSelectedProducts);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -632,8 +636,8 @@ export const PlayCanvasIntegration = () => {
       buildCountertopRuleState({
         rules: countertopRules,
         activeMaterialTokens,
-        width: selectedDimensions.width ?? null,
-        depth: selectedDimensions.depth ?? null,
+        width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
+        depth: sinkBaseDims.depth ?? selectedDimensions.depth ?? null,
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
       }),
@@ -642,6 +646,8 @@ export const PlayCanvasIntegration = () => {
       activeCountertopThickness,
       activeMaterialTokens,
       countertopRules,
+      sinkBaseDims.depth,
+      sinkBaseDims.width,
       selectedDimensions.depth,
       selectedDimensions.width,
     ],

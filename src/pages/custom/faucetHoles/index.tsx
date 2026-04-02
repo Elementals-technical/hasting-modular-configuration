@@ -12,8 +12,10 @@ import {
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
   getSelectedDimensions,
+  getSelectedProducts,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
+import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { setFaucetHolesAmount, setFaucetHolesSpacing } from "@/entities/product/model/store/slice";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
@@ -41,6 +43,8 @@ export const CustomFaucetHolesPage = () => {
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const selectedProducts = useAppSelector(getSelectedProducts);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
 
@@ -63,8 +67,8 @@ export const CustomFaucetHolesPage = () => {
       buildCountertopRuleState({
         rules: countertopRules,
         activeMaterialTokens,
-        width: selectedDimensions.width,
-        depth: selectedDimensions.depth,
+        width: sinkBaseDims.width ?? selectedDimensions.width,
+        depth: sinkBaseDims.depth ?? selectedDimensions.depth,
         activeBasinStyle,
         activeThickness,
       }),
@@ -73,6 +77,8 @@ export const CustomFaucetHolesPage = () => {
       activeMaterialTokens,
       activeThickness,
       countertopRules,
+      sinkBaseDims.depth,
+      sinkBaseDims.width,
       selectedDimensions.depth,
       selectedDimensions.width,
     ],
