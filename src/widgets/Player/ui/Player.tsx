@@ -40,7 +40,7 @@ import {
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
-import { getIsSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/selectors";
+import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
 
 import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 
@@ -78,6 +78,7 @@ export function Player() {
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
+  const selectedSwatches = useAppSelector(getSelectedSwatches);
 
   const [saveConfiguration] = useSaveConfigurationMutation();
   const activeStep = useAppSelector(getActiveStep);
@@ -137,13 +138,13 @@ export function Player() {
   };
 
   const handleGenerateQuote = async () => {
-    const content = document.getElementById("summary-content");
+    const content = document.getElementById("quote-print-root") ?? document.getElementById("summary-content");
     if (!content) return;
 
     const clone = content.cloneNode(true) as HTMLElement;
     clone.id = "summary-print-clone";
 
-    if (!isSwatchesEnabledInSummary) {
+    if (!isSwatchesEnabledInSummary || selectedSwatches.length === 0) {
       clone.querySelector('[data-summary-section="swatches"]')?.remove();
     }
 

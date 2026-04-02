@@ -3,6 +3,11 @@
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
   body > :not(#summary-print-clone) {
     display: none !important;
   }
@@ -42,6 +47,10 @@
       page-break-inside: avoid;
       break-before: auto;
     }
+  }
+
+  #summary-print-clone[data-print-doc="quote"] {
+    padding: 0;
   }
 }
 
