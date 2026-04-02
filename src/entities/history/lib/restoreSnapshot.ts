@@ -120,4 +120,19 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   if (opts.Thickness) {
     await setConfigBatch({}, { Thickness: opts.Thickness });
   }
+
+  // Re-apply TowelBar state to PlayCanvas.
+  // TowelBars are global scene addons (not per-product), synced via
+  // clear-then-add pattern (same as handleRemoveProducts/handleTowelBarChange).
+  const towelOption = opts.TowelBarOption;
+  await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both" });
+  if (towelOption && towelOption !== "None") {
+    await setConfigBatch({}, {
+      TowelBar: "TowelBar40_R",
+      TowelBarSide: towelOption.toLowerCase(),
+    });
+  }
+  if (opts.TowelBarColor) {
+    await setConfigBatch({}, { TowelBarColor: opts.TowelBarColor });
+  }
 }

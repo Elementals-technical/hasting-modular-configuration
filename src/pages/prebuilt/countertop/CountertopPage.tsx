@@ -68,6 +68,7 @@ import s from "./CountertopPage.module.scss";
 import { BaseButton } from "@/shared";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
+import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
@@ -102,6 +103,7 @@ export const CountertopPage = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const hasSelectedMaterial = Boolean(activeCountertopColor);
   const isVesselStyle = (activeCountertopStyle ?? "").trim().toLowerCase() === "vessel";
   const [hasSinkBase, setHasSinkBase] = useState(false);
@@ -424,8 +426,8 @@ export const CountertopPage = () => {
       buildCountertopRuleState({
         rules: countertopRules,
         activeMaterialTokens,
-        width: selectedDimensions.width,
-        depth: selectedDimensions.depth,
+        width: sinkBaseDims.width ?? selectedDimensions.width,
+        depth: sinkBaseDims.depth ?? selectedDimensions.depth,
         activeBasinStyle,
         activeThickness,
       }),
@@ -434,6 +436,8 @@ export const CountertopPage = () => {
       activeMaterialTokens,
       activeThickness,
       countertopRules,
+      sinkBaseDims.depth,
+      sinkBaseDims.width,
       selectedDimensions.depth,
       selectedDimensions.width,
     ],
@@ -651,13 +655,15 @@ export const CountertopPage = () => {
       const optionMaterials = option.metadata?.materials ?? [];
       if (!optionMaterials.length) return { isCompatible: true, failedBy: null };
 
-      const selectedDepth = selectedDimensions.depth ?? null;
+      // Use SB cabinet depth for rule filtering; fall back to selected entity depth
+      const effectiveDepth = sinkBaseDims.depth ?? selectedDimensions.depth ?? null;
       const totalWidth = sceneTotalWidth;
-      const selectedWidth = selectedDimensions.width ?? null;
+      // Use SB cabinet width for minSbCm validation instead of any clicked entity
+      const sbWidth = sinkBaseDims.width;
       const normalizedStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
 
       const applicableRules = countertopRules.filter((rule) => {
-        if (!matchesDepth(rule, selectedDepth)) return false;
+        if (!matchesDepth(rule, effectiveDepth)) return false;
 
         return optionMaterials.some((material) => materialMatchesRule(material, rule.material));
       });
@@ -697,13 +703,13 @@ export const CountertopPage = () => {
         return { isCompatible: false, failedBy: "total" };
       }
 
-      if (typeof selectedWidth === "number" && !matchesWidth(selectedWidth)) {
+      if (typeof sbWidth === "number" && !matchesWidth(sbWidth)) {
         return { isCompatible: false, failedBy: "selected" };
       }
 
       return { isCompatible: true, failedBy: null };
     },
-    [activeCountertopStyle, countertopRules, sceneTotalWidth, selectedDimensions.depth, selectedDimensions.width],
+    [activeCountertopStyle, countertopRules, sceneTotalWidth, sinkBaseDims.depth, sinkBaseDims.width, selectedDimensions.depth],
   );
 
   const isMaterialOptionCompatibleBySceneSize = useCallback(
