@@ -14,16 +14,46 @@ const stripRuntimeSuffix = (value: string): string => {
   return trimmed;
 };
 
-const inferProductName = (id: string, config?: Record<string, unknown>) => {
-  const productType = config?.productType;
-  if (typeof productType === "string" && productType.length) return stripRuntimeSuffix(productType);
+const toCompact = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  const entityName = config?.entityName;
-  if (typeof entityName === "string" && entityName.length) {
-    return stripRuntimeSuffix(entityName);
+const toCanonicalCabinetName = (value: string) => {
+  const compact = toCompact(value);
+  if (compact.includes("sinkbase")) return "Sink-Base";
+  if (compact.includes("sinkcabinet")) return "Sink-Cabinet";
+  if (compact.includes("sidecabinet")) return "Side-Cabinet";
+  if (compact.includes("openshelf")) return "Open-Shelf";
+  if (compact.includes("sideshelf")) return "Side-Shelf";
+  return value;
+};
+
+const readString = (record: Record<string, unknown>, keys: string[]): string | undefined => {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return undefined;
+};
+
+const readNumber = (record: Record<string, unknown>, keys: string[]): number | undefined => {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+  }
+  return undefined;
+};
+
+const inferProductName = (id: string, config?: Record<string, unknown>) => {
+  const productType = config?.productType ?? config?.ProductType;
+  if (typeof productType === "string" && productType.length) {
+    return toCanonicalCabinetName(stripRuntimeSuffix(productType));
   }
 
-  return stripRuntimeSuffix(id);
+  const entityName = config?.entityName ?? config?.EntityName;
+  if (typeof entityName === "string" && entityName.length) {
+    return toCanonicalCabinetName(stripRuntimeSuffix(entityName));
+  }
+
+  return toCanonicalCabinetName(stripRuntimeSuffix(id));
 };
 
 export const buildPresetFromConfiguration = (
@@ -43,14 +73,25 @@ export const buildPresetFromConfiguration = (
 
       const preset: PresetProduct = { name };
 
-      if (typeof config.Width === "number") preset.Width = config.Width;
-      if (typeof config.Height === "number") preset.Height = config.Height;
-      if (typeof config.Depth === "number") preset.Depth = config.Depth;
-      if (typeof config.CabinetColor === "string") preset.CabinetColor = config.CabinetColor;
-      if (typeof config.Drawers === "string") preset.Drawers = config.Drawers;
-      if (typeof config.sinkType === "string") preset.sinkType = config.sinkType;
-      if (typeof config.CountertopColor === "string") preset.CountertopColor = config.CountertopColor;
-      if (typeof config.HandleGrooveColor === "string") preset.HandleGrooveColor = config.HandleGrooveColor;
+      const width = readNumber(config, ["Width", "width"]);
+      const height = readNumber(config, ["Height", "height"]);
+      const depth = readNumber(config, ["Depth", "depth"]);
+      const cabinetColor = readString(config, ["CabinetColor", "cabinetColor"]);
+      const drawers = readString(config, ["Drawers", "drawers"]);
+      const handle = readString(config, ["Handle", "handle", "HandleType", "handleType"]);
+      const sinkType = readString(config, ["sinkType", "SinkType"]);
+      const countertopColor = readString(config, ["CountertopColor", "countertopColor"]);
+      const handleGrooveColor = readString(config, ["HandleGrooveColor", "handleGrooveColor"]);
+
+      if (typeof width === "number") preset.Width = width;
+      if (typeof height === "number") preset.Height = height;
+      if (typeof depth === "number") preset.Depth = depth;
+      if (cabinetColor) preset.CabinetColor = cabinetColor;
+      if (drawers) preset.Drawers = drawers;
+      if (handle) preset.Handle = handle;
+      if (sinkType) preset.sinkType = sinkType;
+      if (countertopColor) preset.CountertopColor = countertopColor;
+      if (handleGrooveColor) preset.HandleGrooveColor = handleGrooveColor;
 
       return preset;
     })

@@ -634,9 +634,12 @@ export const SummaryPage = () => {
               const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
               const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+              const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
+              const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
+              const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
 
               let sku: string;
-              if (preset.name === "Open-Shelf") {
+              if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
                 sku = buildOpenShelfSku({
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
@@ -645,7 +648,7 @@ export const SummaryPage = () => {
                   cabinetColorCode: extractColorCode(swatchValue),
                   grainDirection: grainSku,
                 });
-              } else if (preset.name === "Side-Shelf") {
+              } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
                 const side: "L" | "R" = index === 0 ? "L" : "R";
                 sku = buildOpenSideShelfSku({
                   side,
@@ -658,9 +661,9 @@ export const SummaryPage = () => {
                 });
               } else {
                 sku = buildProductSku({
-                  cabinetType: preset.name ?? activeCabinetType,
+                  cabinetType: normalizedPresetType ?? activeCabinetType,
                   drawers: preset.Drawers ?? null,
-                  handle: preset.Handle ?? null,
+                  handle: resolvedHandle,
                   pattern: drawerPanelFluting || null,
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
@@ -694,9 +697,9 @@ export const SummaryPage = () => {
                 price: resolveItemPrice(sku),
                 copyable: true,
                 description: buildCabinetDescription({
-                  cabinetType: preset.name ?? activeCabinetType,
+                  cabinetType: normalizedPresetType ?? activeCabinetType,
                   drawers: preset.Drawers ?? null,
-                  handle: preset.Handle ?? null,
+                  handle: resolvedHandle,
                   pattern: drawerPanelFluting || null,
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,

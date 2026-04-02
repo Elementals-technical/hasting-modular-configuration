@@ -348,9 +348,11 @@ export function usePriceCalculation() {
       // Prebuilt path: iterate presets
       productsPresets.forEach((preset, idx) => {
         const name = preset.name ?? "";
+        const normalizedPresetName = normalizeCabinetToken(name);
+        const normalizedPresetType = name ? name.replace(/[\s_]+/g, "-") : "";
 
         // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (name === "Open-Shelf") {
+        if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
           const swatchValue = preset.CabinetColor ?? cabinetColor;
           const sku = buildOpenShelfSku({
             width: preset.Width ?? null,
@@ -366,7 +368,7 @@ export function usePriceCalculation() {
         }
 
         // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (name === "Side-Shelf") {
+        if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
           // Determine side: if it's before the main cabinet → L, after → R
           const side: "L" | "R" = idx === 0 ? "L" : "R";
           const swatchValue = preset.CabinetColor ?? cabinetColor;
@@ -386,7 +388,7 @@ export function usePriceCalculation() {
 
         // Standard cabinet → VAN-URSTD-{type}/...
         // preset.name is already a catalog key ("Sink-Base", "Side-Cabinet", etc.)
-        const resolvedType = name || resolveCabinetType(name || null) || activeCabinetType;
+        const resolvedType = normalizedPresetType || resolveCabinetType(name || null) || activeCabinetType;
 
         const swatchValue = preset.CabinetColor ?? cabinetColor;
         const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
