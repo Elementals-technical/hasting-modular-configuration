@@ -46,6 +46,7 @@ import {
   getSinkBaseCount,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
@@ -211,6 +212,7 @@ export const PlayCanvasIntegration = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const towelBarOption = useAppSelector(getTowelBarOption);
+  const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
 
   const saveSnapshot = useHistorySnapshot();
@@ -1861,13 +1863,12 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     if (!selectedSceneProduct) return;
+    if (isStyleSidebarOpen) return;
 
     let cancelled = false;
 
     const syncSelectedDimensionsFromScene = async () => {
       if (pendingHandleSyncRef.current) return;
-
-
       const config = await getConfig(selectedSceneProduct);
       if (!config || cancelled) return;
 
@@ -1906,7 +1907,7 @@ export const PlayCanvasIntegration = () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [dispatch, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
+  }, [dispatch, isStyleSidebarOpen, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
