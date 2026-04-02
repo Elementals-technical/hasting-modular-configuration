@@ -33,7 +33,6 @@ type QuotePrintDocumentProps = {
   summarySections: PrintSection[];
   previewImage?: string;
   modelName: string;
-  configurationCode: string;
   generatedDate: string;
   configurationLink: string;
   isSwatchesEnabled: boolean;
@@ -253,7 +252,6 @@ export const QuotePrintDocument = ({
   summarySections,
   previewImage,
   modelName,
-  configurationCode,
   generatedDate,
   configurationLink,
   isSwatchesEnabled,
@@ -305,8 +303,10 @@ export const QuotePrintDocument = ({
 
           <div className={s.metaCard}>
             <div className={s.metaRow}>
-              <strong>Configuration code:</strong>
-              <span>{configurationCode}</span>
+              <strong>Configuration link:</strong>
+              <a className={s.configLink} href={configurationLink}>
+                link
+              </a>
             </div>
             <div className={s.metaRow}>
               <strong>Date Generated:</strong>

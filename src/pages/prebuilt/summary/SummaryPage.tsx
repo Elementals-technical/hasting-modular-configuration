@@ -54,7 +54,7 @@ import {
   extractColorCode,
   resolveDefaultBasinByCountertopColor,
 } from "@/shared/lib/sku";
-import { useGetConfiguratorQuery } from "@/entities";
+import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
@@ -64,6 +64,7 @@ import {
 import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
 import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 
 import s from "./SummaryPage.module.scss";
@@ -286,6 +287,8 @@ export const SummaryPage = () => {
   const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSelectedSwatches;
 
   const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
+  const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
+  const [saveConfiguration] = useSaveConfigurationMutation();
 
   const handleCopy = (text: string, id: string) => {
     if (!navigator.clipboard) {
@@ -1283,6 +1286,81 @@ export const SummaryPage = () => {
     }
   }, [dispatch, hasSelectedSwatches, isSwatchesEnabledInSummary]);
 
+  useEffect(() => {
+    const configIdFromUrl = new URLSearchParams(location.search).get("configId");
+    if (configIdFromUrl || generatedConfigId) return;
+
+    let isCancelled = false;
+
+    const run = async () => {
+      const ids = getOrderedProductIds();
+      if (!ids.length) return;
+
+      try {
+        const configs = await Promise.all(ids.map((id) => getConfig(id)));
+        const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+          acc[id] = configs[index];
+          return acc;
+        }, {});
+
+        const metadata = {
+          path: location.pathname,
+          savedAt: new Date().toISOString(),
+          orderedProductIds: ids,
+          uiState: {
+            CabinetColor: cabinetColor,
+            HandleGrooveColor: handleGrooveColor,
+            sinkType,
+            CountertopColor: countertopColor,
+            Thickness: countertopThickness,
+            DrawerPanelFluting: drawerPanelFluting,
+            GrainDirection: grainDirection,
+            CountertopStyle: countertopStyle,
+            SidePanels: sidePanelsOption,
+            DividersStyle: dividersStyle,
+            TowelBarOption: towelBarOption,
+            TowelBarColor: towelBarColor,
+            FaucetHolesAmount: faucetHolesAmount,
+            FaucetHolesSpacing: faucetHolesSpacing,
+          },
+        };
+
+        const result = await saveConfiguration({ configuration, metadata }).unwrap();
+        const nextConfigId = result?.id;
+        if (!isCancelled && nextConfigId !== undefined && nextConfigId !== null) {
+          setGeneratedConfigId(String(nextConfigId));
+        }
+      } catch (error) {
+        console.error("[Summary Share] Failed to generate configuration link", error);
+      }
+    };
+
+    run();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    cabinetColor,
+    countertopColor,
+    countertopStyle,
+    countertopThickness,
+    dividersStyle,
+    drawerPanelFluting,
+    faucetHolesAmount,
+    faucetHolesSpacing,
+    generatedConfigId,
+    grainDirection,
+    handleGrooveColor,
+    location.pathname,
+    location.search,
+    saveConfiguration,
+    sidePanelsOption,
+    sinkType,
+    towelBarColor,
+    towelBarOption,
+  ]);
+
   const quoteModelName = useMemo(() => {
     const firstCabinetTitle = summarySections.find((section) => section.id === "cabinet")?.items[0]?.title;
     const normalized = (firstCabinetTitle ?? "Urban Standard").toUpperCase();
@@ -1290,21 +1368,14 @@ export const SummaryPage = () => {
     return `${normalized}${widthLabel}`;
   }, [summarySections, selectedDimensions.width]);
 
-  const quoteConfigurationCode = useMemo(() => {
-    const url = new URL(window.location.href);
-    const configId = url.searchParams.get("configId");
-    if (configId) return configId.toUpperCase();
-
-    const firstSku = fullSkuJson[0]?.sku ?? "DRAFT";
-    return (
-      firstSku
-        .replace(/[^A-Za-z0-9]/g, "")
-        .slice(0, 16)
-        .toUpperCase() || "DRAFT"
-    );
-  }, [fullSkuJson]);
-
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
+  const configurationLink = useMemo(() => {
+    const configId = new URLSearchParams(location.search).get("configId") || generatedConfigId;
+    if (configId) {
+      return `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(configId)}`;
+    }
+    return `${window.location.origin}${location.pathname}${location.search}`;
+  }, [generatedConfigId, location.pathname, location.search]);
 
   // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
   // This page only reads from the store.
@@ -1447,9 +1518,8 @@ export const SummaryPage = () => {
         summarySections={summarySections}
         previewImage={quotePreviewImage}
         modelName={quoteModelName}
-        configurationCode={quoteConfigurationCode}
         generatedDate={quoteGeneratedDate}
-        configurationLink={`${window.location.origin}${location.pathname}${location.search}`}
+        configurationLink={configurationLink}
         isSwatchesEnabled={isSwatchesEnabledForSummary}
         swatchesPreview={swatchesListPreview}
       />
