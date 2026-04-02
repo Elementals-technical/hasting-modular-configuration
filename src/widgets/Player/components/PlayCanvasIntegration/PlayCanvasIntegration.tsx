@@ -84,8 +84,7 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const SIDE_SHELF_WIDTH_CM = 15;
-const VESSEL_ONLY_DEPTH_CM = 46;
-const VESSEL_ONLY_DEPTH_MATERIAL_TOKENS = new Set(["tekormud", "tekorund", "sstm", "solidsurface", "ssocr", "sst1c", "sst1d"]);
+const RESIZE_HIDDEN_DEPTH_CM = 46;
 
 const stripRuntimeEntitySuffix = (value: string): string => {
   const trimmed = value.trim();
@@ -706,15 +705,26 @@ export const PlayCanvasIntegration = () => {
     });
   }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
 
-  const isDepth46VesselOnly = useMemo(() => {
-    const depth = selectedDimensions.depth;
-    if (typeof depth !== "number" || !Number.isFinite(depth)) return false;
-    if (Math.abs(depth - VESSEL_ONLY_DEPTH_CM) >= 0.01) return false;
+  const isSolidSurfaceTekormudSelected = useMemo(() => {
+    const normalizedTokens = new Set(activeMaterialTokens.map((token) => normalizeMaterialToken(token)));
+    const normalizedColor = normalizeMaterialToken(activeCountertopColor ?? "");
+    const normalizedSku = normalizeMaterialToken(countertopColorSku ?? "");
 
-    return activeMaterialTokens
-      .map((token) => normalizeMaterialToken(token))
-      .some((token) => VESSEL_ONLY_DEPTH_MATERIAL_TOKENS.has(token));
-  }, [activeMaterialTokens, selectedDimensions.depth]);
+    const hasTekormud =
+      normalizedTokens.has("tekormud") ||
+      normalizedColor.includes("tekormud") ||
+      normalizedSku.includes("tekormud");
+
+    return hasTekormud;
+  }, [activeMaterialTokens, activeCountertopColor, countertopColorSku]);
+
+  const resizeDepthOptions = useMemo(
+    () =>
+      isSolidSurfaceTekormudSelected
+        ? depthOptions.filter((value) => Math.abs(Number(value) - RESIZE_HIDDEN_DEPTH_CM) >= 0.01)
+        : depthOptions,
+    [isSolidSurfaceTekormudSelected, depthOptions],
+  );
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -1969,34 +1979,30 @@ export const PlayCanvasIntegration = () => {
     }
 
     const items: DropdownItem[] = [
-      ...(!isDepth46VesselOnly
-        ? [
-            {
-              id: "resize",
-              label: "Resize",
-              children: [
-                {
-                  id: "resize-width",
-                  label: "Width",
-                  children: widthOptions.map((value) => ({
-                    id: `resize-width-${value}`,
-                    label: `${value}`,
-                    onClick: () => handleSetWidth(Number(value)),
-                  })),
-                },
-                {
-                  id: "resize-depth",
-                  label: "Depth",
-                  children: depthOptions.map((value) => ({
-                    id: `resize-depth-${value}`,
-                    label: `${value}`,
-                    onClick: () => handleSetDepth(Number(value)),
-                  })),
-                },
-              ],
-            } as DropdownItem,
-          ]
-        : []),
+      {
+        id: "resize",
+        label: "Resize",
+        children: [
+          {
+            id: "resize-width",
+            label: "Width",
+            children: widthOptions.map((value) => ({
+              id: `resize-width-${value}`,
+              label: `${value}`,
+              onClick: () => handleSetWidth(Number(value)),
+            })),
+          },
+          {
+            id: "resize-depth",
+            label: "Depth",
+            children: resizeDepthOptions.map((value) => ({
+              id: `resize-depth-${value}`,
+              label: `${value}`,
+              onClick: () => handleSetDepth(Number(value)),
+            })),
+          },
+        ],
+      },
       {
         id: "reposition",
         label: "Reposition",
@@ -2109,8 +2115,7 @@ export const PlayCanvasIntegration = () => {
     canAddAnotherCabinet,
     canDuplicateSelectedCabinet,
     widthOptions,
-    depthOptions,
-    isDepth46VesselOnly,
+    resizeDepthOptions,
     isPrebuilt,
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,
