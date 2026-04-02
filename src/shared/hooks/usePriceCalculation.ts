@@ -98,6 +98,7 @@ const DEBOUNCE_MS = 300;
 const LOG_PREFIX = "[SKU/Price]";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -160,8 +161,10 @@ export function usePriceCalculation() {
   const resolveCabinetType = useCallback(
     (productName: string | null): string | null => {
       if (!productName) return null;
-      const normalized = productName.toLowerCase();
-      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
+      const normalized = normalizeCabinetToken(productName);
+      const match = cabinetCatalog.typeCabinetRules.find((rule) =>
+        normalized.includes(normalizeCabinetToken(rule.code)),
+      );
       return match?.code ?? null;
     },
     [cabinetCatalog.typeCabinetRules],
@@ -345,9 +348,11 @@ export function usePriceCalculation() {
       // Prebuilt path: iterate presets
       productsPresets.forEach((preset, idx) => {
         const name = preset.name ?? "";
+        const normalizedPresetName = normalizeCabinetToken(name);
+        const normalizedPresetType = name ? name.replace(/[\s_]+/g, "-") : "";
 
         // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (name === "Open-Shelf") {
+        if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
           const swatchValue = preset.CabinetColor ?? cabinetColor;
           const sku = buildOpenShelfSku({
             width: preset.Width ?? null,
@@ -363,7 +368,7 @@ export function usePriceCalculation() {
         }
 
         // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (name === "Side-Shelf") {
+        if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
           // Determine side: if it's before the main cabinet → L, after → R
           const side: "L" | "R" = idx === 0 ? "L" : "R";
           const swatchValue = preset.CabinetColor ?? cabinetColor;
@@ -383,7 +388,7 @@ export function usePriceCalculation() {
 
         // Standard cabinet → VAN-URSTD-{type}/...
         // preset.name is already a catalog key ("Sink-Base", "Side-Cabinet", etc.)
-        const resolvedType = name || resolveCabinetType(name || null) || activeCabinetType;
+        const resolvedType = normalizedPresetType || resolveCabinetType(name || null) || activeCabinetType;
 
         const swatchValue = preset.CabinetColor ?? cabinetColor;
         const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
@@ -411,7 +416,7 @@ export function usePriceCalculation() {
       // Extra products added on top of presets (e.g. via sidebar in prebuilt mode)
       sceneConfigs.forEach((cfg, idx) => {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
-        const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+        const normalizedName = normalizeCabinetToken(cfg.name ?? cfg.id ?? "");
 
         if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
           const swatchValue = cfg.CabinetColor ?? cabinetColor;
@@ -471,7 +476,7 @@ export function usePriceCalculation() {
       // Custom path: iterate all products from PlayCanvas
       sceneConfigs.forEach((cfg, idx) => {
         const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
-        const normalizedName = (cfg.name ?? cfg.id ?? "").toLowerCase();
+        const normalizedName = normalizeCabinetToken(cfg.name ?? cfg.id ?? "");
         const swatchValue = cfg.CabinetColor ?? cabinetColor;
 
         // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
@@ -627,27 +632,9 @@ export function usePriceCalculation() {
       skus.push(defaultFaucetSku);
     }
 
-    // Keep per-product countertop SKUs too (used by existing pricing flows).
-    productDimsList.forEach((dims) => {
-      const countertopSkuLines = buildCountertopSku({
-        style: countertopStyle || null,
-        width: dims.width,
-        depth: dims.depth,
-        thickness: resolvedCountertopThickness,
-        basinType: dims.sinkType,
-        faucetHolesAmount: faucetHolesAmount || null,
-        faucetHolesSpacing: faucetHolesSpacing || null,
-        countertopMaterialSku: effectiveCountertopMaterialSku,
-        countertopColorCode: effectiveCountertopColorCode,
-      });
-      countertopSkuLines.forEach((line) => {
-        if (!seenCountertopSkus.has(line)) {
-          seenCountertopSkus.add(line);
-
-          skus.push(line);
-        }
-      });
-    });
+    // Do not add per-product countertop lines to active pricing SKUs.
+    // They duplicate the aggregate countertop pricing line and inflate totals
+    // (e.g. counting both CT-UR...INTG-70.9W and CT-UR...INTG-23.6W).
 
     // 2b) Vessel basin SKU — Resolver 2b (when sinkType is a vessel type)
     const seenVesselSkus = new Set<string>();

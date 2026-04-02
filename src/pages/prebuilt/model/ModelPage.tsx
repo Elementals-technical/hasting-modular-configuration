@@ -27,6 +27,9 @@ import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProduct
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
+import { useLazyRestoreConfigurationQuery } from "@/entities";
+import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 import s from "./ModelPage.module.scss";
 
@@ -101,6 +104,8 @@ export const ModelPage = () => {
 
     return parsedPresetId;
   }, [searchParams]);
+  const configIdFromUrl = useMemo(() => searchParams.get("configId"), [searchParams]);
+  const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
 
   const presetFromUrl = useMemo(() => {
     if (presetIdFromUrl === null) return null;
@@ -249,9 +254,84 @@ export const ModelPage = () => {
   const canvasReady = usePlayCanvasReady();
 
   useEffect(() => {
+    if (!canvasReady || !configIdFromUrl || isDefinedProductsRef.current) return;
+
+    isDefinedProductsRef.current = true;
+
+    const run = async () => {
+      try {
+        const result = await restoreConfiguration(configIdFromUrl).unwrap();
+        const configuration = result?.configuration || {};
+        const orderedIdsFromMeta = result?.metadata?.orderedProductIds;
+        const sourceIds = Array.isArray(orderedIdsFromMeta)
+          ? orderedIdsFromMeta.filter((id) => typeof id === "string")
+          : [];
+
+        const isTopConfig = (id: string, value: unknown) => {
+          if (!value || typeof value !== "object") return false;
+
+          const record = value as Record<string, unknown>;
+          const name =
+            (typeof record.productType === "string" && record.productType) ||
+            (typeof record.ProductType === "string" && record.ProductType) ||
+            (typeof record.entityName === "string" && record.entityName) ||
+            (typeof record.EntityName === "string" && record.EntityName) ||
+            id;
+
+          return name.startsWith("Top_");
+        };
+
+        const configIdsRaw = sourceIds.length ? sourceIds : Object.keys(configuration);
+        const productConfigIds = configIdsRaw.filter((id) => !isTopConfig(id, configuration[id]));
+        const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
+        if (!presetProducts.length) return;
+
+        const uiState = result?.metadata?.uiState;
+        const uiStateValues = uiState && typeof uiState === "object" ? (uiState as Record<string, unknown>) : null;
+
+        await removeAllProducts();
+
+        const restoredCountertopColor =
+          (typeof uiStateValues?.CountertopColor === "string" && uiStateValues.CountertopColor) || undefined;
+        const restoredSinkType = (typeof uiStateValues?.sinkType === "string" && uiStateValues.sinkType) || undefined;
+        const globalConfig = {
+          ...resolvePresetSceneDefaults(presetProducts),
+          ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
+          ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
+        };
+
+        await addPreset(presetProducts, globalConfig);
+
+        // Rebuild presets from real scene configs to keep SKU-driving fields
+        // (name/drawers/handle/dimensions) consistent after restore.
+        const sceneIds = getOrderedProductIds();
+        const sceneConfigs = await Promise.all(sceneIds.map((id) => getConfig(id)));
+        const sceneConfiguration = sceneIds.reduce<Record<string, unknown>>((acc, id, index) => {
+          acc[id] = sceneConfigs[index];
+          return acc;
+        }, {});
+        const scenePresets = buildPresetFromConfiguration(sceneConfiguration, sceneIds);
+        const effectivePresets = scenePresets.length ? scenePresets : presetProducts;
+        dispatch(reset());
+        dispatch(resetCabinetBuilderBootstrap());
+        dispatch(addProductPreset(effectivePresets));
+        if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
+        if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
+        await updateSelectedDimensionsFromScene(effectivePresets);
+        sessionStorage.setItem("prebuiltModelInitialized", "1");
+      } catch (error) {
+        console.error("[Prebuilt] Failed to restore configuration", error);
+      }
+    };
+
+    run();
+  }, [canvasReady, configIdFromUrl, dispatch, restoreConfiguration, updateSelectedDimensionsFromScene]);
+
+  useEffect(() => {
     const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";
 
     if (!canvasReady || isDefinedProductsRef.current) return;
+    if (configIdFromUrl) return;
     if (hasInitialized && productsPresets.length && !presetFromUrl) return;
 
     isDefinedProductsRef.current = true;
@@ -276,10 +356,11 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady, dispatch, presetFromUrl, productsPresets, updateSelectedDimensionsFromScene]);
+  }, [canvasReady, configIdFromUrl, dispatch, presetFromUrl, productsPresets, updateSelectedDimensionsFromScene]);
 
   useEffect(() => {
     if (!canvasReady || !presetFromUrl) return;
+    if (configIdFromUrl) return;
     if (!productsPresets.length) return;
     if (arePresetsEqual(productsPresets, presetFromUrl.presetProducts)) return;
 
@@ -288,7 +369,7 @@ export const ModelPage = () => {
     };
 
     run();
-  }, [canvasReady, handleAddPreset, presetFromUrl, productsPresets]);
+  }, [canvasReady, configIdFromUrl, handleAddPreset, presetFromUrl, productsPresets]);
 
   useEffect(() => {
     if (isDetail) return;

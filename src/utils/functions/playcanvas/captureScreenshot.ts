@@ -9,6 +9,15 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
   });
 
 export async function captureScreenshot(): Promise<string | null> {
+  return captureScreenshotWithOptions();
+}
+
+type CaptureScreenshotOptions = {
+  includeLogo?: boolean;
+};
+
+export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
+  const { includeLogo = true } = options;
   const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
   const sourceCanvas = iframeEl?.contentDocument?.querySelector("canvas");
 
@@ -27,13 +36,15 @@ export async function captureScreenshot(): Promise<string | null> {
 
     ctx.drawImage(sourceCanvas, 0, 0);
 
-    const logoImage = await loadImage(hastingsLogoUrl);
-    const margin = Math.max(16, Math.round(outputCanvas.width * 0.03));
-    const targetWidth = Math.min(Math.round(outputCanvas.width * 0.22), 260);
-    const scale = targetWidth / logoImage.naturalWidth;
-    const targetHeight = Math.round(logoImage.naturalHeight * scale);
+    if (includeLogo) {
+      const logoImage = await loadImage(hastingsLogoUrl);
+      const margin = Math.max(16, Math.round(outputCanvas.width * 0.03));
+      const targetWidth = Math.min(Math.round(outputCanvas.width * 0.22), 260);
+      const scale = targetWidth / logoImage.naturalWidth;
+      const targetHeight = Math.round(logoImage.naturalHeight * scale);
 
-    ctx.drawImage(logoImage, margin, margin, targetWidth, targetHeight);
+      ctx.drawImage(logoImage, margin, margin, targetWidth, targetHeight);
+    }
 
     return outputCanvas.toDataURL("image/png");
   } catch (e) {
@@ -43,7 +54,7 @@ export async function captureScreenshot(): Promise<string | null> {
 }
 
 export function downloadSceneImage(filename = "configuration.png") {
-  captureScreenshot().then((dataUrl) => {
+  captureScreenshotWithOptions({ includeLogo: true }).then((dataUrl) => {
     if (!dataUrl) return;
 
     const link = document.createElement("a");

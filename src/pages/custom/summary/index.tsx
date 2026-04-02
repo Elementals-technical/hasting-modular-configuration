@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
+import { useLocation, useNavigate } from "react-router-dom";
+import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
@@ -54,17 +54,21 @@ import {
   extractColorCode,
   resolveDefaultBasinByCountertopColor,
 } from "@/shared/lib/sku";
-import { useGetConfiguratorQuery } from "@/entities";
+import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
 import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
 import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
+import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 
 import s from "./SummaryPage.module.scss";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
+const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
@@ -98,6 +102,37 @@ const formatPrice = (value?: number | null) => {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
 
+const parsePriceValue = (price?: string): number => {
+  if (!price) return 0;
+  const normalized = price.replace(/[^0-9,.-]/g, "").trim();
+  if (!normalized) return 0;
+
+  const hasComma = normalized.includes(",");
+  const hasDot = normalized.includes(".");
+
+  if (hasComma && hasDot) {
+    const lastComma = normalized.lastIndexOf(",");
+    const lastDot = normalized.lastIndexOf(".");
+    const decimalSeparator = lastComma > lastDot ? "," : ".";
+    const cleaned =
+      decimalSeparator === ","
+        ? normalized.replace(/\./g, "").replace(",", ".")
+        : normalized.replace(/,/g, "");
+    const value = Number.parseFloat(cleaned);
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (hasComma && !hasDot) {
+    const maybeDecimal = /,\d{1,2}$/.test(normalized);
+    const cleaned = maybeDecimal ? normalized.replace(",", ".") : normalized.replace(/,/g, "");
+    const value = Number.parseFloat(cleaned);
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const value = Number.parseFloat(normalized);
+  return Number.isFinite(value) ? value : 0;
+};
+
 /** SKU prefixes whose dimension values are stored in centimeters */
 const CM_SKU_PREFIXES = ["VAN-URSTD-", "VAN-URTWLBR-", "VAN-URSP-"];
 
@@ -115,6 +150,23 @@ const normalizeCountertopThicknessForDisplay = (value: string | null): string | 
   const parsed = Number.parseFloat(trimmed);
   if (!Number.isFinite(parsed)) return trimmed;
   return Math.abs(parsed - 2.5) < 0.001 ? "2.4" : trimmed;
+};
+
+const formatBasinStyle = (value: string | null): string | null => {
+  if (!value) return null;
+  const cleaned = value.replace(/^Top_/, "").replace(/^Vessel_/, "").trim();
+  if (!cleaned) return null;
+
+  const parts = cleaned
+    .split("_")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const materialPrefixes = new Set(["Tekorlux", "Tekormud", "Tekorund", "Ocritech", "Mineralmarmo", "Porcelain", "HPL", "Fenix"]);
+  const normalizedParts =
+    parts.length > 1 && materialPrefixes.has(parts[0]) ? parts.slice(1) : parts;
+
+  return normalizedParts.join(" ").trim() || null;
 };
 
 /** Converts dimension values (W/H/D) from cm to inches for SKUs that store cm.
@@ -151,8 +203,8 @@ type SummarySection = {
 
 /** Readable labels for handle types */
 const handleLabelMap: Record<string, string> = {
-  handle_urban_topcut: "Urban Top Cut",
-  handle_urban_botcut: "Center Groove",
+  handle_urban_topcut: "Upper Groove",
+  handle_urban_botcut: "Central Groove",
   handle_pto: "Push to Open",
 };
 
@@ -189,7 +241,9 @@ const sidePanelLabelMap: Record<string, string> = {
 export const CustomSummaryPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [quotePreviewImage, setQuotePreviewImage] = useState<string>("");
   const editPathBySectionId: Record<string, string> = {
     cabinet: "/custom/cabinet-colors",
     "cabinet-options": "/custom/cabinet-colors",
@@ -232,8 +286,12 @@ export const CustomSummaryPage = () => {
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const selectedSwatches = useAppSelector(getSelectedSwatches);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
+  const hasSelectedSwatches = selectedSwatches.length > 0;
+  const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSelectedSwatches;
 
   const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
+  const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
+  const [saveConfiguration] = useSaveConfigurationMutation();
 
   const handleCopy = (text: string, id: string) => {
     if (!navigator.clipboard) {
@@ -347,6 +405,19 @@ export const CustomSummaryPage = () => {
     };
   }, [selectedProducts]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    captureScreenshotWithOptions({ includeLogo: false }).then((image) => {
+      if (!isMounted || !image) return;
+      setQuotePreviewImage(image);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const buildCabinetDescription = useCallback(
     (opts: {
       cabinetType: string | null;
@@ -409,7 +480,7 @@ export const CustomSummaryPage = () => {
     };
     const isSinkBaseName = (value: string | null | undefined) => {
       if (!value) return false;
-      const normalized = value.toLowerCase();
+      const normalized = normalizeCabinetToken(value);
       return normalized.includes("sink-base") || normalized.includes("sinkbase");
     };
     const sinkBaseCountForHcut = Math.max(
@@ -469,7 +540,7 @@ export const CustomSummaryPage = () => {
             const swatch = resolveSwatch(swatchValue);
 
             const productCabinetType = name ?? activeCabinetType;
-            const normalizedName = (productCabinetType ?? "").toLowerCase();
+            const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
             const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
             const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
@@ -497,7 +568,7 @@ export const CustomSummaryPage = () => {
               });
             } else {
               sku = buildProductSku({
-                cabinetType: productCabinetType,
+                cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
                 drawers: typeof config.Drawers === "string" ? config.Drawers : null,
                 handle: typeof config.Handle === "string" ? config.Handle : null,
                 pattern:
@@ -563,9 +634,12 @@ export const CustomSummaryPage = () => {
               const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
               const handleMaterialSku = handleGrooveColorSku || colorSkuByName.get(handleGrooveColor) || null;
+              const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
+              const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
+              const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
 
               let sku: string;
-              if (preset.name === "Open-Shelf") {
+              if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
                 sku = buildOpenShelfSku({
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
@@ -574,7 +648,7 @@ export const CustomSummaryPage = () => {
                   cabinetColorCode: extractColorCode(swatchValue),
                   grainDirection: grainSku,
                 });
-              } else if (preset.name === "Side-Shelf") {
+              } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
                 const side: "L" | "R" = index === 0 ? "L" : "R";
                 sku = buildOpenSideShelfSku({
                   side,
@@ -587,9 +661,9 @@ export const CustomSummaryPage = () => {
                 });
               } else {
                 sku = buildProductSku({
-                  cabinetType: preset.name ?? activeCabinetType,
+                  cabinetType: normalizedPresetType ?? activeCabinetType,
                   drawers: preset.Drawers ?? null,
-                  handle: preset.Handle ?? null,
+                  handle: resolvedHandle,
                   pattern: drawerPanelFluting || null,
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
@@ -623,9 +697,9 @@ export const CustomSummaryPage = () => {
                 price: resolveItemPrice(sku),
                 copyable: true,
                 description: buildCabinetDescription({
-                  cabinetType: preset.name ?? activeCabinetType,
+                  cabinetType: normalizedPresetType ?? activeCabinetType,
                   drawers: preset.Drawers ?? null,
-                  handle: preset.Handle ?? null,
+                  handle: resolvedHandle,
                   pattern: drawerPanelFluting || null,
                   width: preset.Width ?? null,
                   height: preset.Height ?? null,
@@ -807,6 +881,22 @@ export const CustomSummaryPage = () => {
 
     const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Faucet Hole Spacing", "Hole Cutout"];
 
+    const extraCountertopItems = countertopSkuLines.slice(1).map((line, i) => {
+      const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
+      return {
+        id: `countertop-sku-${i + 1}`,
+        title: lineTitle,
+        subtitle: line,
+        sku: line,
+        price: resolveItemPrice(line),
+        copyable: true,
+        description: {
+          "Product Category": lineTitle,
+          ...(lineTitle === "Basin" && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
+        },
+      };
+    });
+
     const countertopItems: SummaryItem[] = [
       // Main countertop item with swatch
       {
@@ -841,18 +931,7 @@ export const CustomSummaryPage = () => {
             subtitle: countertopStyle,
           }
         : null,
-      // Additional countertop SKU lines (Basin, Faucet, Hole Cutout)
-      ...countertopSkuLines.slice(1).map((line, i) => ({
-        id: `countertop-sku-${i + 1}`,
-        title: countertopSkuLabels[i + 1] ?? `Countertop Element`,
-        subtitle: line,
-        sku: line,
-        price: resolveItemPrice(line),
-        copyable: true,
-        description: {
-          "Product Category": countertopSkuLabels[i + 1] ?? "Countertop Element",
-        },
-      })),
+      ...extraCountertopItems.filter((item) => item.title !== "Faucet Holes" && item.title !== "Faucet Hole Spacing"),
     ].filter(Boolean) as SummaryItem[];
 
     const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
@@ -962,6 +1041,8 @@ export const CustomSummaryPage = () => {
               Width: SIDE_PANEL_WIDTH_CM,
               Height: dims.height,
               Depth: dims.depth,
+              Material: resolveCabinetMaterialSku() ? (materialSkuLabelMap[resolveCabinetMaterialSku()!] ?? resolveCabinetMaterialSku()) : null,
+              "Color Code": extractColorCode(cabinetColor),
             },
           });
         }
@@ -1028,13 +1109,22 @@ export const CustomSummaryPage = () => {
         : null,
     ].filter(Boolean) as SummaryItem[];
 
+    const faucetHolesSku =
+      extraCountertopItems.find((item) => item.title === "Faucet Holes" && item.sku)?.sku ??
+      countertopSkuLines.find((sku) => sku.includes("-FAHO/"));
+    const faucetHoleSpacingSku =
+      extraCountertopItems.find((item) => item.title === "Faucet Hole Spacing" && item.sku)?.sku ??
+      countertopSkuLines.find((sku) => sku.includes("-FHSP/"));
+
     const faucetItems: SummaryItem[] = [
       faucetHolesAmount
         ? {
             id: "faucet-holes-amount",
             title: "Faucet Holes",
             subtitle: faucetHolesAmount,
+            sku: faucetHolesSku,
             price: "$0",
+            copyable: Boolean(faucetHolesSku),
           }
         : null,
       faucetHolesSpacing
@@ -1042,7 +1132,9 @@ export const CustomSummaryPage = () => {
             id: "faucet-holes-spacing",
             title: "Faucet Hole Spacing",
             subtitle: faucetHolesSpacing,
+            sku: faucetHoleSpacingSku,
             price: "$0",
+            copyable: Boolean(faucetHoleSpacingSku),
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -1163,138 +1255,272 @@ export const CustomSummaryPage = () => {
       }));
   }, [summarySections]);
 
+  const summaryTotal = useMemo(
+    () =>
+      summarySections.reduce(
+        (sectionAcc, section) =>
+          sectionAcc + section.items.reduce((itemAcc, item) => itemAcc + parsePriceValue(item.price), 0),
+        0,
+      ),
+    [summarySections],
+  );
+
   useEffect(() => {
     setSummarySkuJson(fullSkuJson);
-    return () => setSummarySkuJson([]);
   }, [fullSkuJson]);
+
+  useEffect(() => {
+    setSummaryTotal(summaryTotal);
+  }, [summaryTotal]);
+
+  useEffect(
+    () => () => {
+      setSummarySkuJson([]);
+      setSummaryTotal(null);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!hasSelectedSwatches && isSwatchesEnabledInSummary) {
+      dispatch(setSwatchesEnabledInSummary(false));
+    }
+  }, [dispatch, hasSelectedSwatches, isSwatchesEnabledInSummary]);
+
+  useEffect(() => {
+    const configIdFromUrl = new URLSearchParams(location.search).get("configId");
+    if (configIdFromUrl || generatedConfigId) return;
+
+    let isCancelled = false;
+
+    const run = async () => {
+      const ids = getOrderedProductIds();
+      if (!ids.length) return;
+
+      try {
+        const configs = await Promise.all(ids.map((id) => getConfig(id)));
+        const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
+          acc[id] = configs[index];
+          return acc;
+        }, {});
+
+        const metadata = {
+          path: location.pathname,
+          savedAt: new Date().toISOString(),
+          orderedProductIds: ids,
+          uiState: {
+            CabinetColor: cabinetColor,
+            HandleGrooveColor: handleGrooveColor,
+            sinkType,
+            CountertopColor: countertopColor,
+            Thickness: countertopThickness,
+            DrawerPanelFluting: drawerPanelFluting,
+            GrainDirection: grainDirection,
+            CountertopStyle: countertopStyle,
+            SidePanels: sidePanelsOption,
+            DividersStyle: dividersStyle,
+            TowelBarOption: towelBarOption,
+            TowelBarColor: towelBarColor,
+            FaucetHolesAmount: faucetHolesAmount,
+            FaucetHolesSpacing: faucetHolesSpacing,
+          },
+        };
+
+        const result = await saveConfiguration({ configuration, metadata }).unwrap();
+        const nextConfigId = result?.id;
+        if (!isCancelled && nextConfigId !== undefined && nextConfigId !== null) {
+          setGeneratedConfigId(String(nextConfigId));
+        }
+      } catch (error) {
+        console.error("[Summary Share] Failed to generate configuration link", error);
+      }
+    };
+
+    run();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    cabinetColor,
+    countertopColor,
+    countertopStyle,
+    countertopThickness,
+    dividersStyle,
+    drawerPanelFluting,
+    faucetHolesAmount,
+    faucetHolesSpacing,
+    generatedConfigId,
+    grainDirection,
+    handleGrooveColor,
+    location.pathname,
+    location.search,
+    saveConfiguration,
+    sidePanelsOption,
+    sinkType,
+    towelBarColor,
+    towelBarOption,
+  ]);
+
+  const quoteModelName = useMemo(() => {
+    const firstCabinetTitle = summarySections.find((section) => section.id === "cabinet")?.items[0]?.title;
+    const normalized = (firstCabinetTitle ?? "Urban Standard").toUpperCase();
+    const widthLabel = selectedDimensions.width ? ` - ${selectedDimensions.width}` : "";
+    return `${normalized}${widthLabel}`;
+  }, [summarySections, selectedDimensions.width]);
+
+  const quoteGeneratedDate = useMemo(
+    () => new Date().toLocaleDateString("en-US"),
+    [],
+  );
+  const configurationLink = useMemo(() => {
+    const configId = new URLSearchParams(location.search).get("configId") || generatedConfigId;
+    if (configId) {
+      return `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(configId)}`;
+    }
+    return `${window.location.origin}${location.pathname}${location.search}`;
+  }, [generatedConfigId, location.pathname, location.search]);
 
   // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
   // This page only reads from the store.
 
   return (
-    <div id="summary-content" className={s.summaryPage}>
-      {summarySections.map((section) => (
-        <div key={section.id} className={s.section}>
+    <>
+      <div id="summary-content" className={s.summaryPage}>
+        {summarySections.map((section) => (
+          <div key={section.id} className={s.section}>
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTitle}>{section.title}</div>
+              <button
+                type="button"
+                className={s.editButton}
+                aria-label={`Edit ${section.title}`}
+                onClick={() => handleEditSection(section.id)}
+              >
+                <EditPenIcon />
+              </button>
+            </div>
+
+            <div className={s.sectionList}>
+              {section.items.map((item) => {
+                return (
+                  <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
+                    <div className={s.itemInfo}>
+                      <span className={s.bullet}>
+                        <img src={base_img} alt="#" />
+                      </span>
+
+                      <div className={s.itemTexts}>
+                        <div className={s.itemTitle}>{item.title}</div>
+                        {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
+                      </div>
+
+                      {item.copyable && item.sku && (
+                        <Hint className={s.copyHint} content={"Copy SKU"}>
+                          <button
+                            className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
+                            onClick={() => handleCopy(item.sku!, item.id)}
+                            aria-label="Copy SKU"
+                          >
+                            <span className={s.copyIcon} />
+                          </button>
+                        </Hint>
+                      )}
+                    </div>
+
+                    {item.swatch && (
+                      <div className={s.swatch}>
+                        <span
+                          className={s.swatchColor}
+                          style={{
+                            backgroundColor: item.swatch.color,
+                            backgroundImage: item.swatch.image ? `url(${item.swatch.image})` : undefined,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                        <div>
+                          <div className={s.swatchLabel}>{item.swatch.label}</div>
+                          <div className={s.swatchValue}>{item.swatch.value}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={s.price}>
+                      {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
+                        <span className={s.priceSpinner} />
+                      ) : item.price !== "$0" ? (
+                        item.price
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        <div className={s.section} data-summary-section="swatches">
           <div className={s.sectionHeader}>
-            <div className={s.sectionTitle}>{section.title}</div>
+            <div className={s.sectionTitle}>Swatches</div>
             <button
               type="button"
               className={s.editButton}
-              aria-label={`Edit ${section.title}`}
-              onClick={() => handleEditSection(section.id)}
+              aria-label="Edit Swatches"
+              onClick={() => handleEditSection("swatches")}
             >
               <EditPenIcon />
             </button>
           </div>
 
-          <div className={s.sectionList}>
-            {section.items.map((item) => {
+          <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
+
+          <label className={s.addSwatches}>
+            <input
+              type="checkbox"
+              checked={isSwatchesEnabledForSummary}
+              disabled={!hasSelectedSwatches}
+              onChange={(event) => dispatch(setSwatchesEnabledInSummary(event.target.checked))}
+            />
+            <span className={s.addLabel}>Add free swatches</span>
+          </label>
+
+          <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>Swatches list</div>
+
+          <div className={`${s.swatchesList} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>
+            {Array.from({ length: 6 }).map((_, index) => {
+              const swatch = swatchesListPreview[index];
+              if (!swatch) {
+                return <div key={`empty-${index}`} className={s.swatchTile}><span className={`${s.tileColor} ${s.tileEmpty}`} /></div>;
+              }
+
               return (
-                <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
-                  <div className={s.itemInfo}>
-                    <span className={s.bullet}>
-                      <img src={base_img} alt="#" />
-                    </span>
-
-                    <div className={s.itemTexts}>
-                      <div className={s.itemTitle}>{item.title}</div>
-                      {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
-                    </div>
-
-                    {item.copyable && item.sku && (
-                      <Hint className={s.copyHint} content={"Copy SKU"}>
-                        <button
-                          className={`${s.copyButton} ${copiedId === item.id ? s.copied : ""}`}
-                          onClick={() => handleCopy(item.sku!, item.id)}
-                          aria-label="Copy SKU"
-                        >
-                          <span className={s.copyIcon} />
-                        </button>
-                      </Hint>
-                    )}
-                  </div>
-
-                  {item.swatch && (
-                    <div className={s.swatch}>
-                      <span
-                        className={s.swatchColor}
-                        style={{
-                          backgroundColor: item.swatch.color,
-                          backgroundImage: item.swatch.image ? `url(${item.swatch.image})` : undefined,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                      />
-                      <div>
-                        <div className={s.swatchLabel}>{item.swatch.label}</div>
-                        <div className={s.swatchValue}>{item.swatch.value}</div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className={s.price}>
-                    {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
-                      <span className={s.priceSpinner} />
-                    ) : item.price !== "$0" ? (
-                      item.price
-                    ) : null}
-                  </div>
+                <div key={swatch.value} className={s.swatchTile}>
+                  <span
+                    className={s.tileColor}
+                    style={{
+                      backgroundColor: swatch.color,
+                      backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
                 </div>
               );
             })}
           </div>
         </div>
-      ))}
-
-      <div className={s.section} data-summary-section="swatches">
-        <div className={s.sectionHeader}>
-          <div className={s.sectionTitle}>Swatches</div>
-          <button
-            type="button"
-            className={s.editButton}
-            aria-label="Edit Swatches"
-            onClick={() => handleEditSection("swatches")}
-          >
-            <EditPenIcon />
-          </button>
-        </div>
-
-        <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
-
-        <label className={s.addSwatches}>
-          <input
-            type="checkbox"
-            checked={isSwatchesEnabledInSummary}
-            onChange={(event) => dispatch(setSwatchesEnabledInSummary(event.target.checked))}
-          />
-          <span className={s.addLabel}>Add free swatches</span>
-        </label>
-
-        <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledInSummary ? s.swatchesMuted : ""}`}>Swatches list</div>
-
-        <div className={`${s.swatchesList} ${!isSwatchesEnabledInSummary ? s.swatchesMuted : ""}`}>
-          {Array.from({ length: 6 }).map((_, index) => {
-            const swatch = swatchesListPreview[index];
-            if (!swatch) {
-              return <div key={`empty-${index}`} className={s.swatchTile}><span className={`${s.tileColor} ${s.tileEmpty}`} /></div>;
-            }
-
-            return (
-              <div key={swatch.value} className={s.swatchTile}>
-                <span
-                  className={s.tileColor}
-                  style={{
-                    backgroundColor: swatch.color,
-                    backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
       </div>
-    </div>
+
+      <QuotePrintDocument
+        summarySections={summarySections}
+        previewImage={quotePreviewImage}
+        modelName={quoteModelName}
+        generatedDate={quoteGeneratedDate}
+        configurationLink={configurationLink}
+        isSwatchesEnabled={isSwatchesEnabledForSummary}
+        swatchesPreview={swatchesListPreview}
+      />
+    </>
   );
 };

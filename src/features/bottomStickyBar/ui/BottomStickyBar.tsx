@@ -3,12 +3,12 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import s from "./BottomStickyBar.module.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
-import { type PropsWithChildren } from "react";
+import { type PropsWithChildren, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
-import { getSummarySkuJson } from "@/shared/lib/summarySkuStore";
+import { getSummarySkuJson, getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -28,6 +28,9 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
   const priceTotal = useAppSelector(getPriceTotal);
   const activeSkus = useAppSelector(getActiveSkus);
   const isPriceLoading = useAppSelector(getPriceLoading);
+  const isSummaryPage = location.pathname.includes("/summary");
+  const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
+  const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
@@ -55,10 +58,10 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
         <span>
           {!activeSkus.length ? (
             "$0.00"
-          ) : isPriceLoading ? (
+          ) : (isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number")) ? (
             <span className={s.priceSpinner} />
           ) : (
-            formatPrice(priceTotal)
+            formatPrice(displayedTotal)
           )}
         </span>
         <span className={s.showroom_link}>

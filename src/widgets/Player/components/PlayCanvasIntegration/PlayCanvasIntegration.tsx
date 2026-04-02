@@ -68,6 +68,7 @@ import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
+  normalizeMaterialToken,
   parseCountertopMatrix,
   resolveCountertopMaxLengthByRules,
   resolveDefaultThicknessFromRules,
@@ -85,6 +86,7 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const SIDE_SHELF_WIDTH_CM = 15;
+const RESIZE_HIDDEN_DEPTH_CM = 46;
 
 const stripRuntimeEntitySuffix = (value: string): string => {
   const trimmed = value.trim();
@@ -427,7 +429,7 @@ export const PlayCanvasIntegration = () => {
     if (updatedCountertopConfig) {
       setCountertopDimensionData(syncData.countertopId, updatedCountertopConfig as Record<string, unknown>);
     }
-  }, [getCountertopSyncData]);
+  }, [getCountertopSyncData, setCountertopDimensionData]);
 
   const patchDimensionToolDisplayName = useCallback(() => {
     const tool = getDimensionTool() as any;
@@ -708,6 +710,25 @@ export const PlayCanvasIntegration = () => {
       rules: countertopRules,
     });
   }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
+
+  const isSolidSurfaceTekormudSelected = useMemo(() => {
+    const normalizedTokens = new Set(activeMaterialTokens.map((token) => normalizeMaterialToken(token)));
+    const normalizedColor = normalizeMaterialToken(activeCountertopColor ?? "");
+    const normalizedSku = normalizeMaterialToken(countertopColorSku ?? "");
+
+    const hasTekormud =
+      normalizedTokens.has("tekormud") || normalizedColor.includes("tekormud") || normalizedSku.includes("tekormud");
+
+    return hasTekormud;
+  }, [activeMaterialTokens, activeCountertopColor, countertopColorSku]);
+
+  const resizeDepthOptions = useMemo(
+    () =>
+      isSolidSurfaceTekormudSelected
+        ? depthOptions.filter((value) => Math.abs(Number(value) - RESIZE_HIDDEN_DEPTH_CM) >= 0.01)
+        : depthOptions,
+    [isSolidSurfaceTekormudSelected, depthOptions],
+  );
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -1913,7 +1934,14 @@ export const PlayCanvasIntegration = () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [dispatch, isStyleSidebarOpen, selectedDimensions.depth, selectedDimensions.height, selectedDimensions.width, selectedSceneProduct]);
+  }, [
+    dispatch,
+    isStyleSidebarOpen,
+    selectedDimensions.depth,
+    selectedDimensions.height,
+    selectedDimensions.width,
+    selectedSceneProduct,
+  ]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
@@ -1978,7 +2006,7 @@ export const PlayCanvasIntegration = () => {
           {
             id: "resize-depth",
             label: "Depth",
-            children: depthOptions.map((value) => ({
+            children: resizeDepthOptions.map((value) => ({
               id: `resize-depth-${value}`,
               label: `${value}`,
               onClick: () => handleSetDepth(Number(value)),
@@ -2098,7 +2126,7 @@ export const PlayCanvasIntegration = () => {
     canAddAnotherCabinet,
     canDuplicateSelectedCabinet,
     widthOptions,
-    depthOptions,
+    resizeDepthOptions,
     isPrebuilt,
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,
