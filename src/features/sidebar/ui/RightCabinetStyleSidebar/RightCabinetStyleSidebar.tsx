@@ -31,6 +31,7 @@ import {
   getSelectedProductConfig,
   getHeightLocked,
   getSinkType,
+  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
   addProductId,
@@ -110,6 +111,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
   const sinkType = useAppSelector(getSinkType);
+  const vesselColor = useAppSelector(getVesselColor);
   const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
 
   const saveSnapshot = useHistorySnapshot();
@@ -619,6 +621,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         }
 
         await setConfig(productId, nextConfig);
+
+        if (vesselColor && typeof nextConfig.sinkType === "string" && String(nextConfig.sinkType).startsWith("Vessel")) {
+          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColor });
+        }
       }
 
       const storedConfig = await getConfig(productId);

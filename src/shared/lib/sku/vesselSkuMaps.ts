@@ -70,8 +70,11 @@ export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
   // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), HPL, Porcelain
   Vessel_UrbanModo: ["solidsurface", "hpl", "porcelain"],
 
-  // URMOR — Tekorlux SSTKR TAL / TAM only (matched via color code, not material name)
-  Vessel_UrbanMorris: ["tal", "tam"],
+  // URMOR — Tekorlux (TAL / TAM only in pricing, but material token "tekorlux" must also match)
+  Vessel_UrbanMorris: ["tekorlux", "sstkr", "tal", "tam"],
+
+  // ACQS — Tekorlux (TAL / TAM + all SSTKR colors)
+  Vessel_Aquarius: ["tekorlux", "sstkr", "tal", "tam"],
 };
 
 /**
