@@ -4,6 +4,7 @@ import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
+import { InformationIcon } from "@/shared/assets/images/svg/InformationIcon";
 import base_img from "../../../shared/assets/images/png/descr_image.png";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -189,6 +190,7 @@ type SummaryItem = {
   price: string;
   copyable?: boolean;
   description?: Record<string, unknown>;
+  showInfo?: boolean;
 };
 
 type SummarySection = {
@@ -595,6 +597,7 @@ export const SummaryPage = () => {
               },
               price: resolveItemPrice(sku),
               copyable: true,
+              showInfo: true,
               description: buildCabinetDescription({
                 cabinetType: normalizedPresetType ?? activeCabinetType,
                 drawers: preset.Drawers ?? null,
@@ -702,6 +705,7 @@ export const SummaryPage = () => {
               },
               price: resolveItemPrice(sku),
               copyable: true,
+              showInfo: true,
               description: buildCabinetDescription({
                 cabinetType: productCabinetType,
                 drawers: typeof config.Drawers === "string" ? config.Drawers : null,
@@ -762,6 +766,7 @@ export const SummaryPage = () => {
                   },
                   price: resolveItemPrice(sku),
                   copyable: true,
+                  showInfo: true,
                   description: buildCabinetDescription({
                     cabinetType: activeCabinetType,
                     drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
@@ -901,6 +906,7 @@ export const SummaryPage = () => {
         sku: line,
         price: resolveItemPrice(line),
         copyable: true,
+        showInfo: lineTitle === "Basin",
         description: {
           "Product Category": lineTitle,
           ...(lineTitle === "Basin" && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
@@ -922,6 +928,7 @@ export const SummaryPage = () => {
         },
         price: resolveItemPrice(countertopSkuLines[0]),
         copyable: true,
+        showInfo: true,
         description: {
           "Product Category": "Countertop",
           Style: countertopStyle || "Plain",
@@ -1421,7 +1428,10 @@ export const SummaryPage = () => {
                       </span>
 
                       <div className={s.itemTexts}>
-                        <div className={s.itemTitle}>{item.title}</div>
+                        <div className={s.itemTitle}>
+                          {item.title}
+                          {item.showInfo && <InformationIcon />}
+                        </div>
                         {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
                       </div>
 
