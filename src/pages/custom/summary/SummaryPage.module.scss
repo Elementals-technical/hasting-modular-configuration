@@ -130,12 +130,48 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.infoIcon {
+  display: inline-flex;
+  cursor: pointer;
 
   svg {
     width: 14px;
     height: 14px;
     color: #7a7a7a;
     flex-shrink: 0;
+  }
+}
+
+.infoTooltip {
+  position: relative;
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    // transform: translateX(-50%);
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+
+    width: max-content;
+    max-width: min(360px, calc(100vw - 32px));
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-family: var(--font-family-base);
+    font-size: 11px;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  &:hover::after {
+    opacity: 1;
   }
 }
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore";
+import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
@@ -57,7 +58,11 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
-import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
+import {
+  normalizeMaterialToken,
+  parseCountertopMatrix,
+  resolveDefaultThicknessFromRules,
+} from "@/features/configurator-rule-core/countertop";
 import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
 import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -116,9 +121,7 @@ const parsePriceValue = (price?: string): number => {
     const lastDot = normalized.lastIndexOf(".");
     const decimalSeparator = lastComma > lastDot ? "," : ".";
     const cleaned =
-      decimalSeparator === ","
-        ? normalized.replace(/\./g, "").replace(",", ".")
-        : normalized.replace(/,/g, "");
+      decimalSeparator === "," ? normalized.replace(/\./g, "").replace(",", ".") : normalized.replace(/,/g, "");
     const value = Number.parseFloat(cleaned);
     return Number.isFinite(value) ? value : 0;
   }
@@ -155,7 +158,10 @@ const normalizeCountertopThicknessForDisplay = (value: string | null): string | 
 
 const formatBasinStyle = (value: string | null): string | null => {
   if (!value) return null;
-  const cleaned = value.replace(/^Top_/, "").replace(/^Vessel_/, "").trim();
+  const cleaned = value
+    .replace(/^Top_/, "")
+    .replace(/^Vessel_/, "")
+    .trim();
   if (!cleaned) return null;
 
   const parts = cleaned
@@ -163,9 +169,17 @@ const formatBasinStyle = (value: string | null): string | null => {
     .map((part) => part.trim())
     .filter(Boolean);
 
-  const materialPrefixes = new Set(["Tekorlux", "Tekormud", "Tekorund", "Ocritech", "Mineralmarmo", "Porcelain", "HPL", "Fenix"]);
-  const normalizedParts =
-    parts.length > 1 && materialPrefixes.has(parts[0]) ? parts.slice(1) : parts;
+  const materialPrefixes = new Set([
+    "Tekorlux",
+    "Tekormud",
+    "Tekorund",
+    "Ocritech",
+    "Mineralmarmo",
+    "Porcelain",
+    "HPL",
+    "Fenix",
+  ]);
+  const normalizedParts = parts.length > 1 && materialPrefixes.has(parts[0]) ? parts.slice(1) : parts;
 
   return normalizedParts.join(" ").trim() || null;
 };
@@ -350,7 +364,10 @@ export const CustomSummaryPage = () => {
     },
     [materialLookup],
   );
-  const swatchesListPreview = useMemo(() => selectedSwatches.slice(0, 6).map((value) => resolveSwatch(value)), [selectedSwatches, resolveSwatch]);
+  const swatchesListPreview = useMemo(
+    () => selectedSwatches.slice(0, 6).map((value) => resolveSwatch(value)),
+    [selectedSwatches, resolveSwatch],
+  );
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
     id: 4,
@@ -580,7 +597,9 @@ export const CustomSummaryPage = () => {
                 drawers: typeof config.Drawers === "string" ? config.Drawers : null,
                 handle: typeof config.Handle === "string" ? config.Handle : null,
                 pattern:
-                  typeof config.DrawerPanelFluting === "string" ? config.DrawerPanelFluting : drawerPanelFluting || null,
+                  typeof config.DrawerPanelFluting === "string"
+                    ? config.DrawerPanelFluting
+                    : drawerPanelFluting || null,
                 width: width ?? null,
                 height: height ?? null,
                 depth: depth ?? null,
@@ -642,7 +661,8 @@ export const CustomSummaryPage = () => {
               const swatch = resolveSwatch(swatchValue);
               const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
-              const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+              const handleMaterialSku =
+                handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
               const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
               const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
               const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
@@ -723,7 +743,8 @@ export const CustomSummaryPage = () => {
             })
           : [
               (() => {
-                const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+                const handleMaterialSku =
+                  handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
                 const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
 
                 const sku = buildProductSku({
@@ -796,14 +817,16 @@ export const CustomSummaryPage = () => {
       countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
     const shouldUsePresetSinkType = sinkType === DEFAULT_SINK_TYPE && Boolean(firstPreset?.sinkType);
     const resolvedCountertopColor =
-      sceneCountertopColor ?? (shouldUsePresetCountertopColor ? firstPreset?.CountertopColor ?? null : null) ?? countertopColor;
+      sceneCountertopColor ??
+      (shouldUsePresetCountertopColor ? (firstPreset?.CountertopColor ?? null) : null) ??
+      countertopColor;
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
     const resolvedSinkType =
       sceneSinkType ??
       (shouldUsePresetSinkType && colorDrivenDefaultBasin
         ? colorDrivenDefaultBasin
         : shouldUsePresetSinkType
-          ? firstPreset?.sinkType ?? null
+          ? (firstPreset?.sinkType ?? null)
           : null) ??
       sinkType;
     const resolvedCountertopMaterialSku =
@@ -828,7 +851,9 @@ export const CustomSummaryPage = () => {
       depth:
         selectedDimensions.depth ??
         (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
-        (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Depth === "number" ? firstSceneCabinetConfig.Depth : null),
+        (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Depth === "number"
+          ? firstSceneCabinetConfig.Depth
+          : null),
     });
     const resolvedCountertopThickness =
       (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Thickness === "string"
@@ -1057,7 +1082,9 @@ export const CustomSummaryPage = () => {
               Width: SIDE_PANEL_WIDTH_CM,
               Height: dims.height,
               Depth: dims.depth,
-              Material: resolveCabinetMaterialSku() ? (materialSkuLabelMap[resolveCabinetMaterialSku()!] ?? resolveCabinetMaterialSku()) : null,
+              Material: resolveCabinetMaterialSku()
+                ? (materialSkuLabelMap[resolveCabinetMaterialSku()!] ?? resolveCabinetMaterialSku())
+                : null,
               "Color Code": extractColorCode(cabinetColor),
             },
           });
@@ -1387,10 +1414,7 @@ export const CustomSummaryPage = () => {
     return `${normalized}${widthLabel}`;
   }, [summarySections, selectedDimensions.width]);
 
-  const quoteGeneratedDate = useMemo(
-    () => new Date().toLocaleDateString("en-US"),
-    [],
-  );
+  const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
   const configurationLink = useMemo(() => {
     const configId = new URLSearchParams(location.search).get("configId") || generatedConfigId;
     if (configId) {
@@ -1431,7 +1455,14 @@ export const CustomSummaryPage = () => {
                       <div className={s.itemTexts}>
                         <div className={s.itemTitle}>
                           {item.title}
-                          {item.showInfo && <InformationIcon />}
+                          {item.showInfo && item.description && (
+                            <span
+                              className={`${s.infoIcon} ${s.infoTooltip}`}
+                              data-tooltip={buildInfoTooltip(item.description)}
+                            >
+                              <InformationIcon />
+                            </span>
+                          )}
                         </div>
                         {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
                       </div>
@@ -1506,13 +1537,19 @@ export const CustomSummaryPage = () => {
             <span className={s.addLabel}>Add free swatches</span>
           </label>
 
-          <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>Swatches list</div>
+          <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>
+            Swatches list
+          </div>
 
           <div className={`${s.swatchesList} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>
             {Array.from({ length: 6 }).map((_, index) => {
               const swatch = swatchesListPreview[index];
               if (!swatch) {
-                return <div key={`empty-${index}`} className={s.swatchTile}><span className={`${s.tileColor} ${s.tileEmpty}`} /></div>;
+                return (
+                  <div key={`empty-${index}`} className={s.swatchTile}>
+                    <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                  </div>
+                );
               }
 
               return (
