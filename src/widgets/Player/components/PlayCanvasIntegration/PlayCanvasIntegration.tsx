@@ -17,6 +17,7 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
+  setSidePanelsOption,
   swapProductIds,
   setTowelBarOption,
   setTowelBarColor,
@@ -1060,7 +1061,16 @@ export const PlayCanvasIntegration = () => {
         return;
       }
 
-      // ── Cabinet / side panel deletion (existing logic) ────────────────────
+      // ── Side Panel deletion ──────────────────────────────────────────────
+      const spName = (selectedSceneProduct ?? "").toLowerCase();
+      if (spName.includes("sidepanel") || spName.includes("side-panel")) {
+        await removeProduct(selectedSceneProduct);
+        dispatch(setSidePanelsOption("None"));
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      // ── Cabinet deletion (existing logic) ─────────────────────────────────
       await removeProduct(selectedSceneProduct);
       dispatch(removeProductId(selectedSceneProduct));
     } catch (error) {
@@ -1925,6 +1935,13 @@ export const PlayCanvasIntegration = () => {
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
+      if (isTowelBarEntity) {
+        return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
+      }
+      if (isSidePanelEntity) {
+        return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
+      }
+
       return [
         {
           id: "color",

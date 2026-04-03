@@ -22,6 +22,7 @@ import {
   getBookMatching,
   getDrawerPanelFluting,
   getGrainDirection,
+  getSelectedProductConfig,
   getSelectedProducts,
   getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
@@ -113,19 +114,42 @@ optionsListenerMiddleware.startListening({
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const currentSidePanels = getSidePanelsOption(state);
-    const selectedProducts = getSelectedProducts(state);
 
+    // "None" = SP never selected or explicitly removed — don't auto-set
     if (!currentSidePanels || currentSidePanels === "None") return;
-    // SidePanels option is global in Redux state. Auto-reset is safe only for single-cabinet scenes.
-    // In multi-cabinet scenes (e.g. Sink Base + Open Shelf), selected-cabinet availability can
-    // incorrectly clear a side panel applied on the opposite edge.
-    if (selectedProducts.length !== 1) return;
 
     const availability = selectSidePanelAvailability(state);
+
+    // Determine preferred groove based on current handle style
+    const productConfig = getSelectedProductConfig(state);
+    const handle = productConfig && typeof productConfig.Handle === "string" ? productConfig.Handle : null;
+
+    // Preferred grooves per handle style, ordered by priority
+    const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
+      handle_urban_topcut: ["UpperG", "DoubleG"],
+      handle_urban_botcut: ["CenterG"],
+      handle_pto: ["NoG"],
+    };
+
+    const priorities = handle ? HANDLE_GROOVE_PRIORITY[handle] ?? [] : [];
+    const pickPreferred = () =>
+      priorities.find((g) => availability.allowed.has(g as "NoG" | "UpperG" | "CenterG" | "DoubleG")) ?? null;
+
+    // SP is "NoG" (from PTO) and handle changed to groove type — upgrade to matching groove
+    const upgradeTarget = pickPreferred();
+    if (currentSidePanels === "NoG" && upgradeTarget && upgradeTarget !== "NoG") {
+      listenerApi.dispatch(setSidePanelsOption(upgradeTarget));
+      await setSidePanel(upgradeTarget, "both");
+      return;
+    }
+
+    // Current groove SP still allowed — keep it
     if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
 
-    const GROOVE_ORDER = ["NoG", "UpperG", "CenterG", "DoubleG"] as const;
-    const newValue = GROOVE_ORDER.find((g) => availability.allowed.has(g)) ?? "None";
+    // Current groove SP no longer allowed — pick preferred or fallback
+    const newValue = pickPreferred()
+      ?? (["UpperG", "CenterG", "DoubleG", "NoG"] as const).find((g) => availability.allowed.has(g))
+      ?? "None";
 
     listenerApi.dispatch(setSidePanelsOption(newValue));
     await setSidePanel(newValue, "both");
