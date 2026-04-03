@@ -160,7 +160,7 @@ const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
 export const PlayCanvasIntegration = () => {
-  type CustomizeModePromptAction = "default" | "add" | "delete";
+  type CustomizeModePromptAction = "default" | "add" | "delete" | "resize" | "reposition" | "duplicate" | "countertop-color" | "countertop-thickness" | "countertop-style" | "basin-style";
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
@@ -200,6 +200,7 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+  const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
@@ -1259,6 +1260,34 @@ export const PlayCanvasIntegration = () => {
     handleOpenCustomizeModePrompt("delete", selectedSceneProduct);
   }, [handleOpenCustomizeModePrompt, selectedSceneProduct]);
 
+  const handleResizeFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("resize");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleRepositionFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("reposition");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleDuplicateFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("duplicate");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleCountertopColorFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("countertop-color");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleCountertopThicknessFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("countertop-thickness");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleCountertopStyleFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("countertop-style");
+  }, [handleOpenCustomizeModePrompt]);
+
+  const handleBasinStyleFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("basin-style");
+  }, [handleOpenCustomizeModePrompt]);
+
   const enforceSidePanelEligibilityForEdgeCabinets = useCallback(async () => {
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const remembered = getRememberedSidePanels();
@@ -1476,6 +1505,21 @@ export const PlayCanvasIntegration = () => {
 
     if (action === "add") {
       navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      return;
+    }
+
+    if (action === "countertop-color") {
+      navigate("/custom/countertop?accordion=counter-top-color");
+      return;
+    }
+
+    if (action === "countertop-thickness" || action === "countertop-style") {
+      navigate(`/custom/countertop?accordion=${action}`);
+      return;
+    }
+
+    if (action === "basin-style") {
+      navigate("/custom/countertop?accordion=basin-style");
       return;
     }
 
@@ -1972,6 +2016,18 @@ export const PlayCanvasIntegration = () => {
 
       return [
         {
+          id: "resize",
+          label: "Resize",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleResizeFromPrebuilt,
+        },
+        {
+          id: "reposition",
+          label: "Reposition",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleRepositionFromPrebuilt,
+        },
+        {
           id: "color",
           label: "Color",
           children: [
@@ -1999,9 +2055,10 @@ export const PlayCanvasIntegration = () => {
               },
             ]
           : []),
-        { id: "add", label: "Add", trailing: "", onClick: handleAddFromPrebuilt },
+        { id: "add", label: "Add", trailing: <ArrowTopRight color={"#333"} />, onClick: handleAddFromPrebuilt },
+        { id: "duplicate", label: "Duplicate", trailing: <ArrowTopRight color={"#333"} />, onClick: handleDuplicateFromPrebuilt },
         ...(selectedSceneProduct
-          ? [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleDeleteFromPrebuilt }]
+          ? [{ id: "delete", label: "Delete", trailing: <ArrowTopRight color={"#333"} />, onClick: handleDeleteFromPrebuilt }]
           : []),
       ];
     }
@@ -2146,6 +2203,9 @@ export const PlayCanvasIntegration = () => {
     handleOpenDrawerButtonsForSelectedProduct,
     handleAddFromPrebuilt,
     handleDeleteFromPrebuilt,
+    handleResizeFromPrebuilt,
+    handleRepositionFromPrebuilt,
+    handleDuplicateFromPrebuilt,
     handleAddAdditionalProduct,
     handleDuplicateProduct,
     canAddAnotherCabinet,
@@ -2200,6 +2260,35 @@ export const PlayCanvasIntegration = () => {
   }, [isPrebuilt, navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
+    if (isPrebuilt) {
+      return [
+        {
+          id: "countertop-color",
+          label: "Color",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleCountertopColorFromPrebuilt,
+        },
+        {
+          id: "countertop-thickness",
+          label: "Thickness",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleCountertopThicknessFromPrebuilt,
+        },
+        {
+          id: "countertop-style",
+          label: "Countertop Style",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleCountertopStyleFromPrebuilt,
+        },
+        {
+          id: "basin-style",
+          label: "Basin Style",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleBasinStyleFromPrebuilt,
+        },
+      ];
+    }
+
     return [
       {
         id: "countertop-color",
@@ -2251,10 +2340,15 @@ export const PlayCanvasIntegration = () => {
       },
     ];
   }, [
+    isPrebuilt,
     handleOpenBasinStyle,
     handleOpenCountertopColor,
     handleOpenCountertopStyle,
     handleCountertopThicknessSelect,
+    handleCountertopColorFromPrebuilt,
+    handleCountertopThicknessFromPrebuilt,
+    handleCountertopStyleFromPrebuilt,
+    handleBasinStyleFromPrebuilt,
     thicknessOptions,
   ]);
 
@@ -2276,7 +2370,7 @@ export const PlayCanvasIntegration = () => {
         }}
       />
 
-      {dropdownState.visible && !isDrawerOpen && !isMobileMenu && (
+      {dropdownState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div
           style={{
             position: "absolute",
@@ -2290,7 +2384,7 @@ export const PlayCanvasIntegration = () => {
         </div>
       )}
 
-      {countertopPopoverState.visible && !isDrawerOpen && !isMobileMenu && (
+      {countertopPopoverState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div
           ref={countertopPopoverRef}
           style={{
@@ -2313,7 +2407,7 @@ export const PlayCanvasIntegration = () => {
         />
       )}
 
-      {!isDrawerOpen && isMobileMenu && dropdownState.visible && (
+      {!isDrawerOpen && isMobileMenu && dropdownState.visible && !isSummaryPage && (
         <div
           style={{
             position: "absolute",
@@ -2332,7 +2426,7 @@ export const PlayCanvasIntegration = () => {
         </div>
       )}
 
-      {!isDrawerOpen && isMobileMenu && countertopPopoverState.visible && (
+      {!isDrawerOpen && isMobileMenu && countertopPopoverState.visible && !isSummaryPage && (
         <div
           style={{
             position: "absolute",

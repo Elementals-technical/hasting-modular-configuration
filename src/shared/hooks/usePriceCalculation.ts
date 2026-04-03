@@ -698,6 +698,22 @@ export function usePriceCalculation() {
 
     // Side panels — use per-product height/depth
     if (sidePanelsOption && sidePanelsOption !== "" && sidePanelsOption !== "None") {
+      const inferSidePanelMaterialSku = (colorValue?: string | null): string | null => {
+        if (!colorValue) return null;
+        const upper = colorValue.trim().toUpperCase();
+        if (!upper) return null;
+        if (/\bTK[A-Z0-9]+\b/.test(upper)) return "HPL";
+        if (/\b(10B|10F|10G|10N|1PE|1A[1-5])\b/.test(upper)) return "3D";
+        if (/\bGL\b/.test(upper)) return "LACG";
+        if (/\bMT\b/.test(upper)) return "LACM";
+        return null;
+      };
+      const sidePanelCabinetColor = shouldUsePresets
+        ? productsPresets.find((preset) => typeof preset.CabinetColor === "string" && preset.CabinetColor)?.CabinetColor
+          ?? sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor
+          ?? cabinetColor
+        : sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor
+          ?? cabinetColor;
       const seenSpSkus = new Set<string>();
       productDimsList.forEach((dims, idx) => {
         const spSku = buildSidePanelSku({
@@ -705,8 +721,10 @@ export function usePriceCalculation() {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          materialSku: resolveCabinetMaterialSku(),
-          colorCode: extractColorCode(cabinetColor),
+          cabMaterialSku: resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor),
+          cabColorCode: extractColorCode(sidePanelCabinetColor),
+          hdlMaterialSku: handleMaterialSku,
+          hdlColorCode: extractColorCode(handleGrooveColor),
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);
