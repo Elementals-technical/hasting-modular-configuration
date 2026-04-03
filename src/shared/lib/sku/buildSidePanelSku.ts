@@ -67,8 +67,10 @@ export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
 
   const hasGroove = input.panelType !== "NoG";
   if (hasGroove) {
-    const hdlMat = input.hdlMaterialSku?.trim();
-    const hdlColor = input.hdlColorCode?.trim();
+    // For grooved side panels, handle groove is painted too.
+    // If explicit HDL material/color is missing, inherit CAB material/color.
+    const hdlMat = input.hdlMaterialSku?.trim() || cabMat;
+    const hdlColor = input.hdlColorCode?.trim() || cabColor;
     if (hdlMat) triplets.push(hdlColor ? `HDL-${hdlMat}-${hdlColor}` : `HDL-${hdlMat}`);
   }
 

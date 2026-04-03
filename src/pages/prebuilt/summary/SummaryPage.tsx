@@ -986,6 +986,22 @@ export const SummaryPage = () => {
     // Side panel SKUs — one per unique dimension set
     const sidePanelSkuItems: SummaryItem[] = [];
     if (sidePanelsOption && sidePanelsOption !== "None") {
+      const inferSidePanelMaterialSku = (colorValue?: string | null): string | null => {
+        if (!colorValue) return null;
+        const upper = colorValue.trim().toUpperCase();
+        if (!upper) return null;
+        if (/\bTK[A-Z0-9]+\b/.test(upper)) return "HPL";
+        if (/\b(10B|10F|10G|10N|1PE|1A[1-5])\b/.test(upper)) return "3D";
+        if (/\bGL\b/.test(upper)) return "LACG";
+        if (/\bMT\b/.test(upper)) return "LACM";
+        return null;
+      };
+      const sidePanelCabinetColor =
+        (cabinetConfigs.find((c) => typeof c.CabinetColor === "string" && c.CabinetColor)?.CabinetColor as
+          | string
+          | undefined) ??
+        productsPresets.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor ??
+        cabinetColor;
       const dimsList =
         cabinetConfigs.length > 0
           ? cabinetConfigs.map((c) => ({
@@ -1004,8 +1020,8 @@ export const SummaryPage = () => {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          cabMaterialSku: resolveCabinetMaterialSku(),
-          cabColorCode: extractColorCode(cabinetColor),
+          cabMaterialSku: resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor),
+          cabColorCode: extractColorCode(sidePanelCabinetColor),
           hdlMaterialSku: handleMaterialSku,
           hdlColorCode: extractColorCode(handleGrooveColor),
         });
