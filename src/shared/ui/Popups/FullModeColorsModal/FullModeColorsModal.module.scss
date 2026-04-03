@@ -1,6 +1,6 @@
 .modal {
   width: min(1120px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
   background: #f9f8f7;
@@ -38,4 +38,14 @@
 .content {
   padding: 16px 20px 20px;
   overflow-y: auto;
+  flex: 1;
+
+  > div {
+    height: 100%;
+
+    > div {
+      max-height: none;
+      height: 100%;
+    }
+  }
 }
