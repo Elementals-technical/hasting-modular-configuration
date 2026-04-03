@@ -20,7 +20,6 @@ import {
   getActiveCountertopThickness,
   getCountertopStyle,
   getVesselColor,
-  getSelectedSceneProduct,
   getSelectedProducts,
   getSelectedDimensions,
   getSinkType,
@@ -109,7 +108,7 @@ export const CustomCountertopPage = () => {
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const storedVesselColor = useAppSelector(getVesselColor);
   const activeBasinStyle = useAppSelector(getSinkType);
-  const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
@@ -731,7 +730,14 @@ export const CustomCountertopPage = () => {
 
       return { isCompatible: true, failedBy: null };
     },
-    [activeCountertopStyle, countertopRules, sceneTotalWidth, sinkBaseDims.depth, sinkBaseDims.width, selectedDimensions.depth],
+    [
+      activeCountertopStyle,
+      countertopRules,
+      sceneTotalWidth,
+      sinkBaseDims.depth,
+      sinkBaseDims.width,
+      selectedDimensions.depth,
+    ],
   );
 
   const isMaterialOptionCompatibleBySceneSize = useCallback(
@@ -950,7 +956,13 @@ export const CustomCountertopPage = () => {
       allowedStyles: Array.from(allowedStyles),
     });
 
-    const vesselSinkNames = new Set(["Vessel_Blade11", "Vessel_Blade18", "Vessel_UrbanModo", "Vessel_UrbanMorris", "Vessel_Aquarius"]);
+    const vesselSinkNames = new Set([
+      "Vessel_Blade11",
+      "Vessel_Blade18",
+      "Vessel_UrbanModo",
+      "Vessel_UrbanMorris",
+      "Vessel_Aquarius",
+    ]);
 
     const integratedSinkNames = new Set([
       "Top_HPLPrisma",
