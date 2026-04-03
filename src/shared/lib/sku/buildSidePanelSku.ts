@@ -10,10 +10,14 @@ export type SidePanelSkuInput = {
   height: number | null;
   /** Cabinet depth in cm */
   depth: number | null;
-  /** Cabinet material SKU (e.g. "HPL", "LACM", "3D") */
-  materialSku?: string | null;
-  /** Cabinet color code (e.g. "37", "A6", "FE") */
-  colorCode?: string | null;
+  /** CAB — Cabinet body material SKU (e.g. "HPL", "LACM", "3D") */
+  cabMaterialSku?: string | null;
+  /** CAB — Cabinet body color code (e.g. "37", "A6", "FE") */
+  cabColorCode?: string | null;
+  /** HDL — Handle groove material SKU (e.g. "LACM", "3D") */
+  hdlMaterialSku?: string | null;
+  /** HDL — Handle groove color code (e.g. "DD", "90") */
+  hdlColorCode?: string | null;
 };
 
 const FALLBACK = "X";
@@ -36,8 +40,8 @@ export const SIDE_PANEL_WIDTH_CM = 1;
  *
  * Dimensions are converted from cm → inches.
  *
- * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-LACG-37
- * (1cm wide, 53cm tall, 50cm deep, LACG material, color code 37)
+ * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-CAB-LACM-90-HDL-LACM-DD
+ * (1cm wide, 53cm tall, 50cm deep, cabinet LACM/90, handle groove LACM/DD)
  */
 export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
   if (!input.panelType || input.panelType === "None") return null;
@@ -53,9 +57,22 @@ export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
     : null;
   const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
-  const mat = input.materialSku?.trim() || null;
-  const color = input.colorCode?.trim() || null;
-  const matSuffix = mat ? (color ? `-${mat}-${color}` : `-${mat}`) : "";
+  // CAB triplet — always (panel body painting)
+  // HDL triplet — only for panels with grooves (UpperG, CenterG, DoubleG)
+  const triplets: string[] = [];
 
-  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}${matSuffix}`;
+  const cabMat = input.cabMaterialSku?.trim();
+  const cabColor = input.cabColorCode?.trim();
+  if (cabMat) triplets.push(cabColor ? `CAB-${cabMat}-${cabColor}` : `CAB-${cabMat}`);
+
+  const hasGroove = input.panelType !== "NoG";
+  if (hasGroove) {
+    const hdlMat = input.hdlMaterialSku?.trim();
+    const hdlColor = input.hdlColorCode?.trim();
+    if (hdlMat) triplets.push(hdlColor ? `HDL-${hdlMat}-${hdlColor}` : `HDL-${hdlMat}`);
+  }
+
+  const elementsSuffix = triplets.length ? `-${triplets.join("-")}` : "";
+
+  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}${elementsSuffix}`;
 }

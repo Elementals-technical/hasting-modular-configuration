@@ -705,8 +705,10 @@ export function usePriceCalculation() {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          materialSku: resolveCabinetMaterialSku(),
-          colorCode: extractColorCode(cabinetColor),
+          cabMaterialSku: resolveCabinetMaterialSku(),
+          cabColorCode: extractColorCode(cabinetColor),
+          hdlMaterialSku: handleMaterialSku,
+          hdlColorCode: extractColorCode(handleGrooveColor),
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);

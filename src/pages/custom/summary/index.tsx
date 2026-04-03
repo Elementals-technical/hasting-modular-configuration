@@ -1024,13 +1024,16 @@ export const CustomSummaryPage = () => {
 
       const seenSpSkus = new Set<string>();
       dimsList.forEach((dims, idx) => {
+        const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
         const spSku = buildSidePanelSku({
           panelType: sidePanelsOption,
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          materialSku: resolveCabinetMaterialSku(),
-          colorCode: extractColorCode(cabinetColor),
+          cabMaterialSku: resolveCabinetMaterialSku(),
+          cabColorCode: extractColorCode(cabinetColor),
+          hdlMaterialSku: handleMaterialSku,
+          hdlColorCode: extractColorCode(handleGrooveColor),
         });
         if (spSku && !seenSpSkus.has(spSku)) {
           seenSpSkus.add(spSku);
