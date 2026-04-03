@@ -200,6 +200,7 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+  const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
@@ -2276,7 +2277,7 @@ export const PlayCanvasIntegration = () => {
         }}
       />
 
-      {dropdownState.visible && !isDrawerOpen && !isMobileMenu && (
+      {dropdownState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div
           style={{
             position: "absolute",
@@ -2290,7 +2291,7 @@ export const PlayCanvasIntegration = () => {
         </div>
       )}
 
-      {countertopPopoverState.visible && !isDrawerOpen && !isMobileMenu && (
+      {countertopPopoverState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div
           ref={countertopPopoverRef}
           style={{
@@ -2313,7 +2314,7 @@ export const PlayCanvasIntegration = () => {
         />
       )}
 
-      {!isDrawerOpen && isMobileMenu && dropdownState.visible && (
+      {!isDrawerOpen && isMobileMenu && dropdownState.visible && !isSummaryPage && (
         <div
           style={{
             position: "absolute",
@@ -2332,7 +2333,7 @@ export const PlayCanvasIntegration = () => {
         </div>
       )}
 
-      {!isDrawerOpen && isMobileMenu && countertopPopoverState.visible && (
+      {!isDrawerOpen && isMobileMenu && countertopPopoverState.visible && !isSummaryPage && (
         <div
           style={{
             position: "absolute",
