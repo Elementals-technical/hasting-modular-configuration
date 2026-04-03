@@ -140,4 +140,12 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   if (opts.VesselColor) {
     await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: opts.VesselColor });
   }
+
+  // Re-apply SidePanel state to PlayCanvas.
+  const sidePanels = opts.SidePanels;
+  if (sidePanels && sidePanels !== "None") {
+    await setConfigBatch({}, { SidePanel: sidePanels, SidePanelSide: "both" });
+  } else {
+    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "both" });
+  }
 }
