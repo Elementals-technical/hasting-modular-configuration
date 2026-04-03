@@ -1,7 +1,7 @@
-import sinkBaseImage from "@/shared/assets/images/png/sink_base.png";
-import sinkCabinetImage from "@/shared/assets/images/png/sink_cabinet.png";
-import openShelfImage from "@/shared/assets/images/png/open_shelf.png";
-import sideShelfImage from "@/shared/assets/images/png/side_shelf.png";
+import sinkBaseImage from "@/shared/assets/images/png/cabinet_type/SinkBases/SinkBase2D_upperG.png";
+import sinkCabinetImage from "@/shared/assets/images/png/cabinet_type/SideCabinet/SideCabinet2D_upperG.png";
+import openShelfImage from "@/shared/assets/images/png/cabinet_type/OpenShelves.png";
+import sideShelfImage from "@/shared/assets/images/png/cabinet_type/SideShelves_Trans.png";
 import oneDrawerImage from "@/shared/assets/images/png/1_drawer.png";
 import twoDrawerImage from "@/shared/assets/images/png/2_drawer.png";
 

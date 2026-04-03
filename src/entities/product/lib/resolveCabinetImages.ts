@@ -1,21 +1,16 @@
-import sinkBasePto50WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_PTO_with_50_height_withbasin.jpg";
-import sinkBaseCentral53WithBasin from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height_withbasin.jpg";
-import sinkCabinetPto50 from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
-import sinkCabinetCentral53 from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
+// SinkBases
+import sinkBase1D_PTO from "@/shared/assets/images/png/cabinet_type/SinkBases/SinkBase1D_PTO.png";
+import sinkBase1D_upperG from "@/shared/assets/images/png/cabinet_type/SinkBases/SinkBase1D_upperG.png";
+import sinkBase2D_PTO from "@/shared/assets/images/png/cabinet_type/SinkBases/SinkBase2D_PTO.png";
+import sinkBase2D_centralG from "@/shared/assets/images/png/cabinet_type/SinkBases/SinkBase2D_centralG.png";
+import sinkBase2D_upperG from "@/shared/assets/images/png/cabinet_type/SinkBases/SinkBase2D_upperG.png";
 
-import sinkCabinet1DStyle50 from "@/shared/assets/images/png/SinkBase1D_PTO.png";
-import sinkCabinet1DStyle5356 from "@/shared/assets/images/png/SinkBase1D_upperG.png";
-import twoDrawer50Height from "@/shared/assets/images/jpeg/SinkBase2D_PTO_50_height.jpg";
-import twoDrawer53Height from "@/shared/assets/images/jpeg/SinkBase2D_centralG_53_height.jpg";
-import twoDrawer56Height from "@/shared/assets/images/jpeg/SideCabinet2D_default_without_basin.jpg";
-import sideCabinet56Height from "@/shared/assets/images/jpeg/sinkBase56_default.jpg";
-
-import sinkBase1DStyle50 from "@/shared/assets/images/png/SinkBase1D_PTOShade.png";
-import sinkBase1DStyle5356 from "@/shared/assets/images/png/SinkBase1D_upperGShade.png";
-
-import sinkBase2DStyle50 from "@/shared/assets/images/png/SinkBase2D_PTOShade.png";
-import sinkBase2DStyle53 from "@/shared/assets/images/png/SinkBase2D_centralGShade.png";
-import sinkBase2DStyle56 from "@/shared/assets/images/png/SinkBase2D_upperGShade.png";
+// SideCabinet
+import sideCabinet1D_PTO from "@/shared/assets/images/png/cabinet_type/SideCabinet/SinkBase1D_PTO.png";
+import sideCabinet1D_upperG from "@/shared/assets/images/png/cabinet_type/SideCabinet/SinkBase1D_upperG.png";
+import sideCabinet2D_PTO from "@/shared/assets/images/png/cabinet_type/SideCabinet/SinkBase2D_PTO.png";
+import sideCabinet2D_centralG from "@/shared/assets/images/png/cabinet_type/SideCabinet/SinkBase2D_centralG.png";
+import sideCabinet2D_upperG from "@/shared/assets/images/png/cabinet_type/SideCabinet/SideCabinet2D_upperG.png";
 
 export const resolveCabinetTypeImage = (
   name: string | undefined,
@@ -28,14 +23,14 @@ export const resolveCabinetTypeImage = (
 
   if (name === "Sink-Base") {
     if (isSingleDrawer) {
-      if (height === 50) return sinkBase1DStyle50;
-      return sinkBase1DStyle5356;
+      if (height === 50) return sinkBase1D_PTO;
+      return sinkBase1D_upperG;
     }
 
     if (isDoubleDrawer) {
-      if (height === 50) return sinkBasePto50WithBasin;
-      if (height === 53) return sinkBaseCentral53WithBasin;
-      return sinkBase2DStyle56;
+      if (height === 50) return sinkBase2D_PTO;
+      if (height === 53) return sinkBase2D_centralG;
+      return sinkBase2D_upperG;
     }
 
     return fallback;
@@ -43,14 +38,14 @@ export const resolveCabinetTypeImage = (
 
   if (name === "Sink-Cabinet") {
     if (isSingleDrawer) {
-      if (height === 50) return sinkCabinet1DStyle50;
-      return sinkCabinet1DStyle5356;
+      if (height === 50) return sideCabinet1D_PTO;
+      return sideCabinet1D_upperG;
     }
 
     if (isDoubleDrawer) {
-      if (height === 50) return sinkCabinetPto50;
-      if (height === 53) return sinkCabinetCentral53;
-      if (height === 56) return sideCabinet56Height;
+      if (height === 50) return sideCabinet2D_PTO;
+      if (height === 53) return sideCabinet2D_centralG;
+      if (height === 56) return sideCabinet2D_upperG;
       return fallback;
     }
 
@@ -70,23 +65,23 @@ export const resolveCabinetStyleImage = (
 
   if (value === "1" || value === "1+inner") {
     if (withBasin) {
-      if (height === 50) return sinkBase1DStyle50;
-      return sinkBase1DStyle5356;
+      if (height === 50) return sinkBase1D_PTO;
+      return sinkBase1D_upperG;
     } else {
-      if (height === 50) return sinkCabinet1DStyle50;
-      return sinkCabinet1DStyle5356;
+      if (height === 50) return sideCabinet1D_PTO;
+      return sideCabinet1D_upperG;
     }
   }
 
   if (value === "2") {
     if (withBasin) {
-      if (height === 50) return sinkBase2DStyle50;
-      if (height === 53) return sinkBase2DStyle53;
-      return sinkBase2DStyle56;
+      if (height === 50) return sinkBase2D_PTO;
+      if (height === 53) return sinkBase2D_centralG;
+      return sinkBase2D_upperG;
     } else {
-      if (height === 50) return twoDrawer50Height;
-      if (height === 53) return twoDrawer53Height;
-      if (height === 56) return twoDrawer56Height;
+      if (height === 50) return sideCabinet2D_PTO;
+      if (height === 53) return sideCabinet2D_centralG;
+      if (height === 56) return sideCabinet2D_upperG;
       return fallback;
     }
   }
