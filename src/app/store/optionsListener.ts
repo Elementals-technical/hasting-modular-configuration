@@ -14,26 +14,20 @@ import {
   setGrainDirection,
   setActiveCabinetType,
   setSelectedProductConfig,
-  setSelectedDimensions,
-  setSidePanelsOption,
-  switchAllCabinetsDrawerStyle,
 } from "@/entities/product/model/store/slice";
 import {
   getBookMatching,
   getDrawerPanelFluting,
   getGrainDirection,
-  getSelectedProductConfig,
   getSelectedProducts,
-  getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
-  selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setupSidePanelListener } from "@/features/sidePanel";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -106,52 +100,5 @@ optionsListenerMiddleware.startListening({
   },
 });
 
-// When handle (Drawers) or dimensions change — re-check side panel availability.
-// If the currently selected side panel is no longer allowed, pick a valid fallback and
-// sync PlayCanvas via SidePanelSide="both".
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions, setActiveCabinetType, switchAllCabinetsDrawerStyle),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const currentSidePanels = getSidePanelsOption(state);
-
-    // "None" = SP never selected or explicitly removed — don't auto-set
-    if (!currentSidePanels || currentSidePanels === "None") return;
-
-    const availability = selectSidePanelAvailability(state);
-
-    // Determine preferred groove based on current handle style
-    const productConfig = getSelectedProductConfig(state);
-    const handle = productConfig && typeof productConfig.Handle === "string" ? productConfig.Handle : null;
-
-    // Preferred grooves per handle style, ordered by priority
-    const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
-      handle_urban_topcut: ["UpperG", "DoubleG"],
-      handle_urban_botcut: ["CenterG"],
-      handle_pto: ["NoG"],
-    };
-
-    const priorities = handle ? HANDLE_GROOVE_PRIORITY[handle] ?? [] : [];
-    const pickPreferred = () =>
-      priorities.find((g) => availability.allowed.has(g as "NoG" | "UpperG" | "CenterG" | "DoubleG")) ?? null;
-
-    // SP is "NoG" (from PTO) and handle changed to groove type — upgrade to matching groove
-    const upgradeTarget = pickPreferred();
-    if (currentSidePanels === "NoG" && upgradeTarget && upgradeTarget !== "NoG") {
-      listenerApi.dispatch(setSidePanelsOption(upgradeTarget));
-      await setSidePanel(upgradeTarget, "both");
-      return;
-    }
-
-    // Current groove SP still allowed — keep it
-    if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
-
-    // Current groove SP no longer allowed — pick preferred or fallback
-    const newValue = pickPreferred()
-      ?? (["UpperG", "CenterG", "DoubleG", "NoG"] as const).find((g) => availability.allowed.has(g))
-      ?? "None";
-
-    listenerApi.dispatch(setSidePanelsOption(newValue));
-    await setSidePanel(newValue, "both");
-  },
-});
+// Side panel availability listener — delegated to SP module.
+setupSidePanelListener(optionsListenerMiddleware.startListening);

@@ -22,6 +22,8 @@ export type SceneSnapshot = {
     BookMatching: string;
     CountertopStyle: string;
     SidePanels: string;
+    SidePanelLeft: "active" | "none" | "auto-removed";
+    SidePanelRight: "active" | "none" | "auto-removed";
     LedOption: string;
     DividersOption: string;
     DividersStyle: string;

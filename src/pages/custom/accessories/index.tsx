@@ -22,7 +22,6 @@ import {
   setDividersOption,
   setDividersStyle,
   setIsDrawerOpen,
-  setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
 } from "@/entities/product/model/store/slice";
@@ -30,7 +29,6 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
@@ -59,6 +57,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
+import { applyGroove, autoRemoveBoth } from "@/features/sidePanel";
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -115,8 +114,7 @@ export const CustomAccessoriesPage = () => {
     if (!sidePanelsBlockedByLength340) return;
     if (!activeSidePanels || activeSidePanels === "None") return;
 
-    dispatch(setSidePanelsOption("None"));
-    setSidePanel("None", "both");
+    autoRemoveBoth(dispatch);
   }, [activeSidePanels, dispatch, sidePanelsBlockedByLength340]);
 
   const towelBarOptionsFromApi = useMemo(() => {
@@ -577,24 +575,24 @@ export const CustomAccessoriesPage = () => {
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
-    if (!value || !activeCabinetId || !isEdgeCabinet) return;
+    if (!value) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
 
     await saveSnapshot();
 
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const side: "left" | "right" | "both" =
-      selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+      !activeCabinetId || !isEdgeCabinet
         ? "both"
-        : activeCabinetId === leftCabinetId
-          ? "left"
-          : activeCabinetId === rightCabinetId
-            ? "right"
-            : "both";
+        : selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+          ? "both"
+          : activeCabinetId === leftCabinetId
+            ? "left"
+            : activeCabinetId === rightCabinetId
+              ? "right"
+              : "both";
 
-    await setSidePanel(value, side);
-
-    dispatch(setSidePanelsOption(value));
+    await applyGroove(dispatch, value, side);
   };
 
   const handleDividersChange = (value: string | null) => {

@@ -17,7 +17,6 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
-  setSidePanelsOption,
   swapProductIds,
   setTowelBarOption,
   setTowelBarColor,
@@ -51,12 +50,12 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
+import { deleteSide as spDeleteSide, useSidePanelEnforce } from "@/features/sidePanel";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
-import { getRememberedSidePanels, setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
@@ -136,27 +135,6 @@ const formatThicknessLabel = (thickness: number): string => {
   return `${normalizedInches}" (${cm} cm)`;
 };
 
-const mapCabinetTypeToGroup = (cabinetType?: string | null) => {
-  if (!cabinetType) return null;
-
-  const val = cabinetType.toLowerCase();
-
-  if (val.includes("side-shelf") || val === "oss") return "OSS";
-  if (val.includes("open-shelf") || val === "os") return "OS";
-  if (
-    val.includes("sink-base") ||
-    val.includes("sink-cabinet") ||
-    val.includes("side-cabinet") ||
-    val === "sb" ||
-    val === "sc" ||
-    val === "sbsc"
-  ) {
-    return "SBSC";
-  }
-
-  return null;
-};
-
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
 export const PlayCanvasIntegration = () => {
@@ -220,6 +198,7 @@ export const PlayCanvasIntegration = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const vesselColorRef = useRef(vesselColor);
+  const { enforce: enforceSidePanelEligibilityForEdgeCabinets } = useSidePanelEnforce(productIds.length);
   vesselColorRef.current = vesselColor;
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
@@ -1086,8 +1065,22 @@ export const PlayCanvasIntegration = () => {
       // ── Side Panel deletion ──────────────────────────────────────────────
       const spName = (selectedSceneProduct ?? "").toLowerCase();
       if (spName.includes("sidepanel") || spName.includes("side-panel")) {
-        await removeProduct(selectedSceneProduct);
-        dispatch(setSidePanelsOption("None"));
+        const deletedSide: "left" | "right" | null = spName.includes("left")
+          ? "left"
+          : spName.includes("right")
+            ? "right"
+            : null;
+
+        // Single cabinet → SP added as "both", so delete both sides regardless of entity name.
+        // Multi-cabinet → delete only the clicked side.
+        const isSingleCabinet = productIds.length <= 1;
+        if (isSingleCabinet || !deletedSide) {
+          await spDeleteSide(dispatch, "left");
+          await spDeleteSide(dispatch, "right");
+        } else {
+          await spDeleteSide(dispatch, deletedSide);
+        }
+        dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
         return;
       }
@@ -1287,45 +1280,6 @@ export const PlayCanvasIntegration = () => {
   const handleBasinStyleFromPrebuilt = useCallback(() => {
     handleOpenCustomizeModePrompt("basin-style");
   }, [handleOpenCustomizeModePrompt]);
-
-  const enforceSidePanelEligibilityForEdgeCabinets = useCallback(async () => {
-    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const remembered = getRememberedSidePanels();
-    const targets: Array<{ side: "left" | "right"; cabinetId: string | null; opposite: "left" | "right" }> = [
-      { side: "left", opposite: "right", cabinetId: leftCabinetId },
-      { side: "right", opposite: "left", cabinetId: rightCabinetId },
-    ];
-
-    const sideEligibility: Record<"left" | "right", boolean> = {
-      left: true,
-      right: true,
-    };
-
-    for (const target of targets) {
-      if (!target.cabinetId) continue;
-      const cfg = await getConfig(target.cabinetId);
-      const config = cfg && typeof cfg === "object" ? (cfg as Record<string, unknown>) : null;
-      const rawType =
-        (typeof config?.productType === "string" && config.productType) ||
-        (typeof config?.ProductType === "string" && config.ProductType) ||
-        (typeof config?.name === "string" && config.name) ||
-        target.cabinetId;
-      const group = mapCabinetTypeToGroup(rawType);
-      sideEligibility[target.side] = group !== "OS" && group !== "OSS";
-    }
-
-    for (const target of targets) {
-      if (sideEligibility[target.side]) continue;
-      const currentType = remembered[target.side];
-      if (!currentType || currentType === "None") continue;
-
-      if (sideEligibility[target.opposite] && remembered[target.opposite] === "None") {
-        await setSidePanel(currentType, target.opposite);
-      }
-
-      await setSidePanel("None", target.side);
-    }
-  }, []);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {

@@ -63,7 +63,7 @@ export const getBookMatching = (state: RootState) => state.rootStateUI.product.p
 
 export const getCountertopStyle = (state: RootState) => state.rootStateUI.product.productOptions.CountertopStyle;
 
-export const getSidePanelsOption = (state: RootState) => state.rootStateUI.product.productOptions.SidePanels;
+export { getSidePanelsOption, getSidePanelLeftStatus, getSidePanelRightStatus } from "@/features/sidePanel/model/selectors";
 
 export const getLedOption = (state: RootState) => state.rootStateUI.product.productOptions.LedOption;
 
