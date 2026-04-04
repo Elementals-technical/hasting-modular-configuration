@@ -9,4 +9,5 @@ export {
   autoRemoveBoth,
   type SidePanelSide,
   type SidePanelStatus,
+  type GrooveType,
 } from "./lib/sidePanelService";
