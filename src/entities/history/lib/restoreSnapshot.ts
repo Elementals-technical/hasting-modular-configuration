@@ -141,11 +141,20 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: opts.VesselColor });
   }
 
-  // Re-apply SidePanel state to PlayCanvas.
-  const sidePanels = opts.SidePanels;
-  if (sidePanels && sidePanels !== "None") {
-    await setConfigBatch({}, { SidePanel: sidePanels, SidePanelSide: "both" });
-  } else {
-    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "both" });
+  // Re-apply SidePanel state to PlayCanvas (per-side).
+  const spGroove = opts.SidePanels;
+  const spLeft = opts.SidePanelLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
+  const spRight = opts.SidePanelRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
+  console.warn("[SP] restoreSnapshot:", spGroove, "left:", spLeft, "right:", spRight);
+
+  // Clear both first, then re-apply active sides
+  await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "both" });
+  if (spGroove && spGroove !== "None") {
+    if (spLeft === "active") {
+      await setConfigBatch({}, { SidePanel: spGroove, SidePanelSide: "left" });
+    }
+    if (spRight === "active") {
+      await setConfigBatch({}, { SidePanel: spGroove, SidePanelSide: "right" });
+    }
   }
 }
