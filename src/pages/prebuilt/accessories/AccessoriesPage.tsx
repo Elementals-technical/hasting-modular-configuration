@@ -514,7 +514,6 @@ export const AccessoriesPage = () => {
   const handleSidePanelsChange = async (value: string) => {
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const isEdge = selectedSceneProduct === leftCabinetId || selectedSceneProduct === rightCabinetId;
-    console.warn("[SP] UI prebuilt change:", value, "| cabinet:", selectedSceneProduct, "| isEdge:", isEdge);
     if (!value) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
 
@@ -529,7 +528,6 @@ export const AccessoriesPage = () => {
             : selectedSceneProduct === rightCabinetId
               ? "right"
               : "both";
-    console.warn("[SP] UI prebuilt → setSidePanel:", value, side);
     await applyGroove(dispatch, value, side);
   };
 

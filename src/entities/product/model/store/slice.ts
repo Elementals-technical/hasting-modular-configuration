@@ -515,8 +515,6 @@ const productSlice = createSlice({
       state.productOptions.CountertopStyle = action.payload;
     },
     setSidePanelsOption(state, action: PayloadAction<string>) {
-      const prev = state.productOptions.SidePanels;
-      console.warn("[SP] Redux groove", prev, "→", action.payload);
       state.productOptions.SidePanels = action.payload;
     },
     setSidePanelSideStatus(
@@ -525,7 +523,6 @@ const productSlice = createSlice({
     ) {
       const { side, status } = action.payload;
       const key = side === "left" ? "SidePanelLeft" : "SidePanelRight";
-      console.warn("[SP] Redux side", side, state.productOptions[key], "→", status);
       state.productOptions[key] = status;
     },
     setLedOption(state, action: PayloadAction<string>) {

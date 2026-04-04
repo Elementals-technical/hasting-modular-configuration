@@ -63,17 +63,6 @@ export const selectSidePanelAvailability = createSelector(
         : typeof selectedProductConfig?.Height === "number"
           ? selectedProductConfig.Height
           : null;
-    console.log("[SidePanels] availability inputs", {
-      cabinetType,
-      configName,
-      selectedSceneProduct,
-      cabinetGroup,
-      drawers,
-      handleType,
-      height,
-    });
-    const result = sidePanelAvailabilityRule({ height, handleType, cabinetType: cabinetGroup });
-    console.log("[SidePanels] availability result", Array.from(result.allowed.values()));
-    return result;
+    return sidePanelAvailabilityRule({ height, handleType, cabinetType: cabinetGroup });
   },
 );

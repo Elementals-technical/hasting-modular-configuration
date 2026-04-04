@@ -17,14 +17,10 @@ export async function enforceSidePanelEligibility(
 ) {
   const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
   const remembered = getRememberedSidePanels();
-  const enforceDbg = { t: Date.now(), action: "SP_ENFORCE", groove, leftStatus, rightStatus, remembered: { ...remembered }, leftCabinetId, rightCabinetId };
-  console.warn("[SP] enforce:", enforceDbg);
-  ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]) ??= [];
-  ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(enforceDbg);
 
-  const targets: Array<{ side: "left" | "right"; cabinetId: string | null; opposite: "left" | "right" }> = [
-    { side: "left", opposite: "right", cabinetId: leftCabinetId },
-    { side: "right", opposite: "left", cabinetId: rightCabinetId },
+  const targets: Array<{ side: "left" | "right"; cabinetId: string | null }> = [
+    { side: "left", cabinetId: leftCabinetId },
+    { side: "right", cabinetId: rightCabinetId },
   ];
 
   const sideEligibility: Record<"left" | "right", boolean> = { left: true, right: true };
@@ -40,34 +36,21 @@ export async function enforceSidePanelEligibility(
       target.cabinetId;
     const group = mapCabinetTypeToGroup(rawType);
     sideEligibility[target.side] = group !== "OS" && group !== "OSS";
-    console.warn("[SP] enforce:", target.side, "type:", rawType, "group:", group, "eligible:", sideEligibility[target.side]);
   }
 
   for (const target of targets) {
     const currentType = remembered[target.side];
     const hasPhysicalSP = currentType && currentType !== "None";
     const reduxStatus = target.side === "left" ? leftStatus : rightStatus;
-    const decision: Record<string, unknown> = { t: Date.now(), action: "SP_ENFORCE_SIDE", side: target.side, eligible: sideEligibility[target.side], remembered: currentType, hasPhysicalSP, reduxStatus, groove };
 
     if (!sideEligibility[target.side]) {
       if (hasPhysicalSP) {
-        decision.result = "auto-remove";
-        console.warn("[SP] enforce: auto-remove", target.side, "(was:", currentType, ")");
         await autoRemoveSide(dispatch, target.side);
-      } else {
-        decision.result = "skip-already-none";
       }
     } else {
       if (reduxStatus === "auto-removed" && groove && !hasPhysicalSP) {
-        decision.result = "auto-restore";
-        console.warn("[SP] enforce: auto-restore", target.side, "→", groove);
         await autoRestoreSide(dispatch, target.side, groove as GrooveType);
-      } else {
-        decision.result = "no-action";
       }
     }
-
-    console.warn("[SP] enforce decision:", decision);
-    ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(decision);
   }
 }

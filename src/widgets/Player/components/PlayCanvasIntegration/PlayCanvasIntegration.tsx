@@ -195,7 +195,7 @@ export const PlayCanvasIntegration = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const vesselColorRef = useRef(vesselColor);
-  const { enforce: enforceSidePanelEligibilityForEdgeCabinets, spGrooveRef, spLeftRef, spRightRef } = useSidePanelEnforce(productIds.length);
+  const { enforce: enforceSidePanelEligibilityForEdgeCabinets } = useSidePanelEnforce(productIds.length);
   vesselColorRef.current = vesselColor;
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
@@ -1048,10 +1048,6 @@ export const PlayCanvasIntegration = () => {
           : spName.includes("right")
             ? "right"
             : null;
-        const dbg = { t: Date.now(), action: "SP_DELETE", entity: selectedSceneProduct, side: deletedSide, spLeftBefore: spLeftRef.current, spRightBefore: spRightRef.current, grooveBefore: spGrooveRef.current };
-        console.warn("[SP] delete SP entity:", dbg);
-        ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]) ??= [];
-        ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(dbg);
 
         // Use service to clear SP — PlayCanvas can re-create when user selects groove again.
         if (deletedSide) {
