@@ -30,6 +30,8 @@ import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import { reapplySidePanelsForPreset } from "@/features/sidePanel";
+import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 
 import s from "./ModelPage.module.scss";
 
@@ -76,6 +78,7 @@ export const ModelPage = () => {
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
+  const spGroove = useAppSelector(getSidePanelsOption);
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
   const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
@@ -192,6 +195,11 @@ export const ModelPage = () => {
         }
         await updateSelectedDimensionsFromScene(presetProducts);
 
+        // Re-apply side panels to match the new preset's handle/height/drawers
+        if (spGroove && spGroove !== "None" && presetProducts?.length) {
+          await reapplySidePanelsForPreset(dispatch, spGroove, presetProducts);
+        }
+
         if (presetId && options?.syncUrl !== false) {
           const nextSearchParams = new URLSearchParams(searchParams);
           nextSearchParams.set("preset", String(presetId));
@@ -201,7 +209,7 @@ export const ModelPage = () => {
         console.error("[ProductModelItem] Failed to apply preset", error);
       }
     },
-    [dispatch, searchParams, setSearchParams, updateSelectedDimensionsFromScene],
+    [dispatch, searchParams, setSearchParams, updateSelectedDimensionsFromScene, spGroove],
   );
 
   const resetAccessoriesForCustomTransition = useCallback(async () => {

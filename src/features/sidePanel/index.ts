@@ -8,6 +8,8 @@ export {
   applyGrooveToActiveSides,
   autoRemoveBoth,
   restoreSidePanelState,
+  reapplySidePanelsForPreset,
+  resolveGroove,
   type SidePanelSide,
   type SidePanelStatus,
   type GrooveType,
