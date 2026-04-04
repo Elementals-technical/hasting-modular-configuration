@@ -31,6 +31,8 @@ import {
   getSelectedDimensions,
   getSelectedProductConfig,
   getSidePanelsOption,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
   getSinkType,
   getTowelBarColor,
   getTowelBarOption,
@@ -224,6 +226,8 @@ export const CustomSummaryPage = () => {
   const bookMatching = useAppSelector(getBookMatching);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
+  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const placedDividers = useAppSelector(getPlacedDividers);
   const dividersStyle = useAppSelector(getDividersStyle);
   const towelBarColor = useAppSelector(getTowelBarColor);
@@ -924,47 +928,47 @@ export const CustomSummaryPage = () => {
           })
         : null;
 
-    // Side panel SKUs — one per unique dimension set
+    // Side panel SKUs — one line item per active side (single-panel pricing)
     const sidePanelSkuItems: SummaryItem[] = [];
     if (sidePanelsOption && sidePanelsOption !== "None") {
-      const dimsList =
+      const dims =
         cabinetConfigs.length > 0
-          ? cabinetConfigs.map((c) => ({
-              height: typeof c.Height === "number" ? c.Height : null,
-              depth: typeof c.Depth === "number" ? c.Depth : null,
-            }))
+          ? { height: typeof cabinetConfigs[0].Height === "number" ? cabinetConfigs[0].Height : null, depth: typeof cabinetConfigs[0].Depth === "number" ? cabinetConfigs[0].Depth : null }
           : productsPresets.length > 0
-            ? productsPresets.map((p) => ({ height: p.Height ?? null, depth: p.Depth ?? null }))
-            : [{ height: selectedDimensions.height, depth: selectedDimensions.depth }];
+            ? { height: productsPresets[0].Height ?? null, depth: productsPresets[0].Depth ?? null }
+            : { height: selectedDimensions.height, depth: selectedDimensions.depth };
 
-      const seenSpSkus = new Set<string>();
-      dimsList.forEach((dims, idx) => {
-        const spSku = buildSidePanelSku({
-          panelType: sidePanelsOption,
-          width: SIDE_PANEL_WIDTH_CM,
-          height: dims.height,
-          depth: dims.depth,
-          materialSku: resolveCabinetMaterialSku(),
-          colorCode: extractColorCode(cabinetColor),
+      const spSku = buildSidePanelSku({
+        panelType: sidePanelsOption,
+        width: SIDE_PANEL_WIDTH_CM,
+        height: dims.height,
+        depth: dims.depth,
+        materialSku: resolveCabinetMaterialSku(),
+        colorCode: extractColorCode(cabinetColor),
+      });
+
+      const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
+      if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
+      if (sidePanelRight === "active") activeSides.push({ side: "right", label: "Side Panel Right" });
+
+      activeSides.forEach(({ side, label }) => {
+        if (!spSku) return;
+        sidePanelSkuItems.push({
+          id: `accessories-side-panel-${side}`,
+          title: label,
+          subtitle: spSku,
+          sku: spSku,
+          price: resolveItemPrice(spSku),
+          copyable: true,
+          description: {
+            "Product Category": "Side Panel",
+            "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
+            Side: side,
+            Width: SIDE_PANEL_WIDTH_CM,
+            Height: dims.height,
+            Depth: dims.depth,
+          },
         });
-        if (spSku && !seenSpSkus.has(spSku)) {
-          seenSpSkus.add(spSku);
-          sidePanelSkuItems.push({
-            id: `accessories-side-panel-${idx}`,
-            title: "Side Panel",
-            subtitle: spSku,
-            sku: spSku,
-            price: resolveItemPrice(spSku),
-            copyable: true,
-            description: {
-              "Product Category": "Side Panel",
-              "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
-              Width: SIDE_PANEL_WIDTH_CM,
-              Height: dims.height,
-              Depth: dims.depth,
-            },
-          });
-        }
       });
     }
 
