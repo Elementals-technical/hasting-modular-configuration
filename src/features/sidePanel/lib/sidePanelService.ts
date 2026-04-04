@@ -9,10 +9,41 @@
 import type { AppDispatch } from "@/app/store";
 import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { sidePanelAvailabilityRule } from "./sidePanelRules";
 
 export type SidePanelSide = "left" | "right";
 export type SidePanelStatus = "active" | "none" | "auto-removed";
 export type GrooveType = "NoG" | "UpperG" | "CenterG" | "DoubleG" | "None";
+
+// ── Shared groove resolution ───────────────────────────────────────────
+
+const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
+  handle_urban_topcut: ["UpperG", "DoubleG"],
+  handle_urban_botcut: ["CenterG"],
+  handle_pto: ["NoG"],
+};
+
+const GROOVE_FALLBACK = ["UpperG", "CenterG", "DoubleG", "NoG"] as const;
+
+/**
+ * Pick the best groove given allowed set, current groove, and handle style.
+ * 1) Keep current if still allowed
+ * 2) Pick preferred by handle priority
+ * 3) Fallback to first available (NoG last)
+ */
+export function resolveGroove(
+  allowed: Set<string>,
+  currentGroove: string | null,
+  handle: string | null,
+): string {
+  if (currentGroove && allowed.has(currentGroove)) return currentGroove;
+
+  const priorities = handle ? HANDLE_GROOVE_PRIORITY[handle] ?? [] : [];
+  const preferred = priorities.find((g) => allowed.has(g));
+  if (preferred) return preferred;
+
+  return GROOVE_FALLBACK.find((g) => allowed.has(g)) ?? "None";
+}
 
 // ── Internal helper ─────────────────────────────────────────────────────
 
@@ -125,10 +156,73 @@ export async function autoRemoveBoth(dispatch: AppDispatch) {
 }
 
 /**
- * Restore SP state from undo/redo snapshot.
- * Clears both sides first, then re-applies active sides.
- * Backward compat: if SidePanelLeft/Right missing in snapshot → derive from groove.
+ * Re-apply SP after preset switch in prebuilt mode.
+ * Does NOT preserve previous per-side state — preset switch is a fresh start.
+ * Puts SP on every eligible edge (SB/SC), skips ineligible edges (OS/OSS).
  */
+export async function reapplySidePanelsForPreset(
+  dispatch: AppDispatch,
+  currentGroove: string,
+  presetProducts: Array<{ name?: string; Handle?: string; Height?: number; Drawers?: string }>,
+) {
+  if (!currentGroove || currentGroove === "None") return;
+  if (!presetProducts.length) return;
+
+  const { mapCabinetTypeToGroup } = await import("../model/selectors");
+
+  // Find first SP-eligible cabinet (SB/SC) for groove resolution
+  const eligible = presetProducts.find((p) => {
+    const group = mapCabinetTypeToGroup(p.name ?? null);
+    return group === "SBSC";
+  });
+  if (!eligible) return;
+
+  const mapDrawers = (d?: string | null) => {
+    if (!d) return null;
+    if (d === "1D" || d === "1DWID" || d === "1" || d === "1+inner") return "1D" as const;
+    if (d === "2D" || d === "2") return "2D" as const;
+    return null;
+  };
+
+  const availability = sidePanelAvailabilityRule({
+    height: eligible.Height ?? null,
+    handleType: mapDrawers(eligible.Drawers),
+    cabinetType: "SBSC",
+  });
+
+  const groove = resolveGroove(
+    availability.allowed as Set<string>,
+    currentGroove,
+    eligible.Handle ?? null,
+  );
+
+  if (groove === "None") return;
+
+  // Check edge cabinets — OS/OSS on edge → no SP on that side
+  const leftGroup = mapCabinetTypeToGroup(presetProducts[0].name ?? null);
+  const rightGroup = mapCabinetTypeToGroup(presetProducts[presetProducts.length - 1].name ?? null);
+  const leftEligible = leftGroup !== "OS" && leftGroup !== "OSS";
+  const rightEligible = rightGroup !== "OS" && rightGroup !== "OSS";
+
+  await setSidePanel("None", "both");
+
+  if (leftEligible) {
+    await setSidePanel(groove, "left");
+    dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
+  } else {
+    dispatch(setSidePanelSideStatus({ side: "left", status: "none" }));
+  }
+
+  if (rightEligible) {
+    await setSidePanel(groove, "right");
+    dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
+  } else {
+    dispatch(setSidePanelSideStatus({ side: "right", status: "none" }));
+  }
+
+  dispatch(setSidePanelsOption(groove));
+}
+
 export async function restoreSidePanelState(
   spGroove: string | undefined,
   spLeft: string | undefined,

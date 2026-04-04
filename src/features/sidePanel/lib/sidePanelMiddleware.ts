@@ -11,7 +11,7 @@ import {
   getSidePanelRightStatus,
   selectSidePanelAvailability,
 } from "../model/selectors";
-import { applyGrooveToActiveSides } from "./sidePanelService";
+import { applyGrooveToActiveSides, resolveGroove } from "./sidePanelService";
 
 type StartListeningFn = (options: {
   matcher: ReturnType<typeof isAnyOf>;
@@ -51,31 +51,19 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
 
       const availability = selectSidePanelAvailability(state);
 
-      // Determine preferred groove based on current handle style
       const productConfig = getSelectedProductConfig(state);
       const handle = productConfig && typeof productConfig.Handle === "string" ? productConfig.Handle : null;
-
-      // Preferred grooves per handle style, ordered by priority
-      const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
-        handle_urban_topcut: ["UpperG", "DoubleG"],
-        handle_urban_botcut: ["CenterG"],
-        handle_pto: ["NoG"],
-      };
-
-      const priorities = handle ? HANDLE_GROOVE_PRIORITY[handle] ?? [] : [];
-      const pickPreferred = () =>
-        priorities.find((g) => availability.allowed.has(g as "NoG" | "UpperG" | "CenterG" | "DoubleG")) ?? null;
 
       const leftSt = getSidePanelLeftStatus(state);
       const rightSt = getSidePanelRightStatus(state);
 
-      // Current groove SP still allowed — keep it (including user-selected NoG)
-      if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
+      const newValue = resolveGroove(
+        availability.allowed as Set<string>,
+        currentSidePanels,
+        handle,
+      );
 
-      // Current groove SP no longer allowed — pick preferred or fallback
-      const newValue = pickPreferred()
-        ?? (["UpperG", "CenterG", "DoubleG", "NoG"] as const).find((g) => availability.allowed.has(g))
-        ?? "None";
+      if (newValue === currentSidePanels) return;
 
       await applyGrooveToActiveSides(listenerApi.dispatch as Parameters<typeof applyGrooveToActiveSides>[0], newValue, leftSt, rightSt);
     },
