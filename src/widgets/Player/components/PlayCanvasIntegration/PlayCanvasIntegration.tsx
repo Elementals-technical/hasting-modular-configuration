@@ -1071,12 +1071,14 @@ export const PlayCanvasIntegration = () => {
             ? "right"
             : null;
 
-        // Use service to clear SP — PlayCanvas can re-create when user selects groove again.
-        if (deletedSide) {
-          await spDeleteSide(dispatch, deletedSide);
-        } else {
+        // Single cabinet → SP added as "both", so delete both sides regardless of entity name.
+        // Multi-cabinet → delete only the clicked side.
+        const isSingleCabinet = productIds.length <= 1;
+        if (isSingleCabinet || !deletedSide) {
           await spDeleteSide(dispatch, "left");
           await spDeleteSide(dispatch, "right");
+        } else {
+          await spDeleteSide(dispatch, deletedSide);
         }
         dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
