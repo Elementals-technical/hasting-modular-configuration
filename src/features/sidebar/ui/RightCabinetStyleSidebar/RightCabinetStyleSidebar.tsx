@@ -53,7 +53,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useGetConfiguratorQuery } from "@/entities";
 import {
@@ -598,7 +598,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const widthForAddedCabinet = selectedWidthIsFitting ? selectedDimensions.width : fallbackWidth;
 
       if (activeDrawerProduct === "Side-Shelf") {
-        await setSidePanel("None", side);
+        await spAutoRemoveSide(dispatch, side);
       }
 
       await saveSnapshot();

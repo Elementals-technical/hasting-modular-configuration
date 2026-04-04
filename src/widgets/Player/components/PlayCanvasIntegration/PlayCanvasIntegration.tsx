@@ -17,7 +17,6 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
-  setSidePanelsOption,
   swapProductIds,
   setTowelBarOption,
   setTowelBarColor,
@@ -48,9 +47,13 @@ import {
   getTowelBarOption,
   getSelectedProducts,
   getVesselColor,
+  getSidePanelsOption as getSidePanelsGroove,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
+import { deleteSide as spDeleteSide, autoRemoveSide as spAutoRemoveSide, autoRestoreSide as spAutoRestoreSide } from "@/features/sidePanel";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
@@ -220,6 +223,15 @@ export const PlayCanvasIntegration = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const vesselColorRef = useRef(vesselColor);
+  const spGroove = useAppSelector(getSidePanelsGroove);
+  const spLeftStatus = useAppSelector(getSidePanelLeftStatus);
+  const spRightStatus = useAppSelector(getSidePanelRightStatus);
+  const spGrooveRef = useRef(spGroove);
+  const spLeftRef = useRef(spLeftStatus);
+  const spRightRef = useRef(spRightStatus);
+  spGrooveRef.current = spGroove;
+  spLeftRef.current = spLeftStatus;
+  spRightRef.current = spRightStatus;
   vesselColorRef.current = vesselColor;
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
@@ -1086,8 +1098,24 @@ export const PlayCanvasIntegration = () => {
       // ── Side Panel deletion ──────────────────────────────────────────────
       const spName = (selectedSceneProduct ?? "").toLowerCase();
       if (spName.includes("sidepanel") || spName.includes("side-panel")) {
-        await removeProduct(selectedSceneProduct);
-        dispatch(setSidePanelsOption("None"));
+        const deletedSide: "left" | "right" | null = spName.includes("left")
+          ? "left"
+          : spName.includes("right")
+            ? "right"
+            : null;
+        const dbg = { t: Date.now(), action: "SP_DELETE", entity: selectedSceneProduct, side: deletedSide, spLeftBefore: spLeftRef.current, spRightBefore: spRightRef.current, grooveBefore: spGrooveRef.current };
+        console.warn("[SP] delete SP entity:", dbg);
+        ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]) ??= [];
+        ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(dbg);
+
+        // Use service to clear SP — PlayCanvas can re-create when user selects groove again.
+        if (deletedSide) {
+          await spDeleteSide(dispatch, deletedSide);
+        } else {
+          await spDeleteSide(dispatch, "left");
+          await spDeleteSide(dispatch, "right");
+        }
+        dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
         return;
       }
@@ -1289,17 +1317,23 @@ export const PlayCanvasIntegration = () => {
   }, [handleOpenCustomizeModePrompt]);
 
   const enforceSidePanelEligibilityForEdgeCabinets = useCallback(async () => {
+    const groove = spGrooveRef.current || "";
+    const leftStatus = spLeftRef.current || "none";
+    const rightStatus = spRightRef.current || "none";
+
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const remembered = getRememberedSidePanels();
+    const enforceDbg = { t: Date.now(), action: "SP_ENFORCE", groove, leftStatus, rightStatus, remembered: { ...remembered }, leftCabinetId, rightCabinetId };
+    console.warn("[SP] enforce:", enforceDbg);
+    ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]) ??= [];
+    ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(enforceDbg);
+
     const targets: Array<{ side: "left" | "right"; cabinetId: string | null; opposite: "left" | "right" }> = [
       { side: "left", opposite: "right", cabinetId: leftCabinetId },
       { side: "right", opposite: "left", cabinetId: rightCabinetId },
     ];
 
-    const sideEligibility: Record<"left" | "right", boolean> = {
-      left: true,
-      right: true,
-    };
+    const sideEligibility: Record<"left" | "right", boolean> = { left: true, right: true };
 
     for (const target of targets) {
       if (!target.cabinetId) continue;
@@ -1312,20 +1346,49 @@ export const PlayCanvasIntegration = () => {
         target.cabinetId;
       const group = mapCabinetTypeToGroup(rawType);
       sideEligibility[target.side] = group !== "OS" && group !== "OSS";
+      console.warn("[SP] enforce:", target.side, "type:", rawType, "group:", group, "eligible:", sideEligibility[target.side]);
     }
 
     for (const target of targets) {
-      if (sideEligibility[target.side]) continue;
       const currentType = remembered[target.side];
-      if (!currentType || currentType === "None") continue;
+      const hasPhysicalSP = currentType && currentType !== "None";
+      const reduxStatus = target.side === "left" ? leftStatus : rightStatus;
+      const decision: Record<string, unknown> = { t: Date.now(), action: "SP_ENFORCE_SIDE", side: target.side, eligible: sideEligibility[target.side], remembered: currentType, hasPhysicalSP, reduxStatus, groove };
 
-      if (sideEligibility[target.opposite] && remembered[target.opposite] === "None") {
-        await setSidePanel(currentType, target.opposite);
+      if (!sideEligibility[target.side]) {
+        if (hasPhysicalSP) {
+          decision.result = "auto-remove";
+          console.warn("[SP] enforce: auto-remove", target.side, "(was:", currentType, ")");
+          await spAutoRemoveSide(dispatch, target.side);
+        } else {
+          decision.result = "skip-already-none";
+        }
+      } else {
+        if (reduxStatus === "auto-removed" && groove && !hasPhysicalSP) {
+          decision.result = "auto-restore";
+          console.warn("[SP] enforce: auto-restore", target.side, "→", groove);
+          await spAutoRestoreSide(dispatch, target.side, groove);
+        } else {
+          decision.result = "no-action";
+        }
       }
 
-      await setSidePanel("None", target.side);
+      console.warn("[SP] enforce decision:", decision);
+      ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(decision);
     }
-  }, []);
+  }, [dispatch]);
+
+  // Re-evaluate side panel eligibility when cabinets are added or removed.
+  const productIdsLengthRef = useRef(productIds.length);
+  useEffect(() => {
+    if (productIds.length === productIdsLengthRef.current) return;
+    console.warn("[SP] productIds changed:", productIdsLengthRef.current, "→", productIds.length);
+    productIdsLengthRef.current = productIds.length;
+    const timerId = setTimeout(() => {
+      enforceSidePanelEligibilityForEdgeCabinets();
+    }, 300);
+    return () => clearTimeout(timerId);
+  }, [productIds.length, enforceSidePanelEligibilityForEdgeCabinets]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {

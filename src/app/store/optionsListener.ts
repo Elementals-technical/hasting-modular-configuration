@@ -15,7 +15,6 @@ import {
   setActiveCabinetType,
   setSelectedProductConfig,
   setSelectedDimensions,
-  setSidePanelsOption,
   switchAllCabinetsDrawerStyle,
 } from "@/entities/product/model/store/slice";
 import {
@@ -25,6 +24,8 @@ import {
   getSelectedProductConfig,
   getSelectedProducts,
   getSidePanelsOption,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
 } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
@@ -32,8 +33,8 @@ import {
   selectGrainDirectionState,
   selectSidePanelAvailability,
 } from "@/entities/product/model/store/derivedSelectors";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { applyGrooveToActiveSides } from "@/features/sidePanel";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -110,19 +111,44 @@ optionsListenerMiddleware.startListening({
 // If the currently selected side panel is no longer allowed, pick a valid fallback and
 // sync PlayCanvas via SidePanelSide="both".
 optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setSelectedProductConfig, setSelectedDimensions, setActiveCabinetType, switchAllCabinetsDrawerStyle),
-  effect: async (_, listenerApi) => {
+  matcher: isAnyOf(setSelectedDimensions, switchAllCabinetsDrawerStyle),
+  effect: async (action, listenerApi) => {
+    // Only react to height changes from setSelectedDimensions (handle change forces new height).
+    // Skip width/depth changes from the 350ms polling sync — they don't affect SP groove.
+    if (action.type === setSelectedDimensions.type) {
+      const payload = (action as { payload?: { height?: number } }).payload;
+      if (!payload || payload.height === undefined) {
+        return;
+      }
+    }
+
     const state = listenerApi.getState() as RootState;
     const currentSidePanels = getSidePanelsOption(state);
+    console.warn("[SP] listener triggered by", action.type, "| current:", currentSidePanels);
 
     // "None" = SP never selected or explicitly removed — don't auto-set
-    if (!currentSidePanels || currentSidePanels === "None") return;
+    if (!currentSidePanels || currentSidePanels === "None") {
+      console.warn("[SP] listener → skip (None)");
+      return;
+    }
+
+    // Skip when selected entity is not a SP-eligible cabinet (OS, OSS, countertop, towel bar).
+    // SP availability depends on SB/SC edge cabinets, not on whatever is currently selected.
+    const cabType = state.rootStateUI.product.activeCabinetType ?? "";
+    const normalized = cabType.toLowerCase().replace(/[^a-z]/g, "");
+    const isSbSc = normalized.includes("sinkbase") || normalized.includes("sinkcabinet") ||
+      normalized.includes("sidecabinet") || normalized === "sb" || normalized === "sc";
+    if (!isSbSc) {
+      console.warn("[SP] listener → skip (not SBSC, cabinet:", cabType, ")");
+      return;
+    }
 
     const availability = selectSidePanelAvailability(state);
 
     // Determine preferred groove based on current handle style
     const productConfig = getSelectedProductConfig(state);
     const handle = productConfig && typeof productConfig.Handle === "string" ? productConfig.Handle : null;
+    console.warn("[SP] listener handle:", handle, "| allowed:", Array.from(availability.allowed), "| current in allowed?", availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG"));
 
     // Preferred grooves per handle style, ordered by priority
     const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
@@ -135,23 +161,21 @@ optionsListenerMiddleware.startListening({
     const pickPreferred = () =>
       priorities.find((g) => availability.allowed.has(g as "NoG" | "UpperG" | "CenterG" | "DoubleG")) ?? null;
 
-    // SP is "NoG" (from PTO) and handle changed to groove type — upgrade to matching groove
-    const upgradeTarget = pickPreferred();
-    if (currentSidePanels === "NoG" && upgradeTarget && upgradeTarget !== "NoG") {
-      listenerApi.dispatch(setSidePanelsOption(upgradeTarget));
-      await setSidePanel(upgradeTarget, "both");
+    const leftSt = getSidePanelLeftStatus(state);
+    const rightSt = getSidePanelRightStatus(state);
+
+    // Current groove SP still allowed — keep it (including user-selected NoG)
+    if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) {
+      console.warn("[SP] listener → keep (still allowed)");
       return;
     }
-
-    // Current groove SP still allowed — keep it
-    if (availability.allowed.has(currentSidePanels as "NoG" | "UpperG" | "CenterG" | "DoubleG")) return;
 
     // Current groove SP no longer allowed — pick preferred or fallback
     const newValue = pickPreferred()
       ?? (["UpperG", "CenterG", "DoubleG", "NoG"] as const).find((g) => availability.allowed.has(g))
       ?? "None";
 
-    listenerApi.dispatch(setSidePanelsOption(newValue));
-    await setSidePanel(newValue, "both");
+    console.warn("[SP] listener → SET", newValue, "(preferred:", pickPreferred(), ")");
+    await applyGrooveToActiveSides(listenerApi.dispatch, newValue, leftSt, rightSt);
   },
 });

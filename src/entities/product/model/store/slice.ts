@@ -64,6 +64,8 @@ type ProductState = {
     BookMatching: string;
     CountertopStyle: string;
     SidePanels: string;
+    SidePanelLeft: "active" | "none" | "auto-removed";
+    SidePanelRight: "active" | "none" | "auto-removed";
     LedOption: string;
     DividersOption: string;
     DividersStyle: string;
@@ -257,6 +259,8 @@ const createInitialState = (): ProductState => {
       BookMatching: "",
       CountertopStyle: "integrated",
       SidePanels: "",
+      SidePanelLeft: "none" as const,
+      SidePanelRight: "none" as const,
       LedOption: "",
       DividersOption: "",
       DividersStyle: "",
@@ -511,7 +515,18 @@ const productSlice = createSlice({
       state.productOptions.CountertopStyle = action.payload;
     },
     setSidePanelsOption(state, action: PayloadAction<string>) {
+      const prev = state.productOptions.SidePanels;
+      console.warn("[SP] Redux groove", prev, "→", action.payload);
       state.productOptions.SidePanels = action.payload;
+    },
+    setSidePanelSideStatus(
+      state,
+      action: PayloadAction<{ side: "left" | "right"; status: "active" | "none" | "auto-removed" }>,
+    ) {
+      const { side, status } = action.payload;
+      const key = side === "left" ? "SidePanelLeft" : "SidePanelRight";
+      console.warn("[SP] Redux side", side, state.productOptions[key], "→", status);
+      state.productOptions[key] = status;
     },
     setLedOption(state, action: PayloadAction<string>) {
       state.productOptions.LedOption = action.payload;
@@ -620,6 +635,7 @@ export const {
   setBookMatching,
   setCountertopStyle,
   setSidePanelsOption,
+  setSidePanelSideStatus,
   setLedOption,
   setDividersOption,
   setDividersStyle,

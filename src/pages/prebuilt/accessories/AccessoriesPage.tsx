@@ -24,7 +24,6 @@ import {
   setDividersOption,
   setDividersStyle,
   setIsDrawerOpen,
-  setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
 } from "@/entities/product/model/store/slice";
@@ -32,8 +31,8 @@ import {
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { applyGroove, autoRemoveBoth } from "@/features/sidePanel";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
@@ -199,8 +198,7 @@ export const AccessoriesPage = () => {
     if (!sidePanelsBlockedByLength340) return;
     if (!activeSidePanels || activeSidePanels === "None") return;
 
-    dispatch(setSidePanelsOption("None"));
-    setSidePanel("None", "both");
+    autoRemoveBoth(dispatch);
   }, [activeSidePanels, dispatch, sidePanelsBlockedByLength340]);
 
   const towelBarOptionsFromApi = useMemo(() => {
@@ -514,26 +512,25 @@ export const AccessoriesPage = () => {
   // Side panel invalidation is handled by global listener middleware.
 
   const handleSidePanelsChange = async (value: string) => {
-    if (!value || !selectedSceneProduct) return;
-    if (sidePanelsBlockedByLength340 && value !== "None") return;
-
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const isEdge = selectedSceneProduct === leftCabinetId || selectedSceneProduct === rightCabinetId;
-
-    if (!isEdge) return;
+    console.warn("[SP] UI prebuilt change:", value, "| cabinet:", selectedSceneProduct, "| isEdge:", isEdge);
+    if (!value) return;
+    if (sidePanelsBlockedByLength340 && value !== "None") return;
 
     await saveSnapshot();
     const side: "left" | "right" | "both" =
-      selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+      !selectedSceneProduct || !isEdge
         ? "both"
-        : selectedSceneProduct === leftCabinetId
-          ? "left"
-          : selectedSceneProduct === rightCabinetId
-            ? "right"
-            : "both";
-    await setSidePanel(value, side);
-
-    dispatch(setSidePanelsOption(value));
+        : selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
+          ? "both"
+          : selectedSceneProduct === leftCabinetId
+            ? "left"
+            : selectedSceneProduct === rightCabinetId
+              ? "right"
+              : "both";
+    console.warn("[SP] UI prebuilt → setSidePanel:", value, side);
+    await applyGroove(dispatch, value, side);
   };
 
   const handleDividersChange = (value: string | null) => {
