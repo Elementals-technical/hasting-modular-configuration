@@ -6,6 +6,7 @@ import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { restoreSidePanelState } from "@/features/sidePanel";
 
 function resolveProductType(productId: string, config: Record<string, unknown>): string {
   const configProductType = typeof config?.productType === "string" ? config.productType : null;
@@ -141,11 +142,6 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: opts.VesselColor });
   }
 
-  // Re-apply SidePanel state to PlayCanvas.
-  const sidePanels = opts.SidePanels;
-  if (sidePanels && sidePanels !== "None") {
-    await setConfigBatch({}, { SidePanel: sidePanels, SidePanelSide: "both" });
-  } else {
-    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "both" });
-  }
+  // Re-apply SidePanel state to PlayCanvas (per-side).
+  await restoreSidePanelState(opts.SidePanels, opts.SidePanelLeft, opts.SidePanelRight);
 }

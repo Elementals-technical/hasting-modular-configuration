@@ -25,6 +25,8 @@ import {
   getFaucetHolesAmount,
   getFaucetHolesSpacing,
   getSidePanelsOption,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
   getDividersStyle,
   getCabinetCatalog,
   getPlacedDividers,
@@ -151,6 +153,8 @@ export function usePriceCalculation() {
   const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
+  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const dividersStyle = useAppSelector(getDividersStyle);
   const placedDividers = useAppSelector(getPlacedDividers);
 
@@ -704,10 +708,12 @@ export function usePriceCalculation() {
 
     // 4) Accessories SKUs — Resolver 4 (Side panels per product + Dividers global)
 
-    // Side panels — use per-product height/depth
+    // Side panels — one SKU per active side (single-panel pricing)
     if (sidePanelsOption && sidePanelsOption !== "" && sidePanelsOption !== "None") {
-      const seenSpSkus = new Set<string>();
-      productDimsList.forEach((dims, idx) => {
+      const activeSides = [sidePanelLeft === "active", sidePanelRight === "active"];
+      const activeSideCount = activeSides.filter(Boolean).length;
+      if (activeSideCount > 0) {
+        const dims = productDimsList[0] ?? { height: null, depth: null };
         const spSku = buildSidePanelSku({
           panelType: sidePanelsOption,
           width: SIDE_PANEL_WIDTH_CM,
@@ -716,12 +722,12 @@ export function usePriceCalculation() {
           materialSku: resolveCabinetMaterialSku(),
           colorCode: extractColorCode(cabinetColor),
         });
-        if (spSku && !seenSpSkus.has(spSku)) {
-          seenSpSkus.add(spSku);
-          console.log(LOG_PREFIX, `Resolver 4 (SidePanel #${idx}):`, spSku);
-          skus.push(spSku);
+        if (spSku) {
+          for (let i = 0; i < activeSideCount; i++) {
+            skus.push(spSku);
+          }
         }
-      });
+      }
     }
 
     // Dividers — prefer per-slot placed types (A/B/C). Fallback to selected style per cabinet.
@@ -789,6 +795,8 @@ export function usePriceCalculation() {
     faucetHolesAmount,
     faucetHolesSpacing,
     sidePanelsOption,
+    sidePanelLeft,
+    sidePanelRight,
     dividersStyle,
     placedDividers,
     colorSkuByName,

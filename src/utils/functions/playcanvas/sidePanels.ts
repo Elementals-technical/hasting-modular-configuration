@@ -32,4 +32,3 @@ export const setSidePanel = async (type: string, side: SidePanelSide = "both") =
   await setConfigBatch({}, { SidePanel: type, SidePanelSide: side });
   applyState(type, side);
 };
-
