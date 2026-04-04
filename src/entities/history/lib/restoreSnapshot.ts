@@ -6,6 +6,7 @@ import { addProduct } from "@/utils/functions/playcanvas/addProduct";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { restoreSidePanelState } from "@/features/sidePanel";
 
 function resolveProductType(productId: string, config: Record<string, unknown>): string {
   const configProductType = typeof config?.productType === "string" ? config.productType : null;
@@ -142,19 +143,5 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   }
 
   // Re-apply SidePanel state to PlayCanvas (per-side).
-  const spGroove = opts.SidePanels;
-  const spLeft = opts.SidePanelLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
-  const spRight = opts.SidePanelRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
-  console.warn("[SP] restoreSnapshot:", spGroove, "left:", spLeft, "right:", spRight);
-
-  // Clear both first, then re-apply active sides
-  await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "both" });
-  if (spGroove && spGroove !== "None") {
-    if (spLeft === "active") {
-      await setConfigBatch({}, { SidePanel: spGroove, SidePanelSide: "left" });
-    }
-    if (spRight === "active") {
-      await setConfigBatch({}, { SidePanel: spGroove, SidePanelSide: "right" });
-    }
-  }
+  await restoreSidePanelState(opts.SidePanels, opts.SidePanelLeft, opts.SidePanelRight);
 }

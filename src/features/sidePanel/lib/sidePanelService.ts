@@ -123,3 +123,24 @@ export async function autoRemoveBoth(dispatch: AppDispatch) {
   dispatch(setSidePanelsOption("None"));
   dispatchSideStatus(dispatch, "both", "auto-removed");
 }
+
+/**
+ * Restore SP state from undo/redo snapshot.
+ * Clears both sides first, then re-applies active sides.
+ * Backward compat: if SidePanelLeft/Right missing in snapshot → derive from groove.
+ */
+export async function restoreSidePanelState(
+  spGroove: string | undefined,
+  spLeft: string | undefined,
+  spRight: string | undefined,
+) {
+  const left = spLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
+  const right = spRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
+  console.warn("[SP] restoreSnapshot:", spGroove, "left:", left, "right:", right);
+
+  await setSidePanel("None", "both");
+  if (spGroove && spGroove !== "None") {
+    if (left === "active") await setSidePanel(spGroove, "left");
+    if (right === "active") await setSidePanel(spGroove, "right");
+  }
+}
