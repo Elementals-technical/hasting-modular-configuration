@@ -8,6 +8,7 @@ import {
   bootBothSides,
   autoRemoveBoth,
   type SidePanelSide,
+  type GrooveType,
 } from "../lib/sidePanelService";
 
 /**
@@ -19,7 +20,7 @@ export function useSidePanelActions() {
 
   return {
     applyGroove: useCallback(
-      (groove: string, side: "left" | "right" | "both") => applyGroove(dispatch, groove, side),
+      (groove: GrooveType, side: "left" | "right" | "both") => applyGroove(dispatch, groove, side),
       [dispatch],
     ),
 
@@ -34,12 +35,12 @@ export function useSidePanelActions() {
     ),
 
     autoRestoreSide: useCallback(
-      (side: SidePanelSide, groove: string) => autoRestoreSide(dispatch, side, groove),
+      (side: SidePanelSide, groove: GrooveType) => autoRestoreSide(dispatch, side, groove),
       [dispatch],
     ),
 
     bootBothSides: useCallback(
-      (groove: string) => bootBothSides(dispatch, groove),
+      (groove: GrooveType) => bootBothSides(dispatch, groove),
       [dispatch],
     ),
 

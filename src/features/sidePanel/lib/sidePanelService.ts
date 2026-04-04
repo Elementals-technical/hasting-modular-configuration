@@ -12,36 +12,45 @@ import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 
 export type SidePanelSide = "left" | "right";
 export type SidePanelStatus = "active" | "none" | "auto-removed";
+export type GrooveType = "NoG" | "UpperG" | "CenterG" | "DoubleG" | "None";
 
-// ── Groove selection (user picks groove in Accessories UI) ─────────────
+// ── Internal helper ─────────────────────────────────────────────────────
 
+function dispatchSideStatus(
+  dispatch: AppDispatch,
+  side: "left" | "right" | "both",
+  status: SidePanelStatus,
+) {
+  if (side === "both") {
+    dispatch(setSidePanelSideStatus({ side: "left", status }));
+    dispatch(setSidePanelSideStatus({ side: "right", status }));
+  } else {
+    dispatch(setSidePanelSideStatus({ side, status }));
+  }
+}
+
+// ── Public API ──────────────────────────────────────────────────────────
+
+/**
+ * User selects groove type in Accessories UI.
+ * Updates PlayCanvas + Redux groove + per-side status.
+ * @param side — which edge cabinet was selected ("both" for single cabinet)
+ */
 export async function applyGroove(
   dispatch: AppDispatch,
-  groove: string,
+  groove: GrooveType,
   side: "left" | "right" | "both",
 ) {
   await setSidePanel(groove, side);
   dispatch(setSidePanelsOption(groove));
-
-  if (groove === "None") {
-    if (side === "both") {
-      dispatch(setSidePanelSideStatus({ side: "left", status: "none" }));
-      dispatch(setSidePanelSideStatus({ side: "right", status: "none" }));
-    } else {
-      dispatch(setSidePanelSideStatus({ side, status: "none" }));
-    }
-  } else {
-    if (side === "both") {
-      dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
-      dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
-    } else {
-      dispatch(setSidePanelSideStatus({ side, status: "active" }));
-    }
-  }
+  dispatchSideStatus(dispatch, side, groove === "None" ? "none" : "active");
 }
 
-// ── Delete SP via context menu (user clicks Delete on SP entity) ───────
-
+/**
+ * User deletes SP entity via context menu in 3D player.
+ * Clears PlayCanvas SP on that side, marks as user-removed (won't auto-restore).
+ * Resets groove to "None" so UI shows no selection.
+ */
 export async function deleteSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
@@ -51,8 +60,10 @@ export async function deleteSide(
   dispatch(setSidePanelsOption("None"));
 }
 
-// ── Auto-remove (OS/OSS at edge — system removes SP) ──────────────────
-
+/**
+ * System auto-removes SP when OS/OSS cabinet appears at edge.
+ * Will auto-restore when edge becomes eligible again (SB/SC).
+ */
 export async function autoRemoveSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
@@ -61,34 +72,40 @@ export async function autoRemoveSide(
   dispatch(setSidePanelSideStatus({ side, status: "auto-removed" }));
 }
 
-// ── Auto-restore (edge became SB/SC again — system restores SP) ────────
-
+/**
+ * System auto-restores SP when edge cabinet becomes eligible (was auto-removed).
+ * Does NOT restore user-removed ("none") sides.
+ */
 export async function autoRestoreSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
-  groove: string,
+  groove: GrooveType,
 ) {
   await setSidePanel(groove, side);
   dispatch(setSidePanelSideStatus({ side, status: "active" }));
 }
 
-// ── Boot (initial setup from preset/cabinet builder) ───────────────────
-
+/**
+ * Initial SP setup from preset or cabinet builder boot.
+ * Sets groove + both sides active.
+ */
 export async function bootBothSides(
   dispatch: AppDispatch,
-  groove: string,
+  groove: GrooveType,
 ) {
   await setSidePanel(groove, "both");
   dispatch(setSidePanelsOption(groove));
-  dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
-  dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
+  dispatchSideStatus(dispatch, "both", "active");
 }
 
-// ── Apply groove only to active sides (middleware use) ──────────────────
-
+/**
+ * Middleware use: groove type changed (handle/drawer switch).
+ * Applies new groove only to sides that are currently "active".
+ * Skips "none" (user-removed) and "auto-removed" sides.
+ */
 export async function applyGrooveToActiveSides(
   dispatch: AppDispatch,
-  groove: string,
+  groove: GrooveType,
   leftStatus: SidePanelStatus,
   rightStatus: SidePanelStatus,
 ) {
@@ -97,11 +114,12 @@ export async function applyGrooveToActiveSides(
   dispatch(setSidePanelsOption(groove));
 }
 
-// ── Auto-remove both (340cm length blocker) ────────────────────────────
-
+/**
+ * Auto-remove both sides when total vanity width = 340cm.
+ * Both sides marked "auto-removed" (will restore when width changes).
+ */
 export async function autoRemoveBoth(dispatch: AppDispatch) {
-  dispatch(setSidePanelsOption("None"));
-  dispatch(setSidePanelSideStatus({ side: "left", status: "auto-removed" }));
-  dispatch(setSidePanelSideStatus({ side: "right", status: "auto-removed" }));
   await setSidePanel("None", "both");
+  dispatch(setSidePanelsOption("None"));
+  dispatchSideStatus(dispatch, "both", "auto-removed");
 }
