@@ -575,10 +575,6 @@ export const CustomAccessoriesPage = () => {
   }, [towelSelection]);
 
   const handleSidePanelsChange = async (value: string) => {
-    const uiDbg = { t: Date.now(), action: "SP_UI_CUSTOM", value, activeCabinetId, isEdgeCabinet, activeSidePanels, blocked340: sidePanelsBlockedByLength340 };
-    console.warn("[SP] UI custom change:", uiDbg);
-    ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]) ??= [];
-    ((window as unknown as Record<string, unknown>).__SP_DEBUG__ as unknown[]).push(uiDbg);
     if (!value) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
 
@@ -596,7 +592,6 @@ export const CustomAccessoriesPage = () => {
               ? "right"
               : "both";
 
-    console.warn("[SP] UI custom → applyGroove:", value, side);
     await applyGroove(dispatch, value, side);
   };
 

@@ -136,8 +136,6 @@ export async function restoreSidePanelState(
 ) {
   const left = spLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
   const right = spRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
-  console.warn("[SP] restoreSnapshot:", spGroove, "left:", left, "right:", right);
-
   await setSidePanel("None", "both");
   if (spGroove && spGroove !== "None") {
     if (left === "active") await setSidePanel(spGroove, "left");

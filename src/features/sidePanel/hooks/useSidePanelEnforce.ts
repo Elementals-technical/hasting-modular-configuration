@@ -34,7 +34,6 @@ export function useSidePanelEnforce(productIdsLength: number) {
   const lengthRef = useRef(productIdsLength);
   useEffect(() => {
     if (productIdsLength === lengthRef.current) return;
-    console.warn("[SP] productIds changed:", lengthRef.current, "→", productIdsLength);
     lengthRef.current = productIdsLength;
     const timerId = setTimeout(() => enforce(), 300);
     return () => clearTimeout(timerId);
