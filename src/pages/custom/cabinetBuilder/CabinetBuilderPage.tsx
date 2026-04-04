@@ -41,7 +41,6 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
-  setSidePanelsOption,
   setTowelBarColor,
   setTowelBarOption,
   setDrawerProduct,
@@ -89,7 +88,6 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
@@ -97,6 +95,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { bootBothSides, autoRemoveSide } from "@/features/sidePanel";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { store, type RootState } from "@/app/store";
@@ -1090,8 +1089,7 @@ export const CabinetBuilderPage = () => {
         if (uiSidePanels || sidePanelValue) {
           const sidePanel = uiSidePanels || sidePanelValue;
           if (sidePanel) {
-            await setSidePanel(sidePanel, "both");
-            dispatch(setSidePanelsOption(sidePanel));
+            await bootBothSides(dispatch, sidePanel);
           }
         }
 
@@ -1266,7 +1264,7 @@ export const CabinetBuilderPage = () => {
 
         await saveSnapshot();
         if (productName === "Side-Shelf") {
-          await setSidePanel("None", "right");
+          await autoRemoveSide(dispatch, "right");
         }
         const productId = await addProduct(productName, productConfig);
 
