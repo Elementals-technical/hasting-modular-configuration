@@ -89,6 +89,11 @@ interface PendingOssHandleChange {
   ossIds: string[];
 }
 
+interface PendingDepthChange {
+  next: number;
+  previous: number | null;
+}
+
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
@@ -124,8 +129,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
+  const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
-  const hasModalOpen = pendingHandleChange !== null || pendingOssHandleChange !== null || handleLockNotice !== null;
+  const hasModalOpen =
+    pendingHandleChange !== null || pendingOssHandleChange !== null || pendingDepthChange !== null || handleLockNotice !== null;
 
   const handleOptions = useMemo(
     () =>
@@ -344,9 +351,31 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     dispatch(setSelectedDimensions({ width: Number(value) }));
   };
 
+  const closePendingDepthChange = (isConfirmed = false) => {
+    if (!pendingDepthChange) return;
+
+    const { previous, next } = pendingDepthChange;
+    setPendingDepthChange(null);
+
+    if (isConfirmed || previous === next) return;
+
+    dispatch(setSelectedDimensions({ depth: previous }));
+  };
+
   const handleChangeDepth = (value?: string | number) => {
     if (value === undefined) return;
-    dispatch(setSelectedDimensions({ depth: Number(value) }));
+    const nextDepth = Number(value);
+    const previousDepth = selectedDimensions.depth;
+    if (previousDepth === nextDepth) return;
+
+    dispatch(setSelectedDimensions({ depth: nextDepth }));
+
+    if (selectedProducts.length > 0) {
+      setPendingDepthChange({
+        next: nextDepth,
+        previous: previousDepth,
+      });
+    }
   };
 
   // const handleChangeHeight = (value: string | number) => {
@@ -732,6 +761,30 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
               </BaseButton>
               <BaseButton onClick={() => void confirmPendingOssHandleChange()} fullWidth={true}>
                 Approve
+              </BaseButton>
+            </div>
+          </div>
+        </div>
+      </PopupCenterContent>
+
+      <PopupCenterContent isOpening={pendingDepthChange !== null} onClose={() => closePendingDepthChange()}>
+        <div className={s.confirmPopup}>
+          <div className={s.confirmHeader}>
+            <div className={s.confirmTitle}>Depth Updated</div>
+            <div className={s.confirmClose} onClick={() => closePendingDepthChange()}>
+              <CloseBtnIcon />
+            </div>
+          </div>
+          <div className={s.confirmContent}>
+            <p>The cabinet depth has been updated for all cabinets in your design.</p>
+          </div>
+          <div className={s.confirmFooter}>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <BaseButton variant="ghost" onClick={() => closePendingDepthChange()} fullWidth={true}>
+                Cancel
+              </BaseButton>
+              <BaseButton onClick={() => closePendingDepthChange(true)} fullWidth={true}>
+                Confirm
               </BaseButton>
             </div>
           </div>
