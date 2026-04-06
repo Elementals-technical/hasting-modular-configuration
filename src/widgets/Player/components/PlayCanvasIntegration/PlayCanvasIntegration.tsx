@@ -115,7 +115,7 @@ const toDimensionDisplayName = (productType: string, fallback?: string): string 
   const normalizedType = stripRuntimeEntitySuffix(productType).toLowerCase();
   if (normalizedType === "top_solid" || normalizedType === "top-solid") return "Top Solid";
   if (normalizedType === "sink-base") return "Sink Base";
-  if (normalizedType === "sink-cabinet") return "Sink Cabinet";
+  if (normalizedType === "sink-cabinet") return "Side Cabinet";
   return humanizeDisplayName(productType || fallback || "");
 };
 
@@ -138,7 +138,17 @@ const formatThicknessLabel = (thickness: number): string => {
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
 export const PlayCanvasIntegration = () => {
-  type CustomizeModePromptAction = "default" | "add" | "delete" | "resize" | "reposition" | "duplicate" | "countertop-color" | "countertop-thickness" | "countertop-style" | "basin-style";
+  type CustomizeModePromptAction =
+    | "default"
+    | "add"
+    | "delete"
+    | "resize"
+    | "reposition"
+    | "duplicate"
+    | "countertop-color"
+    | "countertop-thickness"
+    | "countertop-style"
+    | "basin-style";
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
@@ -1181,7 +1191,11 @@ export const PlayCanvasIntegration = () => {
 
         await setConfig(productId, mergedConfig);
         // Re-apply VesselColor after duplicating a Sink-Base with vessel
-        if (vesselColorRef.current && typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel")) {
+        if (
+          vesselColorRef.current &&
+          typeof mergedConfig.sinkType === "string" &&
+          mergedConfig.sinkType.startsWith("Vessel")
+        ) {
           await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColorRef.current });
         }
         dispatch(addProductId(productId));
@@ -2010,9 +2024,21 @@ export const PlayCanvasIntegration = () => {
             ]
           : []),
         { id: "add", label: "Add", trailing: <ArrowTopRight color={"#333"} />, onClick: handleAddFromPrebuilt },
-        { id: "duplicate", label: "Duplicate", trailing: <ArrowTopRight color={"#333"} />, onClick: handleDuplicateFromPrebuilt },
+        {
+          id: "duplicate",
+          label: "Duplicate",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleDuplicateFromPrebuilt,
+        },
         ...(selectedSceneProduct
-          ? [{ id: "delete", label: "Delete", trailing: <ArrowTopRight color={"#333"} />, onClick: handleDeleteFromPrebuilt }]
+          ? [
+              {
+                id: "delete",
+                label: "Delete",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleDeleteFromPrebuilt,
+              },
+            ]
           : []),
       ];
     }
