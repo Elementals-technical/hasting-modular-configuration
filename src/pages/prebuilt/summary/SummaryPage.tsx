@@ -1008,7 +1008,10 @@ export const SummaryPage = () => {
         cabinetColor;
       const dims =
         cabinetConfigs.length > 0
-          ? { height: typeof cabinetConfigs[0].Height === "number" ? cabinetConfigs[0].Height : null, depth: typeof cabinetConfigs[0].Depth === "number" ? cabinetConfigs[0].Depth : null }
+          ? {
+              height: typeof cabinetConfigs[0].Height === "number" ? cabinetConfigs[0].Height : null,
+              depth: typeof cabinetConfigs[0].Depth === "number" ? cabinetConfigs[0].Depth : null,
+            }
           : productsPresets.length > 0
             ? { height: productsPresets[0].Height ?? null, depth: productsPresets[0].Depth ?? null }
             : { height: selectedDimensions.height, depth: selectedDimensions.depth };
@@ -1019,7 +1022,8 @@ export const SummaryPage = () => {
         width: SIDE_PANEL_WIDTH_CM,
         height: dims.height,
         depth: dims.depth,
-        cabMaterialSku: resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor),
+        cabMaterialSku:
+          resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor),
         cabColorCode: extractColorCode(sidePanelCabinetColor),
         hdlMaterialSku: handleMaterialSku,
         hdlColorCode: extractColorCode(handleGrooveColor),
@@ -1136,16 +1140,40 @@ export const SummaryPage = () => {
               direction: grainSku,
               materialSku: resolveCabinetMaterialSku(cabinetColor),
             });
+            // calculate per drawer
+            const parseDrawerCount = (value: unknown): number => {
+              if (typeof value !== "string") return 0;
+              const match = value.match(/^(\d+)/);
+              return match ? parseInt(match[1], 10) : 0;
+            };
+            const presetDrawerTotal = productsPresets.reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
+            const configDrawerTotal = cabinetConfigs.reduce(
+              (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
+              0,
+            );
+            const selectedDrawerTotal = parseDrawerCount(
+              (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
+            );
+            const drawerCount = Math.max(presetDrawerTotal, configDrawerTotal, selectedDrawerTotal) || cabinetCount;
+            console.log("[BookMatching] drawers:", {
+              presetDrawerTotal,
+              configDrawerTotal,
+              selectedDrawerTotal,
+              drawerCount,
+              cabinetCount,
+            });
+            const unitPrice = priceBySku[bmSku] ?? 0;
             return {
               id: "accessories-book-matching",
               title: "Book Matching",
               subtitle: bmSku,
               sku: bmSku,
-              price: resolveItemPrice(bmSku),
+              price: formatPrice(unitPrice * drawerCount),
               copyable: true,
               description: {
                 "Product Category": "Book Matching",
                 Direction: grainSku === "H" ? "Horizontal" : "Vertical",
+                Drawers: drawerCount,
               },
             };
           })()
@@ -1458,7 +1486,10 @@ export const SummaryPage = () => {
                         <div className={s.itemTitle}>
                           {item.title}
                           {item.showInfo && item.description && (
-                            <span className={`${s.infoIcon} ${s.infoTooltip}`} data-tooltip={buildInfoTooltip(item.description)}>
+                            <span
+                              className={`${s.infoIcon} ${s.infoTooltip}`}
+                              data-tooltip={buildInfoTooltip(item.description)}
+                            >
                               <InformationIcon />
                             </span>
                           )}

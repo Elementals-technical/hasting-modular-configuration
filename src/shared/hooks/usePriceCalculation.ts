@@ -49,11 +49,12 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
-import { normalizeMaterialToken, parseCountertopMatrix, resolveDefaultThicknessFromRules } from "@/features/configurator-rule-core/countertop";
 import {
-  useLazyGetProductPriceBySkuQuery,
-  useLazyGetProductPriceBySkuV2ResolveQuery,
-} from "@/entities/product/api";
+  normalizeMaterialToken,
+  parseCountertopMatrix,
+  resolveDefaultThicknessFromRules,
+} from "@/features/configurator-rule-core/countertop";
+import { useLazyGetProductPriceBySkuQuery, useLazyGetProductPriceBySkuV2ResolveQuery } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
@@ -349,9 +350,11 @@ export function usePriceCalculation() {
       depth:
         selectedDimensions.depth ??
         (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
-        (sceneConfigs[0]?.Depth ?? null),
+        sceneConfigs[0]?.Depth ??
+        null,
     });
-    const resolvedCountertopThickness = sceneConfigs[0]?.Thickness || countertopThickness || matrixDefaultThickness || null;
+    const resolvedCountertopThickness =
+      sceneConfigs[0]?.Thickness || countertopThickness || matrixDefaultThickness || null;
 
     // 1) Product SKU(s) — Resolver 1
     if (shouldUsePresets) {
@@ -582,7 +585,7 @@ export function usePriceCalculation() {
           width: p.Width ?? null,
           height: p.Height ?? null,
           depth: p.Depth ?? null,
-          sinkType: shouldUsePresetSinkType ? p.sinkType ?? resolvedSinkType : resolvedSinkType,
+          sinkType: shouldUsePresetSinkType ? (p.sinkType ?? resolvedSinkType) : resolvedSinkType,
         })),
         ...sceneConfigs.map((cfg) => ({
           width: cfg.Width,
@@ -634,7 +637,8 @@ export function usePriceCalculation() {
     // Always keep a default faucet-holes pricing SKU in the pool (including "0"),
     // with dynamic material resolved from basin/material context.
     const faucetHolesQty = (faucetHolesAmount ?? "").trim() || "0";
-    const faucetMaterialSku = inferMaterialSkuFromBasinType(resolvedSinkType) ?? effectiveCountertopMaterialSku ?? "HPL";
+    const faucetMaterialSku =
+      inferMaterialSkuFromBasinType(resolvedSinkType) ?? effectiveCountertopMaterialSku ?? "HPL";
     const defaultFaucetSku = `CT-UR${faucetMaterialSku}-FAHO/${faucetHolesQty}`;
     if (!seenCountertopSkus.has(defaultFaucetSku)) {
       seenCountertopSkus.add(defaultFaucetSku);
@@ -713,11 +717,12 @@ export function usePriceCalculation() {
         return null;
       };
       const sidePanelCabinetColor = shouldUsePresets
-        ? productsPresets.find((preset) => typeof preset.CabinetColor === "string" && preset.CabinetColor)?.CabinetColor
-          ?? sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor
-          ?? cabinetColor
-        : sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor
-          ?? cabinetColor;
+        ? (productsPresets.find((preset) => typeof preset.CabinetColor === "string" && preset.CabinetColor)
+            ?.CabinetColor ??
+          sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor ??
+          cabinetColor)
+        : (sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor ??
+          cabinetColor);
       const activeSides = [sidePanelLeft === "active", sidePanelRight === "active"];
       const activeSideCount = activeSides.filter(Boolean).length;
       if (activeSideCount > 0) {
@@ -727,7 +732,8 @@ export function usePriceCalculation() {
           width: SIDE_PANEL_WIDTH_CM,
           height: dims.height,
           depth: dims.depth,
-          cabMaterialSku: resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor),
+          cabMaterialSku:
+            resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor),
           cabColorCode: extractColorCode(sidePanelCabinetColor),
           hdlMaterialSku: handleMaterialSku,
           hdlColorCode: extractColorCode(handleGrooveColor),
@@ -765,7 +771,7 @@ export function usePriceCalculation() {
       }
     }
 
-    // 5) Book matching SKU — pricing modifier (global)
+    // 5) Book matching SKU — pricing modifier (per drawer)
     if (bookMatching === "enabled" && grainSku) {
       const isHorizontal = grainSku === "H";
       if (!isHorizontal || cabinetCount >= 2) {
@@ -773,8 +779,27 @@ export function usePriceCalculation() {
           direction: grainSku,
           materialSku: resolveCabinetMaterialSku(cabinetColor),
         });
-        console.log(LOG_PREFIX, "Resolver 5 (Book Matching):", bmSku);
-        skus.push(bmSku);
+        // calculate per drawer
+        const parseDrawerCount = (value: unknown): number => {
+          if (typeof value !== "string") return 0;
+          const match = value.match(/^(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        const presetDrawerTotal = (productsPresets ?? []).reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
+        const sceneDrawerTotal = (sceneConfigs ?? []).reduce(
+          (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
+          0,
+        );
+        const selectedDrawerTotal = parseDrawerCount(
+          (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
+        );
+        const drawerCount = Math.max(presetDrawerTotal, sceneDrawerTotal, selectedDrawerTotal) || cabinetCount;
+        console.log(LOG_PREFIX, "Resolver 5 (Book Matching):", bmSku, "× drawers:", drawerCount, {
+          presetDrawerTotal,
+          sceneDrawerTotal,
+          selectedDrawerTotal,
+        });
+        for (let i = 0; i < drawerCount; i++) skus.push(bmSku);
       }
     }
 
@@ -861,7 +886,8 @@ export function usePriceCalculation() {
                 const isCountertopV2ResolveSku = /^CT-UR[^-]+-(?:INTG|VES)(?:-|$)/.test(sku);
                 const isLegacyVesselSku = sku.startsWith("VES-");
                 const isBookMatchingSku = sku.startsWith("VAN-URBMG-");
-                const data = isCountertopV2ResolveSku || isLegacyVesselSku || isBookMatchingSku
+                const data =
+                  isCountertopV2ResolveSku || isLegacyVesselSku || isBookMatchingSku
                     ? await triggerPriceBySkuV2Resolve(sku).unwrap()
                     : await triggerPriceBySku(sku).unwrap();
 

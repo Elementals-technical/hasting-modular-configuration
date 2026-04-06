@@ -1050,7 +1050,10 @@ export const CustomSummaryPage = () => {
     if (sidePanelsOption && sidePanelsOption !== "None") {
       const dims =
         cabinetConfigs.length > 0
-          ? { height: typeof cabinetConfigs[0].Height === "number" ? cabinetConfigs[0].Height : null, depth: typeof cabinetConfigs[0].Depth === "number" ? cabinetConfigs[0].Depth : null }
+          ? {
+              height: typeof cabinetConfigs[0].Height === "number" ? cabinetConfigs[0].Height : null,
+              depth: typeof cabinetConfigs[0].Depth === "number" ? cabinetConfigs[0].Depth : null,
+            }
           : productsPresets.length > 0
             ? { height: productsPresets[0].Height ?? null, depth: productsPresets[0].Depth ?? null }
             : { height: selectedDimensions.height, depth: selectedDimensions.depth };
@@ -1139,16 +1142,40 @@ export const CustomSummaryPage = () => {
               direction: grainSku,
               materialSku: resolveCabinetMaterialSku(cabinetColor),
             });
+            // calculate per drower
+            const parseDrawerCount = (value: unknown): number => {
+              if (typeof value !== "string") return 0;
+              const match = value.match(/^(\d+)/);
+              return match ? parseInt(match[1], 10) : 0;
+            };
+            const presetDrawerTotal = productsPresets.reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
+            const configDrawerTotal = cabinetConfigs.reduce(
+              (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
+              0,
+            );
+            const selectedDrawerTotal = parseDrawerCount(
+              (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
+            );
+            const drawerCount = Math.max(presetDrawerTotal, configDrawerTotal, selectedDrawerTotal) || cabinetCount;
+            console.log("[BookMatching] drawers:", {
+              presetDrawerTotal,
+              configDrawerTotal,
+              selectedDrawerTotal,
+              drawerCount,
+              cabinetCount,
+            });
+            const unitPrice = priceBySku[bmSku] ?? 0;
             return {
               id: "accessories-book-matching",
               title: "Book Matching",
               subtitle: bmSku,
               sku: bmSku,
-              price: resolveItemPrice(bmSku),
+              price: formatPrice(unitPrice * drawerCount),
               copyable: true,
               description: {
                 "Product Category": "Book Matching",
                 Direction: grainSku === "H" ? "Horizontal" : "Vertical",
+                Drawers: drawerCount,
               },
             };
           })()
