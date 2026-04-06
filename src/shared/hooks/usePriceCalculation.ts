@@ -769,7 +769,10 @@ export function usePriceCalculation() {
     if (bookMatching === "enabled" && grainSku) {
       const isHorizontal = grainSku === "H";
       if (!isHorizontal || cabinetCount >= 2) {
-        const bmSku = buildBookMatchingSku({ direction: grainSku });
+        const bmSku = buildBookMatchingSku({
+          direction: grainSku,
+          materialSku: resolveCabinetMaterialSku(cabinetColor),
+        });
         console.log(LOG_PREFIX, "Resolver 5 (Book Matching):", bmSku);
         skus.push(bmSku);
       }
@@ -857,7 +860,8 @@ export function usePriceCalculation() {
 
                 const isCountertopV2ResolveSku = /^CT-UR[^-]+-(?:INTG|VES)(?:-|$)/.test(sku);
                 const isLegacyVesselSku = sku.startsWith("VES-");
-                const data = isCountertopV2ResolveSku || isLegacyVesselSku
+                const isBookMatchingSku = sku.startsWith("VAN-URBMG-");
+                const data = isCountertopV2ResolveSku || isLegacyVesselSku || isBookMatchingSku
                     ? await triggerPriceBySkuV2Resolve(sku).unwrap()
                     : await triggerPriceBySku(sku).unwrap();
 

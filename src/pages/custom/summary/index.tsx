@@ -1135,7 +1135,10 @@ export const CustomSummaryPage = () => {
         : null,
       bookMatching === "enabled" && grainSku && (grainSku !== "H" || cabinetCount >= 2)
         ? (() => {
-            const bmSku = buildBookMatchingSku({ direction: grainSku });
+            const bmSku = buildBookMatchingSku({
+              direction: grainSku,
+              materialSku: resolveCabinetMaterialSku(cabinetColor),
+            });
             return {
               id: "accessories-book-matching",
               title: "Book Matching",
@@ -1278,6 +1281,8 @@ export const CustomSummaryPage = () => {
     selectedDimensions.width,
     selectedProductConfig,
     sidePanelsOption,
+    sidePanelLeft,
+    sidePanelRight,
     sinkType,
     towelBarColor,
     towelBarOption,

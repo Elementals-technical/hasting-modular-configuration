@@ -66,7 +66,13 @@ export const CabinetPage = () => {
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
+
+  const handleFromSelectedConfig =
+    typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
+  const handleFromFirstPreset = typeof presetsProducts[0]?.Handle === "string" ? presetsProducts[0].Handle : undefined;
+  const effectiveHandle = handleFromSelectedConfig ?? handleFromFirstPreset ?? "";
+  const isUrbanHandleSelected = URBAN_HANDLES.has(String(effectiveHandle));
+
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const cabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
