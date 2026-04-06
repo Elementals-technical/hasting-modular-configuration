@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 import {
   ProductOptionsGrid,
@@ -102,6 +102,7 @@ type MaterialFilterOption = {
 };
 
 export const CountertopPage = () => {
+  const { key: locationKey } = useLocation();
   const [searchParams] = useSearchParams();
 
   const dispatch = useAppDispatch();
@@ -1575,7 +1576,7 @@ export const CountertopPage = () => {
   useEffect(() => {
     const target = searchParams.get("accordion");
     if (target) setAccordionValue(target);
-  }, [searchParams]);
+  }, [searchParams, locationKey]);
 
   return (
     <div className="countertop">

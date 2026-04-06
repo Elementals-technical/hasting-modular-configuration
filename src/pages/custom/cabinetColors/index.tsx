@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -55,6 +55,7 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 export const CustomCabinetColorsPage = () => {
+  const { key: locationKey } = useLocation();
   const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
@@ -642,7 +643,7 @@ export const CustomCabinetColorsPage = () => {
   useEffect(() => {
     const target = searchParams.get("accordion");
     if (target) setAccordionValue(target);
-  }, [searchParams]);
+  }, [searchParams, locationKey]);
 
   return (
     <div className={s.cabinetPage}>
