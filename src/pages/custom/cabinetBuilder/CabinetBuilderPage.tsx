@@ -95,7 +95,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import { bootBothSides, autoRemoveSide } from "@/features/sidePanel";
+import { bootBothSides, autoRemoveSide, isGrooveType } from "@/features/sidePanel";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { store, type RootState } from "@/app/store";
@@ -1088,7 +1088,7 @@ export const CabinetBuilderPage = () => {
 
         if (uiSidePanels || sidePanelValue) {
           const sidePanel = uiSidePanels || sidePanelValue;
-          if (sidePanel) {
+          if (sidePanel && isGrooveType(sidePanel)) {
             await bootBothSides(dispatch, sidePanel);
           }
         }

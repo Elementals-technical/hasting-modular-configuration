@@ -57,7 +57,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
-import { applyGroove, autoRemoveBoth } from "@/features/sidePanel";
+import { applyGroove, autoRemoveBoth, isGrooveType } from "@/features/sidePanel";
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -576,6 +576,7 @@ export const CustomAccessoriesPage = () => {
 
   const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
+    if (!isGrooveType(value)) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
 
     await saveSnapshot();

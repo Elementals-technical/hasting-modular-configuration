@@ -14,6 +14,11 @@ import { sidePanelAvailabilityRule } from "./sidePanelRules";
 export type SidePanelSide = "left" | "right";
 export type SidePanelStatus = "active" | "none" | "auto-removed";
 export type GrooveType = "NoG" | "UpperG" | "CenterG" | "DoubleG" | "None";
+const GROOVE_VALUES = ["NoG", "UpperG", "CenterG", "DoubleG", "None"] as const;
+
+export function isGrooveType(value: string): value is GrooveType {
+  return (GROOVE_VALUES as readonly string[]).includes(value);
+}
 
 // ── Shared groove resolution ───────────────────────────────────────────
 
@@ -35,12 +40,12 @@ export function resolveGroove(
   allowed: Set<string>,
   currentGroove: string | null,
   handle: string | null,
-): string {
-  if (currentGroove && allowed.has(currentGroove)) return currentGroove;
+): GrooveType {
+  if (currentGroove && allowed.has(currentGroove) && isGrooveType(currentGroove)) return currentGroove;
 
   const priorities = handle ? HANDLE_GROOVE_PRIORITY[handle] ?? [] : [];
   const preferred = priorities.find((g) => allowed.has(g));
-  if (preferred) return preferred;
+  if (preferred && isGrooveType(preferred)) return preferred;
 
   return GROOVE_FALLBACK.find((g) => allowed.has(g)) ?? "None";
 }

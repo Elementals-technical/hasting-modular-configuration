@@ -10,6 +10,7 @@ export {
   restoreSidePanelState,
   reapplySidePanelsForPreset,
   resolveGroove,
+  isGrooveType,
   type SidePanelSide,
   type SidePanelStatus,
   type GrooveType,
