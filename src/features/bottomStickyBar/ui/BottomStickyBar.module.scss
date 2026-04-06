@@ -5,6 +5,15 @@
   align-items: center;
 }
 
+.bottomBar > .total {
+  width: 55%;
+  gap: 13px;
+}
+
+.bottomBar > .nextStepWrapp {
+  width: 45%;
+}
+
 .bottomBar {
   position: absolute;
   bottom: 0;
@@ -46,6 +55,24 @@
   }
 }
 
+@media (min-width: 1024px) and (max-width: 1410px) {
+  .bottomBar > div {
+    padding: 7px !important;
+  }
+
+  .nextStepWrapp button {
+    padding: 10px 9px !important;
+  }
+
+  .showroom_link {
+    font-size: 11px !important;
+
+    a {
+      padding: 3px 8px !important;
+    }
+  }
+}
+
 @media (max-width: 1024px) {
   .bottomBar {
     position: sticky;
@@ -82,7 +109,7 @@
 }
 
 .showroom_link {
-  font-size: 10px;
+  font-size: 13px;
 
   a {
     display: flex;
@@ -92,7 +119,7 @@
     color: #333;
     text-decoration: none;
 
-    padding: 3px 8px;
+    padding: 8px 12px;
     border: 1px solid #333;
     border-radius: 5px;
 
