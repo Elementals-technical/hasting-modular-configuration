@@ -346,6 +346,44 @@ export const CabinetPage = () => {
     return match?.[1] ?? "";
   }, []);
 
+  // Hydrate cabinet color + material/finish from the loaded preset so grain
+  // direction / fluting / book-matching rules reflect the preset's actual
+  // material (not the global store default) before the user picks a color.
+  useEffect(() => {
+    if (!basePanelOptions.length) return;
+    const presetColor = presetsProducts.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+
+    const targetColor = presetColor || activeCabinetColor;
+    if (!targetColor) return;
+
+    const option = findOptionByColorName(targetColor);
+    if (!option) return;
+
+    const materialToken = resolveMaterialToken(option);
+    const finishToken = extractFinishToken(`${targetColor} ${option?.title ?? ""} ${option?.desc ?? ""}`);
+
+    if (presetColor && presetColor !== activeCabinetColor) {
+      dispatch(setCabinetColor(presetColor));
+      dispatch(setCabinetColorSku(findSkuByColorName(presetColor)));
+    }
+
+    if (materialToken && materialToken !== cabinetMaterial) {
+      dispatch(setCabinetColorMaterial(materialToken));
+    }
+
+    if (finishToken) dispatch(setCabinetColorFinish(finishToken));
+  }, [
+    presetsProducts,
+    activeCabinetColor,
+    cabinetMaterial,
+    basePanelOptions,
+    findOptionByColorName,
+    findSkuByColorName,
+    resolveMaterialToken,
+    extractFinishToken,
+    dispatch,
+  ]);
+
   const clearAllFilters = () => {
     setSelectedFilter({});
     setSelectedGrooveFilter({});

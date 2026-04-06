@@ -23,6 +23,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { BaseButton } from "@/shared";
 import {
   getCabinetColor,
+  getCabinetColorMaterial,
   getBookMatching,
   getDrawerPanelFluting,
   getGrainDirection,
@@ -66,6 +67,7 @@ export const CustomCabinetColorsPage = () => {
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
   const isPlayCanvasReady = usePlayCanvasReady();
+  const activeCabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
   const bookMatchingState = useAppSelector(selectBookMatchingState);
   const flutingState = useAppSelector(selectFlutingState);
@@ -473,6 +475,31 @@ export const CustomCabinetColorsPage = () => {
       },
     );
   }, [activeCabinetColor, isPlayCanvasReady, selectedProducts]);
+
+  // Hydrate material/finish from the default (or already-selected) cabinet color
+  // so grain direction / fluting / book-matching rules work on first render.
+  useEffect(() => {
+    if (!activeCabinetColor || activeCabinetMaterial) return;
+
+    if (!basePanelOptionsFromApi.length) return;
+    const option = findOptionByColorName(activeCabinetColor);
+
+    if (!option) return;
+    const materialToken = resolveMaterialToken(option);
+    const finishToken = extractFinishToken(`${activeCabinetColor} ${option?.title ?? ""} ${option?.desc ?? ""}`);
+
+    if (materialToken) dispatch(setCabinetColorMaterial(materialToken));
+
+    if (finishToken) dispatch(setCabinetColorFinish(finishToken));
+  }, [
+    activeCabinetColor,
+    activeCabinetMaterial,
+    basePanelOptionsFromApi,
+    findOptionByColorName,
+    resolveMaterialToken,
+    extractFinishToken,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (!isPlayCanvasReady || !activeGrooveColor) return;
