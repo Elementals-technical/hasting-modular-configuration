@@ -3,9 +3,9 @@ import { useState } from "react";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { BaseButton } from "@/shared";
 
-import howItWorks1 from "../../../../assets/video/HowItWorks1.webm";
-import howItWorks2 from "../../../../assets/video/HowItWorks2.webm";
-import howItWorks3 from "../../../../assets/video/HowItWorks3.webm";
+import howItWorks1 from "../../../../assets/video/start.webm";
+import howItWorks2 from "../../../../assets/video/prebuild.webm";
+import howItWorks3 from "../../../../assets/video/custom.webm";
 
 import s from "./HowToStart.module.scss";
 import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
