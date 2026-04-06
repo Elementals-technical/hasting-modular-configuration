@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -23,6 +23,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { BaseButton } from "@/shared";
 import {
   getCabinetColor,
+  getCabinetColorMaterial,
   getBookMatching,
   getDrawerPanelFluting,
   getGrainDirection,
@@ -54,6 +55,7 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 export const CustomCabinetColorsPage = () => {
+  const { key: locationKey } = useLocation();
   const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
@@ -66,6 +68,7 @@ export const CustomCabinetColorsPage = () => {
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
   const isPlayCanvasReady = usePlayCanvasReady();
+  const activeCabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
   const bookMatchingState = useAppSelector(selectBookMatchingState);
   const flutingState = useAppSelector(selectFlutingState);
@@ -474,6 +477,31 @@ export const CustomCabinetColorsPage = () => {
     );
   }, [activeCabinetColor, isPlayCanvasReady, selectedProducts]);
 
+  // Hydrate material/finish from the default (or already-selected) cabinet color
+  // so grain direction / fluting / book-matching rules work on first render.
+  useEffect(() => {
+    if (!activeCabinetColor || activeCabinetMaterial) return;
+
+    if (!basePanelOptionsFromApi.length) return;
+    const option = findOptionByColorName(activeCabinetColor);
+
+    if (!option) return;
+    const materialToken = resolveMaterialToken(option);
+    const finishToken = extractFinishToken(`${activeCabinetColor} ${option?.title ?? ""} ${option?.desc ?? ""}`);
+
+    if (materialToken) dispatch(setCabinetColorMaterial(materialToken));
+
+    if (finishToken) dispatch(setCabinetColorFinish(finishToken));
+  }, [
+    activeCabinetColor,
+    activeCabinetMaterial,
+    basePanelOptionsFromApi,
+    findOptionByColorName,
+    resolveMaterialToken,
+    extractFinishToken,
+    dispatch,
+  ]);
+
   useEffect(() => {
     if (!isPlayCanvasReady || !activeGrooveColor) return;
 
@@ -615,7 +643,7 @@ export const CustomCabinetColorsPage = () => {
   useEffect(() => {
     const target = searchParams.get("accordion");
     if (target) setAccordionValue(target);
-  }, [searchParams]);
+  }, [searchParams, locationKey]);
 
   return (
     <div className={s.cabinetPage}>

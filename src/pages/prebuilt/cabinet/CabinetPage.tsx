@@ -66,7 +66,13 @@ export const CabinetPage = () => {
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
+
+  const handleFromSelectedConfig =
+    typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
+  const handleFromFirstPreset = typeof presetsProducts[0]?.Handle === "string" ? presetsProducts[0].Handle : undefined;
+  const effectiveHandle = handleFromSelectedConfig ?? handleFromFirstPreset ?? "";
+  const isUrbanHandleSelected = URBAN_HANDLES.has(String(effectiveHandle));
+
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const cabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
@@ -339,6 +345,44 @@ export const CabinetPage = () => {
     const match = value.match(/\b(TKP|TKQ|TKN|10B|10F|10G|10N|1PE|1A1|1A2|1A3|1A4|1A5)\b/);
     return match?.[1] ?? "";
   }, []);
+
+  // Hydrate cabinet color + material/finish from the loaded preset so grain
+  // direction / fluting / book-matching rules reflect the preset's actual
+  // material (not the global store default) before the user picks a color.
+  useEffect(() => {
+    if (!basePanelOptions.length) return;
+    const presetColor = presetsProducts.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+
+    const targetColor = presetColor || activeCabinetColor;
+    if (!targetColor) return;
+
+    const option = findOptionByColorName(targetColor);
+    if (!option) return;
+
+    const materialToken = resolveMaterialToken(option);
+    const finishToken = extractFinishToken(`${targetColor} ${option?.title ?? ""} ${option?.desc ?? ""}`);
+
+    if (presetColor && presetColor !== activeCabinetColor) {
+      dispatch(setCabinetColor(presetColor));
+      dispatch(setCabinetColorSku(findSkuByColorName(presetColor)));
+    }
+
+    if (materialToken && materialToken !== cabinetMaterial) {
+      dispatch(setCabinetColorMaterial(materialToken));
+    }
+
+    if (finishToken) dispatch(setCabinetColorFinish(finishToken));
+  }, [
+    presetsProducts,
+    activeCabinetColor,
+    cabinetMaterial,
+    basePanelOptions,
+    findOptionByColorName,
+    findSkuByColorName,
+    resolveMaterialToken,
+    extractFinishToken,
+    dispatch,
+  ]);
 
   const clearAllFilters = () => {
     setSelectedFilter({});

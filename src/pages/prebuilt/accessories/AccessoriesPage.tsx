@@ -32,7 +32,7 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import type { AccordionConfig } from "@/shared/constants/types";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import { applyGroove, autoRemoveBoth } from "@/features/sidePanel";
+import { applyGroove, autoRemoveBoth, isGrooveType } from "@/features/sidePanel";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
@@ -515,6 +515,7 @@ export const AccessoriesPage = () => {
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     const isEdge = selectedSceneProduct === leftCabinetId || selectedSceneProduct === rightCabinetId;
     if (!value) return;
+    if (!isGrooveType(value)) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
 
     await saveSnapshot();
