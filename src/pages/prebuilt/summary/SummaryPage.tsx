@@ -1471,9 +1471,7 @@ export const SummaryPage = () => {
                 return (
                   <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
                     <div className={s.itemInfo}>
-                      <span className={s.bullet}>
-                        <img src={base_img} alt="#" />
-                      </span>
+                      <span className={s.bullet}>{/* <img src={base_img} alt="#" /> */}</span>
 
                       <div className={s.itemTexts}>
                         <div className={s.itemTitle}>
