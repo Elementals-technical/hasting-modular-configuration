@@ -42,7 +42,7 @@ import {
   resolveVesselDynamicAllowedThicknessTokens,
 } from "@/shared/lib/sku";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { sortCountertopOptionsByAvailability, useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -876,7 +876,11 @@ export const CustomCountertopPage = () => {
           children,
           disabled: isDisabled,
           reason: isDisabled
-            ? (depthReason ?? totalWidthReason ?? selectedSizeReason ?? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON)
+            ? (depthReason ??
+              totalWidthReason ??
+              selectedSizeReason ??
+              firstChildReason ??
+              MATERIAL_FILTER_DISABLED_REASON)
             : undefined,
         };
       }
@@ -1137,7 +1141,7 @@ export const CustomCountertopPage = () => {
   );
 
   const sortedCountertopOptions = useMemo(
-    () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    () => sortCountertopOptionsByAvailability(filteredCountertopOptions),
     [filteredCountertopOptions],
   );
   const fullModeCountertopOptions = useMemo(

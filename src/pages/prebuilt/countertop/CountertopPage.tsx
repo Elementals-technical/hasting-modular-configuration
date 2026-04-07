@@ -37,7 +37,7 @@ import {
   groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { sortCountertopOptionsByAvailability, useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useGetConfiguratorQuery } from "@/entities";
 import {
   buildCountertopRuleState,
@@ -1141,7 +1141,7 @@ export const CountertopPage = () => {
   );
 
   const sortedCountertopOptions = useMemo(
-    () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    () => sortCountertopOptionsByAvailability(filteredCountertopOptions),
     [filteredCountertopOptions],
   );
   const fullModeCountertopOptions = useMemo(
