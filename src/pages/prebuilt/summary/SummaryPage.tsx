@@ -1477,6 +1477,10 @@ export const SummaryPage = () => {
 
             <div className={s.sectionList}>
               {section.items.map((item) => {
+                const cabinetHandleSubtitle =
+                  section.id === "cabinet" && typeof item.description?.["Handle Style"] === "string"
+                    ? item.description["Handle Style"]
+                    : null;
                 return (
                   <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
                     <div className={s.itemInfo}>
@@ -1495,6 +1499,7 @@ export const SummaryPage = () => {
                           )}
                         </div>
                         {item.subtitle && <div className={s.itemSubtitle}>{item.subtitle}</div>}
+                        {cabinetHandleSubtitle && <div className={s.itemSubtitle}>{cabinetHandleSubtitle}</div>}
                       </div>
 
                       {item.copyable && item.sku && (

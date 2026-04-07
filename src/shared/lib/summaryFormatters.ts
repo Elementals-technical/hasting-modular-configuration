@@ -20,6 +20,9 @@ export const formatCabinetDrawersForSummary = (drawers: unknown): string => {
   if (typeof drawers !== "string") return "";
   const normalized = drawers.trim();
   if (!normalized) return "";
+  if (normalized === "1D" || normalized === "1DW") return "1-Drawer";
+  if (normalized === "2D" || normalized === "2DW") return "2-Drawer";
+  if (normalized === "1DWID") return "1DWID";
   return drawerSkuMap[normalized] ?? normalized;
 };
 
