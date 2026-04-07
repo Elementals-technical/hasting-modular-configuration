@@ -37,7 +37,13 @@ import {
   groupMaterialsHierarchically,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
-import { sortCountertopOptionsByAvailability, useGetCountertopDatatableQuery } from "@/entities/countertop";
+import {
+  resolveCountertopFallbackHex,
+  resolveCountertopFallbackTexture,
+  resolveCountertopNeedsLightBorder,
+  sortCountertopOptionsByAvailability,
+  useGetCountertopDatatableQuery,
+} from "@/entities/countertop";
 import { useGetConfiguratorQuery } from "@/entities";
 import {
   buildCountertopRuleState,
@@ -263,7 +269,7 @@ export const CountertopPage = () => {
                 desc: normalizeMaterialLabel(descSource),
                 isShortDesc: false,
                 metadata: {
-                  image: meta.image,
+                  image: meta.image ?? resolveCountertopFallbackTexture(variant.name),
                   value: meta.value ?? variant.name,
                   sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
                   materials: buildMaterialTokens(option.name || variant.name, metaMaterial, [
@@ -272,7 +278,8 @@ export const CountertopPage = () => {
                   ]),
                   colors,
                   looks,
-                  hex: metaHex?.trim(),
+                  hex: metaHex?.trim() ?? resolveCountertopFallbackHex(variant.name),
+          lightBorder: resolveCountertopNeedsLightBorder(variant.name),
                 },
               },
             ];

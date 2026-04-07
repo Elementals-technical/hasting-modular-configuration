@@ -65,6 +65,8 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const hasImage = !!metadata?.image;
   const hasHexColor = !!metadata?.hex;
   const hasVisual = hasImage || hasHexColor;
+  const isLightHex = hasHexColor && /^#?(f{3}|f{6})$/i.test(metadata!.hex!.trim());
+  const needsLightBorder = isLightHex || metadata?.lightBorder === true;
   const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
 
   const optionContent = (
@@ -77,7 +79,10 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
       }}
     >
       <div className={s.imageContainer}>
-        <div className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""}`}>
+        <div
+          className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""}`}
+          style={needsLightBorder ? { border: "1px solid #ac5331" } : undefined}
+        >
           {hasImage ? (
             <img src={imageSrc} alt="color image" />
           ) : hasHexColor ? (
