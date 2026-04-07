@@ -21,6 +21,7 @@ type FilterSelectionProps = {
   options?: Option[];
   value?: string | number;
   onSelect?: (value?: string | number) => void;
+  onDisabledSelect?: (value: string | number) => void;
   className?: string;
   allowShowAll?: boolean;
   showAllLabel?: string;
@@ -44,6 +45,7 @@ export const FilterSelection = ({
   options = [],
   value,
   onSelect,
+  onDisabledSelect,
   className,
   allowShowAll = false,
   showAllLabel = "Show all",
@@ -238,6 +240,7 @@ export const FilterSelection = ({
       .filter(Boolean)
       .join(" ");
 
+    const allowDisabledClick = isDisabled && Boolean(onDisabledSelect);
     const itemContent = (
       <button
         key={option.value}
@@ -245,8 +248,16 @@ export const FilterSelection = ({
         className={itemClasses}
         role="option"
         aria-selected={isSelected}
-        disabled={isDisabled}
-        onClick={() => handleSelect(option)}
+        aria-disabled={isDisabled}
+        disabled={isDisabled && !allowDisabledClick}
+        onClick={() => {
+          if (allowDisabledClick) {
+            onDisabledSelect?.(option.value);
+            setOpen(false);
+            return;
+          }
+          handleSelect(option);
+        }}
       >
         <span className={s.optionLabel}>{optionLabel}</span>
         {option.description ? <span className={s.optionDescription}>{option.description}</span> : null}
