@@ -70,6 +70,12 @@ import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/stor
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
+import {
+  convertSkuToInchesForSummary,
+  formatCabinetDimsForSummary,
+  formatCabinetDimsForSummaryWithFallback,
+  formatCabinetDrawersForSummary,
+} from "@/shared/lib/summaryFormatters";
 
 import s from "./SummaryPage.module.scss";
 
@@ -139,16 +145,6 @@ const parsePriceValue = (price?: string): number => {
   return Number.isFinite(value) ? value : 0;
 };
 
-/** SKU prefixes whose dimension values are stored in centimeters */
-const CM_SKU_PREFIXES = ["VAN-URSTD-", "VAN-URTWLBR-", "VAN-URSP-"];
-
-const formatInches = (cm: number): string => {
-  const inches = Math.round((cm / 2.54) * 10) / 10;
-  if (Number.isInteger(inches)) return String(inches);
-  const str = inches.toFixed(1);
-  return str.startsWith("0.") ? str.slice(1) : str;
-};
-
 const normalizeCountertopThicknessForDisplay = (value: string | null): string | null => {
   if (!value) return null;
   const trimmed = value.trim();
@@ -166,15 +162,6 @@ const formatBasinStyle = (value: string | null): string | null => {
     .replace(/_/g, " ")
     .trim();
   return cleaned || null;
-};
-
-/** Converts dimension values (W/H/D) from cm to inches for SKUs that store cm.
- *  SKUs that already use inches (CT-, VES-) are returned unchanged. */
-const convertSkuToInches = (sku: string): string => {
-  if (!CM_SKU_PREFIXES.some((prefix) => sku.startsWith(prefix))) return sku;
-  return sku.replace(/-(\d+(?:\.\d+)?)(W|H|D)(?=-|$)/g, (_, value, unit) => {
-    return `-${formatInches(parseFloat(value))}${unit}`;
-  });
 };
 
 type SummaryItem = {
@@ -528,10 +515,8 @@ export const SummaryPage = () => {
     const cabinetItems =
       productsPresets.length > 0
         ? productsPresets.map((preset, index) => {
-            const drawers = preset.Drawers ? `${preset.Drawers}` : "";
-            const dims = [preset.Width, preset.Depth, preset.Height].every((v) => v !== undefined)
-              ? `${preset.Width}x${preset.Depth}x${preset.Height}`
-              : "";
+            const drawers = formatCabinetDrawersForSummary(preset.Drawers);
+            const dims = formatCabinetDimsForSummary(preset.Width, preset.Depth, preset.Height);
             const subtitle = [drawers, dims].filter(Boolean).join(" | ");
             const swatchValue = preset.CabinetColor ?? cabinetColor;
             const swatch = resolveSwatch(swatchValue);
@@ -621,9 +606,8 @@ export const SummaryPage = () => {
               const width = typeof config.Width === "number" ? config.Width : undefined;
               const depth = typeof config.Depth === "number" ? config.Depth : undefined;
               const height = typeof config.Height === "number" ? config.Height : undefined;
-              const drawers = typeof config.Drawers === "string" ? config.Drawers : "";
-
-              const dims = [width, depth, height].every((v) => v !== undefined) ? `${width}x${depth}x${height}` : "";
+              const drawers = formatCabinetDrawersForSummary(config.Drawers);
+              const dims = formatCabinetDimsForSummary(width, depth, height);
               const subtitle = [drawers, dims].filter(Boolean).join(" | ");
               const name =
                 typeof config.ProductType === "string"
@@ -762,7 +746,16 @@ export const SummaryPage = () => {
                     typeof selectedProductConfig?.name === "string"
                       ? selectedProductConfig.name
                       : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
-                  subtitle: `${typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : ""} | ${selectedDimensions.width ?? "-"}x${selectedDimensions.depth ?? "-"}x${selectedDimensions.height ?? "-"}`,
+                  subtitle: [
+                    formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
+                    formatCabinetDimsForSummaryWithFallback(
+                      selectedDimensions.width,
+                      selectedDimensions.depth,
+                      selectedDimensions.height,
+                    ),
+                  ]
+                    .filter(Boolean)
+                    .join(" | "),
                   sku,
                   swatch: {
                     ...resolveSwatch(cabinetColor),
@@ -1325,7 +1318,7 @@ export const SummaryPage = () => {
       .filter((item) => item.sku && item.copyable)
       .map((item) => ({
         sku: item.sku,
-        skuInches: convertSkuToInches(item.sku!),
+        skuInches: convertSkuToInchesForSummary(item.sku!),
         description: item.description ?? {},
       }));
   }, [summarySections]);
