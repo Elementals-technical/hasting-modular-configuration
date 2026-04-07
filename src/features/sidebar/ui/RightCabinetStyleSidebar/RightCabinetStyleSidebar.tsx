@@ -441,9 +441,30 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   const handleSetHandleType = async (handleType: string) => {
+    const previousHandle = selectedProductConfig?.Handle as string | undefined;
+
     if (typeof heightLocked === "number") {
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
       if (option?.disabled && option.reason?.startsWith("Not available for current configuration height")) {
+        const ossIdsForLock = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
+        if (
+          ossIdsForLock.length > 0 &&
+          handleType !== "handle_pto" &&
+          previousHandle === "handle_pto"
+        ) {
+          setPendingOssHandleChange({
+            next: handleType,
+            previous: previousHandle,
+            previousDimensions: {
+              width: selectedDimensions.width,
+              height: selectedDimensions.height,
+              depth: selectedDimensions.depth,
+            },
+            ossIds: ossIdsForLock,
+          });
+          return;
+        }
+
         setHandleLockNotice(
           `A module with only ${heightLocked}cm height is present (e.g. Side Shelf). While it is on the scene, only handles for ${heightLocked}cm are available.`,
         );
@@ -451,7 +472,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       }
     }
 
-    const previousHandle = selectedProductConfig?.Handle as string | undefined;
     if (previousHandle === handleType) return;
 
     const isSwitchingAwayFromPto = previousHandle === "handle_pto" && handleType !== "handle_pto";
@@ -841,6 +861,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
                 showHints={false}
                 onSelect={(value) => {
                   if (value === undefined) return;
+                  handleSetHandleType(String(value));
+                }}
+                onDisabledSelect={(value) => {
                   handleSetHandleType(String(value));
                 }}
               />
