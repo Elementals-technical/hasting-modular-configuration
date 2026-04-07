@@ -6,7 +6,6 @@ import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import { InformationIcon } from "@/shared/assets/images/svg/InformationIcon";
-import base_img from "../../../shared/assets/images/png/descr_image.png";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
@@ -901,7 +900,7 @@ export const SummaryPage = () => {
       const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
       const optionSubtitle =
         lineTitle === "Basin"
-          ? basinStyleLabel ?? undefined
+          ? (basinStyleLabel ?? undefined)
           : lineTitle === "Hole Cutout"
             ? basinStyleLabel
               ? `Cutout for ${basinStyleLabel}`
