@@ -1478,8 +1478,11 @@ export const CustomSummaryPage = () => {
 
             <div className={s.sectionList}>
               {section.items.map((item) => {
+                const isShelfItem = /shelf/i.test(item.title ?? "");
                 const cabinetHandleSubtitle =
-                  section.id === "cabinet" && typeof item.description?.["Handle Style"] === "string"
+                  section.id === "cabinet" &&
+                  !isShelfItem &&
+                  typeof item.description?.["Handle Style"] === "string"
                     ? item.description["Handle Style"]
                     : null;
                 return (
