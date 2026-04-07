@@ -911,15 +911,24 @@ export const CustomSummaryPage = () => {
           colorCode: extractColorCode(resolvedVesselColor),
         })
       : null;
+    const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
     const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Faucet Hole Spacing", "Hole Cutout"];
 
     const extraCountertopItems = countertopSkuLines.slice(1).map((line, i) => {
       const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
+      const optionSubtitle =
+        lineTitle === "Basin"
+          ? basinStyleLabel ?? undefined
+          : lineTitle === "Hole Cutout"
+            ? basinStyleLabel
+              ? `Cutout for ${basinStyleLabel}`
+              : "Cutout"
+            : undefined;
       return {
         id: `countertop-sku-${i + 1}`,
         title: lineTitle,
-        subtitle: line,
+        subtitle: optionSubtitle,
         sku: line,
         price: resolveItemPrice(line),
         copyable: true,
@@ -980,7 +989,7 @@ export const CustomSummaryPage = () => {
           return {
             id: `accessories-dividers-${divider.key}-${index}`,
             title: "Dividers",
-            subtitle: sku ?? undefined,
+            subtitle: style ?? undefined,
             sku: sku ?? undefined,
             price: formatPrice(unitPrice),
             copyable: !!sku,
@@ -997,7 +1006,7 @@ export const CustomSummaryPage = () => {
         return Array.from({ length: cabinetCount }, (_, index) => ({
           id: `accessories-dividers-style-${index}`,
           title: "Dividers",
-          subtitle: sku,
+          subtitle: dividersStyle,
           sku,
           price: formatPrice(unitPrice),
           copyable: true,
@@ -1072,7 +1081,7 @@ export const CustomSummaryPage = () => {
         sidePanelSkuItems.push({
           id: `accessories-side-panel-${side}`,
           title: label,
-          subtitle: spSku,
+          subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
           sku: spSku,
           price: resolveItemPrice(spSku),
           copyable: true,
@@ -1095,7 +1104,7 @@ export const CustomSummaryPage = () => {
         ? {
             id: "accessories-towel-bar-right",
             title: "Towel Bar Right",
-            subtitle: towelBarRightSku,
+            subtitle: towelBarColor || undefined,
             sku: towelBarRightSku,
             price: resolveItemPrice(towelBarRightSku),
             copyable: true,
@@ -1114,7 +1123,7 @@ export const CustomSummaryPage = () => {
         ? {
             id: "accessories-towel-bar-left",
             title: "Towel Bar Left",
-            subtitle: towelBarLeftSku,
+            subtitle: towelBarColor || undefined,
             sku: towelBarLeftSku,
             price: resolveItemPrice(towelBarLeftSku),
             copyable: true,
@@ -1161,7 +1170,7 @@ export const CustomSummaryPage = () => {
             return {
               id: "accessories-book-matching",
               title: "Book Matching",
-              subtitle: bmSku,
+              subtitle: grainSku === "H" ? "Horizontal" : "Vertical",
               sku: bmSku,
               price: formatPrice(unitPrice * drawerCount),
               copyable: true,
@@ -1235,7 +1244,7 @@ export const CustomSummaryPage = () => {
                 {
                   id: "basin-vessel-sku",
                   title: "Vessel",
-                  subtitle: vesselSku,
+                  subtitle: basinStyleLabel ?? "Vessel",
                   sku: vesselSku,
                   price: resolveItemPrice(vesselSku),
                   copyable: true,
@@ -1244,7 +1253,7 @@ export const CustomSummaryPage = () => {
                 {
                   id: "basin-hcut-sku",
                   title: "HCUT - Basin",
-                  subtitle: hcutPricingSku,
+                  subtitle: basinStyleLabel ? `Cutout for ${basinStyleLabel}` : "Cutout",
                   sku: hcutPricingSku,
                   price: hcutTotalPrice,
                   copyable: true,
