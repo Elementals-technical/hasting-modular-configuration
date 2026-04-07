@@ -17,6 +17,7 @@ export type ProductOptionMetadata = {
   value?: string;
   image?: string;
   sku?: string;
+  lightBorder?: boolean;
 };
 
 export type ProductOptionData = {

@@ -42,7 +42,13 @@ import {
   resolveVesselDynamicAllowedThicknessTokens,
 } from "@/shared/lib/sku";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import {
+  resolveCountertopFallbackHex,
+  resolveCountertopFallbackTexture,
+  resolveCountertopNeedsLightBorder,
+  sortCountertopOptionsByAvailability,
+  useGetCountertopDatatableQuery,
+} from "@/entities/countertop";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -261,7 +267,7 @@ export const CustomCountertopPage = () => {
                 desc: normalizeMaterialLabel(descSource),
                 isShortDesc: false,
                 metadata: {
-                  image: meta.image,
+                  image: meta.image ?? resolveCountertopFallbackTexture(variant.name),
                   value: meta.value ?? variant.name,
                   sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
                   materials: buildMaterialTokens(option.name || variant.name, metaMaterial, [
@@ -270,7 +276,8 @@ export const CustomCountertopPage = () => {
                   ]),
                   colors,
                   looks,
-                  hex: metaHex?.trim(),
+                  hex: metaHex?.trim() ?? resolveCountertopFallbackHex(variant.name),
+          lightBorder: resolveCountertopNeedsLightBorder(variant.name),
                 },
               },
             ];
@@ -876,7 +883,11 @@ export const CustomCountertopPage = () => {
           children,
           disabled: isDisabled,
           reason: isDisabled
-            ? (depthReason ?? totalWidthReason ?? selectedSizeReason ?? firstChildReason ?? MATERIAL_FILTER_DISABLED_REASON)
+            ? (depthReason ??
+              totalWidthReason ??
+              selectedSizeReason ??
+              firstChildReason ??
+              MATERIAL_FILTER_DISABLED_REASON)
             : undefined,
         };
       }
@@ -1137,7 +1148,7 @@ export const CustomCountertopPage = () => {
   );
 
   const sortedCountertopOptions = useMemo(
-    () => [...filteredCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    () => sortCountertopOptionsByAvailability(filteredCountertopOptions),
     [filteredCountertopOptions],
   );
   const fullModeCountertopOptions = useMemo(
