@@ -188,7 +188,14 @@ export function usePriceCalculation() {
 
     // When presets exist the bootstrap phase calls addProductId for each preset product first.
     // Only products whose index is >= presetsCount are truly "extra" (added via sidebar).
-    const idsToFetch = productsPresets.length > 0 ? productIds.slice(productsPresets.length) : productIds;
+    // Special cases:
+    //  - On the prebuilt page productIds is empty (no bootstrap yet) — keep preset path.
+    //  - In Custom Mode, once productIds has been populated by bootstrap and then drops
+    //    below presetsCount (user deleted a preset product), fall back to fetching ALL
+    //    productIds — the preset-based slicing assumption no longer holds.
+    const presetsDesynced =
+      productsPresets.length > 0 && productIds.length > 0 && productIds.length < productsPresets.length;
+    const idsToFetch = presetsDesynced || productsPresets.length === 0 ? productIds : productIds.slice(productsPresets.length);
 
     if (idsToFetch.length === 0) {
       console.log(
@@ -298,7 +305,14 @@ export function usePriceCalculation() {
 
   const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
-  const shouldUsePresets = hasPresets;
+  // Use the preset path whenever presets are set, EXCEPT in Custom Mode after the user
+  // deleted one of the prebuilt cabinets (productIds already populated by bootstrap but
+  // now shorter than presets). In that case presets are stale — drive pricing from
+  // sceneConfigs so deletions/additions recompute correctly.
+  // Important: on the prebuilt page productIds is empty (no bootstrap yet) — must keep
+  // preset path, otherwise price falls into the fallback branch and emits X/X/X/X SKUs.
+  const presetsStale = hasPresets && productIds.length > 0 && productIds.length < productsPresets.length;
+  const shouldUsePresets = hasPresets && !presetsStale;
   const canCalculate = shouldUsePresets ? true : hasSceneConfigs ? true : selectedDimensions.width !== null;
 
   // ── Build all current SKUs ────────────────────────────
