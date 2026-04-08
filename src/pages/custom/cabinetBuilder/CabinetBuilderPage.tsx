@@ -197,7 +197,7 @@ export const CabinetBuilderPage = () => {
     useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
   const { data: counterTopData } = useGetCountertopDatatableQuery(MATRIX_COUNTERTOP_DATATABLE_ID);
 
-  console.log("matrixCabinetTable", matrixCabinetTable);
+  // console.log("matrixCabinetTable", matrixCabinetTable);
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
