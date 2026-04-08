@@ -69,6 +69,7 @@ import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/stor
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
+import { printQuote } from "@/features/quotePrint/lib/printQuote";
 import {
   convertSkuToInchesForSummary,
   formatCabinetDimsForSummary,
@@ -415,6 +416,23 @@ export const SummaryPage = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!quotePreviewImage) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get("print") !== "1") return;
+
+    const timer = window.setTimeout(() => {
+      printQuote();
+      params.delete("print");
+      navigate(
+        { pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" },
+        { replace: true },
+      );
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [quotePreviewImage, location.search, location.pathname, navigate]);
 
   const buildCabinetDescription = useCallback(
     (opts: {

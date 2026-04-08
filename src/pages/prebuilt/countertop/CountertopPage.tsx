@@ -1530,6 +1530,10 @@ export const CountertopPage = () => {
             onFullModeSelect={handleChangeCountertopColor}
             fullModeGroupByDesc
             fullModeLoading={isFetchingcounterTopMaterials}
+            fullModeMaterialFilterOptions={filteredMaterialFilters.materials}
+            fullModeColorFilterOptions={displayedMaterialFilters.colors}
+            fullModeLookFilterOptions={displayedMaterialFilters.looks}
+            fullModeTierFilterOptions={tierOptions}
           />
           {renderFilters()}
           <ProductOptionsGrid

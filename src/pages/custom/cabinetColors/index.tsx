@@ -250,6 +250,11 @@ export const CustomCabinetColorsPage = () => {
     [filteredBasePanelOptions],
   );
 
+  const sortedAllBasePanelOptions = useMemo(
+    () => [...basePanelOptionsFromApi].sort((a, b) => a.title.localeCompare(b.title)),
+    [basePanelOptionsFromApi],
+  );
+
   const filteredGrooveOptions = useMemo(
     () =>
       filterOptionsByTier(
@@ -275,6 +280,19 @@ export const CustomCabinetColorsPage = () => {
       ...sortedGrooveOptions,
     ],
     [sortedGrooveOptions],
+  );
+
+  const allGrooveColorOptions = useMemo(
+    () => [
+      {
+        id: "groove-color-none",
+        title: "None",
+        isShortDesc: false,
+        metadata: { value: "None" },
+      },
+      ...[...grooveOptionsFromApi].sort((a, b) => a.title.localeCompare(b.title)),
+    ],
+    [grooveOptionsFromApi],
   );
 
   const clearAllFilters = () => {
@@ -549,11 +567,15 @@ export const CustomCabinetColorsPage = () => {
           <ViewModePanel
             onOrderSwatches={() => dispatch(openSwatchSidebar())}
             fullModeTitle="Cabinet Color"
-            fullModeOptions={sortedBasePanelOptions}
+            fullModeOptions={sortedAllBasePanelOptions}
             fullModeActiveValue={activeCabinetColor}
             onFullModeSelect={handleChangeColor}
             fullModeGroupByDesc
             fullModeLoading={isFetchingCabinetColors}
+            fullModeMaterialFilterOptions={apiMaterialFilters.materials}
+            fullModeColorFilterOptions={apiMaterialFilters.colors}
+            fullModeLookFilterOptions={apiMaterialFilters.looks}
+            fullModeTierFilterOptions={tierOptions}
           />
           {renderFilters()}
           <ProductOptionsGrid
@@ -576,11 +598,15 @@ export const CustomCabinetColorsPage = () => {
                 <ViewModePanel
                   onOrderSwatches={() => dispatch(openSwatchSidebar())}
                   fullModeTitle="Handle Groove Color"
-                  fullModeOptions={grooveColorOptions}
+                  fullModeOptions={allGrooveColorOptions}
                   fullModeActiveValue={activeGrooveColor}
                   onFullModeSelect={handleChangeGrooveColor}
                   fullModeGroupByDesc
                   fullModeLoading={isFetchingCabinetColors}
+                  fullModeMaterialFilterOptions={grooveMaterialFilters.materials}
+                  fullModeColorFilterOptions={grooveMaterialFilters.colors}
+                  fullModeLookFilterOptions={grooveMaterialFilters.looks}
+                  fullModeTierFilterOptions={groovePriceRangeOptions}
                 />
                 {renderGrooveFilters()}
                 <ProductOptionsGrid

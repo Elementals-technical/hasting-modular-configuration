@@ -279,6 +279,11 @@ export const CabinetPage = () => {
     [filteredBasePanelOptions],
   );
 
+  const sortedAllBasePanelOptions = useMemo(
+    () => [...basePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
+    [basePanelOptions],
+  );
+
   const filteredGrooveOptions = useMemo(
     () =>
       filterOptionsByTier(
@@ -304,6 +309,19 @@ export const CabinetPage = () => {
       ...sortedGrooveOptions,
     ],
     [sortedGrooveOptions],
+  );
+
+  const allGrooveColorOptions = useMemo(
+    () => [
+      {
+        id: "groove-color-none",
+        title: "None",
+        isShortDesc: false,
+        metadata: { value: "None" },
+      },
+      ...[...grooveOptionsFromApi].sort((a, b) => a.title.localeCompare(b.title)),
+    ],
+    [grooveOptionsFromApi],
   );
 
   const findOptionByColorName = useCallback(
@@ -553,10 +571,14 @@ export const CabinetPage = () => {
           <ViewModePanel
             onOrderSwatches={() => dispatch(openSwatchSidebar())}
             fullModeTitle="Cabinet Color"
-            fullModeOptions={sortedBasePanelOptions}
+            fullModeOptions={sortedAllBasePanelOptions}
             fullModeActiveValue={activeCabinetColor}
             onFullModeSelect={handleChangeColor}
             fullModeGroupByDesc
+            fullModeMaterialFilterOptions={materialFilters.materials}
+            fullModeColorFilterOptions={materialFilters.colors}
+            fullModeLookFilterOptions={materialFilters.looks}
+            fullModeTierFilterOptions={tierOptions}
           />
           {renderFilters()}
           <ProductOptionsGrid
@@ -578,10 +600,14 @@ export const CabinetPage = () => {
                 <ViewModePanel
                   onOrderSwatches={() => dispatch(openSwatchSidebar())}
                   fullModeTitle="Handle Groove Color"
-                  fullModeOptions={grooveColorOptions}
+                  fullModeOptions={allGrooveColorOptions}
                   fullModeActiveValue={activeGrooveColor}
                   onFullModeSelect={handleChangeGrooveColor}
                   fullModeGroupByDesc
+                  fullModeMaterialFilterOptions={grooveMaterialFilters.materials}
+                  fullModeColorFilterOptions={grooveMaterialFilters.colors}
+                  fullModeLookFilterOptions={grooveMaterialFilters.looks}
+                  fullModeTierFilterOptions={groovePriceRangeOptions}
                 />
                 {renderGrooveFilters()}
                 <ProductOptionsGrid

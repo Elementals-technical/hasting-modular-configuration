@@ -8,6 +8,8 @@ import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid
 
 import s from "./ViewModePanel.module.scss";
 
+type FullModeFilterOption = { label: string; value: string; children?: FullModeFilterOption[] };
+
 interface ViewModePanelProps {
   onOrderSwatches?: () => void;
   fullModeTitle?: string;
@@ -16,6 +18,10 @@ interface ViewModePanelProps {
   onFullModeSelect?: (name: string) => void | Promise<void>;
   fullModeGroupByDesc?: boolean;
   fullModeLoading?: boolean;
+  fullModeMaterialFilterOptions?: FullModeFilterOption[];
+  fullModeColorFilterOptions?: FullModeFilterOption[];
+  fullModeLookFilterOptions?: FullModeFilterOption[];
+  fullModeTierFilterOptions?: FullModeFilterOption[];
 }
 
 export const ViewModePanel = ({
@@ -26,6 +32,10 @@ export const ViewModePanel = ({
   onFullModeSelect,
   fullModeGroupByDesc = true,
   fullModeLoading = false,
+  fullModeMaterialFilterOptions,
+  fullModeColorFilterOptions,
+  fullModeLookFilterOptions,
+  fullModeTierFilterOptions,
 }: ViewModePanelProps) => {
   const [isFullModeOpen, setIsFullModeOpen] = useState(false);
 
@@ -67,6 +77,10 @@ export const ViewModePanel = ({
         onSelect={onFullModeSelect}
         isLoading={fullModeLoading}
         groupByDesc={fullModeGroupByDesc}
+        materialFilterOptions={fullModeMaterialFilterOptions}
+        colorFilterOptions={fullModeColorFilterOptions}
+        lookFilterOptions={fullModeLookFilterOptions}
+        tierFilterOptions={fullModeTierFilterOptions}
       />
     </>
   );

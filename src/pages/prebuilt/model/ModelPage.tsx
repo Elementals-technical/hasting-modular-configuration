@@ -18,6 +18,8 @@ import {
   resetCabinetBuilderBootstrap,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setHandleGrooveColor,
+  setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -232,16 +234,23 @@ export const ModelPage = () => {
   const handleNavigate = async (tab: "prebuilt" | "custom") => {
     if (tab !== "custom") return;
 
-    const currentPresets = productsPresets;
-
-    await resetAccessoriesForCustomTransition();
-    await removeAllProducts();
-
-    dispatch(reset());
-    dispatch(resetCabinetBuilderBootstrap());
-    if (currentPresets.length) {
-      dispatch(addProductPreset(currentPresets));
+    // Sync HandleGrooveColor from scene to slice — in prebuilt it may only exist
+    // on the PlayCanvas products and not in productOptions, so without this it
+    // would appear empty in Custom Mode.
+    const orderedIds = getOrderedProductIds();
+    for (const productId of orderedIds) {
+      const config = await getConfig(productId);
+      const sceneGroove =
+        config && typeof config === "object"
+          ? (config as Record<string, unknown>).HandleGrooveColor
+          : undefined;
+      if (typeof sceneGroove === "string" && sceneGroove.trim()) {
+        dispatch(setHandleGrooveColor(sceneGroove));
+        break;
+      }
     }
+
+    dispatch(setHasBootstrappedCabinetBuilder(true));
     navigate(ROUTES.CUSTOM);
   };
 
