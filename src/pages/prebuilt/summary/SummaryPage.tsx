@@ -1412,6 +1412,8 @@ export const SummaryPage = () => {
             GrainDirection: grainDirection,
             CountertopStyle: countertopStyle,
             SidePanels: sidePanelsOption,
+            SidePanelLeft: sidePanelLeft,
+            SidePanelRight: sidePanelRight,
             DividersStyle: dividersStyle,
             TowelBarOption: towelBarOption,
             TowelBarColor: towelBarColor,
