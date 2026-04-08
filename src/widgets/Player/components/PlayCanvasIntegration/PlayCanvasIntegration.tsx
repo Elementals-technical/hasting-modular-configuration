@@ -44,6 +44,7 @@ import {
   getSelectedProductConfig,
   getActiveCabinetRule,
   getSinkBaseCount,
+  getSideShelfCount,
   getTowelBarOption,
   getSelectedProducts,
   getVesselColor,
@@ -194,6 +195,7 @@ export const PlayCanvasIntegration = () => {
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
+  const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
@@ -2076,14 +2078,18 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      {
-        id: "reposition",
-        label: "Reposition",
-        children: [
-          { id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") },
-          { id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") },
-        ],
-      },
+      ...(selectedSceneProduct?.startsWith("Side-Shelf-") && productIds.length > 1
+        ? []
+        : [
+            {
+              id: "reposition",
+              label: "Reposition",
+              children: [
+                { id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") },
+                { id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") },
+              ],
+            },
+          ]),
       {
         id: "color",
         label: "Color",
@@ -2149,7 +2155,8 @@ export const PlayCanvasIntegration = () => {
             } as DropdownItem,
           ]
         : []),
-      ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
+      ...((selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2) ||
+        (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
         ? []
         : canDuplicateSelectedCabinet
           ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
@@ -2202,6 +2209,7 @@ export const PlayCanvasIntegration = () => {
     selectedProductConfig,
     selectedSceneProduct,
     sinkBaseCount,
+    sideShelfCount,
   ]);
 
   const handleCountertopThicknessSelect = useCallback(

@@ -71,6 +71,7 @@ import {
   getHasBootstrappedCabinetBuilder,
   getDominantDrawerGroup,
   getSinkBaseCount,
+  getSideShelfCount,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
@@ -190,6 +191,7 @@ export const CabinetBuilderPage = () => {
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const dominantDrawerGroup = useAppSelector(getDominantDrawerGroup);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
+  const sideShelfCount = useAppSelector(getSideShelfCount);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
 
   const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
@@ -338,22 +340,25 @@ export const CabinetBuilderPage = () => {
             );
 
           const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
+          const isSideShelfDisabled = rule.code === "Side-Shelf" && sideShelfCount >= 2;
           const isShelfRequiresBaseCabinet =
             (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
           const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
           const isLengthLimited = hasProducts && !typeHasFittingWidth;
           const isDisabled =
-            isSinkBaseDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
+            isSinkBaseDisabled || isSideShelfDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
           const disabledReason = isSinkBaseDisabled
             ? "Vanity configurations allow a maximum of two Sink Base units."
-            : isShelfRequiresBaseCabinet
-              ? "Add at least one Sink Base or Side Cabinet first."
-              : isSideShelfHandleBlocked
-                ? "This cabinet type is only compatible with a PTO handle."
-                : isLengthLimited
-                  ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
-                  }.`
-                  : undefined;
+            : isSideShelfDisabled
+              ? "Vanity configurations allow a maximum of two Side Shelf units."
+              : isShelfRequiresBaseCabinet
+                ? "Add at least one Sink Base or Side Cabinet first."
+                : isSideShelfHandleBlocked
+                  ? "This cabinet type is only compatible with a PTO handle."
+                  : isLengthLimited
+                    ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+                    }.`
+                    : undefined;
 
           return {
             id: rule.code,
@@ -378,6 +383,7 @@ export const CabinetBuilderPage = () => {
       cabinetCatalog.typeCabinetRules,
       selectedDimensions.height,
       sinkBaseCount,
+      sideShelfCount,
       dominantDrawerGroup,
       isOssBlockedByHandle,
       hasBaseOrSideCabinetOnScene,
