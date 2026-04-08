@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
-import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
+import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
 import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
