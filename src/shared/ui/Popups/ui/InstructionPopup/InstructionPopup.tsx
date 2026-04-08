@@ -26,7 +26,7 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
     >
       <div className={s.instrPopup}>
         <div className={s.header}>
-          <div className={s.title}>Instructions</div>
+          <div className={s.title}>How To Build</div>
           <button
             type="button"
             aria-label="Close instructions"
@@ -49,7 +49,9 @@ export const InstructionPopup: React.FC<InstructionPopupI> = ({ handleClose }) =
           </div>
 
           <div className={s.contentBlock}>
-            <div className={s.contentBlock_title}>2. Tap on + icon to insert the selected piece.</div>
+            <div className={s.contentBlock_title}>
+              2. Tap on <span className={s.plusButtonIcon}>+</span> icon to insert the selected piece.
+            </div>
             <div className={s.contentBlock_img}>
               <img src={img_2} alt="first image" />
             </div>
