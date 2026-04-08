@@ -31,7 +31,7 @@ const steps: HowToStartStep[] = [
   },
   {
     title: "Custom Mode",
-    description: `Create a custom design with our cabinet builder\n- Add, remove, resize, reposition cabinets with ease\n- Utilize the in-scene editor for fast-paced editing\n- Tailor your colorways, countertop details and more\n- Accessorize with drawer dividers, towel bars and more`,
+    description: `Create a custom design with our cabinet builder:\n- Add, remove, resize, reposition cabinets with ease\n- Utilize the in-scene editor for fast-paced editing\n- Tailor your colorways, countertop details and more\n- Accessorize with drawer dividers, towel bars and more`,
     video: howItWorks3,
   },
 ];
@@ -72,14 +72,7 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose, initialStep = 0
           {activeMedia.image ? (
             <img className={s.previewImage} src={activeMedia.image} alt="Summary" />
           ) : (
-            <video
-              className={s.previewVideo}
-              src={activeMedia.video}
-              autoPlay
-              muted
-              loop
-              playsInline
-            />
+            <video className={s.previewVideo} src={activeMedia.video} autoPlay muted loop playsInline />
           )}
         </div>
         <div className={s.howToStartInner}>
@@ -137,7 +130,9 @@ export const HowToStart: React.FC<HowToStartI> = ({ handleClose, initialStep = 0
           </div>
 
           <div className={s.footer}>
-            <BaseButton onClick={handleNext}>Next</BaseButton>
+            <BaseButton onClick={activeStep === steps.length - 1 ? handleClose : handleNext}>
+              {activeStep === steps.length - 1 ? "Get Started" : "Next"}
+            </BaseButton>
           </div>
         </div>
       </div>
