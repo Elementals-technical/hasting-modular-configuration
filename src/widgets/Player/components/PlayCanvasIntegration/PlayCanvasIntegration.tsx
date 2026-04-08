@@ -1280,20 +1280,24 @@ export const PlayCanvasIntegration = () => {
   }, [handleOpenCustomizeModePrompt]);
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-color");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=countertop-color");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-thickness");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=thickness");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-style");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=countertop-styles");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("basin-style");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=basin-style");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
