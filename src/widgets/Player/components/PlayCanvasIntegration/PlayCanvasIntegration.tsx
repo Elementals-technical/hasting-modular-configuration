@@ -2012,10 +2012,22 @@ export const PlayCanvasIntegration = () => {
           ],
         },
         {
+          id: "add",
+          label: "Add",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleAddFromPrebuilt,
+        },
+        {
           id: "accessories",
           label: "Accessories",
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleOpenAccessories,
+        },
+        {
+          id: "duplicate",
+          label: "Duplicate",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleDuplicateFromPrebuilt,
         },
         ...(isOneOrTwoDrawerProduct
           ? [
@@ -2027,13 +2039,6 @@ export const PlayCanvasIntegration = () => {
               },
             ]
           : []),
-        { id: "add", label: "Add", trailing: <ArrowTopRight color={"#333"} />, onClick: handleAddFromPrebuilt },
-        {
-          id: "duplicate",
-          label: "Duplicate",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleDuplicateFromPrebuilt,
-        },
         ...(selectedSceneProduct
           ? [
               {
