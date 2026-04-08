@@ -67,6 +67,7 @@ import {
   extractColorCode,
   resolveDefaultBasinByCountertopColor,
   resolveVesselDynamicAllowedThicknessTokens,
+  cmToInches,
 } from "@/shared/lib/sku";
 
 import s from "./CountertopPage.module.scss";
@@ -841,10 +842,10 @@ export const CountertopPage = () => {
         const maxWidth = getMaterialMaxWidthForCurrentDepth(materialValue);
         const currentTotalWidth = sceneTotalWidth;
         if (maxWidth !== null && typeof currentTotalWidth === "number") {
-          return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. Current ${currentTotalWidth} cm, ${materialValue} max ${maxWidth} cm.`;
+          return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. Current ${currentTotalWidth} cm (${cmToInches(currentTotalWidth)}"), ${materialValue} max ${maxWidth} cm (${cmToInches(maxWidth)}").`;
         }
         if (maxWidth !== null) {
-          return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. ${materialValue} max ${maxWidth} cm.`;
+          return `${MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON}. ${materialValue} max ${maxWidth} cm (${cmToInches(maxWidth)}").`;
         }
         return MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON;
       }
