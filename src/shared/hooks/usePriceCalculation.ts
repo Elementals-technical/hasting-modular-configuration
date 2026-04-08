@@ -195,7 +195,8 @@ export function usePriceCalculation() {
     //    productIds — the preset-based slicing assumption no longer holds.
     const presetsDesynced =
       productsPresets.length > 0 && productIds.length > 0 && productIds.length < productsPresets.length;
-    const idsToFetch = presetsDesynced || productsPresets.length === 0 ? productIds : productIds.slice(productsPresets.length);
+    const idsToFetch =
+      presetsDesynced || productsPresets.length === 0 ? productIds : productIds.slice(productsPresets.length);
 
     if (idsToFetch.length === 0) {
       console.log(
@@ -313,7 +314,12 @@ export function usePriceCalculation() {
   // preset path, otherwise price falls into the fallback branch and emits X/X/X/X SKUs.
   const presetsStale = hasPresets && productIds.length > 0 && productIds.length < productsPresets.length;
   const shouldUsePresets = hasPresets && !presetsStale;
-  const canCalculate = shouldUsePresets ? true : hasSceneConfigs ? true : selectedDimensions.width !== null;
+
+  const canCalculate = shouldUsePresets
+    ? true
+    : hasSceneConfigs
+      ? true
+      : productIds.length === 0 && selectedDimensions.width !== null;
 
   // ── Build all current SKUs ────────────────────────────
 
