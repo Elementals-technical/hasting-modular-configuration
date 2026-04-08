@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { cmToInches } from "@/shared/lib/sku";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -87,7 +88,7 @@ export const CustomAccessoriesPage = () => {
   const sidePanelAvailability = useAppSelector(selectSidePanelAvailability);
   const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
   const sidePanelsBlockedByLength340 = sceneTotalWidth !== null && Math.abs(sceneTotalWidth - 340) < 0.01;
-  const sidePanelsLengthReason = "Side panels are not available when total vanity length is exactly 340 cm.";
+  const sidePanelsLengthReason = `Side panels are not available when total vanity length is exactly 340 cm (${cmToInches(340)}").`;
 
   const isEdgeCabinet = useMemo(() => {
     if (!activeCabinetId || !isPlayCanvasReady) return false;

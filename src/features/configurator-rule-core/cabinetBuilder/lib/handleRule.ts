@@ -1,4 +1,5 @@
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { cmToInches } from "@/shared/lib/sku";
 
 import type { OptionState, RuleContext, RuleResult } from "../model/types";
 
@@ -70,7 +71,7 @@ export const handleRule = (
   const heightLocked = ruleResult.heightLocked;
   const heightLockedReason =
     typeof heightLocked === "number"
-      ? `Not available for current configuration height (${heightLocked}cm locked)`
+      ? `Not available for current configuration height (${heightLocked} cm / ${cmToInches(heightLocked)}" locked)`
       : null;
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;

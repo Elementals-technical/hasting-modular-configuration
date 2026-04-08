@@ -97,6 +97,7 @@ import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { bootBothSides, autoRemoveSide, isGrooveType } from "@/features/sidePanel";
+import { cmToInches } from "@/shared/lib/sku";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { store, type RootState } from "@/app/store";
@@ -283,7 +284,7 @@ export const CabinetBuilderPage = () => {
         isAvailable: (ruleOption ? !ruleOption.disabled : true) && hasAddableWidthForActiveType,
         disabledReason:
           !hasAddableWidthForActiveType && hasProducts
-            ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+            ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm / ${cmToInches(maxCountertopLength)}")` : ""
             }.`
             : ruleOption?.reason,
         isMixingRestricted,
@@ -356,7 +357,7 @@ export const CabinetBuilderPage = () => {
                 : isSideShelfHandleBlocked
                   ? "This cabinet type is only compatible with a PTO handle."
                   : isLengthLimited
-                    ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+                    ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm / ${cmToInches(maxCountertopLength)}")` : ""
                     }.`
                     : undefined;
 

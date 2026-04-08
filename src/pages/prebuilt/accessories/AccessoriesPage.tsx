@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { cmToInches } from "@/shared/lib/sku";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -67,7 +68,7 @@ export const AccessoriesPage = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
   const sidePanelsBlockedByLength340 = sceneTotalWidth !== null && Math.abs(sceneTotalWidth - 340) < 0.01;
-  const sidePanelsLengthReason = "Side panels are not available when total vanity length is exactly 340 cm.";
+  const sidePanelsLengthReason = `Side panels are not available when total vanity length is exactly 340 cm (${cmToInches(340)}").`;
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "TopFull" | "Bot" | null>(null);
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
