@@ -35,6 +35,8 @@ import {
   getHandleGrooveColor,
   getLedOption,
   getSidePanelsOption,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
   getSinkType,
   getTowelBarColor,
   getTowelBarOption,
@@ -70,6 +72,8 @@ export function Player() {
   const grainDirection = useAppSelector(getGrainDirection);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
+  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const ledOption = useAppSelector(getLedOption);
   const dividersOption = useAppSelector(getDividersOption);
   const dividersStyle = useAppSelector(getDividersStyle);
@@ -113,6 +117,8 @@ export function Player() {
         GrainDirection: grainDirection,
         CountertopStyle: countertopStyle,
         SidePanels: sidePanelsOption,
+        SidePanelLeft: sidePanelLeft,
+        SidePanelRight: sidePanelRight,
         LedOption: ledOption,
         DividersOption: dividersOption,
         DividersStyle: dividersStyle,
