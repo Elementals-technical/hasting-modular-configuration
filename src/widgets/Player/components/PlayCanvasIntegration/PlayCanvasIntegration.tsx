@@ -44,6 +44,7 @@ import {
   getSelectedProductConfig,
   getActiveCabinetRule,
   getSinkBaseCount,
+  getSideShelfCount,
   getTowelBarOption,
   getSelectedProducts,
   getVesselColor,
@@ -194,6 +195,7 @@ export const PlayCanvasIntegration = () => {
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
+  const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
@@ -1321,6 +1323,16 @@ export const PlayCanvasIntegration = () => {
       const neighborIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
       if (neighborIndex < 0 || neighborIndex >= orderedIds.length) return;
 
+      // Block swap that would displace an edge Side-Shelf into interior
+      const neighbor = orderedIds[neighborIndex];
+      if (
+        neighbor?.startsWith("Side-Shelf-") &&
+        (neighborIndex === 0 || neighborIndex === orderedIds.length - 1) &&
+        orderedIds.length > 2
+      ) {
+        return;
+      }
+
       await handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
       setDropdownState((prev) => ({ ...prev, visible: false }));
     },
@@ -2060,6 +2072,21 @@ export const PlayCanvasIntegration = () => {
       return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
     }
 
+    // Side-Shelf (OSS) must always remain at edges — block moves that would push it inward
+    const orderedIds = getOrderedProductIds(productIds);
+    const selectedIdx = selectedSceneProduct ? orderedIds.indexOf(selectedSceneProduct) : -1;
+    const isSelectedOss = selectedSceneProduct?.startsWith("Side-Shelf-");
+    const ossCannotMove = isSelectedOss && productIds.length > 1;
+
+    const isOssAtEdge = (idx: number) =>
+      orderedIds[idx]?.startsWith("Side-Shelf-") &&
+      (idx === 0 || idx === orderedIds.length - 1) &&
+      orderedIds.length > 2;
+
+    const canMoveLeft = selectedIdx > 0 && !ossCannotMove && !isOssAtEdge(selectedIdx - 1);
+    const canMoveRight =
+      selectedIdx >= 0 && selectedIdx < orderedIds.length - 1 && !ossCannotMove && !isOssAtEdge(selectedIdx + 1);
+
     const items: DropdownItem[] = [
       {
         id: "resize",
@@ -2085,14 +2112,22 @@ export const PlayCanvasIntegration = () => {
           },
         ],
       },
-      {
-        id: "reposition",
-        label: "Reposition",
-        children: [
-          { id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") },
-          { id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") },
-        ],
-      },
+      ...(canMoveLeft || canMoveRight
+        ? [
+            {
+              id: "reposition",
+              label: "Reposition",
+              children: [
+                ...(canMoveLeft
+                  ? [{ id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") }]
+                  : []),
+                ...(canMoveRight
+                  ? [{ id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") }]
+                  : []),
+              ],
+            },
+          ]
+        : []),
       {
         id: "color",
         label: "Color",
@@ -2158,7 +2193,8 @@ export const PlayCanvasIntegration = () => {
             } as DropdownItem,
           ]
         : []),
-      ...(selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2
+      ...((selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2) ||
+        (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
         ? []
         : canDuplicateSelectedCabinet
           ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
@@ -2211,6 +2247,7 @@ export const PlayCanvasIntegration = () => {
     selectedProductConfig,
     selectedSceneProduct,
     sinkBaseCount,
+    sideShelfCount,
   ]);
 
   const handleCountertopThicknessSelect = useCallback(
