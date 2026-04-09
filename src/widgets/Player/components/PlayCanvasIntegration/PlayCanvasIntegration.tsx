@@ -194,6 +194,7 @@ export const PlayCanvasIntegration = () => {
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
   const isCustomPage = location.pathname.startsWith("/custom");
+  const isCabinetBuilderPage = location.pathname.includes("/custom/cabinet-builder");
   const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
@@ -210,7 +211,7 @@ export const PlayCanvasIntegration = () => {
   const shouldShowEmptySceneRedirectButton =
     isPlayCanvasReady &&
     isCustomPage &&
-    !location.pathname.includes("/custom/cabinet-builder") &&
+    !isCabinetBuilderPage &&
     productIds.length === 0;
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
@@ -994,8 +995,27 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     if (!isPlayCanvasReady) return;
+    if (!isCustomPage || isCabinetBuilderPage) return;
+    if (productIds.length > 0) return;
 
-    const isCabinetBuilderPage = location.pathname.includes("/custom/cabinet-builder");
+    const sceneProductIds = getOrderedProductIds();
+    if (!sceneProductIds.length) return;
+
+    sceneProductIds.forEach((productId) => {
+      dispatch(addProductId(productId));
+    });
+  }, [dispatch, isCabinetBuilderPage, isCustomPage, isPlayCanvasReady, productIds.length]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    if (isPrebuilt) {
+      hideEmptyButton();
+
+      return () => {
+        hideEmptyButton();
+      };
+    }
 
     const isCustomNonBuilderPage = isCustomPage && !isCabinetBuilderPage;
 
@@ -1020,7 +1040,7 @@ export const PlayCanvasIntegration = () => {
     return () => {
       hideEmptyButton();
     };
-  }, [isCustomPage, isPlayCanvasReady, location.pathname, productIds.length]);
+  }, [isCabinetBuilderPage, isCustomPage, isPlayCanvasReady, isPrebuilt, productIds.length]);
 
   useEffect(() => {
     if (wasRestoringRef.current && !isHistoryRestoring) {
