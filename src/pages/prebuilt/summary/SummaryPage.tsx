@@ -825,6 +825,7 @@ export const SummaryPage = () => {
       sinkType;
     const resolvedCountertopMaterialSku =
       countertopColorSku ||
+      inferMaterialSkuFromBasinType(resolvedSinkType) ||
       countertopColorSkuByName.get(resolvedCountertopColor) ||
       countertopColorSkuByName.get(countertopColor) ||
       null;
