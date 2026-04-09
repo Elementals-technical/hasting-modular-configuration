@@ -242,7 +242,7 @@ const createInitialState = (): ProductState => {
     placedDividers: [],
     placedCabinetStyles: {},
     productOptions: {
-      CabinetColor: "Ardesia DD GL",
+      CabinetColor: "Pulpis Chiaro TKH",
       CabinetColorSku: "",
       CabinetColorMaterial: "",
       CabinetColorFinish: "",

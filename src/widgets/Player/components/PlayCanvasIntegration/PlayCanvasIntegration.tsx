@@ -347,9 +347,11 @@ export const PlayCanvasIntegration = () => {
     let sidePanelsCount = 0;
     let primaryCabinetHeight: number | null = null;
     let fallbackCabinetHeight: number | null = null;
+    let maxCabinetDepth: number | null = null;
     let countertopId: string | null = null;
     let currentCountertopWidth: number | null = null;
     let currentCountertopHeight: number | null = null;
+    let currentCountertopDepth: number | null = null;
 
     Object.entries(allProducts).forEach(([id, product]) => {
       if (!product || typeof product !== "object") return;
@@ -371,6 +373,9 @@ export const PlayCanvasIntegration = () => {
             primaryCabinetHeight = primaryCabinetHeight === null ? product.Height : primaryCabinetHeight;
           }
         }
+        if (typeof product.Depth === "number" && Number.isFinite(product.Depth)) {
+          maxCabinetDepth = maxCabinetDepth === null ? product.Depth : Math.max(maxCabinetDepth, product.Depth);
+        }
       }
 
       if (productType === "SidePanel_Left" || productType === "SidePanel_Right") {
@@ -381,6 +386,7 @@ export const PlayCanvasIntegration = () => {
         countertopId = id;
         currentCountertopWidth = typeof product.Width === "number" ? product.Width : null;
         currentCountertopHeight = typeof product.Height === "number" ? product.Height : null;
+        currentCountertopDepth = typeof product.Depth === "number" ? product.Depth : null;
       }
     });
 
@@ -390,16 +396,47 @@ export const PlayCanvasIntegration = () => {
       countertopId,
       currentWidth: currentCountertopWidth,
       currentHeight: currentCountertopHeight,
+      currentDepth: currentCountertopDepth,
       targetWidth: Number((summedWidth + sidePanelsCount).toFixed(2)),
       targetHeight: primaryCabinetHeight ?? fallbackCabinetHeight,
+      targetDepth: maxCabinetDepth,
     };
   }, [getCompositionProducts]);
+
+  const setCountertopDimensionData = useCallback(
+    (productId: string, config: Record<string, unknown>) => {
+      const dimensionTool = getDimensionTool() as any;
+      if (!dimensionTool) {
+        updateDimensionDataForProduct(productId, config);
+        return;
+      }
+
+      const width = toFiniteNumber(config.Width);
+      const depth = toFiniteNumber(config.Depth);
+      const heightKey = toFiniteNumber(config.Height);
+      const rawConfigThickness = toFiniteNumber(config.Thickness);
+      const thicknessValue =
+        rawConfigThickness !== null && rawConfigThickness > 0
+          ? rawConfigThickness
+          : toFiniteNumber(activeCountertopThickness);
+      const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
+
+      const nextData: Record<string, unknown> = { productId };
+      if (width !== null) nextData.Width = { [String(width)]: formatCmWithInches(width) };
+      if (depth !== null) nextData.Depth = { [String(depth)]: formatCmWithInches(depth) };
+      if (heightKey !== null && thicknessLabel) nextData.Height = { [String(heightKey)]: thicknessLabel };
+
+      if (!nextData.Width && !nextData.Depth && !nextData.Height) return;
+      dimensionTool.setDimensionData(nextData);
+    },
+    [activeCountertopThickness],
+  );
 
   const syncCountertopConfig = useCallback(async () => {
     const syncData = getCountertopSyncData();
     if (!syncData) return;
 
-    const nextConfig: { Width?: number; Height?: number } = {};
+    const nextConfig: { Width?: number; Height?: number; Depth?: number } = {};
 
     if (typeof syncData.targetWidth === "number") {
       if (typeof syncData.currentWidth !== "number" || Math.abs(syncData.currentWidth - syncData.targetWidth) >= 0.01) {
@@ -413,6 +450,12 @@ export const PlayCanvasIntegration = () => {
         Math.abs(syncData.currentHeight - syncData.targetHeight) >= 0.01
       ) {
         nextConfig.Height = syncData.targetHeight;
+      }
+    }
+
+    if (typeof syncData.targetDepth === "number") {
+      if (typeof syncData.currentDepth !== "number" || Math.abs(syncData.currentDepth - syncData.targetDepth) >= 0.01) {
+        nextConfig.Depth = syncData.targetDepth;
       }
     }
 
@@ -442,32 +485,6 @@ export const PlayCanvasIntegration = () => {
     tool.__displayNamePatched = true;
     return true;
   }, []);
-
-  function setCountertopDimensionData(productId: string, config: Record<string, unknown>) {
-    const dimensionTool = getDimensionTool() as any;
-    if (!dimensionTool) {
-      updateDimensionDataForProduct(productId, config);
-      return;
-    }
-
-    const width = toFiniteNumber(config.Width);
-    const depth = toFiniteNumber(config.Depth);
-    const heightKey = toFiniteNumber(config.Height);
-    const rawConfigThickness = toFiniteNumber(config.Thickness);
-    const thicknessValue =
-      rawConfigThickness !== null && rawConfigThickness > 0
-        ? rawConfigThickness
-        : toFiniteNumber(activeCountertopThickness);
-    const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
-
-    const nextData: Record<string, unknown> = { productId };
-    if (width !== null) nextData.Width = { [String(width)]: formatCmWithInches(width) };
-    if (depth !== null) nextData.Depth = { [String(depth)]: formatCmWithInches(depth) };
-    if (heightKey !== null && thicknessLabel) nextData.Height = { [String(heightKey)]: thicknessLabel };
-
-    if (!nextData.Width && !nextData.Depth && !nextData.Height) return;
-    dimensionTool.setDimensionData(nextData);
-  }
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
@@ -957,7 +974,7 @@ export const PlayCanvasIntegration = () => {
   useEffect(() => {
     if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
     void syncCountertopConfig();
-  }, [selectedDimensions.height, syncCountertopConfig]);
+  }, [productIds.length, selectedDimensions.depth, selectedDimensions.height, syncCountertopConfig]);
 
   const handleSetHandleType = useCallback(
     async (handleType: string) => {
@@ -1282,20 +1299,24 @@ export const PlayCanvasIntegration = () => {
   }, [handleOpenCustomizeModePrompt]);
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-color");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=countertop-color");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-thickness");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=thickness");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-style");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=countertop-styles");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("basin-style");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=basin-style");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
@@ -2020,10 +2041,22 @@ export const PlayCanvasIntegration = () => {
           ],
         },
         {
+          id: "add",
+          label: "Add",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleAddFromPrebuilt,
+        },
+        {
           id: "accessories",
           label: "Accessories",
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleOpenAccessories,
+        },
+        {
+          id: "duplicate",
+          label: "Duplicate",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleDuplicateFromPrebuilt,
         },
         ...(isOneOrTwoDrawerProduct
           ? [
@@ -2035,13 +2068,6 @@ export const PlayCanvasIntegration = () => {
               },
             ]
           : []),
-        { id: "add", label: "Add", trailing: <ArrowTopRight color={"#333"} />, onClick: handleAddFromPrebuilt },
-        {
-          id: "duplicate",
-          label: "Duplicate",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleDuplicateFromPrebuilt,
-        },
         ...(selectedSceneProduct
           ? [
               {
