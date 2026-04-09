@@ -96,7 +96,10 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import { bootBothSides, autoRemoveSide, isGrooveType } from "@/features/sidePanel";
+import { autoRemoveSide, isGrooveType, restoreSidePanelState } from "@/features/sidePanel";
+import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
+import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
+import { cmToInches } from "@/shared/lib/sku";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { store, type RootState } from "@/app/store";
@@ -283,7 +286,7 @@ export const CabinetBuilderPage = () => {
         isAvailable: (ruleOption ? !ruleOption.disabled : true) && hasAddableWidthForActiveType,
         disabledReason:
           !hasAddableWidthForActiveType && hasProducts
-            ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+            ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm / ${cmToInches(maxCountertopLength)}")` : ""
             }.`
             : ruleOption?.reason,
         isMixingRestricted,
@@ -356,7 +359,7 @@ export const CabinetBuilderPage = () => {
                 : isSideShelfHandleBlocked
                   ? "This cabinet type is only compatible with a PTO handle."
                   : isLengthLimited
-                    ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm)` : ""
+                    ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm / ${cmToInches(maxCountertopLength)}")` : ""
                     }.`
                     : undefined;
 
@@ -1072,6 +1075,10 @@ export const CabinetBuilderPage = () => {
           typeof uiStateValues?.CountertopStyle === "string" ? (uiStateValues.CountertopStyle as string) : undefined;
         const uiSidePanels =
           typeof uiStateValues?.SidePanels === "string" ? (uiStateValues.SidePanels as string) : undefined;
+        const uiSidePanelLeft =
+          typeof uiStateValues?.SidePanelLeft === "string" ? (uiStateValues.SidePanelLeft as string) : undefined;
+        const uiSidePanelRight =
+          typeof uiStateValues?.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
         const uiLedOption =
           typeof uiStateValues?.LedOption === "string" ? (uiStateValues.LedOption as string) : undefined;
         const uiDividersOption =
@@ -1110,7 +1117,13 @@ export const CabinetBuilderPage = () => {
         if (uiSidePanels || sidePanelValue) {
           const sidePanel = uiSidePanels || sidePanelValue;
           if (sidePanel && isGrooveType(sidePanel)) {
-            await bootBothSides(dispatch, sidePanel);
+            await restoreSidePanelState(sidePanel, uiSidePanelLeft, uiSidePanelRight);
+            dispatch(setSidePanelsOption(sidePanel));
+            const leftStatus = uiSidePanelLeft ?? "active";
+            const rightStatus = uiSidePanelRight ?? "active";
+            dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus as "active" | "none" | "auto-removed" }));
+            dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }));
+            await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus);
           }
         }
 

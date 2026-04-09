@@ -12,6 +12,7 @@ import centralHandleImage from "@/shared/assets/images/jpeg/CentralGHandle.jpg";
 import ptoHandleImage from "@/shared/assets/images/jpeg/PTOHandle.jpg";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { cmToInches } from "@/shared/lib/sku";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
 import { setOpenStyleSidebar } from "../../model/store/slice";
 import {
@@ -466,7 +467,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         }
 
         setHandleLockNotice(
-          `A module with only ${heightLocked}cm height is present (e.g. Side Shelf). While it is on the scene, only handles for ${heightLocked}cm are available.`,
+          `A module with only ${heightLocked} cm (${cmToInches(heightLocked)}") height is present (e.g. Side Shelf). While it is on the scene, only handles for ${heightLocked} cm (${cmToInches(heightLocked)}") are available.`,
         );
         return;
       }
