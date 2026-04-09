@@ -14,7 +14,7 @@ export const countertopMaterialSkuMap: Record<string, string> = {
   "Glass Matt": "GLSM",
   "Glass Gloss": "GLSG",
   Minermalmaro: "SSMMO",
-  Teckormud: "SSTM",
+  Tekormud: "SSTM",
   Ocritech: "SSOCR",
   Tekorlux: "SSTKR",
 };
