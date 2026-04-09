@@ -745,7 +745,6 @@ export const CabinetBuilderPage = () => {
 
     const run = async () => {
       dispatch(resetProducts());
-
       const existingIds = getOrderedProductIds();
       const [firstPreset] = productsPresets;
       const preferredCabinetColor = firstPreset?.CabinetColor ?? cabinetColor ?? CUSTOM_DEFAULT_CABINET_COLOR;
@@ -776,6 +775,7 @@ export const CabinetBuilderPage = () => {
           HandleGrooveColor: preferredHandleGrooveColor,
         };
         if (preferredSinkType) batchConfig.sinkType = preferredSinkType;
+        if (countertopStyle) batchConfig.CountertopStyle = countertopStyle;
 
         if (Object.keys(batchConfig).length) {
           await setConfigBatch({}, batchConfig);
@@ -1105,6 +1105,7 @@ export const CabinetBuilderPage = () => {
         if (uiHandleGrooveColor) batchConfig.HandleGrooveColor = uiHandleGrooveColor;
         if (uiSinkType) batchConfig.sinkType = uiSinkType;
         if (uiCountertopColor) batchConfig.CountertopColor = uiCountertopColor;
+        if (uiCountertopStyle) batchConfig.CountertopStyle = uiCountertopStyle;
 
         if (Object.keys(batchConfig).length) {
           await setConfigBatch(orderedIds, batchConfig);
@@ -1286,6 +1287,7 @@ export const CabinetBuilderPage = () => {
           Handle: resolvedHandle,
           Drawers: currentSelectedConfig.Drawers,
           Thickness: countertopThickness || undefined,
+          CountertopStyle: countertopStyle || undefined,
         };
 
         // Add sinkType and VesselColor if it's a Sink-Base
