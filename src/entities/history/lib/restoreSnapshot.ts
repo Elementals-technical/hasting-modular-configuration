@@ -143,5 +143,5 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   }
 
   // Re-apply SidePanel state to PlayCanvas (per-side).
-  await restoreSidePanelState(opts.SidePanels, opts.SidePanelLeft, opts.SidePanelRight);
+  await restoreSidePanelState(opts.SidePanels, opts.SidePanelLeft, opts.SidePanelRight, newProductIds.length);
 }

@@ -1117,7 +1117,7 @@ export const CabinetBuilderPage = () => {
         if (uiSidePanels || sidePanelValue) {
           const sidePanel = uiSidePanels || sidePanelValue;
           if (sidePanel && isGrooveType(sidePanel)) {
-            await restoreSidePanelState(sidePanel, uiSidePanelLeft, uiSidePanelRight);
+            await restoreSidePanelState(sidePanel, uiSidePanelLeft, uiSidePanelRight, orderedIds.length);
             dispatch(setSidePanelsOption(sidePanel));
             const leftStatus = uiSidePanelLeft ?? "active";
             const rightStatus = uiSidePanelRight ?? "active";
@@ -1298,7 +1298,7 @@ export const CabinetBuilderPage = () => {
 
         await saveSnapshot();
         if (productName === "Side-Shelf") {
-          await autoRemoveSide(dispatch, "right");
+          await autoRemoveSide(dispatch, "right", selectedProducts.length);
         }
         const productId = await addProduct(productName, productConfig);
 

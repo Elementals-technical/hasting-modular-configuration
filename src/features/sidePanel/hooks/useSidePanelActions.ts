@@ -20,32 +20,32 @@ export function useSidePanelActions() {
 
   return {
     applyGroove: useCallback(
-      (groove: GrooveType, side: "left" | "right" | "both") => applyGroove(dispatch, groove, side),
+      (groove: GrooveType, side: "left" | "right" | "both", cabinetCount?: number) => applyGroove(dispatch, groove, side, cabinetCount),
       [dispatch],
     ),
 
     deleteSide: useCallback(
-      (side: SidePanelSide) => deleteSide(dispatch, side),
+      (side: SidePanelSide, cabinetCount?: number) => deleteSide(dispatch, side, cabinetCount),
       [dispatch],
     ),
 
     autoRemoveSide: useCallback(
-      (side: SidePanelSide) => autoRemoveSide(dispatch, side),
+      (side: SidePanelSide, cabinetCount?: number) => autoRemoveSide(dispatch, side, cabinetCount),
       [dispatch],
     ),
 
     autoRestoreSide: useCallback(
-      (side: SidePanelSide, groove: GrooveType) => autoRestoreSide(dispatch, side, groove),
+      (side: SidePanelSide, groove: GrooveType, cabinetCount?: number) => autoRestoreSide(dispatch, side, groove, cabinetCount),
       [dispatch],
     ),
 
     bootBothSides: useCallback(
-      (groove: GrooveType) => bootBothSides(dispatch, groove),
+      (groove: GrooveType, cabinetCount?: number) => bootBothSides(dispatch, groove, cabinetCount),
       [dispatch],
     ),
 
     autoRemoveBoth: useCallback(
-      () => autoRemoveBoth(dispatch),
+      (cabinetCount?: number) => autoRemoveBoth(dispatch, cabinetCount),
       [dispatch],
     ),
   };

@@ -199,8 +199,8 @@ export const AccessoriesPage = () => {
     if (!sidePanelsBlockedByLength340) return;
     if (!activeSidePanels || activeSidePanels === "None") return;
 
-    autoRemoveBoth(dispatch);
-  }, [activeSidePanels, dispatch, sidePanelsBlockedByLength340]);
+    autoRemoveBoth(dispatch, selectedProducts.length);
+  }, [activeSidePanels, dispatch, sidePanelsBlockedByLength340, selectedProducts.length]);
 
   const towelBarOptionsFromApi = useMemo(() => {
     const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
@@ -530,7 +530,7 @@ export const AccessoriesPage = () => {
             : selectedSceneProduct === rightCabinetId
               ? "right"
               : "both";
-    await applyGroove(dispatch, value, side);
+    await applyGroove(dispatch, value, side, selectedProducts.length);
   };
 
   const handleDividersChange = (value: string | null) => {
