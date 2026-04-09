@@ -46,6 +46,7 @@ import {
 import {
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
+  sortOptionsByMaterialFilterOrder,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
@@ -275,13 +276,13 @@ export const CabinetPage = () => {
   );
 
   const sortedBasePanelOptions = useMemo(
-    () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
-    [filteredBasePanelOptions],
+    () => sortOptionsByMaterialFilterOrder(filteredBasePanelOptions, materialFilters.materials),
+    [filteredBasePanelOptions, materialFilters.materials],
   );
 
   const sortedAllBasePanelOptions = useMemo(
-    () => [...basePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
-    [basePanelOptions],
+    () => sortOptionsByMaterialFilterOrder(basePanelOptions, materialFilters.materials),
+    [basePanelOptions, materialFilters.materials],
   );
 
   const filteredGrooveOptions = useMemo(

@@ -11,6 +11,7 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import {
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
+  sortOptionsByMaterialFilterOrder,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
@@ -246,13 +247,13 @@ export const CustomCabinetColorsPage = () => {
   );
 
   const sortedBasePanelOptions = useMemo(
-    () => [...filteredBasePanelOptions].sort((a, b) => a.title.localeCompare(b.title)),
-    [filteredBasePanelOptions],
+    () => sortOptionsByMaterialFilterOrder(filteredBasePanelOptions, apiMaterialFilters.materials),
+    [apiMaterialFilters.materials, filteredBasePanelOptions],
   );
 
   const sortedAllBasePanelOptions = useMemo(
-    () => [...basePanelOptionsFromApi].sort((a, b) => a.title.localeCompare(b.title)),
-    [basePanelOptionsFromApi],
+    () => sortOptionsByMaterialFilterOrder(basePanelOptionsFromApi, apiMaterialFilters.materials),
+    [apiMaterialFilters.materials, basePanelOptionsFromApi],
   );
 
   const filteredGrooveOptions = useMemo(
