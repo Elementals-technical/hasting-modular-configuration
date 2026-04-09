@@ -71,13 +71,15 @@ function dispatchSideStatus(
  * User selects groove type in Accessories UI.
  * Updates PlayCanvas + Redux groove + per-side status.
  * @param side — which edge cabinet was selected ("both" for single cabinet)
+ * @param cabinetCount — number of cabinets on scene (1 = single-cabinet API)
  */
 export async function applyGroove(
   dispatch: AppDispatch,
   groove: GrooveType,
   side: "left" | "right" | "both",
+  cabinetCount?: number,
 ) {
-  await setSidePanel(groove, side);
+  await setSidePanel(groove, side, cabinetCount);
   dispatch(setSidePanelsOption(groove));
   dispatchSideStatus(dispatch, side, groove === "None" ? "none" : "active");
 }
@@ -90,8 +92,9 @@ export async function applyGroove(
 export async function deleteSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
+  cabinetCount?: number,
 ) {
-  await setSidePanel("None", side);
+  await setSidePanel("None", side, cabinetCount);
   dispatch(setSidePanelSideStatus({ side, status: "none" }));
   dispatch(setSidePanelsOption("None"));
 }
@@ -103,8 +106,9 @@ export async function deleteSide(
 export async function autoRemoveSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
+  cabinetCount?: number,
 ) {
-  await setSidePanel("None", side);
+  await setSidePanel("None", side, cabinetCount);
   dispatch(setSidePanelSideStatus({ side, status: "auto-removed" }));
 }
 
@@ -116,8 +120,9 @@ export async function autoRestoreSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
   groove: GrooveType,
+  cabinetCount?: number,
 ) {
-  await setSidePanel(groove, side);
+  await setSidePanel(groove, side, cabinetCount);
   dispatch(setSidePanelSideStatus({ side, status: "active" }));
 }
 
@@ -128,8 +133,9 @@ export async function autoRestoreSide(
 export async function bootBothSides(
   dispatch: AppDispatch,
   groove: GrooveType,
+  cabinetCount?: number,
 ) {
-  await setSidePanel(groove, "both");
+  await setSidePanel(groove, "both", cabinetCount);
   dispatch(setSidePanelsOption(groove));
   dispatchSideStatus(dispatch, "both", "active");
 }
@@ -144,9 +150,10 @@ export async function applyGrooveToActiveSides(
   groove: GrooveType,
   leftStatus: SidePanelStatus,
   rightStatus: SidePanelStatus,
+  cabinetCount?: number,
 ) {
-  if (leftStatus === "active") await setSidePanel(groove, "left");
-  if (rightStatus === "active") await setSidePanel(groove, "right");
+  if (leftStatus === "active") await setSidePanel(groove, "left", cabinetCount);
+  if (rightStatus === "active") await setSidePanel(groove, "right", cabinetCount);
   dispatch(setSidePanelsOption(groove));
 }
 
@@ -154,8 +161,8 @@ export async function applyGrooveToActiveSides(
  * Auto-remove both sides when total vanity width = 340cm.
  * Both sides marked "auto-removed" (will restore when width changes).
  */
-export async function autoRemoveBoth(dispatch: AppDispatch) {
-  await setSidePanel("None", "both");
+export async function autoRemoveBoth(dispatch: AppDispatch, cabinetCount?: number) {
+  await setSidePanel("None", "both", cabinetCount);
   dispatch(setSidePanelsOption("None"));
   dispatchSideStatus(dispatch, "both", "auto-removed");
 }
@@ -169,6 +176,7 @@ export async function reapplySidePanelsForPreset(
   dispatch: AppDispatch,
   currentGroove: string,
   presetProducts: Array<{ name?: string; Handle?: string; Height?: number; Drawers?: string }>,
+  cabinetCount?: number,
 ) {
   if (!currentGroove || currentGroove === "None") return;
   if (!presetProducts.length) return;
@@ -209,17 +217,18 @@ export async function reapplySidePanelsForPreset(
   const leftEligible = leftGroup !== "OS" && leftGroup !== "OSS";
   const rightEligible = rightGroup !== "OS" && rightGroup !== "OSS";
 
-  await setSidePanel("None", "both");
+  const count = cabinetCount ?? presetProducts.length;
+  await setSidePanel("None", "both", count);
 
   if (leftEligible) {
-    await setSidePanel(groove, "left");
+    await setSidePanel(groove, "left", count);
     dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
   } else {
     dispatch(setSidePanelSideStatus({ side: "left", status: "none" }));
   }
 
   if (rightEligible) {
-    await setSidePanel(groove, "right");
+    await setSidePanel(groove, "right", count);
     dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
   } else {
     dispatch(setSidePanelSideStatus({ side: "right", status: "none" }));
@@ -232,12 +241,17 @@ export async function restoreSidePanelState(
   spGroove: string | undefined,
   spLeft: string | undefined,
   spRight: string | undefined,
+  cabinetCount?: number,
 ) {
   const left = spLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
   const right = spRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
-  await setSidePanel("None", "both");
-  if (spGroove && spGroove !== "None") {
-    if (left === "active") await setSidePanel(spGroove, "left");
-    if (right === "active") await setSidePanel(spGroove, "right");
+  if (!spGroove || spGroove === "None") {
+    await setSidePanel("None", "both", cabinetCount);
+  } else if (left === "active" && right === "active") {
+    await setSidePanel(spGroove, "both", cabinetCount);
+  } else {
+    await setSidePanel("None", "both", cabinetCount);
+    if (left === "active") await setSidePanel(spGroove, "left", cabinetCount);
+    if (right === "active") await setSidePanel(spGroove, "right", cabinetCount);
   }
 }

@@ -28,7 +28,25 @@ export const rememberSidePanelSelection = (type: string, side: SidePanelSide = "
 
 export const getRememberedSidePanels = (): SidePanelState => ({ ...state });
 
-export const setSidePanel = async (type: string, side: SidePanelSide = "both") => {
-  await setConfigBatch({}, { SidePanel: type, SidePanelSide: side });
+async function setSidePanelSingle(type: string) {
+  await setConfigBatch({}, { SidePanel: type });
+}
+
+async function setSidePanelMulti(type: string, side: SidePanelSide) {
+  if (type === "None" && side === "both") {
+    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "left" });
+    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "right" });
+  } else {
+    await setConfigBatch({}, { SidePanel: type, SidePanelSide: side });
+  }
+}
+
+export const setSidePanel = async (type: string, side: SidePanelSide = "both", cabinetCount?: number) => {
+  if (cabinetCount === 1) {
+    await setSidePanelSingle(type);
+  } else {
+    await setSidePanelMulti(type, side);
+  }
+
   applyState(type, side);
 };
