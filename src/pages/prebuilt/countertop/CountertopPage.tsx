@@ -48,6 +48,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import {
   buildCountertopRuleState,
   getMaterialAliases,
+  isIntegratedCountertopDepthRestrictedByMaterial,
   materialMatchesRule,
   matchesDepth,
   normalizeBasinKey,
@@ -86,16 +87,6 @@ const MATERIAL_FILTER_WIDTH_DISABLED_REASON = "Not available for current cabinet
 
 const INTEGRATED_DEPTH_46_DISABLED_REASON =
   'Integrated basin style not available for 46cm (18.1") depth configurations';
-const VESSEL_ONLY_DEPTH_CM = 46;
-const VESSEL_ONLY_DEPTH_MATERIAL_TOKENS = new Set([
-  "tekormud",
-  "tekorund",
-  "sstm",
-  "solidsurface",
-  "ssocr",
-  "sst1c",
-  "sst1d",
-]);
 
 const formatSkuThicknessToken = (value: number): string => {
   const mapped = Math.abs(value - 2.5) < 0.001 ? 2.4 : value;
@@ -446,13 +437,10 @@ export const CountertopPage = () => {
   }, [activeVesselColor, vesselColorOptions]);
 
   const isDepth46VesselOnly = useMemo(() => {
-    const depth = selectedDimensions.depth;
-    if (typeof depth !== "number" || !Number.isFinite(depth)) return false;
-    if (Math.abs(depth - VESSEL_ONLY_DEPTH_CM) >= 0.01) return false;
-
-    return activeMaterialTokens
-      .map((token) => normalizeMaterialToken(token))
-      .some((token) => VESSEL_ONLY_DEPTH_MATERIAL_TOKENS.has(token));
+    return isIntegratedCountertopDepthRestrictedByMaterial({
+      activeMaterialTokens,
+      depth: selectedDimensions.depth ?? null,
+    });
   }, [activeMaterialTokens, selectedDimensions.depth]);
 
   const ruleState = useMemo(
@@ -963,6 +951,39 @@ export const CountertopPage = () => {
     });
   }, [ruleState.allowedThicknesses, isVesselStyle, activeVesselMaterialTokens, activeMaterialTokens]);
 
+  const filteredStyleOptions = useMemo(
+    () =>
+      optionsMockData2.map((option) => {
+        const isIntegrated = option.title.trim().toLowerCase() === "integrated";
+        const blocked = isDepth46VesselOnly && isIntegrated;
+
+        return {
+          ...option,
+          isAvailable: !blocked,
+          disabledReason: blocked ? INTEGRATED_DEPTH_46_DISABLED_REASON : undefined,
+        };
+      }),
+    [isDepth46VesselOnly],
+  );
+  const isActiveCountertopStyleAvailable = useMemo(() => {
+    const normalizedActiveStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
+    if (!normalizedActiveStyle) return false;
+
+    return filteredStyleOptions.some((option) => {
+      if (option.isAvailable === false) return false;
+      return option.title.trim().toLowerCase() === normalizedActiveStyle;
+    });
+  }, [activeCountertopStyle, filteredStyleOptions]);
+  const basinSelectionStyle = useMemo(() => {
+    if (isActiveCountertopStyleAvailable) {
+      return activeCountertopStyle?.trim().toLowerCase() ?? "";
+    }
+
+    const firstAvailable = filteredStyleOptions.find((option) => option.isAvailable !== false);
+    return firstAvailable?.title?.trim().toLowerCase() ?? "";
+  }, [activeCountertopStyle, filteredStyleOptions, isActiveCountertopStyleAvailable]);
+  const isBasinSelectionVesselStyle = basinSelectionStyle === "vessel";
+
   const allowedBasinTokens = useMemo(() => {
     return ruleState.allowedBasinTokens;
   }, [ruleState.allowedBasinTokens]);
@@ -973,7 +994,7 @@ export const CountertopPage = () => {
   const filteredBasinOptions = useMemo(() => {
     if (!optionsMockData3.length) return [];
 
-    const normalizedStyle = activeCountertopStyle ? activeCountertopStyle.trim().toLowerCase() : "";
+    const normalizedStyle = basinSelectionStyle;
     const allowedStyles = ruleState.allowedStyles;
     const activeMaterialsSource =
       normalizedStyle === "vessel" && activeVesselMaterialTokens.length > 0
@@ -1131,22 +1152,8 @@ export const CountertopPage = () => {
     ruleState.allowedStyles,
     activeBasinStyle,
     activeThickness,
+    basinSelectionStyle,
   ]);
-
-  const filteredStyleOptions = useMemo(
-    () =>
-      optionsMockData2.map((option) => {
-        const isIntegrated = option.title.trim().toLowerCase() === "integrated";
-        const blocked = isDepth46VesselOnly && isIntegrated;
-
-        return {
-          ...option,
-          isAvailable: !blocked,
-          disabledReason: blocked ? INTEGRATED_DEPTH_46_DISABLED_REASON : undefined,
-        };
-      }),
-    [isDepth46VesselOnly],
-  );
 
   const sortedCountertopOptions = useMemo(
     () => sortCountertopOptionsByAvailability(filteredCountertopOptions),
@@ -1323,6 +1330,9 @@ export const CountertopPage = () => {
   const handleAddBasinStyle = async (basinStyle: string) => {
     await saveSnapshot();
     if (basinStyle.startsWith("Vessel_")) {
+      if ((activeCountertopStyle ?? "").trim().toLowerCase() !== "vessel") {
+        dispatch(setCountertopStyle("Vessel"));
+      }
       // Toggle: clicking the already-selected vessel reverts to empty cutout
       if (activeBasinStyle === basinStyle) {
         await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
@@ -1382,6 +1392,7 @@ export const CountertopPage = () => {
 
   useEffect(() => {
     if (!hasSelectedMaterial || !activeThickness || isSinkDisabled) return;
+    if (!isActiveCountertopStyleAvailable) return;
     if (!filteredBasinOptions.length) return;
     // Vessel style: user picks vessel manually (or leaves hole cutout empty)
     if (isVesselStyle) return;
@@ -1412,6 +1423,7 @@ export const CountertopPage = () => {
     filteredBasinOptions,
     hasSelectedMaterial,
     isSinkDisabled,
+    isActiveCountertopStyleAvailable,
     isVesselStyle,
     activeCountertopColor,
   ]);
@@ -1571,14 +1583,14 @@ export const CountertopPage = () => {
     },
     {
       id: "basin-style",
-      title: isVesselStyle ? "Vessel Style" : "Basin style",
+      title: isBasinSelectionVesselStyle ? "Vessel Style" : "Basin style",
       content: !hasSelectedMaterial ? (
         <div>Select a material first to enable basin styles.</div>
       ) : !activeThickness ? (
         <div>Select a thickness first to enable basin styles.</div>
       ) : isSinkDisabled ? (
         <div>Select a cabinet type with sink support to enable basin styles.</div>
-      ) : filteredBasinOptions.length === 0 && isVesselStyle ? (
+      ) : filteredBasinOptions.length === 0 && isBasinSelectionVesselStyle ? (
         <div>No vessel styles available for the selected material.</div>
       ) : (
         <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />
