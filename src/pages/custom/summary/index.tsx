@@ -76,6 +76,10 @@ import {
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
 } from "@/shared/lib/summaryFormatters";
+import {
+  normalizeProductConfigSnapshot,
+  type NormalizedProductConfigSnapshot,
+} from "@/shared/lib/normalizeProductConfigSnapshot";
 
 import s from "./SummaryPage.module.scss";
 
@@ -296,7 +300,7 @@ export const CustomSummaryPage = () => {
   const hasSelectedSwatches = selectedSwatches.length > 0;
   const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSelectedSwatches;
 
-  const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
+  const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
   const [saveConfiguration] = useSaveConfigurationMutation();
 
@@ -407,10 +411,16 @@ export const CustomSummaryPage = () => {
       const configs = await Promise.all(
         selectedProducts.map(async (id) => {
           const config = await getConfig(id);
-          return config ? { _productId: id, ...config } : null;
+          return config
+            ? normalizeProductConfigSnapshot({
+                id,
+                raw: config as Record<string, unknown>,
+                selectedDimensions,
+              })
+            : null;
         }),
       );
-      const cleaned = configs.filter((config): config is Record<string, unknown> => Boolean(config));
+      const cleaned = configs.filter((config): config is NormalizedProductConfigSnapshot => Boolean(config));
       if (isMounted) setProductConfigs(cleaned);
     };
 
@@ -419,7 +429,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedProducts]);
+  }, [selectedDimensions, selectedProducts]);
 
   useEffect(() => {
     let isMounted = true;
@@ -503,9 +513,17 @@ export const CustomSummaryPage = () => {
       cabinetColorSku ||
       cabinetColorSkuByName.get(cabinetColor) ||
       null;
-    const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
+    const hasPresets = productsPresets.length > 0;
+    const presetsStale = hasPresets && selectedProducts.length > 0 && selectedProducts.length < productsPresets.length;
+    const shouldUsePresets = hasPresets && !presetsStale;
+    const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
+    const cabinetConfigs = sceneProductConfigs.filter((config) => config.category === "cabinets");
     const cabinetCount =
-      cabinetConfigs.length > 0 ? cabinetConfigs.length : productsPresets.length > 0 ? productsPresets.length : 1;
+      shouldUsePresets
+        ? productsPresets.length + cabinetConfigs.length
+        : cabinetConfigs.length > 0
+          ? cabinetConfigs.length
+          : 1;
     const resolveNameFromRaw = (v: string) => {
       const lastDash = v.lastIndexOf("-");
       if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
@@ -546,29 +564,21 @@ export const CustomSummaryPage = () => {
             ? 1
             : 0,
     );
-    const cabinetItems =
-      cabinetConfigs.length > 0
-        ? cabinetConfigs.map((config, index) => {
+    const configCabinetItems = cabinetConfigs.map((config, index) => {
             const width = typeof config.Width === "number" ? config.Width : undefined;
             const depth = typeof config.Depth === "number" ? config.Depth : undefined;
             const height = typeof config.Height === "number" ? config.Height : undefined;
             const drawers = formatCabinetDrawersForSummary(config.Drawers);
             const dims = formatCabinetDimsForSummary(width, depth, height);
             const subtitle = [drawers, dims].filter(Boolean).join(" | ");
-            const name =
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
-                  : typeof config.entityName === "string"
-                    ? resolveNameFromRaw(config.entityName)
-                    : typeof config._productId === "string"
-                      ? resolveNameFromRaw(config._productId)
-                      : typeof config.name === "string"
-                        ? config.name
-                        : undefined;
-            const swatchValue =
-              typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
+              const name =
+                config.ProductType ??
+                config.productType ??
+                (config.entityName ? resolveNameFromRaw(config.entityName) : undefined) ??
+                config.name ??
+                undefined;
+              const swatchValue =
+                typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
             const swatch = resolveSwatch(swatchValue);
 
             const productCabinetType = name ?? activeCabinetType;
@@ -598,18 +608,15 @@ export const CustomSummaryPage = () => {
                 cabinetColorCode: extractColorCode(swatchValue),
                 grainDirection: grainSku,
               });
-            } else {
-              sku = buildProductSku({
-                cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
-                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-                handle: typeof config.Handle === "string" ? config.Handle : null,
-                pattern:
-                  typeof config.DrawerPanelFluting === "string"
-                    ? config.DrawerPanelFluting
-                    : drawerPanelFluting || null,
-                width: width ?? null,
-                height: height ?? null,
-                depth: depth ?? null,
+              } else {
+                sku = buildProductSku({
+                  cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
+                  drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+                  handle: typeof config.Handle === "string" ? config.Handle : null,
+                  pattern: drawerPanelFluting || null,
+                  width: width ?? null,
+                  height: height ?? null,
+                  depth: depth ?? null,
                 cab: cabinetMaterialSku
                   ? {
                       materialSku: cabinetMaterialSku,
@@ -626,7 +633,7 @@ export const CustomSummaryPage = () => {
             }
 
             return {
-              id: `cabinet-${index}`,
+              id: `cabinet-config-${index}`,
               title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
               subtitle,
               sku,
@@ -639,28 +646,27 @@ export const CustomSummaryPage = () => {
               price: resolveItemPrice(sku),
               copyable: true,
               showInfo: true,
-              description: buildCabinetDescription({
-                cabinetType: productCabinetType,
-                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-                handle: typeof config.Handle === "string" ? config.Handle : null,
-                pattern:
-                  typeof config.DrawerPanelFluting === "string"
-                    ? config.DrawerPanelFluting
-                    : drawerPanelFluting || null,
-                width: width ?? null,
-                height: height ?? null,
-                depth: depth ?? null,
+                description: buildCabinetDescription({
+                  cabinetType: productCabinetType,
+                  drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+                  handle: typeof config.Handle === "string" ? config.Handle : null,
+                  pattern: drawerPanelFluting || null,
+                  width: width ?? null,
+                  height: height ?? null,
+                  depth: depth ?? null,
                 cabColor: swatchValue,
                 cabMaterialSku: cabinetMaterialSku,
                 hdlColor: handleGrooveColor,
                 hdlMaterialSku: handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null,
-              }),
-            };
-          })
-        : productsPresets.length > 0
-          ? productsPresets.map((preset, index) => {
+                }),
+              };
+          });
+    const presetCabinetItems = shouldUsePresets
+      ? productsPresets.map((preset, index) => {
               const drawers = formatCabinetDrawersForSummary(preset.Drawers);
-              const dims = formatCabinetDimsForSummary(preset.Width, preset.Depth, preset.Height);
+              const presetHeight = selectedDimensions.height ?? preset.Height ?? undefined;
+              const presetDepth = selectedDimensions.depth ?? preset.Depth ?? undefined;
+              const dims = formatCabinetDimsForSummary(preset.Width, presetDepth, presetHeight);
               const subtitle = [drawers, dims].filter(Boolean).join(" | ");
               const swatchValue = preset.CabinetColor ?? cabinetColor;
               const swatch = resolveSwatch(swatchValue);
@@ -700,8 +706,8 @@ export const CustomSummaryPage = () => {
                   handle: resolvedHandle,
                   pattern: drawerPanelFluting || null,
                   width: preset.Width ?? null,
-                  height: preset.Height ?? null,
-                  depth: preset.Depth ?? null,
+                  height: presetHeight ?? null,
+                  depth: presetDepth ?? null,
                   cab: cabinetMaterialSku
                     ? {
                         materialSku: cabinetMaterialSku,
@@ -718,7 +724,7 @@ export const CustomSummaryPage = () => {
               }
 
               return {
-                id: `cabinet-${index}`,
+                id: `cabinet-preset-${index}`,
                 title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
                 subtitle,
                 sku,
@@ -737,8 +743,8 @@ export const CustomSummaryPage = () => {
                   handle: resolvedHandle,
                   pattern: drawerPanelFluting || null,
                   width: preset.Width ?? null,
-                  height: preset.Height ?? null,
-                  depth: preset.Depth ?? null,
+                  height: presetHeight ?? null,
+                  depth: presetDepth ?? null,
                   cabColor: swatchValue,
                   cabMaterialSku: cabinetMaterialSku,
                   hdlColor: handleGrooveColor,
@@ -746,75 +752,78 @@ export const CustomSummaryPage = () => {
                 }),
               };
             })
-          : [
-              (() => {
-                const handleMaterialSku =
-                  handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-                const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
+      : [];
+    const fallbackCabinetItems: SummaryItem[] = [
+      (() => {
+        const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+        const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
 
-                const sku = buildProductSku({
-                  cabinetType: activeCabinetType,
-                  drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-                  handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
-                  pattern: drawerPanelFluting || null,
-                  width: selectedDimensions.width,
-                  height: selectedDimensions.height,
-                  depth: selectedDimensions.depth,
-                  cab: cabinetMaterialSku
-                    ? {
-                        materialSku: cabinetMaterialSku,
-                        colorCode: extractColorCode(cabinetColor),
-                        grainDirection: grainSku,
-                      }
-                    : null,
-                  hdl: handleMaterialSku
-                    ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                    : null,
-                  msp: null,
-                  bkpl: null,
-                });
+        const sku = buildProductSku({
+          cabinetType: activeCabinetType,
+          drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+          handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+          pattern: drawerPanelFluting || null,
+          width: selectedDimensions.width,
+          height: selectedDimensions.height,
+          depth: selectedDimensions.depth,
+          cab: cabinetMaterialSku
+            ? {
+                materialSku: cabinetMaterialSku,
+                colorCode: extractColorCode(cabinetColor),
+                grainDirection: grainSku,
+              }
+            : null,
+          hdl: handleMaterialSku ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) } : null,
+          msp: null,
+          bkpl: null,
+        });
 
-                return {
-                  id: "cabinet-1",
-                  title:
-                    typeof selectedProductConfig?.name === "string"
-                      ? selectedProductConfig.name
-                      : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
-                  subtitle: [
-                    formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
-                    formatCabinetDimsForSummaryWithFallback(
-                      selectedDimensions.width,
-                      selectedDimensions.depth,
-                      selectedDimensions.height,
-                    ),
-                  ]
-                    .filter(Boolean)
-                    .join(" | "),
-                  sku,
-                  swatch: {
-                    ...resolveSwatch(cabinetColor),
-                    label: "Cabinet",
-                    value: cabinetColor,
-                  },
-                  price: resolveItemPrice(sku),
-                  copyable: true,
-                  showInfo: true,
-                  description: buildCabinetDescription({
-                    cabinetType: activeCabinetType,
-                    drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-                    handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
-                    pattern: drawerPanelFluting || null,
-                    width: selectedDimensions.width,
-                    height: selectedDimensions.height,
-                    depth: selectedDimensions.depth,
-                    cabColor: cabinetColor,
-                    cabMaterialSku: cabinetMaterialSku,
-                    hdlColor: handleGrooveColor,
-                    hdlMaterialSku: handleMaterialSku,
-                  }),
-                };
-              })(),
-            ];
+        return {
+          id: "cabinet-1",
+          title:
+            typeof selectedProductConfig?.name === "string"
+              ? selectedProductConfig.name
+              : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
+          subtitle: [
+            formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
+            formatCabinetDimsForSummaryWithFallback(
+              selectedDimensions.width,
+              selectedDimensions.depth,
+              selectedDimensions.height,
+            ),
+          ]
+            .filter(Boolean)
+            .join(" | "),
+          sku,
+          swatch: {
+            ...resolveSwatch(cabinetColor),
+            label: "Cabinet",
+            value: cabinetColor,
+          },
+          price: resolveItemPrice(sku),
+          copyable: true,
+          showInfo: true,
+          description: buildCabinetDescription({
+            cabinetType: activeCabinetType,
+            drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+            handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+            pattern: drawerPanelFluting || null,
+            width: selectedDimensions.width,
+            height: selectedDimensions.height,
+            depth: selectedDimensions.depth,
+            cabColor: cabinetColor,
+            cabMaterialSku: cabinetMaterialSku,
+            hdlColor: handleGrooveColor,
+            hdlMaterialSku: handleMaterialSku,
+          }),
+        };
+      })(),
+    ];
+    const cabinetItems = shouldUsePresets
+      ? [...presetCabinetItems, ...configCabinetItems]
+      : configCabinetItems.length > 0
+        ? configCabinetItems
+        : fallbackCabinetItems;
 
     // const grooveSwatch = resolveSwatch(handleGrooveColor);
     const firstPreset = productsPresets[0];
@@ -896,10 +905,11 @@ export const CustomSummaryPage = () => {
     ].filter(Boolean) as SummaryItem[];
 
     const totalCountertopWidth =
-      cabinetConfigs.length > 0
-        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
-        : productsPresets.length > 0
-          ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) || null
+      shouldUsePresets
+        ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
+            cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+        : cabinetConfigs.length > 0
+          ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
           : selectedDimensions.width;
 
     const countertopSkuLines = buildCountertopSku({
@@ -1317,6 +1327,7 @@ export const CustomSummaryPage = () => {
     handleGrooveColor,
     handleGrooveColorSku,
     productsPresets,
+    selectedProducts,
     productConfigs,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,

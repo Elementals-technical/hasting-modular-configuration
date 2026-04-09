@@ -57,7 +57,10 @@ import {
 import { useLazyGetProductPriceBySkuQuery, useLazyGetProductPriceBySkuV2ResolveQuery } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
+import {
+  normalizeProductConfigSnapshot,
+  type NormalizedProductConfigSnapshot,
+} from "@/shared/lib/normalizeProductConfigSnapshot";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -82,18 +85,6 @@ const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
 };
 
 // ── Types ────────────────────────────────────────────────
-
-type ProductConfigSnapshot = {
-  id: string;
-  name: string | null;
-  Width: number | null;
-  Height: number | null;
-  Depth: number | null;
-  Thickness: string | null;
-  Drawers: string | null;
-  Handle: string | null;
-  CabinetColor: string | null;
-};
 
 // ── Hook ────────────────────────────────────────────────
 
@@ -177,7 +168,7 @@ export function usePriceCalculation() {
 
   // ── Fetch configs for all products on scene (custom path) ─
 
-  const [sceneConfigs, setSceneConfigs] = useState<ProductConfigSnapshot[]>([]);
+  const [sceneConfigs, setSceneConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const productIdsKey = productIds.join("|");
 
   const fetchSceneConfigs = useCallback(async () => {
@@ -208,15 +199,7 @@ export function usePriceCalculation() {
       return;
     }
 
-    const configs: ProductConfigSnapshot[] = [];
-    const dimensionTool = getDimensionTool();
-    const readDimValue = (map?: Record<string, string>) => {
-      if (!map) return null;
-      const [key] = Object.keys(map);
-      if (!key) return null;
-      const value = Number(key);
-      return Number.isFinite(value) ? value : null;
-    };
+    const configs: NormalizedProductConfigSnapshot[] = [];
 
     for (const id of idsToFetch) {
       try {
@@ -224,28 +207,13 @@ export function usePriceCalculation() {
 
         if (!raw) continue;
 
-        const cfg = raw as Record<string, unknown>;
-        const dimensionData = dimensionTool?.getDimensionData?.(id) ?? null;
-        const toolWidth = readDimValue(dimensionData?.Width as Record<string, string> | undefined);
-        const toolHeight = readDimValue(dimensionData?.Height as Record<string, string> | undefined);
-        const toolDepth = readDimValue(dimensionData?.Depth as Record<string, string> | undefined);
-
-        configs.push({
-          id,
-          name:
-            (typeof cfg.ProductType === "string" && cfg.ProductType) ||
-            (typeof cfg.productType === "string" && cfg.productType) ||
-            (typeof cfg.type === "string" && cfg.type) ||
-            (typeof cfg.name === "string" && cfg.name) ||
-            null,
-          Width: (typeof cfg.Width === "number" ? cfg.Width : null) ?? toolWidth,
-          Height: selectedDimensions.height ?? toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
-          Depth: selectedDimensions.depth ?? toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
-          Thickness: typeof cfg.Thickness === "string" ? cfg.Thickness : null,
-          Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
-          Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
-          CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
-        });
+        configs.push(
+          normalizeProductConfigSnapshot({
+            id,
+            raw: raw as Record<string, unknown>,
+            selectedDimensions,
+          }),
+        );
       } catch (err) {
         console.warn(LOG_PREFIX, "Failed to get config for product", id, err);
       }
