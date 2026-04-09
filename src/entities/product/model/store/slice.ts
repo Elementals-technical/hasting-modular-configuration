@@ -467,6 +467,13 @@ const productSlice = createSlice({
         state.selectedDimensions.height = state.heightBeforePto;
       }
 
+      // Clear groove color when switching away from urban handles (PTO has no groove)
+      const URBAN_HANDLES = new Set<string | null>(["handle_urban_topcut", "handle_urban_botcut"]);
+      if (URBAN_HANDLES.has(prevHandle) && !URBAN_HANDLES.has(nextHandle)) {
+        state.productOptions.HandleGrooveColor = "";
+        state.productOptions.HandleGrooveColorSku = "";
+      }
+
       applyRulesToState(state);
     },
     setCabinetColor(state, action: PayloadAction<string>) {
