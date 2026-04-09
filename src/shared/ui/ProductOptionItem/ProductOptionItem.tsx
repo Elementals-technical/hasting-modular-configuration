@@ -80,8 +80,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     >
       <div className={s.imageContainer}>
         <div
-          className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""}`}
-          style={needsLightBorder ? { border: "1px solid #ac5331" } : undefined}
+          className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""} ${needsLightBorder ? s.lightBorder : ""}`}
         >
           {hasImage ? (
             <img src={imageSrc} alt="color image" />
