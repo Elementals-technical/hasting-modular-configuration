@@ -202,7 +202,7 @@ const handleLabelMap: Record<string, string> = {
 const drawerLabelMap: Record<string, string> = {
   "1D": "1 Drawer",
   "2D": "2 Drawer",
-  "1DWID": "1 Wide Drawer",
+  "1DWID": "1 Drawer with inner drawer",
 };
 
 /** Human-readable labels for material SKU codes */
