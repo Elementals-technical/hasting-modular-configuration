@@ -81,6 +81,7 @@ import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
+import { cmToInches } from "@/shared/lib/sku/cmToInches";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
@@ -135,6 +136,24 @@ const formatThicknessLabel = (thickness: number): string => {
   const normalizedInches = Number(thickness.toFixed(3));
   const cm = thicknessToCm(normalizedInches);
   return `${normalizedInches}" (${cm} cm)`;
+};
+
+// CM → display-inch lookup from the sizing spec.
+// TODO: move to a DataTable / Option once the backend provides these mappings.
+const CM_TO_INCH_LABEL: Record<number, string> = {
+  // Width
+  25: '9.8"', 35: '13.8"', 50: '19.7"', 60: '23.6"', 70: '27.6"',
+  80: '31.5"', 90: '35.4"', 105: '41.3"', 120: '47.2"',
+  // Depth
+  45.5: '17.9"', /* 50 → 19.7" already listed above */
+  // Height
+  53: '20.9"', 56: '22"',
+};
+
+const cmToInchLabel = (cm: number): string => {
+  const rounded = Number(cm.toFixed(1));
+  if (rounded in CM_TO_INCH_LABEL) return CM_TO_INCH_LABEL[rounded];
+  return `${cmToInches(cm)}"`;
 };
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
@@ -2186,7 +2205,7 @@ export const PlayCanvasIntegration = () => {
             label: "Width",
             children: widthOptions.map((value) => ({
               id: `resize-width-${value}`,
-              label: `${value}`,
+              label: cmToInchLabel(Number(value)),
               onClick: () => handleSetWidth(Number(value)),
             })),
           },
@@ -2195,7 +2214,7 @@ export const PlayCanvasIntegration = () => {
             label: "Depth",
             children: depthOptions.map((value) => ({
               id: `resize-depth-${value}`,
-              label: `${value}`,
+              label: cmToInchLabel(Number(value)),
               onClick: () => handleSetDepth(Number(value)),
             })),
           },
