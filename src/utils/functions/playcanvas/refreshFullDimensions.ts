@@ -3,6 +3,7 @@ import { getConfig } from "./getConfig";
 import { showDimensions, hideDimensions } from "./showDimensions";
 import { getDimensionTool } from "./getDimensionTool";
 import { cmToInch } from "@/utils/units";
+import { getRememberedSidePanels } from "./sidePanels";
 
 const readNumericConfigValue = (config: unknown, key: "Width" | "Height" | "Depth") => {
   if (!config || typeof config !== "object") return undefined;
@@ -40,7 +41,9 @@ export async function computeAndShowFullDimensions(): Promise<boolean> {
     width: readNumericConfigValue(configs[index], "Width"),
   }));
 
-  const totalWidth = widthByNode.reduce((sum, item) => sum + (item.width ?? 0), 0);
+  const sidePanels = getRememberedSidePanels();
+  const sidePanelsCm = (sidePanels.left !== "None" ? 1 : 0) + (sidePanels.right !== "None" ? 1 : 0);
+  const totalWidth = widthByNode.reduce((sum, item) => sum + (item.width ?? 0), 0) + sidePanelsCm;
 
   const maxHeight = configs.reduce((max, config) => {
     const value = readNumericConfigValue(config, "Height");
