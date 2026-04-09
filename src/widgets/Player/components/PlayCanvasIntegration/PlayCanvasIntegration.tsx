@@ -48,6 +48,7 @@ import {
   getTowelBarOption,
   getSelectedProducts,
   getVesselColor,
+  getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
@@ -220,6 +221,7 @@ export const PlayCanvasIntegration = () => {
   const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const wasRestoringRef = useRef(false);
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
 
   const saveSnapshot = useHistorySnapshot();
 
@@ -968,6 +970,13 @@ export const PlayCanvasIntegration = () => {
     }
     wasRestoringRef.current = isHistoryRestoring;
   }, [isHistoryRestoring, syncCountertopConfig]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void syncCountertopConfig();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [sidePanelsOption, syncCountertopConfig]);
 
   const handleSetHandleType = useCallback(
     async (handleType: string) => {

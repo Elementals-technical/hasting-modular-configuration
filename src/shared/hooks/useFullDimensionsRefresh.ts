@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { getSelectedProducts, getSelectedDimensions } from "@/entities/product/model/store/selectors";
+import { getSelectedProducts, getSelectedDimensions, getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refreshFullDimensions";
 
@@ -11,6 +11,7 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
   const productIds = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const isRestoring = useAppSelector(getIsHistoryRestoring);
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
 
   const generationRef = useRef(0);
   const onEmptySceneRef = useRef(onEmptyScene);
@@ -32,5 +33,5 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [isEnabled, isRestoring, productIds, selectedDimensions]);
+  }, [isEnabled, isRestoring, productIds, selectedDimensions, sidePanelsOption]);
 }
