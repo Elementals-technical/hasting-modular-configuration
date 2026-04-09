@@ -13,8 +13,6 @@ export type CountertopSkuInput = {
   basinType: string | null;
   /** "0"-"3" */
   faucetHolesAmount: string | null;
-  /** e.g. '4"' or '6"' */
-  faucetHolesSpacing: string | null;
   /** Material SKU for countertop body (e.g. "FX", "HPL", "POR") */
   countertopMaterialSku: string | null;
   /** Color code (e.g. "37GL", "FEMT") */
@@ -82,8 +80,7 @@ const resolve = (
  *  [0] Top        — always present  CT-{SERIES}-{STYLE}-{W}W-{THICKNESS}H-{D}D-{MatSKU}-{Color}
  *  [1] Basin      — if style is integrated or vessel  CT-{SERIES}-{BASIN}
  *  [2] Faucet Qty — if faucet holes > 0  CT-{SERIES}-FAHO/{QTY}
- *  [3] Faucet Spc — if faucet holes > 0  CT-{SERIES}-FAHOS/{SPACING}
- *  [4] Hole Cut   — if style is vessel   CT-{SERIES}-HCUT
+ *  [3] Hole Cut   — if style is vessel   CT-{SERIES}-HCUT
  *
  * SERIES is derived from material SKU: "UR" + materialSku (e.g. FX → URFX, HPL → URHPL)
  */
@@ -172,11 +169,6 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const holesQty = input.faucetHolesAmount?.trim() || "0";
   if (holesQty !== "0" && holesQty !== "") {
     lines.push(`${CATEGORY}-${series}-FAHO/${holesQty}`);
-
-    const spacing = input.faucetHolesSpacing?.replace(/"/g, "").trim() || null;
-    if (spacing) {
-      lines.push(`${CATEGORY}-${series}-FAHOS/${spacing}`);
-    }
   }
 
   // Hole cutout — only for vessel

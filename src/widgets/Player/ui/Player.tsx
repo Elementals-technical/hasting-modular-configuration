@@ -30,7 +30,6 @@ import {
   getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getGrainDirection,
   getHandleGrooveColor,
   getLedOption,
@@ -80,7 +79,6 @@ export function Player() {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
   const selectedSwatches = useAppSelector(getSelectedSwatches);
 
@@ -125,7 +123,6 @@ export function Player() {
         TowelBarOption: towelBarOption,
         TowelBarColor: towelBarColor,
         FaucetHolesAmount: faucetHolesAmount,
-        FaucetHolesSpacing: faucetHolesSpacing,
       },
     };
 
@@ -424,7 +421,7 @@ export function Player() {
       content: {
         title: "Product Details",
         bullets: [
-          "Special Order: All solutions are built-to order",
+          "Special Order: All solutions are built-to-order",
           "Lead Time: 10-12 weeks",
           "Country of Origin: Italy",
           "Warranty: 36 months",

@@ -82,6 +82,8 @@ import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
+import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -191,8 +193,11 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+  const isCustomPage = location.pathname.startsWith("/custom");
+  const isCabinetBuilderPage = location.pathname.includes("/custom/cabinet-builder");
   const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
+  const isPlayCanvasReady = usePlayCanvasReady();
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
@@ -202,6 +207,13 @@ export const PlayCanvasIntegration = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
+
+  const shouldShowEmptySceneRedirectButton =
+    isPlayCanvasReady &&
+    isCustomPage &&
+    !isCabinetBuilderPage &&
+    productIds.length === 0;
+
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
@@ -980,6 +992,55 @@ export const PlayCanvasIntegration = () => {
     if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
     void syncCountertopConfig();
   }, [productIds.length, selectedDimensions.depth, selectedDimensions.height, syncCountertopConfig]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+    if (!isCustomPage || isCabinetBuilderPage) return;
+    if (productIds.length > 0) return;
+
+    const sceneProductIds = getOrderedProductIds();
+    if (!sceneProductIds.length) return;
+
+    sceneProductIds.forEach((productId) => {
+      dispatch(addProductId(productId));
+    });
+  }, [dispatch, isCabinetBuilderPage, isCustomPage, isPlayCanvasReady, productIds.length]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    if (isPrebuilt) {
+      hideEmptyButton();
+
+      return () => {
+        hideEmptyButton();
+      };
+    }
+
+    const isCustomNonBuilderPage = isCustomPage && !isCabinetBuilderPage;
+
+    if (isCustomNonBuilderPage) {
+      hideEmptyButton();
+
+      return () => {
+        hideEmptyButton();
+      };
+    }
+
+    if (isCabinetBuilderPage) return;
+
+    if (productIds.length > 0) {
+      hideEmptyButton();
+
+      return;
+    }
+
+    showEmptyButton();
+
+    return () => {
+      hideEmptyButton();
+    };
+  }, [isCabinetBuilderPage, isCustomPage, isPlayCanvasReady, isPrebuilt, productIds.length]);
 
   useEffect(() => {
     if (wasRestoringRef.current && !isHistoryRestoring) {
@@ -2230,7 +2291,7 @@ export const PlayCanvasIntegration = () => {
           ]
         : []),
       ...((selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2) ||
-        (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
+      (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
         ? []
         : canDuplicateSelectedCabinet
           ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
@@ -2320,6 +2381,10 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
+
+  const handleEmptySceneRedirect = useCallback(() => {
+    navigate("/custom/cabinet-builder?accordion=cabinet-type");
+  }, [navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
@@ -2431,6 +2496,38 @@ export const PlayCanvasIntegration = () => {
           display: "block",
         }}
       />
+
+      {shouldShowEmptySceneRedirectButton && (
+        <button
+          type="button"
+          onClick={handleEmptySceneRedirect}
+          aria-label="Open cabinet builder"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "48px",
+            height: "48px",
+            padding: 0,
+            borderRadius: "999px",
+            border: "none",
+            background: "#ac5331",
+            color: "#fff",
+            fontWeight: 400,
+            fontSize: "26px",
+            lineHeight: "44px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 20,
+            boxSizing: "border-box",
+          }}
+        >
+          +
+        </button>
+      )}
 
       {dropdownState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div
