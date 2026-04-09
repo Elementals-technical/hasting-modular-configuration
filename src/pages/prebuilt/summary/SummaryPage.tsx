@@ -1493,11 +1493,18 @@ export const SummaryPage = () => {
                         <div className={s.itemTitle}>
                           {item.title}
                           {item.showInfo && item.description && (
-                            <span
-                              className={`${s.infoIcon} ${s.infoTooltip}`}
-                              data-tooltip={buildInfoTooltip(item.description)}
-                            >
+                            <span className={`${s.infoIcon} ${s.infoTooltip}`}>
                               <InformationIcon />
+                              <span className={s.infoTooltipContent}>
+                                {buildInfoTooltip(item.description)}
+                                <button
+                                  className={`${s.infoTooltipCopy} ${copiedId === `${item.id}-desc` ? s.infoTooltipCopied : ""}`}
+                                  onClick={() => handleCopy(buildInfoTooltip(item.description), `${item.id}-desc`)}
+                                  aria-label="Copy description"
+                                >
+                                  <span className={s.copyIcon} />
+                                </button>
+                              </span>
                             </span>
                           )}
                         </div>

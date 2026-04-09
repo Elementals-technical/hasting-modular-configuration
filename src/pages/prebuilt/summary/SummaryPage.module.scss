@@ -152,32 +152,94 @@
 .infoTooltip {
   position: relative;
 
-  &::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    // transform: translateX(-50%);
-    z-index: 5;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-
-    width: max-content;
-    max-width: min(360px, calc(100vw - 32px));
-    padding: 6px 8px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    font-family: var(--font-family-base);
-    font-size: 11px;
-    line-height: 1.35;
-    white-space: normal;
+  &:hover .infoTooltipContent {
+    opacity: 1;
+    pointer-events: auto;
   }
+}
 
-  &:hover::after {
+.infoTooltipContent {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: auto;
+  z-index: 5;
+
+  @media (max-width: 480px) {
+    position: fixed;
+    top: auto;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+  }
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: max-content;
+  max-width: min(400px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  color: #f0f0f0;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  white-space: normal;
+  user-select: text;
+  cursor: text;
+
+  // Invisible bridge to close the gap between icon and tooltip
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    height: 14px;
+  }
+}
+
+.infoTooltipCopy {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s ease;
+  opacity: 0.6;
+
+  &:hover {
     opacity: 1;
   }
+
+  .copyIcon::before,
+  .copyIcon::after {
+    border-color: #fff;
+  }
+
+  .copyIcon::before {
+    background: rgba(20, 20, 20, 0.92);
+  }
+}
+
+.infoTooltipCopied {
+  background: rgba(75, 143, 99, 0.4);
+  border-color: rgba(146, 201, 163, 0.5);
 }
 
 .itemSubtitle {
