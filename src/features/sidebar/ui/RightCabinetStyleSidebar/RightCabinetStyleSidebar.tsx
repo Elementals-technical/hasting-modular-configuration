@@ -50,7 +50,6 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
-import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
@@ -664,11 +663,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (productConfig || widthForAddedCabinet !== null) {
         const isSinkBase = activeDrawerProduct.toLowerCase().includes("sink-base");
+        const isVesselStyle = countertopStyle?.toLowerCase() === "vessel";
+        const resolvedSinkType = sinkType || (isVesselStyle ? "Vessel" : "");
         const nextConfig: Record<string, unknown> =
-          isSinkBase && sinkType
+          isSinkBase && (resolvedSinkType || countertopStyle)
             ? {
                 ...productConfig,
-                sinkType,
+                ...(resolvedSinkType ? { sinkType: resolvedSinkType } : {}),
+                ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}),
               }
             : { ...(productConfig ?? {}) };
 
@@ -686,9 +688,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColor });
         }
       }
-
-      const storedConfig = await getConfig(productId);
-      console.log("[RightCabinetStyleSidebar] stored config", storedConfig);
 
       dispatch(addProductId(productId));
       dispatch(setHasBootstrappedCabinetBuilder(true));
