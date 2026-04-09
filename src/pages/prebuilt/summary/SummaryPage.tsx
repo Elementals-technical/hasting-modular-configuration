@@ -910,18 +910,19 @@ export const SummaryPage = () => {
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
-    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Hole Cutout"];
+    const basinLabel = useVesselMaterialForCountertopSku ? "Vessel Cutout" : "Basin";
+    const countertopSkuLabels = ["Countertop", basinLabel, "Faucet Holes", "Hole Cutout"];
 
     const extraCountertopItems = countertopSkuLines.slice(1).map((line, i) => {
       const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
-      const optionSubtitle =
-        lineTitle === "Basin"
-          ? (basinStyleLabel ?? undefined)
-          : lineTitle === "Hole Cutout"
-            ? basinStyleLabel
-              ? `Cutout for ${basinStyleLabel}`
-              : "Cutout"
-            : undefined;
+      const isBasinLine = lineTitle === basinLabel;
+      const optionSubtitle = isBasinLine
+        ? (basinStyleLabel ?? undefined)
+        : lineTitle === "Hole Cutout"
+          ? basinStyleLabel
+            ? `Cutout for ${basinStyleLabel}`
+            : "Cutout"
+          : undefined;
       return {
         id: `countertop-sku-${i + 1}`,
         title: lineTitle,
@@ -929,10 +930,10 @@ export const SummaryPage = () => {
         sku: line,
         price: resolveItemPrice(line),
         copyable: true,
-        showInfo: lineTitle === "Basin",
+        showInfo: isBasinLine,
         description: {
           "Product Category": lineTitle,
-          ...(lineTitle === "Basin" && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
+          ...(isBasinLine && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
         },
       };
     });
