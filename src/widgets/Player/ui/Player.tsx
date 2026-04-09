@@ -421,7 +421,7 @@ export function Player() {
       content: {
         title: "Product Details",
         bullets: [
-          "Special Order: All solutions are built-to order",
+          "Special Order: All solutions are built-to-order",
           "Lead Time: 10-12 weeks",
           "Country of Origin: Italy",
           "Warranty: 36 months",
