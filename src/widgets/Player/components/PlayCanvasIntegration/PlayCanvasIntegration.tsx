@@ -917,6 +917,17 @@ export const PlayCanvasIntegration = () => {
     };
 
     iframeEl.addEventListener("load", handleLoad);
+
+    // Handle StrictMode re-mount: if the iframe already loaded (load event
+    // already fired before this effect ran), start polling immediately.
+    try {
+      if (iframeEl.contentWindow && iframeEl.contentWindow.document.readyState === "complete") {
+        handleLoad();
+      }
+    } catch {
+      // contentWindow access may throw for cross-origin; ignore
+    }
+
     return () => {
       iframeEl.removeEventListener("load", handleLoad);
       if (pollId !== null) clearInterval(pollId);

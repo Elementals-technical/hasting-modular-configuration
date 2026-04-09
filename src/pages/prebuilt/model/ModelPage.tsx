@@ -17,8 +17,9 @@ import {
   reset,
   resetCabinetBuilderBootstrap,
   setActiveBasinStyle,
-  setActiveCountertopColor,
-  setHandleGrooveColor,
+  setActiveCountertopColor, 
+  setCabinetColor, 
+  setHandleGrooveColor, 
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -33,6 +34,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { reapplySidePanelsForPreset } from "@/features/sidePanel";
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
+import { clearHistory } from "@/entities/history/model/store/slice";
 
 import s from "./ModelPage.module.scss";
 
@@ -202,6 +204,11 @@ export const ModelPage = () => {
         if (spGroove && spGroove !== "None" && presetProducts?.length) {
           await reapplySidePanelsForPreset(dispatch, spGroove, presetProducts, presetProducts.length);
         }
+
+        const presetCabinetColor = presetProducts?.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+        if (presetCabinetColor) dispatch(setCabinetColor(presetCabinetColor));
+
+        dispatch(clearHistory());
 
         if (presetId && options?.syncUrl !== false) {
           const nextSearchParams = new URLSearchParams(searchParams);
@@ -374,6 +381,11 @@ export const ModelPage = () => {
 
         await updateSelectedDimensionsFromScene(presetProducts);
         sessionStorage.setItem("prebuiltModelInitialized", "1");
+
+        const presetCabinetColor = presetProducts.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+        if (presetCabinetColor) dispatch(setCabinetColor(presetCabinetColor));
+
+        dispatch(clearHistory());
       } catch (error) {
         console.log(error);
       }
