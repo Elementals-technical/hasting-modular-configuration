@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { BottomStickyBar } from "@/features";
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 import { setActiveStep } from "@/features/sidebar/model/store/slice";
-import { StepNavigationBar } from "@/features/StepNavigationBar /StepNavigationBar";
+import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";

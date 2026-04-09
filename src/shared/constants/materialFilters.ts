@@ -165,6 +165,58 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
   return result;
 };
 
+const flattenFilterOptionsInOrder = (options: FilterOption[]): string[] =>
+  options.flatMap((option) => {
+    const ownValues = [option.label, option.value].filter(Boolean);
+    if (!option.children?.length) return ownValues;
+
+    return [...ownValues, ...flattenFilterOptionsInOrder(option.children)];
+  });
+
+const buildMaterialOrderIndex = (options: FilterOption[]) => {
+  const index = new Map<string, number>();
+
+  flattenFilterOptionsInOrder(options).forEach((token, position) => {
+    const normalized = normalizeGroupToken(token);
+    if (!normalized || index.has(normalized)) return;
+    index.set(normalized, position);
+  });
+
+  return index;
+};
+
+const resolveOptionMaterialPosition = (option: ProductOptionData, orderIndex: Map<string, number>) => {
+  const candidates = [option.desc, ...(option.metadata?.materials ?? [])];
+
+  let bestPosition = Number.MAX_SAFE_INTEGER;
+  for (const candidate of candidates) {
+    const position = orderIndex.get(normalizeGroupToken(candidate ?? ""));
+    if (position !== undefined) {
+      bestPosition = Math.min(bestPosition, position);
+    }
+  }
+
+  return bestPosition;
+};
+
+export const sortOptionsByMaterialFilterOrder = (
+  options: ProductOptionData[],
+  materialFilterOptions: FilterOption[],
+): ProductOptionData[] => {
+  const orderIndex = buildMaterialOrderIndex(materialFilterOptions);
+
+  return [...options].sort((a, b) => {
+    const materialPositionDiff =
+      resolveOptionMaterialPosition(a, orderIndex) - resolveOptionMaterialPosition(b, orderIndex);
+    if (materialPositionDiff !== 0) return materialPositionDiff;
+
+    const descDiff = (a.desc ?? "").localeCompare(b.desc ?? "");
+    if (descDiff !== 0) return descDiff;
+
+    return a.title.localeCompare(b.title);
+  });
+};
+
 export type MaterialFilterSelection = {
   material?: string;
   color?: string;

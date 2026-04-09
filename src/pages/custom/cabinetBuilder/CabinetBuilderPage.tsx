@@ -119,6 +119,7 @@ const MATRIX_CABINET_DATATABLE_ID = 439;
 const MATRIX_COUNTERTOP_DATATABLE_ID = 438;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 
 const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
@@ -709,16 +710,30 @@ export const CabinetBuilderPage = () => {
     if (productsPresets.length) return;
     if (hasBootstrappedCabinetBuilder) return;
 
+    const preservedCabinetColor = cabinetColor?.trim() ? cabinetColor : CUSTOM_DEFAULT_CABINET_COLOR;
+    const preservedCountertopColor = countertopColor?.trim() ? countertopColor : CUSTOM_DEFAULT_COUNTERTOP_COLOR;
+    const preservedSinkType = sinkType?.trim() ? sinkType : CUSTOM_DEFAULT_SINK_TYPE;
+
     bootstrappedRef.current = false;
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
-    dispatch(setCabinetColor(CUSTOM_DEFAULT_CABINET_COLOR));
-    dispatch(setActiveCountertopColor(CUSTOM_DEFAULT_COUNTERTOP_COLOR));
+    dispatch(setCabinetColor(preservedCabinetColor));
+    dispatch(setActiveCountertopColor(preservedCountertopColor));
+    dispatch(setActiveBasinStyle(preservedSinkType));
 
     if (canvasReady) {
       removeAllProducts();
     }
-  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, pathname, productsPresets.length]);
+  }, [
+    canvasReady,
+    dispatch,
+    hasBootstrappedCabinetBuilder,
+    pathname,
+    productsPresets.length,
+    cabinetColor,
+    countertopColor,
+    sinkType,
+  ]);
 
   useEffect(() => {
     if (!canvasReady || !productsPresets.length || bootstrappedRef.current) return;
@@ -734,9 +749,9 @@ export const CabinetBuilderPage = () => {
       const [firstPreset] = productsPresets;
       const preferredCabinetColor = firstPreset?.CabinetColor ?? cabinetColor ?? CUSTOM_DEFAULT_CABINET_COLOR;
       const preferredCountertopColor =
-        firstPreset?.CountertopColor ?? countertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
+        countertopColor ?? firstPreset?.CountertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
+      const preferredSinkType = sinkType ?? firstPreset?.sinkType ?? CUSTOM_DEFAULT_SINK_TYPE;
       const preferredHandleGrooveColor = firstPreset?.HandleGrooveColor ?? handleGrooveColor ?? preferredCabinetColor;
-      const preferredSinkType = firstPreset?.sinkType ?? sinkType;
 
       if (!existingIds.length) {
         const mergedPresets = productsPresets.map((preset) => ({

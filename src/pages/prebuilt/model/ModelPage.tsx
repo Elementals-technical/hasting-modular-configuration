@@ -17,8 +17,9 @@ import {
   reset,
   resetCabinetBuilderBootstrap,
   setActiveBasinStyle,
-  setActiveCountertopColor,
-  setCabinetColor,
+  setActiveCountertopColor, 
+  setCabinetColor, 
+  setHandleGrooveColor, 
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -51,7 +52,9 @@ const presetKeys: Array<keyof PresetProduct> = [
 const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]) => {
   if (!presetProducts?.length) return {};
 
-  const firstWithCountertop = presetProducts.find((p) => typeof p.CountertopColor === "string" && p.CountertopColor.trim());
+  const firstWithCountertop = presetProducts.find(
+    (p) => typeof p.CountertopColor === "string" && p.CountertopColor.trim(),
+  );
   const firstWithSink = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType.trim());
 
   const globalConfig: Record<string, string> = {};
@@ -239,16 +242,27 @@ export const ModelPage = () => {
   const handleNavigate = async (tab: "prebuilt" | "custom") => {
     if (tab !== "custom") return;
 
-    const currentPresets = productsPresets;
-
-    await resetAccessoriesForCustomTransition();
-    await removeAllProducts();
-
-    dispatch(reset());
-    dispatch(resetCabinetBuilderBootstrap());
-    if (currentPresets.length) {
-      dispatch(addProductPreset(currentPresets));
+    // Sync HandleGrooveColor from the scene to slice before navigating. In
+    // prebuilt the groove color may exist only on the PlayCanvas products and
+    // not in productOptions; the cabinet-builder bootstrap then falls back to
+    // cabinetColor, losing the real value. Pre-populating the slice ensures
+    // bootstrap uses the scene's groove color.
+    const orderedIds = getOrderedProductIds();
+    for (const productId of orderedIds) {
+      const config = await getConfig(productId);
+      const sceneGroove =
+        config && typeof config === "object" ? (config as Record<string, unknown>).HandleGrooveColor : undefined;
+      if (typeof sceneGroove === "string" && sceneGroove.trim()) {
+        dispatch(setHandleGrooveColor(sceneGroove));
+        break;
+      }
     }
+
+    // We need to reset the store before navigation because it registers
+    // productIds in the store, applies placedCabinetStyles, selectedProductConfig,
+    // dimensions and activeCabinetType — so products become deletable and newly
+    // added cabinets inherit current colors — without wiping scene extras
+    // (side panels, towel bar).
     navigate(ROUTES.CUSTOM);
   };
 
@@ -351,7 +365,8 @@ export const ModelPage = () => {
 
     isDefinedProductsRef.current = true;
 
-    const presetProducts = presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : productMockData[0].presetProducts);
+    const presetProducts =
+      presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : productMockData[0].presetProducts);
 
     const run = async () => {
       try {

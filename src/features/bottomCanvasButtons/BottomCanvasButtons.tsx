@@ -47,7 +47,6 @@ import {
   getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getGrainDirection,
   getHandleGrooveColor,
   getLedOption,
@@ -95,7 +94,6 @@ export const BottomCanvasButtons = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
@@ -270,7 +268,6 @@ export const BottomCanvasButtons = () => {
         TowelBarOption: towelBarOption,
         TowelBarColor: towelBarColor,
         FaucetHolesAmount: faucetHolesAmount,
-        FaucetHolesSpacing: faucetHolesSpacing,
       },
     };
 

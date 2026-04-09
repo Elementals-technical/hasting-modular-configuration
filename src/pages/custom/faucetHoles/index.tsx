@@ -4,19 +4,17 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { faucetHolesAmountData } from "./constants";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getSelectedDimensions,
   getSelectedProducts,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
-import { setFaucetHolesAmount, setFaucetHolesSpacing } from "@/entities/product/model/store/slice";
+import { setFaucetHolesAmount } from "@/entities/product/model/store/slice";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -27,16 +25,8 @@ import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 
-const faucetHolesSpacingOptions = [
-  {
-    label: '4"',
-    value: '4"',
-  },
-];
-
 export const CustomFaucetHolesPage = () => {
   const dispatch = useAppDispatch();
-  const faucetSpacing = useAppSelector(getFaucetHolesSpacing);
   const faucetAmount = useAppSelector(getFaucetHolesAmount);
 
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -87,8 +77,6 @@ export const CustomFaucetHolesPage = () => {
   const filteredFaucetHolesAmountData = useMemo(() => {
     const allowed = ruleState.allowedFaucetHoles;
 
-    console.log("allowed", allowed);
-
     if (!allowed.size) return faucetHolesAmountData;
 
     return faucetHolesAmountData.filter((option) => {
@@ -100,11 +88,6 @@ export const CustomFaucetHolesPage = () => {
   const handleFaucetAmountChange = (value: string | null) => {
     if (!value) return;
     dispatch(setFaucetHolesAmount(value));
-  };
-
-  const handleFaucetSpacingChange = (value?: string | number) => {
-    if (value === undefined) return;
-    dispatch(setFaucetHolesSpacing(String(value)));
   };
 
   useEffect(() => {
@@ -119,14 +102,6 @@ export const CustomFaucetHolesPage = () => {
     }
   }, [dispatch, faucetAmount, filteredFaucetHolesAmountData]);
 
-  useEffect(() => {
-    const defaultSpacing = String(faucetHolesSpacingOptions[0]?.value ?? "");
-    if (!defaultSpacing) return;
-    if (!faucetSpacing) {
-      dispatch(setFaucetHolesSpacing(defaultSpacing));
-    }
-  }, [dispatch, faucetSpacing]);
-
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "faucet-holes-amount",
@@ -138,20 +113,6 @@ export const CustomFaucetHolesPage = () => {
             data={filteredFaucetHolesAmountData}
             selectedValue={faucetAmount}
             onSelectChange={handleFaucetAmountChange}
-          />
-        </>
-      ),
-    },
-    {
-      id: "faucet-holes-spacing",
-      title: "Faucet Hole Spacing",
-      content: (
-        <>
-          <FilterSelection
-            label="Spacing"
-            options={faucetHolesSpacingOptions}
-            value={faucetSpacing}
-            onSelect={handleFaucetSpacingChange}
           />
         </>
       ),

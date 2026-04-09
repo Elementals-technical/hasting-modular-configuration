@@ -72,7 +72,6 @@ import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
-  normalizeMaterialToken,
   parseCountertopMatrix,
   resolveCountertopMaxLengthByRules,
   resolveDefaultThicknessFromRules,
@@ -82,6 +81,8 @@ import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
+import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
+import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -90,8 +91,6 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const SIDE_SHELF_WIDTH_CM = 15;
-const RESIZE_HIDDEN_DEPTH_CM = 46;
-
 const stripRuntimeEntitySuffix = (value: string): string => {
   const trimmed = value.trim();
   const lastDash = trimmed.lastIndexOf("-");
@@ -191,8 +190,11 @@ export const PlayCanvasIntegration = () => {
   const navigate = useNavigate();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
+  const isCustomPage = location.pathname.startsWith("/custom");
+  const isCabinetBuilderPage = location.pathname.includes("/custom/cabinet-builder");
   const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
+  const isPlayCanvasReady = usePlayCanvasReady();
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
@@ -202,6 +204,13 @@ export const PlayCanvasIntegration = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
+
+  const shouldShowEmptySceneRedirectButton =
+    isPlayCanvasReady &&
+    isCustomPage &&
+    !isCabinetBuilderPage &&
+    productIds.length === 0;
+
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
@@ -352,9 +361,11 @@ export const PlayCanvasIntegration = () => {
     let sidePanelsCount = 0;
     let primaryCabinetHeight: number | null = null;
     let fallbackCabinetHeight: number | null = null;
+    let maxCabinetDepth: number | null = null;
     let countertopId: string | null = null;
     let currentCountertopWidth: number | null = null;
     let currentCountertopHeight: number | null = null;
+    let currentCountertopDepth: number | null = null;
 
     Object.entries(allProducts).forEach(([id, product]) => {
       if (!product || typeof product !== "object") return;
@@ -376,6 +387,9 @@ export const PlayCanvasIntegration = () => {
             primaryCabinetHeight = primaryCabinetHeight === null ? product.Height : primaryCabinetHeight;
           }
         }
+        if (typeof product.Depth === "number" && Number.isFinite(product.Depth)) {
+          maxCabinetDepth = maxCabinetDepth === null ? product.Depth : Math.max(maxCabinetDepth, product.Depth);
+        }
       }
 
       if (productType === "SidePanel_Left" || productType === "SidePanel_Right") {
@@ -386,6 +400,7 @@ export const PlayCanvasIntegration = () => {
         countertopId = id;
         currentCountertopWidth = typeof product.Width === "number" ? product.Width : null;
         currentCountertopHeight = typeof product.Height === "number" ? product.Height : null;
+        currentCountertopDepth = typeof product.Depth === "number" ? product.Depth : null;
       }
     });
 
@@ -395,16 +410,47 @@ export const PlayCanvasIntegration = () => {
       countertopId,
       currentWidth: currentCountertopWidth,
       currentHeight: currentCountertopHeight,
+      currentDepth: currentCountertopDepth,
       targetWidth: Number((summedWidth + sidePanelsCount).toFixed(2)),
       targetHeight: primaryCabinetHeight ?? fallbackCabinetHeight,
+      targetDepth: maxCabinetDepth,
     };
   }, [getCompositionProducts]);
+
+  const setCountertopDimensionData = useCallback(
+    (productId: string, config: Record<string, unknown>) => {
+      const dimensionTool = getDimensionTool() as any;
+      if (!dimensionTool) {
+        updateDimensionDataForProduct(productId, config);
+        return;
+      }
+
+      const width = toFiniteNumber(config.Width);
+      const depth = toFiniteNumber(config.Depth);
+      const heightKey = toFiniteNumber(config.Height);
+      const rawConfigThickness = toFiniteNumber(config.Thickness);
+      const thicknessValue =
+        rawConfigThickness !== null && rawConfigThickness > 0
+          ? rawConfigThickness
+          : toFiniteNumber(activeCountertopThickness);
+      const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
+
+      const nextData: Record<string, unknown> = { productId };
+      if (width !== null) nextData.Width = { [String(width)]: formatCmWithInches(width) };
+      if (depth !== null) nextData.Depth = { [String(depth)]: formatCmWithInches(depth) };
+      if (heightKey !== null && thicknessLabel) nextData.Height = { [String(heightKey)]: thicknessLabel };
+
+      if (!nextData.Width && !nextData.Depth && !nextData.Height) return;
+      dimensionTool.setDimensionData(nextData);
+    },
+    [activeCountertopThickness],
+  );
 
   const syncCountertopConfig = useCallback(async () => {
     const syncData = getCountertopSyncData();
     if (!syncData) return;
 
-    const nextConfig: { Width?: number; Height?: number } = {};
+    const nextConfig: { Width?: number; Height?: number; Depth?: number } = {};
 
     if (typeof syncData.targetWidth === "number") {
       if (typeof syncData.currentWidth !== "number" || Math.abs(syncData.currentWidth - syncData.targetWidth) >= 0.01) {
@@ -418,6 +464,12 @@ export const PlayCanvasIntegration = () => {
         Math.abs(syncData.currentHeight - syncData.targetHeight) >= 0.01
       ) {
         nextConfig.Height = syncData.targetHeight;
+      }
+    }
+
+    if (typeof syncData.targetDepth === "number") {
+      if (typeof syncData.currentDepth !== "number" || Math.abs(syncData.currentDepth - syncData.targetDepth) >= 0.01) {
+        nextConfig.Depth = syncData.targetDepth;
       }
     }
 
@@ -447,32 +499,6 @@ export const PlayCanvasIntegration = () => {
     tool.__displayNamePatched = true;
     return true;
   }, []);
-
-  function setCountertopDimensionData(productId: string, config: Record<string, unknown>) {
-    const dimensionTool = getDimensionTool() as any;
-    if (!dimensionTool) {
-      updateDimensionDataForProduct(productId, config);
-      return;
-    }
-
-    const width = toFiniteNumber(config.Width);
-    const depth = toFiniteNumber(config.Depth);
-    const heightKey = toFiniteNumber(config.Height);
-    const rawConfigThickness = toFiniteNumber(config.Thickness);
-    const thicknessValue =
-      rawConfigThickness !== null && rawConfigThickness > 0
-        ? rawConfigThickness
-        : toFiniteNumber(activeCountertopThickness);
-    const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
-
-    const nextData: Record<string, unknown> = { productId };
-    if (width !== null) nextData.Width = { [String(width)]: formatCmWithInches(width) };
-    if (depth !== null) nextData.Depth = { [String(depth)]: formatCmWithInches(depth) };
-    if (heightKey !== null && thicknessLabel) nextData.Height = { [String(heightKey)]: thicknessLabel };
-
-    if (!nextData.Width && !nextData.Depth && !nextData.Height) return;
-    dimensionTool.setDimensionData(nextData);
-  }
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
@@ -710,27 +736,9 @@ export const PlayCanvasIntegration = () => {
       values: baseOptions,
       activeMaterialTokens,
       rules: countertopRules,
+      activeCountertopStyle: countertopStyle ?? null,
     });
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
-
-  const isSolidSurfaceTekormudSelected = useMemo(() => {
-    const normalizedTokens = new Set(activeMaterialTokens.map((token) => normalizeMaterialToken(token)));
-    const normalizedColor = normalizeMaterialToken(activeCountertopColor ?? "");
-    const normalizedSku = normalizeMaterialToken(countertopColorSku ?? "");
-
-    const hasTekormud =
-      normalizedTokens.has("tekormud") || normalizedColor.includes("tekormud") || normalizedSku.includes("tekormud");
-
-    return hasTekormud;
-  }, [activeMaterialTokens, activeCountertopColor, countertopColorSku]);
-
-  const resizeDepthOptions = useMemo(
-    () =>
-      isSolidSurfaceTekormudSelected
-        ? depthOptions.filter((value) => Math.abs(Number(value) - RESIZE_HIDDEN_DEPTH_CM) >= 0.01)
-        : depthOptions,
-    [isSolidSurfaceTekormudSelected, depthOptions],
-  );
+  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -955,6 +963,8 @@ export const PlayCanvasIntegration = () => {
   const handleSetDepth = useCallback(
     async (depth: number) => {
       if (!productIds) return;
+      const isAllowedDepth = depthOptions.some((value) => Math.abs(Number(value) - depth) < 0.01);
+      if (!isAllowedDepth) return;
 
       try {
         await saveSnapshot();
@@ -967,13 +977,62 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, saveSnapshot, dispatch],
+    [productIds, depthOptions, saveSnapshot, dispatch],
   );
 
   useEffect(() => {
     if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
     void syncCountertopConfig();
-  }, [selectedDimensions.height, syncCountertopConfig]);
+  }, [productIds.length, selectedDimensions.depth, selectedDimensions.height, syncCountertopConfig]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+    if (!isCustomPage || isCabinetBuilderPage) return;
+    if (productIds.length > 0) return;
+
+    const sceneProductIds = getOrderedProductIds();
+    if (!sceneProductIds.length) return;
+
+    sceneProductIds.forEach((productId) => {
+      dispatch(addProductId(productId));
+    });
+  }, [dispatch, isCabinetBuilderPage, isCustomPage, isPlayCanvasReady, productIds.length]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    if (isPrebuilt) {
+      hideEmptyButton();
+
+      return () => {
+        hideEmptyButton();
+      };
+    }
+
+    const isCustomNonBuilderPage = isCustomPage && !isCabinetBuilderPage;
+
+    if (isCustomNonBuilderPage) {
+      hideEmptyButton();
+
+      return () => {
+        hideEmptyButton();
+      };
+    }
+
+    if (isCabinetBuilderPage) return;
+
+    if (productIds.length > 0) {
+      hideEmptyButton();
+
+      return;
+    }
+
+    showEmptyButton();
+
+    return () => {
+      hideEmptyButton();
+    };
+  }, [isCabinetBuilderPage, isCustomPage, isPlayCanvasReady, isPrebuilt, productIds.length]);
 
   useEffect(() => {
     if (wasRestoringRef.current && !isHistoryRestoring) {
@@ -1312,20 +1371,24 @@ export const PlayCanvasIntegration = () => {
   }, [handleOpenCustomizeModePrompt]);
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-color");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=countertop-color");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-thickness");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=thickness");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("countertop-style");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=countertop-styles");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
-    handleOpenCustomizeModePrompt("basin-style");
-  }, [handleOpenCustomizeModePrompt]);
+    navigate("/prebuilt/countertop?accordion=basin-style");
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [navigate]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
@@ -2050,10 +2113,22 @@ export const PlayCanvasIntegration = () => {
           ],
         },
         {
+          id: "add",
+          label: "Add",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleAddFromPrebuilt,
+        },
+        {
           id: "accessories",
           label: "Accessories",
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleOpenAccessories,
+        },
+        {
+          id: "duplicate",
+          label: "Duplicate",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: handleDuplicateFromPrebuilt,
         },
         ...(isOneOrTwoDrawerProduct
           ? [
@@ -2065,13 +2140,6 @@ export const PlayCanvasIntegration = () => {
               },
             ]
           : []),
-        { id: "add", label: "Add", trailing: <ArrowTopRight color={"#333"} />, onClick: handleAddFromPrebuilt },
-        {
-          id: "duplicate",
-          label: "Duplicate",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleDuplicateFromPrebuilt,
-        },
         ...(selectedSceneProduct
           ? [
               {
@@ -2125,7 +2193,7 @@ export const PlayCanvasIntegration = () => {
           {
             id: "resize-depth",
             label: "Depth",
-            children: resizeDepthOptions.map((value) => ({
+            children: depthOptions.map((value) => ({
               id: `resize-depth-${value}`,
               label: `${value}`,
               onClick: () => handleSetDepth(Number(value)),
@@ -2215,7 +2283,7 @@ export const PlayCanvasIntegration = () => {
           ]
         : []),
       ...((selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2) ||
-        (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
+      (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
         ? []
         : canDuplicateSelectedCabinet
           ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
@@ -2257,7 +2325,7 @@ export const PlayCanvasIntegration = () => {
     canAddAnotherCabinet,
     canDuplicateSelectedCabinet,
     widthOptions,
-    resizeDepthOptions,
+    depthOptions,
     isPrebuilt,
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,
@@ -2305,6 +2373,10 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
+
+  const handleEmptySceneRedirect = useCallback(() => {
+    navigate("/custom/cabinet-builder?accordion=cabinet-type");
+  }, [navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {
@@ -2416,6 +2488,38 @@ export const PlayCanvasIntegration = () => {
           display: "block",
         }}
       />
+
+      {shouldShowEmptySceneRedirectButton && (
+        <button
+          type="button"
+          onClick={handleEmptySceneRedirect}
+          aria-label="Open cabinet builder"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "48px",
+            height: "48px",
+            padding: 0,
+            borderRadius: "999px",
+            border: "none",
+            background: "#ac5331",
+            color: "#fff",
+            fontWeight: 400,
+            fontSize: "26px",
+            lineHeight: "44px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 20,
+            boxSizing: "border-box",
+          }}
+        >
+          +
+        </button>
+      )}
 
       {dropdownState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div

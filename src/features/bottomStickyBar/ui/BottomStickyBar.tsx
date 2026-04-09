@@ -9,6 +9,7 @@ import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/produc
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
 import { getSummarySkuJson, getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
+import { printQuote } from "@/features/quotePrint/lib/printQuote";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -35,6 +36,26 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
 
+  const copySkuJson = () => {
+    const skuJson = getSummarySkuJson();
+
+    if (skuJson.length && navigator.clipboard) {
+      navigator.clipboard.writeText(JSON.stringify(skuJson, null, 2));
+    }
+  };
+
+  const handleQuoteClick = () => {
+    if (isSummaryPage) {
+      printQuote();
+      return;
+    }
+
+    const summaryStep = steps[steps.length - 1];
+    if (summaryStep) {
+      navigate(`${summaryStep.path}?print=1`);
+    }
+  };
+
   const handleNavigate = () => {
     if (nextStep) {
       const exitTopView = wrapExitTopView({});
@@ -44,10 +65,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
 
       navigate(nextStep?.path);
     } else {
-      const skuJson = getSummarySkuJson();
-      if (skuJson.length && navigator.clipboard) {
-        navigator.clipboard.writeText(JSON.stringify(skuJson, null, 2));
-      }
+      copySkuJson();
     }
   };
 
@@ -65,7 +83,13 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
           )}
         </span>
         <span className={s.showroom_link}>
-          <Link to="#">
+          <Link
+            to="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleQuoteClick();
+            }}
+          >
             <span>Quote</span>
             <span className={s.icon}>
               <svg

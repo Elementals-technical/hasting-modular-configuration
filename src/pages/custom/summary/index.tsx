@@ -20,13 +20,13 @@ import {
   getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getGrainDirection,
   getBookMatching,
   getHandleGrooveColor,
   getHandleGrooveColorSku,
   getPriceBySku,
   getPriceLoading,
+  getHasBootstrappedCabinetBuilder,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
@@ -69,12 +69,18 @@ import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/stor
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
+import { printQuote } from "@/features/quotePrint/lib/printQuote";
 import {
   convertSkuToInchesForSummary,
   formatCabinetDimsForSummary,
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
 } from "@/shared/lib/summaryFormatters";
+import {
+  normalizeProductConfigSnapshot,
+  type NormalizedProductConfigSnapshot,
+} from "@/shared/lib/normalizeProductConfigSnapshot";
+import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 
 import s from "./SummaryPage.module.scss";
 
@@ -261,6 +267,7 @@ export const CustomSummaryPage = () => {
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
+  const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
 
@@ -289,13 +296,12 @@ export const CustomSummaryPage = () => {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const selectedSwatches = useAppSelector(getSelectedSwatches);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
   const hasSelectedSwatches = selectedSwatches.length > 0;
   const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSelectedSwatches;
 
-  const [productConfigs, setProductConfigs] = useState<Array<Record<string, unknown>>>([]);
+  const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
   const [saveConfiguration] = useSaveConfigurationMutation();
 
@@ -406,10 +412,16 @@ export const CustomSummaryPage = () => {
       const configs = await Promise.all(
         selectedProducts.map(async (id) => {
           const config = await getConfig(id);
-          return config ? { _productId: id, ...config } : null;
+          return config
+            ? normalizeProductConfigSnapshot({
+                id,
+                raw: config as Record<string, unknown>,
+                selectedDimensions,
+              })
+            : null;
         }),
       );
-      const cleaned = configs.filter((config): config is Record<string, unknown> => Boolean(config));
+      const cleaned = configs.filter((config): config is NormalizedProductConfigSnapshot => Boolean(config));
       if (isMounted) setProductConfigs(cleaned);
     };
 
@@ -418,7 +430,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedProducts]);
+  }, [selectedDimensions, selectedProducts]);
 
   useEffect(() => {
     let isMounted = true;
@@ -432,6 +444,23 @@ export const CustomSummaryPage = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!quotePreviewImage) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get("print") !== "1") return;
+
+    const timer = window.setTimeout(() => {
+      printQuote();
+      params.delete("print");
+      navigate(
+        { pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" },
+        { replace: true },
+      );
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [quotePreviewImage, location.search, location.pathname, navigate]);
 
   const buildCabinetDescription = useCallback(
     (opts: {
@@ -485,9 +514,19 @@ export const CustomSummaryPage = () => {
       cabinetColorSku ||
       cabinetColorSkuByName.get(cabinetColor) ||
       null;
-    const cabinetConfigs = productConfigs.filter((config) => config.category === "cabinets");
-    const cabinetCount =
-      cabinetConfigs.length > 0 ? cabinetConfigs.length : productsPresets.length > 0 ? productsPresets.length : 1;
+    const shouldUsePresets = shouldUsePresetProducts({
+      productsPresetsCount: productsPresets.length,
+      productIdsCount: selectedProducts.length,
+      sceneConfigsCount: productConfigs.length,
+      hasBootstrappedCabinetBuilder,
+    });
+    const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
+    const cabinetConfigs = sceneProductConfigs.filter((config) => config.category === "cabinets");
+    const cabinetCount = shouldUsePresets
+      ? productsPresets.length + cabinetConfigs.length
+      : cabinetConfigs.length > 0
+        ? cabinetConfigs.length
+        : 1;
     const resolveNameFromRaw = (v: string) => {
       const lastDash = v.lastIndexOf("-");
       if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
@@ -528,275 +567,267 @@ export const CustomSummaryPage = () => {
             ? 1
             : 0,
     );
-    const cabinetItems =
-      cabinetConfigs.length > 0
-        ? cabinetConfigs.map((config, index) => {
-            const width = typeof config.Width === "number" ? config.Width : undefined;
-            const depth = typeof config.Depth === "number" ? config.Depth : undefined;
-            const height = typeof config.Height === "number" ? config.Height : undefined;
-            const drawers = formatCabinetDrawersForSummary(config.Drawers);
-            const dims = formatCabinetDimsForSummary(width, depth, height);
-            const subtitle = [drawers, dims].filter(Boolean).join(" | ");
-            const name =
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
-                  : typeof config.entityName === "string"
-                    ? resolveNameFromRaw(config.entityName)
-                    : typeof config._productId === "string"
-                      ? resolveNameFromRaw(config._productId)
-                      : typeof config.name === "string"
-                        ? config.name
-                        : undefined;
-            const swatchValue =
-              typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
-            const swatch = resolveSwatch(swatchValue);
+    const configCabinetItems = cabinetConfigs.map((config, index) => {
+      const width = typeof config.Width === "number" ? config.Width : undefined;
+      const depth = typeof config.Depth === "number" ? config.Depth : undefined;
+      const height = typeof config.Height === "number" ? config.Height : undefined;
+      const drawers = formatCabinetDrawersForSummary(config.Drawers);
+      const dims = formatCabinetDimsForSummary(width, depth, height);
+      const subtitle = [drawers, dims].filter(Boolean).join(" | ");
+      const name =
+        config.ProductType ??
+        config.productType ??
+        (config.entityName ? resolveNameFromRaw(config.entityName) : undefined) ??
+        config.name ??
+        undefined;
+      const swatchValue =
+        typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
+      const swatch = resolveSwatch(swatchValue);
 
-            const productCabinetType = name ?? activeCabinetType;
-            const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
-            const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
+      const productCabinetType = name ?? activeCabinetType;
+      const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
+      const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
-            const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+      const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
 
-            let sku: string;
-            if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
-              sku = buildOpenShelfSku({
-                width: width ?? null,
-                height: height ?? null,
-                depth: depth ?? null,
-                cabinetMaterialSku: cabinetMaterialSku,
-                cabinetColorCode: extractColorCode(swatchValue),
+      let sku: string;
+      if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
+        sku = buildOpenShelfSku({
+          width: width ?? null,
+          height: height ?? null,
+          depth: depth ?? null,
+          cabinetMaterialSku: cabinetMaterialSku,
+          cabinetColorCode: extractColorCode(swatchValue),
+          grainDirection: grainSku,
+        });
+      } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
+        const side: "L" | "R" = index === 0 ? "L" : "R";
+        sku = buildOpenSideShelfSku({
+          side,
+          width: width ?? null,
+          height: height ?? null,
+          depth: depth ?? null,
+          cabinetMaterialSku: cabinetMaterialSku,
+          cabinetColorCode: extractColorCode(swatchValue),
+          grainDirection: grainSku,
+        });
+      } else {
+        sku = buildProductSku({
+          cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
+          drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+          handle: typeof config.Handle === "string" ? config.Handle : null,
+          pattern: drawerPanelFluting || null,
+          width: width ?? null,
+          height: height ?? null,
+          depth: depth ?? null,
+          cab: cabinetMaterialSku
+            ? {
+                materialSku: cabinetMaterialSku,
+                colorCode: extractColorCode(swatchValue),
                 grainDirection: grainSku,
-              });
-            } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-              const side: "L" | "R" = index === 0 ? "L" : "R";
-              sku = buildOpenSideShelfSku({
-                side,
-                width: width ?? null,
-                height: height ?? null,
-                depth: depth ?? null,
-                cabinetMaterialSku: cabinetMaterialSku,
-                cabinetColorCode: extractColorCode(swatchValue),
-                grainDirection: grainSku,
-              });
-            } else {
-              sku = buildProductSku({
-                cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
-                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-                handle: typeof config.Handle === "string" ? config.Handle : null,
-                pattern:
-                  typeof config.DrawerPanelFluting === "string"
-                    ? config.DrawerPanelFluting
-                    : drawerPanelFluting || null,
-                width: width ?? null,
-                height: height ?? null,
-                depth: depth ?? null,
-                cab: cabinetMaterialSku
-                  ? {
-                      materialSku: cabinetMaterialSku,
-                      colorCode: extractColorCode(swatchValue),
-                      grainDirection: grainSku,
-                    }
-                  : null,
-                hdl: handleMaterialSku
-                  ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                  : null,
-                msp: null,
-                bkpl: null,
-              });
-            }
-
-            return {
-              id: `cabinet-${index}`,
-              title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
-              subtitle,
-              sku,
-              swatch: {
-                label: "Cabinet",
-                value: swatch.value,
-                color: swatch.color,
-                image: swatch.image,
-              },
-              price: resolveItemPrice(sku),
-              copyable: true,
-              showInfo: true,
-              description: buildCabinetDescription({
-                cabinetType: productCabinetType,
-                drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-                handle: typeof config.Handle === "string" ? config.Handle : null,
-                pattern:
-                  typeof config.DrawerPanelFluting === "string"
-                    ? config.DrawerPanelFluting
-                    : drawerPanelFluting || null,
-                width: width ?? null,
-                height: height ?? null,
-                depth: depth ?? null,
-                cabColor: swatchValue,
-                cabMaterialSku: cabinetMaterialSku,
-                hdlColor: handleGrooveColor,
-                hdlMaterialSku: handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null,
-              }),
-            };
-          })
-        : productsPresets.length > 0
-          ? productsPresets.map((preset, index) => {
-              const drawers = formatCabinetDrawersForSummary(preset.Drawers);
-              const dims = formatCabinetDimsForSummary(preset.Width, preset.Depth, preset.Height);
-              const subtitle = [drawers, dims].filter(Boolean).join(" | ");
-              const swatchValue = preset.CabinetColor ?? cabinetColor;
-              const swatch = resolveSwatch(swatchValue);
-              const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-
-              const handleMaterialSku =
-                handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-              const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
-              const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
-              const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
-
-              let sku: string;
-              if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
-                sku = buildOpenShelfSku({
-                  width: preset.Width ?? null,
-                  height: preset.Height ?? null,
-                  depth: preset.Depth ?? null,
-                  cabinetMaterialSku: cabinetMaterialSku,
-                  cabinetColorCode: extractColorCode(swatchValue),
-                  grainDirection: grainSku,
-                });
-              } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
-                const side: "L" | "R" = index === 0 ? "L" : "R";
-                sku = buildOpenSideShelfSku({
-                  side,
-                  width: preset.Width ?? null,
-                  height: preset.Height ?? null,
-                  depth: preset.Depth ?? null,
-                  cabinetMaterialSku: cabinetMaterialSku,
-                  cabinetColorCode: extractColorCode(swatchValue),
-                  grainDirection: grainSku,
-                });
-              } else {
-                sku = buildProductSku({
-                  cabinetType: normalizedPresetType ?? activeCabinetType,
-                  drawers: preset.Drawers ?? null,
-                  handle: resolvedHandle,
-                  pattern: drawerPanelFluting || null,
-                  width: preset.Width ?? null,
-                  height: preset.Height ?? null,
-                  depth: preset.Depth ?? null,
-                  cab: cabinetMaterialSku
-                    ? {
-                        materialSku: cabinetMaterialSku,
-                        colorCode: extractColorCode(swatchValue),
-                        grainDirection: grainSku,
-                      }
-                    : null,
-                  hdl: handleMaterialSku
-                    ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                    : null,
-                  msp: null,
-                  bkpl: null,
-                });
               }
+            : null,
+          hdl: handleMaterialSku
+            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            : null,
+          msp: null,
+          bkpl: null,
+        });
+      }
 
-              return {
-                id: `cabinet-${index}`,
-                title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
-                subtitle,
-                sku,
-                swatch: {
-                  label: "Cabinet",
-                  value: swatch.value,
-                  color: swatch.color,
-                  image: swatch.image,
-                },
-                price: resolveItemPrice(sku),
-                copyable: true,
-                showInfo: true,
-                description: buildCabinetDescription({
-                  cabinetType: normalizedPresetType ?? activeCabinetType,
-                  drawers: preset.Drawers ?? null,
-                  handle: resolvedHandle,
-                  pattern: drawerPanelFluting || null,
-                  width: preset.Width ?? null,
-                  height: preset.Height ?? null,
-                  depth: preset.Depth ?? null,
-                  cabColor: swatchValue,
-                  cabMaterialSku: cabinetMaterialSku,
-                  hdlColor: handleGrooveColor,
-                  hdlMaterialSku: handleMaterialSku,
-                }),
-              };
-            })
-          : [
-              (() => {
-                const handleMaterialSku =
-                  handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-                const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
+      return {
+        id: `cabinet-config-${index}`,
+        title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
+        subtitle,
+        sku,
+        swatch: {
+          label: "Cabinet",
+          value: swatch.value,
+          color: swatch.color,
+          image: swatch.image,
+        },
+        price: resolveItemPrice(sku),
+        copyable: true,
+        showInfo: true,
+        description: buildCabinetDescription({
+          cabinetType: productCabinetType,
+          drawers: typeof config.Drawers === "string" ? config.Drawers : null,
+          handle: typeof config.Handle === "string" ? config.Handle : null,
+          pattern: drawerPanelFluting || null,
+          width: width ?? null,
+          height: height ?? null,
+          depth: depth ?? null,
+          cabColor: swatchValue,
+          cabMaterialSku: cabinetMaterialSku,
+          hdlColor: handleGrooveColor,
+          hdlMaterialSku: handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null,
+        }),
+      };
+    });
+    const presetCabinetItems = shouldUsePresets
+      ? productsPresets.map((preset, index) => {
+          const drawers = formatCabinetDrawersForSummary(preset.Drawers);
+          const presetHeight = selectedDimensions.height ?? preset.Height ?? undefined;
+          const presetDepth = selectedDimensions.depth ?? preset.Depth ?? undefined;
+          const dims = formatCabinetDimsForSummary(preset.Width, presetDepth, presetHeight);
+          const subtitle = [drawers, dims].filter(Boolean).join(" | ");
+          const swatchValue = preset.CabinetColor ?? cabinetColor;
+          const swatch = resolveSwatch(swatchValue);
+          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
-                const sku = buildProductSku({
-                  cabinetType: activeCabinetType,
-                  drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-                  handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
-                  pattern: drawerPanelFluting || null,
-                  width: selectedDimensions.width,
-                  height: selectedDimensions.height,
-                  depth: selectedDimensions.depth,
-                  cab: cabinetMaterialSku
-                    ? {
-                        materialSku: cabinetMaterialSku,
-                        colorCode: extractColorCode(cabinetColor),
-                        grainDirection: grainSku,
-                      }
-                    : null,
-                  hdl: handleMaterialSku
-                    ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
-                    : null,
-                  msp: null,
-                  bkpl: null,
-                });
+          const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+          const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
+          const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
+          const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
 
-                return {
-                  id: "cabinet-1",
-                  title:
-                    typeof selectedProductConfig?.name === "string"
-                      ? selectedProductConfig.name
-                      : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
-                  subtitle: [
-                    formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
-                    formatCabinetDimsForSummaryWithFallback(
-                      selectedDimensions.width,
-                      selectedDimensions.depth,
-                      selectedDimensions.height,
-                    ),
-                  ]
-                    .filter(Boolean)
-                    .join(" | "),
-                  sku,
-                  swatch: {
-                    ...resolveSwatch(cabinetColor),
-                    label: "Cabinet",
-                    value: cabinetColor,
-                  },
-                  price: resolveItemPrice(sku),
-                  copyable: true,
-                  showInfo: true,
-                  description: buildCabinetDescription({
-                    cabinetType: activeCabinetType,
-                    drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-                    handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
-                    pattern: drawerPanelFluting || null,
-                    width: selectedDimensions.width,
-                    height: selectedDimensions.height,
-                    depth: selectedDimensions.depth,
-                    cabColor: cabinetColor,
-                    cabMaterialSku: cabinetMaterialSku,
-                    hdlColor: handleGrooveColor,
-                    hdlMaterialSku: handleMaterialSku,
-                  }),
-                };
-              })(),
-            ];
+          let sku: string;
+          if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
+            sku = buildOpenShelfSku({
+              width: preset.Width ?? null,
+              height: preset.Height ?? null,
+              depth: preset.Depth ?? null,
+              cabinetMaterialSku: cabinetMaterialSku,
+              cabinetColorCode: extractColorCode(swatchValue),
+              grainDirection: grainSku,
+            });
+          } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
+            const side: "L" | "R" = index === 0 ? "L" : "R";
+            sku = buildOpenSideShelfSku({
+              side,
+              width: preset.Width ?? null,
+              height: preset.Height ?? null,
+              depth: preset.Depth ?? null,
+              cabinetMaterialSku: cabinetMaterialSku,
+              cabinetColorCode: extractColorCode(swatchValue),
+              grainDirection: grainSku,
+            });
+          } else {
+            sku = buildProductSku({
+              cabinetType: normalizedPresetType ?? activeCabinetType,
+              drawers: preset.Drawers ?? null,
+              handle: resolvedHandle,
+              pattern: drawerPanelFluting || null,
+              width: preset.Width ?? null,
+              height: presetHeight ?? null,
+              depth: presetDepth ?? null,
+              cab: cabinetMaterialSku
+                ? {
+                    materialSku: cabinetMaterialSku,
+                    colorCode: extractColorCode(swatchValue),
+                    grainDirection: grainSku,
+                  }
+                : null,
+              hdl: handleMaterialSku
+                ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                : null,
+              msp: null,
+              bkpl: null,
+            });
+          }
+
+          return {
+            id: `cabinet-preset-${index}`,
+            title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
+            subtitle,
+            sku,
+            swatch: {
+              label: "Cabinet",
+              value: swatch.value,
+              color: swatch.color,
+              image: swatch.image,
+            },
+            price: resolveItemPrice(sku),
+            copyable: true,
+            showInfo: true,
+            description: buildCabinetDescription({
+              cabinetType: normalizedPresetType ?? activeCabinetType,
+              drawers: preset.Drawers ?? null,
+              handle: resolvedHandle,
+              pattern: drawerPanelFluting || null,
+              width: preset.Width ?? null,
+              height: presetHeight ?? null,
+              depth: presetDepth ?? null,
+              cabColor: swatchValue,
+              cabMaterialSku: cabinetMaterialSku,
+              hdlColor: handleGrooveColor,
+              hdlMaterialSku: handleMaterialSku,
+            }),
+          };
+        })
+      : [];
+    const fallbackCabinetItems: SummaryItem[] = [
+      (() => {
+        const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+        const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
+
+        const sku = buildProductSku({
+          cabinetType: activeCabinetType,
+          drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+          handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+          pattern: drawerPanelFluting || null,
+          width: selectedDimensions.width,
+          height: selectedDimensions.height,
+          depth: selectedDimensions.depth,
+          cab: cabinetMaterialSku
+            ? {
+                materialSku: cabinetMaterialSku,
+                colorCode: extractColorCode(cabinetColor),
+                grainDirection: grainSku,
+              }
+            : null,
+          hdl: handleMaterialSku
+            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            : null,
+          msp: null,
+          bkpl: null,
+        });
+
+        return {
+          id: "cabinet-1",
+          title:
+            typeof selectedProductConfig?.name === "string"
+              ? selectedProductConfig.name
+              : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
+          subtitle: [
+            formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
+            formatCabinetDimsForSummaryWithFallback(
+              selectedDimensions.width,
+              selectedDimensions.depth,
+              selectedDimensions.height,
+            ),
+          ]
+            .filter(Boolean)
+            .join(" | "),
+          sku,
+          swatch: {
+            ...resolveSwatch(cabinetColor),
+            label: "Cabinet",
+            value: cabinetColor,
+          },
+          price: resolveItemPrice(sku),
+          copyable: true,
+          showInfo: true,
+          description: buildCabinetDescription({
+            cabinetType: activeCabinetType,
+            drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+            handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+            pattern: drawerPanelFluting || null,
+            width: selectedDimensions.width,
+            height: selectedDimensions.height,
+            depth: selectedDimensions.depth,
+            cabColor: cabinetColor,
+            cabMaterialSku: cabinetMaterialSku,
+            hdlColor: handleGrooveColor,
+            hdlMaterialSku: handleMaterialSku,
+          }),
+        };
+      })(),
+    ];
+    const cabinetItems = shouldUsePresets
+      ? [...presetCabinetItems, ...configCabinetItems]
+      : configCabinetItems.length > 0
+        ? configCabinetItems
+        : fallbackCabinetItems;
 
     // const grooveSwatch = resolveSwatch(handleGrooveColor);
     const firstPreset = productsPresets[0];
@@ -877,12 +908,12 @@ export const CustomSummaryPage = () => {
         : null,
     ].filter(Boolean) as SummaryItem[];
 
-    const totalCountertopWidth =
-      cabinetConfigs.length > 0
+    const totalCountertopWidth = shouldUsePresets
+      ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
+          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+      : cabinetConfigs.length > 0
         ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
-        : productsPresets.length > 0
-          ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) || null
-          : selectedDimensions.width;
+        : selectedDimensions.width;
 
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,
@@ -891,7 +922,6 @@ export const CustomSummaryPage = () => {
       thickness: resolvedCountertopThickness,
       basinType: resolvedSinkType || null,
       faucetHolesAmount: faucetHolesAmount || null,
-      faucetHolesSpacing: faucetHolesSpacing || null,
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
     });
@@ -912,7 +942,7 @@ export const CustomSummaryPage = () => {
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
-    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Faucet Hole Spacing", "Hole Cutout"];
+    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Hole Cutout"];
 
     const extraCountertopItems = countertopSkuLines.slice(1).map((line, i) => {
       const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
@@ -974,7 +1004,7 @@ export const CustomSummaryPage = () => {
             subtitle: countertopStyle,
           }
         : null,
-      ...extraCountertopItems.filter((item) => item.title !== "Faucet Holes" && item.title !== "Faucet Hole Spacing"),
+      ...extraCountertopItems.filter((item) => item.title !== "Faucet Holes"),
     ].filter(Boolean) as SummaryItem[];
 
     const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
@@ -1186,9 +1216,6 @@ export const CustomSummaryPage = () => {
     const faucetHolesSku =
       extraCountertopItems.find((item) => item.title === "Faucet Holes" && item.sku)?.sku ??
       countertopSkuLines.find((sku) => sku.includes("-FAHO/"));
-    const faucetHoleSpacingSku =
-      extraCountertopItems.find((item) => item.title === "Faucet Hole Spacing" && item.sku)?.sku ??
-      countertopSkuLines.find((sku) => sku.includes("-FAHOS/"));
 
     const faucetItems: SummaryItem[] = [
       faucetHolesAmount
@@ -1199,16 +1226,6 @@ export const CustomSummaryPage = () => {
             sku: faucetHolesSku,
             price: "$0",
             copyable: Boolean(faucetHolesSku),
-          }
-        : null,
-      faucetHolesSpacing
-        ? {
-            id: "faucet-holes-spacing",
-            title: "Faucet Hole Spacing",
-            subtitle: faucetHolesSpacing,
-            sku: faucetHoleSpacingSku,
-            price: "$0",
-            copyable: Boolean(faucetHoleSpacingSku),
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -1293,12 +1310,13 @@ export const CustomSummaryPage = () => {
     countertopStyle,
     drawerPanelFluting,
     faucetHolesAmount,
-    faucetHolesSpacing,
     grainDirection,
     bookMatching,
     handleGrooveColor,
     handleGrooveColorSku,
+    hasBootstrappedCabinetBuilder,
     productsPresets,
+    selectedProducts,
     productConfigs,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,
@@ -1402,7 +1420,6 @@ export const CustomSummaryPage = () => {
             TowelBarOption: towelBarOption,
             TowelBarColor: towelBarColor,
             FaucetHolesAmount: faucetHolesAmount,
-            FaucetHolesSpacing: faucetHolesSpacing,
           },
         };
 
@@ -1429,7 +1446,6 @@ export const CustomSummaryPage = () => {
     dividersStyle,
     drawerPanelFluting,
     faucetHolesAmount,
-    faucetHolesSpacing,
     generatedConfigId,
     grainDirection,
     handleGrooveColor,
@@ -1440,6 +1456,8 @@ export const CustomSummaryPage = () => {
     sinkType,
     towelBarColor,
     towelBarOption,
+    sidePanelLeft,
+    sidePanelRight,
   ]);
 
   const quoteModelName = useMemo(() => {
@@ -1482,9 +1500,7 @@ export const CustomSummaryPage = () => {
               {section.items.map((item) => {
                 const isShelfItem = /shelf/i.test(item.title ?? "");
                 const cabinetHandleSubtitle =
-                  section.id === "cabinet" &&
-                  !isShelfItem &&
-                  typeof item.description?.["Handle Style"] === "string"
+                  section.id === "cabinet" && !isShelfItem && typeof item.description?.["Handle Style"] === "string"
                     ? item.description["Handle Style"]
                     : null;
                 return (

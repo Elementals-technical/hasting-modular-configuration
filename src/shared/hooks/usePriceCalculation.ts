@@ -19,11 +19,11 @@ import {
   getDrawerPanelFluting,
   getGrainDirection,
   getBookMatching,
+  getHasBootstrappedCabinetBuilder,
   getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
@@ -57,7 +57,11 @@ import {
 import { useLazyGetProductPriceBySkuQuery, useLazyGetProductPriceBySkuV2ResolveQuery } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
+import {
+  normalizeProductConfigSnapshot,
+  type NormalizedProductConfigSnapshot,
+} from "@/shared/lib/normalizeProductConfigSnapshot";
+import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -82,18 +86,6 @@ const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
 };
 
 // ── Types ────────────────────────────────────────────────
-
-type ProductConfigSnapshot = {
-  id: string;
-  name: string | null;
-  Width: number | null;
-  Height: number | null;
-  Depth: number | null;
-  Thickness: string | null;
-  Drawers: string | null;
-  Handle: string | null;
-  CabinetColor: string | null;
-};
 
 // ── Hook ────────────────────────────────────────────────
 
@@ -141,6 +133,7 @@ export function usePriceCalculation() {
   const sinkType = useAppSelector(getSinkType);
 
   const productsPresets = useAppSelector(getProductsPresets);
+  const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
 
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
 
@@ -152,7 +145,6 @@ export function usePriceCalculation() {
   const towelBarColor = useAppSelector(getTowelBarColor);
 
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
@@ -177,38 +169,42 @@ export function usePriceCalculation() {
 
   // ── Fetch configs for all products on scene (custom path) ─
 
-  const [sceneConfigs, setSceneConfigs] = useState<ProductConfigSnapshot[]>([]);
+  const [sceneConfigs, setSceneConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const productIdsKey = productIds.join("|");
 
   const fetchSceneConfigs = useCallback(async () => {
     console.log(LOG_PREFIX, "fetchSceneConfigs called", {
       productIds,
       presetsCount: productsPresets.length,
+      hasBootstrappedCabinetBuilder,
     });
 
     // When presets exist the bootstrap phase calls addProductId for each preset product first.
     // Only products whose index is >= presetsCount are truly "extra" (added via sidebar).
-    const idsToFetch = productsPresets.length > 0 ? productIds.slice(productsPresets.length) : productIds;
+    // Special cases:
+    //  - On the prebuilt page productIds is empty (no bootstrap yet) — keep preset path.
+    //  - In Custom Mode, once productIds has been populated by bootstrap and then drops
+    //    below presetsCount (user deleted a preset product), fall back to fetching ALL
+    //    productIds — the preset-based slicing assumption no longer holds.
+    const presetsDesynced =
+      productsPresets.length > 0 && productIds.length > 0 && productIds.length < productsPresets.length;
+    const idsToFetch = hasBootstrappedCabinetBuilder
+      ? productIds
+      : presetsDesynced || productsPresets.length === 0
+        ? productIds
+        : productIds.slice(productsPresets.length);
 
     if (idsToFetch.length === 0) {
       console.log(
         LOG_PREFIX,
         "fetchSceneConfigs skipped:",
-        productsPresets.length > 0 ? "using presets, no extra products" : "no productIds",
+        productsPresets.length > 0 && !hasBootstrappedCabinetBuilder ? "using presets, no extra products" : "no productIds",
       );
       setSceneConfigs([]);
       return;
     }
 
-    const configs: ProductConfigSnapshot[] = [];
-    const dimensionTool = getDimensionTool();
-    const readDimValue = (map?: Record<string, string>) => {
-      if (!map) return null;
-      const [key] = Object.keys(map);
-      if (!key) return null;
-      const value = Number(key);
-      return Number.isFinite(value) ? value : null;
-    };
+    const configs: NormalizedProductConfigSnapshot[] = [];
 
     for (const id of idsToFetch) {
       try {
@@ -216,28 +212,13 @@ export function usePriceCalculation() {
 
         if (!raw) continue;
 
-        const cfg = raw as Record<string, unknown>;
-        const dimensionData = dimensionTool?.getDimensionData?.(id) ?? null;
-        const toolWidth = readDimValue(dimensionData?.Width as Record<string, string> | undefined);
-        const toolHeight = readDimValue(dimensionData?.Height as Record<string, string> | undefined);
-        const toolDepth = readDimValue(dimensionData?.Depth as Record<string, string> | undefined);
-
-        configs.push({
-          id,
-          name:
-            (typeof cfg.ProductType === "string" && cfg.ProductType) ||
-            (typeof cfg.productType === "string" && cfg.productType) ||
-            (typeof cfg.type === "string" && cfg.type) ||
-            (typeof cfg.name === "string" && cfg.name) ||
-            null,
-          Width: (typeof cfg.Width === "number" ? cfg.Width : null) ?? toolWidth,
-          Height: selectedDimensions.height ?? toolHeight ?? (typeof cfg.Height === "number" ? cfg.Height : null),
-          Depth: selectedDimensions.depth ?? toolDepth ?? (typeof cfg.Depth === "number" ? cfg.Depth : null),
-          Thickness: typeof cfg.Thickness === "string" ? cfg.Thickness : null,
-          Drawers: typeof cfg.Drawers === "string" ? cfg.Drawers : null,
-          Handle: typeof cfg.Handle === "string" ? cfg.Handle : null,
-          CabinetColor: typeof cfg.CabinetColor === "string" ? cfg.CabinetColor : null,
-        });
+        configs.push(
+          normalizeProductConfigSnapshot({
+            id,
+            raw: raw as Record<string, unknown>,
+            selectedDimensions,
+          }),
+        );
       } catch (err) {
         console.warn(LOG_PREFIX, "Failed to get config for product", id, err);
       }
@@ -248,6 +229,7 @@ export function usePriceCalculation() {
   }, [
     productIdsKey,
     productsPresets.length,
+    hasBootstrappedCabinetBuilder,
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
@@ -296,10 +278,19 @@ export function usePriceCalculation() {
 
   // ── Guard: minimum data required ──────────────────────
 
-  const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
-  const shouldUsePresets = hasPresets;
-  const canCalculate = shouldUsePresets ? true : hasSceneConfigs ? true : selectedDimensions.width !== null;
+  const shouldUsePresets = shouldUsePresetProducts({
+    productsPresetsCount: productsPresets.length,
+    productIdsCount: productIds.length,
+    sceneConfigsCount: sceneConfigs.length,
+    hasBootstrappedCabinetBuilder,
+  });
+
+  const canCalculate = shouldUsePresets
+    ? true
+    : hasSceneConfigs
+      ? true
+      : productIds.length === 0 && selectedDimensions.width !== null;
 
   // ── Build all current SKUs ────────────────────────────
 
@@ -623,7 +614,6 @@ export function usePriceCalculation() {
       thickness: resolvedCountertopThickness,
       basinType: resolvedSinkType,
       faucetHolesAmount: faucetHolesAmount || null,
-      faucetHolesSpacing: faucetHolesSpacing || null,
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
     });
@@ -831,7 +821,6 @@ export function usePriceCalculation() {
     towelBarOption,
     towelBarColor,
     faucetHolesAmount,
-    faucetHolesSpacing,
     sidePanelsOption,
     sidePanelLeft,
     sidePanelRight,

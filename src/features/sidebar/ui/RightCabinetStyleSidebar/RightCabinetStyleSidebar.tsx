@@ -132,7 +132,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
   const hasModalOpen =
-    pendingHandleChange !== null || pendingOssHandleChange !== null || pendingDepthChange !== null || handleLockNotice !== null;
+    pendingHandleChange !== null ||
+    pendingOssHandleChange !== null ||
+    pendingDepthChange !== null ||
+    handleLockNotice !== null;
 
   const handleOptions = useMemo(
     () =>
@@ -305,14 +308,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   ]);
 
   const depthOptions = useMemo(() => {
-    const values = dimensionOptions.depth.map((option) => option.value);
+    const values = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterDepthValuesByCountertopRules({
       values,
       activeMaterialTokens,
       rules: countertopRules,
+      activeCountertopStyle: countertopStyle ?? null,
     });
-    return dimensionOptions.depth.filter((option) => filteredValues.includes(option.value));
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
+    const allowedValues = new Set(filteredValues.map((value) => String(value)));
+    return dimensionOptions.depth.filter((option) => !option.disabled && allowedValues.has(String(option.value)));
+  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
 
   const productConfig = useMemo(() => {
     if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {
@@ -365,6 +370,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const handleChangeDepth = (value?: string | number) => {
     if (value === undefined) return;
     const nextDepth = Number(value);
+    const isAllowedDepth = depthOptions.some((option) => {
+      const optionValue = Number(option.value);
+      return Number.isFinite(optionValue) && Math.abs(optionValue - nextDepth) < 0.01;
+    });
+    if (!isAllowedDepth) return;
+
     const previousDepth = selectedDimensions.depth;
     if (previousDepth === nextDepth) return;
 
@@ -447,11 +458,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
       if (option?.disabled && option.reason?.startsWith("Not available for current configuration height")) {
         const ossIdsForLock = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
-        if (
-          ossIdsForLock.length > 0 &&
-          handleType !== "handle_pto" &&
-          previousHandle === "handle_pto"
-        ) {
+        if (ossIdsForLock.length > 0 && handleType !== "handle_pto" && previousHandle === "handle_pto") {
           setPendingOssHandleChange({
             next: handleType,
             previous: previousHandle,
@@ -627,7 +634,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           ? availableAddWidths
           : availableAddWidths.filter((width) => width <= remainingForAdd + 0.01);
 
-      if (maxCountertopLength !== null && sceneTotalWidth !== null && selectedProducts.length > 0 && !fittingAddWidths.length) {
+      if (
+        maxCountertopLength !== null &&
+        sceneTotalWidth !== null &&
+        selectedProducts.length > 0 &&
+        !fittingAddWidths.length
+      ) {
         console.warn("[RightCabinetStyleSidebar] Add blocked by countertop max length", {
           maxCountertopLength,
           sceneTotalWidth,
@@ -643,7 +655,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         Number.isFinite(selectedDimensions.width) &&
         (remainingForAdd === null || selectedDimensions.width <= remainingForAdd + 0.01);
       const fallbackWidth =
-        fittingAddWidths.length > 0 ? fittingAddWidths.reduce((max, width) => (width > max ? width : max), fittingAddWidths[0]) : null;
+        fittingAddWidths.length > 0
+          ? fittingAddWidths.reduce((max, width) => (width > max ? width : max), fittingAddWidths[0])
+          : null;
       const widthForAddedCabinet = selectedWidthIsFitting ? selectedDimensions.width : fallbackWidth;
 
       if (activeDrawerProduct === "Side-Shelf") {
@@ -674,7 +688,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
         await setConfig(productId, nextConfig);
 
-        if (vesselColor && typeof nextConfig.sinkType === "string" && String(nextConfig.sinkType).startsWith("Vessel")) {
+        if (
+          vesselColor &&
+          typeof nextConfig.sinkType === "string" &&
+          String(nextConfig.sinkType).startsWith("Vessel")
+        ) {
           await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColor });
         }
       }
@@ -713,6 +731,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     selectedDimensions.depth,
     sinkType,
     dispatch,
+    vesselColor,
   ]);
 
   return (

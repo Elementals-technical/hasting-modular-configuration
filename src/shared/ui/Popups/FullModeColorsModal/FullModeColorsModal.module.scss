@@ -35,6 +35,23 @@
   flex-shrink: 0;
 }
 
+.filters {
+  background: #f9f8f7;
+
+  > div {
+    padding: 16px 20px;
+    margin: 0;
+
+    button {
+      min-width: auto !important;
+    }
+
+    > div:nth-child(3) {
+      flex-grow: 1;
+    }
+  }
+}
+
 .content {
   padding: 16px 20px 20px;
   overflow-y: auto;

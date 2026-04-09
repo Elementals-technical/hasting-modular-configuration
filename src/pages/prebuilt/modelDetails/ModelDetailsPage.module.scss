@@ -60,6 +60,10 @@
   gap: 8px;
 
   margin-bottom: 20px;
+
+  p {
+    font-weight: 400;
+  }
 }
 
 .dimensionsBreakdown {
@@ -85,6 +89,11 @@
   gap: 8px;
   color: #282828;
   font-size: 12px;
+
+  &:last-child {
+    font-weight: 400;
+    font-size: 14px;
+  }
 }
 
 .stepIcon {
@@ -115,6 +124,10 @@
 
     ul {
       margin-left: 20px;
+
+      li {
+        font-weight: 400;
+      }
     }
   }
 }
