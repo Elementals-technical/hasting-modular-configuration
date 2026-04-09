@@ -1,5 +1,23 @@
 import type { CountertopMatrixRule } from "./types";
-import { materialMatchesRule, matchesDepth, normalizeBasinKey, normalizeBasinToken, parseThicknessValue } from "./parse";
+import {
+  materialMatchesRule,
+  matchesDepth,
+  normalizeBasinKey,
+  normalizeBasinToken,
+  normalizeMaterialToken,
+  parseThicknessValue,
+} from "./parse";
+
+const INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM = [46];
+const INTEGRATED_STYLE_RESTRICTED_MATERIAL_TOKENS = new Set([
+  "tekormud",
+  "tekorund",
+  "sstm",
+  "solidsurface",
+  "ssocr",
+  "sst1c",
+  "sst1d",
+]);
 
 const toNumericDimension = (value: string | number): number | null => {
   if (typeof value === "number") {
@@ -122,33 +140,68 @@ type FilterDepthValuesParams = {
   values: Array<string | number>;
   activeMaterialTokens: string[];
   rules: CountertopMatrixRule[];
+  activeCountertopStyle?: string | null;
+};
+
+export const isIntegratedCountertopDepthRestrictedByMaterial = ({
+  activeMaterialTokens,
+  depth,
+}: {
+  activeMaterialTokens: string[];
+  depth: number | null;
+}): boolean => {
+  if (depth === null || !Number.isFinite(depth)) return false;
+
+  const matchesRestrictedDepth = INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM.some(
+    (restrictedDepth) => Math.abs(restrictedDepth - depth) < 0.01,
+  );
+  if (!matchesRestrictedDepth) return false;
+
+  return activeMaterialTokens.some((token) =>
+    INTEGRATED_STYLE_RESTRICTED_MATERIAL_TOKENS.has(normalizeMaterialToken(token)),
+  );
 };
 
 export const filterDepthValuesByCountertopRules = ({
   values,
   activeMaterialTokens,
   rules,
+  activeCountertopStyle,
 }: FilterDepthValuesParams): Array<string | number> => {
   if (!values.length) return values;
-  if (!activeMaterialTokens.length || !rules.length) return values;
+
+  const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
+  const isIntegratedStyle = normalizedStyle === "integrated";
 
   const allowedDepths = new Set<number>();
-  rules.forEach((rule) => {
-    const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
-    if (!matchesMaterial) return;
+  if (activeMaterialTokens.length && rules.length) {
+    rules.forEach((rule) => {
+      const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+      if (!matchesMaterial) return;
 
-    [...rule.depths, ...rule.depthOnlyCm].forEach((depth) => {
-      if (Number.isFinite(depth)) {
-        allowedDepths.add(Number(depth.toFixed(3)));
-      }
+      [...rule.depths, ...rule.depthOnlyCm].forEach((depth) => {
+        if (Number.isFinite(depth)) {
+          allowedDepths.add(Number(depth.toFixed(3)));
+        }
+      });
     });
-  });
-
-  if (!allowedDepths.size) return values;
+  }
 
   return values.filter((value) => {
     const numeric = toNumericDimension(value);
     if (numeric === null) return true;
+
+    if (
+      isIntegratedStyle &&
+      isIntegratedCountertopDepthRestrictedByMaterial({
+        activeMaterialTokens,
+        depth: numeric,
+      })
+    ) {
+      return false;
+    }
+
+    if (!allowedDepths.size) return true;
     return Array.from(allowedDepths).some((depth) => Math.abs(depth - numeric) < 0.01);
   });
 };

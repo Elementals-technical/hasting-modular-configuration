@@ -72,7 +72,6 @@ import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
-  normalizeMaterialToken,
   parseCountertopMatrix,
   resolveCountertopMaxLengthByRules,
   resolveDefaultThicknessFromRules,
@@ -92,8 +91,6 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const SIDE_SHELF_WIDTH_CM = 15;
-const RESIZE_HIDDEN_DEPTH_CM = 46;
-
 const stripRuntimeEntitySuffix = (value: string): string => {
   const trimmed = value.trim();
   const lastDash = trimmed.lastIndexOf("-");
@@ -739,27 +736,9 @@ export const PlayCanvasIntegration = () => {
       values: baseOptions,
       activeMaterialTokens,
       rules: countertopRules,
+      activeCountertopStyle: countertopStyle ?? null,
     });
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
-
-  const isSolidSurfaceTekormudSelected = useMemo(() => {
-    const normalizedTokens = new Set(activeMaterialTokens.map((token) => normalizeMaterialToken(token)));
-    const normalizedColor = normalizeMaterialToken(activeCountertopColor ?? "");
-    const normalizedSku = normalizeMaterialToken(countertopColorSku ?? "");
-
-    const hasTekormud =
-      normalizedTokens.has("tekormud") || normalizedColor.includes("tekormud") || normalizedSku.includes("tekormud");
-
-    return hasTekormud;
-  }, [activeMaterialTokens, activeCountertopColor, countertopColorSku]);
-
-  const resizeDepthOptions = useMemo(
-    () =>
-      isSolidSurfaceTekormudSelected
-        ? depthOptions.filter((value) => Math.abs(Number(value) - RESIZE_HIDDEN_DEPTH_CM) >= 0.01)
-        : depthOptions,
-    [isSolidSurfaceTekormudSelected, depthOptions],
-  );
+  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -973,6 +952,8 @@ export const PlayCanvasIntegration = () => {
   const handleSetDepth = useCallback(
     async (depth: number) => {
       if (!productIds) return;
+      const isAllowedDepth = depthOptions.some((value) => Math.abs(Number(value) - depth) < 0.01);
+      if (!isAllowedDepth) return;
 
       try {
         await saveSnapshot();
@@ -985,7 +966,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, saveSnapshot, dispatch],
+    [productIds, depthOptions, saveSnapshot, dispatch],
   );
 
   useEffect(() => {
@@ -2201,7 +2182,7 @@ export const PlayCanvasIntegration = () => {
           {
             id: "resize-depth",
             label: "Depth",
-            children: resizeDepthOptions.map((value) => ({
+            children: depthOptions.map((value) => ({
               id: `resize-depth-${value}`,
               label: `${value}`,
               onClick: () => handleSetDepth(Number(value)),
@@ -2333,7 +2314,7 @@ export const PlayCanvasIntegration = () => {
     canAddAnotherCabinet,
     canDuplicateSelectedCabinet,
     widthOptions,
-    resizeDepthOptions,
+    depthOptions,
     isPrebuilt,
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,

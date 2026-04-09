@@ -308,14 +308,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   ]);
 
   const depthOptions = useMemo(() => {
-    const values = dimensionOptions.depth.map((option) => option.value);
+    const values = dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterDepthValuesByCountertopRules({
       values,
       activeMaterialTokens,
       rules: countertopRules,
+      activeCountertopStyle: countertopStyle ?? null,
     });
-    return dimensionOptions.depth.filter((option) => filteredValues.includes(option.value));
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.depth]);
+    const allowedValues = new Set(filteredValues.map((value) => String(value)));
+    return dimensionOptions.depth.filter((option) => !option.disabled && allowedValues.has(String(option.value)));
+  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
 
   const productConfig = useMemo(() => {
     if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {
@@ -368,6 +370,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const handleChangeDepth = (value?: string | number) => {
     if (value === undefined) return;
     const nextDepth = Number(value);
+    const isAllowedDepth = depthOptions.some((option) => {
+      const optionValue = Number(option.value);
+      return Number.isFinite(optionValue) && Math.abs(optionValue - nextDepth) < 0.01;
+    });
+    if (!isAllowedDepth) return;
+
     const previousDepth = selectedDimensions.depth;
     if (previousDepth === nextDepth) return;
 
