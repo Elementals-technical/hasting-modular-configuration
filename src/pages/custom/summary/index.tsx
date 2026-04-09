@@ -222,7 +222,7 @@ const handleLabelMap: Record<string, string> = {
 const drawerLabelMap: Record<string, string> = {
   "1D": "1 Drawer",
   "2D": "2 Drawer",
-  "1DWID": "1 Wide Drawer",
+  "1DWID": "1 Drawer with inner drawer",
 };
 
 /** Readable labels for material SKU codes */
@@ -235,7 +235,7 @@ const materialSkuLabelMap: Record<string, string> = {
   GLSM: "Glass Matt",
   GLSG: "Glass Gloss",
   SSMMO: "Minermalmaro",
-  SSTM: "Teckormud",
+  SSTM: "Tekormud",
   SSOCR: "Ocritech",
   SSTKR: "Tekorlux",
 };
@@ -858,6 +858,7 @@ export const CustomSummaryPage = () => {
       sinkType;
     const resolvedCountertopMaterialSku =
       countertopColorSku ||
+      inferMaterialSkuFromBasinType(resolvedSinkType) ||
       countertopColorSkuByName.get(resolvedCountertopColor) ||
       countertopColorSkuByName.get(countertopColor) ||
       null;
@@ -1512,11 +1513,18 @@ export const CustomSummaryPage = () => {
                         <div className={s.itemTitle}>
                           {item.title}
                           {item.showInfo && item.description && (
-                            <span
-                              className={`${s.infoIcon} ${s.infoTooltip}`}
-                              data-tooltip={buildInfoTooltip(item.description)}
-                            >
+                            <span className={`${s.infoIcon} ${s.infoTooltip}`}>
                               <InformationIcon />
+                              <span className={s.infoTooltipContent}>
+                                {buildInfoTooltip(item.description)}
+                                <button
+                                  className={`${s.infoTooltipCopy} ${copiedId === `${item.id}-desc` ? s.infoTooltipCopied : ""}`}
+                                  onClick={() => handleCopy(buildInfoTooltip(item.description), `${item.id}-desc`)}
+                                  aria-label="Copy description"
+                                >
+                                  <span className={s.copyIcon} />
+                                </button>
+                              </span>
                             </span>
                           )}
                         </div>

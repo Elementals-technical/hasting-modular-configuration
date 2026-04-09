@@ -404,6 +404,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (selectedProducts.length) {
       await setConfigBatch(selectedProducts, { Handle: handleType });
+
+      // Clear groove color in PlayCanvas when switching to non-urban handle
+      const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
+      if (!URBAN_HANDLES.has(handleType)) {
+        await setConfigBatch(selectedProducts, { HandleGrooveColor: "" });
+      }
     }
   };
 
