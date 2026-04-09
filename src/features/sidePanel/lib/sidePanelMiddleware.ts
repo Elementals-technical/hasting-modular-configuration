@@ -65,7 +65,8 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
 
       if (newValue === currentSidePanels) return;
 
-      await applyGrooveToActiveSides(listenerApi.dispatch as Parameters<typeof applyGrooveToActiveSides>[0], newValue, leftSt, rightSt);
+      const cabinetCount = state.rootStateUI.product.productIds.length;
+      await applyGrooveToActiveSides(listenerApi.dispatch as Parameters<typeof applyGrooveToActiveSides>[0], newValue, leftSt, rightSt, cabinetCount);
     },
   });
 }

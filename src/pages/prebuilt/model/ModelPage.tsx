@@ -200,7 +200,7 @@ export const ModelPage = () => {
 
         // Re-apply side panels to match the new preset's handle/height/drawers
         if (spGroove && spGroove !== "None" && presetProducts?.length) {
-          await reapplySidePanelsForPreset(dispatch, spGroove, presetProducts);
+          await reapplySidePanelsForPreset(dispatch, spGroove, presetProducts, presetProducts.length);
         }
 
         if (presetId && options?.syncUrl !== false) {

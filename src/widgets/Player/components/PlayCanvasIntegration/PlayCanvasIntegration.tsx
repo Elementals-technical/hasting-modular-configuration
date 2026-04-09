@@ -48,6 +48,7 @@ import {
   getTowelBarOption,
   getSelectedProducts,
   getVesselColor,
+  getSidePanelsOption,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
@@ -64,6 +65,7 @@ import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
 import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
@@ -217,6 +219,9 @@ export const PlayCanvasIntegration = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
+  const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
+  const wasRestoringRef = useRef(false);
+  const sidePanelsOption = useAppSelector(getSidePanelsOption);
 
   const saveSnapshot = useHistorySnapshot();
 
@@ -976,6 +981,20 @@ export const PlayCanvasIntegration = () => {
     void syncCountertopConfig();
   }, [productIds.length, selectedDimensions.depth, selectedDimensions.height, syncCountertopConfig]);
 
+  useEffect(() => {
+    if (wasRestoringRef.current && !isHistoryRestoring) {
+      void syncCountertopConfig();
+    }
+    wasRestoringRef.current = isHistoryRestoring;
+  }, [isHistoryRestoring, syncCountertopConfig]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void syncCountertopConfig();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [sidePanelsOption, syncCountertopConfig]);
+
   const handleSetHandleType = useCallback(
     async (handleType: string) => {
       const option = dimensionOptions.handles.find((h) => String(h.value) === handleType);
@@ -1203,7 +1222,7 @@ export const PlayCanvasIntegration = () => {
 
         const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
         if (typeof productType === "string" && productType.toLowerCase().includes("side-shelf")) {
-          await setSidePanel("None", side);
+          await setSidePanel("None", side, productIds.length);
         }
         const productId = await setProductByParams(productType, entityId, side);
         if (!productId) return;
