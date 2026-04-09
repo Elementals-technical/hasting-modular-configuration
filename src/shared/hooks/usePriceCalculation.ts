@@ -19,6 +19,7 @@ import {
   getDrawerPanelFluting,
   getGrainDirection,
   getBookMatching,
+  getHasBootstrappedCabinetBuilder,
   getProductsPresets,
   getTowelBarOption,
   getTowelBarColor,
@@ -61,6 +62,7 @@ import {
   normalizeProductConfigSnapshot,
   type NormalizedProductConfigSnapshot,
 } from "@/shared/lib/normalizeProductConfigSnapshot";
+import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -132,6 +134,7 @@ export function usePriceCalculation() {
   const sinkType = useAppSelector(getSinkType);
 
   const productsPresets = useAppSelector(getProductsPresets);
+  const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
 
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
 
@@ -175,6 +178,7 @@ export function usePriceCalculation() {
     console.log(LOG_PREFIX, "fetchSceneConfigs called", {
       productIds,
       presetsCount: productsPresets.length,
+      hasBootstrappedCabinetBuilder,
     });
 
     // When presets exist the bootstrap phase calls addProductId for each preset product first.
@@ -186,14 +190,17 @@ export function usePriceCalculation() {
     //    productIds — the preset-based slicing assumption no longer holds.
     const presetsDesynced =
       productsPresets.length > 0 && productIds.length > 0 && productIds.length < productsPresets.length;
-    const idsToFetch =
-      presetsDesynced || productsPresets.length === 0 ? productIds : productIds.slice(productsPresets.length);
+    const idsToFetch = hasBootstrappedCabinetBuilder
+      ? productIds
+      : presetsDesynced || productsPresets.length === 0
+        ? productIds
+        : productIds.slice(productsPresets.length);
 
     if (idsToFetch.length === 0) {
       console.log(
         LOG_PREFIX,
         "fetchSceneConfigs skipped:",
-        productsPresets.length > 0 ? "using presets, no extra products" : "no productIds",
+        productsPresets.length > 0 && !hasBootstrappedCabinetBuilder ? "using presets, no extra products" : "no productIds",
       );
       setSceneConfigs([]);
       return;
@@ -224,6 +231,7 @@ export function usePriceCalculation() {
   }, [
     productIdsKey,
     productsPresets.length,
+    hasBootstrappedCabinetBuilder,
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
@@ -272,16 +280,13 @@ export function usePriceCalculation() {
 
   // ── Guard: minimum data required ──────────────────────
 
-  const hasPresets = productsPresets.length > 0;
   const hasSceneConfigs = sceneConfigs.length > 0;
-  // Use the preset path whenever presets are set, EXCEPT in Custom Mode after the user
-  // deleted one of the prebuilt cabinets (productIds already populated by bootstrap but
-  // now shorter than presets). In that case presets are stale — drive pricing from
-  // sceneConfigs so deletions/additions recompute correctly.
-  // Important: on the prebuilt page productIds is empty (no bootstrap yet) — must keep
-  // preset path, otherwise price falls into the fallback branch and emits X/X/X/X SKUs.
-  const presetsStale = hasPresets && productIds.length > 0 && productIds.length < productsPresets.length;
-  const shouldUsePresets = hasPresets && !presetsStale;
+  const shouldUsePresets = shouldUsePresetProducts({
+    productsPresetsCount: productsPresets.length,
+    productIdsCount: productIds.length,
+    sceneConfigsCount: sceneConfigs.length,
+    hasBootstrappedCabinetBuilder,
+  });
 
   const canCalculate = shouldUsePresets
     ? true

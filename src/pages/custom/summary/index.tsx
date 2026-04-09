@@ -27,6 +27,7 @@ import {
   getHandleGrooveColorSku,
   getPriceBySku,
   getPriceLoading,
+  getHasBootstrappedCabinetBuilder,
   getProductsPresets,
   getSelectedProducts,
   getSelectedDimensions,
@@ -80,6 +81,7 @@ import {
   normalizeProductConfigSnapshot,
   type NormalizedProductConfigSnapshot,
 } from "@/shared/lib/normalizeProductConfigSnapshot";
+import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 
 import s from "./SummaryPage.module.scss";
 
@@ -266,6 +268,7 @@ export const CustomSummaryPage = () => {
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
+  const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
 
@@ -513,9 +516,12 @@ export const CustomSummaryPage = () => {
       cabinetColorSku ||
       cabinetColorSkuByName.get(cabinetColor) ||
       null;
-    const hasPresets = productsPresets.length > 0;
-    const presetsStale = hasPresets && selectedProducts.length > 0 && selectedProducts.length < productsPresets.length;
-    const shouldUsePresets = hasPresets && !presetsStale;
+    const shouldUsePresets = shouldUsePresetProducts({
+      productsPresetsCount: productsPresets.length,
+      productIdsCount: selectedProducts.length,
+      sceneConfigsCount: productConfigs.length,
+      hasBootstrappedCabinetBuilder,
+    });
     const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
     const cabinetConfigs = sceneProductConfigs.filter((config) => config.category === "cabinets");
     const cabinetCount =
@@ -1326,6 +1332,7 @@ export const CustomSummaryPage = () => {
     bookMatching,
     handleGrooveColor,
     handleGrooveColorSku,
+    hasBootstrappedCabinetBuilder,
     productsPresets,
     selectedProducts,
     productConfigs,
