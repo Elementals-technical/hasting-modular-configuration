@@ -19,7 +19,6 @@ import {
   getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getGrainDirection,
   getBookMatching,
   getHandleGrooveColor,
@@ -276,7 +275,6 @@ export const SummaryPage = () => {
   const dividersStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const selectedSwatches = useAppSelector(getSelectedSwatches);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
   const hasSelectedSwatches = selectedSwatches.length > 0;
@@ -891,7 +889,6 @@ export const SummaryPage = () => {
       thickness: resolvedCountertopThickness,
       basinType: resolvedSinkType || null,
       faucetHolesAmount: faucetHolesAmount || null,
-      faucetHolesSpacing: faucetHolesSpacing || null,
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
     });
@@ -912,7 +909,7 @@ export const SummaryPage = () => {
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
-    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Faucet Hole Spacing", "Hole Cutout"];
+    const countertopSkuLabels = ["Countertop", "Basin", "Faucet Holes", "Hole Cutout"];
 
     const extraCountertopItems = countertopSkuLines.slice(1).map((line, i) => {
       const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
@@ -973,7 +970,7 @@ export const SummaryPage = () => {
             subtitle: countertopStyle,
           }
         : null,
-      ...extraCountertopItems.filter((item) => item.title !== "Faucet Holes" && item.title !== "Faucet Hole Spacing"),
+      ...extraCountertopItems.filter((item) => item.title !== "Faucet Holes"),
     ].filter(Boolean) as SummaryItem[];
 
     // Towel bar full product SKUs
@@ -1202,9 +1199,6 @@ export const SummaryPage = () => {
     const faucetHolesSku =
       extraCountertopItems.find((item) => item.title === "Faucet Holes" && item.sku)?.sku ??
       countertopSkuLines.find((sku) => sku.includes("-FAHO/"));
-    const faucetHoleSpacingSku =
-      extraCountertopItems.find((item) => item.title === "Faucet Hole Spacing" && item.sku)?.sku ??
-      countertopSkuLines.find((sku) => sku.includes("-FAHOS/"));
 
     const faucetItems: SummaryItem[] = [
       faucetHolesAmount
@@ -1215,16 +1209,6 @@ export const SummaryPage = () => {
             sku: faucetHolesSku,
             price: "$0",
             copyable: Boolean(faucetHolesSku),
-          }
-        : null,
-      faucetHolesSpacing
-        ? {
-            id: "faucet-holes-spacing",
-            title: "Faucet Hole Spacing",
-            subtitle: faucetHolesSpacing,
-            sku: faucetHoleSpacingSku,
-            price: "$0",
-            copyable: Boolean(faucetHoleSpacingSku),
           }
         : null,
     ].filter(Boolean) as SummaryItem[];
@@ -1309,7 +1293,6 @@ export const SummaryPage = () => {
     countertopStyle,
     drawerPanelFluting,
     faucetHolesAmount,
-    faucetHolesSpacing,
     grainDirection,
     bookMatching,
     handleGrooveColor,
@@ -1418,7 +1401,6 @@ export const SummaryPage = () => {
             TowelBarOption: towelBarOption,
             TowelBarColor: towelBarColor,
             FaucetHolesAmount: faucetHolesAmount,
-            FaucetHolesSpacing: faucetHolesSpacing,
           },
         };
 
@@ -1445,7 +1427,6 @@ export const SummaryPage = () => {
     dividersStyle,
     drawerPanelFluting,
     faucetHolesAmount,
-    faucetHolesSpacing,
     generatedConfigId,
     grainDirection,
     handleGrooveColor,

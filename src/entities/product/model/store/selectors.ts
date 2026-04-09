@@ -131,7 +131,6 @@ export const getHasPrebuiltSelections = (state: RootState) => {
     options.DividersStyle !== "" ||
     options.TowelBarOption !== "None" ||
     options.TowelBarColor !== "" ||
-    options.FaucetHolesAmount !== "0" ||
-    options.FaucetHolesSpacing !== '4"'
+    options.FaucetHolesAmount !== "0"
   );
 };

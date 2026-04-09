@@ -24,7 +24,6 @@ import {
   getTowelBarOption,
   getTowelBarColor,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
@@ -146,7 +145,6 @@ export function usePriceCalculation() {
   const towelBarColor = useAppSelector(getTowelBarColor);
 
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
@@ -616,7 +614,6 @@ export function usePriceCalculation() {
       thickness: resolvedCountertopThickness,
       basinType: resolvedSinkType,
       faucetHolesAmount: faucetHolesAmount || null,
-      faucetHolesSpacing: faucetHolesSpacing || null,
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
     });
@@ -824,7 +821,6 @@ export function usePriceCalculation() {
     towelBarOption,
     towelBarColor,
     faucetHolesAmount,
-    faucetHolesSpacing,
     sidePanelsOption,
     sidePanelLeft,
     sidePanelRight,
