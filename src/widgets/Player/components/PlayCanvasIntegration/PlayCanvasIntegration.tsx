@@ -84,6 +84,7 @@ import { formatCmWithInches } from "@/utils/units";
 import { cmToInches } from "@/shared/lib/sku/cmToInches";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -1560,40 +1561,19 @@ export const PlayCanvasIntegration = () => {
     setCustomizeModePromptDeleteTarget(null);
     if (!productsPresets.length) return;
 
-    // Read current scene values first so default prebuilt colors are preserved
-    // and explicit user overrides on prebuilt are also transferred to custom.
-    const getNonEmptyString = (value: unknown): string | undefined =>
-      typeof value === "string" && value.trim() ? value : undefined;
-
-    let sceneCabinetColor: string | undefined;
-    let sceneCountertopColor: string | undefined;
-    let sceneSinkType: string | undefined;
-    let sceneHandleGrooveColor: string | undefined;
-
     const orderedIds = getOrderedProductIds();
-    for (const productId of orderedIds) {
-      const config = await getConfig(productId);
-      if (!config || typeof config !== "object") continue;
+    const sceneConfigs = await Promise.all(orderedIds.map((productId) => getConfig(productId)));
 
-      sceneCabinetColor = sceneCabinetColor ?? getNonEmptyString((config as Record<string, unknown>).CabinetColor);
-      sceneCountertopColor =
-        sceneCountertopColor ?? getNonEmptyString((config as Record<string, unknown>).CountertopColor);
-      sceneSinkType = sceneSinkType ?? getNonEmptyString((config as Record<string, unknown>).sinkType);
-      sceneHandleGrooveColor =
-        sceneHandleGrooveColor ?? getNonEmptyString((config as Record<string, unknown>).HandleGrooveColor);
-
-      if (sceneCabinetColor && sceneCountertopColor && sceneSinkType && sceneHandleGrooveColor) {
-        break;
+    const updatedPresets = productsPresets.map((preset, index) => {
+      const productId = orderedIds[index];
+      const sceneConfig = sceneConfigs[index];
+      if (!productId || !sceneConfig || typeof sceneConfig !== "object") {
+        return preset;
       }
-    }
 
-    const updatedPresets = productsPresets.map((preset) => ({
-      ...preset,
-      CabinetColor: sceneCabinetColor ?? preset.CabinetColor,
-      CountertopColor: sceneCountertopColor ?? preset.CountertopColor,
-      sinkType: sceneSinkType ?? preset.sinkType,
-      HandleGrooveColor: sceneHandleGrooveColor ?? preset.HandleGrooveColor,
-    }));
+      const [scenePreset] = buildPresetFromConfiguration({ [productId]: sceneConfig }, [productId]);
+      return scenePreset ? { ...preset, ...scenePreset } : preset;
+    });
 
     if (action === "delete" && deleteTargetId) {
       sessionStorage.setItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY, deleteTargetId);
