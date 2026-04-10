@@ -141,7 +141,10 @@ type FilterDepthValuesParams = {
   activeMaterialTokens: string[];
   rules: CountertopMatrixRule[];
   activeCountertopStyle?: string | null;
+  activeBasinStyle?: string | null;
 };
+
+const INTEGRATED_STYLE_RESTRICTED_BASIN_KEYS = new Set(["oly55", "oly56", "orion"]);
 
 export const isIntegratedCountertopDepthRestrictedByMaterial = ({
   activeMaterialTokens,
@@ -162,16 +165,37 @@ export const isIntegratedCountertopDepthRestrictedByMaterial = ({
   );
 };
 
+export const isIntegratedCountertopDepthRestrictedByBasin = ({
+  activeBasinStyle,
+  depth,
+}: {
+  activeBasinStyle?: string | null;
+  depth: number | null;
+}): boolean => {
+  if (depth === null || !Number.isFinite(depth)) return false;
+
+  const matchesRestrictedDepth = INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM.some(
+    (restrictedDepth) => Math.abs(restrictedDepth - depth) < 0.01,
+  );
+  if (!matchesRestrictedDepth) return false;
+  if (!activeBasinStyle) return false;
+
+  return INTEGRATED_STYLE_RESTRICTED_BASIN_KEYS.has(normalizeBasinKey(activeBasinStyle));
+};
+
 export const filterDepthValuesByCountertopRules = ({
   values,
   activeMaterialTokens,
   rules,
   activeCountertopStyle,
+  activeBasinStyle,
 }: FilterDepthValuesParams): Array<string | number> => {
   if (!values.length) return values;
 
   const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
-  const isIntegratedStyle = normalizedStyle === "integrated";
+  const basinLooksIntegrated =
+    Boolean(activeBasinStyle) && !String(activeBasinStyle).trim().toLowerCase().startsWith("vessel_");
+  const isIntegratedStyle = normalizedStyle === "integrated" || basinLooksIntegrated;
 
   const allowedDepths = new Set<number>();
   if (activeMaterialTokens.length && rules.length) {
@@ -195,6 +219,16 @@ export const filterDepthValuesByCountertopRules = ({
       isIntegratedStyle &&
       isIntegratedCountertopDepthRestrictedByMaterial({
         activeMaterialTokens,
+        depth: numeric,
+      })
+    ) {
+      return false;
+    }
+
+    if (
+      isIntegratedStyle &&
+      isIntegratedCountertopDepthRestrictedByBasin({
+        activeBasinStyle,
         depth: numeric,
       })
     ) {

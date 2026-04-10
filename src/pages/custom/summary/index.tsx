@@ -884,10 +884,10 @@ export const CustomSummaryPage = () => {
           : null),
     });
     const resolvedCountertopThickness =
+      countertopThickness ??
       (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Thickness === "string"
         ? firstSceneCabinetConfig.Thickness
         : null) ??
-      countertopThickness ??
       matrixDefaultThickness;
     const displayCountertopThickness = normalizeCountertopThicknessForDisplay(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(resolvedCountertopColor);

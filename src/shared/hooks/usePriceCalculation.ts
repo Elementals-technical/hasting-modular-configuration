@@ -345,7 +345,7 @@ export function usePriceCalculation() {
         null,
     });
     const resolvedCountertopThickness =
-      sceneConfigs[0]?.Thickness || countertopThickness || matrixDefaultThickness || null;
+      countertopThickness || sceneConfigs[0]?.Thickness || matrixDefaultThickness || null;
 
     // 1) Product SKU(s) — Resolver 1
     if (shouldUsePresets) {

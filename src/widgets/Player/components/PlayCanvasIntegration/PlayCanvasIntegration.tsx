@@ -756,8 +756,9 @@ export const PlayCanvasIntegration = () => {
       activeMaterialTokens,
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle: activeBasinStyle ?? null,
     });
-  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
+  }, [activeMaterialTokens, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
