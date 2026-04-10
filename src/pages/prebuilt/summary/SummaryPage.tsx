@@ -865,6 +865,51 @@ export const SummaryPage = () => {
     const displayCountertopThickness = normalizeCountertopThicknessForDisplay(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(resolvedCountertopColor);
 
+    const bookMatchingItem: SummaryItem | null =
+      bookMatching === "enabled" && grainSku && (grainSku !== "H" || cabinetCount >= 2)
+        ? (() => {
+            const bmSku = buildBookMatchingSku({
+              direction: grainSku,
+              materialSku: resolveCabinetMaterialSku(cabinetColor),
+            });
+            const parseDrawerCount = (value: unknown): number => {
+              if (typeof value !== "string") return 0;
+              const match = value.match(/^(\d+)/);
+              return match ? parseInt(match[1], 10) : 0;
+            };
+            const presetDrawerTotal = productsPresets.reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
+            const configDrawerTotal = cabinetConfigs.reduce(
+              (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
+              0,
+            );
+            const selectedDrawerTotal = parseDrawerCount(
+              (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
+            );
+            const drawerCount = Math.max(presetDrawerTotal, configDrawerTotal, selectedDrawerTotal) || cabinetCount;
+            console.log("[BookMatching] drawers:", {
+              presetDrawerTotal,
+              configDrawerTotal,
+              selectedDrawerTotal,
+              drawerCount,
+              cabinetCount,
+            });
+            const unitPrice = priceBySku[bmSku] ?? 0;
+            return {
+              id: "cabinet-option-book-matching",
+              title: "Book Matching",
+              subtitle: grainSku === "H" ? "Horizontal" : "Vertical",
+              sku: bmSku,
+              price: formatPrice(unitPrice * drawerCount),
+              copyable: true,
+              description: {
+                "Product Category": "Book Matching",
+                Direction: grainSku === "H" ? "Horizontal" : "Vertical",
+                Drawers: drawerCount,
+              },
+            };
+          })()
+        : null;
+
     const cabinetOptionItems: SummaryItem[] = [
       drawerPanelFluting
         ? {
@@ -880,6 +925,7 @@ export const SummaryPage = () => {
             subtitle: grainDirection,
           }
         : null,
+      bookMatchingItem,
     ].filter(Boolean) as SummaryItem[];
 
     const totalCountertopWidth =
@@ -1157,50 +1203,6 @@ export const SummaryPage = () => {
               "Color Code": towelBarColor,
             },
           }
-        : null,
-      bookMatching === "enabled" && grainSku && (grainSku !== "H" || cabinetCount >= 2)
-        ? (() => {
-            const bmSku = buildBookMatchingSku({
-              direction: grainSku,
-              materialSku: resolveCabinetMaterialSku(cabinetColor),
-            });
-            // calculate per drawer
-            const parseDrawerCount = (value: unknown): number => {
-              if (typeof value !== "string") return 0;
-              const match = value.match(/^(\d+)/);
-              return match ? parseInt(match[1], 10) : 0;
-            };
-            const presetDrawerTotal = productsPresets.reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
-            const configDrawerTotal = cabinetConfigs.reduce(
-              (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
-              0,
-            );
-            const selectedDrawerTotal = parseDrawerCount(
-              (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
-            );
-            const drawerCount = Math.max(presetDrawerTotal, configDrawerTotal, selectedDrawerTotal) || cabinetCount;
-            console.log("[BookMatching] drawers:", {
-              presetDrawerTotal,
-              configDrawerTotal,
-              selectedDrawerTotal,
-              drawerCount,
-              cabinetCount,
-            });
-            const unitPrice = priceBySku[bmSku] ?? 0;
-            return {
-              id: "accessories-book-matching",
-              title: "Book Matching",
-              subtitle: grainSku === "H" ? "Horizontal" : "Vertical",
-              sku: bmSku,
-              price: formatPrice(unitPrice * drawerCount),
-              copyable: true,
-              description: {
-                "Product Category": "Book Matching",
-                Direction: grainSku === "H" ? "Horizontal" : "Vertical",
-                Drawers: drawerCount,
-              },
-            };
-          })()
         : null,
     ].filter(Boolean) as SummaryItem[];
 
