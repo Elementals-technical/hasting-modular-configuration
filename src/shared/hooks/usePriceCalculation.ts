@@ -338,6 +338,11 @@ export function usePriceCalculation() {
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
       activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
+      width:
+        selectedDimensions.width ??
+        (productsPresets.length > 0 ? (productsPresets[0]?.Width ?? null) : null) ??
+        sceneConfigs[0]?.Width ??
+        null,
       depth:
         selectedDimensions.depth ??
         (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??

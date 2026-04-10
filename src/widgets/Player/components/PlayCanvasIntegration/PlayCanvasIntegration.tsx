@@ -656,6 +656,7 @@ export const PlayCanvasIntegration = () => {
     const defaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
       activeMaterialTokens,
+      width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
       depth: selectedDimensions.depth ?? null,
     });
 
@@ -663,7 +664,15 @@ export const PlayCanvasIntegration = () => {
       dispatch(setActiveCountertopThickness(defaultThickness));
       setConfigBatch({}, { Thickness: defaultThickness });
     }
-  }, [activeCountertopThickness, activeMaterialTokens, countertopRules, selectedDimensions.depth, dispatch]);
+  }, [
+    activeCountertopThickness,
+    activeMaterialTokens,
+    countertopRules,
+    sinkBaseDims.width,
+    selectedDimensions.width,
+    selectedDimensions.depth,
+    dispatch,
+  ]);
 
   const canAddAnotherCabinet = useMemo(() => {
     if (!addableCabinetWidths.length) return false;

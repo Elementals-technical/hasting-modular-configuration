@@ -32,6 +32,22 @@ type ResolveDefaultThicknessInput = {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
   depth: number | null;
+  width?: number | null;
+};
+
+const isRuleWidthEligibleForIntegratedContext = (rule: CountertopMatrixRule, width: number | null): boolean => {
+  if (!width) return true;
+  if (rule.minSbCm !== null && width < rule.minSbCm) return false;
+  if (rule.maxIntegratedCm !== null && width > rule.maxIntegratedCm) return false;
+
+  if (
+    rule.integratedAllowedSizesOnly.length > 0 &&
+    !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
+  ) {
+    return false;
+  }
+
+  return true;
 };
 
 /** Returns first valid thickness (as string) for current material/depth matrix context. */
@@ -39,6 +55,7 @@ export const resolveDefaultThicknessFromRules = ({
   rules,
   activeMaterialTokens,
   depth,
+  width = null,
 }: ResolveDefaultThicknessInput): string | null => {
   const matchingRules = rules.filter((rule) => {
     if (!matchesDepth(rule, depth)) return false;
@@ -46,7 +63,9 @@ export const resolveDefaultThicknessFromRules = ({
     return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
   });
 
-  for (const rule of matchingRules) {
+  const rulesForThickness = matchingRules.filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, width));
+
+  for (const rule of rulesForThickness) {
     for (const raw of rule.topThicknesses) {
       const parsed = parseThicknessValue(raw);
       if (parsed !== null) return String(parsed);
@@ -103,12 +122,14 @@ export const buildCountertopRuleState = ({
     return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
   };
 
-  matchingRules.forEach((rule) => {
-    rule.topThicknesses.forEach((value) => {
-      const parsed = parseThicknessValue(value);
-      if (parsed !== null) allowedThicknesses.add(parsed);
+  matchingRules
+    .filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, width))
+    .forEach((rule) => {
+      rule.topThicknesses.forEach((value) => {
+        const parsed = parseThicknessValue(value);
+        if (parsed !== null) allowedThicknesses.add(parsed);
+      });
     });
-  });
 
   const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
   const meetsMinSb = (rule: CountertopMatrixRule) => !width || !rule.minSbCm || width >= rule.minSbCm;
