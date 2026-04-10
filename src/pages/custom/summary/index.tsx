@@ -161,18 +161,14 @@ const normalizeCountertopThicknessForDisplay = (value: string | null): string | 
 
 const formatBasinStyle = (value: string | null): string | null => {
   if (!value) return null;
-  const cleaned = value
+  let cleaned = value
     .replace(/^Top_/, "")
     .replace(/^Vessel_/, "")
     .trim();
   if (!cleaned) return null;
 
-  const parts = cleaned
-    .split("_")
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  const materialPrefixes = new Set([
+  const materialPrefixes = [
+    "HPL/Fenix",
     "Tekorlux",
     "Tekormud",
     "Tekorund",
@@ -181,10 +177,15 @@ const formatBasinStyle = (value: string | null): string | null => {
     "Porcelain",
     "HPL",
     "Fenix",
-  ]);
-  const normalizedParts = parts.length > 1 && materialPrefixes.has(parts[0]) ? parts.slice(1) : parts;
+  ];
+  const matchedPrefix = materialPrefixes.find(
+    (prefix) => cleaned === prefix || cleaned.startsWith(`${prefix}_`) || cleaned.startsWith(prefix),
+  );
+  if (matchedPrefix) {
+    cleaned = cleaned.slice(matchedPrefix.length).replace(/^[/_\-\s]+/, "");
+  }
 
-  return normalizedParts.join(" ").trim() || null;
+  return cleaned.replace(/_/g, " ").trim() || null;
 };
 
 type SummaryItem = {
@@ -856,6 +857,67 @@ export const CustomSummaryPage = () => {
           ? (firstPreset?.sinkType ?? null)
           : null) ??
       sinkType;
+    const sinkBaseEntries = shouldUsePresets
+      ? [
+          ...productsPresets
+            .filter((preset) => isSinkBaseName(preset.name ?? null))
+            .map((preset, index) => ({
+              id: `preset-${index}`,
+              sinkType: shouldUsePresetSinkType ? (preset.sinkType ?? resolvedSinkType) : resolvedSinkType,
+            })),
+          ...cabinetConfigs.flatMap((config, index) => {
+            const rawName =
+              typeof config.ProductType === "string"
+                ? config.ProductType
+                : typeof config.productType === "string"
+                  ? config.productType
+                  : typeof config.entityName === "string"
+                    ? resolveNameFromRaw(config.entityName)
+                    : typeof config._productId === "string"
+                      ? resolveNameFromRaw(config._productId)
+                      : typeof config.name === "string"
+                        ? config.name
+                        : null;
+            if (!isSinkBaseName(rawName)) return [];
+            return [
+              {
+                id: `config-${index}`,
+                sinkType: typeof config.sinkType === "string" ? config.sinkType : resolvedSinkType,
+              },
+            ];
+          }),
+        ]
+      : cabinetConfigs.length > 0
+        ? cabinetConfigs.flatMap((config, index) => {
+            const rawName =
+              typeof config.ProductType === "string"
+                ? config.ProductType
+                : typeof config.productType === "string"
+                  ? config.productType
+                  : typeof config.entityName === "string"
+                    ? resolveNameFromRaw(config.entityName)
+                    : typeof config._productId === "string"
+                      ? resolveNameFromRaw(config._productId)
+                      : typeof config.name === "string"
+                        ? config.name
+                        : null;
+            if (!isSinkBaseName(rawName)) return [];
+            return [
+              {
+                id: `config-${index}`,
+                sinkType: typeof config.sinkType === "string" ? config.sinkType : resolvedSinkType,
+              },
+            ];
+          })
+        : isSinkBaseName(
+              typeof selectedProductConfig?.name === "string"
+                ? selectedProductConfig.name
+                : typeof activeCabinetType === "string"
+                  ? activeCabinetType
+                  : null,
+            )
+          ? [{ id: "fallback-0", sinkType: resolvedSinkType }]
+          : [];
     const resolvedCountertopMaterialSku =
       countertopColorSku ||
       inferMaterialSkuFromBasinType(resolvedSinkType) ||
@@ -978,10 +1040,6 @@ export const CustomSummaryPage = () => {
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
     });
-    const hcutPricingSku = countertopSkuLines.find((line) => line.endsWith("-HCUT")) ?? "CT-URHPL-HCUT";
-    const hcutUnitPrice = priceBySku[hcutPricingSku] ?? 0;
-    const hcutTotalPrice = formatPrice(hcutUnitPrice * sinkBaseCountForHcut);
-
     const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const vesselSku = vesselType
       ? buildVesselSku({
@@ -998,9 +1056,11 @@ export const CustomSummaryPage = () => {
     const basinLabel = useVesselMaterialForCountertopSku ? "Vessel Cutout" : "Basin";
     const countertopSkuLabels = ["Countertop", basinLabel, "Faucet Holes", "Hole Cutout"];
 
-    const extraCountertopItems = countertopSkuLines.slice(1).map((line, i) => {
+    const extraCountertopItems = countertopSkuLines.slice(1).flatMap((line, i) => {
       const lineTitle = countertopSkuLabels[i + 1] ?? "Countertop Element";
       const isBasinLine = lineTitle === basinLabel;
+      const isVesselCutoutLine = lineTitle === "Vessel Cutout";
+      const isIntegratedBasinLine = lineTitle === "Basin";
       const optionSubtitle = isBasinLine
         ? (basinStyleLabel ?? undefined)
         : lineTitle === "Hole Cutout"
@@ -1008,19 +1068,52 @@ export const CustomSummaryPage = () => {
             ? `Cutout for ${basinStyleLabel}`
             : "Cutout"
           : undefined;
-      return {
-        id: `countertop-sku-${i + 1}`,
+      if (isIntegratedBasinLine && sinkBaseEntries.length > 0) {
+        return sinkBaseEntries.map((entry, index) => {
+          const basinLine =
+            buildCountertopSku({
+              style: countertopStyle || null,
+              width: totalCountertopWidth,
+              depth: selectedDimensions.depth,
+              thickness: resolvedCountertopThickness,
+              basinType: entry.sinkType || null,
+              faucetHolesAmount: faucetHolesAmount || null,
+              countertopMaterialSku: effectiveCountertopMaterialSku,
+              countertopColorCode: effectiveCountertopColorCode,
+            })[1] ?? line;
+          const entryBasinStyleLabel = formatBasinStyle(entry.sinkType);
+          return {
+            id: `countertop-sku-${i + 1}-${entry.id}-${index}`,
+            title: lineTitle,
+            subtitle: entryBasinStyleLabel ?? undefined,
+            sku: basinLine,
+            price: resolveItemPrice(basinLine),
+            copyable: true,
+            showInfo: true,
+            description: {
+              "Product Category": lineTitle,
+              ...(entry.sinkType ? { "Basin Style": entryBasinStyleLabel } : {}),
+            },
+          };
+        });
+      }
+      const itemCount = lineTitle === "Basin" ? sinkBaseCountForHcut : 1;
+      const linePrice =
+        isVesselCutoutLine ? formatPrice((priceBySku[line] ?? 0) * sinkBaseCountForHcut) : resolveItemPrice(line);
+
+      return Array.from({ length: itemCount }, (_, index) => ({
+        id: `countertop-sku-${i + 1}-${index}`,
         title: lineTitle,
         subtitle: optionSubtitle,
         sku: line,
-        price: resolveItemPrice(line),
+        price: linePrice,
         copyable: true,
         showInfo: isBasinLine,
         description: {
           "Product Category": lineTitle,
           ...(isBasinLine && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
         },
-      };
+      }));
     });
 
     const countertopItems: SummaryItem[] = [
@@ -1266,31 +1359,15 @@ export const CustomSummaryPage = () => {
             {
               id: "basin",
               title: "Basin",
-              items: [
-                {
-                  id: "basin-vessel-sku",
-                  title: "Vessel",
-                  subtitle: basinStyleLabel ?? "Vessel",
-                  sku: vesselSku,
-                  price: resolveItemPrice(vesselSku),
-                  copyable: true,
-                  description: { "Product Category": "Vessel", Type: resolvedSinkType },
-                },
-                {
-                  id: "basin-hcut-sku",
-                  title: "HCUT - Basin",
-                  subtitle: basinStyleLabel ? `Cutout for ${basinStyleLabel}` : "Cutout",
-                  sku: hcutPricingSku,
-                  price: hcutTotalPrice,
-                  copyable: true,
-                  description: {
-                    "Product Category": "HCUT - Basin",
-                    Type: "Vessel",
-                    Quantity: sinkBaseCountForHcut,
-                    "Pricing SKU": hcutPricingSku,
-                  },
-                },
-              ],
+              items: Array.from({ length: sinkBaseCountForHcut }, (_, index) => ({
+                id: `basin-vessel-sku-${index}`,
+                title: "Vessel",
+                subtitle: basinStyleLabel ?? "Vessel",
+                sku: vesselSku,
+                price: resolveItemPrice(vesselSku),
+                copyable: true,
+                description: { "Product Category": "Vessel", Type: resolvedSinkType },
+              })),
             },
           ]
         : []),

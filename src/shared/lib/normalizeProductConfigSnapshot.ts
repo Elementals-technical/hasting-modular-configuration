@@ -72,7 +72,11 @@ export const normalizeProductConfigSnapshot = ({
     Drawers: typeof raw.Drawers === "string" ? raw.Drawers : null,
     Handle: typeof raw.Handle === "string" ? raw.Handle : null,
     CabinetColor: typeof raw.CabinetColor === "string" ? raw.CabinetColor : null,
-    CountertopColor: typeof raw.CountertopColor === "string" ? raw.CountertopColor : null,
-    sinkType: typeof raw.sinkType === "string" ? raw.sinkType : null,
+    CountertopColor:
+      (typeof raw.CountertopColor === "string" ? raw.CountertopColor : null) ??
+      (typeof raw.countertopColor === "string" ? raw.countertopColor : null),
+    sinkType:
+      (typeof raw.sinkType === "string" ? raw.sinkType : null) ??
+      (typeof raw.SinkType === "string" ? raw.SinkType : null),
   };
 };

@@ -78,6 +78,7 @@ import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
+import { normalizeProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
@@ -1238,23 +1239,6 @@ export const CountertopPage = () => {
     async (basinStyle: string, selectedOnlyProductId?: string | null) => {
       if (!basinStyle) return;
 
-      const extractWidth = (config: Record<string, unknown>): number | null => {
-        const raw = config.Width;
-        if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-        if (typeof raw === "string") {
-          const parsed = Number(raw.replace(",", "."));
-          return Number.isFinite(parsed) ? parsed : null;
-        }
-        if (raw && typeof raw === "object") {
-          const key = Object.keys(raw as Record<string, unknown>)[0];
-          if (key) {
-            const parsed = Number(key.replace(",", "."));
-            return Number.isFinite(parsed) ? parsed : null;
-          }
-        }
-        return null;
-      };
-
       const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
       const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
       const selectedDepth = selectedDimensions.depth ?? null;
@@ -1299,21 +1283,24 @@ export const CountertopPage = () => {
       if (!orderedIds.length) return;
 
       const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
-      const targetIds = orderedIds.filter((_, index) => {
+      const targetIds = orderedIds.filter((productId, index) => {
         const rawConfig = configs[index];
         if (!rawConfig || typeof rawConfig !== "object") return false;
         const config = rawConfig as Record<string, unknown>;
         if (!containsSinkBase(config)) return false;
-        return canUseBasinAtWidth(extractWidth(config));
+        const normalizedConfig = normalizeProductConfigSnapshot({
+          id: productId,
+          raw: config,
+          selectedDimensions,
+        });
+        return canUseBasinAtWidth(normalizedConfig.Width);
       });
       const finalTargetIds = selectedOnlyProductId
         ? targetIds.filter((productId) => productId === selectedOnlyProductId)
         : targetIds;
 
-      if (finalTargetIds.length > 0) {
-        await setConfigBatch(finalTargetIds, { sinkType: basinStyle });
-      }
-
+      if (!finalTargetIds.length) return;
+      await setConfigBatch(finalTargetIds, { sinkType: basinStyle });
       dispatch(setActiveBasinStyle(basinStyle));
     },
     [

@@ -334,6 +334,98 @@ export function usePriceCalculation() {
         : shouldUsePresetSinkType
           ? (firstPreset?.sinkType as string)
           : sinkType || null;
+    const resolveNameFromRaw = (value: string) => {
+      const lastDash = value.lastIndexOf("-");
+      if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
+      return value;
+    };
+    const isSinkBaseName = (value: string | null | undefined) => {
+      if (!value) return false;
+      const normalized = normalizeCabinetToken(value);
+      return normalized.includes("sink-base") || normalized.includes("sinkbase");
+    };
+    const sinkBaseCountForPricing = Math.max(
+      1,
+      shouldUsePresets
+        ? productsPresets.filter((preset) => isSinkBaseName(preset.name ?? null)).length +
+            sceneConfigs.filter((cfg) =>
+              isSinkBaseName(
+                cfg.ProductType ??
+                  cfg.productType ??
+                  (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
+                  (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
+                  cfg.name,
+              ),
+            ).length
+        : sceneConfigs.length > 0
+          ? sceneConfigs.filter((cfg) =>
+              isSinkBaseName(
+                cfg.ProductType ??
+                  cfg.productType ??
+                  (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
+                  (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
+                  cfg.name,
+              ),
+            ).length
+          : isSinkBaseName(
+                typeof selectedProductConfig?.name === "string"
+                  ? selectedProductConfig.name
+                  : typeof activeCabinetType === "string"
+                    ? activeCabinetType
+                    : null,
+              )
+            ? 1
+            : 0,
+    );
+    const sinkBaseEntriesForPricing = shouldUsePresets
+      ? [
+          ...productsPresets
+            .filter((preset) => isSinkBaseName(preset.name ?? null))
+            .map((preset, index) => ({
+              id: `preset-${index}`,
+              sinkType: shouldUsePresetSinkType ? (preset.sinkType ?? resolvedSinkType) : resolvedSinkType,
+            })),
+          ...sceneConfigs.flatMap((cfg, index) => {
+            const rawName =
+              cfg.ProductType ??
+              cfg.productType ??
+              (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
+              (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
+              cfg.name;
+            if (!isSinkBaseName(rawName)) return [];
+            return [
+              {
+                id: `config-${index}`,
+                sinkType: cfg.sinkType ?? resolvedSinkType,
+              },
+            ];
+          }),
+        ]
+      : sceneConfigs.length > 0
+        ? sceneConfigs.flatMap((cfg, index) => {
+            const rawName =
+              cfg.ProductType ??
+              cfg.productType ??
+              (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
+              (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
+              cfg.name;
+            if (!isSinkBaseName(rawName)) return [];
+            return [
+              {
+                id: `config-${index}`,
+                sinkType: cfg.sinkType ?? resolvedSinkType,
+              },
+            ];
+          })
+        : isSinkBaseName(
+              typeof selectedProductConfig?.name === "string"
+                ? selectedProductConfig.name
+                : typeof activeCabinetType === "string"
+                  ? activeCabinetType
+                  : null,
+            )
+          ? [{ id: "fallback-0", sinkType: resolvedSinkType }]
+          : [];
     const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
@@ -610,7 +702,6 @@ export function usePriceCalculation() {
 
     // 2) Countertop SKUs — Resolver 2
     // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
-    const seenCountertopSkus = new Set<string>();
     const totalCountertopWidth = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0) || null;
     const aggregateCountertopLines = buildCountertopSku({
       style: countertopStyle || null,
@@ -622,9 +713,27 @@ export function usePriceCalculation() {
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
     });
-    aggregateCountertopLines.forEach((line) => {
-      if (!seenCountertopSkus.has(line)) {
-        seenCountertopSkus.add(line);
+    const aggregateCountertopSkuSet = new Set(aggregateCountertopLines);
+    aggregateCountertopLines.forEach((line, index) => {
+      if (index === 1 && !useVesselMaterialForCountertopSku && sinkBaseEntriesForPricing.length > 0) {
+        sinkBaseEntriesForPricing.forEach((entry) => {
+          const basinLine =
+            buildCountertopSku({
+              style: countertopStyle || null,
+              width: totalCountertopWidth,
+              depth: selectedDimensions.depth,
+              thickness: resolvedCountertopThickness,
+              basinType: entry.sinkType || null,
+              faucetHolesAmount: faucetHolesAmount || null,
+              countertopMaterialSku: effectiveCountertopMaterialSku,
+              countertopColorCode: effectiveCountertopColorCode,
+            })[1] ?? line;
+          skus.push(basinLine);
+        });
+        return;
+      }
+      const repeatCount = index === 1 && resolvedSinkType ? sinkBaseCountForPricing : 1;
+      for (let i = 0; i < repeatCount; i++) {
         skus.push(line);
       }
     });
@@ -635,8 +744,7 @@ export function usePriceCalculation() {
     const faucetMaterialSku =
       inferMaterialSkuFromBasinType(resolvedSinkType) ?? effectiveCountertopMaterialSku ?? "HPL";
     const defaultFaucetSku = `CT-UR${faucetMaterialSku}-FAHO/${faucetHolesQty}`;
-    if (!seenCountertopSkus.has(defaultFaucetSku)) {
-      seenCountertopSkus.add(defaultFaucetSku);
+    if (!aggregateCountertopSkuSet.has(defaultFaucetSku)) {
       skus.push(defaultFaucetSku);
     }
 
@@ -645,24 +753,21 @@ export function usePriceCalculation() {
     // (e.g. counting both CT-UR...INTG-70.9W and CT-UR...INTG-23.6W).
 
     // 2b) Vessel basin SKU — Resolver 2b (when sinkType is a vessel type)
-    const seenVesselSkus = new Set<string>();
-    productDimsList.forEach((dims, idx) => {
-      const vesselType = dims.sinkType?.startsWith("Vessel_") ? dims.sinkType : null;
-      if (!vesselType) return;
+    const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    if (vesselType) {
       const vesselSku = buildVesselSku({
         vesselType,
-        width: dims.width,
+        width: totalCountertopWidth,
         height: vesselHeightCmMap[vesselType] ?? null,
-        depth: dims.depth,
+        depth: selectedDimensions.depth,
         materialSku: resolvedVesselMaterialSku,
         colorCode: extractColorCode(resolvedVesselColor),
       });
-      if (!seenVesselSkus.has(vesselSku)) {
-        seenVesselSkus.add(vesselSku);
-        console.log(LOG_PREFIX, `Resolver 2b (Vessel #${idx}):`, vesselSku);
+      for (let i = 0; i < sinkBaseCountForPricing; i++) {
+        console.log(LOG_PREFIX, `Resolver 2b (Vessel #${i + 1}):`, vesselSku);
         skus.push(vesselSku);
       }
-    });
+    }
 
     // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
     const hasTowel = towelBarOption && towelBarOption !== "None";
@@ -935,6 +1040,13 @@ export function usePriceCalculation() {
     cabinetColorSku,
     handleGrooveColor,
     handleGrooveColorSku,
+    countertopColor,
+    countertopColorSku,
+    countertopStyle,
+    countertopThickness,
+    vesselColor,
+    sinkType,
+    faucetHolesAmount,
     selectedProductConfig?.Handle,
     selectedProductConfig?.Drawers,
     drawerPanelFluting,

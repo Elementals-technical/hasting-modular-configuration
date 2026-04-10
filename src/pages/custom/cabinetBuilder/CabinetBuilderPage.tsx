@@ -774,7 +774,6 @@ export const CabinetBuilderPage = () => {
           CountertopColor: preferredCountertopColor,
           HandleGrooveColor: preferredHandleGrooveColor,
         };
-        if (preferredSinkType) batchConfig.sinkType = preferredSinkType;
         if (countertopStyle) batchConfig.CountertopStyle = countertopStyle;
 
         if (Object.keys(batchConfig).length) {
@@ -833,6 +832,7 @@ export const CabinetBuilderPage = () => {
     handleGrooveColor,
     sinkType,
     configId,
+    countertopStyle,
   ]);
 
   useEffect(() => {
@@ -1103,7 +1103,6 @@ export const CabinetBuilderPage = () => {
         const batchConfig: Record<string, unknown> = {};
         if (uiCabinetColor) batchConfig.CabinetColor = uiCabinetColor;
         if (uiHandleGrooveColor) batchConfig.HandleGrooveColor = uiHandleGrooveColor;
-        if (uiSinkType) batchConfig.sinkType = uiSinkType;
         if (uiCountertopColor) batchConfig.CountertopColor = uiCountertopColor;
         if (uiCountertopStyle) batchConfig.CountertopStyle = uiCountertopStyle;
 
