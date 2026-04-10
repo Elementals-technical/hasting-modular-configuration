@@ -656,6 +656,7 @@ export const PlayCanvasIntegration = () => {
     const defaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
       activeMaterialTokens,
+      width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
       depth: selectedDimensions.depth ?? null,
     });
 
@@ -663,7 +664,15 @@ export const PlayCanvasIntegration = () => {
       dispatch(setActiveCountertopThickness(defaultThickness));
       setConfigBatch({}, { Thickness: defaultThickness });
     }
-  }, [activeCountertopThickness, activeMaterialTokens, countertopRules, selectedDimensions.depth, dispatch]);
+  }, [
+    activeCountertopThickness,
+    activeMaterialTokens,
+    countertopRules,
+    sinkBaseDims.width,
+    selectedDimensions.width,
+    selectedDimensions.depth,
+    dispatch,
+  ]);
 
   const canAddAnotherCabinet = useMemo(() => {
     if (!addableCabinetWidths.length) return false;
@@ -756,8 +765,9 @@ export const PlayCanvasIntegration = () => {
       activeMaterialTokens,
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle: activeBasinStyle ?? null,
     });
-  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
+  }, [activeMaterialTokens, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {

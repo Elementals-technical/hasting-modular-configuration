@@ -843,6 +843,12 @@ export const SummaryPage = () => {
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
       activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
+      width:
+        selectedDimensions.width ??
+        (productsPresets.length > 0 ? (productsPresets[0]?.Width ?? null) : null) ??
+        (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Width === "number"
+          ? firstSceneCabinetConfig.Width
+          : null),
       depth:
         selectedDimensions.depth ??
         (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
@@ -851,10 +857,10 @@ export const SummaryPage = () => {
           : null),
     });
     const resolvedCountertopThickness =
+      countertopThickness ??
       (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Thickness === "string"
         ? firstSceneCabinetConfig.Thickness
         : null) ??
-      countertopThickness ??
       matrixDefaultThickness;
     const displayCountertopThickness = normalizeCountertopThicknessForDisplay(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(resolvedCountertopColor);
@@ -1480,11 +1486,12 @@ export const SummaryPage = () => {
             <div className={s.sectionList}>
               {section.items.map((item) => {
                 const isShelfItem = /shelf/i.test(item.title ?? "");
+                const description = item.description;
                 const cabinetHandleSubtitle =
                   section.id === "cabinet" &&
                   !isShelfItem &&
-                  typeof item.description?.["Handle Style"] === "string"
-                    ? item.description["Handle Style"]
+                  typeof description?.["Handle Style"] === "string"
+                    ? description["Handle Style"]
                     : null;
                 return (
                   <div key={item.id} className={`${s.itemRow} ${!item.swatch ? s.noSwatch : ""}`}>
@@ -1494,14 +1501,14 @@ export const SummaryPage = () => {
                       <div className={s.itemTexts}>
                         <div className={s.itemTitle}>
                           {item.title}
-                          {item.showInfo && item.description && (
+                          {item.showInfo && description && (
                             <span className={`${s.infoIcon} ${s.infoTooltip}`}>
                               <InformationIcon />
                               <span className={s.infoTooltipContent}>
-                                {buildInfoTooltip(item.description)}
+                                {buildInfoTooltip(description)}
                                 <button
                                   className={`${s.infoTooltipCopy} ${copiedId === `${item.id}-desc` ? s.infoTooltipCopied : ""}`}
-                                  onClick={() => handleCopy(buildInfoTooltip(item.description), `${item.id}-desc`)}
+                                  onClick={() => handleCopy(buildInfoTooltip(description), `${item.id}-desc`)}
                                   aria-label="Copy description"
                                 >
                                   <span className={s.copyIcon} />

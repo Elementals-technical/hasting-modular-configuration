@@ -314,10 +314,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       activeMaterialTokens,
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle: sinkType ?? null,
     });
     const allowedValues = new Set(filteredValues.map((value) => String(value)));
     return dimensionOptions.depth.filter((option) => !option.disabled && allowedValues.has(String(option.value)));
-  }, [activeMaterialTokens, countertopRules, countertopStyle, dimensionOptions.depth]);
+  }, [activeMaterialTokens, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
 
   const productConfig = useMemo(() => {
     if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {

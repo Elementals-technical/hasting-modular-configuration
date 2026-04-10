@@ -4,7 +4,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
-import { getDimensionOptions, getSelectedDimensions } from "@/entities/product/model/store/selectors";
+import {
+  getCountertopStyle,
+  getDimensionOptions,
+  getSelectedDimensions,
+  getSinkType,
+} from "@/entities/product/model/store/selectors";
+import { filterDepthValuesByCountertopRules } from "@/features/configurator-rule-core/countertop";
 import { ROUTES } from "@/shared";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
@@ -103,6 +109,8 @@ export const CabinetStyleDetailsPage = () => {
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const sinkType = useAppSelector(getSinkType);
 
   const style = params.get("style");
   const cabinetType = params.get("cabinetType");
@@ -134,14 +142,19 @@ export const CabinetStyleDetailsPage = () => {
   }, [dimensionOptions.width]);
 
   const depthsInches = useMemo(() => {
-    const values = dimensionOptions.depth
-      .filter((option) => !option.disabled)
-      .map((option) => Number(option.value))
+    const values = filterDepthValuesByCountertopRules({
+      values: dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value),
+      activeMaterialTokens: [],
+      rules: [],
+      activeCountertopStyle: countertopStyle ?? null,
+      activeBasinStyle: sinkType ?? null,
+    })
+      .map((option) => Number(option))
       .filter((value) => Number.isFinite(value));
 
     const uniqSorted = Array.from(new Set(values)).sort((a, b) => a - b);
     return uniqSorted.map(cmToInches);
-  }, [dimensionOptions.depth]);
+  }, [countertopStyle, dimensionOptions.depth, sinkType]);
 
   const cabinetLabel =
     cabinetType === "Sink-Base"
@@ -163,8 +176,9 @@ export const CabinetStyleDetailsPage = () => {
 
   const widthsText =
     styleDetails?.widthsText ?? (widthsInches.length ? widthsInches.map((value) => `${value}"`).join(", ") : "N/A");
+  const filteredDepthsText = depthsInches.length ? depthsInches.map((value) => `${value}"`).join(" or ") : "N/A";
   const depthsText =
-    styleDetails?.depthsText ?? (depthsInches.length ? depthsInches.map((value) => `${value}"`).join(" or ") : "N/A");
+    sinkType === "Top_Ocritech_Oly55" ? filteredDepthsText : styleDetails?.depthsText ?? filteredDepthsText;
 
   return (
     <div className={s.page}>

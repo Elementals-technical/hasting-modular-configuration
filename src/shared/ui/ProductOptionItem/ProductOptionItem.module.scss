@@ -27,6 +27,7 @@
     aspect-ratio: 1 / 1;
     height: auto;
     border-radius: 10px;
+    border: 1px solid transparent;
 
     display: flex;
     align-items: center;
@@ -49,6 +50,10 @@
       object-fit: cover;
       border-radius: 10px;
     }
+  }
+
+  .lightBorder {
+    border-color: #f4eeec;
   }
 
   &.activeItem,
