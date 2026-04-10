@@ -100,6 +100,12 @@ export const normalizeBasinKey = (value: string): string => {
 };
 
 export const parseThicknessValue = (raw: string): number | null => {
+  const normalizeThicknessValue = (value: number): number => {
+    if (Math.abs(value - 2.375) < 0.001) return 2.4;
+    if (Math.abs(value - 2.5) < 0.001) return 2.4;
+    return value;
+  };
+
   const value = raw.trim();
   if (!value) return null;
 
@@ -109,7 +115,7 @@ export const parseThicknessValue = (raw: string): number | null => {
     if (!Number.isFinite(wholeNumber)) return null;
     const fractional = parseThicknessValue(fraction);
     if (fractional === null) return null;
-    return wholeNumber + fractional;
+    return normalizeThicknessValue(wholeNumber + fractional);
   }
 
   if (value.includes("/")) {
@@ -117,12 +123,14 @@ export const parseThicknessValue = (raw: string): number | null => {
     const num = Number.parseFloat(numerator);
     const den = Number.parseFloat(denominator);
     if (!Number.isFinite(num) || !Number.isFinite(den) || den === 0) return null;
-    return num / den;
+    return normalizeThicknessValue(num / den);
   }
 
   const numeric = Number.parseFloat(value);
   const normalizedNumeric = Number.parseFloat(value.replace(",", "."));
-  return Number.isFinite(normalizedNumeric) ? normalizedNumeric : Number.isFinite(numeric) ? numeric : null;
+  if (Number.isFinite(normalizedNumeric)) return normalizeThicknessValue(normalizedNumeric);
+  if (Number.isFinite(numeric)) return normalizeThicknessValue(numeric);
+  return null;
 };
 
 export const matchesDepth = (rule: CountertopMatrixRule, depth: number | null): boolean => {
