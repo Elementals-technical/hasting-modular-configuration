@@ -64,7 +64,7 @@ import {
   resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
 import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
-import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
+import { setSelectedSwatches, setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
@@ -1454,6 +1454,31 @@ export const SummaryPage = () => {
     return `${normalized}${widthLabel}`;
   }, [summarySections, selectedDimensions.width]);
 
+  const summarySwatchValues = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          summarySections.flatMap((section) =>
+            section.items
+              .map((item) => item.swatch?.value?.trim())
+              .filter((value): value is string => Boolean(value)),
+          ),
+        ),
+      ).slice(0, 6),
+    [summarySections],
+  );
+  const canEnableSwatchesForSummary = hasSelectedSwatches || summarySwatchValues.length > 0;
+  const handleSwatchesEnabledChange = useCallback(
+    (checked: boolean) => {
+      if (checked && !hasSelectedSwatches && summarySwatchValues.length > 0) {
+        dispatch(setSelectedSwatches(summarySwatchValues));
+      }
+
+      dispatch(setSwatchesEnabledInSummary(checked));
+    },
+    [dispatch, hasSelectedSwatches, summarySwatchValues],
+  );
+
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
   const configurationLink = useMemo(() => {
     const configId = new URLSearchParams(location.search).get("configId") || generatedConfigId;
@@ -1585,8 +1610,8 @@ export const SummaryPage = () => {
             <input
               type="checkbox"
               checked={isSwatchesEnabledForSummary}
-              disabled={!hasSelectedSwatches}
-              onChange={(event) => dispatch(setSwatchesEnabledInSummary(event.target.checked))}
+              disabled={!canEnableSwatchesForSummary}
+              onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
             />
             <span className={s.addLabel}>Add free swatches</span>
           </label>
