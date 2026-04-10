@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
+import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
@@ -157,35 +158,6 @@ const normalizeCountertopThicknessForDisplay = (value: string | null): string | 
   const parsed = Number.parseFloat(trimmed);
   if (!Number.isFinite(parsed)) return trimmed;
   return Math.abs(parsed - 2.5) < 0.001 ? "2.4" : trimmed;
-};
-
-const formatBasinStyle = (value: string | null): string | null => {
-  if (!value) return null;
-  let cleaned = value
-    .replace(/^Top_/, "")
-    .replace(/^Vessel_/, "")
-    .trim();
-  if (!cleaned) return null;
-
-  const materialPrefixes = [
-    "HPL/Fenix",
-    "Tekorlux",
-    "Tekormud",
-    "Tekorund",
-    "Ocritech",
-    "Mineralmarmo",
-    "Porcelain",
-    "HPL",
-    "Fenix",
-  ];
-  const matchedPrefix = materialPrefixes.find(
-    (prefix) => cleaned === prefix || cleaned.startsWith(`${prefix}_`) || cleaned.startsWith(prefix),
-  );
-  if (matchedPrefix) {
-    cleaned = cleaned.slice(matchedPrefix.length).replace(/^[/_\-\s]+/, "");
-  }
-
-  return cleaned.replace(/_/g, " ").trim() || null;
 };
 
 type SummaryItem = {
