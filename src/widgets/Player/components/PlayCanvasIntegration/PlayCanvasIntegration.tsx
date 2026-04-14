@@ -629,8 +629,9 @@ export const PlayCanvasIntegration = () => {
         style: countertopStyle ?? null,
         depth: selectedDimensions.depth ?? null,
         thickness: activeCountertopThickness ?? null,
+        activeBasinStyle: activeBasinStyle ?? null,
       }),
-    [activeCountertopThickness, countertopColorSku, countertopRules, countertopStyle, selectedDimensions.depth],
+    [activeBasinStyle, activeCountertopThickness, countertopColorSku, countertopRules, countertopStyle, selectedDimensions.depth],
   );
   const remainingCountertopLength =
     maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;

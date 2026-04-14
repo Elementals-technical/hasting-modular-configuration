@@ -217,8 +217,9 @@ export const CabinetBuilderPage = () => {
         style: countertopStyle ?? null,
         depth: selectedDimensions.depth ?? null,
         thickness: countertopThickness ?? null,
+        activeBasinStyle: sinkType ?? null,
       }),
-    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth],
+    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth, sinkType],
   );
 
   const remainingCountertopLength =

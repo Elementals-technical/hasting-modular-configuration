@@ -268,8 +268,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         style: countertopStyle ?? null,
         depth: selectedDimensions.depth ?? null,
         thickness: countertopThickness ?? null,
+        activeBasinStyle: sinkType ?? null,
       }),
-    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth],
+    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth, sinkType],
   );
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);

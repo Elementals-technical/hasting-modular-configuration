@@ -3,9 +3,9 @@ import {
   materialMatchesRule,
   matchesDepth,
   normalizeBasinKey,
-  normalizeBasinToken,
   normalizeMaterialToken,
   parseThicknessValue,
+  scopeCountertopRulesByBasinStyle,
 } from "./parse";
 
 const INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM = [46];
@@ -82,18 +82,8 @@ export const filterWidthValuesByCountertopRules = ({
       .some((value) => Math.abs(value - activeThicknessValue) < 0.001);
   };
 
-  const basinScopedRules = (() => {
-    if (!(isIntegratedStyle && activeBasinKey)) return matchingRules;
-
-    const keyMatched = matchingRules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
-    if (keyMatched.length > 0) return keyMatched;
-
-    const activeBasinToken = activeBasinStyle ? normalizeBasinToken(activeBasinStyle) : "";
-    if (!activeBasinToken) return matchingRules;
-
-    const tokenMatched = matchingRules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
-    return tokenMatched.length > 0 ? tokenMatched : matchingRules;
-  })();
+  const basinScopedRules =
+    isIntegratedStyle && activeBasinKey ? scopeCountertopRulesByBasinStyle(matchingRules, activeBasinStyle) : matchingRules;
 
   const thicknessScopedRules = basinScopedRules.filter((rule) => matchesThickness(rule));
 
@@ -199,7 +189,15 @@ export const filterDepthValuesByCountertopRules = ({
 
   const allowedDepths = new Set<number>();
   if (activeMaterialTokens.length && rules.length) {
-    rules.forEach((rule) => {
+    const matchingRules = rules.filter((rule) =>
+      activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material)),
+    );
+    const scopedRules =
+      isIntegratedStyle && activeBasinStyle
+        ? scopeCountertopRulesByBasinStyle(matchingRules, activeBasinStyle)
+        : matchingRules;
+
+    scopedRules.forEach((rule) => {
       const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
       if (!matchesMaterial) return;
 

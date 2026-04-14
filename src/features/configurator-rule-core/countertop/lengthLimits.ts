@@ -1,5 +1,11 @@
 import type { CountertopMatrixRule } from "./types";
-import { materialMatchesRule, matchesDepth, parseThicknessValue } from "./parse";
+import {
+  materialMatchesRule,
+  matchesDepth,
+  normalizeBasinKey,
+  parseThicknessValue,
+  scopeCountertopRulesByBasinStyle,
+} from "./parse";
 
 type CountertopStyle = "integrated" | "vessel" | "undermount" | "plain";
 
@@ -9,6 +15,7 @@ type ResolveCountertopMaxLengthInput = {
   style: string | null;
   depth: number | null;
   thickness: string | null;
+  activeBasinStyle?: string | null;
 };
 
 const normalizeStyle = (style: string | null): CountertopStyle => {
@@ -32,6 +39,7 @@ export const resolveCountertopMaxLengthByRules = ({
   style,
   depth,
   thickness,
+  activeBasinStyle,
 }: ResolveCountertopMaxLengthInput): number | null => {
   if (!rules.length) return null;
 
@@ -59,7 +67,12 @@ export const resolveCountertopMaxLengthByRules = ({
 
   if (!matchingRules.length) return null;
 
-  const limits = matchingRules
+  const basinScopedRules =
+    normalizedStyle === "integrated" && normalizeBasinKey(activeBasinStyle ?? "")
+      ? scopeCountertopRulesByBasinStyle(matchingRules, activeBasinStyle)
+      : matchingRules;
+
+  const limits = basinScopedRules
     .map((rule) => resolveRuleMaxByStyle(rule, normalizedStyle))
     .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
 

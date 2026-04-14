@@ -99,6 +99,25 @@ export const normalizeBasinKey = (value: string): string => {
   return cleaned.length > 0 ? cleaned : normalizeToken(value);
 };
 
+export const scopeCountertopRulesByBasinStyle = (
+  rules: CountertopMatrixRule[],
+  activeBasinStyle?: string | null,
+): CountertopMatrixRule[] => {
+  if (!activeBasinStyle) return rules;
+
+  const activeBasinKey = normalizeBasinKey(activeBasinStyle);
+  if (activeBasinKey) {
+    const keyMatched = rules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
+    if (keyMatched.length > 0) return keyMatched;
+  }
+
+  const activeBasinToken = normalizeBasinToken(activeBasinStyle);
+  if (!activeBasinToken) return rules;
+
+  const tokenMatched = rules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
+  return tokenMatched.length > 0 ? tokenMatched : rules;
+};
+
 export const parseThicknessValue = (raw: string): number | null => {
   const normalizeThicknessValue = (value: number): number => {
     if (Math.abs(value - 2.375) < 0.001) return 2.4;

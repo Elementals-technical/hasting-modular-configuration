@@ -7,6 +7,7 @@ import {
   normalizeFaucetHoleToken,
   normalizeMaterialToken,
   parseThicknessValue,
+  scopeCountertopRulesByBasinStyle,
 } from "./parse";
 
 export type CountertopRuleInput = {
@@ -135,22 +136,6 @@ export const buildCountertopRuleState = ({
     return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
   };
 
-  const getBasinScopedRules = (sourceRules: CountertopMatrixRule[]): CountertopMatrixRule[] => {
-    if (!activeBasinStyle) return sourceRules;
-
-    const activeBasinKey = normalizeBasinKey(activeBasinStyle);
-    if (activeBasinKey) {
-      const keyMatched = sourceRules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
-      if (keyMatched.length > 0) return keyMatched;
-    }
-
-    const activeBasinToken = normalizeBasinToken(activeBasinStyle);
-    if (!activeBasinToken) return sourceRules;
-
-    const tokenMatched = sourceRules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
-    return tokenMatched.length > 0 ? tokenMatched : sourceRules;
-  };
-
   matchingRules
     .filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, width))
     .forEach((rule) => {
@@ -202,7 +187,10 @@ export const buildCountertopRuleState = ({
   });
 
   const thicknessScopedRules = matchingRules.filter((rule) => matchesActiveThickness(rule));
-  const faucetHoleRules = getBasinScopedRules(thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules);
+  const faucetHoleRules = scopeCountertopRulesByBasinStyle(
+    thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules,
+    activeBasinStyle,
+  );
 
   faucetHoleRules.forEach((rule) => {
     rule.faucetHoles.forEach((value) => {
