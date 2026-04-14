@@ -25,6 +25,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import {
   buildCountertopColorSkuCandidates,
+  getCountertopMaterialTokensFromBasinType,
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 
@@ -66,8 +67,9 @@ export const CustomFaucetHolesPage = () => {
       value: activeCountertopColor,
       candidatesByValue: countertopColorSkuCandidatesByValue,
       preferredSku: countertopColorSku,
+      preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(activeBasinStyle),
     });
-  }, [activeCountertopColor, countertopColorSku, countertopColorSkuCandidatesByValue]);
+  }, [activeBasinStyle, activeCountertopColor, countertopColorSku, countertopColorSkuCandidatesByValue]);
 
   const ruleState = useMemo(
     () =>
