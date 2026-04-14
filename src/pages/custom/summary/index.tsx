@@ -55,7 +55,11 @@ import {
   buildOpenShelfSku,
   buildOpenSideShelfSku,
   extractColorCode,
+  getCountertopMaterialTokensBySku,
+  getCountertopMaterialTokensFromBasinType,
+  buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
+  resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
@@ -346,7 +350,7 @@ export const CustomSummaryPage = () => {
   const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
   const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
-  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuByName } = useMemo(() => {
+  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];
     const buildMapForProxy = (proxyName: string) => {
       const map = new Map<string, string>();
@@ -369,7 +373,7 @@ export const CustomSummaryPage = () => {
     return {
       cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
       handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
-      countertopColorSkuByName: buildMapForProxy("Countertop Color"),
+      countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
   }, [cabinetColors]);
 
@@ -939,15 +943,34 @@ export const CustomSummaryPage = () => {
             )
           ? [{ id: "fallback-0", sinkType: resolvedSinkType }]
           : [];
+    const preferredCountertopMaterialTokens = [
+      ...getCountertopMaterialTokensBySku(countertopColorSku),
+      ...getCountertopMaterialTokensFromBasinType(resolvedSinkType),
+    ];
     const resolvedCountertopMaterialSku =
       countertopColorSku ||
+      resolveCountertopColorSkuFromCandidates({
+        value: resolvedCountertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: preferredCountertopMaterialTokens,
+      }) ||
+      resolveCountertopColorSkuFromCandidates({
+        value: countertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: preferredCountertopMaterialTokens,
+      }) ||
       inferMaterialSkuFromBasinType(resolvedSinkType) ||
-      countertopColorSkuByName.get(resolvedCountertopColor) ||
-      countertopColorSkuByName.get(countertopColor) ||
       null;
     const resolvedVesselColor = vesselColor || resolvedCountertopColor;
     const resolvedVesselMaterialSku =
-      countertopColorSkuByName.get(resolvedVesselColor) || resolvedCountertopMaterialSku;
+      resolveCountertopColorSkuFromCandidates({
+        value: resolvedVesselColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: [
+          ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+          ...preferredCountertopMaterialTokens,
+        ],
+      }) || resolvedCountertopMaterialSku;
     const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
       ? resolvedVesselMaterialSku
@@ -1409,7 +1432,7 @@ export const CustomSummaryPage = () => {
     productConfigs,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,
-    countertopColorSkuByName,
+    countertopColorSkuCandidatesByValue,
     countertopRules,
     selectedDimensions.depth,
     selectedDimensions.height,
@@ -1498,6 +1521,7 @@ export const CustomSummaryPage = () => {
             HandleGrooveColor: handleGrooveColor,
             sinkType,
             CountertopColor: countertopColor,
+            CountertopColorSku: countertopColorSku,
             Thickness: countertopThickness,
             DrawerPanelFluting: drawerPanelFluting,
             GrainDirection: grainDirection,

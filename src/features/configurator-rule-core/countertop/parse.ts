@@ -6,8 +6,8 @@ const MATERIAL_ALIASES: Record<string, string[]> = {
   tekorund: ["tekormud", "sstm"],
   tekormud: ["tekorund", "sstm"],
   glass: ["glassmt", "glassgl"],
-  glassmt: ["glass"],
-  glassgl: ["glass"],
+  glassmt: ["glass", "glassgl"],
+  glassgl: ["glass", "glassmt"],
   // Material SKU aliases used in pricing/config payloads.
   ssocr: ["ocritech"],
   ocritech: ["ssocr"],

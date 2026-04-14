@@ -34,7 +34,7 @@ interface ProductOptionItemI {
   isShortDesc: boolean;
   config?: addProductConfigI;
   isActive?: boolean;
-  onClick?: (name: string, config?: addProductConfigI) => void | Promise<void>;
+  onClick?: (name: string, config?: addProductConfigI, metadata?: ProductOptionMetadata) => void | Promise<void>;
   setActive?: (id: number | string) => void;
   metadata?: ProductOptionMetadata;
   onPreview?: (title: string, metadata?: ProductOptionMetadata) => void;
@@ -74,7 +74,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
       className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""} ${!available && variant === "cabinetType" ? s.disabledOption : ""}`}
       onClick={() => {
         if (!available) return;
-        onClick?.(productName, config);
+        onClick?.(productName, config, metadata);
         setActive?.(id);
       }}
     >

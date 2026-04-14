@@ -44,7 +44,11 @@ import {
   TOWEL_BAR_DEFAULTS,
   SIDE_PANEL_WIDTH_CM,
   extractColorCode,
+  getCountertopMaterialTokensBySku,
+  getCountertopMaterialTokensFromBasinType,
+  buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
+  resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
@@ -251,7 +255,7 @@ export function usePriceCalculation() {
   const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
   const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
-  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuByName } = useMemo(() => {
+  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];
     const buildMapForProxy = (proxyName: string) => {
       const map = new Map<string, string>();
@@ -274,7 +278,7 @@ export function usePriceCalculation() {
     return {
       cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
       handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
-      countertopColorSkuByName: buildMapForProxy("Countertop Color"),
+      countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
   }, [cabinetColors]);
 
@@ -314,21 +318,6 @@ export function usePriceCalculation() {
     const resolvedCountertopColor = shouldUsePresetCountertopColor
       ? (firstPreset?.CountertopColor as string)
       : countertopColor;
-    const resolvedCountertopMaterialSku =
-      countertopColorSku ||
-      (resolvedCountertopColor ? countertopColorSkuByName.get(resolvedCountertopColor) : null) ||
-      countertopColorSkuByName.get(countertopColor) ||
-      null;
-    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
-    const resolvedVesselMaterialSku =
-      (resolvedVesselColor ? countertopColorSkuByName.get(resolvedVesselColor) : null) || resolvedCountertopMaterialSku;
-    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
-      ? resolvedVesselMaterialSku
-      : resolvedCountertopMaterialSku;
-    const effectiveCountertopColorCode = extractColorCode(
-      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
-    );
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
     const resolvedSinkType =
       shouldUsePresetSinkType && colorDrivenDefaultBasin
@@ -336,6 +325,41 @@ export function usePriceCalculation() {
         : shouldUsePresetSinkType
           ? (firstPreset?.sinkType as string)
           : sinkType || null;
+    const preferredCountertopMaterialTokens = [
+      ...getCountertopMaterialTokensBySku(countertopColorSku),
+      ...getCountertopMaterialTokensFromBasinType(resolvedSinkType),
+    ];
+    const resolvedCountertopMaterialSku =
+      countertopColorSku ||
+      resolveCountertopColorSkuFromCandidates({
+        value: resolvedCountertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: preferredCountertopMaterialTokens,
+      }) ||
+      resolveCountertopColorSkuFromCandidates({
+        value: countertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: preferredCountertopMaterialTokens,
+      }) ||
+      inferMaterialSkuFromBasinType(resolvedSinkType) ||
+      null;
+    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
+    const resolvedVesselMaterialSku =
+      resolveCountertopColorSkuFromCandidates({
+        value: resolvedVesselColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: [
+          ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+          ...preferredCountertopMaterialTokens,
+        ],
+      }) || resolvedCountertopMaterialSku;
+    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
+      ? resolvedVesselMaterialSku
+      : resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(
+      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
+    );
     const resolveNameFromRaw = (value: string) => {
       const lastDash = value.lastIndexOf("-");
       if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
@@ -968,7 +992,7 @@ export function usePriceCalculation() {
     placedDividers,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,
-    countertopColorSkuByName,
+    countertopColorSkuCandidatesByValue,
     resolveCabinetType,
     countertopRules,
     grainDirection,

@@ -612,10 +612,13 @@ export const PlayCanvasIntegration = () => {
     if (!activeCountertopColor) return [];
     const match = countertopOptionsFromApi.find((option) => {
       const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
-      return candidate === activeCountertopColor;
+      if (candidate !== activeCountertopColor) return false;
+
+      const optionSku = option.metadata?.sku?.trim();
+      return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
     return match?.metadata?.materials ?? [];
-  }, [activeCountertopColor, countertopOptionsFromApi]);
+  }, [activeCountertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
   const maxCountertopLength = useMemo(

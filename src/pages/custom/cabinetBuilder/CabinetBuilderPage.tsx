@@ -26,6 +26,7 @@ import {
   setActiveBasinStyle,
   setActiveCabinetType,
   setActiveCountertopColor,
+  setCountertopColorSku,
   setActiveCountertopThickness,
   setCabinetColor,
   setCountertopStyle,
@@ -1062,6 +1063,10 @@ export const CabinetBuilderPage = () => {
         const uiSinkType = typeof uiStateValues?.sinkType === "string" ? (uiStateValues.sinkType as string) : undefined;
         const uiCountertopColor =
           typeof uiStateValues?.CountertopColor === "string" ? (uiStateValues.CountertopColor as string) : undefined;
+        const uiCountertopColorSku =
+          typeof uiStateValues?.CountertopColorSku === "string"
+            ? (uiStateValues.CountertopColorSku as string)
+            : undefined;
         const uiCountertopThickness =
           (typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined) ??
           topConfigThickness;
@@ -1156,6 +1161,7 @@ export const CabinetBuilderPage = () => {
         if (uiHandleGrooveColor) dispatch(setHandleGrooveColor(uiHandleGrooveColor));
         if (uiSinkType) dispatch(setActiveBasinStyle(uiSinkType));
         if (uiCountertopColor) dispatch(setActiveCountertopColor(uiCountertopColor));
+        if (uiCountertopColorSku) dispatch(setCountertopColorSku(uiCountertopColorSku));
         if (uiCountertopThickness) dispatch(setActiveCountertopThickness(uiCountertopThickness));
         if (uiDrawerPanelFluting) dispatch(setDrawerPanelFluting(uiDrawerPanelFluting));
         if (uiGrainDirection) dispatch(setGrainDirection(uiGrainDirection));

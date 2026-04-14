@@ -4,11 +4,13 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import {
   ProductOptionsGrid,
   type ProductOptionData,
+  type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
+  getCountertopColorSku,
   getCountertopStyle,
   getVesselColor,
   getProductsPresets,
@@ -111,6 +113,7 @@ export const CountertopPage = () => {
   const presetsProducts = useAppSelector(getProductsPresets);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const storedVesselColor = useAppSelector(getVesselColor);
@@ -423,10 +426,13 @@ export const CountertopPage = () => {
     if (!activeCountertopColor) return [];
     const match = countertopOptions.find((option) => {
       const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
-      return candidate === activeCountertopColor;
+      if (candidate !== activeCountertopColor) return false;
+
+      const optionSku = option.metadata?.sku?.trim();
+      return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
     return match?.metadata?.materials ?? [];
-  }, [activeCountertopColor, countertopOptions]);
+  }, [activeCountertopColor, countertopColorSku, countertopOptions]);
 
   const activeVesselMaterialTokens = useMemo(() => {
     if (!activeVesselColor) return [];
@@ -1213,7 +1219,11 @@ export const CountertopPage = () => {
 
   const presetNames = presetsProducts.map((i) => i.name);
 
-  const handleChangeCountertopColor = async (colorName: string) => {
+  const handleChangeCountertopColor = async (
+    colorName: string,
+    _config?: unknown,
+    metadata?: ProductOptionMetadata,
+  ) => {
     if (!colorName) return;
     await saveSnapshot();
 
@@ -1222,7 +1232,7 @@ export const CountertopPage = () => {
     });
 
     dispatch(setActiveCountertopColor(colorName));
-    dispatch(setCountertopColorSku(findSkuByColorName(colorName)));
+    dispatch(setCountertopColorSku(metadata?.sku ?? findSkuByColorName(colorName)));
   };
 
   const handleChangeVesselColor = async (colorName: string) => {

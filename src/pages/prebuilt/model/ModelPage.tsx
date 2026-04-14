@@ -18,6 +18,7 @@ import {
   resetCabinetBuilderBootstrap,
   setActiveBasinStyle,
   setActiveCountertopColor, 
+  setCountertopColorSku,
   setCabinetColor, 
   setHandleGrooveColor, 
   setSelectedDimensions,
@@ -322,6 +323,8 @@ export const ModelPage = () => {
 
         const restoredCountertopColor =
           (typeof uiStateValues?.CountertopColor === "string" && uiStateValues.CountertopColor) || undefined;
+        const restoredCountertopColorSku =
+          (typeof uiStateValues?.CountertopColorSku === "string" && uiStateValues.CountertopColorSku) || undefined;
         const restoredSinkType = (typeof uiStateValues?.sinkType === "string" && uiStateValues.sinkType) || undefined;
         const globalConfig = {
           ...resolvePresetSceneDefaults(presetProducts),
@@ -345,6 +348,7 @@ export const ModelPage = () => {
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));
         if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
+        if (restoredCountertopColorSku) dispatch(setCountertopColorSku(restoredCountertopColorSku));
         if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
         await updateSelectedDimensionsFromScene(effectivePresets);
         sessionStorage.setItem("prebuiltModelInitialized", "1");

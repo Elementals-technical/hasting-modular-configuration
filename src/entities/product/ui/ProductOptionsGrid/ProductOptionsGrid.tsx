@@ -36,7 +36,7 @@ export type ProductOptionData = {
 
 interface ProductOptionsGridI {
   data: ProductOptionData[];
-  handleAdd?: (name: string) => void | Promise<void>;
+  handleAdd?: (name: string, config?: addProductConfigI, metadata?: ProductOptionMetadata) => void | Promise<void>;
   requiresActiveCabinet?: boolean;
   setActiveCabinet?: (code: string, name?: string) => void;
   activeValue?: string | number | null;

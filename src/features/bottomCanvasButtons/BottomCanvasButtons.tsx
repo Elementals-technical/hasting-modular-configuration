@@ -40,6 +40,7 @@ import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/mod
 import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
 import {
   getActiveCountertopColor,
+  getCountertopColorSku,
   getActiveCountertopThickness,
   getCabinetColor,
   getCountertopStyle,
@@ -81,6 +82,7 @@ export const BottomCanvasButtons = () => {
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const sinkType = useAppSelector(getSinkType);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
@@ -255,6 +257,7 @@ export const BottomCanvasButtons = () => {
         HandleGrooveColor: handleGrooveColor,
         sinkType,
         CountertopColor: countertopColor,
+        CountertopColorSku: countertopColorSku,
         Thickness: countertopThickness,
         DrawerPanelFluting: drawerPanelFluting,
         GrainDirection: grainDirection,

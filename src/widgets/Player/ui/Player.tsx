@@ -23,6 +23,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
   getActiveCountertopColor,
+  getCountertopColorSku,
   getActiveCountertopThickness,
   getCabinetColor,
   getCountertopStyle,
@@ -66,6 +67,7 @@ export function Player() {
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const sinkType = useAppSelector(getSinkType);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
@@ -110,6 +112,7 @@ export function Player() {
         HandleGrooveColor: handleGrooveColor,
         sinkType,
         CountertopColor: countertopColor,
+        CountertopColorSku: countertopColorSku,
         Thickness: countertopThickness,
         DrawerPanelFluting: drawerPanelFluting,
         GrainDirection: grainDirection,
