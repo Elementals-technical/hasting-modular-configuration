@@ -143,12 +143,20 @@ const formatThicknessLabel = (thickness: number): string => {
 // TODO: move to a DataTable / Option once the backend provides these mappings.
 const CM_TO_INCH_LABEL: Record<number, string> = {
   // Width
-  25: '9.8"', 35: '13.8"', 50: '19.7"', 60: '23.6"', 70: '27.6"',
-  80: '31.5"', 90: '35.4"', 105: '41.3"', 120: '47.2"',
+  25: '9.8"',
+  35: '13.8"',
+  50: '19.7"',
+  60: '23.6"',
+  70: '27.6"',
+  80: '31.5"',
+  90: '35.4"',
+  105: '41.3"',
+  120: '47.2"',
   // Depth
-  45.5: '17.9"', /* 50 → 19.7" already listed above */
+  45.5: '17.9"' /* 50 → 19.7" already listed above */,
   // Height
-  53: '20.9"', 56: '22"',
+  53: '20.9"',
+  56: '22"',
 };
 
 const cmToInchLabel = (cm: number): string => {
@@ -227,10 +235,7 @@ export const PlayCanvasIntegration = () => {
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
   const shouldShowEmptySceneRedirectButton =
-    isPlayCanvasReady &&
-    isCustomPage &&
-    !isCabinetBuilderPage &&
-    productIds.length === 0;
+    isPlayCanvasReady && isCustomPage && !isCabinetBuilderPage && productIds.length === 0;
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -631,7 +636,14 @@ export const PlayCanvasIntegration = () => {
         thickness: activeCountertopThickness ?? null,
         activeBasinStyle: activeBasinStyle ?? null,
       }),
-    [activeBasinStyle, activeCountertopThickness, countertopColorSku, countertopRules, countertopStyle, selectedDimensions.depth],
+    [
+      activeBasinStyle,
+      activeCountertopThickness,
+      countertopColorSku,
+      countertopRules,
+      countertopStyle,
+      selectedDimensions.depth,
+    ],
   );
   const remainingCountertopLength =
     maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
@@ -699,6 +711,8 @@ export const PlayCanvasIntegration = () => {
         rules: countertopRules,
         activeMaterialTokens,
         width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
+        sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width ?? null,
+        totalWidth: sceneTotalWidth ?? selectedDimensions.width ?? null,
         depth: sinkBaseDims.depth ?? selectedDimensions.depth ?? null,
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
@@ -712,6 +726,7 @@ export const PlayCanvasIntegration = () => {
       sinkBaseDims.width,
       selectedDimensions.depth,
       selectedDimensions.width,
+      sceneTotalWidth,
     ],
   );
 
