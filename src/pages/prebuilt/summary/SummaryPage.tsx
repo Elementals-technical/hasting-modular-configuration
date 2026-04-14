@@ -68,8 +68,10 @@ import {
   parseCountertopMatrix,
   resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
-import { getIsSwatchesEnabledInSummary, getSelectedSwatches } from "@/features/swatchSidebar/model/store/selectors";
-import { setSelectedSwatches, setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
+import { getIsSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/selectors";
+import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
+import { MAX_SWATCHES } from "@/features/swatchSidebar/model/constants";
+import { deriveSummarySwatchValues } from "@/features/swatchSidebar/lib/summarySwatches";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
@@ -273,10 +275,7 @@ export const SummaryPage = () => {
   const dividersStyle = useAppSelector(getDividersStyle);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const selectedSwatches = useAppSelector(getSelectedSwatches);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
-  const hasSelectedSwatches = selectedSwatches.length > 0;
-  const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSelectedSwatches;
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
@@ -337,10 +336,6 @@ export const SummaryPage = () => {
       };
     },
     [materialLookup],
-  );
-  const swatchesListPreview = useMemo(
-    () => selectedSwatches.slice(0, 6).map((value) => resolveSwatch(value)),
-    [selectedSwatches, resolveSwatch],
   );
 
   const { data: cabinetColors } = useGetConfiguratorQuery({
@@ -1508,12 +1503,6 @@ export const SummaryPage = () => {
   );
 
   useEffect(() => {
-    if (!hasSelectedSwatches && isSwatchesEnabledInSummary) {
-      dispatch(setSwatchesEnabledInSummary(false));
-    }
-  }, [dispatch, hasSelectedSwatches, isSwatchesEnabledInSummary]);
-
-  useEffect(() => {
     const configIdFromUrl = new URLSearchParams(location.search).get("configId");
     if (configIdFromUrl || generatedConfigId) return;
 
@@ -1600,25 +1589,33 @@ export const SummaryPage = () => {
 
   const summarySwatchValues = useMemo(
     () =>
-      Array.from(
-        new Set(
-          summarySections.flatMap((section) =>
-            section.items.map((item) => item.swatch?.value?.trim()).filter((value): value is string => Boolean(value)),
-          ),
-        ),
-      ).slice(0, 6),
-    [summarySections],
+      deriveSummarySwatchValues({
+        sectionSwatchValues: summarySections.flatMap((section) => section.items.map((item) => item.swatch?.value)),
+        cabinetColor,
+        handleGrooveColor,
+      }),
+    [cabinetColor, handleGrooveColor, summarySections],
   );
-  const canEnableSwatchesForSummary = hasSelectedSwatches || summarySwatchValues.length > 0;
+  const swatchesListPreview = useMemo(
+    () => summarySwatchValues.map((value) => resolveSwatch(value)),
+    [resolveSwatch, summarySwatchValues],
+  );
+  const hasSummarySwatches = swatchesListPreview.length > 0;
+  const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSummarySwatches;
+  const displayedSwatchesListPreview = isSwatchesEnabledForSummary ? swatchesListPreview : [];
+  const canEnableSwatchesForSummary = hasSummarySwatches;
+
+  useEffect(() => {
+    if (!hasSummarySwatches && isSwatchesEnabledInSummary) {
+      dispatch(setSwatchesEnabledInSummary(false));
+    }
+  }, [dispatch, hasSummarySwatches, isSwatchesEnabledInSummary]);
+
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
-      if (checked && !hasSelectedSwatches && summarySwatchValues.length > 0) {
-        dispatch(setSelectedSwatches(summarySwatchValues));
-      }
-
       dispatch(setSwatchesEnabledInSummary(checked));
     },
-    [dispatch, hasSelectedSwatches, summarySwatchValues],
+    [dispatch],
   );
 
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
@@ -1756,13 +1753,11 @@ export const SummaryPage = () => {
             <span className={s.addLabel}>Add free swatches</span>
           </label>
 
-          <div className={`${s.swatchesListHeader} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>
-            Swatches list
-          </div>
+          <div className={s.swatchesListHeader}>Swatches list</div>
 
-          <div className={`${s.swatchesList} ${!isSwatchesEnabledForSummary ? s.swatchesMuted : ""}`}>
-            {Array.from({ length: 6 }).map((_, index) => {
-              const swatch = swatchesListPreview[index];
+          <div className={s.swatchesList}>
+            {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
+              const swatch = displayedSwatchesListPreview[index];
               if (!swatch) {
                 return (
                   <div key={`empty-${index}`} className={s.swatchTile}>
@@ -1796,7 +1791,7 @@ export const SummaryPage = () => {
         generatedDate={quoteGeneratedDate}
         configurationLink={configurationLink}
         isSwatchesEnabled={isSwatchesEnabledForSummary}
-        swatchesPreview={swatchesListPreview}
+        swatchesPreview={displayedSwatchesListPreview}
       />
     </>
   );

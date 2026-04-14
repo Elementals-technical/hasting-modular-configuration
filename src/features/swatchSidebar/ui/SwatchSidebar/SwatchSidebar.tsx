@@ -5,6 +5,7 @@ import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
 import { closeSwatchSidebar, toggleSwatchSelection } from "../../model/store/slice";
+import { MAX_SWATCHES } from "../../model/constants";
 import { getIsSwatchSidebarOpen, getSelectedSwatches } from "../../model/store/selectors";
 
 import s from "./SwatchSidebar.module.scss";
@@ -19,8 +20,6 @@ type SwatchOption = {
 };
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
-const SWATCH_SLOTS = 6;
-
 const buildImageSrc = (imagePath?: string) => {
   if (!imagePath) return undefined;
   if (imagePath.startsWith("http")) return imagePath;
@@ -139,7 +138,7 @@ export const SwatchSidebar = () => {
         <div className={s.footer}>
           <div className={s.footerTitle}>Swatches list</div>
           <div className={s.previewList}>
-            {Array.from({ length: SWATCH_SLOTS }).map((_, index) => {
+            {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
               const selectedValue = selectedValues[index];
               const option = options.find((item) => item.value === selectedValue);
               if (!option) return <span key={`empty-${index}`} className={`${s.previewTile} ${s.previewTileEmpty}`} />;
@@ -165,4 +164,3 @@ export const SwatchSidebar = () => {
     </>
   );
 };
-
