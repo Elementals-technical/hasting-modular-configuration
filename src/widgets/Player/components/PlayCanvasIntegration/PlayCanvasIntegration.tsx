@@ -143,12 +143,20 @@ const formatThicknessLabel = (thickness: number): string => {
 // TODO: move to a DataTable / Option once the backend provides these mappings.
 const CM_TO_INCH_LABEL: Record<number, string> = {
   // Width
-  25: '9.8"', 35: '13.8"', 50: '19.7"', 60: '23.6"', 70: '27.6"',
-  80: '31.5"', 90: '35.4"', 105: '41.3"', 120: '47.2"',
+  25: '9.8"',
+  35: '13.8"',
+  50: '19.7"',
+  60: '23.6"',
+  70: '27.6"',
+  80: '31.5"',
+  90: '35.4"',
+  105: '41.3"',
+  120: '47.2"',
   // Depth
-  45.5: '17.9"', /* 50 → 19.7" already listed above */
+  45.5: '17.9"' /* 50 → 19.7" already listed above */,
   // Height
-  53: '20.9"', 56: '22"',
+  53: '20.9"',
+  56: '22"',
 };
 
 const cmToInchLabel = (cm: number): string => {
@@ -163,6 +171,7 @@ export const PlayCanvasIntegration = () => {
   type CustomizeModePromptAction =
     | "default"
     | "add"
+    | "cabinet-style"
     | "delete"
     | "resize"
     | "reposition"
@@ -226,10 +235,7 @@ export const PlayCanvasIntegration = () => {
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
   const shouldShowEmptySceneRedirectButton =
-    isPlayCanvasReady &&
-    isCustomPage &&
-    !isCabinetBuilderPage &&
-    productIds.length === 0;
+    isPlayCanvasReady && isCustomPage && !isCabinetBuilderPage && productIds.length === 0;
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -611,10 +617,13 @@ export const PlayCanvasIntegration = () => {
     if (!activeCountertopColor) return [];
     const match = countertopOptionsFromApi.find((option) => {
       const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
-      return candidate === activeCountertopColor;
+      if (candidate !== activeCountertopColor) return false;
+
+      const optionSku = option.metadata?.sku?.trim();
+      return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
     return match?.metadata?.materials ?? [];
-  }, [activeCountertopColor, countertopOptionsFromApi]);
+  }, [activeCountertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
   const maxCountertopLength = useMemo(
@@ -625,8 +634,16 @@ export const PlayCanvasIntegration = () => {
         style: countertopStyle ?? null,
         depth: selectedDimensions.depth ?? null,
         thickness: activeCountertopThickness ?? null,
+        activeBasinStyle: activeBasinStyle ?? null,
       }),
-    [activeCountertopThickness, countertopColorSku, countertopRules, countertopStyle, selectedDimensions.depth],
+    [
+      activeBasinStyle,
+      activeCountertopThickness,
+      countertopColorSku,
+      countertopRules,
+      countertopStyle,
+      selectedDimensions.depth,
+    ],
   );
   const remainingCountertopLength =
     maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
@@ -694,6 +711,8 @@ export const PlayCanvasIntegration = () => {
         rules: countertopRules,
         activeMaterialTokens,
         width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
+        sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width ?? null,
+        totalWidth: sceneTotalWidth ?? selectedDimensions.width ?? null,
         depth: sinkBaseDims.depth ?? selectedDimensions.depth ?? null,
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
@@ -707,6 +726,7 @@ export const PlayCanvasIntegration = () => {
       sinkBaseDims.width,
       selectedDimensions.depth,
       selectedDimensions.width,
+      sceneTotalWidth,
     ],
   );
 
@@ -1383,6 +1403,10 @@ export const PlayCanvasIntegration = () => {
     handleOpenCustomizeModePrompt("add");
   }, [handleOpenCustomizeModePrompt]);
 
+  const handleCabinetStyleFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("cabinet-style");
+  }, [handleOpenCustomizeModePrompt]);
+
   const handleDeleteFromPrebuilt = useCallback(() => {
     if (!selectedSceneProduct) return;
     handleOpenCustomizeModePrompt("delete", selectedSceneProduct);
@@ -1587,6 +1611,11 @@ export const PlayCanvasIntegration = () => {
 
     if (action === "add") {
       navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      return;
+    }
+
+    if (action === "cabinet-style") {
+      navigate("/custom/cabinet-builder?accordion=cabinet-style");
       return;
     }
 
@@ -2088,6 +2117,9 @@ export const PlayCanvasIntegration = () => {
   ]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
+    const orderedIds = getOrderedProductIds(productIds);
+    const canRepositionSelectedCabinet = orderedIds.length > 1;
+
     if (isPrebuilt) {
       if (isTowelBarEntity) {
         return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
@@ -2103,12 +2135,16 @@ export const PlayCanvasIntegration = () => {
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleResizeFromPrebuilt,
         },
-        {
-          id: "reposition",
-          label: "Reposition",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleRepositionFromPrebuilt,
-        },
+        ...(canRepositionSelectedCabinet
+          ? [
+              {
+                id: "reposition",
+                label: "Reposition",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleRepositionFromPrebuilt,
+              },
+            ]
+          : []),
         {
           id: "color",
           label: "Color",
@@ -2128,10 +2164,22 @@ export const PlayCanvasIntegration = () => {
           onClick: handleAddFromPrebuilt,
         },
         {
-          id: "accessories",
-          label: "Accessories",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleOpenAccessories,
+          id: "details",
+          label: "Details",
+          children: [
+            {
+              id: "cabinet-style",
+              label: "Cabinet Style",
+              trailing: <ArrowTopRight color={"#333"} />,
+              onClick: handleCabinetStyleFromPrebuilt,
+            },
+            {
+              id: "accessories",
+              label: "Accessories",
+              trailing: <ArrowTopRight color={"#333"} />,
+              onClick: handleOpenAccessories,
+            },
+          ],
         },
         {
           id: "duplicate",
@@ -2171,7 +2219,6 @@ export const PlayCanvasIntegration = () => {
     }
 
     // Side-Shelf (OSS) must always remain at edges — block moves that would push it inward
-    const orderedIds = getOrderedProductIds(productIds);
     const selectedIdx = selectedSceneProduct ? orderedIds.indexOf(selectedSceneProduct) : -1;
     const isSelectedOss = selectedSceneProduct?.startsWith("Side-Shelf-");
     const ossCannotMove = isSelectedOss && productIds.length > 1;
@@ -2318,13 +2365,14 @@ export const PlayCanvasIntegration = () => {
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
-    productIds.length,
+    productIds,
     handleMoveProduct,
     handleOpenCabinetStyle,
     handleOpenCabinetColor,
     handleOpenAccessories,
     handleOpenDrawerButtonsForSelectedProduct,
     handleAddFromPrebuilt,
+    handleCabinetStyleFromPrebuilt,
     handleDeleteFromPrebuilt,
     handleResizeFromPrebuilt,
     handleRepositionFromPrebuilt,

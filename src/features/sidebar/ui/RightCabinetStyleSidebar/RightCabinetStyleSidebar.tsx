@@ -233,6 +233,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
               title: pick(variantMeta.label, variantMeta.Label, nestedMeta.label, nestedMeta.Label, variant.name) ?? "",
               desc: normalizeMaterialLabel(descSource),
               metadata: {
+                sku: pick(variantMeta.sku),
                 value: pick(variantMeta.value, nestedMeta.value, variant.name) ?? String(variant.name ?? ""),
                 materials: buildMaterialTokens(
                   String(option.name ?? variant.name ?? ""),
@@ -250,10 +251,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (!countertopColor) return [];
     const match = countertopOptionsFromApi.find((option) => {
       const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
-      return candidate === countertopColor;
+      if (candidate !== countertopColor) return false;
+
+      const optionSku = option.metadata?.sku?.trim();
+      return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
     return match?.metadata?.materials ?? [];
-  }, [countertopColor, countertopOptionsFromApi]);
+  }, [countertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
   const maxCountertopLength = useMemo(
@@ -264,8 +268,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         style: countertopStyle ?? null,
         depth: selectedDimensions.depth ?? null,
         thickness: countertopThickness ?? null,
+        activeBasinStyle: sinkType ?? null,
       }),
-    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth],
+    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth, sinkType],
   );
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);

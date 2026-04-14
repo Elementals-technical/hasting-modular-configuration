@@ -6,8 +6,8 @@ const MATERIAL_ALIASES: Record<string, string[]> = {
   tekorund: ["tekormud", "sstm"],
   tekormud: ["tekorund", "sstm"],
   glass: ["glassmt", "glassgl"],
-  glassmt: ["glass"],
-  glassgl: ["glass"],
+  glassmt: ["glass", "glassgl"],
+  glassgl: ["glass", "glassmt"],
   // Material SKU aliases used in pricing/config payloads.
   ssocr: ["ocritech"],
   ocritech: ["ssocr"],
@@ -97,6 +97,25 @@ export const normalizeBasinKey = (value: string): string => {
     .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass|gres)/g, "");
 
   return cleaned.length > 0 ? cleaned : normalizeToken(value);
+};
+
+export const scopeCountertopRulesByBasinStyle = (
+  rules: CountertopMatrixRule[],
+  activeBasinStyle?: string | null,
+): CountertopMatrixRule[] => {
+  if (!activeBasinStyle) return rules;
+
+  const activeBasinKey = normalizeBasinKey(activeBasinStyle);
+  if (activeBasinKey) {
+    const keyMatched = rules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
+    if (keyMatched.length > 0) return keyMatched;
+  }
+
+  const activeBasinToken = normalizeBasinToken(activeBasinStyle);
+  if (!activeBasinToken) return rules;
+
+  const tokenMatched = rules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
+  return tokenMatched.length > 0 ? tokenMatched : rules;
 };
 
 export const parseThicknessValue = (raw: string): number | null => {

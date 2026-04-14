@@ -41,11 +41,14 @@ import {
   buildDividerSku,
   buildOpenShelfSku,
   buildOpenSideShelfSku,
-  buildBookMatchingSku,
   TOWEL_BAR_DEFAULTS,
   SIDE_PANEL_WIDTH_CM,
   extractColorCode,
+  getCountertopMaterialTokensBySku,
+  getCountertopMaterialTokensFromBasinType,
+  buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
+  resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
@@ -62,6 +65,7 @@ import {
   type NormalizedProductConfigSnapshot,
 } from "@/shared/lib/normalizeProductConfigSnapshot";
 import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
+import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -198,7 +202,9 @@ export function usePriceCalculation() {
       console.log(
         LOG_PREFIX,
         "fetchSceneConfigs skipped:",
-        productsPresets.length > 0 && !hasBootstrappedCabinetBuilder ? "using presets, no extra products" : "no productIds",
+        productsPresets.length > 0 && !hasBootstrappedCabinetBuilder
+          ? "using presets, no extra products"
+          : "no productIds",
       );
       setSceneConfigs([]);
       return;
@@ -249,7 +255,7 @@ export function usePriceCalculation() {
   const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
   const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
 
-  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuByName } = useMemo(() => {
+  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];
     const buildMapForProxy = (proxyName: string) => {
       const map = new Map<string, string>();
@@ -272,7 +278,7 @@ export function usePriceCalculation() {
     return {
       cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
       handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
-      countertopColorSkuByName: buildMapForProxy("Countertop Color"),
+      countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
   }, [cabinetColors]);
 
@@ -312,21 +318,6 @@ export function usePriceCalculation() {
     const resolvedCountertopColor = shouldUsePresetCountertopColor
       ? (firstPreset?.CountertopColor as string)
       : countertopColor;
-    const resolvedCountertopMaterialSku =
-      countertopColorSku ||
-      (resolvedCountertopColor ? countertopColorSkuByName.get(resolvedCountertopColor) : null) ||
-      countertopColorSkuByName.get(countertopColor) ||
-      null;
-    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
-    const resolvedVesselMaterialSku =
-      (resolvedVesselColor ? countertopColorSkuByName.get(resolvedVesselColor) : null) || resolvedCountertopMaterialSku;
-    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
-      ? resolvedVesselMaterialSku
-      : resolvedCountertopMaterialSku;
-    const effectiveCountertopColorCode = extractColorCode(
-      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
-    );
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
     const resolvedSinkType =
       shouldUsePresetSinkType && colorDrivenDefaultBasin
@@ -334,6 +325,41 @@ export function usePriceCalculation() {
         : shouldUsePresetSinkType
           ? (firstPreset?.sinkType as string)
           : sinkType || null;
+    const preferredCountertopMaterialTokens = [
+      ...getCountertopMaterialTokensBySku(countertopColorSku),
+      ...getCountertopMaterialTokensFromBasinType(resolvedSinkType),
+    ];
+    const resolvedCountertopMaterialSku =
+      countertopColorSku ||
+      resolveCountertopColorSkuFromCandidates({
+        value: resolvedCountertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: preferredCountertopMaterialTokens,
+      }) ||
+      resolveCountertopColorSkuFromCandidates({
+        value: countertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: preferredCountertopMaterialTokens,
+      }) ||
+      inferMaterialSkuFromBasinType(resolvedSinkType) ||
+      null;
+    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
+    const resolvedVesselMaterialSku =
+      resolveCountertopColorSkuFromCandidates({
+        value: resolvedVesselColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredMaterialTokens: [
+          ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+          ...preferredCountertopMaterialTokens,
+        ],
+      }) || resolvedCountertopMaterialSku;
+    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
+      ? resolvedVesselMaterialSku
+      : resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(
+      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
+    );
     const resolveNameFromRaw = (value: string) => {
       const lastDash = value.lastIndexOf("-");
       if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
@@ -666,6 +692,7 @@ export function usePriceCalculation() {
       : sceneConfigs.length > 0
         ? sceneConfigs.length
         : 1;
+    let bookMatchingCabinets: BookMatchingCabinetInput[];
 
     if (shouldUsePresets) {
       productDimsList = [
@@ -682,12 +709,36 @@ export function usePriceCalculation() {
           sinkType: resolvedSinkType,
         })),
       ];
+      bookMatchingCabinets = [
+        ...productsPresets.map((preset) => ({
+          name: preset.name,
+          drawers: preset.Drawers ?? null,
+        })),
+        ...sceneConfigs.map((cfg) => ({
+          name:
+            cfg.ProductType ??
+            cfg.productType ??
+            (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
+            (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
+            cfg.name,
+          drawers: cfg.Drawers,
+        })),
+      ];
     } else if (sceneConfigs.length > 0) {
       productDimsList = sceneConfigs.map((cfg) => ({
         width: cfg.Width,
         height: cfg.Height,
         depth: cfg.Depth,
         sinkType: resolvedSinkType,
+      }));
+      bookMatchingCabinets = sceneConfigs.map((cfg) => ({
+        name:
+          cfg.ProductType ??
+          cfg.productType ??
+          (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
+          (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
+          cfg.name,
+        drawers: cfg.Drawers,
       }));
     } else {
       productDimsList = [
@@ -696,6 +747,17 @@ export function usePriceCalculation() {
           height: selectedDimensions.height,
           depth: selectedDimensions.depth,
           sinkType: resolvedSinkType,
+        },
+      ];
+      bookMatchingCabinets = [
+        {
+          name:
+            typeof selectedProductConfig?.name === "string"
+              ? selectedProductConfig.name
+              : typeof activeCabinetType === "string"
+                ? activeCabinetType
+                : null,
+          drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
         },
       ];
     }
@@ -872,34 +934,26 @@ export function usePriceCalculation() {
     }
 
     // 5) Book matching SKU — pricing modifier (per drawer)
-    if (bookMatching === "enabled" && grainSku) {
-      const isHorizontal = grainSku === "H";
-      if (!isHorizontal || cabinetCount >= 2) {
-        const bmSku = buildBookMatchingSku({
-          direction: grainSku,
-          materialSku: resolveCabinetMaterialSku(cabinetColor),
-        });
-        // calculate per drawer
-        const parseDrawerCount = (value: unknown): number => {
-          if (typeof value !== "string") return 0;
-          const match = value.match(/^(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        };
-        const presetDrawerTotal = (productsPresets ?? []).reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
-        const sceneDrawerTotal = (sceneConfigs ?? []).reduce(
-          (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
-          0,
-        );
-        const selectedDrawerTotal = parseDrawerCount(
-          (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
-        );
-        const drawerCount = Math.max(presetDrawerTotal, sceneDrawerTotal, selectedDrawerTotal) || cabinetCount;
-        console.log(LOG_PREFIX, "Resolver 5 (Book Matching):", bmSku, "× drawers:", drawerCount, {
-          presetDrawerTotal,
-          sceneDrawerTotal,
-          selectedDrawerTotal,
-        });
-        for (let i = 0; i < drawerCount; i++) skus.push(bmSku);
+    const bookMatchingInfo = deriveBookMatchingChargeInfo({
+      grainDirection,
+      bookMatching,
+      materialSku: resolveCabinetMaterialSku(cabinetColor),
+      cabinets: bookMatchingCabinets,
+    });
+
+    if (bookMatchingInfo.applies && bookMatchingInfo.sku) {
+      console.log(
+        LOG_PREFIX,
+        "Resolver 5 (Book Matching):",
+        bookMatchingInfo.sku,
+        "× drawers:",
+        bookMatchingInfo.drawerQty,
+        {
+          eligibleCabinetCount: bookMatchingInfo.eligibleCabinetCount,
+        },
+      );
+      for (let i = 0; i < bookMatchingInfo.drawerQty; i++) {
+        skus.push(bookMatchingInfo.sku);
       }
     }
 
@@ -938,9 +992,10 @@ export function usePriceCalculation() {
     placedDividers,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,
-    countertopColorSkuByName,
+    countertopColorSkuCandidatesByValue,
     resolveCabinetType,
     countertopRules,
+    grainDirection,
   ]);
 
   // ── Stable key for the SKU list (avoid effect re-runs on same content) ─

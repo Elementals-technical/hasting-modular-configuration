@@ -7,12 +7,15 @@ import {
   normalizeFaucetHoleToken,
   normalizeMaterialToken,
   parseThicknessValue,
+  scopeCountertopRulesByBasinStyle,
 } from "./parse";
 
 export type CountertopRuleInput = {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
   width: number | null;
+  sinkBaseWidth?: number | null;
+  totalWidth?: number | null;
   depth: number | null;
   activeBasinStyle: string | null;
   activeThickness: string | null;
@@ -35,14 +38,38 @@ type ResolveDefaultThicknessInput = {
   width?: number | null;
 };
 
-const isRuleWidthEligibleForIntegratedContext = (rule: CountertopMatrixRule, width: number | null): boolean => {
-  if (!width) return true;
-  if (rule.minSbCm !== null && width < rule.minSbCm) return false;
-  if (rule.maxIntegratedCm !== null && width > rule.maxIntegratedCm) return false;
+type IntegratedWidthContext =
+  | number
+  | {
+      sinkBaseWidth?: number | null;
+      totalWidth?: number | null;
+    }
+  | null;
+
+const resolveIntegratedWidthContext = (context: IntegratedWidthContext) => {
+  if (typeof context === "number") {
+    return { sinkBaseWidth: context, totalWidth: context };
+  }
+
+  return {
+    sinkBaseWidth: context?.sinkBaseWidth ?? null,
+    totalWidth: context?.totalWidth ?? null,
+  };
+};
+
+export const isRuleWidthEligibleForIntegratedContext = (
+  rule: CountertopMatrixRule,
+  context: IntegratedWidthContext,
+): boolean => {
+  const { sinkBaseWidth, totalWidth } = resolveIntegratedWidthContext(context);
+
+  if (sinkBaseWidth !== null && rule.minSbCm !== null && sinkBaseWidth < rule.minSbCm) return false;
+  if (totalWidth !== null && rule.maxIntegratedCm !== null && totalWidth > rule.maxIntegratedCm) return false;
 
   if (
+    sinkBaseWidth !== null &&
     rule.integratedAllowedSizesOnly.length > 0 &&
-    !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
+    !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - sinkBaseWidth) < 0.01)
   ) {
     return false;
   }
@@ -75,11 +102,26 @@ export const resolveDefaultThicknessFromRules = ({
   return null;
 };
 
+export const getSupportedCountertopFaucetHoles = (rules: CountertopMatrixRule[]): string[] => {
+  const supportedValues = new Set<string>();
+
+  rules.forEach((rule) => {
+    rule.faucetHoles.forEach((value) => {
+      if (value) supportedValues.add(normalizeFaucetHoleToken(value));
+    });
+  });
+
+  return Array.from(supportedValues).sort((left, right) => Number(left) - Number(right));
+};
+
 export const buildCountertopRuleState = ({
   rules,
   activeMaterialTokens,
   width,
+  sinkBaseWidth,
+  totalWidth,
   depth,
+  activeBasinStyle,
   activeThickness,
 }: CountertopRuleInput): CountertopRuleResult => {
   const allowedMaterials = new Set<string>();
@@ -89,6 +131,10 @@ export const buildCountertopRuleState = ({
   const allowedFaucetHoles = new Set<string>();
   const allowedStyles = new Set<string>();
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+  const integratedWidthContext = {
+    sinkBaseWidth: sinkBaseWidth ?? width,
+    totalWidth: totalWidth ?? width,
+  };
 
   if (!rules.length) {
     return {
@@ -123,7 +169,7 @@ export const buildCountertopRuleState = ({
   };
 
   matchingRules
-    .filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, width))
+    .filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext))
     .forEach((rule) => {
       rule.topThicknesses.forEach((value) => {
         const parsed = parseThicknessValue(value);
@@ -132,15 +178,13 @@ export const buildCountertopRuleState = ({
     });
 
   const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
-  const meetsMinSb = (rule: CountertopMatrixRule) => !width || !rule.minSbCm || width >= rule.minSbCm;
 
   matchingRules.forEach((rule) => {
     if (!matchesActiveThickness(rule)) return;
+    if (!isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext)) return;
 
-    if (meetsMinSb(rule)) {
-      allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
-      allowedBasinKeys.add(normalizeBasinKey(rule.basinStyle));
-    }
+    allowedBasinTokens.add(normalizeBasinToken(rule.basinStyle));
+    allowedBasinKeys.add(normalizeBasinKey(rule.basinStyle));
   });
 
   // Countertop-style constraints (Vessel / Undermount) should not depend on basin rules.
@@ -158,21 +202,18 @@ export const buildCountertopRuleState = ({
 
   // Integrated rules are basin-driven.
   matchingRules.forEach((rule) => {
-    if (!meetsMinSb(rule)) return;
     if (!matchesActiveThickness(rule)) return;
-
-    if (isWidthValid(rule.maxIntegratedCm)) {
-      if (
-        rule.integratedAllowedSizesOnly.length === 0 ||
-        !width ||
-        rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
-      ) {
-        allowedStyles.add("integrated");
-      }
-    }
+    if (!isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext)) return;
+    allowedStyles.add("integrated");
   });
 
-  matchingRules.forEach((rule) => {
+  const thicknessScopedRules = matchingRules.filter((rule) => matchesActiveThickness(rule));
+  const faucetHoleRules = scopeCountertopRulesByBasinStyle(
+    thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules,
+    activeBasinStyle,
+  );
+
+  faucetHoleRules.forEach((rule) => {
     rule.faucetHoles.forEach((value) => {
       if (value) allowedFaucetHoles.add(normalizeFaucetHoleToken(value));
     });

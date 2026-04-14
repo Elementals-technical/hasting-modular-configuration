@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
 
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
-import { ProductOptionsGrid, type ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import {
+  ProductOptionsGrid,
+  type ProductOptionData,
+  type ProductOptionMetadata,
+} from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
@@ -11,6 +15,7 @@ import {
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
+import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { PopupCenterContent } from "../PopupCenterContent/PopupCenterContent";
 
 import s from "./FullModeColorsModal.module.scss";
@@ -23,7 +28,7 @@ interface FullModeColorsModalProps {
   title: string;
   options: ProductOptionData[];
   activeValue?: string | number | null;
-  onSelect?: (name: string) => void | Promise<void>;
+  onSelect?: (name: string, config?: addProductConfigI, metadata?: ProductOptionMetadata) => void | Promise<void>;
   isLoading?: boolean;
   groupByDesc?: boolean;
   showFilters?: boolean;

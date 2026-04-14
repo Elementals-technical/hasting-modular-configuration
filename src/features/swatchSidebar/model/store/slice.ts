@@ -1,6 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-
-const MAX_SWATCHES = 6;
+import { MAX_SWATCHES } from "../constants";
 
 type SwatchSidebarState = {
   isOpen: boolean;
