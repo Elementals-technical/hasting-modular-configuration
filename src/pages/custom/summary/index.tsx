@@ -52,7 +52,6 @@ import {
   buildSidePanelSku,
   SIDE_PANEL_WIDTH_CM,
   buildDividerSku,
-  buildBookMatchingSku,
   buildOpenShelfSku,
   buildOpenSideShelfSku,
   extractColorCode,
@@ -82,6 +81,7 @@ import {
   type NormalizedProductConfigSnapshot,
 } from "@/shared/lib/normalizeProductConfigSnapshot";
 import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
+import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
 import s from "./SummaryPage.module.scss";
 
@@ -801,6 +801,55 @@ export const CustomSummaryPage = () => {
       : configCabinetItems.length > 0
         ? configCabinetItems
         : fallbackCabinetItems;
+    const bookMatchingCabinets: BookMatchingCabinetInput[] = shouldUsePresets
+      ? [
+          ...productsPresets.map((preset) => ({
+            name: preset.name,
+            drawers: preset.Drawers ?? null,
+          })),
+          ...cabinetConfigs.map((config) => ({
+            name:
+              typeof config.ProductType === "string"
+                ? config.ProductType
+                : typeof config.productType === "string"
+                  ? config.productType
+                  : typeof config.entityName === "string"
+                    ? resolveNameFromRaw(config.entityName)
+                    : typeof config._productId === "string"
+                      ? resolveNameFromRaw(config._productId)
+                      : typeof config.name === "string"
+                        ? config.name
+                        : null,
+            drawers: config.Drawers,
+          })),
+        ]
+      : cabinetConfigs.length > 0
+        ? cabinetConfigs.map((config) => ({
+            name:
+              typeof config.ProductType === "string"
+                ? config.ProductType
+                : typeof config.productType === "string"
+                  ? config.productType
+                  : typeof config.entityName === "string"
+                    ? resolveNameFromRaw(config.entityName)
+                    : typeof config._productId === "string"
+                      ? resolveNameFromRaw(config._productId)
+                      : typeof config.name === "string"
+                        ? config.name
+                        : null,
+            drawers: config.Drawers,
+          }))
+        : [
+            {
+              name:
+                typeof selectedProductConfig?.name === "string"
+                  ? selectedProductConfig.name
+                  : typeof activeCabinetType === "string"
+                    ? activeCabinetType
+                    : null,
+              drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
+            },
+          ];
 
     // const grooveSwatch = resolveSwatch(handleGrooveColor);
     const firstPreset = productsPresets[0];
@@ -932,50 +981,31 @@ export const CustomSummaryPage = () => {
     const displayCountertopThickness = normalizeCountertopThicknessForDisplay(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(resolvedCountertopColor);
 
-    const bookMatchingItem: SummaryItem | null =
-      bookMatching === "enabled" && grainSku && (grainSku !== "H" || cabinetCount >= 2)
-        ? (() => {
-            const bmSku = buildBookMatchingSku({
-              direction: grainSku,
-              materialSku: resolveCabinetMaterialSku(cabinetColor),
-            });
-            const parseDrawerCount = (value: unknown): number => {
-              if (typeof value !== "string") return 0;
-              const match = value.match(/^(\d+)/);
-              return match ? parseInt(match[1], 10) : 0;
-            };
-            const presetDrawerTotal = productsPresets.reduce((sum, p) => sum + parseDrawerCount(p.Drawers), 0);
-            const configDrawerTotal = cabinetConfigs.reduce(
-              (sum, c) => sum + parseDrawerCount((c as { Drawers?: unknown }).Drawers),
-              0,
-            );
-            const selectedDrawerTotal = parseDrawerCount(
-              (selectedProductConfig as { Drawers?: unknown } | null | undefined)?.Drawers,
-            );
-            const drawerCount = Math.max(presetDrawerTotal, configDrawerTotal, selectedDrawerTotal) || cabinetCount;
-            console.log("[BookMatching] drawers:", {
-              presetDrawerTotal,
-              configDrawerTotal,
-              selectedDrawerTotal,
-              drawerCount,
-              cabinetCount,
-            });
-            const unitPrice = priceBySku[bmSku] ?? 0;
-            return {
-              id: "cabinet-option-book-matching",
-              title: "Book Matching",
-              subtitle: grainSku === "H" ? "Horizontal" : "Vertical",
-              sku: bmSku,
-              price: formatPrice(unitPrice * drawerCount),
-              copyable: true,
-              description: {
-                "Product Category": "Book Matching",
-                Direction: grainSku === "H" ? "Horizontal" : "Vertical",
-                Drawers: drawerCount,
-              },
-            };
-          })()
-        : null;
+    const bookMatchingInfo = deriveBookMatchingChargeInfo({
+      grainDirection,
+      bookMatching,
+      materialSku: resolveCabinetMaterialSku(cabinetColor),
+      cabinets: bookMatchingCabinets,
+    });
+
+    const bookMatchingItem: SummaryItem | null = bookMatchingInfo.applies && bookMatchingInfo.sku
+      ? (() => {
+          const unitPrice = priceBySku[bookMatchingInfo.sku] ?? 0;
+          return {
+            id: "cabinet-option-book-matching",
+            title: "Book Matching",
+            subtitle: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
+            sku: bookMatchingInfo.sku,
+            price: formatPrice(unitPrice * bookMatchingInfo.drawerQty),
+            copyable: true,
+            description: {
+              "Product Category": "Book Matching",
+              Direction: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
+              Drawers: bookMatchingInfo.drawerQty,
+            },
+          };
+        })()
+      : null;
 
     const cabinetOptionItems: SummaryItem[] = [
       drawerPanelFluting
