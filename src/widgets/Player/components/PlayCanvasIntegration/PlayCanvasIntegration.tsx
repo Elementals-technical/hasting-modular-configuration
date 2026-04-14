@@ -163,6 +163,7 @@ export const PlayCanvasIntegration = () => {
   type CustomizeModePromptAction =
     | "default"
     | "add"
+    | "cabinet-style"
     | "delete"
     | "resize"
     | "reposition"
@@ -1383,6 +1384,10 @@ export const PlayCanvasIntegration = () => {
     handleOpenCustomizeModePrompt("add");
   }, [handleOpenCustomizeModePrompt]);
 
+  const handleCabinetStyleFromPrebuilt = useCallback(() => {
+    handleOpenCustomizeModePrompt("cabinet-style");
+  }, [handleOpenCustomizeModePrompt]);
+
   const handleDeleteFromPrebuilt = useCallback(() => {
     if (!selectedSceneProduct) return;
     handleOpenCustomizeModePrompt("delete", selectedSceneProduct);
@@ -1587,6 +1592,11 @@ export const PlayCanvasIntegration = () => {
 
     if (action === "add") {
       navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      return;
+    }
+
+    if (action === "cabinet-style") {
+      navigate("/custom/cabinet-builder?accordion=cabinet-style");
       return;
     }
 
@@ -2088,6 +2098,9 @@ export const PlayCanvasIntegration = () => {
   ]);
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
+    const orderedIds = getOrderedProductIds(productIds);
+    const canRepositionSelectedCabinet = orderedIds.length > 1;
+
     if (isPrebuilt) {
       if (isTowelBarEntity) {
         return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
@@ -2103,12 +2116,16 @@ export const PlayCanvasIntegration = () => {
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleResizeFromPrebuilt,
         },
-        {
-          id: "reposition",
-          label: "Reposition",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleRepositionFromPrebuilt,
-        },
+        ...(canRepositionSelectedCabinet
+          ? [
+              {
+                id: "reposition",
+                label: "Reposition",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleRepositionFromPrebuilt,
+              },
+            ]
+          : []),
         {
           id: "color",
           label: "Color",
@@ -2128,10 +2145,22 @@ export const PlayCanvasIntegration = () => {
           onClick: handleAddFromPrebuilt,
         },
         {
-          id: "accessories",
-          label: "Accessories",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleOpenAccessories,
+          id: "details",
+          label: "Details",
+          children: [
+            {
+              id: "cabinet-style",
+              label: "Cabinet Style",
+              trailing: <ArrowTopRight color={"#333"} />,
+              onClick: handleCabinetStyleFromPrebuilt,
+            },
+            {
+              id: "accessories",
+              label: "Accessories",
+              trailing: <ArrowTopRight color={"#333"} />,
+              onClick: handleOpenAccessories,
+            },
+          ],
         },
         {
           id: "duplicate",
@@ -2171,7 +2200,6 @@ export const PlayCanvasIntegration = () => {
     }
 
     // Side-Shelf (OSS) must always remain at edges — block moves that would push it inward
-    const orderedIds = getOrderedProductIds(productIds);
     const selectedIdx = selectedSceneProduct ? orderedIds.indexOf(selectedSceneProduct) : -1;
     const isSelectedOss = selectedSceneProduct?.startsWith("Side-Shelf-");
     const ossCannotMove = isSelectedOss && productIds.length > 1;
@@ -2318,13 +2346,14 @@ export const PlayCanvasIntegration = () => {
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
-    productIds.length,
+    productIds,
     handleMoveProduct,
     handleOpenCabinetStyle,
     handleOpenCabinetColor,
     handleOpenAccessories,
     handleOpenDrawerButtonsForSelectedProduct,
     handleAddFromPrebuilt,
+    handleCabinetStyleFromPrebuilt,
     handleDeleteFromPrebuilt,
     handleResizeFromPrebuilt,
     handleRepositionFromPrebuilt,
