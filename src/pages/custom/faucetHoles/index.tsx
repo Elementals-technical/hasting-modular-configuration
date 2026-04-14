@@ -1,12 +1,13 @@
 import { useEffect, useMemo } from "react";
 
+import { useGetConfiguratorQuery } from "@/entities";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
-import { faucetHolesAmountData } from "./constants";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
+  getCountertopColorSku,
   getActiveCountertopThickness,
   getFaucetHolesAmount,
   getSelectedDimensions,
@@ -18,18 +19,21 @@ import { setFaucetHolesAmount } from "@/entities/product/model/store/slice";
 import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
+  getSupportedCountertopFaucetHoles,
   normalizeFaucetHoleToken,
   parseCountertopMatrix,
 } from "@/features/configurator-rule-core/countertop";
-import { getMaterialOptionsGridData } from "@/shared/constants/materialFilters";
-
-const COUNTERTOP_OPTION = "Counertops materials";
+import {
+  buildCountertopColorSkuCandidates,
+  resolveCountertopMaterialTokensFromCandidates,
+} from "@/shared/lib/sku";
 
 export const CustomFaucetHolesPage = () => {
   const dispatch = useAppDispatch();
   const faucetAmount = useAppSelector(getFaucetHolesAmount);
 
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -37,20 +41,33 @@ export const CustomFaucetHolesPage = () => {
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
 
   const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+  const { data: counterTopMaterials } = useGetConfiguratorQuery({
+    id: 4,
+    view: "full",
+    serialize: true,
+  });
 
   const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
-  const countertopOptions = useMemo(() => getMaterialOptionsGridData(COUNTERTOP_OPTION), []);
+  const countertopColorSkuCandidatesByValue = useMemo(
+    () => buildCountertopColorSkuCandidates(counterTopMaterials?.availableOptions),
+    [counterTopMaterials?.availableOptions],
+  );
+  const faucetHoleOptions = useMemo(
+    () =>
+      getSupportedCountertopFaucetHoles(countertopRules).map((value) => ({
+        id: Number(value),
+        title: value,
+      })),
+    [countertopRules],
+  );
 
   const activeMaterialTokens = useMemo(() => {
-    if (!activeCountertopColor) return [];
-
-    const match = countertopOptions.find((option) => {
-      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
-      return candidate === activeCountertopColor;
+    return resolveCountertopMaterialTokensFromCandidates({
+      value: activeCountertopColor,
+      candidatesByValue: countertopColorSkuCandidatesByValue,
+      preferredSku: countertopColorSku,
     });
-
-    return match?.metadata?.materials ?? [];
-  }, [activeCountertopColor, countertopOptions]);
+  }, [activeCountertopColor, countertopColorSku, countertopColorSkuCandidatesByValue]);
 
   const ruleState = useMemo(
     () =>
@@ -77,13 +94,13 @@ export const CustomFaucetHolesPage = () => {
   const filteredFaucetHolesAmountData = useMemo(() => {
     const allowed = ruleState.allowedFaucetHoles;
 
-    if (!allowed.size) return faucetHolesAmountData;
+    if (!allowed.size) return faucetHoleOptions;
 
-    return faucetHolesAmountData.filter((option) => {
+    return faucetHoleOptions.filter((option) => {
       const candidate = String(option.title ?? option.id);
       return allowed.has(normalizeFaucetHoleToken(candidate));
     });
-  }, [ruleState.allowedFaucetHoles]);
+  }, [faucetHoleOptions, ruleState.allowedFaucetHoles]);
 
   const handleFaucetAmountChange = (value: string | null) => {
     if (!value) return;

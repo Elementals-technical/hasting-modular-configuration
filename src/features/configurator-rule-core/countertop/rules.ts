@@ -75,11 +75,24 @@ export const resolveDefaultThicknessFromRules = ({
   return null;
 };
 
+export const getSupportedCountertopFaucetHoles = (rules: CountertopMatrixRule[]): string[] => {
+  const supportedValues = new Set<string>();
+
+  rules.forEach((rule) => {
+    rule.faucetHoles.forEach((value) => {
+      if (value) supportedValues.add(normalizeFaucetHoleToken(value));
+    });
+  });
+
+  return Array.from(supportedValues).sort((left, right) => Number(left) - Number(right));
+};
+
 export const buildCountertopRuleState = ({
   rules,
   activeMaterialTokens,
   width,
   depth,
+  activeBasinStyle,
   activeThickness,
 }: CountertopRuleInput): CountertopRuleResult => {
   const allowedMaterials = new Set<string>();
@@ -120,6 +133,22 @@ export const buildCountertopRuleState = ({
       .filter((value): value is number => value !== null);
 
     return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+  };
+
+  const getBasinScopedRules = (sourceRules: CountertopMatrixRule[]): CountertopMatrixRule[] => {
+    if (!activeBasinStyle) return sourceRules;
+
+    const activeBasinKey = normalizeBasinKey(activeBasinStyle);
+    if (activeBasinKey) {
+      const keyMatched = sourceRules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
+      if (keyMatched.length > 0) return keyMatched;
+    }
+
+    const activeBasinToken = normalizeBasinToken(activeBasinStyle);
+    if (!activeBasinToken) return sourceRules;
+
+    const tokenMatched = sourceRules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
+    return tokenMatched.length > 0 ? tokenMatched : sourceRules;
   };
 
   matchingRules
@@ -172,7 +201,10 @@ export const buildCountertopRuleState = ({
     }
   });
 
-  matchingRules.forEach((rule) => {
+  const thicknessScopedRules = matchingRules.filter((rule) => matchesActiveThickness(rule));
+  const faucetHoleRules = getBasinScopedRules(thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules);
+
+  faucetHoleRules.forEach((rule) => {
     rule.faucetHoles.forEach((value) => {
       if (value) allowedFaucetHoles.add(normalizeFaucetHoleToken(value));
     });

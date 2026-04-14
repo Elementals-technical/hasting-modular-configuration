@@ -32,6 +32,7 @@ export { resolveDefaultBasinByCountertopColor } from "./resolveDefaultBasinByCou
 export {
   buildCountertopColorSkuCandidates,
   resolveCountertopColorSkuFromCandidates,
+  resolveCountertopMaterialTokensFromCandidates,
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,
   type CountertopColorSkuCandidate,

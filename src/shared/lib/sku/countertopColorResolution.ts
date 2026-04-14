@@ -218,3 +218,40 @@ export const resolveCountertopColorSkuFromCandidates = ({
 
   return uniqueFinishFilteredSkus.length === 1 ? uniqueFinishFilteredSkus[0] : null;
 };
+
+export const resolveCountertopMaterialTokensFromCandidates = ({
+  value,
+  candidatesByValue,
+  preferredSku = null,
+  preferredMaterialTokens = [],
+}: {
+  value?: string | null;
+  candidatesByValue: CountertopColorSkuCandidatesByValue;
+  preferredSku?: string | null;
+  preferredMaterialTokens?: string[];
+}): string[] => {
+  if (!value) return [];
+
+  const candidates = candidatesByValue.get(value) ?? [];
+  if (!candidates.length) return [];
+
+  const normalizedPreferredSku = preferredSku?.trim().toUpperCase() ?? null;
+  if (normalizedPreferredSku) {
+    const exactSkuMatch = candidates.find((candidate) => candidate.sku.trim().toUpperCase() === normalizedPreferredSku);
+    if (exactSkuMatch) return exactSkuMatch.materialTokens;
+  }
+
+  const preferredTokens = new Set<string>();
+  preferredMaterialTokens.forEach((token) => addMaterialToken(preferredTokens, token));
+
+  const preferredMatches =
+    preferredTokens.size > 0
+      ? candidates.filter((candidate) => candidate.materialTokens.some((token) => preferredTokens.has(token)))
+      : candidates;
+  const narrowedCandidates = filterCandidatesByFinish(preferredMatches, value);
+
+  if (narrowedCandidates.length === 1) return narrowedCandidates[0].materialTokens;
+
+  const finishFilteredAll = filterCandidatesByFinish(candidates, value);
+  return finishFilteredAll[0]?.materialTokens ?? candidates[0]?.materialTokens ?? [];
+};
