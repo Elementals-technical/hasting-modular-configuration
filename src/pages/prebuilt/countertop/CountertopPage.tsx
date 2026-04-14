@@ -1050,7 +1050,7 @@ export const CountertopPage = () => {
       "Top_Porcelain_Prisma",
       "Top_Porcelain_Quadra",
       "Top_Porcelain_Strip",
-      "Top_Syntesi",
+      "Top_Tekorlux_Syntesi",
       "Top_Tekorlux_Quadra",
       "Top_Tekorlux_Rectangular",
       "Top_Tekorlux_Ron",

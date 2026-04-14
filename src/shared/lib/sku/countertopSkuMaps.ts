@@ -43,7 +43,7 @@ export const basinSkuMap: Record<string, string> = {
   Top_Porcelain_Prisma: "PRISMA",
   Top_Porcelain_Quadra: "QUAD",
   Top_Porcelain_Strip: "STRIP",
-  // Top_Syntesi: "SYNT",
+  Top_Tekorlux_Syntesi: "SYNT",
   Top_Tekorlux_Quadra: "QUAD",
   Top_Tekorlux_Rectangular: "RECT",
   Top_Tekorlux_Trip: "TRIP",
