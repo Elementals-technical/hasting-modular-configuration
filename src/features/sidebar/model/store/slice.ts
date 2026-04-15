@@ -18,12 +18,16 @@ const sidebarSlice = createSlice({
   reducers: {
     open(state) {
       state.isOpen = true;
+      state.isOpenStyleSidebar = false;
     },
     close(state) {
       state.isOpen = false;
     },
     toggle(state) {
       state.isOpen = !state.isOpen;
+      if (state.isOpen) {
+        state.isOpenStyleSidebar = false;
+      }
     },
     setActiveStep(state, action: PayloadAction<string | null>) {
       state.activeStep = action.payload;
@@ -33,6 +37,9 @@ const sidebarSlice = createSlice({
     },
     setOpenStyleSidebar(state, action: PayloadAction<boolean>) {
       state.isOpenStyleSidebar = action.payload;
+      if (action.payload) {
+        state.isOpen = false;
+      }
     },
   },
 });
