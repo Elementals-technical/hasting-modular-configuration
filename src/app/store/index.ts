@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import { baseApi } from "@/shared";
+import { swatchOrderPersistListener } from "@/features/swatchOrder";
 
 import { rootReducer } from "./reducer";
 import { optionsListenerMiddleware } from "./optionsListener";
@@ -14,6 +15,7 @@ export const store = configureStore({
       },
     })
       .prepend(optionsListenerMiddleware.middleware)
+      .prepend(swatchOrderPersistListener.middleware)
       .concat(baseApi.middleware),
 });
 

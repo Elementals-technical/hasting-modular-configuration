@@ -1,0 +1,76 @@
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tileBtn {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.tileBtnSelected {
+  border-color: var(--swatch-accent, #df6f4a);
+}
+
+.tile {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #9f978e;
+  pointer-events: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.checkSelected {
+  background: var(--swatch-accent, #df6f4a);
+  color: #fff;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #262320;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desc {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  color: #59524a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

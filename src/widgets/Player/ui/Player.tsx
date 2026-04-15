@@ -5,7 +5,7 @@ import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasInt
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
-import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
+import { openSwatchOrder } from "@/features/swatchOrder";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -340,7 +340,12 @@ export function Player() {
       id: "order-free-swatches",
       label: "Order Free Swatches",
       action: () => {
-        dispatch(openSwatchSidebar());
+        const section = pathname.includes("countertop")
+          ? "Countertop Color"
+          : pathname.includes("accessor")
+            ? "Towel Bar Color"
+            : "Cabinet Color";
+        dispatch(openSwatchOrder(section));
         handleClosePopup();
       },
     },

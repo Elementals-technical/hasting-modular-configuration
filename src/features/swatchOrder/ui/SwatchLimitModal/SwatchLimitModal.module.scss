@@ -1,0 +1,45 @@
+.modal {
+  width: min(320px, 92vw);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.body {
+  padding: 18px 20px;
+  border-bottom: 1px solid #ece8e1;
+  font-size: 14px;
+  line-height: 20px;
+  color: #2d2b28;
+}
+
+.header {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.text {
+  display: block;
+}
+
+.footer {
+  padding: 14px 20px;
+}
+
+.okBtn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--swatch-accent, #df6f4a);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #c75d3e;
+  }
+}

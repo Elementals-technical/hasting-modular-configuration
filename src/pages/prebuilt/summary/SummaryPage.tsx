@@ -68,10 +68,14 @@ import {
   parseCountertopMatrix,
   resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
-import { getIsSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/selectors";
-import { setSwatchesEnabledInSummary } from "@/features/swatchSidebar/model/store/slice";
-import { MAX_SWATCHES } from "@/features/swatchSidebar/model/constants";
-import { deriveSummarySwatchValues } from "@/features/swatchSidebar/lib/summarySwatches";
+import {
+  getIsSwatchesEnabledInSummary,
+  getIsSwatchesVisibleInSummary,
+  getSelectedMaterials,
+  setSwatchesEnabledInSummary,
+  toSwatchPreview,
+  MAX_SLOTS as MAX_SWATCHES,
+} from "@/features/swatchOrder";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
@@ -276,6 +280,8 @@ export const SummaryPage = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
+  const isSwatchesBlockVisible = useAppSelector(getIsSwatchesVisibleInSummary);
+  const selectedMaterials = useAppSelector(getSelectedMaterials);
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
@@ -1587,18 +1593,9 @@ export const SummaryPage = () => {
     return `${normalized}${widthLabel}`;
   }, [summarySections, selectedDimensions.width]);
 
-  const summarySwatchValues = useMemo(
-    () =>
-      deriveSummarySwatchValues({
-        sectionSwatchValues: summarySections.flatMap((section) => section.items.map((item) => item.swatch?.value)),
-        cabinetColor,
-        handleGrooveColor,
-      }),
-    [cabinetColor, handleGrooveColor, summarySections],
-  );
   const swatchesListPreview = useMemo(
-    () => summarySwatchValues.map((value) => resolveSwatch(value)),
-    [resolveSwatch, summarySwatchValues],
+    () => selectedMaterials.map(toSwatchPreview),
+    [selectedMaterials],
   );
   const hasSummarySwatches = swatchesListPreview.length > 0;
   const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSummarySwatches;
@@ -1728,6 +1725,7 @@ export const SummaryPage = () => {
           </div>
         ))}
 
+        {isSwatchesBlockVisible && (
         <div className={s.section} data-summary-section="swatches">
           <div className={s.sectionHeader}>
             <div className={s.sectionTitle}>Swatches</div>
@@ -1782,6 +1780,7 @@ export const SummaryPage = () => {
             })}
           </div>
         </div>
+        )}
       </div>
 
       <QuotePrintDocument
@@ -1790,7 +1789,7 @@ export const SummaryPage = () => {
         modelName={quoteModelName}
         generatedDate={quoteGeneratedDate}
         configurationLink={configurationLink}
-        isSwatchesEnabled={isSwatchesEnabledForSummary}
+        isSwatchesEnabled={isSwatchesBlockVisible && isSwatchesEnabledForSummary}
         swatchesPreview={displayedSwatchesListPreview}
       />
     </>

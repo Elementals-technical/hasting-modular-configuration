@@ -53,7 +53,7 @@ import {
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
-import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
+import { openSwatchOrder } from "@/features/swatchOrder";
 
 export const CustomCabinetColorsPage = () => {
   const { key: locationKey } = useLocation();
@@ -566,7 +566,7 @@ export const CustomCabinetColorsPage = () => {
       content: (
         <>
           <ViewModePanel
-            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            onOrderSwatches={() => dispatch(openSwatchOrder("Cabinet Color"))}
             fullModeTitle="Cabinet Color"
             fullModeOptions={sortedAllBasePanelOptions}
             fullModeActiveValue={activeCabinetColor}
@@ -597,7 +597,7 @@ export const CustomCabinetColorsPage = () => {
             content: (
               <>
                 <ViewModePanel
-                  onOrderSwatches={() => dispatch(openSwatchSidebar())}
+                  onOrderSwatches={() => dispatch(openSwatchOrder("Cabinet Color"))}
                   fullModeTitle="Handle Groove Color"
                   fullModeOptions={allGrooveColorOptions}
                   fullModeActiveValue={activeGrooveColor}
