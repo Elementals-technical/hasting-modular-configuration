@@ -1,0 +1,171 @@
+.root {
+  padding: 14px 16px 16px;
+  border-top: 1px solid #ece8e1;
+  box-shadow: 0 -2px 10px rgba(40, 40, 40, 0.08);
+  flex-shrink: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.titleWrap {
+  position: relative;
+}
+
+.title {
+  font-size: 13px;
+  color: #59524a;
+}
+
+.free {
+  position: absolute;
+  top: -4px;
+  right: -24px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--swatch-accent, #df6f4a);
+  line-height: 1;
+}
+
+.count {
+  font-size: 13px;
+  color: #59524a;
+}
+
+.tiles {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tileWrap {
+  position: relative;
+}
+
+.tile {
+  display: inline-block;
+  width: 52px;
+  height: 52px;
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #d8d2c9;
+}
+
+.tileEmpty {
+  border: 1px dashed #d8d2c9;
+  background: transparent;
+}
+
+.removeBtn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #59524a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+
+  &:hover {
+    color: var(--swatch-accent, #df6f4a);
+  }
+}
+
+.autofillRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.autofillInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.autofillBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #cfc9bf;
+  border-radius: 3px;
+  background: #fff;
+  color: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.autofillBoxChecked {
+  background: var(--swatch-accent, #df6f4a);
+  border-color: var(--swatch-accent, #df6f4a);
+  color: #fff;
+}
+
+.autofillLabel {
+  font-size: 13px;
+  color: #2d2b28;
+}
+
+.autofillInfo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #c7c2b9;
+  color: #59524a;
+  background: #fff;
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 600;
+  cursor: help;
+  outline: none;
+
+  &:hover .autofillTooltip,
+  &:focus-visible .autofillTooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -6px);
+  }
+}
+
+.autofillTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 10px;
+  background: #2d2b28;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  font-style: normal;
+  font-weight: 400;
+  border-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 5;
+}

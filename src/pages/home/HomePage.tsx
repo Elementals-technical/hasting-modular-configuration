@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
-import { SwatchSidebar } from "@/features/swatchSidebar";
+import { SwatchOrder } from "@/features/swatchOrder";
 import { reset } from "@/entities/product/model/store/slice";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -58,7 +58,7 @@ export const HomePage = () => {
         {isOpenedBuildInfo && flow !== "custom" && <HowToStart handleClose={handleClose} />}
       </div>
 
-      <SwatchSidebar />
+      <SwatchOrder />
     </div>
   );
 };

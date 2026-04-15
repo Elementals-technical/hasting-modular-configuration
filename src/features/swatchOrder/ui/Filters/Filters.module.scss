@@ -1,0 +1,13 @@
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 8px;
+  padding: 14px 16px;
+
+  & > * {
+    flex: 1 1 30%;
+    min-width: 100px;
+  }
+}

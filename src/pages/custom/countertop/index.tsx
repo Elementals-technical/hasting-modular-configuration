@@ -76,7 +76,7 @@ import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
-import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
+import { openSwatchOrder } from "@/features/swatchOrder";
 import { normalizeProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 
 const COUNTERTOP_OPTION = "Counertops materials";
@@ -1608,7 +1608,7 @@ export const CustomCountertopPage = () => {
       content: (
         <>
           <ViewModePanel
-            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            onOrderSwatches={() => dispatch(openSwatchOrder("Countertop Color"))}
             fullModeTitle="Countertop Color"
             fullModeOptions={fullModeCountertopOptions}
             fullModeActiveValue={activeCountertopColor}

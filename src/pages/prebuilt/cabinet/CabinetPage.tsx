@@ -54,7 +54,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
-import { openSwatchSidebar } from "@/features/swatchSidebar/model/store/slice";
+import { openSwatchOrder } from "@/features/swatchOrder";
 
 export const CabinetPage = () => {
   const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
@@ -570,7 +570,7 @@ export const CabinetPage = () => {
       content: (
         <>
           <ViewModePanel
-            onOrderSwatches={() => dispatch(openSwatchSidebar())}
+            onOrderSwatches={() => dispatch(openSwatchOrder("Cabinet Color"))}
             fullModeTitle="Cabinet Color"
             fullModeOptions={sortedAllBasePanelOptions}
             fullModeActiveValue={activeCabinetColor}
@@ -599,7 +599,7 @@ export const CabinetPage = () => {
             content: (
               <>
                 <ViewModePanel
-                  onOrderSwatches={() => dispatch(openSwatchSidebar())}
+                  onOrderSwatches={() => dispatch(openSwatchOrder("Cabinet Color"))}
                   fullModeTitle="Handle Groove Color"
                   fullModeOptions={allGrooveColorOptions}
                   fullModeActiveValue={activeGrooveColor}

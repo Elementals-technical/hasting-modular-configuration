@@ -1,5 +1,5 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
-import { MAX_SWATCHES } from "@/features/swatchSidebar/model/constants";
+import { MAX_SLOTS as MAX_SWATCHES } from "@/features/swatchOrder";
 
 import s from "./QuotePrintDocument.module.scss";
 
@@ -363,27 +363,29 @@ export const QuotePrintDocument = ({
             <span className={s.totalValue}>{formatTotalPrice(totalPrice)}</span>
           </div>
 
-          <div className={s.specSection}>
-            <div className={s.sectionName}>Swatches</div>
-            <div className={s.swatchGrid}>
-              {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
-                const swatch = isSwatchesEnabled ? swatchesPreview[index] : undefined;
-                return (
-                  <div className={s.swatchItem} key={`${swatch?.value ?? "empty"}-${index}`}>
-                    {swatch ? (
-                      <span
-                        className={s.swatchFill}
-                        style={{
-                          backgroundColor: swatch.color,
-                          backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                );
-              })}
+          {isSwatchesEnabled && (
+            <div className={s.specSection}>
+              <div className={s.sectionName}>Swatches</div>
+              <div className={s.swatchGrid}>
+                {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
+                  const swatch = swatchesPreview[index];
+                  return (
+                    <div className={s.swatchItem} key={`${swatch?.value ?? "empty"}-${index}`}>
+                      {swatch ? (
+                        <span
+                          className={s.swatchFill}
+                          style={{
+                            backgroundColor: swatch.color,
+                            backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className={s.footer}>
             Hastings Bath Collection | 800-351-0038 | Sales: info@hastingsbath.com | Support: cs@hastingsbath.com
