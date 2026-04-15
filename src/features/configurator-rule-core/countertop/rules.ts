@@ -1,4 +1,5 @@
 import type { CountertopMatrixRule } from "./types";
+import { cmToInches } from "@/shared/lib/sku";
 import {
   normalizeBasinKey,
   materialMatchesRule,
@@ -29,6 +30,15 @@ export type CountertopRuleResult = {
   allowedBasinKeys: Set<string>;
   allowedFaucetHoles: Set<string>;
   allowedStyles: Set<string>;
+  styleAvailability: Record<CountertopStyleKey, CountertopStyleAvailability>;
+};
+
+export type CountertopStyleKey = "integrated" | "vessel" | "undermount";
+
+export type CountertopStyleAvailability = {
+  isAvailable: boolean;
+  disabledReason?: string;
+  maxCompatibleWidthCm: number | null;
 };
 
 type ResolveDefaultThicknessInput = {
@@ -55,6 +65,20 @@ const resolveIntegratedWidthContext = (context: IntegratedWidthContext) => {
     sinkBaseWidth: context?.sinkBaseWidth ?? null,
     totalWidth: context?.totalWidth ?? null,
   };
+};
+
+const STYLE_WIDTH_EPSILON = 0.01;
+const DEFAULT_STYLE_DISABLED_REASON = "Not available for selected cabinet width/depth/thickness on scene";
+
+const formatWidthCompatibilityDisabledReason = (maxWidth: number) =>
+  `Not available for current configuration width, maximum compatibility size ${maxWidth} cm (${cmToInches(maxWidth)}").`;
+
+const formatMinSinkBaseDisabledReason = (currentWidth: number, minWidth: number) =>
+  `Not available for current sink base width. Current ${currentWidth} cm (${cmToInches(currentWidth)}"), minimum ${minWidth} cm (${cmToInches(minWidth)}").`;
+
+const formatAllowedSinkBaseWidthsDisabledReason = (allowedWidths: number[]) => {
+  const formattedAllowedWidths = allowedWidths.map((value) => `${value} cm (${cmToInches(value)}")`).join(", ");
+  return `Not available for current sink base width. Allowed widths: ${formattedAllowedWidths}.`;
 };
 
 export const isRuleWidthEligibleForIntegratedContext = (
@@ -130,11 +154,17 @@ export const buildCountertopRuleState = ({
   const allowedBasinKeys = new Set<string>();
   const allowedFaucetHoles = new Set<string>();
   const allowedStyles = new Set<string>();
+  const styleAvailability: Record<CountertopStyleKey, CountertopStyleAvailability> = {
+    integrated: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
+    vessel: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
+    undermount: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
+  };
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
   const integratedWidthContext = {
     sinkBaseWidth: sinkBaseWidth ?? width,
     totalWidth: totalWidth ?? width,
   };
+  const styleWidth = totalWidth ?? width;
 
   if (!rules.length) {
     return {
@@ -145,6 +175,7 @@ export const buildCountertopRuleState = ({
       allowedBasinKeys,
       allowedFaucetHoles,
       allowedStyles,
+      styleAvailability,
     };
   }
 
@@ -177,7 +208,7 @@ export const buildCountertopRuleState = ({
       });
     });
 
-  const isWidthValid = (maxValue: number | null) => maxValue !== null && (!width || width <= maxValue);
+  const isWidthValid = (maxValue: number | null) => maxValue !== null && (styleWidth === null || styleWidth <= maxValue);
 
   matchingRules.forEach((rule) => {
     if (!matchesActiveThickness(rule)) return;
@@ -208,6 +239,102 @@ export const buildCountertopRuleState = ({
   });
 
   const thicknessScopedRules = matchingRules.filter((rule) => matchesActiveThickness(rule));
+
+  const buildStyleAvailabilityState = (style: CountertopStyleKey): CountertopStyleAvailability => {
+    if (!thicknessScopedRules.length) {
+      return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+    }
+
+    if (style === "integrated") {
+      const integratedRules = thicknessScopedRules.filter(
+        (rule) => rule.maxIntegratedCm !== null || rule.minSbCm !== null || rule.integratedAllowedSizesOnly.length > 0,
+      );
+      if (!integratedRules.length) {
+        return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+      }
+
+      const maxCompatibleWidthCm = integratedRules
+        .map((rule) => rule.maxIntegratedCm)
+        .filter((value): value is number => value !== null)
+        .reduce<number | null>((currentMax, value) => (currentMax === null || value > currentMax ? value : currentMax), null);
+
+      if (integratedRules.some((rule) => isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext))) {
+        return { isAvailable: true, maxCompatibleWidthCm };
+      }
+
+      if (
+        typeof integratedWidthContext.totalWidth === "number" &&
+        maxCompatibleWidthCm !== null &&
+        integratedWidthContext.totalWidth > maxCompatibleWidthCm + STYLE_WIDTH_EPSILON
+      ) {
+        return {
+          isAvailable: false,
+          maxCompatibleWidthCm,
+          disabledReason: formatWidthCompatibilityDisabledReason(maxCompatibleWidthCm),
+        };
+      }
+
+      const minSinkBaseWidth = integratedRules
+        .map((rule) => rule.minSbCm)
+        .filter((value): value is number => value !== null)
+        .reduce<number | null>((currentMin, value) => (currentMin === null || value < currentMin ? value : currentMin), null);
+
+      if (
+        typeof integratedWidthContext.sinkBaseWidth === "number" &&
+        minSinkBaseWidth !== null &&
+        integratedWidthContext.sinkBaseWidth + STYLE_WIDTH_EPSILON < minSinkBaseWidth
+      ) {
+        return {
+          isAvailable: false,
+          maxCompatibleWidthCm,
+          disabledReason: formatMinSinkBaseDisabledReason(integratedWidthContext.sinkBaseWidth, minSinkBaseWidth),
+        };
+      }
+
+      const allowedSinkBaseWidths = Array.from(
+        new Set(integratedRules.flatMap((rule) => rule.integratedAllowedSizesOnly)),
+      ).sort((left, right) => left - right);
+      const currentSinkBaseWidth = integratedWidthContext.sinkBaseWidth;
+
+      if (
+        typeof currentSinkBaseWidth === "number" &&
+        allowedSinkBaseWidths.length > 0 &&
+        !allowedSinkBaseWidths.some((value) => Math.abs(value - currentSinkBaseWidth) < STYLE_WIDTH_EPSILON)
+      ) {
+        return {
+          isAvailable: false,
+          maxCompatibleWidthCm,
+          disabledReason: formatAllowedSinkBaseWidthsDisabledReason(allowedSinkBaseWidths),
+        };
+      }
+
+      return { isAvailable: false, maxCompatibleWidthCm, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+    }
+
+    const maxCompatibleWidthCm = thicknessScopedRules
+      .map((rule) => (style === "vessel" ? rule.maxVesselCm : rule.maxUndermountCm))
+      .filter((value): value is number => value !== null)
+      .reduce<number | null>((currentMax, value) => (currentMax === null || value > currentMax ? value : currentMax), null);
+
+    if (maxCompatibleWidthCm === null) {
+      return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+    }
+
+    if (styleWidth === null || styleWidth <= maxCompatibleWidthCm + STYLE_WIDTH_EPSILON) {
+      return { isAvailable: true, maxCompatibleWidthCm };
+    }
+
+    return {
+      isAvailable: false,
+      maxCompatibleWidthCm,
+      disabledReason: formatWidthCompatibilityDisabledReason(maxCompatibleWidthCm),
+    };
+  };
+
+  styleAvailability.integrated = buildStyleAvailabilityState("integrated");
+  styleAvailability.vessel = buildStyleAvailabilityState("vessel");
+  styleAvailability.undermount = buildStyleAvailabilityState("undermount");
+
   const faucetHoleRules = scopeCountertopRulesByBasinStyle(
     thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules,
     activeBasinStyle,
@@ -227,5 +354,6 @@ export const buildCountertopRuleState = ({
     allowedBasinKeys,
     allowedFaucetHoles,
     allowedStyles,
+    styleAvailability,
   };
 };
