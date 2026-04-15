@@ -10,6 +10,10 @@ export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
     const v = desc[key];
     return typeof v === "string" ? v : typeof v === "number" ? String(v) : null;
   };
+  const categoryLabelMap: Record<string, string> = {
+    "Side Panel": "Side panel",
+    Divider: "Divider",
+  };
 
   const elements = Array.isArray(desc.elements) ? (desc.elements as Record<string, string>[]) : [];
   const cabinetEl = elements.find((e) => e["Product Elements"] === "Cabinet");
@@ -57,8 +61,13 @@ export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
     return parts.length > 0 ? `Basin - ${parts.join(", ")}` : "Basin";
   }
 
-  return Object.entries(desc)
-    .filter(([, v]) => v != null && v !== "" && typeof v !== "object")
+  const details = Object.entries(desc)
+    .filter(([k, v]) => k !== "Product Category" && v != null && v !== "" && typeof v !== "object")
     .map(([k, v]) => `${k}: ${v}`)
     .join(", ");
+
+  if (!category) return details;
+
+  const categoryLabel = categoryLabelMap[category] ?? category;
+  return details ? `${categoryLabel}: ${details}` : categoryLabel;
 };

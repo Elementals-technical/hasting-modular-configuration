@@ -85,6 +85,7 @@ import {
   formatCabinetDimsForSummary,
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
+  formatCabinetTitleForSummary,
 } from "@/shared/lib/summaryFormatters";
 import {
   normalizeProductConfigSnapshot,
@@ -615,7 +616,7 @@ export const CustomSummaryPage = () => {
 
       return {
         id: `cabinet-config-${index}`,
-        title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
+        title: formatCabinetTitleForSummary(name ?? activeCabinetType),
         subtitle,
         sku,
         swatch: {
@@ -705,7 +706,7 @@ export const CustomSummaryPage = () => {
 
           return {
             id: `cabinet-preset-${index}`,
-            title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
+            title: formatCabinetTitleForSummary(preset.name ?? activeCabinetType),
             subtitle,
             sku,
             swatch: {
@@ -764,8 +765,8 @@ export const CustomSummaryPage = () => {
           id: "cabinet-1",
           title:
             typeof selectedProductConfig?.name === "string"
-              ? selectedProductConfig.name
-              : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
+              ? formatCabinetTitleForSummary(selectedProductConfig.name)
+              : formatCabinetTitleForSummary(activeCabinetType),
           subtitle: [
             formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
             formatCabinetDimsForSummaryWithFallback(
@@ -1195,6 +1196,7 @@ export const CustomSummaryPage = () => {
             sku: sku ?? undefined,
             price: formatPrice(unitPrice),
             copyable: !!sku,
+            showInfo: true,
             description: { "Product Category": "Divider", "Divider Style": style },
           };
         });
@@ -1212,6 +1214,7 @@ export const CustomSummaryPage = () => {
           sku,
           price: formatPrice(unitPrice),
           copyable: true,
+          showInfo: true,
           description: { "Product Category": "Divider", "Divider Style": dividersStyle },
         }));
       }
@@ -1287,6 +1290,7 @@ export const CustomSummaryPage = () => {
           sku: spSku,
           price: resolveItemPrice(spSku),
           copyable: true,
+          showInfo: true,
           description: {
             "Product Category": "Side Panel",
             "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
@@ -1310,6 +1314,7 @@ export const CustomSummaryPage = () => {
             sku: towelBarRightSku,
             price: resolveItemPrice(towelBarRightSku),
             copyable: true,
+            showInfo: true,
             description: {
               "Product Category": "Towel Bar",
               Side: "Right",
@@ -1329,6 +1334,7 @@ export const CustomSummaryPage = () => {
             sku: towelBarLeftSku,
             price: resolveItemPrice(towelBarLeftSku),
             copyable: true,
+            showInfo: true,
             description: {
               "Product Category": "Towel Bar",
               Side: "Left",
