@@ -28,13 +28,14 @@
   top: 0;
   right: 0;
   height: 100vh;
-  width: min(440px, 94vw);
+  width: min(560px, 94vw);
   background: #fff;
   box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.25s ease;
+  font-family: "Poppins", sans-serif;
 }
 
 .panelOpen {
@@ -53,10 +54,12 @@
 
 .title {
   margin: 0;
+  font-family: "Poppins", sans-serif;
   font-size: 16px;
   font-weight: 500;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #2d2b28;
+  letter-spacing: 0.01em;
 }
 
 .closeBtn {
