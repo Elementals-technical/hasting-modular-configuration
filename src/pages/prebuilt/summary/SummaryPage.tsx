@@ -81,6 +81,7 @@ import {
   formatCabinetDimsForSummary,
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
+  formatCabinetTitleForSummary,
 } from "@/shared/lib/summaryFormatters";
 import {
   normalizeProductConfigSnapshot,
@@ -603,7 +604,7 @@ export const SummaryPage = () => {
 
           return {
             id: `cabinet-${index}`,
-            title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
+            title: formatCabinetTitleForSummary(preset.name ?? activeCabinetType),
             subtitle,
             sku,
             swatch: {
@@ -701,7 +702,7 @@ export const SummaryPage = () => {
 
       return {
         id: `cabinet-config-${index}`,
-        title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
+        title: formatCabinetTitleForSummary(name ?? activeCabinetType),
         subtitle,
         sku,
         swatch: {
@@ -759,8 +760,8 @@ export const SummaryPage = () => {
           id: "cabinet-1",
           title:
             typeof selectedProductConfig?.name === "string"
-              ? selectedProductConfig.name
-              : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
+              ? formatCabinetTitleForSummary(selectedProductConfig.name)
+              : formatCabinetTitleForSummary(activeCabinetType),
           subtitle: [
             formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
             formatCabinetDimsForSummaryWithFallback(
