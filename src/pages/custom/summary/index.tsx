@@ -1189,6 +1189,7 @@ export const CustomSummaryPage = () => {
             sku: sku ?? undefined,
             price: formatPrice(unitPrice),
             copyable: !!sku,
+            showInfo: true,
             description: { "Product Category": "Divider", "Divider Style": style },
           };
         });
@@ -1206,6 +1207,7 @@ export const CustomSummaryPage = () => {
           sku,
           price: formatPrice(unitPrice),
           copyable: true,
+          showInfo: true,
           description: { "Product Category": "Divider", "Divider Style": dividersStyle },
         }));
       }
@@ -1281,6 +1283,7 @@ export const CustomSummaryPage = () => {
           sku: spSku,
           price: resolveItemPrice(spSku),
           copyable: true,
+          showInfo: true,
           description: {
             "Product Category": "Side Panel",
             "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
@@ -1304,6 +1307,7 @@ export const CustomSummaryPage = () => {
             sku: towelBarRightSku,
             price: resolveItemPrice(towelBarRightSku),
             copyable: true,
+            showInfo: true,
             description: {
               "Product Category": "Towel Bar",
               Side: "Right",
@@ -1323,6 +1327,7 @@ export const CustomSummaryPage = () => {
             sku: towelBarLeftSku,
             price: resolveItemPrice(towelBarLeftSku),
             copyable: true,
+            showInfo: true,
             description: {
               "Product Category": "Towel Bar",
               Side: "Left",
