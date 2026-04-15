@@ -23,6 +23,15 @@ const MATERIAL_ALIASES: Record<string, string[]> = {
   porcelain: ["por"],
 };
 
+const BASIN_PREFIX_MARKERS = Array.from(
+  new Set([
+    "hplfenix",
+    "hpl",
+    ...Object.keys(MATERIAL_ALIASES).filter((token) => token.length >= 5),
+  ]),
+).sort((left, right) => right.length - left.length);
+const BASIN_SUFFIX_MARKERS = ["gres"];
+
 const normalizeToken = (value: string) =>
   value
     .trim()
@@ -78,25 +87,29 @@ export const materialMatchesRule = (optionMaterial: string, ruleMaterial: string
   return aliases.includes(normalizedRule);
 };
 
-export const normalizeBasinToken = (value: string): string => {
+const stripKnownBasinMarkers = (value: string, stripDigits: boolean): string => {
   const normalized = value.trim().toLowerCase();
-  const cleaned = normalized
-    .replace(/^top[_\s-]*/g, "")
-    .replace(/[/_\s-]+/g, "")
-    .replace(/[0-9]+/g, "")
-    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass|gres)/g, "");
+  const withoutTopPrefix = normalized.replace(/^top[_\s-]*/g, "");
+  const compact = withoutTopPrefix.replace(/[/_\s-]+/g, "");
+  const compactWithoutDigits = stripDigits ? compact.replace(/[0-9]+/g, "") : compact;
 
-  return cleaned.length > 0 ? cleaned : normalizeToken(value);
+  const withoutPrefix = BASIN_PREFIX_MARKERS.reduce((result, marker) => {
+    return result.startsWith(marker) ? result.slice(marker.length) : result;
+  }, compactWithoutDigits);
+
+  const withoutSuffix = BASIN_SUFFIX_MARKERS.reduce((result, marker) => {
+    return result.endsWith(marker) ? result.slice(0, -marker.length) : result;
+  }, withoutPrefix);
+
+  return withoutSuffix.length > 0 ? withoutSuffix : normalizeToken(value);
+};
+
+export const normalizeBasinToken = (value: string): string => {
+  return stripKnownBasinMarkers(value, true);
 };
 
 export const normalizeBasinKey = (value: string): string => {
-  const normalized = value.trim().toLowerCase();
-  const cleaned = normalized
-    .replace(/^top[_\s-]*/g, "")
-    .replace(/[/_\s-]+/g, "")
-    .replace(/(hpl|fenix|porcelain|ocritech|tekorlux|tekorund|mineralmarmo|glass|gres)/g, "");
-
-  return cleaned.length > 0 ? cleaned : normalizeToken(value);
+  return stripKnownBasinMarkers(value, false);
 };
 
 export const scopeCountertopRulesByBasinStyle = (
