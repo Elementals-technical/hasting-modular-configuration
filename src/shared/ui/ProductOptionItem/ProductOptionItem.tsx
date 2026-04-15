@@ -71,7 +71,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 
   const optionContent = (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""} ${!available && variant === "cabinetType" ? s.disabledOption : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""} ${!available ? s.disabledOption : ""}`}
       onClick={() => {
         if (!available) return;
         onClick?.(productName, config, metadata);

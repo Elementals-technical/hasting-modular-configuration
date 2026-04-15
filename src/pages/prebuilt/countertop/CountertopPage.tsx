@@ -965,16 +965,27 @@ export const CountertopPage = () => {
   const filteredStyleOptions = useMemo(
     () =>
       optionsMockData2.map((option) => {
-        const isIntegrated = option.title.trim().toLowerCase() === "integrated";
-        const blocked = isDepth46VesselOnly && isIntegrated;
+        const normalizedStyle = option.title.trim().toLowerCase();
+        const isIntegrated = normalizedStyle === "integrated";
+        const blockedByDepth = isDepth46VesselOnly && isIntegrated;
+        const styleState =
+          normalizedStyle === "integrated" || normalizedStyle === "vessel" || normalizedStyle === "undermount"
+            ? ruleState.styleAvailability[normalizedStyle]
+            : null;
+        const blockedByRules = styleState ? !styleState.isAvailable : false;
+        const isAvailable = !(blockedByDepth || blockedByRules);
 
         return {
           ...option,
-          isAvailable: !blocked,
-          disabledReason: blocked ? INTEGRATED_DEPTH_46_DISABLED_REASON : undefined,
+          isAvailable,
+          disabledReason: blockedByDepth
+            ? INTEGRATED_DEPTH_46_DISABLED_REASON
+            : blockedByRules
+              ? styleState?.disabledReason
+              : undefined,
         };
       }),
-    [isDepth46VesselOnly],
+    [isDepth46VesselOnly, ruleState.styleAvailability],
   );
   const isActiveCountertopStyleAvailable = useMemo(() => {
     const normalizedActiveStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
