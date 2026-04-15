@@ -91,7 +91,6 @@ export const adaptThreekitConfig = (
           name: variant.name,
           parentName,
           optionName: parentName,
-          option: parentName,
           label,
           value,
           count: 1,
