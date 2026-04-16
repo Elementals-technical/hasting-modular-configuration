@@ -16,7 +16,7 @@ interface StoredEnvelope {
 const EMPTY: StoredPayload = {
   selectedMaterials: [],
   manualSelectedMaterials: [],
-  isAutofillEnabled: false,
+  isAutofillEnabled: true,
   hasSubmittedCart: false,
 };
 
