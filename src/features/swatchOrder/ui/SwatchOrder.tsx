@@ -21,15 +21,20 @@ import {
 import {
   getActiveProductElement,
   getIsAutofillEnabled,
+  getManualSelectedMaterials,
   getIsSwatchOrderOpen,
   getSelectedMaterials,
 } from "../model/store/selectors";
 import type { AttributeValue, IThreekitConfiguration } from "../model/types";
-import { MAX_SLOTS } from "../model/constants";
 import { Filters } from "./Filters/Filters";
 import { MaterialList } from "./MaterialList/MaterialList";
 import { SwatchesList } from "./SwatchesList/SwatchesList";
 import { CloseIconSVG } from "./icons/CloseIconSVG";
+import {
+  areSameMaterialLists,
+  deriveAutofillMaterials,
+  mergeAutofillWithSelectedMaterials,
+} from "../lib/deriveAutofillMaterials";
 import s from "./SwatchOrder.module.scss";
 
 const ANIMATION_MS = 250;
@@ -44,6 +49,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const isOpen = useAppSelector(getIsSwatchOrderOpen);
   const activeProductElement = useAppSelector(getActiveProductElement);
   const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
+  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
   const selectedMaterials = useAppSelector(getSelectedMaterials);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -61,6 +67,22 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const mapped = useMemo(
     () => adaptThreekitConfig(data as unknown as IThreekitConfiguration | undefined),
     [data],
+  );
+  const autofillMaterials = useMemo(
+    () =>
+      deriveAutofillMaterials({
+        allMaterialValues: mapped.allMaterialValues,
+        values: [cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor],
+      }),
+    [mapped.allMaterialValues, cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor],
+  );
+  const mergedAutofillMaterials = useMemo(
+    () =>
+      mergeAutofillWithSelectedMaterials({
+        autofillMaterials,
+        selectedMaterials: manualSelectedMaterials,
+      }),
+    [autofillMaterials, manualSelectedMaterials],
   );
 
   useEffect(() => {
@@ -85,48 +107,16 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   useEffect(() => {
     if (!isOpen) return;
     if (!isAutofillEnabled) return;
-    if (!mapped.allMaterialValues.length) return;
+    if (!mergedAutofillMaterials.length) return;
+    if (areSameMaterialLists(selectedMaterials, mergedAutofillMaterials)) return;
 
-    const activeByElement: Record<string, string | undefined | null> = {
-      "Cabinet Color": cabinetColor,
-      "Handle Groove Color": handleGrooveColor,
-      "Countertop Color": countertopColor,
-      "Towel Bar Color": towelBarColor,
-      Vessels: vesselColor,
-    };
-
-    const wanted: string[] = [];
-    const push = (v?: string | null) => {
-      if (typeof v === "string" && v.trim() && !wanted.includes(v)) wanted.push(v);
-    };
-    for (const value of Object.values(activeByElement)) push(value);
-
-    const seen = new Set<string>();
-    const resolved: AttributeValue[] = [];
-    for (const value of wanted) {
-      if (resolved.length >= MAX_SLOTS) break;
-      const match = mapped.allMaterialValues.find((item) => {
-        const key = item.metadata?.value ?? item.value ?? item.label;
-        return key === value;
-      });
-      if (!match) continue;
-      const dedupeKey = `${match.parentName}__${match.metadata?.label ?? match.label}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      resolved.push({ ...match, count: 1 });
-    }
-
-    dispatch(setCartMaterials(resolved));
+    dispatch(setCartMaterials(mergedAutofillMaterials));
   }, [
     dispatch,
     isOpen,
     isAutofillEnabled,
-    mapped,
-    cabinetColor,
-    handleGrooveColor,
-    countertopColor,
-    towelBarColor,
-    vesselColor,
+    selectedMaterials,
+    mergedAutofillMaterials,
   ]);
 
   useEffect(() => {

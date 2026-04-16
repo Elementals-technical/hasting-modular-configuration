@@ -8,7 +8,7 @@ export interface IMaterialMetadata {
   Material?: string;
   Finish?: string;
   zoomIconColor?: string;
-  [key: string]: string | undefined;
+  [key: string]: unknown;
 }
 
 export interface AttributeValue {
@@ -21,6 +21,7 @@ export interface AttributeValue {
   label: string;
   value?: string;
   optionName?: string;
+  selectionSource?: "manual" | "autofill";
 }
 
 export interface IProductElementOption {
@@ -50,6 +51,7 @@ export interface ISwatchOrderSlice {
   allMaterialsValues: AttributeValue[];
   materialSelectState: IMaterialSelectState;
   selectedMaterials: AttributeValue[];
+  manualSelectedMaterials: AttributeValue[];
   isEnabledInSummary: boolean;
   isAutofillEnabled: boolean;
   hasSubmittedCart: boolean;

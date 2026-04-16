@@ -14,6 +14,7 @@ export {
   getIsSwatchOrderOpen,
   getActiveProductElement,
   getSelectedMaterials,
+  getManualSelectedMaterials,
   getIsSwatchesEnabledInSummary,
   getIsAutofillEnabled,
   getHasSubmittedCart,
@@ -24,5 +25,11 @@ export {
 } from "./model/store/selectors";
 export { swatchOrderPersistListener } from "./model/store/persistListener";
 export { toSwatchPreview, type SwatchPreview } from "./lib/toSwatchPreview";
+export { adaptThreekitConfig } from "./lib/adaptThreekitConfig";
+export {
+  deriveAutofillMaterials,
+  mergeAutofillWithSelectedMaterials,
+  areSameMaterialLists,
+} from "./lib/deriveAutofillMaterials";
 export { MAX_SLOTS } from "./model/constants";
 export type { AttributeValue, IThreekitConfiguration, IMaterialMetadata } from "./model/types";
