@@ -11,6 +11,8 @@ export const getMaterialSelectStateFilters = (state: RootState) =>
   state.rootStateUI.swatchOrder.materialSelectState;
 export const getSelectedMaterials = (state: RootState) =>
   state.rootStateUI.swatchOrder.selectedMaterials;
+export const getManualSelectedMaterials = (state: RootState) =>
+  state.rootStateUI.swatchOrder.manualSelectedMaterials;
 export const getIsSwatchesEnabledInSummary = (state: RootState) =>
   state.rootStateUI.swatchOrder.isEnabledInSummary;
 export const getIsAutofillEnabled = (state: RootState) =>

@@ -16,6 +16,12 @@ const initialSelected =
   persistedState.isAutofillEnabled || persistedState.hasSubmittedCart
     ? persistedState.selectedMaterials
     : [];
+const initialManualSelected =
+  persistedState.manualSelectedMaterials.length > 0
+    ? persistedState.manualSelectedMaterials
+    : persistedState.isAutofillEnabled
+      ? []
+      : initialSelected;
 
 const initialState: ISwatchOrderSlice = {
   isOpen: false,
@@ -24,6 +30,7 @@ const initialState: ISwatchOrderSlice = {
   allMaterialsValues: [],
   materialSelectState: { Finish: [], Color: [], Look: [] },
   selectedMaterials: initialSelected,
+  manualSelectedMaterials: initialManualSelected,
   isEnabledInSummary: true,
   isAutofillEnabled: persistedState.isAutofillEnabled,
   hasSubmittedCart: persistedState.hasSubmittedCart && initialSelected.length > 0,
@@ -65,18 +72,30 @@ const swatchOrderSlice = createSlice({
       const { selectedMaterial } = action.payload;
       if (!selectedMaterial) return;
 
-      const existingIdx = state.selectedMaterials.findIndex((i) => isSame(i, selectedMaterial));
+      const target = { ...selectedMaterial, count: 1, selectionSource: "manual" as const };
+      const existingIdx = state.manualSelectedMaterials.findIndex((i) => isSame(i, target));
       if (existingIdx >= 0) {
-        state.selectedMaterials.splice(existingIdx, 1);
+        state.manualSelectedMaterials.splice(existingIdx, 1);
+        if (!state.isAutofillEnabled) {
+          state.selectedMaterials = state.manualSelectedMaterials.slice();
+        }
       } else if (sum(state.selectedMaterials) < MAX_SLOTS) {
-        state.selectedMaterials.push({ ...selectedMaterial, count: 1 });
+        state.manualSelectedMaterials.push(target);
+        if (!state.isAutofillEnabled) {
+          state.selectedMaterials = state.manualSelectedMaterials.slice();
+        }
       }
       if (state.selectedMaterials.length === 0) state.hasSubmittedCart = false;
     },
     removeItem(state, action: PayloadAction<{ selectedMaterial: AttributeValue }>) {
-      state.selectedMaterials = state.selectedMaterials.filter(
+      state.manualSelectedMaterials = state.manualSelectedMaterials.filter(
         (i) => !isSame(i, action.payload.selectedMaterial),
       );
+      if (!state.isAutofillEnabled) {
+        state.selectedMaterials = state.selectedMaterials.filter(
+          (i) => !isSame(i, action.payload.selectedMaterial),
+        );
+      }
       if (state.selectedMaterials.length === 0) state.hasSubmittedCart = false;
     },
     setCartMaterials(state, action: PayloadAction<AttributeValue[]>) {
@@ -92,7 +111,7 @@ const swatchOrderSlice = createSlice({
     setAutofillEnabled(state, action: PayloadAction<boolean>) {
       state.isAutofillEnabled = action.payload;
       if (!action.payload) {
-        state.selectedMaterials = [];
+        state.selectedMaterials = state.manualSelectedMaterials.slice();
         state.hasSubmittedCart = false;
       }
     },

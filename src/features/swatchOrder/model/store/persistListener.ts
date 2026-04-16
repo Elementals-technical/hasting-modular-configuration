@@ -10,6 +10,7 @@ import {
 import {
   getHasSubmittedCart,
   getIsAutofillEnabled,
+  getManualSelectedMaterials,
   getSelectedMaterials,
 } from "./selectors";
 
@@ -27,6 +28,7 @@ swatchOrderPersistListener.startListening({
     const state = api.getState() as Parameters<typeof getSelectedMaterials>[0];
     StorageService.setState({
       selectedMaterials: getSelectedMaterials(state),
+      manualSelectedMaterials: getManualSelectedMaterials(state),
       isAutofillEnabled: getIsAutofillEnabled(state),
       hasSubmittedCart: getHasSubmittedCart(state),
     });

@@ -69,9 +69,16 @@ import {
   resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
+  adaptThreekitConfig,
+  areSameMaterialLists,
+  deriveAutofillMaterials,
+  getIsAutofillEnabled,
   getIsSwatchesEnabledInSummary,
-  getIsSwatchesVisibleInSummary,
+  getManualSelectedMaterials,
   getSelectedMaterials,
+  mergeAutofillWithSelectedMaterials,
+  setAutofillEnabled,
+  setCartMaterials,
   setSwatchesEnabledInSummary,
   toSwatchPreview,
   MAX_SLOTS as MAX_SWATCHES,
@@ -281,7 +288,8 @@ export const CustomSummaryPage = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
-  const isSwatchesBlockVisible = useAppSelector(getIsSwatchesVisibleInSummary);
+  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
+  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
   const selectedMaterials = useAppSelector(getSelectedMaterials);
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
@@ -1577,14 +1585,38 @@ export const CustomSummaryPage = () => {
     return `${normalized}${widthLabel}`;
   }, [summarySections, selectedDimensions.width]);
 
-  const swatchesListPreview = useMemo(
-    () => selectedMaterials.map(toSwatchPreview),
-    [selectedMaterials],
+  const swatchOrderData = useMemo(() => adaptThreekitConfig(cabinetColors), [cabinetColors]);
+  const summaryAutofillValues = useMemo(() => {
+    const values = summarySections.flatMap((section) => section.items.map((item) => item.swatch?.value));
+    values.push(handleGrooveColor, towelBarColor, vesselColor);
+    return values;
+  }, [summarySections, handleGrooveColor, towelBarColor, vesselColor]);
+  const autofillMaterials = useMemo(
+    () =>
+      deriveAutofillMaterials({
+        allMaterialValues: swatchOrderData.allMaterialValues,
+        values: summaryAutofillValues,
+      }),
+    [swatchOrderData.allMaterialValues, summaryAutofillValues],
   );
-  const hasSummarySwatches = swatchesListPreview.length > 0;
+  const mergedSummaryMaterials = useMemo(
+    () =>
+      mergeAutofillWithSelectedMaterials({
+        autofillMaterials,
+        selectedMaterials: manualSelectedMaterials,
+      }),
+    [autofillMaterials, manualSelectedMaterials],
+  );
+  const effectiveSummaryMaterials = isAutofillEnabled ? mergedSummaryMaterials : selectedMaterials;
+  const swatchesListPreview = useMemo(
+    () => effectiveSummaryMaterials.map(toSwatchPreview),
+    [effectiveSummaryMaterials],
+  );
+  const hasSummarySwatches = effectiveSummaryMaterials.length > 0;
+  const isSwatchesBlockVisible = hasSummarySwatches || autofillMaterials.length > 0;
   const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSummarySwatches;
   const displayedSwatchesListPreview = isSwatchesEnabledForSummary ? swatchesListPreview : [];
-  const canEnableSwatchesForSummary = hasSummarySwatches;
+  const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
   useEffect(() => {
     if (!hasSummarySwatches && isSwatchesEnabledInSummary) {
@@ -1592,11 +1624,23 @@ export const CustomSummaryPage = () => {
     }
   }, [dispatch, hasSummarySwatches, isSwatchesEnabledInSummary]);
 
+  useEffect(() => {
+    if (!isAutofillEnabled) return;
+    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
+
+    dispatch(setCartMaterials(mergedSummaryMaterials));
+  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
+
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
+      if (checked && selectedMaterials.length === 0 && autofillMaterials.length > 0) {
+        dispatch(setAutofillEnabled(true));
+        dispatch(setCartMaterials(mergedSummaryMaterials));
+      }
+
       dispatch(setSwatchesEnabledInSummary(checked));
     },
-    [dispatch],
+    [dispatch, selectedMaterials.length, autofillMaterials.length, mergedSummaryMaterials],
   );
 
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
