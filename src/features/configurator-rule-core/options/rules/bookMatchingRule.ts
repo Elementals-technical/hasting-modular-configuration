@@ -1,19 +1,14 @@
-import { GRAIN_HORIZONTAL, GRAIN_VERTICAL } from "../constants";
 import type { BookMatchingRuleInput, BookMatchingRuleResult } from "../types";
+import { deriveBookMatchingAvailability } from "@/shared/lib/bookMatching";
 
-export const bookMatchingRule = ({ grainDirection, cabinetCount }: BookMatchingRuleInput): BookMatchingRuleResult => {
-  if (!grainDirection) {
-    return { enabled: false, reason: "Select grain direction first." };
-  }
+export const bookMatchingRule = ({ grainDirection, cabinets }: BookMatchingRuleInput): BookMatchingRuleResult => {
+  const availability = deriveBookMatchingAvailability({
+    grainDirection,
+    cabinets,
+  });
 
-  if (grainDirection === GRAIN_VERTICAL) {
-    return { enabled: true };
-  }
-
-  if (grainDirection === GRAIN_HORIZONTAL) {
-    if (cabinetCount >= 2) return { enabled: true };
-    return { enabled: false, reason: "Horizontal grain requires at least 2 cabinets." };
-  }
-
-  return { enabled: false, reason: "Book matching is not available." };
+  return {
+    enabled: availability.available,
+    reason: availability.reason,
+  };
 };

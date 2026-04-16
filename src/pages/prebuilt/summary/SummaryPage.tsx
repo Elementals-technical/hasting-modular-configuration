@@ -1594,6 +1594,7 @@ export const SummaryPage = () => {
     towelBarOption,
     sidePanelLeft,
     sidePanelLeft,
+    countertopColorSku,
   ]);
 
   const quoteModelName = useMemo(() => {
@@ -1772,60 +1773,62 @@ export const SummaryPage = () => {
         ))}
 
         {isSwatchesBlockVisible && (
-        <div className={s.section} data-summary-section="swatches">
-          <div className={s.sectionHeader}>
-            <div className={s.sectionTitle}>Swatches</div>
-            <button
-              type="button"
-              className={s.editButton}
-              aria-label="Edit Swatches"
-              onClick={() => handleEditSection("swatches")}
-            >
-              <EditPenIcon />
-            </button>
-          </div>
+          <div className={s.section} data-summary-section="swatches">
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTitle}>Swatches</div>
+              <button
+                type="button"
+                className={s.editButton}
+                aria-label="Edit Swatches"
+                onClick={() => handleEditSection("swatches")}
+              >
+                <EditPenIcon />
+              </button>
+            </div>
 
-          <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
+            {/* <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p> */}
 
-          <label className={s.addSwatches}>
-            <input
-              type="checkbox"
-              checked={isSwatchesEnabledForSummary}
-              disabled={!canEnableSwatchesForSummary}
-              onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
-            />
-            <span className={s.addLabel}>Add free swatches</span>
-          </label>
+            <label className={s.addSwatches}>
+              <input
+                type="checkbox"
+                checked={isSwatchesEnabledForSummary}
+                disabled={!canEnableSwatchesForSummary}
+                onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
+              />
+              <span className={s.addLabel}>Autofill My Swatches</span>
+            </label>
 
-          <div className={s.swatchesListHeader}>Swatches list</div>
+            <p className={s.sectionHint}>Let us fill your swatch cart with your selected finishes</p>
 
-          <div className={s.swatchesList}>
-            {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
-              const swatch = displayedSwatchesListPreview[index];
-              if (!swatch) {
+            <div className={s.swatchesListHeader}>Swatches list</div>
+
+            <div className={s.swatchesList}>
+              {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
+                const swatch = displayedSwatchesListPreview[index];
+                if (!swatch) {
+                  return (
+                    <div key={`empty-${index}`} className={s.swatchTile}>
+                      <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                    </div>
+                  );
+                }
+
                 return (
-                  <div key={`empty-${index}`} className={s.swatchTile}>
-                    <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                  <div key={swatch.value} className={s.swatchTile}>
+                    <span
+                      className={s.tileColor}
+                      style={{
+                        backgroundColor: swatch.color,
+                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
                   </div>
                 );
-              }
-
-              return (
-                <div key={swatch.value} className={s.swatchTile}>
-                  <span
-                    className={s.tileColor}
-                    style={{
-                      backgroundColor: swatch.color,
-                      backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                </div>
-              );
-            })}
+              })}
+            </div>
           </div>
-        </div>
         )}
       </div>
 

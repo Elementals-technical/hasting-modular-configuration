@@ -1017,24 +1017,25 @@ export const CustomSummaryPage = () => {
       cabinets: bookMatchingCabinets,
     });
 
-    const bookMatchingItem: SummaryItem | null = bookMatchingInfo.applies && bookMatchingInfo.sku
-      ? (() => {
-          const unitPrice = priceBySku[bookMatchingInfo.sku] ?? 0;
-          return {
-            id: "cabinet-option-book-matching",
-            title: "Book Matching",
-            subtitle: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
-            sku: bookMatchingInfo.sku,
-            price: formatPrice(unitPrice * bookMatchingInfo.drawerQty),
-            copyable: true,
-            description: {
-              "Product Category": "Book Matching",
-              Direction: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
-              Drawers: bookMatchingInfo.drawerQty,
-            },
-          };
-        })()
-      : null;
+    const bookMatchingItem: SummaryItem | null =
+      bookMatchingInfo.applies && bookMatchingInfo.sku
+        ? (() => {
+            const unitPrice = priceBySku[bookMatchingInfo.sku] ?? 0;
+            return {
+              id: "cabinet-option-book-matching",
+              title: "Book Matching",
+              subtitle: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
+              sku: bookMatchingInfo.sku,
+              price: formatPrice(unitPrice * bookMatchingInfo.drawerQty),
+              copyable: true,
+              description: {
+                "Product Category": "Book Matching",
+                Direction: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
+                Drawers: bookMatchingInfo.drawerQty,
+              },
+            };
+          })()
+        : null;
 
     const cabinetOptionItems: SummaryItem[] = [
       drawerPanelFluting
@@ -1129,8 +1130,9 @@ export const CustomSummaryPage = () => {
         });
       }
       const itemCount = lineTitle === "Basin" ? sinkBaseCountForHcut : 1;
-      const linePrice =
-        isVesselCutoutLine ? formatPrice((priceBySku[line] ?? 0) * sinkBaseCountForHcut) : resolveItemPrice(line);
+      const linePrice = isVesselCutoutLine
+        ? formatPrice((priceBySku[line] ?? 0) * sinkBaseCountForHcut)
+        : resolveItemPrice(line);
 
       return Array.from({ length: itemCount }, (_, index) => ({
         id: `countertop-sku-${i + 1}-${index}`,
@@ -1576,6 +1578,7 @@ export const CustomSummaryPage = () => {
     towelBarOption,
     sidePanelLeft,
     sidePanelRight,
+    countertopColorSku,
   ]);
 
   const quoteModelName = useMemo(() => {
@@ -1754,60 +1757,62 @@ export const CustomSummaryPage = () => {
         ))}
 
         {isSwatchesBlockVisible && (
-        <div className={s.section} data-summary-section="swatches">
-          <div className={s.sectionHeader}>
-            <div className={s.sectionTitle}>Swatches</div>
-            <button
-              type="button"
-              className={s.editButton}
-              aria-label="Edit Swatches"
-              onClick={() => handleEditSection("swatches")}
-            >
-              <EditPenIcon />
-            </button>
-          </div>
+          <div className={s.section} data-summary-section="swatches">
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTitle}>Swatches</div>
+              <button
+                type="button"
+                className={s.editButton}
+                aria-label="Edit Swatches"
+                onClick={() => handleEditSection("swatches")}
+              >
+                <EditPenIcon />
+              </button>
+            </div>
 
-          <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
+            {/* <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p> */}
 
-          <label className={s.addSwatches}>
-            <input
-              type="checkbox"
-              checked={isSwatchesEnabledForSummary}
-              disabled={!canEnableSwatchesForSummary}
-              onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
-            />
-            <span className={s.addLabel}>Add free swatches</span>
-          </label>
+            <label className={s.addSwatches}>
+              <input
+                type="checkbox"
+                checked={isSwatchesEnabledForSummary}
+                disabled={!canEnableSwatchesForSummary}
+                onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
+              />
+              <span className={s.addLabel}>Autofill My Swatches</span>
+            </label>
 
-          <div className={s.swatchesListHeader}>Swatches list</div>
+            <p className={s.sectionHint}>Let us fill your swatch cart with your selected finishes</p>
 
-          <div className={s.swatchesList}>
-            {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
-              const swatch = displayedSwatchesListPreview[index];
-              if (!swatch) {
+            <div className={s.swatchesListHeader}>Swatches list</div>
+
+            <div className={s.swatchesList}>
+              {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
+                const swatch = displayedSwatchesListPreview[index];
+                if (!swatch) {
+                  return (
+                    <div key={`empty-${index}`} className={s.swatchTile}>
+                      <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                    </div>
+                  );
+                }
+
                 return (
-                  <div key={`empty-${index}`} className={s.swatchTile}>
-                    <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                  <div key={swatch.value} className={s.swatchTile}>
+                    <span
+                      className={s.tileColor}
+                      style={{
+                        backgroundColor: swatch.color,
+                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
                   </div>
                 );
-              }
-
-              return (
-                <div key={swatch.value} className={s.swatchTile}>
-                  <span
-                    className={s.tileColor}
-                    style={{
-                      backgroundColor: swatch.color,
-                      backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                </div>
-              );
-            })}
+              })}
+            </div>
           </div>
-        </div>
         )}
       </div>
 
