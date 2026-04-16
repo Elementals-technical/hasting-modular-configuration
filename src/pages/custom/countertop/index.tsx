@@ -41,7 +41,6 @@ import {
   vesselAllowedMaterialsMap,
   extractColorCode,
   resolveDefaultBasinByCountertopColor,
-  resolveVesselDynamicAllowedThicknessTokens,
   cmToInches,
 } from "@/shared/lib/sku";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -61,6 +60,7 @@ import {
   getMaterialAliases,
   isIntegratedCountertopDepthRestrictedByMaterial,
   isRuleWidthEligibleForIntegratedContext,
+  filterThicknessValuesByCountertopRules,
   materialMatchesRule,
   matchesDepth,
   normalizeBasinKey,
@@ -87,11 +87,6 @@ const MATERIAL_FILTER_WIDTH_DISABLED_REASON = "Not available for current cabinet
 
 const INTEGRATED_DEPTH_46_DISABLED_REASON =
   'Integrated basin style not available for 46cm (18.1") depth configurations';
-
-const formatSkuThicknessToken = (value: number): string => {
-  const mapped = Math.abs(value - 2.5) < 0.001 ? 2.4 : value;
-  return `${mapped.toFixed(1).replace(/^0(?=\.)/, "")}H`;
-};
 
 type MaterialFilterOption = {
   label: string;
@@ -939,26 +934,16 @@ export const CustomCountertopPage = () => {
   ]);
 
   const filteredThicknessOptions = useMemo(() => {
-    const allowed = ruleState.allowedThicknesses;
-    const vesselMaterialTokens =
-      isVesselStyle && activeVesselMaterialTokens.length > 0 ? activeVesselMaterialTokens : activeMaterialTokens;
-    const vesselAllowedThicknessTokens = isVesselStyle
-      ? resolveVesselDynamicAllowedThicknessTokens(vesselMaterialTokens)
-      : null;
-    if (!allowed.size && !vesselAllowedThicknessTokens) return optionsMockData4;
-
-    return optionsMockData4.filter((option) => {
-      const rawValue = option.value ?? option.title;
-      const numeric = Number.parseFloat(rawValue);
-      if (!Number.isFinite(numeric)) return false;
-      const matchesMatrix = !allowed.size || Array.from(allowed).some((value) => Math.abs(value - numeric) < 0.001);
-      if (!matchesMatrix) return false;
-
-      if (!vesselAllowedThicknessTokens) return true;
-      const skuThicknessToken = formatSkuThicknessToken(numeric);
-      return vesselAllowedThicknessTokens.includes(skuThicknessToken);
+    const filteredValues = filterThicknessValuesByCountertopRules({
+      values: optionsMockData4.map((option) => option.value ?? option.title),
+      allowedThicknesses: ruleState.allowedThicknesses,
     });
-  }, [ruleState.allowedThicknesses, isVesselStyle, activeVesselMaterialTokens, activeMaterialTokens]);
+
+    if (filteredValues.length === optionsMockData4.length) return optionsMockData4;
+
+    const allowedThicknessValues = new Set(filteredValues.map((value) => String(value)));
+    return optionsMockData4.filter((option) => allowedThicknessValues.has(option.value ?? option.title));
+  }, [ruleState.allowedThicknesses]);
 
   const filteredStyleOptions = useMemo(
     () =>
