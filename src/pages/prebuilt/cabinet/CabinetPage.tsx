@@ -120,6 +120,12 @@ export const CabinetPage = () => {
     }
   }, [grainDirectionState.available, activeGrainDirection, dispatch]);
 
+  useEffect(() => {
+    if (!bookMatchingState.enabled && activeBookMatching) {
+      dispatch(setBookMatching(""));
+    }
+  }, [bookMatchingState.enabled, activeBookMatching, dispatch]);
+
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
