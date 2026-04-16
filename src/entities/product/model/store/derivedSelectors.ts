@@ -8,7 +8,6 @@ import {
   sidePanelSpecRule,
   syntesiSidePanelRule,
 } from "@/features/configurator-rule-core/options";
-import { countBookMatchingEligibleCabinets } from "@/shared/lib/bookMatching";
 
 import {
   getActiveCabinetType,
@@ -33,14 +32,14 @@ export const selectGrainDirectionState = createSelector(
 export const selectBookMatchingState = createSelector(
   [getGrainDirection, getSelectedProducts, getProductsPresets, getHasBootstrappedCabinetBuilder],
   (grainDirection, productIds, productsPresets, hasBootstrappedCabinetBuilder) => {
-    const sourceCabinets =
+    const cabinets =
       productIds.length > 0 || hasBootstrappedCabinetBuilder
         ? productIds.map((productId) => ({ name: productId }))
         : productsPresets.map((preset) => ({ name: preset.name }));
 
     return bookMatchingRule({
       grainDirection,
-      cabinetCount: countBookMatchingEligibleCabinets(sourceCabinets),
+      cabinets,
     });
   },
 );

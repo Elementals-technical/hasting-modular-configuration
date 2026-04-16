@@ -4,7 +4,7 @@ const GRAIN_HORIZONTAL = "GrainHorizontal";
 const GRAIN_VERTICAL = "GrainVertical";
 
 const SELECT_GRAIN_REASON = "Select grain direction first.";
-const HORIZONTAL_GRAIN_REASON = "Horizontal grain requires at least 2 cabinets.";
+const HORIZONTAL_GRAIN_REASON = "Horizontal grain requires at least 2 adjacent drawer cabinets.";
 const BOOK_MATCHING_UNAVAILABLE_REASON = "Book matching is not available.";
 
 type BookMatchingDirection = BookMatchingSkuInput["direction"];
@@ -32,6 +32,39 @@ export type BookMatchingChargeInfo = {
 
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
+const normalizeCabinetKind = (name?: string | null): "drawer" | "open" | null => {
+  if (!name) return null;
+
+  const normalized = normalizeCabinetToken(name);
+  const compact = normalized.replace(/-/g, "");
+
+  if (
+    normalized.includes("open-shelf") ||
+    normalized.includes("openshelf") ||
+    normalized.includes("side-shelf") ||
+    normalized.includes("sideshelf") ||
+    compact === "os" ||
+    compact === "oss"
+  ) {
+    return "open";
+  }
+
+  if (
+    normalized.includes("sink-base") ||
+    normalized.includes("sinkbase") ||
+    normalized.includes("sink-cabinet") ||
+    normalized.includes("sinkcabinet") ||
+    normalized.includes("side-cabinet") ||
+    normalized.includes("sidecabinet") ||
+    compact === "sb" ||
+    compact === "sc"
+  ) {
+    return "drawer";
+  }
+
+  return null;
+};
+
 const parseDrawerCount = (value?: string | null): number => {
   if (!value) return 0;
 
@@ -49,26 +82,31 @@ export const normalizeBookMatchingDirection = (grainDirection?: string | null): 
 };
 
 export const isBookMatchingEligibleCabinet = (name?: string | null): boolean => {
-  if (!name) return false;
-
-  const normalized = normalizeCabinetToken(name);
-  return !(
-    normalized.includes("open-shelf") ||
-    normalized.includes("openshelf") ||
-    normalized.includes("side-shelf") ||
-    normalized.includes("sideshelf")
-  );
+  return normalizeCabinetKind(name) === "drawer";
 };
 
 export const countBookMatchingEligibleCabinets = (cabinets: readonly BookMatchingCabinetInput[]): number =>
   cabinets.reduce((count, cabinet) => count + (isBookMatchingEligibleCabinet(cabinet.name) ? 1 : 0), 0);
 
+export const hasAdjacentBookMatchingEligibleCabinets = (cabinets: readonly BookMatchingCabinetInput[]): boolean => {
+  for (let index = 0; index < cabinets.length - 1; index += 1) {
+    if (
+      isBookMatchingEligibleCabinet(cabinets[index]?.name) &&
+      isBookMatchingEligibleCabinet(cabinets[index + 1]?.name)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export const deriveBookMatchingAvailability = ({
   grainDirection,
-  eligibleCabinetCount,
+  cabinets,
 }: {
   grainDirection?: string | null;
-  eligibleCabinetCount: number;
+  cabinets: readonly BookMatchingCabinetInput[];
 }): BookMatchingAvailability => {
   const direction = normalizeBookMatchingDirection(grainDirection);
 
@@ -87,7 +125,7 @@ export const deriveBookMatchingAvailability = ({
     };
   }
 
-  if (eligibleCabinetCount >= 2) {
+  if (hasAdjacentBookMatchingEligibleCabinets(cabinets)) {
     return {
       available: true,
       direction,
@@ -116,7 +154,7 @@ export const deriveBookMatchingChargeInfo = ({
   const eligibleCabinetCount = eligibleCabinets.length;
   const availability = deriveBookMatchingAvailability({
     grainDirection,
-    eligibleCabinetCount,
+    cabinets,
   });
   const parsedDrawerQty = eligibleCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
   const drawerQty = availability.available ? parsedDrawerQty || eligibleCabinetCount : 0;

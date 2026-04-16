@@ -73,6 +73,7 @@ export const CustomCabinetColorsPage = () => {
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
   const bookMatchingState = useAppSelector(selectBookMatchingState);
   const flutingState = useAppSelector(selectFlutingState);
+  const bookMatchingTooltip = !bookMatchingState.enabled ? (bookMatchingState.reason ?? "Not available.") : undefined;
 
   const { data: cabinetColors, isFetching: isFetchingCabinetColors } = useGetConfiguratorQuery({
     id: 4,
@@ -645,15 +646,21 @@ export const CustomCabinetColorsPage = () => {
             handleAdd={handleChangeGrainDirection}
             activeValue={activeGrainDirection}
           />
-          <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
-            <input
-              type="checkbox"
-              disabled={!bookMatchingState.enabled}
-              checked={activeBookMatching === "enabled"}
-              onChange={(event) => handleToggleBookMatching(event.target.checked)}
-            />
-            <span>Book Matching</span>
-          </label>
+          <div
+            className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
+            data-tooltip={bookMatchingTooltip}
+            aria-label={bookMatchingTooltip}
+          >
+            <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
+              <input
+                type="checkbox"
+                disabled={!bookMatchingState.enabled}
+                checked={activeBookMatching === "enabled"}
+                onChange={(event) => handleToggleBookMatching(event.target.checked)}
+              />
+              <span>Book Matching</span>
+            </label>
+          </div>
           <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
         </>
       ) : (
