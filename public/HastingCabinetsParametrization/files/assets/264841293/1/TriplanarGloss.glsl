@@ -26,9 +26,7 @@ void getGlossiness() {
     
     vec3 localPos = (vPositionW - offset) * rotationMatrix;
 
-    vec3 lFdx = dFdx(localPos);
-    vec3 lFdy = dFdy(localPos);
-    vec3 localNormal = normalize(cross(lFdx, lFdy));
+    vec3 localNormal = normalize(normalize(vNormalW) * rotationMatrix);
     vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
     blend /= (dot(blend, vec3(1.0)) + 0.0001);
 

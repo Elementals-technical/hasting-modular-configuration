@@ -36,13 +36,8 @@ void getNormal() {
     mat3 rotationMatrix = mat3(axisX, axisY, axisZ);
     vec3 localPos = (vPositionW - offset) * rotationMatrix;
 
-    vec3 fdx = dFdx(vPositionW);
-    vec3 fdy = dFdy(vPositionW);
-    vec3 worldNormal = normalize(cross(fdx, fdy)); 
-
-    vec3 lFdx = dFdx(localPos);
-    vec3 lFdy = dFdy(localPos);
-    vec3 localNormal = normalize(cross(lFdx, lFdy));
+    vec3 worldNormal = normalize(vNormalW);
+    vec3 localNormal = normalize(worldNormal * rotationMatrix);
     vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
     blend /= (dot(blend, vec3(1.0)) + 0.0001);
 
