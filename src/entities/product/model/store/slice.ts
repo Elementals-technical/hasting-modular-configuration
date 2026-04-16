@@ -430,6 +430,15 @@ const productSlice = createSlice({
 
       applyRulesToState(state, { field: "cabinetType", value: newCabinetTypeId });
     },
+    // TODO(architecture): single-source-of-truth for dimensions.
+    // Current state keeps width/depth/height in three slots:
+    //   1. selectedDimensions — authoritative, updated on resize
+    //   2. productsPresets[*].Width/Depth/Height — snapshot, NOT updated on resize
+    //   3. selectedProductConfig.Width/Depth/Height — snapshot from last cabinet click,
+    //      NOT updated on resize
+    // Consumers that read (2) or (3) for current dimensions get stale values.
+    // Prefer reading from selectedDimensions OR from live scene via getConfig().
+    // See Summary page total-width / SKU calculations for drift risk.
     setSelectedDimensions(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
       const [intentField, intentValue] = Object.entries(action.payload)[0] ?? [];

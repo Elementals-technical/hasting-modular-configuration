@@ -1055,6 +1055,11 @@ export const CustomSummaryPage = () => {
       bookMatchingItem,
     ].filter(Boolean) as SummaryItem[];
 
+    // TODO(architecture): productsPresets[*].Width is a frozen snapshot from
+    // prebuilt→custom transition; it does NOT reflect user resizes in custom
+    // mode. Any aggregate computed from presets can diverge from actual scene
+    // widths after resize. Prefer live scene (getConfig per productId) or
+    // selectedDimensions. See slice.ts setSelectedDimensions note.
     const totalCountertopWidth = shouldUsePresets
       ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
           cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null

@@ -1324,7 +1324,10 @@ export const PlayCanvasIntegration = () => {
         await saveSnapshot();
         const config = await getConfig(duplicateSourceId);
         if (!config) return;
-        const mergedConfig = { ...config, ...selectedProductConfig };
+        // Live scene is authoritative for dimensions/colors — it reflects the
+        // current resized state. selectedProductConfig may be stale for
+        // Width/Depth (it is not refreshed on resize, only on cabinet click).
+        const mergedConfig = { ...selectedProductConfig, ...config };
 
         console.log("mergedConfig", mergedConfig);
 
