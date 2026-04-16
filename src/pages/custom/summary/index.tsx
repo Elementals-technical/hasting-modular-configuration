@@ -1578,6 +1578,7 @@ export const CustomSummaryPage = () => {
     towelBarOption,
     sidePanelLeft,
     sidePanelRight,
+    countertopColorSku,
   ]);
 
   const quoteModelName = useMemo(() => {
