@@ -973,13 +973,9 @@ export const SummaryPage = () => {
           ...preferredCountertopMaterialTokens,
         ],
       }) || resolvedCountertopMaterialSku;
-    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
-      ? resolvedVesselMaterialSku
-      : resolvedCountertopMaterialSku;
-    const effectiveCountertopColorCode = extractColorCode(
-      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
-    );
+    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
@@ -1081,7 +1077,7 @@ export const SummaryPage = () => {
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
-    const basinLabel = useVesselMaterialForCountertopSku ? "Vessel Cutout" : "Basin";
+    const basinLabel = isVesselCountertop ? "Vessel Cutout" : "Basin";
     const countertopSkuLabels = ["Countertop", basinLabel, "Faucet Holes", "Hole Cutout"];
 
     const extraCountertopItems = countertopSkuLines.slice(1).flatMap((line, i) => {
