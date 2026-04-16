@@ -213,6 +213,7 @@ export const PlayCanvasIntegration = () => {
   const suppressNextDropdownOpenRef = useRef(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const countertopPopoverRef = useRef<HTMLDivElement | null>(null);
+  const hasFocusedOnceRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -928,8 +929,12 @@ export const PlayCanvasIntegration = () => {
             cameraApi.setFramingConfig?.({
               paddingWide: GLOBAL_CAMERA_PADDING_WIDE,
               paddingTall: GLOBAL_CAMERA_PADDING_TALL,
+              autoFramingEnabled: false,
             });
-            cameraApi.focusCamera?.();
+            if (!hasFocusedOnceRef.current) {
+              cameraApi.focusCamera?.();
+              hasFocusedOnceRef.current = true;
+            }
           } catch (error) {
             console.warn("[PlayCanvasIntegration] Failed to apply global camera zoom-out settings", error);
           }
