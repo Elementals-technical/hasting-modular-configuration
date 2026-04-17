@@ -94,6 +94,7 @@ import {
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
   formatCabinetTitleForSummary,
+  isShelfCabinetType,
 } from "@/shared/lib/summaryFormatters";
 import {
   normalizeProductConfigSnapshot,
@@ -467,6 +468,7 @@ export const CustomSummaryPage = () => {
       hdlColor: string;
       hdlMaterialSku: string | null;
     }): Record<string, unknown> => {
+      const isShelfCabinet = isShelfCabinetType(opts.cabinetType);
       const elements: Record<string, string>[] = [];
       if (opts.cabMaterialSku) {
         elements.push({
@@ -475,7 +477,7 @@ export const CustomSummaryPage = () => {
           "Color Code": opts.cabColor,
         });
       }
-      if (opts.hdlMaterialSku) {
+      if (!isShelfCabinet && opts.hdlMaterialSku) {
         elements.push({
           "Product Elements": "Handle",
           Material: materialSkuLabelMap[opts.hdlMaterialSku] ?? opts.hdlMaterialSku,
@@ -486,8 +488,8 @@ export const CustomSummaryPage = () => {
         "Product Category": "Vanity",
         Products: "Urban Standard",
         "Cabinet Type": opts.cabinetType?.replace(/-/g, " ") ?? "Unknown",
-        "Cabinet Style": opts.drawers ? (drawerLabelMap[opts.drawers] ?? opts.drawers) : "Unknown",
-        "Handle Style": opts.handle ? (handleLabelMap[opts.handle] ?? opts.handle) : "Unknown",
+        "Cabinet Style": isShelfCabinet ? null : (opts.drawers ? (drawerLabelMap[opts.drawers] ?? opts.drawers) : "Unknown"),
+        "Handle Style": isShelfCabinet ? null : (opts.handle ? (handleLabelMap[opts.handle] ?? opts.handle) : "Unknown"),
         "Drawer Panel Fluting": opts.pattern || "None",
         Width: opts.width,
         Height: opts.height,
