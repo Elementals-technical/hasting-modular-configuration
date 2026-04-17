@@ -15,7 +15,7 @@ export type GrainDirectionRuleResult = {
 
 export type BookMatchingRuleInput = {
   grainDirection?: string | null;
-  cabinets: ReadonlyArray<{ name?: string | null }>;
+  cabinets: ReadonlyArray<{ name?: string | null; drawers?: string | null }>;
 };
 
 export type BookMatchingRuleResult = {

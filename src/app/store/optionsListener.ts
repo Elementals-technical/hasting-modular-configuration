@@ -7,6 +7,7 @@ import {
   removeProductId,
   resetProducts,
   restoreProductState,
+  setPlacedCabinetStyle,
   setBookMatching,
   setCabinetColorFinish,
   setCabinetColorMaterial,
@@ -14,6 +15,7 @@ import {
   setGrainDirection,
   setActiveCabinetType,
   setSelectedProductConfig,
+  switchAllCabinetsDrawerStyle,
 } from "@/entities/product/model/store/slice";
 import {
   getBookMatching,
@@ -62,7 +64,15 @@ optionsListenerMiddleware.startListening({
 });
 
 optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(addProductId, insertProductIdRelative, removeProductId, resetProducts, restoreProductState),
+  matcher: isAnyOf(
+    addProductId,
+    insertProductIdRelative,
+    removeProductId,
+    resetProducts,
+    restoreProductState,
+    setPlacedCabinetStyle,
+    switchAllCabinetsDrawerStyle,
+  ),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const bookState = selectBookMatchingState(state);
