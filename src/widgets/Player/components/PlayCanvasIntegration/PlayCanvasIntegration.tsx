@@ -49,6 +49,8 @@ import {
   getSelectedProducts,
   getVesselColor,
   getSidePanelsOption,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
@@ -82,6 +84,7 @@ import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/C
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
 import { cmToInches } from "@/shared/lib/sku/cmToInches";
+import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
@@ -258,6 +261,8 @@ export const PlayCanvasIntegration = () => {
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const wasRestoringRef = useRef(false);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
+  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
+  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
 
   const saveSnapshot = useHistorySnapshot();
 
@@ -385,7 +390,6 @@ export const PlayCanvasIntegration = () => {
 
     let hasCabinets = false;
     let summedWidth = 0;
-    let sidePanelsCount = 0;
     let primaryCabinetHeight: number | null = null;
     let fallbackCabinetHeight: number | null = null;
     let maxCabinetDepth: number | null = null;
@@ -419,10 +423,6 @@ export const PlayCanvasIntegration = () => {
         }
       }
 
-      if (productType === "SidePanel_Left" || productType === "SidePanel_Right") {
-        sidePanelsCount += 1;
-      }
-
       if (category === "countertops" && !countertopId) {
         countertopId = id;
         currentCountertopWidth = typeof product.Width === "number" ? product.Width : null;
@@ -433,16 +433,20 @@ export const PlayCanvasIntegration = () => {
 
     if (!hasCabinets || !countertopId) return null;
 
+    const sidePanelOffset =
+      (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) +
+      (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
+
     return {
       countertopId,
       currentWidth: currentCountertopWidth,
       currentHeight: currentCountertopHeight,
       currentDepth: currentCountertopDepth,
-      targetWidth: Number((summedWidth + sidePanelsCount).toFixed(2)),
+      targetWidth: Number((summedWidth + sidePanelOffset).toFixed(2)),
       targetHeight: primaryCabinetHeight ?? fallbackCabinetHeight,
       targetDepth: maxCabinetDepth,
     };
-  }, [getCompositionProducts]);
+  }, [getCompositionProducts, sidePanelLeft, sidePanelRight]);
 
   const setCountertopDimensionData = useCallback(
     (productId: string, config: Record<string, unknown>) => {
@@ -500,9 +504,7 @@ export const PlayCanvasIntegration = () => {
       }
     }
 
-    if (!Object.keys(nextConfig).length) {
-      return;
-    }
+    if (!Object.keys(nextConfig).length) return;
 
     await setConfig(syncData.countertopId, nextConfig);
 
@@ -1101,7 +1103,7 @@ export const PlayCanvasIntegration = () => {
       void syncCountertopConfig();
     }, 300);
     return () => clearTimeout(timer);
-  }, [sidePanelsOption, syncCountertopConfig]);
+  }, [sidePanelsOption, sidePanelLeft, sidePanelRight, syncCountertopConfig]);
 
   const handleSetHandleType = useCallback(
     async (handleType: string) => {
