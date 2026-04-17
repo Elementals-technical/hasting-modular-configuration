@@ -17,7 +17,7 @@ import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refreshFullDimensions";
-import { useFullDimensionsRefresh } from "@/shared/hooks/useFullDimensionsRefresh";
+import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 import {
