@@ -41,6 +41,69 @@ type FilterWidthValuesParams = {
   activeThickness?: string | null;
 };
 
+export type CountertopWidthRuleStyle = "integrated" | "vessel" | "undermount" | "plain";
+export type CountertopWidthRuleContext = "sink-base" | "generic";
+
+export const resolveCountertopWidthRuleStyle = ({
+  activeCountertopStyle,
+  activeBasinStyle,
+}: {
+  activeCountertopStyle?: string | null;
+  activeBasinStyle?: string | null;
+}): CountertopWidthRuleStyle => {
+  const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
+  const basinLooksIntegrated =
+    Boolean(activeBasinStyle) && !String(activeBasinStyle).trim().toLowerCase().startsWith("vessel_");
+
+  if (normalizedStyle === "integrated" || basinLooksIntegrated) return "integrated";
+  if (normalizedStyle === "vessel") return "vessel";
+  if (normalizedStyle === "undermount") return "undermount";
+  return "plain";
+};
+
+export const getCountertopRuleMaxWidthsForStyle = (
+  rule: CountertopMatrixRule,
+  style: CountertopWidthRuleStyle,
+): number[] =>
+  (
+    style === "integrated"
+      ? [rule.maxIntegratedCm]
+      : style === "vessel"
+        ? [rule.maxVesselCm]
+        : style === "undermount"
+          ? [rule.maxUndermountCm]
+          : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm]
+  ).filter((value): value is number => value !== null);
+
+export const isCountertopRuleWidthAllowed = ({
+  rule,
+  width,
+  style,
+  context,
+}: {
+  rule: CountertopMatrixRule;
+  width: number;
+  style: CountertopWidthRuleStyle;
+  context: CountertopWidthRuleContext;
+}): boolean => {
+  const isIntegratedSinkBaseContext = style === "integrated" && context === "sink-base";
+
+  if (isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm) return false;
+
+  const maxLimits = getCountertopRuleMaxWidthsForStyle(rule, style);
+  if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
+
+  if (
+    isIntegratedSinkBaseContext &&
+    rule.integratedAllowedSizesOnly.length > 0 &&
+    !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
 export const filterWidthValuesByCountertopRules = ({
   values,
   activeCabinetCode,
@@ -65,12 +128,11 @@ export const filterWidthValuesByCountertopRules = ({
 
   if (!matchingRules.length) return values;
 
-  const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
-  const basinLooksIntegrated =
-    Boolean(activeBasinStyle) && !String(activeBasinStyle).trim().toLowerCase().startsWith("vessel_");
-  const isIntegratedStyle = normalizedStyle === "integrated" || basinLooksIntegrated;
-  const isVesselStyle = normalizedStyle === "vessel";
-  const isUndermountStyle = normalizedStyle === "undermount";
+  const widthRuleStyle = resolveCountertopWidthRuleStyle({
+    activeCountertopStyle,
+    activeBasinStyle,
+  });
+  const isIntegratedStyle = widthRuleStyle === "integrated";
   const activeBasinKey = activeBasinStyle ? normalizeBasinKey(activeBasinStyle) : "";
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
 
@@ -95,28 +157,12 @@ export const filterWidthValuesByCountertopRules = ({
 
   const isWidthAllowedByAnyRule = (width: number) =>
     rulesForWidth.some((rule) => {
-      if (shouldEnforceMinSb && rule.minSbCm !== null && width < rule.minSbCm) return false;
-
-      const maxLimits = (
-        isIntegratedStyle
-          ? [rule.maxIntegratedCm]
-          : isVesselStyle
-            ? [rule.maxVesselCm]
-            : isUndermountStyle
-              ? [rule.maxUndermountCm]
-              : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm]
-      ).filter((value): value is number => value !== null);
-      if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
-
-      if (
-        isIntegratedStyle &&
-        rule.integratedAllowedSizesOnly.length > 0 &&
-        !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
-      ) {
-        return false;
-      }
-
-      return true;
+      return isCountertopRuleWidthAllowed({
+        rule,
+        width,
+        style: widthRuleStyle,
+        context: shouldEnforceMinSb ? "sink-base" : "generic",
+      });
     });
 
   return values.filter((value) => {

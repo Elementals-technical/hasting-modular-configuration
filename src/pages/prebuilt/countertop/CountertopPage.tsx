@@ -51,7 +51,9 @@ import {
   buildCountertopRuleState,
   filterThicknessValuesByCountertopRules,
   getMaterialAliases,
+  getCountertopRuleMaxWidthsForStyle,
   isIntegratedCountertopDepthRestrictedByMaterial,
+  isCountertopRuleWidthAllowed,
   isRuleWidthEligibleForIntegratedContext,
   materialMatchesRule,
   matchesDepth,
@@ -59,6 +61,7 @@ import {
   normalizeMaterialToken,
   parseThicknessValue,
   parseCountertopMatrix,
+  resolveCountertopWidthRuleStyle,
 } from "@/features/configurator-rule-core/countertop";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
@@ -701,7 +704,10 @@ export const CountertopPage = () => {
       const totalWidth = sceneTotalWidth;
       // Use SB cabinet width for minSbCm validation instead of any clicked entity
       const sbWidth = sinkBaseDims.width;
-      const normalizedStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
+      const widthRuleStyle = resolveCountertopWidthRuleStyle({
+        activeCountertopStyle,
+        activeBasinStyle,
+      });
 
       const materialMatchingRules = countertopRules.filter((rule) =>
         optionMaterials.some((material) => materialMatchesRule(material, rule.material)),
@@ -718,29 +724,12 @@ export const CountertopPage = () => {
 
       const matchesWidth = (width: number, context: "total" | "sb") =>
         applicableRules.some((rule) => {
-          if (context === "sb" && rule.minSbCm && width < rule.minSbCm) return false;
-
-          const maxLimits = (
-            normalizedStyle === "integrated"
-              ? [rule.maxIntegratedCm]
-              : normalizedStyle === "vessel"
-                ? [rule.maxVesselCm]
-                : normalizedStyle === "undermount"
-                  ? [rule.maxUndermountCm]
-                  : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm]
-          ).filter((value): value is number => value !== null);
-          if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
-
-          if (
-            context === "sb" &&
-            normalizedStyle === "integrated" &&
-            rule.integratedAllowedSizesOnly.length > 0 &&
-            !rule.integratedAllowedSizesOnly.some((value) => Math.abs(value - width) < 0.01)
-          ) {
-            return false;
-          }
-
-          return true;
+          return isCountertopRuleWidthAllowed({
+            rule,
+            width,
+            style: widthRuleStyle,
+            context: context === "sb" ? "sink-base" : "generic",
+          });
         });
 
       if (typeof sbWidth === "number" && !matchesWidth(sbWidth, "sb")) {
@@ -754,6 +743,7 @@ export const CountertopPage = () => {
       return { isCompatible: true, failedBy: null };
     },
     [
+      activeBasinStyle,
       activeCountertopStyle,
       countertopRules,
       sceneTotalWidth,
@@ -801,7 +791,10 @@ export const CountertopPage = () => {
   const getMaterialMaxWidthForCurrentDepth = useCallback(
     (materialValue: string): number | null => {
       const selectedDepth = selectedDimensions.depth ?? null;
-      const normalizedStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
+      const widthRuleStyle = resolveCountertopWidthRuleStyle({
+        activeCountertopStyle,
+        activeBasinStyle,
+      });
 
       const relevantRules = countertopRules.filter((rule) => {
         if (!matchesDepth(rule, selectedDepth)) return false;
@@ -810,21 +803,13 @@ export const CountertopPage = () => {
       if (!relevantRules.length) return null;
 
       const maxLimits = relevantRules
-        .flatMap((rule) =>
-          normalizedStyle === "integrated"
-            ? [rule.maxIntegratedCm]
-            : normalizedStyle === "vessel"
-              ? [rule.maxVesselCm]
-              : normalizedStyle === "undermount"
-                ? [rule.maxUndermountCm]
-                : [rule.maxIntegratedCm, rule.maxVesselCm, rule.maxUndermountCm],
-        )
-        .filter((value): value is number => value !== null);
+        .flatMap((rule) => getCountertopRuleMaxWidthsForStyle(rule, widthRuleStyle))
+        .filter((value) => Number.isFinite(value));
 
       if (!maxLimits.length) return null;
       return Math.max(...maxLimits);
     },
-    [activeCountertopStyle, countertopRules, selectedDimensions.depth],
+    [activeBasinStyle, activeCountertopStyle, countertopRules, selectedDimensions.depth],
   );
 
   const getMaterialFilterDisabledReason = useCallback(
