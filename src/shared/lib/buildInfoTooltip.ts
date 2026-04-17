@@ -61,6 +61,46 @@ export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
     return parts.length > 0 ? `Basin - ${parts.join(", ")}` : "Basin";
   }
 
+  if (category === "Side Panel") {
+    const widthIn = desc.Width != null ? formatInches(Number(desc.Width)) : null;
+    const heightIn = desc.Height != null ? formatInches(Number(desc.Height)) : null;
+    const depthIn = desc.Depth != null ? formatInches(Number(desc.Depth)) : null;
+
+    const parts = [
+      str("Panel Type") ? `Panel Type: ${str("Panel Type")}` : null,
+      str("Side") ? `Side: ${str("Side")}` : null,
+      widthIn ? `${widthIn}" W` : null,
+      heightIn ? `${heightIn}" H` : null,
+      depthIn ? `${depthIn}" D` : null,
+    ].filter(Boolean);
+
+    const colors = [
+      str("Cabinet Color") ? `Cabinet Color: ${str("Cabinet Color")}` : null,
+      str("Groove Color") ? `Groove Color: ${str("Groove Color")}` : null,
+    ].filter(Boolean);
+
+    return colors.length > 0
+      ? `Side panel - ${parts.join(", ")} - ${colors.join(", ")}`
+      : `Side panel - ${parts.join(", ")}`;
+  }
+
+  if (category === "Towel Bar") {
+    const widthIn = desc.Width != null ? formatInches(Number(desc.Width)) : null;
+    const heightIn = desc.Height != null ? formatInches(Number(desc.Height)) : null;
+    const depthIn = desc.Depth != null ? formatInches(Number(desc.Depth)) : null;
+
+    const parts = [
+      str("Side") ? `Side: ${str("Side")}` : null,
+      widthIn ? `${widthIn}" W` : null,
+      heightIn ? `${heightIn}" H` : null,
+      depthIn ? `${depthIn}" D` : null,
+      str("Material") ? `Material: ${str("Material")}` : null,
+      str("Color Code") ? `Color: ${str("Color Code")}` : null,
+    ].filter(Boolean);
+
+    return `Towel Bar - ${parts.join(", ")}`;
+  }
+
   const details = Object.entries(desc)
     .filter(([k, v]) => k !== "Product Category" && v != null && v !== "" && typeof v !== "object")
     .map(([k, v]) => `${k}: ${v}`)

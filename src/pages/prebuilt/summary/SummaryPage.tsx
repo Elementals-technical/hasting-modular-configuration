@@ -1352,6 +1352,8 @@ export const SummaryPage = () => {
             Width: SIDE_PANEL_WIDTH_CM,
             Height: dims.height,
             Depth: dims.depth,
+            "Cabinet Color": cabinetColor || null,
+            "Groove Color": handleGrooveColor || null,
           },
         });
       });
