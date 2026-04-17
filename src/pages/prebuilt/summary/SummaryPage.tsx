@@ -1656,6 +1656,13 @@ export const SummaryPage = () => {
     dispatch(setCartMaterials(mergedSummaryMaterials));
   }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
 
+  useEffect(() => {
+    if (!isAutofillEnabled) return;
+    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
+
+    dispatch(setCartMaterials(mergedSummaryMaterials));
+  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
+
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
       if (checked && selectedMaterials.length === 0 && autofillMaterials.length > 0) {

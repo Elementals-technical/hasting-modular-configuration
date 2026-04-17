@@ -27,7 +27,6 @@ import {
   getSelectedMaterials,
 } from "../model/store/selectors";
 import type { AttributeValue, IThreekitConfiguration } from "../model/types";
-import { MAX_SLOTS } from "../model/constants";
 import { Filters } from "./Filters/Filters";
 import { MaterialList } from "./MaterialList/MaterialList";
 import { SwatchesList } from "./SwatchesList/SwatchesList";
