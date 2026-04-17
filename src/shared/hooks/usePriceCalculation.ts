@@ -57,7 +57,11 @@ import {
   parseCountertopMatrix,
   resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
-import { useLazyGetProductPriceBySkuQuery, useLazyGetProductPriceBySkuV2ResolveQuery } from "@/entities/product/api";
+import {
+  useLazyGetProductPriceBySkuQuery,
+  useLazyGetProductPriceBySkuV2ResolveQuery,
+  type ProductSkuPriceResponse,
+} from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -116,6 +120,7 @@ export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
   const [triggerPriceBySkuV2Resolve] = useLazyGetProductPriceBySkuV2ResolveQuery();
+  const countertopWidthCmRef = useRef<number | null>(null);
 
   // ── Read all relevant state ───────────────────────────
 
@@ -761,6 +766,7 @@ export function usePriceCalculation() {
     // 2) Countertop SKUs — Resolver 2
     // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
     const totalCountertopWidth = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0) || null;
+    countertopWidthCmRef.current = totalCountertopWidth;
     const aggregateCountertopLines = buildCountertopSku({
       style: countertopStyle || null,
       width: totalCountertopWidth,
@@ -1033,13 +1039,22 @@ export function usePriceCalculation() {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
-                const isCountertopV2ResolveSku = /^CT-UR[^-]+-(?:INTG|VES)(?:-|$)/.test(sku);
-                const isLegacyVesselSku = sku.startsWith("VES-");
+                const isCountertopSku = /^CT-UR[^-]+-(?:INTG|VES)(?:-|$)/.test(sku);
+                const isVesselSku = sku.startsWith("VES-");
                 const isBookMatchingSku = sku.startsWith("VAN-URBMG-");
-                const data =
-                  isCountertopV2ResolveSku || isLegacyVesselSku || isBookMatchingSku
-                    ? await triggerPriceBySkuV2Resolve(sku).unwrap()
-                    : await triggerPriceBySku(sku).unwrap();
+
+                let data: ProductSkuPriceResponse;
+
+                if (isCountertopSku) {
+                  data = await triggerPriceBySkuV2Resolve({
+                    sku,
+                    widthCm: countertopWidthCmRef.current ?? undefined,
+                  }).unwrap();
+                } else if (isVesselSku || isBookMatchingSku) {
+                  data = await triggerPriceBySkuV2Resolve({ sku }).unwrap();
+                } else {
+                  data = await triggerPriceBySku(sku).unwrap();
+                }
 
                 console.log(LOG_PREFIX, "Response for", sku, "→", data);
 
