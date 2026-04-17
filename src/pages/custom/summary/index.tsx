@@ -62,7 +62,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -1054,12 +1054,13 @@ export const CustomSummaryPage = () => {
     // mode. Any aggregate computed from presets can diverge from actual scene
     // widths after resize. Prefer live scene (getConfig per productId) or
     // selectedDimensions. See slice.ts setSelectedDimensions note.
-    const totalCountertopWidth = shouldUsePresets
+    const cabinetWidthSum = shouldUsePresets
       ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
-          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
       : cabinetConfigs.length > 0
-        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
-        : selectedDimensions.width;
+        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
+        : (selectedDimensions.width ?? 0);
+    const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,

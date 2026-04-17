@@ -62,7 +62,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -1050,12 +1050,13 @@ export const SummaryPage = () => {
       bookMatchingItem,
     ].filter(Boolean) as SummaryItem[];
 
-    const totalCountertopWidth =
+    const cabinetWidthSum =
       cabinetConfigs.length > 0
-        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
         : productsPresets.length > 0
-          ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) || null
-          : selectedDimensions.width;
+          ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0)
+          : (selectedDimensions.width ?? 0);
+    const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,
