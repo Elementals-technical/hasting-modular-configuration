@@ -8,6 +8,8 @@ export {
   markCartSubmitted,
   setSwatchesEnabledInSummary,
   setAutofillEnabled,
+  hydrateSwatchOrder,
+  resetSwatchOrder,
   swatchOrderReducer,
 } from "./model/store/slice";
 export {
@@ -23,7 +25,7 @@ export {
   getProductElementOptions,
   getMaterialSelectStateFilters,
 } from "./model/store/selectors";
-export { swatchOrderPersistListener } from "./model/store/persistListener";
+export { applySwatchOrderFromMetadata } from "./lib/applySwatchOrderFromMetadata";
 export { toSwatchPreview, type SwatchPreview } from "./lib/toSwatchPreview";
 export { adaptThreekitConfig } from "./lib/adaptThreekitConfig";
 export {

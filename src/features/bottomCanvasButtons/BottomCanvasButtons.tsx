@@ -20,6 +20,13 @@ import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refre
 import { useFullDimensionsRefresh } from "@/shared/hooks/useFullDimensionsRefresh";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
+import {
+  getHasSubmittedCart,
+  getIsAutofillEnabled,
+  getManualSelectedMaterials,
+  getSelectedMaterials,
+} from "@/features/swatchOrder";
+import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -96,6 +103,10 @@ export const BottomCanvasButtons = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
+  const selectedMaterials = useAppSelector(getSelectedMaterials);
+  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
+  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
+  const hasSubmittedCart = useAppSelector(getHasSubmittedCart);
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
@@ -248,9 +259,8 @@ export const BottomCanvasButtons = () => {
       return acc;
     }, {});
 
-    const metadata = {
+    const metadata = buildConfigurationMetadata({
       path: pathname,
-      savedAt: new Date().toISOString(),
       orderedProductIds: ids,
       uiState: {
         CabinetColor: cabinetColor,
@@ -272,7 +282,13 @@ export const BottomCanvasButtons = () => {
         TowelBarColor: towelBarColor,
         FaucetHolesAmount: faucetHolesAmount,
       },
-    };
+      swatchOrder: {
+        selectedMaterials,
+        manualSelectedMaterials,
+        isAutofillEnabled,
+        hasSubmittedCart,
+      },
+    });
 
     try {
       const result = await saveConfiguration({ configuration, metadata }).unwrap();

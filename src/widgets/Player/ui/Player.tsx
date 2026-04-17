@@ -5,7 +5,13 @@ import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasInt
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
-import { openSwatchOrder } from "@/features/swatchOrder";
+import {
+  openSwatchOrder,
+  getSelectedMaterials,
+  getManualSelectedMaterials,
+  getIsAutofillEnabled,
+  getHasSubmittedCart,
+} from "@/features/swatchOrder";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -19,6 +25,7 @@ import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useSaveConfigurationMutation } from "@/entities";
+import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -81,6 +88,11 @@ export function Player() {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
 
+  const selectedMaterials = useAppSelector(getSelectedMaterials);
+  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
+  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
+  const hasSubmittedCart = useAppSelector(getHasSubmittedCart);
+
   const [saveConfiguration] = useSaveConfigurationMutation();
   const activeStep = useAppSelector(getActiveStep);
 
@@ -100,9 +112,8 @@ export function Player() {
       return acc;
     }, {});
 
-    const metadata = {
+    const metadata = buildConfigurationMetadata({
       path: pathname,
-      savedAt: new Date().toISOString(),
       orderedProductIds: ids,
       uiState: {
         CabinetColor: cabinetColor,
@@ -124,7 +135,13 @@ export function Player() {
         TowelBarColor: towelBarColor,
         FaucetHolesAmount: faucetHolesAmount,
       },
-    };
+      swatchOrder: {
+        selectedMaterials,
+        manualSelectedMaterials,
+        isAutofillEnabled,
+        hasSubmittedCart,
+      },
+    });
 
     try {
       const result = await saveConfiguration({ configuration, metadata }).unwrap();
