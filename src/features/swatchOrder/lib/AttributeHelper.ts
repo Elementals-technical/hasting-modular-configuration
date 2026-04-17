@@ -23,7 +23,7 @@ export const AttributeHelper = {
 
   getNeedsLightBorder(value: AttributeValue): boolean {
     const hex = toOptionalString(value?.metadata?.hex ?? value?.metadata?.Hex)?.trim();
-    const isLightHex = Boolean(hex) && /^#?(f{3}|f{6})$/i.test(hex);
+    const isLightHex = typeof hex === "string" && /^#?(f{3}|f{6})$/i.test(hex);
     return isLightHex || value?.metadata?.lightBorder === true;
   },
 
