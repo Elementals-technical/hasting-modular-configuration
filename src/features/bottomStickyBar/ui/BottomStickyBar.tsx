@@ -114,7 +114,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
       </div>
       <div className={s.nextStepWrapp}>
         <BaseButton onClick={handleNavigate} fullWidth={true}>
-          {nextStep ? `Next: ${nextStep.label}` : "Create Order"}
+          {nextStep ? `Next: ${nextStep.label}` : "How to buy"}
         </BaseButton>
       </div>
     </div>
