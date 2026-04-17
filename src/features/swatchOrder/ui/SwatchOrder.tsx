@@ -25,7 +25,7 @@ import {
   getIsSwatchOrderOpen,
   getSelectedMaterials,
 } from "../model/store/selectors";
-import type { AttributeValue, IThreekitConfiguration } from "../model/types";
+import type { AttributeValue, IProductElementOption, IThreekitConfiguration } from "../model/types";
 import { Filters } from "./Filters/Filters";
 import { MaterialList } from "./MaterialList/MaterialList";
 import { SwatchesList } from "./SwatchesList/SwatchesList";
@@ -38,6 +38,29 @@ import {
 import s from "./SwatchOrder.module.scss";
 
 const ANIMATION_MS = 250;
+const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
+const EXCLUDED_COUNTERTOP_SWATCH_MATERIALS = new Set(["lacqueredmt", "lacqueredgl"]);
+
+const normalizeMaterialToken = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+
+const filterPanelAttributes = (attributes: IProductElementOption[]): IProductElementOption[] =>
+  attributes
+    .map((group) => {
+      if (group.value !== COUNTERTOP_PRODUCT_ELEMENT) return group;
+
+      return {
+        ...group,
+        valuesArray: group.valuesArray.filter((item) => {
+          const material = item.metadata?.Material ?? item.metadata?.Finish ?? "";
+          return !EXCLUDED_COUNTERTOP_SWATCH_MATERIALS.has(normalizeMaterialToken(material));
+        }),
+      };
+    })
+    .filter((group) => group.valuesArray.length > 0);
 
 interface SwatchOrderProps {
   onSendData?: (selected: AttributeValue[]) => void;
@@ -97,10 +120,12 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
         (group) => group.value === activeProductElement,
       );
       dispatch(
-        setPanelFilter({ attributes: match.length ? match : mapped.productElementOptions }),
+        setPanelFilter({
+          attributes: filterPanelAttributes(match.length ? match : mapped.productElementOptions),
+        }),
       );
     } else {
-      dispatch(setPanelFilter({ attributes: mapped.productElementOptions }));
+      dispatch(setPanelFilter({ attributes: filterPanelAttributes(mapped.productElementOptions) }));
     }
   }, [dispatch, mapped, activeProductElement]);
 

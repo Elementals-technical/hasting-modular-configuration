@@ -5,6 +5,15 @@ import type {
   IProductElementOption,
   IThreekitConfiguration,
 } from "../model/types";
+import {
+  getCountertopMaterialTokensBySku,
+  getCountertopMaterialTokensFromBasinType,
+} from "@/shared/lib/sku";
+import {
+  resolveCountertopFallbackHex,
+  resolveCountertopNeedsLightBorder,
+  resolveCountertopFallbackTexture,
+} from "@/entities/countertop";
 
 const uid = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
@@ -21,6 +30,35 @@ const pickString = (...candidates: unknown[]): string | undefined => {
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return c;
   }
+  return undefined;
+};
+
+const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
+
+const inferCountertopMaterial = ({
+  explicitMaterial,
+  optionName,
+  variantName,
+  sku,
+}: {
+  explicitMaterial?: string;
+  optionName: string;
+  variantName: string;
+  sku?: string;
+}): string | undefined => {
+  const normalizedExplicit = explicitMaterial?.trim().toLowerCase() ?? "";
+  const inferredTokens = new Set<string>([
+    ...getCountertopMaterialTokensBySku(sku),
+    ...getCountertopMaterialTokensFromBasinType(optionName),
+    ...getCountertopMaterialTokensFromBasinType(variantName),
+  ]);
+
+  if (!inferredTokens.size) return explicitMaterial;
+  if (inferredTokens.has("glassmt")) return "Glass MT";
+  if (inferredTokens.has("glassgl")) return "Glass GL";
+  if (inferredTokens.has("glass")) return "Glass";
+  if (normalizedExplicit) return explicitMaterial;
+
   return undefined;
 };
 
@@ -63,12 +101,28 @@ export const adaptThreekitConfig = (
 
         const value = pickString(outer.value, nested.value, variant.name) ?? label;
 
+        const explicitMaterial = pickString(nested.Material, outer.Material);
         const material =
-          pickString(nested.Material, outer.Material) ?? option.name;
-        const image =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? inferCountertopMaterial({
+                explicitMaterial,
+                optionName: option.name,
+                variantName: variant.name,
+                sku: pickString(outer.sku, nested.sku),
+              }) ?? explicitMaterial ?? option.name
+            : explicitMaterial ?? option.name;
+        const rawImage =
           pickString(nested.image, outer.image, outer.Image, nested.Image) ??
           (typeof variant.image === "string" ? variant.image : undefined);
-        const hex = pickString(nested.hex, outer.hex, nested.Hex, outer.Hex);
+        const image =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? rawImage ?? resolveCountertopFallbackTexture(variant.name)
+            : rawImage;
+        const rawHex = pickString(nested.hex, outer.hex, nested.Hex, outer.Hex);
+        const hex =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? rawHex ?? resolveCountertopFallbackHex(variant.name)
+            : rawHex;
         const color = trimOrUndefined(pickString(nested.Color, outer.Color));
         const look = trimOrUndefined(pickString(nested.Look, outer.Look));
         const zoomIconColor = pickString(nested.zoomIconColor, outer.zoomIconColor);
@@ -83,6 +137,10 @@ export const adaptThreekitConfig = (
           image,
           hex,
           zoomIconColor,
+          lightBorder:
+            parentName === COUNTERTOP_PRODUCT_ELEMENT
+              ? resolveCountertopNeedsLightBorder(variant.name)
+              : undefined,
         };
 
         const item: AttributeValue = {

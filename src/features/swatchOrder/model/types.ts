@@ -8,6 +8,7 @@ export interface IMaterialMetadata {
   Material?: string;
   Finish?: string;
   zoomIconColor?: string;
+  lightBorder?: boolean;
   [key: string]: unknown;
 }
 

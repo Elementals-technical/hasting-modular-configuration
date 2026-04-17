@@ -21,6 +21,12 @@ export const AttributeHelper = {
     return resolveImageUrl(toOptionalString(raw));
   },
 
+  getNeedsLightBorder(value: AttributeValue): boolean {
+    const hex = toOptionalString(value?.metadata?.hex ?? value?.metadata?.Hex)?.trim();
+    const isLightHex = Boolean(hex) && /^#?(f{3}|f{6})$/i.test(hex);
+    return isLightHex || value?.metadata?.lightBorder === true;
+  },
+
   getValueLabel(attribute: AttributeValue): string {
     return (
       toOptionalString(attribute?.metadata?.label ?? attribute?.metadata?.Label) ??

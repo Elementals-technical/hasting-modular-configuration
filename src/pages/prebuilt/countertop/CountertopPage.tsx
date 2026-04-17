@@ -88,6 +88,9 @@ const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size 
 const MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON = "Not available for current total cabinets width on scene";
 const MATERIAL_FILTER_DEPTH_DISABLED_REASON = "Not available for current cabinet depth";
 const MATERIAL_FILTER_WIDTH_DISABLED_REASON = "Not available for current cabinet width";
+const EXCLUDED_COUNTERTOP_MATERIAL_FILTERS = new Set(["lacqueredmt", "lacqueredgl"]);
+const isExcludedCountertopMaterialFilter = (value: string) =>
+  EXCLUDED_COUNTERTOP_MATERIAL_FILTERS.has(normalizeMaterialToken(value));
 
 const INTEGRATED_DEPTH_46_DISABLED_REASON =
   'Integrated basin style not available for 46cm (18.1") depth configurations';
@@ -126,7 +129,6 @@ export const CountertopPage = () => {
 
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const [selectedVesselFilter, setSelectedVesselFilter] = useState<MaterialFilterSelection>({});
-  const defaultMaterialFilters = useMemo(() => buildMaterialFilters(COUNTERTOP_OPTION), []);
 
   useEffect(() => {
     setActiveVesselColor(storedVesselColor);
@@ -163,6 +165,14 @@ export const CountertopPage = () => {
       .map((part) => part.trim())
       .filter(Boolean);
   };
+  const defaultMaterialFilters = useMemo(() => {
+    const baseFilters = buildMaterialFilters(COUNTERTOP_OPTION);
+
+    return {
+      ...baseFilters,
+      materials: baseFilters.materials.filter((option) => !isExcludedCountertopMaterialFilter(option.value)),
+    };
+  }, []);
 
   const getVariantMeta = useCallback(
     (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
@@ -382,7 +392,10 @@ export const CountertopPage = () => {
 
           const candidateMaterials = [option.name, ...toStringArrayFromCsv(metaMaterial)]
             .filter(Boolean)
-            .map((value) => normalizeMaterialAlias(value)) as string[];
+            .map((value) => normalizeMaterialAlias(value))
+            .filter((value) => !isExcludedCountertopMaterialFilter(value)) as string[];
+
+          if (!candidateMaterials.length) return;
 
           const matchesMatrix =
             normalizedMatrixMaterials.size === 0 ||
@@ -392,7 +405,7 @@ export const CountertopPage = () => {
 
           if (!matchesMatrix) return;
 
-          if (option.name) materialSet.add(normalizeMaterialAlias(option.name));
+          candidateMaterials.forEach((value) => materialSet.add(value));
 
           if (variant.name.toLowerCase().startsWith("cemento")) {
             materialSet.add("Cemento");

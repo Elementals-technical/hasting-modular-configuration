@@ -37,12 +37,13 @@ export const SwatchesList = () => {
           const hex = AttributeHelper.getHexColor(val) ?? "#e5e5e5";
           const label = AttributeHelper.getValueLabel(val);
           const finishDisplayName = AttributeHelper.getFinishDisplayName(val);
+          const needsLightBorder = AttributeHelper.getNeedsLightBorder(val);
           const key = `${val.metadata?.label ?? index}/${val.parentName}`;
 
           return (
             <div key={key} className={s.tileWrap}>
               <span
-                className={s.tile}
+                className={`${s.tile} ${needsLightBorder ? s.tileLightBorder : ""}`}
                 style={{
                   backgroundColor: image ? undefined : hex,
                   backgroundImage: image ? `url(${image})` : undefined,
