@@ -51,7 +51,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -765,7 +765,8 @@ export function usePriceCalculation() {
 
     // 2) Countertop SKUs — Resolver 2
     // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
-    const totalCountertopWidth = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0) || null;
+    const cabinetWidthSum = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0);
+    const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
     countertopWidthCmRef.current = totalCountertopWidth;
     const aggregateCountertopLines = buildCountertopSku({
       style: countertopStyle || null,

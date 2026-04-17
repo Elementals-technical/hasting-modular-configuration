@@ -62,7 +62,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -82,6 +82,7 @@ import {
   setSwatchesEnabledInSummary,
   toSwatchPreview,
   MAX_SLOTS as MAX_SWATCHES,
+  openSwatchOrder,
 } from "@/features/swatchOrder";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -252,7 +253,6 @@ export const CustomSummaryPage = () => {
     basin: "/custom/countertop",
     accessories: "/custom/accessories",
     faucet: "/custom/faucet-holes",
-    swatches: "/custom/cabinet-colors",
   };
 
   const priceBySku = useAppSelector(getPriceBySku);
@@ -308,10 +308,14 @@ export const CustomSummaryPage = () => {
   };
   const handleEditSection = useCallback(
     (sectionId: string) => {
+      if (sectionId === "swatches") {
+        dispatch(openSwatchOrder());
+        return;
+      }
       const path = editPathBySectionId[sectionId];
       if (path) navigate(path);
     },
-    [navigate, editPathBySectionId],
+    [dispatch, navigate, editPathBySectionId],
   );
 
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
@@ -1060,12 +1064,13 @@ export const CustomSummaryPage = () => {
     // mode. Any aggregate computed from presets can diverge from actual scene
     // widths after resize. Prefer live scene (getConfig per productId) or
     // selectedDimensions. See slice.ts setSelectedDimensions note.
-    const totalCountertopWidth = shouldUsePresets
+    const cabinetWidthSum = shouldUsePresets
       ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
-          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
       : cabinetConfigs.length > 0
-        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
-        : selectedDimensions.width;
+        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
+        : (selectedDimensions.width ?? 0);
+    const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,
@@ -1627,10 +1632,18 @@ export const CustomSummaryPage = () => {
   const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
   useEffect(() => {
+    if (!swatchOrderData.allMaterialValues.length) return;
     if (!hasSummarySwatches && isSwatchesEnabledInSummary) {
       dispatch(setSwatchesEnabledInSummary(false));
     }
-  }, [dispatch, hasSummarySwatches, isSwatchesEnabledInSummary]);
+  }, [dispatch, swatchOrderData.allMaterialValues.length, hasSummarySwatches, isSwatchesEnabledInSummary]);
+
+  useEffect(() => {
+    if (!isAutofillEnabled) return;
+    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
+
+    dispatch(setCartMaterials(mergedSummaryMaterials));
+  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
 
   useEffect(() => {
     if (!isAutofillEnabled) return;

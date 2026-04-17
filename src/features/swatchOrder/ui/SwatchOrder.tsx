@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGetConfiguratorQuery } from "@/entities";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
@@ -16,6 +16,7 @@ import {
   markCartSubmitted,
   setAllMaterialsOptions,
   setCartMaterials,
+  setMaterialSelect,
   setPanelFilter,
 } from "../model/store/slice";
 import {
@@ -30,6 +31,7 @@ import { Filters } from "./Filters/Filters";
 import { MaterialList } from "./MaterialList/MaterialList";
 import { SwatchesList } from "./SwatchesList/SwatchesList";
 import { CloseIconSVG } from "./icons/CloseIconSVG";
+import { MultiSelect } from "./MultiSelect/MultiSelect";
 import {
   areSameMaterialLists,
   deriveAutofillMaterials,
@@ -56,6 +58,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const vesselColor = useAppSelector(getVesselColor);
+  const [activeElements, setActiveElements] = useState<string[]>([]);
   const { mounted } = useMount({ opened: isOpen, animationDurationMs: ANIMATION_MS });
 
   const { data, isFetching } = useGetConfiguratorQuery({
@@ -90,6 +93,29 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
     dispatch(setAllMaterialsOptions(mapped));
   }, [dispatch, mapped]);
 
+  const activeSections = useMemo(() => {
+    const activeByElement: Record<string, string | undefined | null> = {
+      "Cabinet Color": cabinetColor,
+      "Handle Groove Color": handleGrooveColor,
+      "Countertop Color": countertopColor,
+      "Towel Bar Color": towelBarColor,
+      Vessels: vesselColor,
+    };
+    return mapped.productElementOptions.filter(
+      (group) => Boolean(activeByElement[group.value]),
+    );
+  }, [mapped.productElementOptions, cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveElements([]);
+      return;
+    }
+    if (activeProductElement) return;
+    if (!activeSections.length) return;
+    setActiveElements(activeSections.map((g) => g.value));
+  }, [isOpen, activeProductElement, activeSections]);
+
   useEffect(() => {
     if (!mapped.productElementOptions.length) return;
     if (activeProductElement) {
@@ -99,10 +125,17 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
       dispatch(
         setPanelFilter({ attributes: match.length ? match : mapped.productElementOptions }),
       );
+    } else if (activeElements.length > 0) {
+      const match = mapped.productElementOptions.filter(
+        (group) => activeElements.includes(group.value),
+      );
+      dispatch(
+        setPanelFilter({ attributes: match.length ? match : mapped.productElementOptions }),
+      );
     } else {
       dispatch(setPanelFilter({ attributes: mapped.productElementOptions }));
     }
-  }, [dispatch, mapped, activeProductElement]);
+  }, [dispatch, mapped, activeProductElement, activeElements]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -131,6 +164,13 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   if (!mounted) return null;
 
   const handleClose = () => dispatch(closeSwatchOrder());
+
+  const handleElementsChange = (values: string[]) => {
+    setActiveElements(values);
+    dispatch(setMaterialSelect({ filterName: "Finish", values: [] }));
+    dispatch(setMaterialSelect({ filterName: "Color", values: [] }));
+    dispatch(setMaterialSelect({ filterName: "Look", values: [] }));
+  };
 
   const handleAddToCart = () => {
     dispatch(markCartSubmitted());
@@ -162,6 +202,19 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
           </header>
 
           <div className={s.body}>
+            {!activeProductElement && activeSections.length > 0 && (
+              <div className={s.sectionSelect}>
+                <span className={s.sectionLabel}>Product element</span>
+                <MultiSelect
+                  options={activeSections.map((g) => ({ value: g.value, label: g.label }))}
+                  values={activeElements}
+                  onValueChange={handleElementsChange}
+                  placeholder="All product elements"
+                  align="end"
+                />
+              </div>
+            )}
+
             <div className={s.filtersDivider}>
               <Filters />
             </div>
