@@ -116,6 +116,33 @@ export const hasAdjacentBookMatchingEligibleCabinets = (cabinets: readonly BookM
   return false;
 };
 
+const getHorizontalBookMatchingChargeableCabinets = (
+  cabinets: readonly BookMatchingCabinetInput[],
+): BookMatchingCabinetInput[] => {
+  const chargeableCabinets: BookMatchingCabinetInput[] = [];
+  let contiguousEligibleGroup: BookMatchingCabinetInput[] = [];
+
+  const flushGroup = () => {
+    if (contiguousEligibleGroup.length >= 2) {
+      chargeableCabinets.push(...contiguousEligibleGroup);
+    }
+    contiguousEligibleGroup = [];
+  };
+
+  cabinets.forEach((cabinet) => {
+    if (isBookMatchingEligibleCabinet(cabinet.name)) {
+      contiguousEligibleGroup.push(cabinet);
+      return;
+    }
+
+    flushGroup();
+  });
+
+  flushGroup();
+
+  return chargeableCabinets;
+};
+
 const hasIncompatibleVerticalBookMatchingCabinets = (cabinets: readonly BookMatchingCabinetInput[]): boolean =>
   cabinets.some(
     (cabinet) =>
@@ -179,13 +206,16 @@ export const deriveBookMatchingChargeInfo = ({
   materialSku?: string | null;
   cabinets: readonly BookMatchingCabinetInput[];
 }): BookMatchingChargeInfo => {
-  const eligibleCabinets = cabinets.filter((cabinet) => isBookMatchingEligibleCabinet(cabinet.name));
-  const eligibleCabinetCount = eligibleCabinets.length;
   const availability = deriveBookMatchingAvailability({
     grainDirection,
     cabinets,
   });
-  const parsedDrawerQty = eligibleCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
+  const chargeableCabinets =
+    availability.direction === "H"
+      ? getHorizontalBookMatchingChargeableCabinets(cabinets)
+      : cabinets.filter((cabinet) => isBookMatchingEligibleCabinet(cabinet.name));
+  const eligibleCabinetCount = chargeableCabinets.length;
+  const parsedDrawerQty = chargeableCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
   const drawerQty = availability.available ? parsedDrawerQty || eligibleCabinetCount : 0;
   const sku = availability.direction
     ? buildBookMatchingSku({
