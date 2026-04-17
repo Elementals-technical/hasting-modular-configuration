@@ -26,6 +26,12 @@ const trimOrUndefined = (value: string | undefined): string | undefined => {
   return trimmed || undefined;
 };
 
+const splitCsv = (value: string | undefined): string[] =>
+  value
+    ?.split(",")
+    .map((part) => part.trim())
+    .filter(Boolean) ?? [];
+
 const pickString = (...candidates: unknown[]): string | undefined => {
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return c;
@@ -54,6 +60,38 @@ const inferCountertopMaterial = ({
   ]);
 
   if (!inferredTokens.size) return explicitMaterial;
+  if (
+    inferredTokens.has("tekorlux") ||
+    inferredTokens.has("sstkr") ||
+    inferredTokens.has("tal") ||
+    inferredTokens.has("tam")
+  ) {
+    return "Tekorlux";
+  }
+  if (
+    inferredTokens.has("tekormud") ||
+    inferredTokens.has("tekorund") ||
+    inferredTokens.has("sstm")
+  ) {
+    return "Tekormud";
+  }
+  if (inferredTokens.has("ocritech") || inferredTokens.has("ssocr")) return "Ocritech";
+  if (
+    inferredTokens.has("mineralmarmo") ||
+    inferredTokens.has("minermalmaro") ||
+    inferredTokens.has("ssmmo")
+  ) {
+    return "Mineralmarmo";
+  }
+  if (inferredTokens.has("porcelain") || inferredTokens.has("por")) return "Porcelain";
+  if (
+    inferredTokens.has("fenix") ||
+    inferredTokens.has("fx") ||
+    inferredTokens.has("hplfenix")
+  ) {
+    return "Fenix";
+  }
+  if (inferredTokens.has("hpl")) return "HPL";
   if (inferredTokens.has("glassmt")) return "Glass MT";
   if (inferredTokens.has("glassgl")) return "Glass GL";
   if (inferredTokens.has("glass")) return "Glass";
@@ -123,8 +161,28 @@ export const adaptThreekitConfig = (
           parentName === COUNTERTOP_PRODUCT_ELEMENT
             ? rawHex ?? resolveCountertopFallbackHex(variant.name)
             : rawHex;
-        const color = trimOrUndefined(pickString(nested.Color, outer.Color));
-        const look = trimOrUndefined(pickString(nested.Look, outer.Look));
+        const rawColor = trimOrUndefined(pickString(nested.Color, outer.Color));
+        const rawLook = trimOrUndefined(pickString(nested.Look, outer.Look));
+        const rawCodeColor = trimOrUndefined(
+          pickString(nested.codeColor, nested.codecolor, outer.codeColor, outer.codecolor),
+        );
+        const color =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? splitCsv(rawColor).join(", ") || rawCodeColor
+            : rawColor;
+        const inferredLook =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? (() => {
+                const codeTokens = (rawCodeColor ?? "").split(/\s+/).filter(Boolean);
+                if (codeTokens.length <= 1) return undefined;
+                const suffix = codeTokens[codeTokens.length - 1];
+                return /^[A-Za-z]{2,3}$/.test(suffix) ? suffix : undefined;
+              })()
+            : undefined;
+        const look =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? splitCsv(rawLook).join(", ") || inferredLook
+            : rawLook;
         const zoomIconColor = pickString(nested.zoomIconColor, outer.zoomIconColor);
 
         const metadata: IMaterialMetadata = {
