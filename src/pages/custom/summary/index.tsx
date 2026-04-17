@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
@@ -7,6 +7,8 @@ import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import { InformationIcon } from "@/shared/assets/images/svg/InformationIcon";
+import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
+import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
@@ -62,7 +64,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
+import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -82,6 +84,7 @@ import {
   setSwatchesEnabledInSummary,
   toSwatchPreview,
   MAX_SLOTS as MAX_SWATCHES,
+  openSwatchOrder,
 } from "@/features/swatchOrder";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -93,6 +96,7 @@ import {
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
   formatCabinetTitleForSummary,
+  isShelfCabinetType,
 } from "@/shared/lib/summaryFormatters";
 import {
   normalizeProductConfigSnapshot,
@@ -245,6 +249,8 @@ export const CustomSummaryPage = () => {
   const location = useLocation();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [quotePreviewImage, setQuotePreviewImage] = useState<string>("");
+  const [openEditMenuSectionId, setOpenEditMenuSectionId] = useState<string | null>(null);
+  const editMenuRef = useRef<HTMLDivElement | null>(null);
   const editPathBySectionId: Record<string, string> = {
     cabinet: "/custom/cabinet-colors",
     "cabinet-options": "/custom/cabinet-colors",
@@ -252,7 +258,6 @@ export const CustomSummaryPage = () => {
     basin: "/custom/countertop",
     accessories: "/custom/accessories",
     faucet: "/custom/faucet-holes",
-    swatches: "/custom/cabinet-colors",
   };
 
   const priceBySku = useAppSelector(getPriceBySku);
@@ -308,11 +313,69 @@ export const CustomSummaryPage = () => {
   };
   const handleEditSection = useCallback(
     (sectionId: string) => {
+      if (sectionId === "swatches") {
+        dispatch(openSwatchOrder());
+        return;
+      }
+      if (sectionId === "cabinet") {
+        setOpenEditMenuSectionId((current) => (current === sectionId ? null : sectionId));
+        return;
+      }
       const path = editPathBySectionId[sectionId];
       if (path) navigate(path);
     },
-    [navigate, editPathBySectionId],
+    [dispatch, navigate, editPathBySectionId],
   );
+
+  const handleCabinetEditMenuNavigate = useCallback(
+    (path: string) => {
+      setOpenEditMenuSectionId(null);
+      navigate(path);
+    },
+    [navigate],
+  );
+
+  const cabinetEditMenuItems = useMemo<DropdownItem[]>(
+    () => [
+      {
+        id: "cabinet-builder",
+        label: "Cabinet Builder",
+        trailing: <ArrowTopRight color="#333" />,
+        onClick: () => handleCabinetEditMenuNavigate("/custom/cabinet-builder"),
+      },
+      {
+        id: "color",
+        label: "Color",
+        trailing: <ArrowTopRight color="#333" />,
+        onClick: () => handleCabinetEditMenuNavigate("/custom/cabinet-colors"),
+      },
+    ],
+    [handleCabinetEditMenuNavigate],
+  );
+
+  useEffect(() => {
+    if (!openEditMenuSectionId) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (editMenuRef.current && !editMenuRef.current.contains(event.target as Node)) {
+        setOpenEditMenuSectionId(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenEditMenuSectionId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openEditMenuSectionId]);
 
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
@@ -463,6 +526,7 @@ export const CustomSummaryPage = () => {
       hdlColor: string;
       hdlMaterialSku: string | null;
     }): Record<string, unknown> => {
+      const isShelfCabinet = isShelfCabinetType(opts.cabinetType);
       const elements: Record<string, string>[] = [];
       if (opts.cabMaterialSku) {
         elements.push({
@@ -471,7 +535,7 @@ export const CustomSummaryPage = () => {
           "Color Code": opts.cabColor,
         });
       }
-      if (opts.hdlMaterialSku) {
+      if (!isShelfCabinet && opts.hdlMaterialSku) {
         elements.push({
           "Product Elements": "Handle",
           Material: materialSkuLabelMap[opts.hdlMaterialSku] ?? opts.hdlMaterialSku,
@@ -482,8 +546,8 @@ export const CustomSummaryPage = () => {
         "Product Category": "Vanity",
         Products: "Urban Standard",
         "Cabinet Type": opts.cabinetType?.replace(/-/g, " ") ?? "Unknown",
-        "Cabinet Style": opts.drawers ? (drawerLabelMap[opts.drawers] ?? opts.drawers) : "Unknown",
-        "Handle Style": opts.handle ? (handleLabelMap[opts.handle] ?? opts.handle) : "Unknown",
+        "Cabinet Style": isShelfCabinet ? null : (opts.drawers ? (drawerLabelMap[opts.drawers] ?? opts.drawers) : "Unknown"),
+        "Handle Style": isShelfCabinet ? null : (opts.handle ? (handleLabelMap[opts.handle] ?? opts.handle) : "Unknown"),
         "Drawer Panel Fluting": opts.pattern || "None",
         Width: opts.width,
         Height: opts.height,
@@ -1060,12 +1124,13 @@ export const CustomSummaryPage = () => {
     // mode. Any aggregate computed from presets can diverge from actual scene
     // widths after resize. Prefer live scene (getConfig per productId) or
     // selectedDimensions. See slice.ts setSelectedDimensions note.
-    const totalCountertopWidth = shouldUsePresets
+    const cabinetWidthSum = shouldUsePresets
       ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
-          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
+          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
       : cabinetConfigs.length > 0
-        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0) || null
-        : selectedDimensions.width;
+        ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
+        : (selectedDimensions.width ?? 0);
+    const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
     const countertopSkuLines = buildCountertopSku({
       style: countertopStyle || null,
@@ -1627,10 +1692,18 @@ export const CustomSummaryPage = () => {
   const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
   useEffect(() => {
+    if (!swatchOrderData.allMaterialValues.length) return;
     if (!hasSummarySwatches && isSwatchesEnabledInSummary) {
       dispatch(setSwatchesEnabledInSummary(false));
     }
-  }, [dispatch, hasSummarySwatches, isSwatchesEnabledInSummary]);
+  }, [dispatch, swatchOrderData.allMaterialValues.length, hasSummarySwatches, isSwatchesEnabledInSummary]);
+
+  useEffect(() => {
+    if (!isAutofillEnabled) return;
+    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
+
+    dispatch(setCartMaterials(mergedSummaryMaterials));
+  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
 
   useEffect(() => {
     if (!isAutofillEnabled) return;
@@ -1670,14 +1743,21 @@ export const CustomSummaryPage = () => {
           <div key={section.id} className={s.section}>
             <div className={s.sectionHeader}>
               <div className={s.sectionTitle}>{section.title}</div>
-              <button
-                type="button"
-                className={s.editButton}
-                aria-label={`Edit ${section.title}`}
-                onClick={() => handleEditSection(section.id)}
-              >
-                <EditPenIcon />
-              </button>
+              <div className={s.sectionAction} ref={section.id === "cabinet" ? editMenuRef : null}>
+                <button
+                  type="button"
+                  className={s.editButton}
+                  aria-label={`Edit ${section.title}`}
+                  aria-expanded={section.id === "cabinet" ? openEditMenuSectionId === section.id : undefined}
+                  aria-haspopup={section.id === "cabinet" ? "menu" : undefined}
+                  onClick={() => handleEditSection(section.id)}
+                >
+                  <EditPenIcon />
+                </button>
+                {section.id === "cabinet" && openEditMenuSectionId === section.id && (
+                  <NestedDropdown items={cabinetEditMenuItems} className={s.summaryEditDropdown} />
+                )}
+              </div>
             </div>
 
             <div className={s.sectionList}>
