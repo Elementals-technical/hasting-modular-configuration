@@ -5,6 +5,15 @@ import type {
   IProductElementOption,
   IThreekitConfiguration,
 } from "../model/types";
+import {
+  getCountertopMaterialTokensBySku,
+  getCountertopMaterialTokensFromBasinType,
+} from "@/shared/lib/sku";
+import {
+  resolveCountertopFallbackHex,
+  resolveCountertopNeedsLightBorder,
+  resolveCountertopFallbackTexture,
+} from "@/entities/countertop";
 
 const uid = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
@@ -17,10 +26,77 @@ const trimOrUndefined = (value: string | undefined): string | undefined => {
   return trimmed || undefined;
 };
 
+const splitCsv = (value: string | undefined): string[] =>
+  value
+    ?.split(",")
+    .map((part) => part.trim())
+    .filter(Boolean) ?? [];
+
 const pickString = (...candidates: unknown[]): string | undefined => {
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return c;
   }
+  return undefined;
+};
+
+const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
+
+const inferCountertopMaterial = ({
+  explicitMaterial,
+  optionName,
+  variantName,
+  sku,
+}: {
+  explicitMaterial?: string;
+  optionName: string;
+  variantName: string;
+  sku?: string;
+}): string | undefined => {
+  const normalizedExplicit = explicitMaterial?.trim().toLowerCase() ?? "";
+  const inferredTokens = new Set<string>([
+    ...getCountertopMaterialTokensBySku(sku),
+    ...getCountertopMaterialTokensFromBasinType(optionName),
+    ...getCountertopMaterialTokensFromBasinType(variantName),
+  ]);
+
+  if (!inferredTokens.size) return explicitMaterial;
+  if (
+    inferredTokens.has("tekorlux") ||
+    inferredTokens.has("sstkr") ||
+    inferredTokens.has("tal") ||
+    inferredTokens.has("tam")
+  ) {
+    return "Tekorlux";
+  }
+  if (
+    inferredTokens.has("tekormud") ||
+    inferredTokens.has("tekorund") ||
+    inferredTokens.has("sstm")
+  ) {
+    return "Tekormud";
+  }
+  if (inferredTokens.has("ocritech") || inferredTokens.has("ssocr")) return "Ocritech";
+  if (
+    inferredTokens.has("mineralmarmo") ||
+    inferredTokens.has("minermalmaro") ||
+    inferredTokens.has("ssmmo")
+  ) {
+    return "Mineralmarmo";
+  }
+  if (inferredTokens.has("porcelain") || inferredTokens.has("por")) return "Porcelain";
+  if (
+    inferredTokens.has("fenix") ||
+    inferredTokens.has("fx") ||
+    inferredTokens.has("hplfenix")
+  ) {
+    return "Fenix";
+  }
+  if (inferredTokens.has("hpl")) return "HPL";
+  if (inferredTokens.has("glassmt")) return "Glass MT";
+  if (inferredTokens.has("glassgl")) return "Glass GL";
+  if (inferredTokens.has("glass")) return "Glass";
+  if (normalizedExplicit) return explicitMaterial;
+
   return undefined;
 };
 
@@ -63,14 +139,50 @@ export const adaptThreekitConfig = (
 
         const value = pickString(outer.value, nested.value, variant.name) ?? label;
 
+        const explicitMaterial = pickString(nested.Material, outer.Material);
         const material =
-          pickString(nested.Material, outer.Material) ?? option.name;
-        const image =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? inferCountertopMaterial({
+                explicitMaterial,
+                optionName: option.name,
+                variantName: variant.name,
+                sku: pickString(outer.sku, nested.sku),
+              }) ?? explicitMaterial ?? option.name
+            : explicitMaterial ?? option.name;
+        const rawImage =
           pickString(nested.image, outer.image, outer.Image, nested.Image) ??
           (typeof variant.image === "string" ? variant.image : undefined);
-        const hex = pickString(nested.hex, outer.hex, nested.Hex, outer.Hex);
-        const color = trimOrUndefined(pickString(nested.Color, outer.Color));
-        const look = trimOrUndefined(pickString(nested.Look, outer.Look));
+        const image =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? rawImage ?? resolveCountertopFallbackTexture(variant.name)
+            : rawImage;
+        const rawHex = pickString(nested.hex, outer.hex, nested.Hex, outer.Hex);
+        const hex =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? rawHex ?? resolveCountertopFallbackHex(variant.name)
+            : rawHex;
+        const rawColor = trimOrUndefined(pickString(nested.Color, outer.Color));
+        const rawLook = trimOrUndefined(pickString(nested.Look, outer.Look));
+        const rawCodeColor = trimOrUndefined(
+          pickString(nested.codeColor, nested.codecolor, outer.codeColor, outer.codecolor),
+        );
+        const color =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? splitCsv(rawColor).join(", ") || rawCodeColor
+            : rawColor;
+        const inferredLook =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? (() => {
+                const codeTokens = (rawCodeColor ?? "").split(/\s+/).filter(Boolean);
+                if (codeTokens.length <= 1) return undefined;
+                const suffix = codeTokens[codeTokens.length - 1];
+                return /^[A-Za-z]{2,3}$/.test(suffix) ? suffix : undefined;
+              })()
+            : undefined;
+        const look =
+          parentName === COUNTERTOP_PRODUCT_ELEMENT
+            ? splitCsv(rawLook).join(", ") || inferredLook
+            : rawLook;
         const zoomIconColor = pickString(nested.zoomIconColor, outer.zoomIconColor);
 
         const metadata: IMaterialMetadata = {
@@ -83,6 +195,10 @@ export const adaptThreekitConfig = (
           image,
           hex,
           zoomIconColor,
+          lightBorder:
+            parentName === COUNTERTOP_PRODUCT_ELEMENT
+              ? resolveCountertopNeedsLightBorder(variant.name)
+              : undefined,
         };
 
         const item: AttributeValue = {

@@ -30,6 +30,7 @@ import {
   getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
+  getPlacedCabinetStyles,
   getSelectedProductConfig,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
@@ -63,6 +64,7 @@ export const CustomCabinetColorsPage = () => {
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
@@ -563,6 +565,7 @@ export const CustomCabinetColorsPage = () => {
     const orderedProductIds = getOrderedProductIds(selectedProducts);
     const cabinets = (orderedProductIds.length > 0 ? orderedProductIds : selectedProducts).map((productId) => ({
       name: productId,
+      drawers: placedCabinetStyles[productId] ?? null,
     }));
 
     const availability = deriveBookMatchingAvailability({
@@ -574,7 +577,7 @@ export const CustomCabinetColorsPage = () => {
       enabled: availability.available,
       reason: availability.reason,
     });
-  }, [selectorBookMatchingState, isPlayCanvasReady, selectedProducts, activeGrainDirection]);
+  }, [selectorBookMatchingState, isPlayCanvasReady, selectedProducts, activeGrainDirection, placedCabinetStyles]);
 
   useEffect(() => {
     if (!bookMatchingState.enabled && activeBookMatching) {

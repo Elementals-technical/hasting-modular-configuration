@@ -6,5 +6,12 @@ const DEFAULT_HEX = "#e5e5e5";
 
 export const HexGridZoom = ({ item }: { item: AttributeValue }) => {
   const hex = AttributeHelper.getHexColor(item) ?? DEFAULT_HEX;
-  return <div className={s.tile} style={{ backgroundColor: hex }} aria-hidden />;
+  const needsLightBorder = AttributeHelper.getNeedsLightBorder(item);
+  return (
+    <div
+      className={`${s.tile} ${needsLightBorder ? s.lightBorder : ""}`}
+      style={{ backgroundColor: hex }}
+      aria-hidden
+    />
+  );
 };
