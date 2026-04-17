@@ -1643,10 +1643,11 @@ export const SummaryPage = () => {
   const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
   useEffect(() => {
+    if (!swatchOrderData.allMaterialValues.length) return;
     if (!hasSummarySwatches && isSwatchesEnabledInSummary) {
       dispatch(setSwatchesEnabledInSummary(false));
     }
-  }, [dispatch, hasSummarySwatches, isSwatchesEnabledInSummary]);
+  }, [dispatch, swatchOrderData.allMaterialValues.length, hasSummarySwatches, isSwatchesEnabledInSummary]);
 
   useEffect(() => {
     if (!isAutofillEnabled) return;
