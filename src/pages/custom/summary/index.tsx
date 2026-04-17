@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
@@ -7,6 +7,8 @@ import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
 import { InformationIcon } from "@/shared/assets/images/svg/InformationIcon";
+import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
+import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
@@ -247,6 +249,8 @@ export const CustomSummaryPage = () => {
   const location = useLocation();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [quotePreviewImage, setQuotePreviewImage] = useState<string>("");
+  const [openEditMenuSectionId, setOpenEditMenuSectionId] = useState<string | null>(null);
+  const editMenuRef = useRef<HTMLDivElement | null>(null);
   const editPathBySectionId: Record<string, string> = {
     cabinet: "/custom/cabinet-colors",
     "cabinet-options": "/custom/cabinet-colors",
@@ -313,11 +317,65 @@ export const CustomSummaryPage = () => {
         dispatch(openSwatchOrder());
         return;
       }
+      if (sectionId === "cabinet") {
+        setOpenEditMenuSectionId((current) => (current === sectionId ? null : sectionId));
+        return;
+      }
       const path = editPathBySectionId[sectionId];
       if (path) navigate(path);
     },
     [dispatch, navigate, editPathBySectionId],
   );
+
+  const handleCabinetEditMenuNavigate = useCallback(
+    (path: string) => {
+      setOpenEditMenuSectionId(null);
+      navigate(path);
+    },
+    [navigate],
+  );
+
+  const cabinetEditMenuItems = useMemo<DropdownItem[]>(
+    () => [
+      {
+        id: "cabinet-builder",
+        label: "Cabinet Builder",
+        trailing: <ArrowTopRight color="#333" />,
+        onClick: () => handleCabinetEditMenuNavigate("/custom/cabinet-builder"),
+      },
+      {
+        id: "color",
+        label: "Color",
+        trailing: <ArrowTopRight color="#333" />,
+        onClick: () => handleCabinetEditMenuNavigate("/custom/cabinet-colors"),
+      },
+    ],
+    [handleCabinetEditMenuNavigate],
+  );
+
+  useEffect(() => {
+    if (!openEditMenuSectionId) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (editMenuRef.current && !editMenuRef.current.contains(event.target as Node)) {
+        setOpenEditMenuSectionId(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenEditMenuSectionId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openEditMenuSectionId]);
 
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
@@ -1685,14 +1743,21 @@ export const CustomSummaryPage = () => {
           <div key={section.id} className={s.section}>
             <div className={s.sectionHeader}>
               <div className={s.sectionTitle}>{section.title}</div>
-              <button
-                type="button"
-                className={s.editButton}
-                aria-label={`Edit ${section.title}`}
-                onClick={() => handleEditSection(section.id)}
-              >
-                <EditPenIcon />
-              </button>
+              <div className={s.sectionAction} ref={section.id === "cabinet" ? editMenuRef : null}>
+                <button
+                  type="button"
+                  className={s.editButton}
+                  aria-label={`Edit ${section.title}`}
+                  aria-expanded={section.id === "cabinet" ? openEditMenuSectionId === section.id : undefined}
+                  aria-haspopup={section.id === "cabinet" ? "menu" : undefined}
+                  onClick={() => handleEditSection(section.id)}
+                >
+                  <EditPenIcon />
+                </button>
+                {section.id === "cabinet" && openEditMenuSectionId === section.id && (
+                  <NestedDropdown items={cabinetEditMenuItems} className={s.summaryEditDropdown} />
+                )}
+              </div>
             </div>
 
             <div className={s.sectionList}>
