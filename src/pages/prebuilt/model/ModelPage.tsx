@@ -17,14 +17,17 @@ import {
   reset,
   resetCabinetBuilderBootstrap,
   setActiveBasinStyle,
-  setActiveCountertopColor, 
+  setActiveCountertopColor,
   setCountertopColorSku,
+  setCountertopStyle,
   setFaucetHolesAmount,
-  setCabinetColor, 
-  setHandleGrooveColor, 
+  setCabinetColor,
+  setHandleGrooveColor,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getProductsPresets } from "@/entities/product/model/store/selectors";
+import { findCountertopSkuByColorName } from "@/features/configurator-rule-core/countertop";
+import { useGetConfiguratorQuery } from "@/entities";
 import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
@@ -52,6 +55,12 @@ const presetKeys: Array<keyof PresetProduct> = [
   "sinkType",
 ];
 
+const inferCountertopStyleFromSinkType = (sinkType: string): "Vessel" | "Integrated" => {
+  const trimmed = sinkType.trim();
+  if (trimmed === "Vessel" || trimmed.startsWith("Vessel_")) return "Vessel";
+  return "Integrated";
+};
+
 const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]) => {
   if (!presetProducts?.length) return {};
 
@@ -62,7 +71,10 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]) => {
 
   const globalConfig: Record<string, string> = {};
   if (firstWithCountertop?.CountertopColor) globalConfig.CountertopColor = firstWithCountertop.CountertopColor;
-  if (firstWithSink?.sinkType) globalConfig.sinkType = firstWithSink.sinkType;
+  if (firstWithSink?.sinkType) {
+    globalConfig.sinkType = firstWithSink.sinkType;
+    globalConfig.CountertopStyle = inferCountertopStyleFromSinkType(firstWithSink.sinkType);
+  }
 
   return globalConfig;
 };
@@ -87,6 +99,7 @@ export const ModelPage = () => {
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
   const spGroove = useAppSelector(getSidePanelsOption);
+  const { data: configuratorData } = useGetConfiguratorQuery({ id: 4, view: "full", serialize: true });
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
   const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
@@ -198,8 +211,13 @@ export const ModelPage = () => {
 
         if (presetProducts) {
           dispatch(addProductPreset(presetProducts));
-          if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+          if (globalConfig.CountertopColor) {
+            dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+            const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor);
+            if (sku) dispatch(setCountertopColorSku(sku));
+          }
           if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
+          if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
         }
         await updateSelectedDimensionsFromScene(presetProducts);
 
@@ -222,13 +240,28 @@ export const ModelPage = () => {
         console.error("[ProductModelItem] Failed to apply preset", error);
       }
     },
-    [dispatch, searchParams, setSearchParams, updateSelectedDimensionsFromScene, spGroove],
+    [configuratorData, dispatch, searchParams, setSearchParams, updateSelectedDimensionsFromScene, spGroove],
   );
 
   const resetAccessoriesForCustomTransition = useCallback(async () => {
     await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
     await resetSidePanels();
   }, []);
+
+  const rehydrateCountertopFromPresets = (presetProducts: PresetProduct[]) => {
+    const color = presetProducts.find((p) => typeof p.CountertopColor === "string" && p.CountertopColor)?.CountertopColor;
+    const sinkType = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType)?.sinkType;
+
+    if (color) {
+      dispatch(setActiveCountertopColor(color));
+      const sku = findCountertopSkuByColorName(configuratorData, color);
+      if (sku) dispatch(setCountertopColorSku(sku));
+    }
+    if (sinkType) {
+      dispatch(setActiveBasinStyle(sinkType));
+      dispatch(setCountertopStyle(inferCountertopStyleFromSinkType(sinkType)));
+    }
+  };
 
   const handleCustomizePreset = async (presetProducts?: PresetProduct[]) => {
     if (!presetProducts?.length) return;
@@ -239,6 +272,7 @@ export const ModelPage = () => {
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
     dispatch(addProductPreset(presetProducts));
+    rehydrateCountertopFromPresets(presetProducts);
     navigate(ROUTES.CUSTOM);
   };
 
@@ -279,6 +313,7 @@ export const ModelPage = () => {
     dispatch(resetCabinetBuilderBootstrap());
     if (currentPresets.length) {
       dispatch(addProductPreset(currentPresets));
+      rehydrateCountertopFromPresets(currentPresets);
     }
     navigate(ROUTES.CUSTOM);
   };
@@ -354,10 +389,20 @@ export const ModelPage = () => {
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));
-        if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
-        if (restoredCountertopColorSku) dispatch(setCountertopColorSku(restoredCountertopColorSku));
+        if (globalConfig.CountertopColor) {
+          dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
+          if (restoredCountertopColorSku) {
+            dispatch(setCountertopColorSku(restoredCountertopColorSku));
+          } else {
+            const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor as string);
+            if (sku) dispatch(setCountertopColorSku(sku));
+          }
+        } else if (restoredCountertopColorSku) {
+          dispatch(setCountertopColorSku(restoredCountertopColorSku));
+        }
         if (restoredFaucetHolesAmount) dispatch(setFaucetHolesAmount(restoredFaucetHolesAmount));
         if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
+        if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle as string));
         await updateSelectedDimensionsFromScene(effectivePresets);
         sessionStorage.setItem("prebuiltModelInitialized", "1");
       } catch (error) {
@@ -366,7 +411,7 @@ export const ModelPage = () => {
     };
 
     run();
-  }, [canvasReady, configIdFromUrl, dispatch, restoreConfiguration, updateSelectedDimensionsFromScene]);
+  }, [canvasReady, configIdFromUrl, configuratorData, dispatch, restoreConfiguration, updateSelectedDimensionsFromScene]);
 
   useEffect(() => {
     const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";
@@ -387,8 +432,13 @@ export const ModelPage = () => {
 
         if (!productsPresets.length) {
           dispatch(addProductPreset(presetProducts));
-          if (globalConfig.CountertopColor) dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+          if (globalConfig.CountertopColor) {
+            dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+            const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor);
+            if (sku) dispatch(setCountertopColorSku(sku));
+          }
           if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
+          if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
         }
 
         await updateSelectedDimensionsFromScene(presetProducts);
@@ -403,7 +453,7 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady, configIdFromUrl, dispatch, presetFromUrl, productsPresets, updateSelectedDimensionsFromScene]);
+  }, [canvasReady, configIdFromUrl, configuratorData, dispatch, presetFromUrl, productsPresets, updateSelectedDimensionsFromScene]);
 
   useEffect(() => {
     if (!canvasReady || !presetFromUrl) return;
