@@ -69,9 +69,16 @@ import {
   resolveDefaultThicknessFromRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
+  adaptThreekitConfig,
+  areSameMaterialLists,
+  deriveAutofillMaterials,
+  getIsAutofillEnabled,
   getIsSwatchesEnabledInSummary,
-  getIsSwatchesVisibleInSummary,
+  getManualSelectedMaterials,
   getSelectedMaterials,
+  mergeAutofillWithSelectedMaterials,
+  setAutofillEnabled,
+  setCartMaterials,
   setSwatchesEnabledInSummary,
   toSwatchPreview,
   MAX_SLOTS as MAX_SWATCHES,
@@ -86,6 +93,7 @@ import {
   formatCabinetDimsForSummary,
   formatCabinetDimsForSummaryWithFallback,
   formatCabinetDrawersForSummary,
+  formatCabinetTitleForSummary,
 } from "@/shared/lib/summaryFormatters";
 import {
   normalizeProductConfigSnapshot,
@@ -280,7 +288,8 @@ export const CustomSummaryPage = () => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
-  const isSwatchesBlockVisible = useAppSelector(getIsSwatchesVisibleInSummary);
+  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
+  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
   const selectedMaterials = useAppSelector(getSelectedMaterials);
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
@@ -619,7 +628,7 @@ export const CustomSummaryPage = () => {
 
       return {
         id: `cabinet-config-${index}`,
-        title: (name ?? activeCabinetType)?.replace(/-/g, " ") ?? "Cabinet",
+        title: formatCabinetTitleForSummary(name ?? activeCabinetType),
         subtitle,
         sku,
         swatch: {
@@ -709,7 +718,7 @@ export const CustomSummaryPage = () => {
 
           return {
             id: `cabinet-preset-${index}`,
-            title: preset.name ?? activeCabinetType?.replace(/-/g, " ") ?? "Cabinet",
+            title: formatCabinetTitleForSummary(preset.name ?? activeCabinetType),
             subtitle,
             sku,
             swatch: {
@@ -768,8 +777,8 @@ export const CustomSummaryPage = () => {
           id: "cabinet-1",
           title:
             typeof selectedProductConfig?.name === "string"
-              ? selectedProductConfig.name
-              : (activeCabinetType?.replace(/-/g, " ") ?? "Cabinet"),
+              ? formatCabinetTitleForSummary(selectedProductConfig.name)
+              : formatCabinetTitleForSummary(activeCabinetType),
           subtitle: [
             formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
             formatCabinetDimsForSummaryWithFallback(
@@ -976,13 +985,9 @@ export const CustomSummaryPage = () => {
           ...preferredCountertopMaterialTokens,
         ],
       }) || resolvedCountertopMaterialSku;
-    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
-      ? resolvedVesselMaterialSku
-      : resolvedCountertopMaterialSku;
-    const effectiveCountertopColorCode = extractColorCode(
-      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
-    );
+    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
@@ -1016,24 +1021,25 @@ export const CustomSummaryPage = () => {
       cabinets: bookMatchingCabinets,
     });
 
-    const bookMatchingItem: SummaryItem | null = bookMatchingInfo.applies && bookMatchingInfo.sku
-      ? (() => {
-          const unitPrice = priceBySku[bookMatchingInfo.sku] ?? 0;
-          return {
-            id: "cabinet-option-book-matching",
-            title: "Book Matching",
-            subtitle: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
-            sku: bookMatchingInfo.sku,
-            price: formatPrice(unitPrice * bookMatchingInfo.drawerQty),
-            copyable: true,
-            description: {
-              "Product Category": "Book Matching",
-              Direction: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
-              Drawers: bookMatchingInfo.drawerQty,
-            },
-          };
-        })()
-      : null;
+    const bookMatchingItem: SummaryItem | null =
+      bookMatchingInfo.applies && bookMatchingInfo.sku
+        ? (() => {
+            const unitPrice = priceBySku[bookMatchingInfo.sku] ?? 0;
+            return {
+              id: "cabinet-option-book-matching",
+              title: "Book Matching",
+              subtitle: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
+              sku: bookMatchingInfo.sku,
+              price: formatPrice(unitPrice * bookMatchingInfo.drawerQty),
+              copyable: true,
+              description: {
+                "Product Category": "Book Matching",
+                Direction: bookMatchingInfo.direction === "H" ? "Horizontal" : "Vertical",
+                Drawers: bookMatchingInfo.drawerQty,
+              },
+            };
+          })()
+        : null;
 
     const cabinetOptionItems: SummaryItem[] = [
       drawerPanelFluting
@@ -1089,7 +1095,7 @@ export const CustomSummaryPage = () => {
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
-    const basinLabel = useVesselMaterialForCountertopSku ? "Vessel Cutout" : "Basin";
+    const basinLabel = isVesselCountertop ? "Vessel Cutout" : "Basin";
     const countertopSkuLabels = ["Countertop", basinLabel, "Faucet Holes", "Hole Cutout"];
 
     const extraCountertopItems = countertopSkuLines.slice(1).flatMap((line, i) => {
@@ -1134,8 +1140,9 @@ export const CustomSummaryPage = () => {
         });
       }
       const itemCount = lineTitle === "Basin" ? sinkBaseCountForHcut : 1;
-      const linePrice =
-        isVesselCutoutLine ? formatPrice((priceBySku[line] ?? 0) * sinkBaseCountForHcut) : resolveItemPrice(line);
+      const linePrice = isVesselCutoutLine
+        ? formatPrice((priceBySku[line] ?? 0) * sinkBaseCountForHcut)
+        : resolveItemPrice(line);
 
       return Array.from({ length: itemCount }, (_, index) => ({
         id: `countertop-sku-${i + 1}-${index}`,
@@ -1205,6 +1212,7 @@ export const CustomSummaryPage = () => {
             sku: sku ?? undefined,
             price: formatPrice(unitPrice),
             copyable: !!sku,
+            showInfo: true,
             description: { "Product Category": "Divider", "Divider Style": style },
           };
         });
@@ -1222,6 +1230,7 @@ export const CustomSummaryPage = () => {
           sku,
           price: formatPrice(unitPrice),
           copyable: true,
+          showInfo: true,
           description: { "Product Category": "Divider", "Divider Style": dividersStyle },
         }));
       }
@@ -1297,6 +1306,7 @@ export const CustomSummaryPage = () => {
           sku: spSku,
           price: resolveItemPrice(spSku),
           copyable: true,
+          showInfo: true,
           description: {
             "Product Category": "Side Panel",
             "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
@@ -1320,6 +1330,7 @@ export const CustomSummaryPage = () => {
             sku: towelBarRightSku,
             price: resolveItemPrice(towelBarRightSku),
             copyable: true,
+            showInfo: true,
             description: {
               "Product Category": "Towel Bar",
               Side: "Right",
@@ -1339,6 +1350,7 @@ export const CustomSummaryPage = () => {
             sku: towelBarLeftSku,
             price: resolveItemPrice(towelBarLeftSku),
             copyable: true,
+            showInfo: true,
             description: {
               "Product Category": "Towel Bar",
               Side: "Left",
@@ -1576,6 +1588,7 @@ export const CustomSummaryPage = () => {
     towelBarOption,
     sidePanelLeft,
     sidePanelRight,
+    countertopColorSku,
   ]);
 
   const quoteModelName = useMemo(() => {
@@ -1585,14 +1598,38 @@ export const CustomSummaryPage = () => {
     return `${normalized}${widthLabel}`;
   }, [summarySections, selectedDimensions.width]);
 
-  const swatchesListPreview = useMemo(
-    () => selectedMaterials.map(toSwatchPreview),
-    [selectedMaterials],
+  const swatchOrderData = useMemo(() => adaptThreekitConfig(cabinetColors), [cabinetColors]);
+  const summaryAutofillValues = useMemo(() => {
+    const values = summarySections.flatMap((section) => section.items.map((item) => item.swatch?.value));
+    values.push(handleGrooveColor, towelBarColor, vesselColor);
+    return values;
+  }, [summarySections, handleGrooveColor, towelBarColor, vesselColor]);
+  const autofillMaterials = useMemo(
+    () =>
+      deriveAutofillMaterials({
+        allMaterialValues: swatchOrderData.allMaterialValues,
+        values: summaryAutofillValues,
+      }),
+    [swatchOrderData.allMaterialValues, summaryAutofillValues],
   );
-  const hasSummarySwatches = swatchesListPreview.length > 0;
+  const mergedSummaryMaterials = useMemo(
+    () =>
+      mergeAutofillWithSelectedMaterials({
+        autofillMaterials,
+        selectedMaterials: manualSelectedMaterials,
+      }),
+    [autofillMaterials, manualSelectedMaterials],
+  );
+  const effectiveSummaryMaterials = isAutofillEnabled ? mergedSummaryMaterials : selectedMaterials;
+  const swatchesListPreview = useMemo(
+    () => effectiveSummaryMaterials.map(toSwatchPreview),
+    [effectiveSummaryMaterials],
+  );
+  const hasSummarySwatches = effectiveSummaryMaterials.length > 0;
+  const isSwatchesBlockVisible = hasSummarySwatches || autofillMaterials.length > 0;
   const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSummarySwatches;
   const displayedSwatchesListPreview = isSwatchesEnabledForSummary ? swatchesListPreview : [];
-  const canEnableSwatchesForSummary = hasSummarySwatches;
+  const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
   useEffect(() => {
     if (!hasSummarySwatches && isSwatchesEnabledInSummary) {
@@ -1600,11 +1637,23 @@ export const CustomSummaryPage = () => {
     }
   }, [dispatch, hasSummarySwatches, isSwatchesEnabledInSummary]);
 
+  useEffect(() => {
+    if (!isAutofillEnabled) return;
+    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
+
+    dispatch(setCartMaterials(mergedSummaryMaterials));
+  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
+
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
+      if (checked && selectedMaterials.length === 0 && autofillMaterials.length > 0) {
+        dispatch(setAutofillEnabled(true));
+        dispatch(setCartMaterials(mergedSummaryMaterials));
+      }
+
       dispatch(setSwatchesEnabledInSummary(checked));
     },
-    [dispatch],
+    [dispatch, selectedMaterials.length, autofillMaterials.length, mergedSummaryMaterials],
   );
 
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
@@ -1718,60 +1767,62 @@ export const CustomSummaryPage = () => {
         ))}
 
         {isSwatchesBlockVisible && (
-        <div className={s.section} data-summary-section="swatches">
-          <div className={s.sectionHeader}>
-            <div className={s.sectionTitle}>Swatches</div>
-            <button
-              type="button"
-              className={s.editButton}
-              aria-label="Edit Swatches"
-              onClick={() => handleEditSection("swatches")}
-            >
-              <EditPenIcon />
-            </button>
-          </div>
+          <div className={s.section} data-summary-section="swatches">
+            <div className={s.sectionHeader}>
+              <div className={s.sectionTitle}>Swatches</div>
+              <button
+                type="button"
+                className={s.editButton}
+                aria-label="Edit Swatches"
+                onClick={() => handleEditSection("swatches")}
+              >
+                <EditPenIcon />
+              </button>
+            </div>
 
-          <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p>
+            {/* <p className={s.sectionHint}>We will add to your swatch cart with your selected finishes</p> */}
 
-          <label className={s.addSwatches}>
-            <input
-              type="checkbox"
-              checked={isSwatchesEnabledForSummary}
-              disabled={!canEnableSwatchesForSummary}
-              onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
-            />
-            <span className={s.addLabel}>Add free swatches</span>
-          </label>
+            <label className={s.addSwatches}>
+              <input
+                type="checkbox"
+                checked={isSwatchesEnabledForSummary}
+                disabled={!canEnableSwatchesForSummary}
+                onChange={(event) => handleSwatchesEnabledChange(event.target.checked)}
+              />
+              <span className={s.addLabel}>Autofill My Swatches</span>
+            </label>
 
-          <div className={s.swatchesListHeader}>Swatches list</div>
+            <p className={s.sectionHint}>Let us fill your swatch cart with your selected finishes</p>
 
-          <div className={s.swatchesList}>
-            {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
-              const swatch = displayedSwatchesListPreview[index];
-              if (!swatch) {
+            <div className={s.swatchesListHeader}>Swatches list</div>
+
+            <div className={s.swatchesList}>
+              {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
+                const swatch = displayedSwatchesListPreview[index];
+                if (!swatch) {
+                  return (
+                    <div key={`empty-${index}`} className={s.swatchTile}>
+                      <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                    </div>
+                  );
+                }
+
                 return (
-                  <div key={`empty-${index}`} className={s.swatchTile}>
-                    <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                  <div key={swatch.value} className={s.swatchTile}>
+                    <span
+                      className={s.tileColor}
+                      style={{
+                        backgroundColor: swatch.color,
+                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
                   </div>
                 );
-              }
-
-              return (
-                <div key={swatch.value} className={s.swatchTile}>
-                  <span
-                    className={s.tileColor}
-                    style={{
-                      backgroundColor: swatch.color,
-                      backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                </div>
-              );
-            })}
+              })}
+            </div>
           </div>
-        </div>
         )}
       </div>
 

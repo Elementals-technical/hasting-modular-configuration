@@ -3,6 +3,7 @@ import { STORAGE_EXPIRY_MS, STORAGE_KEY } from "../model/constants";
 
 interface StoredPayload {
   selectedMaterials: AttributeValue[];
+  manualSelectedMaterials: AttributeValue[];
   isAutofillEnabled: boolean;
   hasSubmittedCart: boolean;
 }
@@ -14,7 +15,8 @@ interface StoredEnvelope {
 
 const EMPTY: StoredPayload = {
   selectedMaterials: [],
-  isAutofillEnabled: false,
+  manualSelectedMaterials: [],
+  isAutofillEnabled: true,
   hasSubmittedCart: false,
 };
 
@@ -41,6 +43,7 @@ export const StorageService = {
       const data = stored.data ?? EMPTY;
       return {
         selectedMaterials: Array.isArray(data.selectedMaterials) ? data.selectedMaterials : [],
+        manualSelectedMaterials: Array.isArray(data.manualSelectedMaterials) ? data.manualSelectedMaterials : [],
         isAutofillEnabled: Boolean(data.isAutofillEnabled),
         hasSubmittedCart: Boolean(data.hasSubmittedCart),
       };

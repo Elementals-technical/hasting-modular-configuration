@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getAllMaterialValues,
@@ -115,7 +115,7 @@ export const MaterialList = ({ onSelectMaterial }: MaterialListProps) => {
         <div className={s.empty}>No swatches match the selected filters.</div>
       ) : (
         <div className={s.inner} style={{ height: totalSize + 20 }}>
-          {virtualRows.map((virtualRow) => {
+          {virtualRows.map((virtualRow: VirtualItem) => {
             const rowIndex = virtualRow.index;
             const startIndex = rowIndex * cols;
             const rowItems = filteredItems.slice(startIndex, startIndex + cols);

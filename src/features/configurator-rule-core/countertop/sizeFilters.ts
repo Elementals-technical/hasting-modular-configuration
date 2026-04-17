@@ -134,6 +134,11 @@ type FilterDepthValuesParams = {
   activeBasinStyle?: string | null;
 };
 
+type FilterThicknessValuesParams = {
+  values: Array<string | number>;
+  allowedThicknesses: Set<number>;
+};
+
 const INTEGRATED_STYLE_RESTRICTED_BASIN_KEYS = new Set(["oly55", "oly56", "orion"]);
 
 export const isIntegratedCountertopDepthRestrictedByMaterial = ({
@@ -235,5 +240,19 @@ export const filterDepthValuesByCountertopRules = ({
 
     if (!allowedDepths.size) return true;
     return Array.from(allowedDepths).some((depth) => Math.abs(depth - numeric) < 0.01);
+  });
+};
+
+export const filterThicknessValuesByCountertopRules = ({
+  values,
+  allowedThicknesses,
+}: FilterThicknessValuesParams): Array<string | number> => {
+  if (!values.length || allowedThicknesses.size === 0) return values;
+
+  return values.filter((value) => {
+    const numeric = toNumericDimension(value);
+    if (numeric === null) return true;
+
+    return Array.from(allowedThicknesses).some((allowedValue) => Math.abs(allowedValue - numeric) < 0.001);
   });
 };

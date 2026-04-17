@@ -358,13 +358,9 @@ export function usePriceCalculation() {
           ...preferredCountertopMaterialTokens,
         ],
       }) || resolvedCountertopMaterialSku;
-    const useVesselMaterialForCountertopSku = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = useVesselMaterialForCountertopSku
-      ? resolvedVesselMaterialSku
-      : resolvedCountertopMaterialSku;
-    const effectiveCountertopColorCode = extractColorCode(
-      useVesselMaterialForCountertopSku ? resolvedVesselColor : resolvedCountertopColor,
-    );
+    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
+    const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const resolveNameFromRaw = (value: string) => {
       const lastDash = value.lastIndexOf("-");
       if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
@@ -784,7 +780,7 @@ export function usePriceCalculation() {
     });
     const aggregateCountertopSkuSet = new Set(aggregateCountertopLines);
     aggregateCountertopLines.forEach((line, index) => {
-      if (index === 1 && !useVesselMaterialForCountertopSku && sinkBaseEntriesForPricing.length > 0) {
+      if (index === 1 && !isVesselCountertop && sinkBaseEntriesForPricing.length > 0) {
         sinkBaseEntriesForPricing.forEach((entry) => {
           const basinLine =
             buildCountertopSku({

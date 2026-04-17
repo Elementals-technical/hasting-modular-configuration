@@ -40,6 +40,36 @@
   }
 }
 
+.checkboxOptionTooltip {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    max-width: min(280px, calc(100vw - 48px));
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.82);
+    color: #fff;
+    font-family: Poppins;
+    font-size: 12px;
+    line-height: 16px;
+    white-space: normal;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 1;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
 .checkboxOptionDisabled {
   color: #9a9a9a;
 }

@@ -26,6 +26,15 @@ export const formatCabinetDrawersForSummary = (drawers: unknown): string => {
   return drawerSkuMap[normalized] ?? normalized;
 };
 
+export const formatCabinetTitleForSummary = (name: string | null | undefined): string => {
+  if (!name) return "Cabinet";
+  if (name === "Sink-Base") return "Sink Base";
+  if (name === "Sink-Cabinet") return "Side Cabinet";
+  if (name === "Open-Shelf") return "Open Shelf";
+  if (name === "Side-Shelf") return "Side Shelf";
+  return name.replace(/-/g, " ");
+};
+
 export const formatCabinetDimsForSummary = (
   width: number | null | undefined,
   depth: number | null | undefined,

@@ -79,6 +79,7 @@ export const CabinetPage = () => {
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
   const bookMatchingState = useAppSelector(selectBookMatchingState);
   const selectorFlutingState = useAppSelector(selectFlutingState);
+  const bookMatchingTooltip = !bookMatchingState.enabled ? (bookMatchingState.reason ?? "Not available.") : undefined;
 
   const flutingState = useMemo(() => {
     if (selectorFlutingState.available) return selectorFlutingState;
@@ -118,6 +119,12 @@ export const CabinetPage = () => {
       dispatch(setGrainDirection(""));
     }
   }, [grainDirectionState.available, activeGrainDirection, dispatch]);
+
+  useEffect(() => {
+    if (!bookMatchingState.enabled && activeBookMatching) {
+      dispatch(setBookMatching(""));
+    }
+  }, [bookMatchingState.enabled, activeBookMatching, dispatch]);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,
@@ -645,15 +652,21 @@ export const CabinetPage = () => {
             handleAdd={handleChangeGrainDirection}
             activeValue={activeGrainDirection}
           />
-          <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
-            <input
-              type="checkbox"
-              disabled={!bookMatchingState.enabled}
-              checked={activeBookMatching === "enabled"}
-              onChange={(event) => handleToggleBookMatching(event.target.checked)}
-            />
-            <span>Book Matching</span>
-          </label>
+          <div
+            className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
+            data-tooltip={bookMatchingTooltip}
+            aria-label={bookMatchingTooltip}
+          >
+            <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
+              <input
+                type="checkbox"
+                disabled={!bookMatchingState.enabled}
+                checked={activeBookMatching === "enabled"}
+                onChange={(event) => handleToggleBookMatching(event.target.checked)}
+              />
+              <span>Book Matching</span>
+            </label>
+          </div>
           <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
         </>
       ) : (

@@ -16,6 +16,7 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { deriveBookMatchingAvailability } from "@/shared/lib/bookMatching";
 
 import { optionsMockData3, optionsMockData4 } from "./constants";
 
@@ -38,6 +39,7 @@ import {
   selectGrainDirectionState,
 } from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import {
@@ -71,8 +73,10 @@ export const CustomCabinetColorsPage = () => {
   const isPlayCanvasReady = usePlayCanvasReady();
   const activeCabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);
-  const bookMatchingState = useAppSelector(selectBookMatchingState);
+  const selectorBookMatchingState = useAppSelector(selectBookMatchingState);
   const flutingState = useAppSelector(selectFlutingState);
+  const [bookMatchingState, setBookMatchingState] = useState(selectorBookMatchingState);
+  const bookMatchingTooltip = !bookMatchingState.enabled ? (bookMatchingState.reason ?? "Not available.") : undefined;
 
   const { data: cabinetColors, isFetching: isFetchingCabinetColors } = useGetConfiguratorQuery({
     id: 4,
@@ -550,6 +554,34 @@ export const CustomCabinetColorsPage = () => {
     }
   }, [grainDirectionState.available, activeGrainDirection, isPlayCanvasReady, selectedProducts, dispatch]);
 
+  useEffect(() => {
+    if (!isPlayCanvasReady || selectedProducts.length === 0) {
+      setBookMatchingState(selectorBookMatchingState);
+      return;
+    }
+
+    const orderedProductIds = getOrderedProductIds(selectedProducts);
+    const cabinets = (orderedProductIds.length > 0 ? orderedProductIds : selectedProducts).map((productId) => ({
+      name: productId,
+    }));
+
+    const availability = deriveBookMatchingAvailability({
+      grainDirection: activeGrainDirection,
+      cabinets,
+    });
+
+    setBookMatchingState({
+      enabled: availability.available,
+      reason: availability.reason,
+    });
+  }, [selectorBookMatchingState, isPlayCanvasReady, selectedProducts, activeGrainDirection]);
+
+  useEffect(() => {
+    if (!bookMatchingState.enabled && activeBookMatching) {
+      dispatch(setBookMatching(""));
+    }
+  }, [bookMatchingState.enabled, activeBookMatching, dispatch]);
+
   // useEffect(() => {
   //   if (!isPlayCanvasReady || !activeGrainDirection) return;
 
@@ -645,15 +677,21 @@ export const CustomCabinetColorsPage = () => {
             handleAdd={handleChangeGrainDirection}
             activeValue={activeGrainDirection}
           />
-          <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
-            <input
-              type="checkbox"
-              disabled={!bookMatchingState.enabled}
-              checked={activeBookMatching === "enabled"}
-              onChange={(event) => handleToggleBookMatching(event.target.checked)}
-            />
-            <span>Book Matching</span>
-          </label>
+          <div
+            className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
+            data-tooltip={bookMatchingTooltip}
+            aria-label={bookMatchingTooltip}
+          >
+            <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
+              <input
+                type="checkbox"
+                disabled={!bookMatchingState.enabled}
+                checked={activeBookMatching === "enabled"}
+                onChange={(event) => handleToggleBookMatching(event.target.checked)}
+              />
+              <span>Book Matching</span>
+            </label>
+          </div>
           <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
         </>
       ) : (

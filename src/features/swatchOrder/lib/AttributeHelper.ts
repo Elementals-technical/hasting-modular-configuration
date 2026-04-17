@@ -9,17 +9,27 @@ const resolveImageUrl = (raw?: string): string | undefined => {
   return raw;
 };
 
+const toOptionalString = (value: unknown): string | undefined =>
+  typeof value === "string" ? value : undefined;
+
+const toNullableString = (value: unknown): string | null =>
+  typeof value === "string" ? value : null;
+
 export const AttributeHelper = {
   getImage(value: AttributeValue): string | undefined {
     const raw = value?.metadata?.image ?? value?.metadata?.Image;
-    return resolveImageUrl(raw as string | undefined);
+    return resolveImageUrl(toOptionalString(raw));
   },
 
   getValueLabel(attribute: AttributeValue): string {
-    return attribute?.metadata?.label ?? attribute?.metadata?.Label ?? attribute?.name ?? "Unnamed";
+    return (
+      toOptionalString(attribute?.metadata?.label ?? attribute?.metadata?.Label) ??
+      attribute?.name ??
+      "Unnamed"
+    );
   },
 
   getHexColor(value: AttributeValue): string | null {
-    return value?.metadata?.hex ?? value?.metadata?.Hex ?? null;
+    return toNullableString(value?.metadata?.hex ?? value?.metadata?.Hex);
   },
 };
