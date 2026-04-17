@@ -75,6 +75,7 @@ import {
   setSwatchesEnabledInSummary,
   toSwatchPreview,
   MAX_SLOTS as MAX_SWATCHES,
+  openSwatchOrder,
 } from "@/features/swatchOrder";
 import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -244,7 +245,6 @@ export const CustomSummaryPage = () => {
     basin: "/custom/countertop",
     accessories: "/custom/accessories",
     faucet: "/custom/faucet-holes",
-    swatches: "/custom/cabinet-colors",
   };
 
   const priceBySku = useAppSelector(getPriceBySku);
@@ -299,10 +299,14 @@ export const CustomSummaryPage = () => {
   };
   const handleEditSection = useCallback(
     (sectionId: string) => {
+      if (sectionId === "swatches") {
+        dispatch(openSwatchOrder());
+        return;
+      }
       const path = editPathBySectionId[sectionId];
       if (path) navigate(path);
     },
-    [navigate, editPathBySectionId],
+    [dispatch, navigate, editPathBySectionId],
   );
 
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
