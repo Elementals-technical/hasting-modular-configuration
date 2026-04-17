@@ -35,6 +35,12 @@ export const formatCabinetTitleForSummary = (name: string | null | undefined): s
   return name.replace(/-/g, " ");
 };
 
+export const isShelfCabinetType = (name: string | null | undefined): boolean => {
+  if (!name) return false;
+  const normalized = name.toLowerCase().replace(/[\s_]+/g, "-");
+  return normalized.includes("open-shelf") || normalized.includes("side-shelf");
+};
+
 export const formatCabinetDimsForSummary = (
   width: number | null | undefined,
   depth: number | null | undefined,
