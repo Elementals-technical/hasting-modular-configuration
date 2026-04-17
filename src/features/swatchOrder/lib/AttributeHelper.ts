@@ -29,6 +29,16 @@ export const AttributeHelper = {
     );
   },
 
+  getFinishDisplayName(attribute: AttributeValue): string {
+    const label = AttributeHelper.getValueLabel(attribute);
+    const code = toOptionalString(attribute?.metadata?.value ?? attribute?.value)?.trim();
+    if (!code) return label;
+
+    const normalizedLabel = label.toLowerCase();
+    const normalizedCode = code.toLowerCase();
+    return normalizedLabel.includes(normalizedCode) ? label : `${label} ${code}`;
+  },
+
   getHexColor(value: AttributeValue): string | null {
     return toNullableString(value?.metadata?.hex ?? value?.metadata?.Hex);
   },

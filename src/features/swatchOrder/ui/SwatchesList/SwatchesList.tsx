@@ -36,6 +36,7 @@ export const SwatchesList = () => {
           const image = AttributeHelper.getImage(val);
           const hex = AttributeHelper.getHexColor(val) ?? "#e5e5e5";
           const label = AttributeHelper.getValueLabel(val);
+          const finishDisplayName = AttributeHelper.getFinishDisplayName(val);
           const key = `${val.metadata?.label ?? index}/${val.parentName}`;
 
           return (
@@ -48,6 +49,9 @@ export const SwatchesList = () => {
                 }}
                 aria-label={label}
               />
+              <span className={s.tileTooltip} role="tooltip">
+                {finishDisplayName}
+              </span>
               <button
                 type="button"
                 className={s.removeBtn}

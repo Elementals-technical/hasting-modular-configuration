@@ -14,8 +14,9 @@ import { SwatchLimitModal } from "../SwatchLimitModal/SwatchLimitModal";
 import { MaterialListItem } from "./MaterialListItem";
 import s from "./MaterialList.module.scss";
 
-const ROW_HEIGHT_DESKTOP = 200;
-const ROW_HEIGHT_MOBILE = 190;
+// Row height must include the square tile plus the label block below it.
+const ROW_HEIGHT_DESKTOP = 232;
+const ROW_HEIGHT_MOBILE = 236;
 const DESKTOP_COLS = 3;
 const MOBILE_COLS = 2;
 const DESKTOP_QUERY = "(min-width: 640px)";
