@@ -37,6 +37,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { reapplySidePanelsForPreset } from "@/features/sidePanel";
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { clearHistory } from "@/entities/history/model/store/slice";
+import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 
 import s from "./ModelPage.module.scss";
 
@@ -292,6 +293,9 @@ export const ModelPage = () => {
     const run = async () => {
       try {
         const result = await restoreConfiguration(configIdFromUrl).unwrap();
+
+        applySwatchOrderFromMetadata(result?.metadata as Record<string, unknown> | undefined, dispatch);
+
         const configuration = result?.configuration || {};
         const orderedIdsFromMeta = result?.metadata?.orderedProductIds;
         const sourceIds = Array.isArray(orderedIdsFromMeta)

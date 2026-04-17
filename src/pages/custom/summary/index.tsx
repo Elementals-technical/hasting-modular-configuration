@@ -20,8 +20,10 @@ import {
   getVesselColor,
   getCountertopStyle,
   getPlacedDividers,
+  getDividersOption,
   getDividersStyle,
   getDrawerPanelFluting,
+  getLedOption,
   getFaucetHolesAmount,
   getGrainDirection,
   getBookMatching,
@@ -65,6 +67,7 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 import {
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -74,6 +77,7 @@ import {
   adaptThreekitConfig,
   areSameMaterialLists,
   deriveAutofillMaterials,
+  getHasSubmittedCart,
   getIsAutofillEnabled,
   getIsSwatchesEnabledInSummary,
   getManualSelectedMaterials,
@@ -251,6 +255,7 @@ export const CustomSummaryPage = () => {
   const [quotePreviewImage, setQuotePreviewImage] = useState<string>("");
   const [openEditMenuSectionId, setOpenEditMenuSectionId] = useState<string | null>(null);
   const editMenuRef = useRef<HTMLDivElement | null>(null);
+  const lastSavedHashRef = useRef<string | null>(null);
   const editPathBySectionId: Record<string, string> = {
     cabinet: "/custom/cabinet-colors",
     "cabinet-options": "/custom/cabinet-colors",
@@ -289,6 +294,8 @@ export const CustomSummaryPage = () => {
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const placedDividers = useAppSelector(getPlacedDividers);
   const dividersStyle = useAppSelector(getDividersStyle);
+  const dividersOption = useAppSelector(getDividersOption);
+  const ledOption = useAppSelector(getLedOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
@@ -296,6 +303,7 @@ export const CustomSummaryPage = () => {
   const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
   const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
   const selectedMaterials = useAppSelector(getSelectedMaterials);
+  const hasSubmittedCart = useAppSelector(getHasSubmittedCart);
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
@@ -1574,7 +1582,7 @@ export const CustomSummaryPage = () => {
 
   useEffect(() => {
     const configIdFromUrl = new URLSearchParams(location.search).get("configId");
-    if (configIdFromUrl || generatedConfigId) return;
+    if (configIdFromUrl) return;
 
     let isCancelled = false;
 
@@ -1589,9 +1597,8 @@ export const CustomSummaryPage = () => {
           return acc;
         }, {});
 
-        const metadata = {
+        const metadata = buildConfigurationMetadata({
           path: location.pathname,
-          savedAt: new Date().toISOString(),
           orderedProductIds: ids,
           uiState: {
             CabinetColor: cabinetColor,
@@ -1606,16 +1613,29 @@ export const CustomSummaryPage = () => {
             SidePanels: sidePanelsOption,
             SidePanelLeft: sidePanelLeft,
             SidePanelRight: sidePanelRight,
+            LedOption: ledOption,
+            DividersOption: dividersOption,
             DividersStyle: dividersStyle,
             TowelBarOption: towelBarOption,
             TowelBarColor: towelBarColor,
             FaucetHolesAmount: faucetHolesAmount,
           },
-        };
+          swatchOrder: {
+            selectedMaterials,
+            manualSelectedMaterials,
+            isAutofillEnabled,
+            hasSubmittedCart,
+          },
+        });
+
+        const snapshotHash = JSON.stringify({ configuration, metadata });
+        if (lastSavedHashRef.current === snapshotHash) return;
 
         const result = await saveConfiguration({ configuration, metadata }).unwrap();
+        if (isCancelled) return;
+        lastSavedHashRef.current = snapshotHash;
         const nextConfigId = result?.id;
-        if (!isCancelled && nextConfigId !== undefined && nextConfigId !== null) {
+        if (nextConfigId !== undefined && nextConfigId !== null) {
           setGeneratedConfigId(String(nextConfigId));
         }
       } catch (error) {
@@ -1633,12 +1653,13 @@ export const CustomSummaryPage = () => {
     countertopColor,
     countertopStyle,
     countertopThickness,
+    dividersOption,
     dividersStyle,
     drawerPanelFluting,
     faucetHolesAmount,
-    generatedConfigId,
     grainDirection,
     handleGrooveColor,
+    ledOption,
     location.pathname,
     location.search,
     saveConfiguration,
@@ -1649,6 +1670,10 @@ export const CustomSummaryPage = () => {
     sidePanelLeft,
     sidePanelRight,
     countertopColorSku,
+    selectedMaterials,
+    manualSelectedMaterials,
+    isAutofillEnabled,
+    hasSubmittedCart,
   ]);
 
   const quoteModelName = useMemo(() => {

@@ -105,6 +105,7 @@ import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { store, type RootState } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
+import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 
 type AccordionConfig = {
   id: string;
@@ -940,6 +941,8 @@ export const CabinetBuilderPage = () => {
         if (typeof path === "string" && path.startsWith("/")) {
           navigate(path);
         }
+
+        applySwatchOrderFromMetadata(result?.metadata as Record<string, unknown> | undefined, dispatch);
 
         const configuration = result?.configuration || {};
 

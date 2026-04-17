@@ -1,6 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { uniqueList } from "../../lib/uniqueList";
-import { StorageService } from "../../lib/storageService";
 import { MAX_SLOTS } from "../constants";
 import type {
   AttributeValue,
@@ -10,31 +9,20 @@ import type {
   ISwatchOrderSlice,
 } from "../types";
 
-const persistedState = StorageService.getState();
-
-const initialSelected =
-  persistedState.isAutofillEnabled || persistedState.hasSubmittedCart
-    ? persistedState.selectedMaterials
-    : [];
-const initialManualSelected =
-  persistedState.manualSelectedMaterials.length > 0
-    ? persistedState.manualSelectedMaterials
-    : persistedState.isAutofillEnabled
-      ? []
-      : initialSelected;
-
-const initialState: ISwatchOrderSlice = {
+const createInitialState = (): ISwatchOrderSlice => ({
   isOpen: false,
   activeProductElement: null,
   productElementOptions: [],
   allMaterialsValues: [],
   materialSelectState: { Finish: [], Color: [], Look: [] },
-  selectedMaterials: initialSelected,
-  manualSelectedMaterials: initialManualSelected,
+  selectedMaterials: [],
+  manualSelectedMaterials: [],
   isEnabledInSummary: true,
-  isAutofillEnabled: persistedState.isAutofillEnabled,
-  hasSubmittedCart: persistedState.hasSubmittedCart && initialSelected.length > 0,
-};
+  isAutofillEnabled: true,
+  hasSubmittedCart: false,
+});
+
+const initialState = createInitialState();
 
 const sum = (arr: AttributeValue[]) => arr.reduce((s, i) => s + (i.count ?? 0), 0);
 
@@ -115,6 +103,23 @@ const swatchOrderSlice = createSlice({
         state.hasSubmittedCart = false;
       }
     },
+    hydrateSwatchOrder(
+      state,
+      action: PayloadAction<{
+        selectedMaterials: AttributeValue[];
+        manualSelectedMaterials: AttributeValue[];
+        isAutofillEnabled: boolean;
+        hasSubmittedCart: boolean;
+      }>,
+    ) {
+      state.selectedMaterials = action.payload.selectedMaterials;
+      state.manualSelectedMaterials = action.payload.manualSelectedMaterials;
+      state.isAutofillEnabled = action.payload.isAutofillEnabled;
+      state.hasSubmittedCart = action.payload.hasSubmittedCart;
+    },
+    resetSwatchOrder() {
+      return createInitialState();
+    },
   },
 });
 
@@ -130,6 +135,8 @@ export const {
   markCartSubmitted,
   setSwatchesEnabledInSummary,
   setAutofillEnabled,
+  hydrateSwatchOrder,
+  resetSwatchOrder,
 } = swatchOrderSlice.actions;
 
 export const swatchOrderReducer = swatchOrderSlice.reducer;
