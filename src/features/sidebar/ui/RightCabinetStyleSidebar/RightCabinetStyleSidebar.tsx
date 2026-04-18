@@ -54,15 +54,13 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useGetConfiguratorQuery } from "@/entities";
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
-  parseCountertopMatrix,
-  resolveCountertopMaxLengthByRules,
+  useCountertopLengthGuard,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 interface RightCabinetStyleSidebarProps {
@@ -118,10 +116,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const grainDirection = useAppSelector(getGrainDirection);
   const sinkType = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
-  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
+  const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
+  const sceneTotalWidth = lengthGuard.currentWithSp;
+  const maxCountertopLength = lengthGuard.max;
 
   const saveSnapshot = useHistorySnapshot();
-  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
   const { data: counterTopMaterials } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
@@ -260,19 +259,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     return match?.metadata?.materials ?? [];
   }, [countertopColor, countertopColorSku, countertopOptionsFromApi]);
 
-  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
-  const maxCountertopLength = useMemo(
-    () =>
-      resolveCountertopMaxLengthByRules({
-        rules: countertopRules,
-        materialTokens: countertopColorSku ? [countertopColorSku] : [],
-        style: countertopStyle ?? null,
-        depth: selectedDimensions.depth ?? null,
-        thickness: countertopThickness ?? null,
-        activeBasinStyle: sinkType ?? null,
-      }),
-    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth, sinkType],
-  );
+  const countertopRules = useCountertopRules();
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({

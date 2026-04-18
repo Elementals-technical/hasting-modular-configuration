@@ -39,8 +39,11 @@ import {
 } from "@/entities/product/model/store/slice";
 import {
   vesselAllowedMaterialsMap,
+  buildCountertopColorSkuCandidates,
   extractColorCode,
+  getCountertopMaterialTokensFromBasinType,
   resolveDefaultBasinByCountertopColor,
+  resolveCountertopMaterialTokensFromCandidates,
   cmToInches,
 } from "@/shared/lib/sku";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
@@ -68,15 +71,15 @@ import {
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
-  parseCountertopMatrix,
   resolveCountertopWidthRuleStyle,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 
 import s from "./Countertop.module.scss";
 import { useGetConfiguratorQuery } from "@/entities";
 import { BaseButton } from "@/shared";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
-import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
+import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
@@ -117,7 +120,7 @@ export const CustomCountertopPage = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
-  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
+  const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const [hasSinkBase, setHasSinkBase] = useState(false);
   const isSinkDisabled = !hasSinkBase;
@@ -353,7 +356,11 @@ export const CustomCountertopPage = () => {
     [countertopOptionsFromApi],
   );
 
-  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+  const countertopRules = useCountertopRules();
+  const countertopColorSkuCandidatesByValue = useMemo(
+    () => buildCountertopColorSkuCandidates(counterTopMaterials?.availableOptions),
+    [counterTopMaterials?.availableOptions],
+  );
 
   const matrixMaterials = useMemo(() => {
     const set = new Set<string>();
@@ -372,16 +379,13 @@ export const CustomCountertopPage = () => {
   );
 
   const activeMaterialTokens = useMemo(() => {
-    if (!activeCountertopColor) return [];
-    const match = countertopOptions.find((option) => {
-      const candidate = option.metadata?.value ?? option.name ?? option.title ?? option.desc;
-      if (candidate !== activeCountertopColor) return false;
-
-      const optionSku = option.metadata?.sku?.trim();
-      return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
+    return resolveCountertopMaterialTokensFromCandidates({
+      value: activeCountertopColor,
+      candidatesByValue: countertopColorSkuCandidatesByValue,
+      preferredSku: countertopColorSku,
+      preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(activeBasinStyle),
     });
-    return match?.metadata?.materials ?? [];
-  }, [activeCountertopColor, countertopColorSku, countertopOptions]);
+  }, [activeBasinStyle, activeCountertopColor, countertopColorSku, countertopColorSkuCandidatesByValue]);
 
   const activeVesselMaterialTokens = useMemo(() => {
     if (!activeVesselColor) return [];
@@ -1450,17 +1454,25 @@ export const CustomCountertopPage = () => {
     // Vessel style: user picks vessel manually (or leaves hole cutout empty)
     if (isVesselStyle) return;
 
+    const currentStillValid =
+      activeBasinStyle && availableBasinOptions.some((option) => (option.name ?? option.title) === activeBasinStyle);
     const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(activeCountertopColor);
     const hasColorDrivenDefault =
       !!colorDrivenDefaultBasin &&
       availableBasinOptions.some((option) => (option.name ?? option.title) === colorDrivenDefaultBasin);
-    if (hasColorDrivenDefault && (activeBasinStyle === "Top_HPLPrisma" || !activeBasinStyle)) {
+    const currentBasinMaterialTokens = new Set(getCountertopMaterialTokensFromBasinType(activeBasinStyle));
+    const defaultBasinMaterialTokens = getCountertopMaterialTokensFromBasinType(colorDrivenDefaultBasin);
+    const isSameBasinMaterialFamily =
+      defaultBasinMaterialTokens.length > 0 &&
+      defaultBasinMaterialTokens.some((token) => currentBasinMaterialTokens.has(token));
+
+    if (
+      hasColorDrivenDefault &&
+      (activeBasinStyle === "Top_HPLPrisma" || !activeBasinStyle || !currentStillValid || !isSameBasinMaterialFamily)
+    ) {
       applyBasinStyleFallback(colorDrivenDefaultBasin!);
       return;
     }
-
-    const currentStillValid =
-      activeBasinStyle && availableBasinOptions.some((option) => (option.name ?? option.title) === activeBasinStyle);
 
     if (!currentStillValid) {
       const first = availableBasinOptions[0];

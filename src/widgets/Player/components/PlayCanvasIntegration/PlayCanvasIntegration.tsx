@@ -69,16 +69,14 @@ import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
-  parseCountertopMatrix,
-  resolveCountertopMaxLengthByRules,
   resolveDefaultThicknessFromRules,
+  useCountertopLengthGuard,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -257,7 +255,9 @@ export const PlayCanvasIntegration = () => {
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
-  const sceneTotalWidth = useSceneTotalWidth(productIds, selectedDimensions.width ?? null);
+  const lengthGuard = useCountertopLengthGuard(productIds, selectedDimensions.width ?? null);
+  const sceneTotalWidth = lengthGuard.currentWithSp;
+  const maxCountertopLength = lengthGuard.max;
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const wasRestoringRef = useRef(false);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
@@ -266,7 +266,6 @@ export const PlayCanvasIntegration = () => {
 
   const saveSnapshot = useHistorySnapshot();
 
-  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
   const { data: counterTopMaterials } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
@@ -628,28 +627,8 @@ export const PlayCanvasIntegration = () => {
     return match?.metadata?.materials ?? [];
   }, [activeCountertopColor, countertopColorSku, countertopOptionsFromApi]);
 
-  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
-  const maxCountertopLength = useMemo(
-    () =>
-      resolveCountertopMaxLengthByRules({
-        rules: countertopRules,
-        materialTokens: countertopColorSku ? [countertopColorSku] : [],
-        style: countertopStyle ?? null,
-        depth: selectedDimensions.depth ?? null,
-        thickness: activeCountertopThickness ?? null,
-        activeBasinStyle: activeBasinStyle ?? null,
-      }),
-    [
-      activeBasinStyle,
-      activeCountertopThickness,
-      countertopColorSku,
-      countertopRules,
-      countertopStyle,
-      selectedDimensions.depth,
-    ],
-  );
-  const remainingCountertopLength =
-    maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+  const countertopRules = useCountertopRules();
+  const remainingCountertopLength = lengthGuard.remaining;
 
   const addableCabinetWidths = useMemo(() => {
     const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);

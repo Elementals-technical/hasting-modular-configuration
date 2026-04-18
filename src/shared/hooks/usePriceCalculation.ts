@@ -51,11 +51,11 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
-import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
-  parseCountertopMatrix,
   resolveDefaultThicknessFromRules,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
   useLazyGetProductPriceBySkuQuery,
@@ -257,8 +257,7 @@ export function usePriceCalculation() {
     view: "full",
     serialize: true,
   });
-  const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
-  const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
+  const countertopRules = useCountertopRules();
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];
