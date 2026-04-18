@@ -5,12 +5,16 @@ import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import {
+  getCountertopColorSku,
   getCountertopStyle,
   getDimensionOptions,
   getSelectedDimensions,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
-import { filterDepthValuesByCountertopRules } from "@/features/configurator-rule-core/countertop";
+import {
+  filterDepthValuesByCountertopRules,
+  useCountertopRules,
+} from "@/features/configurator-rule-core/countertop";
 import { ROUTES } from "@/shared";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
@@ -110,7 +114,9 @@ export const CabinetStyleDetailsPage = () => {
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const countertopStyle = useAppSelector(getCountertopStyle);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const sinkType = useAppSelector(getSinkType);
+  const countertopRules = useCountertopRules();
 
   const style = params.get("style");
   const cabinetType = params.get("cabinetType");
@@ -144,8 +150,8 @@ export const CabinetStyleDetailsPage = () => {
   const depthsInches = useMemo(() => {
     const values = filterDepthValuesByCountertopRules({
       values: dimensionOptions.depth.filter((option) => !option.disabled).map((option) => option.value),
-      activeMaterialTokens: [],
-      rules: [],
+      activeMaterialTokens: countertopColorSku ? [countertopColorSku] : [],
+      rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
     })
@@ -154,7 +160,7 @@ export const CabinetStyleDetailsPage = () => {
 
     const uniqSorted = Array.from(new Set(values)).sort((a, b) => a - b);
     return uniqSorted.map(cmToInches);
-  }, [countertopStyle, dimensionOptions.depth, sinkType]);
+  }, [countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
 
   const cabinetLabel =
     cabinetType === "Sink-Base"
