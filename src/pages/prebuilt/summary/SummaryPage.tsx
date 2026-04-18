@@ -1921,15 +1921,18 @@ export const SummaryPage = () => {
 
                 return (
                   <div key={swatch.value} className={s.swatchTile}>
-                    <span
-                      className={s.tileColor}
-                      style={{
-                        backgroundColor: swatch.color,
-                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
+                    <Hint content={swatch.label} placement="top">
+                      <span
+                        className={s.tileColor}
+                        style={{
+                          backgroundColor: swatch.color,
+                          backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                        aria-label={swatch.label}
+                      />
+                    </Hint>
                   </div>
                 );
               })}

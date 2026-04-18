@@ -1,4 +1,4 @@
-import { type PropsWithChildren, useEffect, useMemo } from "react";
+import { type PropsWithChildren, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 
 export const PortalBody: React.FC<PropsWithChildren> = ({ children }: PropsWithChildren) => {
@@ -9,12 +9,14 @@ export const PortalBody: React.FC<PropsWithChildren> = ({ children }: PropsWithC
     return el;
   }, []);
 
-  useEffect(() => {
-    document["body"].appendChild(container);
+  // Attach synchronously (before paint) so consumers' useLayoutEffect can
+  // measure portal content on the same render.
+  useLayoutEffect(() => {
+    document.body.appendChild(container);
     return () => {
-      document["body"].removeChild(container);
+      document.body.removeChild(container);
     };
-  }, []);
+  }, [container]);
 
   return createPortal(children, container);
 };
