@@ -51,6 +51,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
+import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   normalizeMaterialToken,
@@ -270,7 +271,8 @@ export function usePriceCalculation() {
             option.variants?.forEach((variant) => {
               if (!variant.enabled) return;
               const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-              const value = (meta.value as string) || variant.name;
+              const overrides = getConfiguratorVariantOverrides({ proxyName, variant });
+              const value = overrides.value || (meta.value as string) || variant.name;
               const sku = (meta.sku as string) || "";
               if (value && sku) map.set(value, sku);
             });

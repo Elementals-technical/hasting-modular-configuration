@@ -45,6 +45,11 @@ import {
 } from "@/entities/product/model/store/selectors";
 // import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
+import {
+  SPECIAL_VARIANT_DISPLAY_IMAGE,
+  SPECIAL_VARIANT_DISPLAY_VALUE,
+  getConfiguratorVariantOverrides,
+} from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
   buildProductSku,
@@ -408,6 +413,11 @@ export const SummaryPage = () => {
       });
     });
 
+    map.set(SPECIAL_VARIANT_DISPLAY_VALUE, {
+      image: SPECIAL_VARIANT_DISPLAY_IMAGE,
+      label: SPECIAL_VARIANT_DISPLAY_VALUE,
+    });
+
     return map;
   }, []);
 
@@ -442,7 +452,8 @@ export const SummaryPage = () => {
             option.variants?.forEach((variant) => {
               if (!variant.enabled) return;
               const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-              const value = (meta.value as string) || variant.name;
+              const overrides = getConfiguratorVariantOverrides({ proxyName, variant });
+              const value = overrides.value || (meta.value as string) || variant.name;
               const sku = (meta.sku as string) || "";
               if (value && sku) map.set(value, sku);
             });
