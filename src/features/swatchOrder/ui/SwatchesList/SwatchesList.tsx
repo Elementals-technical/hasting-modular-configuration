@@ -37,10 +37,13 @@ export const SwatchesList = () => {
           const image = AttributeHelper.getImage(val);
           const hex = AttributeHelper.getHexColor(val) ?? "#e5e5e5";
           const label = AttributeHelper.getValueLabel(val);
+          const finishDisplayName = AttributeHelper.getFinishDisplayName(val);
+          const needsLightBorder = AttributeHelper.getNeedsLightBorder(val);
           const key = `${val.metadata?.label ?? index}/${val.parentName}`;
 
           return (
             <div key={key} className={s.tileWrap}>
+ 
               <Hint content={label} placement="top">
                 <span
                   className={s.tile}
@@ -51,6 +54,7 @@ export const SwatchesList = () => {
                   aria-label={label}
                 />
               </Hint>
+ 
               <button
                 type="button"
                 className={s.removeBtn}

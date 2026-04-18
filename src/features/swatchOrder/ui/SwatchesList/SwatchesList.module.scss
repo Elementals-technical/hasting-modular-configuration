@@ -54,6 +54,13 @@
 
 .tileWrap {
   position: relative;
+
+  &:hover .tileTooltip,
+  &:focus-within .tileTooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -6px);
+  }
 }
 
 .tile {
@@ -64,6 +71,33 @@
   background-size: cover;
   background-position: center;
   border: 1px solid #d8d2c9;
+}
+
+.tileLightBorder {
+  border-color: #f4eeec;
+}
+
+.tileTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 10px;
+  background: #2d2b28;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  font-style: normal;
+  font-weight: 400;
+  text-align: center;
+  border-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 6;
 }
 
 .tileEmpty {

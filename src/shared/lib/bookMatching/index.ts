@@ -5,9 +5,14 @@ const GRAIN_VERTICAL = "GrainVertical";
 
 const SELECT_GRAIN_REASON = "Select grain direction first.";
 const HORIZONTAL_GRAIN_REASON = "Horizontal grain requires at least 2 adjacent drawer cabinets.";
+const VERTICAL_GRAIN_REASON = "Vertical book matching is only available for 2 drawer cabinet styles.";
 const BOOK_MATCHING_UNAVAILABLE_REASON = "Book matching is not available.";
 
+const SINGLE_DRAWER_VALUES = new Set(["1", "1D", "1DW", "1+INNER", "1DWID"]);
+const DOUBLE_DRAWER_VALUES = new Set(["2", "2D", "2DW"]);
+
 type BookMatchingDirection = BookMatchingSkuInput["direction"];
+type BookMatchingDrawerStyle = "single" | "double";
 
 export type BookMatchingCabinetInput = {
   name?: string | null;
@@ -75,6 +80,16 @@ const parseDrawerCount = (value?: string | null): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const normalizeBookMatchingDrawerStyle = (drawers?: string | null): BookMatchingDrawerStyle | null => {
+  const normalized = drawers?.trim().toUpperCase();
+  if (!normalized) return null;
+
+  if (SINGLE_DRAWER_VALUES.has(normalized)) return "single";
+  if (DOUBLE_DRAWER_VALUES.has(normalized)) return "double";
+
+  return null;
+};
+
 export const normalizeBookMatchingDirection = (grainDirection?: string | null): BookMatchingDirection | null => {
   if (grainDirection === GRAIN_HORIZONTAL) return "H";
   if (grainDirection === GRAIN_VERTICAL) return "V";
@@ -101,6 +116,39 @@ export const hasAdjacentBookMatchingEligibleCabinets = (cabinets: readonly BookM
   return false;
 };
 
+const getHorizontalBookMatchingChargeableCabinets = (
+  cabinets: readonly BookMatchingCabinetInput[],
+): BookMatchingCabinetInput[] => {
+  const chargeableCabinets: BookMatchingCabinetInput[] = [];
+  let contiguousEligibleGroup: BookMatchingCabinetInput[] = [];
+
+  const flushGroup = () => {
+    if (contiguousEligibleGroup.length >= 2) {
+      chargeableCabinets.push(...contiguousEligibleGroup);
+    }
+    contiguousEligibleGroup = [];
+  };
+
+  cabinets.forEach((cabinet) => {
+    if (isBookMatchingEligibleCabinet(cabinet.name)) {
+      contiguousEligibleGroup.push(cabinet);
+      return;
+    }
+
+    flushGroup();
+  });
+
+  flushGroup();
+
+  return chargeableCabinets;
+};
+
+const hasIncompatibleVerticalBookMatchingCabinets = (cabinets: readonly BookMatchingCabinetInput[]): boolean =>
+  cabinets.some(
+    (cabinet) =>
+      isBookMatchingEligibleCabinet(cabinet.name) && normalizeBookMatchingDrawerStyle(cabinet.drawers) === "single",
+  );
+
 export const deriveBookMatchingAvailability = ({
   grainDirection,
   cabinets,
@@ -119,6 +167,14 @@ export const deriveBookMatchingAvailability = ({
   }
 
   if (direction === "V") {
+    if (hasIncompatibleVerticalBookMatchingCabinets(cabinets)) {
+      return {
+        available: false,
+        reason: VERTICAL_GRAIN_REASON,
+        direction,
+      };
+    }
+
     return {
       available: true,
       direction,
@@ -150,13 +206,16 @@ export const deriveBookMatchingChargeInfo = ({
   materialSku?: string | null;
   cabinets: readonly BookMatchingCabinetInput[];
 }): BookMatchingChargeInfo => {
-  const eligibleCabinets = cabinets.filter((cabinet) => isBookMatchingEligibleCabinet(cabinet.name));
-  const eligibleCabinetCount = eligibleCabinets.length;
   const availability = deriveBookMatchingAvailability({
     grainDirection,
     cabinets,
   });
-  const parsedDrawerQty = eligibleCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
+  const chargeableCabinets =
+    availability.direction === "H"
+      ? getHorizontalBookMatchingChargeableCabinets(cabinets)
+      : cabinets.filter((cabinet) => isBookMatchingEligibleCabinet(cabinet.name));
+  const eligibleCabinetCount = chargeableCabinets.length;
+  const parsedDrawerQty = chargeableCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
   const drawerQty = availability.available ? parsedDrawerQty || eligibleCabinetCount : 0;
   const sku = availability.direction
     ? buildBookMatchingSku({

@@ -16,6 +16,7 @@ import {
   getCabinetColorMaterial,
   getGrainDirection,
   getHasBootstrappedCabinetBuilder,
+  getPlacedCabinetStyles,
   getProductsPresets,
   getSelectedDimensions,
   getSelectedProducts,
@@ -30,12 +31,18 @@ export const selectGrainDirectionState = createSelector(
 );
 
 export const selectBookMatchingState = createSelector(
-  [getGrainDirection, getSelectedProducts, getProductsPresets, getHasBootstrappedCabinetBuilder],
-  (grainDirection, productIds, productsPresets, hasBootstrappedCabinetBuilder) => {
+  [getGrainDirection, getSelectedProducts, getProductsPresets, getHasBootstrappedCabinetBuilder, getPlacedCabinetStyles],
+  (grainDirection, productIds, productsPresets, hasBootstrappedCabinetBuilder, placedCabinetStyles) => {
     const cabinets =
       productIds.length > 0 || hasBootstrappedCabinetBuilder
-        ? productIds.map((productId) => ({ name: productId }))
-        : productsPresets.map((preset) => ({ name: preset.name }));
+        ? productIds.map((productId) => ({
+            name: productId,
+            drawers: placedCabinetStyles[productId] ?? null,
+          }))
+        : productsPresets.map((preset) => ({
+            name: preset.name,
+            drawers: preset.Drawers ?? null,
+          }));
 
     return bookMatchingRule({
       grainDirection,

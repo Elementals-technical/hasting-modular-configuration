@@ -21,12 +21,28 @@ export const AttributeHelper = {
     return resolveImageUrl(toOptionalString(raw));
   },
 
+  getNeedsLightBorder(value: AttributeValue): boolean {
+    const hex = toOptionalString(value?.metadata?.hex ?? value?.metadata?.Hex)?.trim();
+    const isLightHex = typeof hex === "string" && /^#?(f{3}|f{6})$/i.test(hex);
+    return isLightHex || value?.metadata?.lightBorder === true;
+  },
+
   getValueLabel(attribute: AttributeValue): string {
     return (
       toOptionalString(attribute?.metadata?.label ?? attribute?.metadata?.Label) ??
       attribute?.name ??
       "Unnamed"
     );
+  },
+
+  getFinishDisplayName(attribute: AttributeValue): string {
+    const label = AttributeHelper.getValueLabel(attribute);
+    const code = toOptionalString(attribute?.metadata?.value ?? attribute?.value)?.trim();
+    if (!code) return label;
+
+    const normalizedLabel = label.toLowerCase();
+    const normalizedCode = code.toLowerCase();
+    return normalizedLabel.includes(normalizedCode) ? label : `${label} ${code}`;
   },
 
   getHexColor(value: AttributeValue): string | null {
