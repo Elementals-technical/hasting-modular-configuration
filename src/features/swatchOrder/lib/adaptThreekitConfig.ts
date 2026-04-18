@@ -14,6 +14,7 @@ import {
   resolveCountertopNeedsLightBorder,
   resolveCountertopFallbackTexture,
 } from "@/entities/countertop";
+import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 
 const uid = () =>
@@ -128,17 +129,19 @@ export const adaptThreekitConfig = (
             ? outer.metadata
             : {}
         ) as Record<string, unknown>;
+        const overrides = getConfiguratorVariantOverrides({ proxyName: parentName, variant });
 
         const label = pickString(
           outer.label,
           outer.Label,
           nested.label,
           nested.Label,
+          overrides.label,
           variant.name,
         );
         if (!label) continue;
 
-        const value = pickString(outer.value, nested.value, variant.name) ?? label;
+        const value = pickString(outer.value, nested.value, overrides.value, variant.name) ?? label;
 
         const explicitMaterial = pickString(nested.Material, outer.Material);
         const material =
@@ -151,6 +154,7 @@ export const adaptThreekitConfig = (
               }) ?? explicitMaterial ?? option.name
             : explicitMaterial ?? option.name;
         const rawImage =
+          overrides.image ??
           pickString(nested.image, outer.image, outer.Image, nested.Image) ??
           (typeof variant.image === "string" ? variant.image : undefined);
         const image =

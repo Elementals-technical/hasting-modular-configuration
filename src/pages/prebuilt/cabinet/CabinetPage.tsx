@@ -51,6 +51,7 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
@@ -154,12 +155,13 @@ export const CabinetPage = () => {
   };
 
   const getVariantMeta = useCallback(
-    (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
+    (proxyName: string, variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
       const meta = (variant.metadata ?? {}) as Record<string, unknown>;
       const nested =
         typeof meta.metadata === "object" && meta.metadata
           ? (meta.metadata as Record<string, unknown>)
           : ({} as Record<string, unknown>);
+      const overrides = getConfiguratorVariantOverrides({ proxyName, variant });
       const pick = (...values: unknown[]): string | undefined => {
         for (const v of values) {
           const str = toOptionalString(v);
@@ -172,9 +174,9 @@ export const CabinetPage = () => {
         color: pick(nested.Color, meta.Color),
         look: pick(nested.Look, meta.Look),
         hex: pick(nested.hex, meta.hex),
-        image: pick(nested.image, meta.image, variant.image),
-        value: pick(meta.value, nested.value, variant.name),
-        label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
+        image: overrides.image ?? pick(nested.image, meta.image, variant.image),
+        value: pick(meta.value, nested.value, overrides.value, variant.name),
+        label: pick(meta.label, meta.Label, nested.label, nested.Label, overrides.label, variant.name),
         sku: pick(meta.sku, nested.sku),
       };
     },
@@ -189,7 +191,7 @@ export const CabinetPage = () => {
           option.variants
             .filter((variant) => isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant }))
             .map((variant) => {
-              const meta = getVariantMeta(variant);
+              const meta = getVariantMeta(group.proxyName, variant);
               return {
                 id: variant.id,
                 title: meta.label ?? variant.name,
@@ -228,7 +230,7 @@ export const CabinetPage = () => {
           if (option.name) materialSet.add(option.name);
           option.variants?.forEach((variant) => {
             if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return;
-            const meta = getVariantMeta(variant);
+            const meta = getVariantMeta(group.proxyName, variant);
             if (meta.material) toStringArrayFromCsv(meta.material).forEach((v) => materialSet.add(v));
             toStringArrayFromCsv(meta.color).forEach((v) => colorSet.add(v));
             toStringArrayFromCsv(meta.look).forEach((v) => lookSet.add(v));

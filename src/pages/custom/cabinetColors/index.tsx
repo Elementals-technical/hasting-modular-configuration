@@ -16,6 +16,7 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { deriveBookMatchingAvailability } from "@/shared/lib/bookMatching";
 
@@ -98,12 +99,13 @@ export const CustomCabinetColorsPage = () => {
   };
 
   const getVariantMeta = useCallback(
-    (variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
+    (proxyName: string, variant: { metadata?: Record<string, unknown>; name: string; image?: string | null }) => {
       const meta = (variant.metadata ?? {}) as Record<string, unknown>;
       const nested =
         typeof meta.metadata === "object" && meta.metadata
           ? (meta.metadata as Record<string, unknown>)
           : ({} as Record<string, unknown>);
+      const overrides = getConfiguratorVariantOverrides({ proxyName, variant });
 
       const pick = (...values: unknown[]): string | undefined => {
         for (const value of values) {
@@ -118,9 +120,9 @@ export const CustomCabinetColorsPage = () => {
         color: pick(nested.Color, meta.Color),
         look: pick(nested.Look, meta.Look),
         hex: pick(nested.hex, meta.hex),
-        image: pick(nested.image, meta.image, variant.image),
-        value: pick(meta.value, nested.value, variant.name),
-        label: pick(meta.label, meta.Label, nested.label, nested.Label, variant.name),
+        image: overrides.image ?? pick(nested.image, meta.image, variant.image),
+        value: pick(meta.value, nested.value, overrides.value, variant.name),
+        label: pick(meta.label, meta.Label, nested.label, nested.Label, overrides.label, variant.name),
       };
     },
     [],
@@ -154,7 +156,7 @@ export const CustomCabinetColorsPage = () => {
           option.variants?.forEach((variant) => {
             if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return;
 
-            const meta = getVariantMeta(variant);
+            const meta = getVariantMeta(group.proxyName, variant);
 
             if (meta.material) {
               toStringArrayFromCsv(meta.material).forEach((value) => materialSet.add(value));
@@ -201,7 +203,7 @@ export const CustomCabinetColorsPage = () => {
           option.variants
             .filter((variant) => isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant }))
             .map((variant) => {
-              const meta = getVariantMeta(variant);
+              const meta = getVariantMeta(group.proxyName, variant);
 
               return {
                 id: variant.id,
