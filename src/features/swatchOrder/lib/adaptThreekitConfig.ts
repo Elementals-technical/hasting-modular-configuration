@@ -14,6 +14,7 @@ import {
   resolveCountertopNeedsLightBorder,
   resolveCountertopFallbackTexture,
 } from "@/entities/countertop";
+import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 
 const uid = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
@@ -119,7 +120,7 @@ export const adaptThreekitConfig = (
 
     for (const option of group.options ?? []) {
       for (const variant of option.variants ?? []) {
-        if (!variant.enabled) continue;
+        if (!isVisibleConfiguratorVariant({ proxyName: parentName, variant })) continue;
 
         const outer = (variant.metadata ?? {}) as Record<string, unknown>;
         const nested = (

@@ -61,7 +61,13 @@ const inferCountertopStyleFromSinkType = (sinkType: string): "Vessel" | "Integra
   return "Integrated";
 };
 
-const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]) => {
+type PresetSceneDefaults = {
+  CountertopColor?: string;
+  sinkType?: string;
+  CountertopStyle?: "Vessel" | "Integrated";
+};
+
+const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSceneDefaults => {
   if (!presetProducts?.length) return {};
 
   const firstWithCountertop = presetProducts.find(
@@ -69,7 +75,7 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]) => {
   );
   const firstWithSink = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType.trim());
 
-  const globalConfig: Record<string, string> = {};
+  const globalConfig: PresetSceneDefaults = {};
   if (firstWithCountertop?.CountertopColor) globalConfig.CountertopColor = firstWithCountertop.CountertopColor;
   if (firstWithSink?.sinkType) {
     globalConfig.sinkType = firstWithSink.sinkType;

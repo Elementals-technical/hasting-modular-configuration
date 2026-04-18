@@ -51,6 +51,7 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
@@ -186,7 +187,7 @@ export const CabinetPage = () => {
       return groups.flatMap((group) =>
         group.options.flatMap((option) =>
           option.variants
-            .filter((variant) => variant.enabled)
+            .filter((variant) => isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant }))
             .map((variant) => {
               const meta = getVariantMeta(variant);
               return {
@@ -226,7 +227,7 @@ export const CabinetPage = () => {
         group.options.forEach((option) => {
           if (option.name) materialSet.add(option.name);
           option.variants?.forEach((variant) => {
-            if (!variant.enabled) return;
+            if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return;
             const meta = getVariantMeta(variant);
             if (meta.material) toStringArrayFromCsv(meta.material).forEach((v) => materialSet.add(v));
             toStringArrayFromCsv(meta.color).forEach((v) => colorSet.add(v));
