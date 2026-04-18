@@ -2,6 +2,7 @@ import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabin
 import { cmToInches } from "@/shared/lib/sku";
 
 import type { OptionState, RuleContext, RuleResult } from "../model/types";
+import { parseHeightMapping } from "./handleForcedHeight";
 
 const HANDLE_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "handle_pto", label: "Push to open" },
@@ -13,17 +14,6 @@ const DEFAULT_ALLOWED_HANDLES = HANDLE_OPTIONS.map((option) => option.value);
 const CENTRAL_GROOVE_REASON = "Available only for selected drawers";
 const HANDLE_HEIGHT_REASON = "Required for selected handle";
 const DEFAULT_HANDLE_HEIGHT_REASON = "Required for selected handle and all products";
-
-const parseHeightMapping = (raw: string): Record<string, number> =>
-  Object.fromEntries(
-    raw.split("|").flatMap((entry) => {
-      const colonIdx = entry.indexOf(":");
-      if (colonIdx === -1) return [];
-      const key = entry.slice(0, colonIdx).trim();
-      const num = Number(entry.slice(colonIdx + 1).trim());
-      return key && Number.isFinite(num) ? [[key, num]] : [];
-    }),
-  );
 
 const supportsHeightForAllProducts = (
   productIds: string[] | undefined,
