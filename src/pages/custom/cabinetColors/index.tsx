@@ -16,6 +16,7 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { deriveBookMatchingAvailability } from "@/shared/lib/bookMatching";
 
 import { optionsMockData3, optionsMockData4 } from "./constants";
@@ -151,7 +152,7 @@ export const CustomCabinetColorsPage = () => {
           if (option.name) materialSet.add(option.name);
 
           option.variants?.forEach((variant) => {
-            if (!variant.enabled) return;
+            if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return;
 
             const meta = getVariantMeta(variant);
 
@@ -198,7 +199,7 @@ export const CustomCabinetColorsPage = () => {
       return groups.flatMap((group) =>
         group.options.flatMap((option) =>
           option.variants
-            .filter((variant) => variant.enabled)
+            .filter((variant) => isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant }))
             .map((variant) => {
               const meta = getVariantMeta(variant);
 
