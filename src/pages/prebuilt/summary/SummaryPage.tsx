@@ -1202,10 +1202,8 @@ export const SummaryPage = () => {
           };
         });
       }
-      const itemCount = lineTitle === "Basin" ? sinkBaseCountForHcut : 1;
-      const linePrice = isVesselCutoutLine
-        ? formatPrice((priceBySku[line] ?? 0) * sinkBaseCountForHcut)
-        : resolveItemPrice(line);
+      const itemCount = lineTitle === "Basin" || isVesselCutoutLine ? sinkBaseCountForHcut : 1;
+      const linePrice = resolveItemPrice(line);
 
       return Array.from({ length: itemCount }, (_, index) => ({
         id: `countertop-sku-${i + 1}-${index}`,
@@ -1214,10 +1212,11 @@ export const SummaryPage = () => {
         sku: line,
         price: linePrice,
         copyable: true,
-        showInfo: isBasinLine,
+        showInfo: isBasinLine || isVesselCutoutLine,
         description: {
-          "Product Category": lineTitle,
+          ...(isVesselCutoutLine ? { Countertop: lineTitle } : { "Product Category": lineTitle }),
           ...(isBasinLine && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
+          ...(isVesselCutoutLine && resolvedSinkType ? { "Basin Style": formatBasinStyle(resolvedSinkType) } : {}),
         },
       }));
     });
