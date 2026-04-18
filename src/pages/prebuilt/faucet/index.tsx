@@ -16,12 +16,11 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { setFaucetHolesAmount } from "@/entities/product/model/store/slice";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
   getSupportedCountertopFaucetHoles,
   normalizeFaucetHoleToken,
-  parseCountertopMatrix,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
   buildCountertopColorSkuCandidates,
@@ -41,14 +40,13 @@ export const FaucetPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
 
-  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
   const { data: counterTopMaterials } = useGetConfiguratorQuery({
     id: 4,
     view: "full",
     serialize: true,
   });
 
-  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
+  const countertopRules = useCountertopRules();
   const countertopColorSkuCandidatesByValue = useMemo(
     () => buildCountertopColorSkuCandidates(counterTopMaterials?.availableOptions),
     [counterTopMaterials?.availableOptions],

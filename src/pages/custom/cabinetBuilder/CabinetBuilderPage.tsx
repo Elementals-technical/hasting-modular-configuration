@@ -57,7 +57,6 @@ import {
   getActiveCountertopThickness,
   getCabinetCatalog,
   getCabinetColor,
-  getCountertopColorSku,
   getCountertopStyle,
   getHandleGrooveColor,
   getActiveCountertopColor,
@@ -78,8 +77,10 @@ import {
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { applyConfiguratorRules } from "@/features/configurator-rule-core/cabinetBuilder";
-import { parseCountertopMatrix, resolveCountertopMaxLengthByRules } from "@/features/configurator-rule-core/countertop";
-import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
+import {
+  formatCompositionLengthReachedReason,
+  useCountertopLengthGuard,
+} from "@/features/configurator-rule-core/countertop";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -95,12 +96,10 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useGetProductDatatableQuery } from "@/entities/product/api";
-import { useGetCountertopDatatableQuery } from "@/entities/countertop";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
-import { cmToInches } from "@/shared/lib/sku";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { store, type RootState } from "@/app/store";
@@ -118,7 +117,6 @@ const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
 const MATRIX_CABINET_DATATABLE_ID = 439;
-const MATRIX_COUNTERTOP_DATATABLE_ID = 438;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
@@ -184,7 +182,6 @@ export const CabinetBuilderPage = () => {
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
-  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const sinkType = useAppSelector(getSinkType);
@@ -201,30 +198,18 @@ export const CabinetBuilderPage = () => {
 
   const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
     useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
-  const { data: counterTopData } = useGetCountertopDatatableQuery(MATRIX_COUNTERTOP_DATATABLE_ID);
 
   // console.log("matrixCabinetTable", matrixCabinetTable);
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
-  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, selectedDimensions.width ?? null);
-  const countertopRules = useMemo(() => parseCountertopMatrix(counterTopData), [counterTopData]);
-
-  const maxCountertopLength = useMemo(
-    () =>
-      resolveCountertopMaxLengthByRules({
-        rules: countertopRules,
-        materialTokens: countertopColorSku ? [countertopColorSku] : [],
-        style: countertopStyle ?? null,
-        depth: selectedDimensions.depth ?? null,
-        thickness: countertopThickness ?? null,
-        activeBasinStyle: sinkType ?? null,
-      }),
-    [countertopColorSku, countertopRules, countertopStyle, countertopThickness, selectedDimensions.depth, sinkType],
-  );
-
-  const remainingCountertopLength =
-    maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+  const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
+  const maxCountertopLength = lengthGuard.max;
+  const remainingCountertopLength = lengthGuard.remaining;
+  const compositionExceededReason =
+    maxCountertopLength !== null
+      ? formatCompositionLengthReachedReason(maxCountertopLength)
+      : "Maximum composition length reached for the selected countertop setup.";
 
   const addableCatalogWidths = useMemo(() => {
     const values = cabinetCatalog.typeCabinetRules
@@ -237,14 +222,12 @@ export const CabinetBuilderPage = () => {
 
   const canAddCabinetByLength = useMemo(() => {
     if (!hasProducts) return true;
-    if (remainingCountertopLength === null) return true;
     if (!addableCatalogWidths.length) return true;
-    return addableCatalogWidths.some((width) => width <= remainingCountertopLength + 0.01);
-  }, [addableCatalogWidths, hasProducts, remainingCountertopLength]);
+    return addableCatalogWidths.some(lengthGuard.canAccommodate);
+  }, [addableCatalogWidths, hasProducts, lengthGuard.canAccommodate]);
 
   const hasAddableWidthForActiveType = useMemo(() => {
     if (!hasProducts) return true;
-    if (remainingCountertopLength === null) return true;
 
     const activeTypeWidths = dimensionOptions.width
       .filter((option) => !option.disabled)
@@ -252,8 +235,8 @@ export const CabinetBuilderPage = () => {
       .filter((value) => Number.isFinite(value) && value > 0);
 
     if (!activeTypeWidths.length) return false;
-    return activeTypeWidths.some((width) => width <= remainingCountertopLength + 0.01);
-  }, [dimensionOptions.width, hasProducts, remainingCountertopLength]);
+    return activeTypeWidths.some(lengthGuard.canAccommodate);
+  }, [dimensionOptions.width, hasProducts, lengthGuard.canAccommodate]);
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
@@ -288,10 +271,7 @@ export const CabinetBuilderPage = () => {
         value: String(value),
         isAvailable: (ruleOption ? !ruleOption.disabled : true) && hasAddableWidthForActiveType,
         disabledReason:
-          !hasAddableWidthForActiveType && hasProducts
-            ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm / ${cmToInches(maxCountertopLength)}")` : ""
-            }.`
-            : ruleOption?.reason,
+          !hasAddableWidthForActiveType && hasProducts ? compositionExceededReason : ruleOption?.reason,
         isMixingRestricted,
         isShortDesc: meta.isShortDesc ?? false,
         metadata: {
@@ -362,8 +342,7 @@ export const CabinetBuilderPage = () => {
                 : isSideShelfHandleBlocked
                   ? "This cabinet type is only compatible with a PTO handle."
                   : isLengthLimited
-                    ? `Maximum composition length reached for the selected countertop setup${maxCountertopLength !== null ? ` (${maxCountertopLength} cm / ${cmToInches(maxCountertopLength)}")` : ""
-                    }.`
+                    ? compositionExceededReason
                     : undefined;
 
           return {

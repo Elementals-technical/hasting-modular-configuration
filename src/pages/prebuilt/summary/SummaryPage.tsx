@@ -66,12 +66,12 @@ import {
   resolveCountertopColorSkuFromCandidates,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
-import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 import {
   normalizeMaterialToken,
-  parseCountertopMatrix,
   resolveDefaultThicknessFromRules,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
   adaptThreekitConfig,
@@ -429,8 +429,7 @@ export const SummaryPage = () => {
     view: "full",
     serialize: true,
   });
-  const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
-  const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
+  const countertopRules = useCountertopRules();
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
     const groups = cabinetColors?.availableOptions ?? [];

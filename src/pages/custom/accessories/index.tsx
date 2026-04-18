@@ -16,6 +16,7 @@ import {
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
+import { getSidePanelLeftStatus, getSidePanelRightStatus } from "@/features/sidePanel";
 import {
   addPlacedDivider,
   clearPlacedDividers,
@@ -55,9 +56,12 @@ import {
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
+import {
+  formatSidePanelsExceedMaxReason,
+  useCountertopLengthGuard,
+} from "@/features/configurator-rule-core/countertop";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
-import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { applyGroove, autoRemoveBoth, isGrooveType } from "@/features/sidePanel";
 
 export const CustomAccessoriesPage = () => {
@@ -86,8 +90,11 @@ export const CustomAccessoriesPage = () => {
   });
 
   const sidePanelAvailability = useAppSelector(selectSidePanelAvailability);
-  const sceneTotalWidth = useSceneTotalWidth(selectedProducts, null);
-  const sidePanelsBlockedByLength340 = sceneTotalWidth !== null && Math.abs(sceneTotalWidth - 340) < 0.01;
+  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
+  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
+  const lengthGuard = useCountertopLengthGuard(selectedProducts);
+  const sidePanelsBlockedByLength340 =
+    lengthGuard.currentCabinetOnly !== null && Math.abs(lengthGuard.currentCabinetOnly - 340) < 0.01;
   const sidePanelsLengthReason = `Side panels are not available when total vanity length is exactly 340 cm (${cmToInches(340)}").`;
 
   const isEdgeCabinet = useMemo(() => {
@@ -95,6 +102,29 @@ export const CustomAccessoriesPage = () => {
     const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
     return activeCabinetId === leftCabinetId || activeCabinetId === rightCabinetId;
   }, [activeCabinetId, isPlayCanvasReady]);
+
+  // Resolve the side(s) the SP toggle would affect — mirrors handleSidePanelsChange.
+  const resolvedSpSide = useMemo<"left" | "right" | "both">(() => {
+    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
+    if (!activeCabinetId || !isEdgeCabinet) return "both";
+    if (selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)) return "both";
+    if (activeCabinetId === leftCabinetId) return "left";
+    if (activeCabinetId === rightCabinetId) return "right";
+    return "both";
+  }, [activeCabinetId, isEdgeCabinet, selectedProducts.length]);
+
+  /** Projected total countertop width after applying the given groove value. */
+  const computeTotalAfterSpChange = useCallback(
+    (value: string): number | null => {
+      if (lengthGuard.currentCabinetOnly === null) return null;
+      if (value === "None") return lengthGuard.currentCabinetOnly;
+      const leftAfter = resolvedSpSide !== "right" || sidePanelLeft === "active";
+      const rightAfter = resolvedSpSide !== "left" || sidePanelRight === "active";
+      const plannedSpCm = (leftAfter ? 1 : 0) + (rightAfter ? 1 : 0);
+      return lengthGuard.currentCabinetOnly + plannedSpCm;
+    },
+    [lengthGuard.currentCabinetOnly, resolvedSpSide, sidePanelLeft, sidePanelRight],
+  );
 
   const sidePanelOptions = useMemo(() => {
     if (sidePanelsBlockedByLength340) {
@@ -104,12 +134,30 @@ export const CustomAccessoriesPage = () => {
     const allowed = new Set<string>(["None"]);
     sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
 
-    return optionsSidePanelsData.filter((option) => {
-      const value = option.metadata?.value;
-      if (!value) return true;
-      return allowed.has(value);
-    });
-  }, [sidePanelAvailability.allowed, sidePanelsBlockedByLength340]);
+    return optionsSidePanelsData
+      .filter((option) => {
+        const value = option.metadata?.value;
+        if (!value) return true;
+        return allowed.has(value);
+      })
+      .map((option) => {
+        const value = option.metadata?.value;
+        if (!value || value === "None") return option;
+        const totalAfter = computeTotalAfterSpChange(value);
+        if (totalAfter === null || lengthGuard.max === null) return option;
+        if (lengthGuard.canAccommodateTotal(totalAfter)) return option;
+        return {
+          ...option,
+          isAvailable: false,
+          disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max),
+        };
+      });
+  }, [
+    sidePanelAvailability.allowed,
+    sidePanelsBlockedByLength340,
+    computeTotalAfterSpChange,
+    lengthGuard,
+  ]);
 
   useEffect(() => {
     if (!sidePanelsBlockedByLength340) return;
@@ -579,22 +627,14 @@ export const CustomAccessoriesPage = () => {
     if (!value) return;
     if (!isGrooveType(value)) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
+    if (value !== "None") {
+      const totalAfter = computeTotalAfterSpChange(value);
+      if (totalAfter !== null && !lengthGuard.canAccommodateTotal(totalAfter)) return;
+    }
 
     await saveSnapshot();
 
-    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const side: "left" | "right" | "both" =
-      !activeCabinetId || !isEdgeCabinet
-        ? "both"
-        : selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)
-          ? "both"
-          : activeCabinetId === leftCabinetId
-            ? "left"
-            : activeCabinetId === rightCabinetId
-              ? "right"
-              : "both";
-
-    await applyGroove(dispatch, value, side, selectedProducts.length);
+    await applyGroove(dispatch, value, resolvedSpSide, selectedProducts.length);
   };
 
   const handleDividersChange = (value: string | null) => {

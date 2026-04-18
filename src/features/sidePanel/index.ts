@@ -19,6 +19,7 @@ export {
 // Hooks
 export { useSidePanelActions } from "./hooks/useSidePanelActions";
 export { useSidePanelEnforce } from "./hooks/useSidePanelEnforce";
+export { useSceneTotalWidthWithSidePanels } from "./hooks/useSceneTotalWidthWithSidePanels";
 
 // Selectors
 export {

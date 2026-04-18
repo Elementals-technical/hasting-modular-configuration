@@ -6,6 +6,13 @@ import {
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
 } from "./parse";
+import { cmToInches } from "@/shared/lib/sku/cmToInches";
+
+export const formatCompositionLengthReachedReason = (maxCm: number): string =>
+  `Maximum composition length reached for the selected countertop setup (${maxCm} cm / ${cmToInches(maxCm)}").`;
+
+export const formatSidePanelsExceedMaxReason = (withPanelsCm: number, maxCm: number): string =>
+  `Enabling side panels would exceed max countertop length (with panels: ${withPanelsCm} cm / ${cmToInches(withPanelsCm)}", max ${maxCm} cm / ${cmToInches(maxCm)}").`;
 
 type CountertopStyle = "integrated" | "vessel" | "undermount" | "plain";
 
