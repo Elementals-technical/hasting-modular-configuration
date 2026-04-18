@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { Hint } from "@/shared/ui/Hint/Hint";
 import {
   getIsAutofillEnabled,
   getSelectedMaterials,
@@ -42,17 +43,18 @@ export const SwatchesList = () => {
 
           return (
             <div key={key} className={s.tileWrap}>
-              <span
-                className={`${s.tile} ${needsLightBorder ? s.tileLightBorder : ""}`}
-                style={{
-                  backgroundColor: image ? undefined : hex,
-                  backgroundImage: image ? `url(${image})` : undefined,
-                }}
-                aria-label={label}
-              />
-              <span className={s.tileTooltip} role="tooltip">
-                {finishDisplayName}
-              </span>
+ 
+              <Hint content={label} placement="top">
+                <span
+                  className={s.tile}
+                  style={{
+                    backgroundColor: image ? undefined : hex,
+                    backgroundImage: image ? `url(${image})` : undefined,
+                  }}
+                  aria-label={label}
+                />
+              </Hint>
+ 
               <button
                 type="button"
                 className={s.removeBtn}
