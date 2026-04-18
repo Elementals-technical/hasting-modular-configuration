@@ -28,8 +28,9 @@ export const cabinetTypeMetadataByCode: Record<
   },
   "Side-Cabinet": {
     title: "Side Cabinet",
+    desc: "Cabinet without a basin",
     isShortDesc: false,
-    image: sideShelfImage,
+    image: sinkCabinetImage,
   },
   "Side-Shelf": {
     title: "Side Shelf",

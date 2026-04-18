@@ -5,6 +5,7 @@ import {
   type OptionState,
   type Selection,
 } from "@/features/configurator-rule-core/cabinetBuilder";
+import { resolveForcedHeightForHandle } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleForcedHeight";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
@@ -38,7 +39,6 @@ type ProductState = {
   activeDrawerProduct: string;
   selectedProductConfig: ProductConfig | null;
   selectedDimensions: ProductDimensions;
-  heightBeforePto: number | null;
   heightLocked: number | null;
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
@@ -208,9 +208,6 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
   ) {
     const preferred = ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled);
     if (preferred) {
-      if (mapHandleConfigToRule(state.selectedProductConfig.Handle) !== "handle_pto") {
-        state.heightBeforePto = state.selectedDimensions.height;
-      }
       state.selectedProductConfig = {
         ...state.selectedProductConfig,
         Handle: "handle_pto",
@@ -226,7 +223,6 @@ const createInitialState = (): ProductState => {
     activeDrawerProduct: "",
     selectedProductConfig: null,
     selectedDimensions: DEFAULT_DIMENSIONS,
-    heightBeforePto: null,
     heightLocked: null,
 
     hasBootstrappedCabinetBuilder: false,
@@ -468,12 +464,20 @@ const productSlice = createSlice({
 
       const nextHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
 
-      if (prevHandle !== "handle_pto" && nextHandle === "handle_pto") {
-        state.heightBeforePto = state.selectedDimensions.height;
-      }
-
-      if (prevHandle === "handle_pto" && nextHandle !== "handle_pto" && state.heightBeforePto !== null) {
-        state.selectedDimensions.height = state.heightBeforePto;
+      // On PTO exit, switch height to the forced target of the new handle instead of
+      // restoring a pre-PTO snapshot (which can drift across sessions or differ from
+      // the new handle's required height — e.g. CG→PTO→UG needs 56, not the stale 53).
+      if (prevHandle === "handle_pto" && nextHandle !== "handle_pto" && nextHandle !== null) {
+        const drawers = mapDrawerConfigToRule(state.selectedProductConfig?.Drawers);
+        const targetHeight = resolveForcedHeightForHandle({
+          catalog: state.cabinetCatalog,
+          cabinetType: state.activeCabinetType,
+          drawers,
+          handle: nextHandle,
+        });
+        if (typeof targetHeight === "number") {
+          state.selectedDimensions.height = targetHeight;
+        }
       }
 
       // Clear groove color when switching away from urban handles (PTO has no groove)

@@ -36,7 +36,7 @@ export const resolveCabinetTypeImage = (
     return fallback;
   }
 
-  if (name === "Sink-Cabinet") {
+  if (name === "Sink-Cabinet" || name === "Side-Cabinet") {
     if (isSingleDrawer) {
       if (height === 50) return sideCabinet1D_PTO;
       return sideCabinet1D_upperG;
