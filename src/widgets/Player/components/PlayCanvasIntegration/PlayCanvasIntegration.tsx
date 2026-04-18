@@ -2207,10 +2207,14 @@ export const PlayCanvasIntegration = () => {
       return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
     }
 
-    // Side-Shelf (OSS) must always remain at edges — block moves that would push it inward
+    // Side-Shelf (OSS) must always remain at edges — block moves that would push it inward.
+    // Exception: a 2-item scene with exactly 1 cabinet + 1 OSS lets the OSS swap sides,
+    // since both positions are edges and the cabinet would just take the opposite edge.
     const selectedIdx = selectedSceneProduct ? orderedIds.indexOf(selectedSceneProduct) : -1;
     const isSelectedOss = selectedSceneProduct?.startsWith("Side-Shelf-");
-    const ossCannotMove = isSelectedOss && productIds.length > 1;
+    const nonOssIds = orderedIds.filter((id) => !id.startsWith("Side-Shelf-"));
+    const isOneCabinetPlusOneOss = orderedIds.length === 2 && nonOssIds.length === 1;
+    const ossCannotMove = isSelectedOss && productIds.length > 1 && !isOneCabinetPlusOneOss;
 
     const isOssAtEdge = (idx: number) =>
       orderedIds[idx]?.startsWith("Side-Shelf-") &&
