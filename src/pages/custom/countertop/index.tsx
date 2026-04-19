@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import {
   ProductOptionsGrid,
@@ -7,6 +7,7 @@ import {
   type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
   buildMaterialFilters,
@@ -106,7 +107,6 @@ type MaterialFilterOption = {
 };
 
 export const CustomCountertopPage = () => {
-  const { key: locationKey } = useLocation();
   const [searchParams] = useSearchParams();
 
   const dispatch = useAppDispatch();
@@ -1686,12 +1686,12 @@ export const CustomCountertopPage = () => {
   ];
 
   const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString();
-  const [accordionValue, setAccordionValue] = useState(defaultValue);
-
-  useEffect(() => {
-    const target = searchParams.get("accordion");
-    if (target) setAccordionValue(target);
-  }, [searchParams, locationKey]);
+  const accordionValues = ACCORDIONS.map((accordion) => accordion.id);
+  const { value: accordionValue, onValueChange: setAccordionValue } = useSyncedAccordionValue({
+    values: accordionValues,
+    defaultValue,
+    requestedValue: searchParams.get("accordion"),
+  });
 
   return (
     <div className="countertop">
