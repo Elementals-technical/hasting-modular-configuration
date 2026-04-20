@@ -29,6 +29,12 @@ const sum = (arr: AttributeValue[]) => arr.reduce((s, i) => s + (i.count ?? 0), 
 const isSame = (a: AttributeValue, b: AttributeValue) =>
   a.metadata?.label === b.metadata?.label && a.parentName === b.parentName;
 
+const isSameList = (a: AttributeValue[], b: AttributeValue[]) =>
+  a.length === b.length && a.every((item, index) => {
+    const other = b[index];
+    return Boolean(other) && isSame(item, other);
+  });
+
 const swatchOrderSlice = createSlice({
   name: "swatchOrder",
   initialState,
@@ -87,6 +93,7 @@ const swatchOrderSlice = createSlice({
       if (state.selectedMaterials.length === 0) state.hasSubmittedCart = false;
     },
     setCartMaterials(state, action: PayloadAction<AttributeValue[]>) {
+      if (isSameList(state.selectedMaterials, action.payload)) return;
       state.selectedMaterials = action.payload;
       if (action.payload.length === 0) state.hasSubmittedCart = false;
     },
@@ -98,6 +105,9 @@ const swatchOrderSlice = createSlice({
     },
     setAutofillEnabled(state, action: PayloadAction<boolean>) {
       state.isAutofillEnabled = action.payload;
+      if (action.payload) {
+        state.isEnabledInSummary = true;
+      }
       if (!action.payload) {
         state.selectedMaterials = state.manualSelectedMaterials.slice();
         state.hasSubmittedCart = false;

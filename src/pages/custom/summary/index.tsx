@@ -80,7 +80,6 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import {
   adaptThreekitConfig,
-  areSameMaterialLists,
   deriveAutofillMaterials,
   getHasSubmittedCart,
   getIsAutofillEnabled,
@@ -1735,20 +1734,6 @@ export const CustomSummaryPage = () => {
     }
   }, [dispatch, swatchOrderData.allMaterialValues.length, hasSummarySwatches, isSwatchesEnabledInSummary]);
 
-  useEffect(() => {
-    if (!isAutofillEnabled) return;
-    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
-
-    dispatch(setCartMaterials(mergedSummaryMaterials));
-  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
-
-  useEffect(() => {
-    if (!isAutofillEnabled) return;
-    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
-
-    dispatch(setCartMaterials(mergedSummaryMaterials));
-  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
-
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
       if (checked && selectedMaterials.length === 0 && autofillMaterials.length > 0) {
@@ -1921,18 +1906,21 @@ export const CustomSummaryPage = () => {
 
                 return (
                   <div key={swatch.value} className={s.swatchTile}>
-                    <Hint content={swatch.label} placement="top">
-                      <span
-                        className={s.tileColor}
-                        style={{
-                          backgroundColor: swatch.color,
-                          backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                        aria-label={swatch.label}
-                      />
-                    </Hint>
+                    <span
+                      className={s.tileColor}
+                      style={{
+                        backgroundColor: swatch.color,
+                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                      tabIndex={0}
+                      aria-label={swatch.label}
+                      aria-describedby={`summary-swatch-tooltip-${index}`}
+                    />
+                    <span id={`summary-swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
+                      {swatch.label}
+                    </span>
                   </div>
                 );
               })}
