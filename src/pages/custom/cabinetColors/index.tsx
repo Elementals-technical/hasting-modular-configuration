@@ -16,7 +16,10 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
-import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
+import {
+  getConfiguratorVariantOverrides,
+  isHiddenConfiguratorDisplayValue,
+} from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { deriveBookMatchingAvailability } from "@/shared/lib/bookMatching";
 
@@ -59,6 +62,9 @@ import {
 } from "@/entities/product/model/store/slice";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
+
+const isHiddenVariantMeta = (meta: { label?: string; value?: string }): boolean =>
+  isHiddenConfiguratorDisplayValue(meta.label) || isHiddenConfiguratorDisplayValue(meta.value);
 
 export const CustomCabinetColorsPage = () => {
   const { key: locationKey } = useLocation();
@@ -157,6 +163,7 @@ export const CustomCabinetColorsPage = () => {
             if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return;
 
             const meta = getVariantMeta(group.proxyName, variant);
+            if (isHiddenVariantMeta(meta)) return;
 
             if (meta.material) {
               toStringArrayFromCsv(meta.material).forEach((value) => materialSet.add(value));
@@ -200,12 +207,14 @@ export const CustomCabinetColorsPage = () => {
 
       return groups.flatMap((group) =>
         group.options.flatMap((option) =>
-          option.variants
-            .filter((variant) => isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant }))
-            .map((variant) => {
-              const meta = getVariantMeta(group.proxyName, variant);
+          option.variants.flatMap((variant) => {
+            if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return [];
 
-              return {
+            const meta = getVariantMeta(group.proxyName, variant);
+            if (isHiddenVariantMeta(meta)) return [];
+
+            return [
+              {
                 id: variant.id,
                 title: meta.label ?? variant.name,
                 name: variant.name,
@@ -222,8 +231,9 @@ export const CustomCabinetColorsPage = () => {
                   looks: toStringArrayFromCsv(meta.look),
                   hex: meta.hex?.trim(),
                 },
-              };
-            }),
+              },
+            ];
+          }),
         ),
       );
     },
