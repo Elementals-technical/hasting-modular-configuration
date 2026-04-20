@@ -9,8 +9,11 @@ const MATERIAL_ALIASES: Record<string, string[]> = {
   glassmt: ["glass", "glassgl"],
   glassgl: ["glass", "glassmt"],
   // Material SKU aliases used in pricing/config payloads.
-  ssocr: ["ocritech"],
-  ocritech: ["ssocr"],
+  ssocr: ["ocritech", "solidsurface", "sst1c", "sst1d"],
+  ocritech: ["ssocr", "solidsurface", "sst1c", "sst1d"],
+  solidsurface: ["ocritech", "ssocr", "sst1c", "sst1d"],
+  sst1c: ["ocritech", "ssocr", "solidsurface", "sst1d"],
+  sst1d: ["ocritech", "ssocr", "solidsurface", "sst1c"],
   sstkr: ["tekorlux"],
   tekorlux: ["sstkr"],
   sstm: ["tekormud", "tekorund"],
