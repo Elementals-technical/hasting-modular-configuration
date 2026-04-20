@@ -472,6 +472,31 @@
     visibility: visible;
     transform: translate(-50%, -6px);
   }
+
+  &:first-child {
+    .tileTooltip {
+      left: 0;
+      transform: translate(0, 0);
+    }
+
+    &:hover .tileTooltip,
+    &:focus-within .tileTooltip {
+      transform: translate(0, -6px);
+    }
+  }
+
+  &:last-child {
+    .tileTooltip {
+      right: 0;
+      left: auto;
+      transform: translate(0, 0);
+    }
+
+    &:hover .tileTooltip,
+    &:focus-within .tileTooltip {
+      transform: translate(0, -6px);
+    }
+  }
 }
 
 .tileColor {
@@ -502,7 +527,7 @@
   left: 50%;
   transform: translate(-50%, 0);
   width: max-content;
-  max-width: 220px;
+  max-width: min(220px, calc(100vw - 32px));
   padding: 8px 10px;
   background: #2d2b28;
   color: #fff;
