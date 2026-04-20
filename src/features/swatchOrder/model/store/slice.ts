@@ -98,6 +98,9 @@ const swatchOrderSlice = createSlice({
     },
     setAutofillEnabled(state, action: PayloadAction<boolean>) {
       state.isAutofillEnabled = action.payload;
+      if (action.payload) {
+        state.isEnabledInSummary = true;
+      }
       if (!action.payload) {
         state.selectedMaterials = state.manualSelectedMaterials.slice();
         state.hasSubmittedCart = false;
