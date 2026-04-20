@@ -263,8 +263,10 @@ export const filterDepthValuesByCountertopRules = ({
   return values.filter((value) => {
     const numeric = toNumericDimension(value);
     if (numeric === null) return true;
+    const hasMatrixDepths = allowedDepths.size > 0;
 
     if (
+      !hasMatrixDepths &&
       isIntegratedStyle &&
       isIntegratedCountertopDepthRestrictedByMaterial({
         activeMaterialTokens,
@@ -275,6 +277,7 @@ export const filterDepthValuesByCountertopRules = ({
     }
 
     if (
+      !hasMatrixDepths &&
       isIntegratedStyle &&
       isIntegratedCountertopDepthRestrictedByBasin({
         activeBasinStyle,

@@ -462,9 +462,9 @@ export const CountertopPage = () => {
   const isDepth46VesselOnly = useMemo(() => {
     return isIntegratedCountertopDepthRestrictedByMaterial({
       activeMaterialTokens,
-      depth: selectedDimensions.depth ?? null,
+      depth: sinkBaseDims.depth ?? selectedDimensions.depth ?? null,
     });
-  }, [activeMaterialTokens, selectedDimensions.depth]);
+  }, [activeMaterialTokens, selectedDimensions.depth, sinkBaseDims.depth]);
 
   const ruleState = useMemo(
     () =>
@@ -954,12 +954,12 @@ export const CountertopPage = () => {
       optionsMockData2.map((option) => {
         const normalizedStyle = option.title.trim().toLowerCase();
         const isIntegrated = normalizedStyle === "integrated";
-        const blockedByDepth = isDepth46VesselOnly && isIntegrated;
         const styleState =
           normalizedStyle === "integrated" || normalizedStyle === "vessel" || normalizedStyle === "undermount"
             ? ruleState.styleAvailability[normalizedStyle]
             : null;
         const blockedByRules = styleState ? !styleState.isAvailable : false;
+        const blockedByDepth = isDepth46VesselOnly && isIntegrated && styleState?.isAvailable !== true;
         const isAvailable = !(blockedByDepth || blockedByRules);
 
         return {
