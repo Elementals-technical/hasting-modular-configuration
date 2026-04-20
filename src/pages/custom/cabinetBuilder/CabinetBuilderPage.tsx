@@ -76,7 +76,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
-import { applyConfiguratorRules } from "@/features/configurator-rule-core/cabinetBuilder";
+import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
@@ -387,11 +387,11 @@ export const CabinetBuilderPage = () => {
         Handle: "handle_pto",
       }),
     );
-    await setConfigBatch({}, { Handle: "handle_pto" });
+    await setConfigBatch({}, buildHandleStyleConfigPatch("handle_pto", handleGrooveColor));
     dispatch(setActiveCabinetType("Side-Shelf"));
     dispatch(setDrawerProduct("Side-Shelf"));
     dispatch(setOpenStyleSidebar(true));
-  }, [dispatch, saveSnapshot, selectedProductConfig]);
+  }, [dispatch, handleGrooveColor, saveSnapshot, selectedProductConfig]);
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -546,6 +546,7 @@ export const CabinetBuilderPage = () => {
         : rulesResult;
 
     const newHeight = finalRulesResult.nextSelection.height;
+    const newHandleConfig = newHandle !== null ? buildHandleStyleConfigPatch(newHandle, handleGrooveColor) : null;
 
     await saveSnapshot();
 
@@ -558,8 +559,8 @@ export const CabinetBuilderPage = () => {
     // and PlayCanvasIntegration. Per-product-ID calls do not propagate height/handle changes.
     // Always broadcast Handle (even if unchanged) so PlayCanvas re-evaluates its internal
     // height-forcing rules. Then always broadcast Height to ensure the correct value is applied.
-    if (newHandle !== null) {
-      await setConfigBatch({}, { Handle: newHandle });
+    if (newHandleConfig) {
+      await setConfigBatch({}, newHandleConfig);
     }
     if (typeof newHeight === "number") {
       const dimConfig: Record<string, number> = { Height: newHeight };
@@ -584,7 +585,7 @@ export const CabinetBuilderPage = () => {
         await setConfig(productId, {
           ...config,
           Drawers: mappedValue,
-          ...(newHandle !== null ? { Handle: newHandle } : {}),
+          ...(newHandleConfig ?? {}),
           Height: newHeight,
           ...(typeof selectedDimensions.depth === "number" ? { Depth: selectedDimensions.depth } : {}),
         });
@@ -617,6 +618,7 @@ export const CabinetBuilderPage = () => {
     selectedProductConfig,
     selectedProducts,
     cabinetCatalog,
+    handleGrooveColor,
     saveSnapshot,
   ]);
 
