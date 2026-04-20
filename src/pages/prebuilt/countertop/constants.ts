@@ -86,7 +86,7 @@ export const optionsMockData = [
 export const optionsMockData4 = [
   {
     id: 10,
-    title: '0.375"',
+    title: '0.4"',
     value: "0.375",
     isShortDesc: false,
     isSwatchWithHint: false,
@@ -121,7 +121,7 @@ export const optionsMockData4 = [
   },
   {
     id: 14,
-    title: '5.125"',
+    title: '5.1"',
     value: "5.125",
     isShortDesc: false,
     isSwatchWithHint: false,
