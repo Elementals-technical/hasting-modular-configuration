@@ -5,7 +5,8 @@
       "Bash(ls /Users/personal/Desktop/elementals/hasting/hasting-swatchcart-module/src/features/swatches/ui/Filters/*.scss /Users/personal/Desktop/elementals/hasting/hasting-swatchcart-module/src/features/swatches/ui/Filters/*.module.*)",
       "Bash(grep -l \"sidebar\\\\|backdrop\\\\|slide\" /Users/personal/Desktop/elementals/hasting/hasting-modular-configuration/src/features/sidebar/ui/*.tsx)",
       "Bash(echo \"--- exit $? ---\")",
-      "Bash(grep -n \"zoomIn\\\\|zoomOut\" /Users/personal/Desktop/elementals/hasting/hasting-modular-configuration/src/utils/functions/playcanvas/camera/*.ts)"
+      "Bash(grep -n \"zoomIn\\\\|zoomOut\" /Users/personal/Desktop/elementals/hasting/hasting-modular-configuration/src/utils/functions/playcanvas/camera/*.ts)",
+      "Bash(find /Users/personal/Desktop/elementals/hasting/hasting-modular-configuration -name \"*.ts\" -type f -exec grep -l \"deriveBookMatchingAvailability\" {} \\\\;)"
     ]
   }
 }
