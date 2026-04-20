@@ -71,6 +71,11 @@
   background-size: cover;
   background-position: center;
   border: 1px solid #d8d2c9;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px rgba(223, 111, 74, 0.35);
+  }
 }
 
 .tileLightBorder {

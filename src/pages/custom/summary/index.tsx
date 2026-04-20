@@ -1921,18 +1921,21 @@ export const CustomSummaryPage = () => {
 
                 return (
                   <div key={swatch.value} className={s.swatchTile}>
-                    <Hint content={swatch.label} placement="top">
-                      <span
-                        className={s.tileColor}
-                        style={{
-                          backgroundColor: swatch.color,
-                          backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                        aria-label={swatch.label}
-                      />
-                    </Hint>
+                    <span
+                      className={s.tileColor}
+                      style={{
+                        backgroundColor: swatch.color,
+                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                      tabIndex={0}
+                      aria-label={swatch.label}
+                      aria-describedby={`summary-swatch-tooltip-${index}`}
+                    />
+                    <span id={`summary-swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
+                      {swatch.label}
+                    </span>
                   </div>
                 );
               })}
