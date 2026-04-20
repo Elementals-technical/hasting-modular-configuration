@@ -80,7 +80,6 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import {
   adaptThreekitConfig,
-  areSameMaterialLists,
   deriveAutofillMaterials,
   getHasSubmittedCart,
   getIsAutofillEnabled,
@@ -1744,20 +1743,6 @@ export const SummaryPage = () => {
       dispatch(setSwatchesEnabledInSummary(false));
     }
   }, [dispatch, swatchOrderData.allMaterialValues.length, hasSummarySwatches, isSwatchesEnabledInSummary]);
-
-  useEffect(() => {
-    if (!isAutofillEnabled) return;
-    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
-
-    dispatch(setCartMaterials(mergedSummaryMaterials));
-  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
-
-  useEffect(() => {
-    if (!isAutofillEnabled) return;
-    if (areSameMaterialLists(selectedMaterials, mergedSummaryMaterials)) return;
-
-    dispatch(setCartMaterials(mergedSummaryMaterials));
-  }, [dispatch, isAutofillEnabled, selectedMaterials, mergedSummaryMaterials]);
 
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
