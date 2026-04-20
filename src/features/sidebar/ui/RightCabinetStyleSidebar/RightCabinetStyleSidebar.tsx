@@ -55,6 +55,7 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { useGetConfiguratorQuery } from "@/entities";
+import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
@@ -415,13 +416,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     );
 
     if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, { Handle: handleType });
-
-      // Clear groove color in PlayCanvas when switching to non-urban handle
-      const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
-      if (!URBAN_HANDLES.has(handleType)) {
-        await setConfigBatch(selectedProducts, { HandleGrooveColor: "" });
-      }
+      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
     }
   };
 
@@ -439,7 +434,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     );
 
     if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, { Handle: handleType });
+      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
     }
 
     dispatch(setSelectedDimensions(previousDimensions));
@@ -584,15 +579,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   // Sync handle to PlayCanvas when it changes (e.g. auto-reset due to rule change)
   useEffect(() => {
-    const currentHandle = selectedProductConfig?.Handle;
+    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
     const prevHandle = prevHandleRef.current;
-    prevHandleRef.current = currentHandle as string | undefined;
+    prevHandleRef.current = currentHandle;
 
     if (!currentHandle || currentHandle === prevHandle) return;
     if (!selectedProducts.length) return;
 
-    setConfigBatch(selectedProducts, { Handle: currentHandle });
-  }, [selectedProductConfig?.Handle, selectedProducts]);
+    setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor));
+  }, [handleGrooveColor, selectedProductConfig?.Handle, selectedProducts]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {

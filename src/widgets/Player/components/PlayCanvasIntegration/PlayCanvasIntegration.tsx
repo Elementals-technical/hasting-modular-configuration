@@ -51,6 +51,7 @@ import {
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
+  getHandleGrooveColor,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
@@ -86,6 +87,7 @@ import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
+import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -259,6 +261,7 @@ export const PlayCanvasIntegration = () => {
   const sceneTotalWidth = lengthGuard.currentWithSp;
   const maxCountertopLength = lengthGuard.max;
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const wasRestoringRef = useRef(false);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
@@ -1095,7 +1098,7 @@ export const PlayCanvasIntegration = () => {
         dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
 
         if (productIds.length) {
-          await setConfigBatch({}, { Handle: handleType });
+          await setConfigBatch({}, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
         }
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
@@ -1103,7 +1106,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [dispatch, dimensionOptions.handles, productIds, saveSnapshot, selectedProductConfig],
+    [dispatch, dimensionOptions.handles, handleGrooveColor, productIds, saveSnapshot, selectedProductConfig],
   );
 
   // After a handle selection forces a new height via the rules engine, push it to PlayCanvas.
@@ -1119,15 +1122,15 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     const currentHandle =
-      typeof selectedProductConfig?.Handle === "string" ? (selectedProductConfig.Handle as string) : undefined;
+      typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
     const prevHandle = prevHandleRef.current;
     prevHandleRef.current = currentHandle;
 
     if (!currentHandle || currentHandle === prevHandle) return;
     if (!productIds.length) return;
 
-    setConfigBatch({}, { Handle: currentHandle });
-  }, [productIds.length, selectedProductConfig?.Handle]);
+    setConfigBatch({}, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor));
+  }, [handleGrooveColor, productIds.length, selectedProductConfig?.Handle]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
