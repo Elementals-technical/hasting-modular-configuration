@@ -252,6 +252,17 @@ const sidePanelLabelMap: Record<string, string> = {
   DoubleG: "Double Groove",
 };
 
+const SIDE_PANEL_SUMMARY_DEPTH_MAP: Record<number, number> = {
+  46: 45.5,
+  50.5: 50,
+};
+
+const normalizeSidePanelSummaryDepth = (value: number | null): number | null => {
+  if (value === null) return null;
+  const rounded = Math.round(value * 10) / 10;
+  return SIDE_PANEL_SUMMARY_DEPTH_MAP[rounded] ?? value;
+};
+
 export const SummaryPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -1367,7 +1378,7 @@ export const SummaryPage = () => {
             Side: side,
             Width: SIDE_PANEL_WIDTH_CM,
             Height: dims.height,
-            Depth: dims.depth,
+            Depth: normalizeSidePanelSummaryDepth(dims.depth),
             "Cabinet Color": cabinetColor || null,
             "Groove Color": handleGrooveColor || null,
           },

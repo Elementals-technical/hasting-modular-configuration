@@ -5,6 +5,15 @@ const formatInches = (cm: number): string => {
   return str.startsWith("0.") ? str.slice(1) : str;
 };
 
+const SIDE_PANEL_TOOLTIP_DEPTH_MAP: Record<number, number> = {
+  46: 45.5,
+  50.5: 50,
+};
+
+const formatSidePanelDepthInches = (cm: number): string => {
+  return formatInches(SIDE_PANEL_TOOLTIP_DEPTH_MAP[cm] ?? cm);
+};
+
 export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
   const str = (key: string) => {
     const v = desc[key];
@@ -64,7 +73,7 @@ export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
   if (category === "Side Panel") {
     const widthIn = desc.Width != null ? formatInches(Number(desc.Width)) : null;
     const heightIn = desc.Height != null ? formatInches(Number(desc.Height)) : null;
-    const depthIn = desc.Depth != null ? formatInches(Number(desc.Depth)) : null;
+    const depthIn = desc.Depth != null ? formatSidePanelDepthInches(Number(desc.Depth)) : null;
 
     const parts = [
       str("Panel Type") ? `Panel Type: ${str("Panel Type")}` : null,
