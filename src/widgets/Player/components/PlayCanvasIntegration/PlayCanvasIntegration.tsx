@@ -135,11 +135,11 @@ const toFiniteNumber = (value: unknown): number | null => {
   return null;
 };
 
-const thicknessToCm = (thickness: number): number => Number((thickness * 2.54).toFixed(3));
 const formatThicknessLabel = (thickness: number): string => {
-  const normalizedInches = Number(thickness.toFixed(3));
-  const cm = thicknessToCm(normalizedInches);
-  return `${normalizedInches}" (${cm} cm)`;
+  const normalized =
+    Math.abs(thickness - 2.375) < 0.001 || Math.abs(thickness - 2.5) < 0.001 ? 2.4 : thickness;
+  const fixed = normalized.toFixed(1);
+  return `${fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed}"`;
 };
 
 // CM → display-inch lookup from the sizing spec.
@@ -2478,7 +2478,7 @@ export const PlayCanvasIntegration = () => {
         id: "countertop-thickness",
         label: "Thickness",
         children: thicknessOptions.map((value) => {
-          const label = `${value}"`;
+          const label = formatThicknessLabel(value);
           return {
             id: label,
             label,
