@@ -69,6 +69,7 @@ import {
   buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
+  resolveCabinetPricingMaterialSku,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { useGetCountertopDatatableQuery, calcTotalCountertopWidthCm } from "@/entities/countertop";
@@ -578,11 +579,18 @@ export const CustomSummaryPage = () => {
 
   const summarySections: SummarySection[] = useMemo(() => {
     const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
-    const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
-      (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
-      cabinetColorSku ||
-      cabinetColorSkuByName.get(cabinetColor) ||
-      null;
+    const resolveCabinetMaterialSku = (swatchValue?: string | null) => {
+      const materialSku =
+        (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
+        cabinetColorSku ||
+        cabinetColorSkuByName.get(cabinetColor) ||
+        null;
+
+      return resolveCabinetPricingMaterialSku({
+        colorName: swatchValue ?? cabinetColor,
+        materialSku,
+      });
+    };
     const shouldUsePresets = shouldUsePresetProducts({
       productsPresetsCount: productsPresets.length,
       productIdsCount: selectedProducts.length,

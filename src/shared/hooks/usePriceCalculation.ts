@@ -49,6 +49,7 @@ import {
   buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
+  resolveCabinetPricingMaterialSku,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
@@ -312,11 +313,18 @@ export function usePriceCalculation() {
     const skus: string[] = [];
     const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
     const firstPreset = productsPresets[0];
-    const resolveCabinetMaterialSku = (swatchValue?: string | null) =>
-      (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
-      cabinetColorSku ||
-      cabinetColorSkuByName.get(cabinetColor) ||
-      null;
+    const resolveCabinetMaterialSku = (swatchValue?: string | null) => {
+      const materialSku =
+        (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
+        cabinetColorSku ||
+        cabinetColorSkuByName.get(cabinetColor) ||
+        null;
+
+      return resolveCabinetPricingMaterialSku({
+        colorName: swatchValue ?? cabinetColor,
+        materialSku,
+      });
+    };
     const shouldUsePresetCountertopColor =
       shouldUsePresets && countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
     const shouldUsePresetSinkType =
@@ -662,6 +670,7 @@ export function usePriceCalculation() {
       });
     } else {
       // Fallback: single product from selectedProductConfig
+      const cabMaterialSku = resolveCabinetMaterialSku(cabinetColor);
       const cabinetSku = buildProductSku({
         cabinetType: activeCabinetType,
         drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
@@ -670,8 +679,12 @@ export function usePriceCalculation() {
         width: selectedDimensions.width,
         height: selectedDimensions.height,
         depth: selectedDimensions.depth,
-        cab: cabinetColorSku
-          ? { materialSku: cabinetColorSku, colorCode: extractColorCode(cabinetColor), grainDirection: grainSku }
+        cab: cabMaterialSku
+          ? {
+              materialSku: cabMaterialSku,
+              colorCode: extractColorCode(cabinetColor),
+              grainDirection: grainSku,
+            }
           : null,
         hdl: handleMaterialSku
           ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
