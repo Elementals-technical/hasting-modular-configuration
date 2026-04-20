@@ -51,12 +51,18 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
-import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
+import {
+  getConfiguratorVariantOverrides,
+  isHiddenConfiguratorDisplayValue,
+} from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
+
+const isHiddenVariantMeta = (meta: { label?: string; value?: string }): boolean =>
+  isHiddenConfiguratorDisplayValue(meta.label) || isHiddenConfiguratorDisplayValue(meta.value);
 
 export const CabinetPage = () => {
   const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
@@ -188,11 +194,14 @@ export const CabinetPage = () => {
       if (!groups.length) return [];
       return groups.flatMap((group) =>
         group.options.flatMap((option) =>
-          option.variants
-            .filter((variant) => isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant }))
-            .map((variant) => {
-              const meta = getVariantMeta(group.proxyName, variant);
-              return {
+          option.variants.flatMap((variant) => {
+            if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return [];
+
+            const meta = getVariantMeta(group.proxyName, variant);
+            if (isHiddenVariantMeta(meta)) return [];
+
+            return [
+              {
                 id: variant.id,
                 title: meta.label ?? variant.name,
                 name: variant.name,
@@ -209,8 +218,9 @@ export const CabinetPage = () => {
                   looks: toStringArrayFromCsv(meta.look),
                   hex: meta.hex?.trim(),
                 },
-              };
-            }),
+              },
+            ];
+          }),
         ),
       );
     },
@@ -231,6 +241,7 @@ export const CabinetPage = () => {
           option.variants?.forEach((variant) => {
             if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return;
             const meta = getVariantMeta(group.proxyName, variant);
+            if (isHiddenVariantMeta(meta)) return;
             if (meta.material) toStringArrayFromCsv(meta.material).forEach((v) => materialSet.add(v));
             toStringArrayFromCsv(meta.color).forEach((v) => colorSet.add(v));
             toStringArrayFromCsv(meta.look).forEach((v) => lookSet.add(v));

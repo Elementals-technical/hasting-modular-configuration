@@ -14,7 +14,10 @@ import {
   resolveCountertopNeedsLightBorder,
   resolveCountertopFallbackTexture,
 } from "@/entities/countertop";
-import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
+import {
+  getConfiguratorVariantOverrides,
+  isHiddenConfiguratorDisplayValue,
+} from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 
 const uid = () =>
@@ -142,6 +145,7 @@ export const adaptThreekitConfig = (
         if (!label) continue;
 
         const value = pickString(outer.value, nested.value, overrides.value, variant.name) ?? label;
+        if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) continue;
 
         const explicitMaterial = pickString(nested.Material, outer.Material);
         const material =

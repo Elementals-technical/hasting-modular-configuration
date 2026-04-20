@@ -6,6 +6,9 @@ export const SPECIAL_VARIANT_FALLBACK_CODE = "DS MT";
 export const SPECIAL_VARIANT_DISPLAY_VALUE = `${SPECIAL_VARIANT_NAME} ${SPECIAL_VARIANT_FALLBACK_CODE}`;
 export const SPECIAL_VARIANT_DISPLAY_IMAGE = grigioBromoImage;
 
+export const isHiddenConfiguratorDisplayValue = (value?: string | null): boolean =>
+  value?.trim() === SPECIAL_VARIANT_DISPLAY_VALUE;
+
 type ConfiguratorVariantLike = {
   name: string;
   image?: string | null;
