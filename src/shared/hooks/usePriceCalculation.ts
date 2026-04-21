@@ -67,6 +67,7 @@ import {
 } from "@/entities/product/api";
 import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
   normalizeProductConfigSnapshot,
   type NormalizedProductConfigSnapshot,
@@ -483,9 +484,17 @@ export function usePriceCalculation() {
       countertopThickness || sceneConfigs[0]?.Thickness || matrixDefaultThickness || null;
 
     // 1) Product SKU(s) — Resolver 1
+    const selectedProductDrawerStyle =
+      typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
     const getPlacedDrawerStyle = (id?: string | null) => (id ? (placedCabinetStyles[id] ?? null) : null);
     const getConfigDrawerStyle = (cfg: NormalizedProductConfigSnapshot) =>
-      cfg.Drawers ?? getPlacedDrawerStyle(cfg.id) ?? getPlacedDrawerStyle(cfg._productId);
+      cfg.Drawers ?? getPlacedDrawerStyle(cfg.id) ?? getPlacedDrawerStyle(cfg._productId) ?? selectedProductDrawerStyle;
+    const orderedProductIds = getOrderedProductIds(productIds);
+    const productOrder = new Map((orderedProductIds.length ? orderedProductIds : productIds).map((id, index) => [id, index]));
+    const sortBySceneOrder = (left: NormalizedProductConfigSnapshot, right: NormalizedProductConfigSnapshot) =>
+      (productOrder.get(left.id) ?? productOrder.get(left._productId) ?? Number.MAX_SAFE_INTEGER) -
+      (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
+    const sceneConfigsInSceneOrder = [...sceneConfigs].sort(sortBySceneOrder);
 
     if (shouldUsePresets) {
       // Prebuilt path: iterate presets
@@ -723,7 +732,7 @@ export function usePriceCalculation() {
           depth: p.Depth ?? null,
           sinkType: shouldUsePresetSinkType ? (p.sinkType ?? resolvedSinkType) : resolvedSinkType,
         })),
-        ...sceneConfigs.map((cfg) => ({
+        ...sceneConfigsInSceneOrder.map((cfg) => ({
           width: cfg.Width,
           height: cfg.Height,
           depth: cfg.Depth,
@@ -735,7 +744,7 @@ export function usePriceCalculation() {
           name: preset.name,
           drawers: preset.Drawers ?? null,
         })),
-        ...sceneConfigs.map((cfg) => ({
+        ...sceneConfigsInSceneOrder.map((cfg) => ({
           name:
             cfg.ProductType ??
             cfg.productType ??
@@ -752,7 +761,7 @@ export function usePriceCalculation() {
         depth: cfg.Depth,
         sinkType: resolvedSinkType,
       }));
-      bookMatchingCabinets = sceneConfigs.map((cfg) => ({
+      bookMatchingCabinets = sceneConfigsInSceneOrder.map((cfg) => ({
         name:
           cfg.ProductType ??
           cfg.productType ??
