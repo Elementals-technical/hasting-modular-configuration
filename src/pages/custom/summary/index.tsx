@@ -611,6 +611,15 @@ export const CustomSummaryPage = () => {
       hasBootstrappedCabinetBuilder,
     });
     const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
+    const orderedProductIds = getOrderedProductIds(selectedProducts);
+    const productOrder = new Map((orderedProductIds.length ? orderedProductIds : selectedProducts).map((id, index) => [id, index]));
+    const sortBySceneOrder = (
+      left: NormalizedProductConfigSnapshot,
+      right: NormalizedProductConfigSnapshot,
+    ) =>
+      (productOrder.get(left.id) ?? productOrder.get(left._productId) ?? Number.MAX_SAFE_INTEGER) -
+      (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
+    const sceneProductConfigsInSceneOrder = [...sceneProductConfigs].sort(sortBySceneOrder);
     const cabinetConfigs = sceneProductConfigs.filter((config) => config.category === "cabinets");
     const cabinetCount = shouldUsePresets
       ? productsPresets.length + cabinetConfigs.length
@@ -918,9 +927,14 @@ export const CustomSummaryPage = () => {
       : configCabinetItems.length > 0
         ? configCabinetItems
         : fallbackCabinetItems;
+    const selectedProductDrawerStyle =
+      typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
     const getPlacedDrawerStyle = (id?: string | null) => (id ? (placedCabinetStyles[id] ?? null) : null);
     const getConfigDrawerStyle = (config: NormalizedProductConfigSnapshot) =>
-      config.Drawers ?? getPlacedDrawerStyle(config.id) ?? getPlacedDrawerStyle(config._productId);
+      config.Drawers ??
+      getPlacedDrawerStyle(config.id) ??
+      getPlacedDrawerStyle(config._productId) ??
+      selectedProductDrawerStyle;
     const configToBookMatchingCabinet = (config: NormalizedProductConfigSnapshot): BookMatchingCabinetInput => ({
       name:
         typeof config.ProductType === "string"
@@ -942,10 +956,10 @@ export const CustomSummaryPage = () => {
             name: preset.name,
             drawers: preset.Drawers ?? null,
           })),
-          ...sceneProductConfigs.map(configToBookMatchingCabinet),
+          ...sceneProductConfigsInSceneOrder.map(configToBookMatchingCabinet),
         ]
-      : sceneProductConfigs.length > 0
-        ? sceneProductConfigs.map(configToBookMatchingCabinet)
+      : sceneProductConfigsInSceneOrder.length > 0
+        ? sceneProductConfigsInSceneOrder.map(configToBookMatchingCabinet)
         : [
             {
               name:
