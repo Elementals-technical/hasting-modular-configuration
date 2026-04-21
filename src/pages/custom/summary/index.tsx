@@ -20,6 +20,7 @@ import {
   getVesselColor,
   getCountertopStyle,
   getPlacedDividers,
+  getPlacedCabinetStyles,
   getDividersOption,
   getDividersStyle,
   getDrawerPanelFluting,
@@ -309,6 +310,7 @@ export const CustomSummaryPage = () => {
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const placedDividers = useAppSelector(getPlacedDividers);
+  const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const dividersStyle = useAppSelector(getDividersStyle);
   const dividersOption = useAppSelector(getDividersOption);
   const ledOption = useAppSelector(getLedOption);
@@ -916,44 +918,34 @@ export const CustomSummaryPage = () => {
       : configCabinetItems.length > 0
         ? configCabinetItems
         : fallbackCabinetItems;
+    const getPlacedDrawerStyle = (id?: string | null) => (id ? (placedCabinetStyles[id] ?? null) : null);
+    const getConfigDrawerStyle = (config: NormalizedProductConfigSnapshot) =>
+      config.Drawers ?? getPlacedDrawerStyle(config.id) ?? getPlacedDrawerStyle(config._productId);
+    const configToBookMatchingCabinet = (config: NormalizedProductConfigSnapshot): BookMatchingCabinetInput => ({
+      name:
+        typeof config.ProductType === "string"
+          ? config.ProductType
+          : typeof config.productType === "string"
+            ? config.productType
+            : typeof config.entityName === "string"
+              ? resolveNameFromRaw(config.entityName)
+              : typeof config._productId === "string"
+                ? resolveNameFromRaw(config._productId)
+                : typeof config.name === "string"
+                  ? config.name
+                  : null,
+      drawers: getConfigDrawerStyle(config),
+    });
     const bookMatchingCabinets: BookMatchingCabinetInput[] = shouldUsePresets
       ? [
           ...productsPresets.map((preset) => ({
             name: preset.name,
             drawers: preset.Drawers ?? null,
           })),
-          ...cabinetConfigs.map((config) => ({
-            name:
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
-                  : typeof config.entityName === "string"
-                    ? resolveNameFromRaw(config.entityName)
-                    : typeof config._productId === "string"
-                      ? resolveNameFromRaw(config._productId)
-                      : typeof config.name === "string"
-                        ? config.name
-                        : null,
-            drawers: config.Drawers,
-          })),
+          ...sceneProductConfigs.map(configToBookMatchingCabinet),
         ]
-      : cabinetConfigs.length > 0
-        ? cabinetConfigs.map((config) => ({
-            name:
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
-                  : typeof config.entityName === "string"
-                    ? resolveNameFromRaw(config.entityName)
-                    : typeof config._productId === "string"
-                      ? resolveNameFromRaw(config._productId)
-                      : typeof config.name === "string"
-                        ? config.name
-                        : null,
-            drawers: config.Drawers,
-          }))
+      : sceneProductConfigs.length > 0
+        ? sceneProductConfigs.map(configToBookMatchingCabinet)
         : [
             {
               name:
@@ -1566,6 +1558,7 @@ export const CustomSummaryPage = () => {
     towelBarColor,
     towelBarOption,
     placedDividers,
+    placedCabinetStyles,
     priceBySku,
     resolveSwatch,
     resolveItemPrice,
@@ -1742,7 +1735,7 @@ export const CustomSummaryPage = () => {
   );
   const hasSummarySwatches = effectiveSummaryMaterials.length > 0;
   const isSwatchesBlockVisible = hasSummarySwatches || autofillMaterials.length > 0;
-  const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSummarySwatches;
+  const isSwatchesEnabledForSummary = isAutofillEnabled && isSwatchesEnabledInSummary && hasSummarySwatches;
   const displayedSwatchesListPreview = isSwatchesEnabledForSummary ? swatchesListPreview : [];
   const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
@@ -1755,14 +1748,15 @@ export const CustomSummaryPage = () => {
 
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
-      if (checked && selectedMaterials.length === 0 && autofillMaterials.length > 0) {
-        dispatch(setAutofillEnabled(true));
+      dispatch(setAutofillEnabled(checked));
+
+      if (checked && mergedSummaryMaterials.length > 0) {
         dispatch(setCartMaterials(mergedSummaryMaterials));
       }
 
       dispatch(setSwatchesEnabledInSummary(checked));
     },
-    [dispatch, selectedMaterials.length, autofillMaterials.length, mergedSummaryMaterials],
+    [dispatch, mergedSummaryMaterials],
   );
 
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);

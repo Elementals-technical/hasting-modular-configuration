@@ -125,6 +125,22 @@ const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
+const stripRuntimeSuffix = (value: string) => {
+  const trimmed = value.trim();
+  const lastDash = trimmed.lastIndexOf("-");
+  if (lastDash <= 0) return trimmed;
+
+  const suffix = trimmed.slice(lastDash + 1);
+  if (/^[a-z0-9]{6,}$/i.test(suffix)) {
+    return trimmed.slice(0, lastDash);
+  }
+
+  return trimmed;
+};
+
+const isSameRuntimeProduct = (left: string, right: string) =>
+  left === right || stripRuntimeSuffix(left) === stripRuntimeSuffix(right);
+
 const CABINET_TYPE_ORDER: Record<string, number> = {
   "Sink-Base": 0,
   "Sink-Cabinet": 1,
@@ -827,28 +843,19 @@ export const CabinetBuilderPage = () => {
     if (!pendingDeleteId) return;
     if (handledPendingDeleteIdRef.current === pendingDeleteId) return;
 
+    const pendingProductId = selectedProducts.find((id) => isSameRuntimeProduct(id, pendingDeleteId));
+    if (!pendingProductId) return;
+
     handledPendingDeleteIdRef.current = pendingDeleteId;
-
-    const stripRuntimeSuffix = (value: string) => {
-      const trimmed = value.trim();
-      const lastDash = trimmed.lastIndexOf("-");
-      if (lastDash <= 0) return trimmed;
-
-      const suffix = trimmed.slice(lastDash + 1);
-      if (/^[a-z0-9]{6,}$/i.test(suffix)) {
-        return trimmed.slice(0, lastDash);
-      }
-
-      return trimmed;
-    };
 
     const runDelete = async () => {
       const orderedIds = getOrderedProductIds();
       const deleteId =
-        orderedIds.find((id) => id === pendingDeleteId) ??
-        orderedIds.find((id) => stripRuntimeSuffix(id) === stripRuntimeSuffix(pendingDeleteId));
+        orderedIds.find((id) => isSameRuntimeProduct(id, pendingProductId)) ??
+        orderedIds.find((id) => isSameRuntimeProduct(id, pendingDeleteId));
 
       if (!deleteId) {
+        dispatch(removeProductId(pendingProductId));
         sessionStorage.removeItem(PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY);
         return;
       }
@@ -908,7 +915,7 @@ export const CabinetBuilderPage = () => {
     dispatch,
     hasBootstrappedCabinetBuilder,
     productsPresets,
-    selectedProducts.length,
+    selectedProducts,
     resolveCabinetTypeId,
   ]);
 
