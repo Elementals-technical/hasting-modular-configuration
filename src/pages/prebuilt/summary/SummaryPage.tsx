@@ -42,6 +42,7 @@ import {
   getTowelBarColor,
   getTowelBarOption,
   getPlacedDividers,
+  getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
 // import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
@@ -310,6 +311,7 @@ export const SummaryPage = () => {
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const placedDividers = useAppSelector(getPlacedDividers);
+  const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const dividersStyle = useAppSelector(getDividersStyle);
   const dividersOption = useAppSelector(getDividersOption);
   const ledOption = useAppSelector(getLedOption);
@@ -916,44 +918,34 @@ export const SummaryPage = () => {
       : configCabinetItems.length > 0
         ? configCabinetItems
         : fallbackCabinetItems;
+    const getPlacedDrawerStyle = (id?: string | null) => (id ? (placedCabinetStyles[id] ?? null) : null);
+    const getConfigDrawerStyle = (config: NormalizedProductConfigSnapshot) =>
+      config.Drawers ?? getPlacedDrawerStyle(config.id) ?? getPlacedDrawerStyle(config._productId);
+    const configToBookMatchingCabinet = (config: NormalizedProductConfigSnapshot): BookMatchingCabinetInput => ({
+      name:
+        typeof config.ProductType === "string"
+          ? config.ProductType
+          : typeof config.productType === "string"
+            ? config.productType
+            : typeof config.entityName === "string"
+              ? resolveNameFromRaw(config.entityName)
+              : typeof config._productId === "string"
+                ? resolveNameFromRaw(config._productId)
+                : typeof config.name === "string"
+                  ? config.name
+                  : null,
+      drawers: getConfigDrawerStyle(config),
+    });
     const bookMatchingCabinets: BookMatchingCabinetInput[] = shouldUsePresets
       ? [
           ...productsPresets.map((preset) => ({
             name: preset.name,
             drawers: preset.Drawers ?? null,
           })),
-          ...cabinetConfigs.map((config) => ({
-            name:
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
-                  : typeof config.entityName === "string"
-                    ? resolveNameFromRaw(config.entityName)
-                    : typeof config._productId === "string"
-                      ? resolveNameFromRaw(config._productId)
-                      : typeof config.name === "string"
-                        ? config.name
-                        : null,
-            drawers: config.Drawers,
-          })),
+          ...sceneProductConfigs.map(configToBookMatchingCabinet),
         ]
-      : cabinetConfigs.length > 0
-        ? cabinetConfigs.map((config) => ({
-            name:
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
-                  : typeof config.entityName === "string"
-                    ? resolveNameFromRaw(config.entityName)
-                    : typeof config._productId === "string"
-                      ? resolveNameFromRaw(config._productId)
-                      : typeof config.name === "string"
-                        ? config.name
-                        : null,
-            drawers: config.Drawers,
-          }))
+      : sceneProductConfigs.length > 0
+        ? sceneProductConfigs.map(configToBookMatchingCabinet)
         : [
             {
               name:
@@ -1576,6 +1568,7 @@ export const SummaryPage = () => {
     towelBarColor,
     towelBarOption,
     placedDividers,
+    placedCabinetStyles,
     priceBySku,
     resolveSwatch,
     resolveItemPrice,

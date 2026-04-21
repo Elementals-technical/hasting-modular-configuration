@@ -30,6 +30,7 @@ import {
   getDividersStyle,
   getCabinetCatalog,
   getPlacedDividers,
+  getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
 import {
   buildProductSku,
@@ -162,6 +163,7 @@ export function usePriceCalculation() {
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const dividersStyle = useAppSelector(getDividersStyle);
   const placedDividers = useAppSelector(getPlacedDividers);
+  const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
 
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
@@ -481,6 +483,10 @@ export function usePriceCalculation() {
       countertopThickness || sceneConfigs[0]?.Thickness || matrixDefaultThickness || null;
 
     // 1) Product SKU(s) — Resolver 1
+    const getPlacedDrawerStyle = (id?: string | null) => (id ? (placedCabinetStyles[id] ?? null) : null);
+    const getConfigDrawerStyle = (cfg: NormalizedProductConfigSnapshot) =>
+      cfg.Drawers ?? getPlacedDrawerStyle(cfg.id) ?? getPlacedDrawerStyle(cfg._productId);
+
     if (shouldUsePresets) {
       // Prebuilt path: iterate presets
       productsPresets.forEach((preset, idx) => {
@@ -736,7 +742,7 @@ export function usePriceCalculation() {
             (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
             (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
             cfg.name,
-          drawers: cfg.Drawers,
+          drawers: getConfigDrawerStyle(cfg),
         })),
       ];
     } else if (sceneConfigs.length > 0) {
@@ -753,7 +759,7 @@ export function usePriceCalculation() {
           (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
           (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
           cfg.name,
-        drawers: cfg.Drawers,
+        drawers: getConfigDrawerStyle(cfg),
       }));
     } else {
       productDimsList = [
@@ -1007,6 +1013,7 @@ export function usePriceCalculation() {
     sidePanelRight,
     dividersStyle,
     placedDividers,
+    placedCabinetStyles,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,
     countertopColorSkuCandidatesByValue,
