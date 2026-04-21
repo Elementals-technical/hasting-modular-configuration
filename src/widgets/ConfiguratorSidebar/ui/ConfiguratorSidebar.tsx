@@ -1,4 +1,4 @@
-import { useEffect, type PropsWithChildren } from "react";
+import { useEffect, useRef, type PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { BottomStickyBar } from "@/features";
@@ -9,6 +9,8 @@ import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBa
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
+import { setIsDrawerOpen } from "@/entities/product/model/store/slice";
+import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 
 import s from "./ConfiguratorSidebar.module.scss";
 
@@ -26,18 +28,28 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
   const summaryStep = steps.find((step) => step.id === "summary");
+  const currentStep = steps.find((step) => location.pathname.startsWith(step.path));
+  const previousStepPathRef = useRef<string | null>(null);
   const isSummaryPage = !!summaryStep && location.pathname.startsWith(summaryStep.path);
 
   useEffect(() => {
-    const match = steps.find((s) => location.pathname.startsWith(s.path));
+    dispatch(setActiveStep(currentStep?.label ?? null));
+  }, [currentStep?.label, dispatch]);
 
-    dispatch(setActiveStep(match?.label ?? null));
-  }, [dispatch, location.pathname, steps]);
+  useEffect(() => {
+    const previousStepPath = previousStepPathRef.current;
+    previousStepPathRef.current = currentStep?.path ?? null;
+
+    if (!previousStepPath || previousStepPath === currentStep?.path) return;
+
+    closeDrawerInteraction();
+    dispatch(setIsDrawerOpen(false));
+  }, [currentStep?.path, dispatch]);
 
   return (
     <div className={s.configSidebar} data-flow={flow}>
       {summaryStep && !isSummaryPage && (
-        <Link className={s.summaryViewBtn} to={summaryStep.path}>
+        <Link className={s.summaryViewBtn} to={summaryStep.path} onClick={closeDrawerInteraction}>
           <span>Summary View</span>
           <span aria-hidden="true">→</span>
         </Link>

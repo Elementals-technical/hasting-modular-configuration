@@ -6,6 +6,7 @@ import { close, toggle } from "@/features/sidebar/model/store/slice";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight.tsx";
+import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -54,7 +55,10 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
             <NavLink
               to={step.path}
               className={({ isActive }) => `${s.navItem} ${isActive ? s.active : ""}`.trim()}
-              onClick={() => dispatch(close())}
+              onClick={() => {
+                closeDrawerInteraction();
+                dispatch(close());
+              }}
             >
               {step.label}
             </NavLink>

@@ -6,8 +6,7 @@ import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { type PropsWithChildren, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
-import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
-import { wrapExitTopView } from "@/utils/functions/playcanvas/dividers";
+import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { getSummarySkuJson, getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuote } from "@/features/quotePrint/lib/printQuote";
 
@@ -52,16 +51,14 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
 
     const summaryStep = steps[steps.length - 1];
     if (summaryStep) {
+      closeDrawerInteraction();
       navigate(`${summaryStep.path}?print=1`);
     }
   };
 
   const handleNavigate = () => {
     if (nextStep) {
-      const exitTopView = wrapExitTopView({});
-      if (exitTopView) exitTopView();
-
-      setVisibleDrawerButtons(false);
+      closeDrawerInteraction();
 
       navigate(nextStep?.path);
     } else {
