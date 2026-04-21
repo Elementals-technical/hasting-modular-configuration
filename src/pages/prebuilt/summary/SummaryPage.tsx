@@ -1752,7 +1752,7 @@ export const SummaryPage = () => {
   );
   const hasSummarySwatches = effectiveSummaryMaterials.length > 0;
   const isSwatchesBlockVisible = hasSummarySwatches || autofillMaterials.length > 0;
-  const isSwatchesEnabledForSummary = isSwatchesEnabledInSummary && hasSummarySwatches;
+  const isSwatchesEnabledForSummary = isAutofillEnabled && isSwatchesEnabledInSummary && hasSummarySwatches;
   const displayedSwatchesListPreview = isSwatchesEnabledForSummary ? swatchesListPreview : [];
   const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
 
@@ -1765,14 +1765,15 @@ export const SummaryPage = () => {
 
   const handleSwatchesEnabledChange = useCallback(
     (checked: boolean) => {
-      if (checked && selectedMaterials.length === 0 && autofillMaterials.length > 0) {
-        dispatch(setAutofillEnabled(true));
+      dispatch(setAutofillEnabled(checked));
+
+      if (checked && mergedSummaryMaterials.length > 0) {
         dispatch(setCartMaterials(mergedSummaryMaterials));
       }
 
       dispatch(setSwatchesEnabledInSummary(checked));
     },
-    [dispatch, selectedMaterials.length, autofillMaterials.length, mergedSummaryMaterials],
+    [dispatch, mergedSummaryMaterials],
   );
 
   const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
