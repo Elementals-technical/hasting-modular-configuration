@@ -29,7 +29,10 @@ export {
   resolveVesselDynamicMaterialSku,
   resolveVesselDynamicAllowedThicknessTokens,
 } from "./vesselSkuMaps";
-export { resolveDefaultBasinByCountertopColor } from "./resolveDefaultBasinByCountertopColor";
+export {
+  resolveDefaultBasinByCountertopColor,
+  resolveDefaultBasinForCountertopSelection,
+} from "./resolveDefaultBasinByCountertopColor";
 export {
   buildCountertopColorSkuCandidates,
   resolveCountertopColorSkuFromCandidates,
