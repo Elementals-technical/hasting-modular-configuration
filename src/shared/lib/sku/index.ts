@@ -25,9 +25,6 @@ export {
   vesselSeriesSkuMap,
   vesselHeightCmMap,
   vesselAllowedMaterialsMap,
-  vesselDynamicThicknessByMaterialSku,
-  resolveVesselDynamicMaterialSku,
-  resolveVesselDynamicAllowedThicknessTokens,
 } from "./vesselSkuMaps";
 export {
   resolveDefaultBasinByCountertopColor,

@@ -1,6 +1,5 @@
 import { cmToInches } from "./cmToInches";
 import { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
-import { vesselDynamicThicknessByMaterialSku } from "./vesselSkuMaps";
 
 export type CountertopSkuInput = {
   /** "plain" | "integrated" | "vessel" | "undermount" */
@@ -27,11 +26,6 @@ const formatThicknessToken = (value: number): string => {
   const fixed = value.toFixed(1);
   const normalized = fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
   return normalized.replace(/^0(?=\.)/, "");
-};
-const parseSkuThicknessToken = (value: string): number | null => {
-  const numericPart = value.trim().replace(/h$/i, "");
-  const parsed = Number.parseFloat(numericPart);
-  return Number.isFinite(parsed) ? parsed : null;
 };
 
 const formatTopMaterialBlock = (materialSku: string | null, colorCode: string | null): string => {
@@ -118,19 +112,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
   const rawT = input.thickness?.trim();
   const parsedT = rawT ? parseFloat(rawT) : null;
-  let thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
-
-  // Enforce material -> thickness dependency for dynamic vessel CT SKUs.
-  if (isVessel && vesselMaterial) {
-    const allowedTokens = vesselDynamicThicknessByMaterialSku[vesselMaterial] ?? [];
-    if (allowedTokens.length > 0) {
-      const currentToken = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : null;
-      if (!currentToken || !allowedTokens.includes(currentToken)) {
-        const fallback = parseSkuThicknessToken(allowedTokens[0]);
-        if (fallback !== null) thicknessForSku = fallback;
-      }
-    }
-  }
+  const thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
 
   const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
   const matBlock = formatTopMaterialBlock(vesselMaterial, color);
