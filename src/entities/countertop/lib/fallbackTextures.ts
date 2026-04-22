@@ -19,6 +19,8 @@ const FALLBACK_HEX: Record<string, string> = {
   TD2: "#FFFFFF",
   TAL: "#FFFFFF",
   TAM: "#FFFFFF",
+  TAN: "#FFFFFF",
+  TAP: "#FFFFFF",
 };
 
 const getVariantCode = (variantName: string): string | undefined => {

@@ -1,5 +1,6 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
 import { MAX_SLOTS as MAX_SWATCHES } from "@/features/swatchOrder";
+import { formatCountertopThicknessLabel } from "@/entities/countertop";
 
 import s from "./QuotePrintDocument.module.scss";
 
@@ -145,6 +146,11 @@ const formatInchesFromCm = (value: unknown): string | null => {
   return normalized.startsWith("0.") ? normalized.slice(1) : normalized;
 };
 
+const formatThicknessLabel = (value: unknown): string | null => {
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  return formatCountertopThicknessLabel(value);
+};
+
 const toTitleCase = (value: string): string =>
   value
     .split(/\s+/)
@@ -159,7 +165,7 @@ const resolveCountertopDimsLine = (item: PrintItem): string | null => {
   const styleRaw = typeof description.Style === "string" ? description.Style.trim() : "";
   const style = styleRaw ? toTitleCase(styleRaw) : null;
   const width = formatInchesFromCm(description.Width);
-  const height = formatInchesFromCm(description.Thickness);
+  const height = formatThicknessLabel(description.Thickness);
   const depth = formatInchesFromCm(description.Depth);
 
   if (!style || !width || !height || !depth) return null;

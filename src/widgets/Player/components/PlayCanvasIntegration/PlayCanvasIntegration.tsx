@@ -70,6 +70,7 @@ import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
+import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
@@ -82,8 +83,7 @@ import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
-import { cmToInches } from "@/shared/lib/sku/cmToInches";
-import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
+import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
@@ -133,13 +133,6 @@ const toFiniteNumber = (value: unknown): number | null => {
     if (Number.isFinite(parsed)) return parsed;
   }
   return null;
-};
-
-const formatThicknessLabel = (thickness: number): string => {
-  const normalized =
-    Math.abs(thickness - 2.375) < 0.001 || Math.abs(thickness - 2.5) < 0.001 ? 2.4 : thickness;
-  const fixed = normalized.toFixed(1);
-  return `${fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed}"`;
 };
 
 // CM → display-inch lookup from the sizing spec.
@@ -466,7 +459,8 @@ export const PlayCanvasIntegration = () => {
         rawConfigThickness !== null && rawConfigThickness > 0
           ? rawConfigThickness
           : toFiniteNumber(activeCountertopThickness);
-      const thicknessLabel = thicknessValue !== null ? formatThicknessLabel(thicknessValue) : undefined;
+      const thicknessLabel =
+        thicknessValue !== null ? (formatCountertopThicknessLabel(thicknessValue) ?? undefined) : undefined;
 
       const nextData: Record<string, unknown> = { productId };
       if (width !== null) nextData.Width = { [String(width)]: formatCmWithInches(width) };
@@ -627,7 +621,7 @@ export const PlayCanvasIntegration = () => {
       const optionSku = option.metadata?.sku?.trim();
       return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
-    return match?.metadata?.materials ?? [];
+    return match?.metadata?.materials ?? getCountertopMaterialTokensBySku(countertopColorSku);
   }, [activeCountertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useCountertopRules();
@@ -2478,7 +2472,7 @@ export const PlayCanvasIntegration = () => {
         id: "countertop-thickness",
         label: "Thickness",
         children: thicknessOptions.map((value) => {
-          const label = formatThicknessLabel(value);
+          const label = formatCountertopThicknessLabel(value) ?? String(value);
           return {
             id: label,
             label,

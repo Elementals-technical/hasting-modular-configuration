@@ -1,6 +1,7 @@
 import { isAnyOf } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import {
+  setCountertopColorSku,
   setSelectedDimensions,
   switchAllCabinetsDrawerStyle,
 } from "@/entities/product/model/store/slice";
@@ -25,11 +26,12 @@ type StartListeningFn = (options: {
  */
 export function setupSidePanelListener(startListening: StartListeningFn) {
   startListening({
-    matcher: isAnyOf(setSelectedDimensions, switchAllCabinetsDrawerStyle),
+    matcher: isAnyOf(setSelectedDimensions, switchAllCabinetsDrawerStyle, setCountertopColorSku),
     effect: async (action, listenerApi) => {
       // Only react to height changes from setSelectedDimensions (handle change forces new height).
       // Skip width/depth changes from the 350ms polling sync — they don't affect SP groove.
       const act = action as { type: string; payload?: { height?: number } };
+      const isCountertopMaterialChange = act.type === setCountertopColorSku.type;
       if (act.type === setSelectedDimensions.type) {
         const payload = act.payload;
         if (!payload || payload.height === undefined) {
@@ -47,7 +49,7 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
       const normalized = cabType.toLowerCase().replace(/[^a-z]/g, "");
       const isSbSc = normalized.includes("sinkbase") || normalized.includes("sinkcabinet") ||
         normalized.includes("sidecabinet") || normalized === "sb" || normalized === "sc";
-      if (!isSbSc) return;
+      if (!isCountertopMaterialChange && !isSbSc) return;
 
       const availability = selectSidePanelAvailability(state);
 

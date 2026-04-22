@@ -43,13 +43,13 @@ const MATERIAL_HIERARCHY: MaterialGroup[] = [
   {
     label: "Solid Surface",
     value: "solid-surface",
-    childValues: ["Tekorlux", "Mineralmarmo", "Tekormud", "Ocritech"],
+    childValues: ["Mineralmarmo", "Ocritech", "Syntesi", "Tekorlux", "Tekormud"],
     aliases: ["Solid-Surface", "Solid Surface", "SolidSurface"],
   },
   {
     label: "Glass",
     value: "glass",
-    childValues: ["Glass MT", "Glass GL", "Glass"],
+    childValues: ["Glass", "Glass GL", "Glass MT"],
     aliases: ["Glass"],
   },
 ];
@@ -93,6 +93,9 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
     return next;
   };
 
+  const sortGroupChildren = (children: FilterOption[]): FilterOption[] =>
+    [...children].sort((a, b) => a.label.localeCompare(b.label));
+
   for (const option of flatOptions) {
     const normalizedValue = normalizeGroupToken(option.value);
     const normalizedLabel = normalizeGroupToken(option.label);
@@ -132,7 +135,7 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
           result.push({
             label: group.label,
             value: group.label,
-            children: mergedChildren.sort((a, b) => a.label.localeCompare(b.label)),
+            children: sortGroupChildren(mergedChildren),
           });
         } else if (group) {
           const standalone = standaloneParentOption.get(groupValue);
@@ -153,7 +156,7 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
         result.push({
           label: group.label,
           value: group.label,
-          children: mergedChildren.sort((a, b) => a.label.localeCompare(b.label)),
+          children: sortGroupChildren(mergedChildren),
         });
       } else if (group) {
         const standalone = standaloneParentOption.get(groupValue);

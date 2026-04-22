@@ -17,6 +17,7 @@ export const countertopMaterialSkuMap: Record<string, string> = {
   Tekormud: "SSTM",
   Ocritech: "SSOCR",
   Tekorlux: "SSTKR",
+  Syntesi: "SSTKR",
 };
 
 /** PlayCanvas sinkType → Basin SKU code */

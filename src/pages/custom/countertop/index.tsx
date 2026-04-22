@@ -61,6 +61,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
   buildCountertopRuleState,
+  appendSyntesiCountertopOptions,
   getCountertopRuleMaxWidthsForStyle,
   getMaterialAliases,
   isIntegratedCountertopDepthRestrictedByMaterial,
@@ -69,10 +70,12 @@ import {
   filterThicknessValuesByCountertopRules,
   materialMatchesRule,
   matchesDepth,
+  extractCountertopBasinMaterialTokens,
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
   resolveCountertopWidthRuleStyle,
+  SYNTESI_MATERIAL,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 
@@ -207,12 +210,14 @@ export const CustomCountertopPage = () => {
     };
   }, []);
 
+  const countertopRules = useCountertopRules();
+
   const countertopOptionsFromApi = useMemo(() => {
     const groups = (counterTopMaterials?.availableOptions ?? []).filter(
       (g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels",
     );
 
-    if (!groups.length) return [];
+    if (!groups.length) return appendSyntesiCountertopOptions([], countertopRules);
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
       const tokens = new Set<string>();
@@ -234,7 +239,7 @@ export const CustomCountertopPage = () => {
 
     const seen = new Set<string>();
 
-    return groups.flatMap((group) =>
+    const apiOptions = groups.flatMap((group) =>
       group.options.flatMap((option) =>
         option.variants
           .filter((variant) => variant.enabled)
@@ -292,7 +297,8 @@ export const CustomCountertopPage = () => {
           }),
       ),
     );
-  }, [counterTopMaterials, getVariantMeta]);
+    return appendSyntesiCountertopOptions(apiOptions, countertopRules);
+  }, [counterTopMaterials, countertopRules, getVariantMeta]);
 
   const isVesselApiOption = useCallback(
     (option: ProductOptionData & { sourceGroup?: string }) => option.sourceGroup === "vessels",
@@ -356,7 +362,6 @@ export const CustomCountertopPage = () => {
     [countertopOptionsFromApi],
   );
 
-  const countertopRules = useCountertopRules();
   const countertopColorSkuCandidatesByValue = useMemo(
     () => buildCountertopColorSkuCandidates(counterTopMaterials?.availableOptions),
     [counterTopMaterials?.availableOptions],
@@ -432,7 +437,11 @@ export const CustomCountertopPage = () => {
 
   const materialFilters = useMemo(() => {
     const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
-    if (!groups.length) return defaultMaterialFilters;
+    const syntesiOptions = countertopOptions.filter((option) =>
+      option.metadata?.materials?.some((material) => normalizeMaterialToken(material) === normalizeMaterialToken(SYNTESI_MATERIAL)),
+    );
+
+    if (!groups.length && !syntesiOptions.length) return defaultMaterialFilters;
 
     const materialSet = new Set<string>();
     const colorSet = new Set<string>();
@@ -478,6 +487,14 @@ export const CustomCountertopPage = () => {
       });
     });
 
+    syntesiOptions.forEach((option) => {
+      materialSet.add(SYNTESI_MATERIAL);
+      (option.metadata?.colors ?? []).forEach((value) => colorSet.add(value));
+      (option.metadata?.looks ?? []).forEach((value) => lookSet.add(value));
+      const hex = option.metadata?.hex?.trim();
+      if (hex) hexSet.add(hex);
+    });
+
     const toOptions = (set: Set<string>) =>
       Array.from(set)
         .sort((a, b) => a.localeCompare(b))
@@ -489,7 +506,7 @@ export const CustomCountertopPage = () => {
       looks: toOptions(lookSet),
       hex: toOptions(hexSet),
     };
-  }, [counterTopMaterials, defaultMaterialFilters, normalizedMatrixMaterials, getVariantMeta]);
+  }, [counterTopMaterials, countertopOptions, defaultMaterialFilters, normalizedMatrixMaterials, getVariantMeta]);
 
   const scopedCountertopOptions = useMemo(() => countertopOptions, [countertopOptions]);
 
@@ -1143,14 +1160,9 @@ export const CustomCountertopPage = () => {
       const label = option.title ?? option.name ?? "";
       if (!label) return [];
 
-      const [firstToken, ...restTokens] = label.trim().split(/\s+/);
+      const [, ...restTokens] = label.trim().split(/\s+/);
 
-      const materialTokens = firstToken
-        ? firstToken
-            .split("/")
-            .map((token) => normalizeMaterialToken(token))
-            .filter(Boolean)
-        : [];
+      const materialTokens = extractCountertopBasinMaterialTokens(label, option.name);
 
       const isMaterialSpecific = materialTokens.some((token) =>
         getMaterialAliases(token).some((alias) => allowedMaterials.has(alias)),
@@ -1163,9 +1175,15 @@ export const CustomCountertopPage = () => {
         if (!matchesMaterial) return [];
       }
 
-      const basinLabel = isMaterialSpecific ? restTokens.join(" ") : label;
-      const normalized = normalizeBasinKey(basinLabel);
-      const basinRules = applicableIntegratedRules.filter((rule) => normalizeBasinKey(rule.basinStyle) === normalized);
+      const basinLabelCandidates = isMaterialSpecific ? [restTokens.join(" "), label] : [label];
+      const normalizedBasinLabelCandidates = new Set(
+        basinLabelCandidates
+          .map((candidate) => normalizeBasinKey(candidate))
+          .filter(Boolean),
+      );
+      const basinRules = applicableIntegratedRules.filter((rule) =>
+        normalizedBasinLabelCandidates.has(normalizeBasinKey(rule.basinStyle)),
+      );
       if (!basinRules.length) return [];
 
       const isAvailable = basinRules.some((rule) =>
@@ -1286,8 +1304,10 @@ export const CustomCountertopPage = () => {
 
     console.log("Countertop Color", colorName);
 
+    const playCanvasColorName = metadata?.configValue ?? colorName;
+
     setConfigBatch(selectedProducts, {
-      CountertopColor: colorName,
+      CountertopColor: playCanvasColorName,
     });
 
     dispatch(setActiveCountertopColor(colorName));

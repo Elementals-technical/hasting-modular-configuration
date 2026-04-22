@@ -73,9 +73,12 @@ import {
   resolveCabinetPricingMaterialSku,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
-import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
 import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 import {
+  SYNTESI_MATERIAL,
+  findSyntesiCountertopUiValue,
+  isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
   resolveDefaultThicknessFromRules,
   useCountertopRules,
@@ -181,15 +184,6 @@ const parsePriceValue = (price?: string): number => {
 
   const value = Number.parseFloat(normalized);
   return Number.isFinite(value) ? value : 0;
-};
-
-const normalizeCountertopThicknessForDisplay = (value: string | null): string | null => {
-  if (!value) return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseFloat(trimmed);
-  if (!Number.isFinite(parsed)) return trimmed;
-  return Math.abs(parsed - 2.5) < 0.001 ? "2.4" : trimmed;
 };
 
 type SummaryItem = {
@@ -1077,6 +1071,20 @@ export const SummaryPage = () => {
       }) ||
       inferMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
+    const isSyntesiCountertop =
+      isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku) ||
+      normalizeMaterialToken(resolvedSinkType ?? "").includes("syntesi");
+    const displayCountertopColor = isSyntesiCountertop
+      ? (findSyntesiCountertopUiValue(countertopColor) ??
+        findSyntesiCountertopUiValue(resolvedCountertopColor) ??
+        resolvedCountertopColor)
+      : resolvedCountertopColor;
+    const displayCountertopLabel = isSyntesiCountertop ? `${SYNTESI_MATERIAL} Countertop` : "Countertop";
+    const displayCountertopMaterial = isSyntesiCountertop
+      ? SYNTESI_MATERIAL
+      : resolvedCountertopMaterialSku
+        ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
+        : null;
     const resolvedVesselColor = vesselColor || resolvedCountertopColor;
     const resolvedVesselMaterialSku =
       resolveCountertopColorSkuFromCandidates({
@@ -1089,7 +1097,7 @@ export const SummaryPage = () => {
       }) || resolvedCountertopMaterialSku;
     const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
-    const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
+    const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
     const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
@@ -1108,13 +1116,13 @@ export const SummaryPage = () => {
           : null),
     });
     const resolvedCountertopThickness =
-      countertopThickness ??
+      countertopThickness ||
       (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Thickness === "string"
         ? firstSceneCabinetConfig.Thickness
-        : null) ??
+        : null) ||
       matrixDefaultThickness;
-    const displayCountertopThickness = normalizeCountertopThicknessForDisplay(resolvedCountertopThickness);
-    const countertopSwatch = resolveSwatch(resolvedCountertopColor);
+    const displayCountertopThickness = formatCountertopThicknessLabel(resolvedCountertopThickness);
+    const countertopSwatch = resolveSwatch(displayCountertopColor);
 
     const bookMatchingInfo = deriveBookMatchingChargeInfo({
       grainDirection,
@@ -1262,8 +1270,8 @@ export const SummaryPage = () => {
         subtitle: displayCountertopThickness ?? undefined,
         sku: countertopSkuLines[0],
         swatch: {
-          label: "Countertop",
-          value: resolvedCountertopColor,
+          label: displayCountertopLabel,
+          value: displayCountertopColor,
           color: countertopSwatch.color,
           image: countertopSwatch.image,
         },
@@ -1276,10 +1284,8 @@ export const SummaryPage = () => {
           Width: totalCountertopWidth,
           Thickness: displayCountertopThickness,
           Depth: selectedDimensions.depth,
-          Material: resolvedCountertopMaterialSku
-            ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
-            : null,
-          "Color Code": resolvedCountertopColor,
+          Material: displayCountertopMaterial,
+          "Color Code": displayCountertopColor,
         },
       },
       countertopStyle

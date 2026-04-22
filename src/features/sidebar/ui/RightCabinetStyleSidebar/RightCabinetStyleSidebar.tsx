@@ -12,7 +12,7 @@ import centralHandleImage from "@/shared/assets/images/jpeg/CentralGHandle.jpg";
 import ptoHandleImage from "@/shared/assets/images/jpeg/PTOHandle.jpg";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { cmToInches } from "@/shared/lib/sku";
+import { cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
 import { setOpenStyleSidebar } from "../../model/store/slice";
 import {
@@ -257,7 +257,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const optionSku = option.metadata?.sku?.trim();
       return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
-    return match?.metadata?.materials ?? [];
+    return match?.metadata?.materials ?? getCountertopMaterialTokensBySku(countertopColorSku);
   }, [countertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useCountertopRules();
@@ -745,6 +745,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     sinkType,
     dispatch,
     vesselColor,
+    countertopStyle,
   ]);
 
   return (
