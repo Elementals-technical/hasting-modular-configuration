@@ -96,6 +96,7 @@ import {
   getManualSelectedMaterials,
   getSelectedMaterials,
   mergeAutofillWithSelectedMaterials,
+  resolveSwatchesSummaryState,
   setAutofillEnabled,
   setCartMaterials,
   setSwatchesEnabledInSummary,
@@ -1757,11 +1758,21 @@ export const CustomSummaryPage = () => {
     () => effectiveSummaryMaterials.map(toSwatchPreview),
     [effectiveSummaryMaterials],
   );
-  const hasSummarySwatches = effectiveSummaryMaterials.length > 0;
-  const isSwatchesBlockVisible = hasSummarySwatches || autofillMaterials.length > 0;
-  const isSwatchesEnabledForSummary = isAutofillEnabled && isSwatchesEnabledInSummary && hasSummarySwatches;
-  const displayedSwatchesListPreview = isSwatchesEnabledForSummary ? swatchesListPreview : [];
-  const canEnableSwatchesForSummary = hasSummarySwatches || autofillMaterials.length > 0;
+  const swatchesSummaryState = useMemo(
+    () =>
+      resolveSwatchesSummaryState({
+        items: swatchesListPreview,
+        autofillItemsCount: autofillMaterials.length,
+        isAutofillEnabled,
+        isEnabledInSummary: isSwatchesEnabledInSummary,
+      }),
+    [autofillMaterials.length, isAutofillEnabled, isSwatchesEnabledInSummary, swatchesListPreview],
+  );
+  const hasSummarySwatches = swatchesSummaryState.hasItems;
+  const isSwatchesBlockVisible = swatchesSummaryState.isBlockVisible;
+  const isSwatchesEnabledForSummary = swatchesSummaryState.isAutofillChecked;
+  const displayedSwatchesListPreview = swatchesSummaryState.displayedItems;
+  const canEnableSwatchesForSummary = swatchesSummaryState.canEnableAutofill;
 
   useEffect(() => {
     if (!swatchOrderData.allMaterialValues.length) return;
@@ -1972,7 +1983,7 @@ export const CustomSummaryPage = () => {
         modelName={quoteModelName}
         generatedDate={quoteGeneratedDate}
         configurationLink={configurationLink}
-        isSwatchesEnabled={isSwatchesBlockVisible && isSwatchesEnabledForSummary}
+        isSwatchesEnabled={isSwatchesBlockVisible && swatchesSummaryState.isQuoteEnabled}
         swatchesPreview={displayedSwatchesListPreview}
       />
     </>

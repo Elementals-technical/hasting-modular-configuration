@@ -110,7 +110,7 @@ const swatchOrderSlice = createSlice({
       }
       if (!action.payload) {
         state.selectedMaterials = state.manualSelectedMaterials.slice();
-        state.hasSubmittedCart = false;
+        if (state.selectedMaterials.length === 0) state.hasSubmittedCart = false;
       }
     },
     hydrateSwatchOrder(

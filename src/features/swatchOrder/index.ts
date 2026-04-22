@@ -33,5 +33,6 @@ export {
   mergeAutofillWithSelectedMaterials,
   areSameMaterialLists,
 } from "./lib/deriveAutofillMaterials";
+export { resolveSwatchesSummaryState } from "./lib/resolveSwatchesSummaryState";
 export { MAX_SLOTS } from "./model/constants";
 export type { AttributeValue, IThreekitConfiguration, IMaterialMetadata } from "./model/types";
