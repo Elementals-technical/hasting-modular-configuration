@@ -31,6 +31,7 @@ import vesselUrbanModoCoverImage from "@/shared/assets/images/png/countertop/ves
 import vesselUrbanModoFlatImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Flat.png";
 import vesselUrbanModoSeamImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Seam.png";
 import vesselUrbanMorrisImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanMorris.png";
+import { COUNTERTOP_THICKNESS_OPTIONS } from "@/entities/countertop";
 
 export const optionsMockData = [
   {
@@ -449,54 +450,4 @@ export const optionsMockData3 = [
   },
 ];
 
-export const optionsMockData4 = [
-  {
-    id: 10,
-    title: '0.4"',
-    value: "0.375",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-  {
-    id: 17,
-    title: '0.4"',
-    value: "0.4",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-  {
-    id: 11,
-    title: '0.5"',
-    value: "0.5",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-  {
-    id: 12,
-    title: '2.4"',
-    value: "2.4",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-  {
-    id: 13,
-    title: '4"',
-    value: "4",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-  {
-    id: 14,
-    title: '5.1"',
-    value: "5.125",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-  {
-    id: 15,
-    title: '5.5"',
-    value: "5.5",
-    isShortDesc: false,
-    isSwatchWithHint: false,
-  },
-];
+export const optionsMockData4 = COUNTERTOP_THICKNESS_OPTIONS;
