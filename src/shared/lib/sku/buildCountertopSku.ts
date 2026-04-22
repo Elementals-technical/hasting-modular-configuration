@@ -34,6 +34,11 @@ const parseSkuThicknessToken = (value: string): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const formatTopMaterialBlock = (materialSku: string | null, colorCode: string | null): string => {
+  if (!materialSku) return "";
+  return `-${materialSku}${colorCode ? `-${colorCode}` : ""}`;
+};
+
 const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
   const basin = basinType?.trim() ?? "";
   if (!basin) return null;
@@ -91,9 +96,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
 
   const isVessel = styleValue.toLowerCase() === "vessel";
 
-  // Material block:
-  // - non-vessel: -{MaterialSKU}-{ColorCode}
-  // - vessel:     -{MaterialSKU}
+  // Top material block is shared across styles: -{MaterialSKU}-{ColorCode}
   const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
     caseInsensitiveKey: true,
     allowMappedValue: true,
@@ -130,11 +133,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   }
 
   const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
-  const matBlock = vesselMaterial
-    ? isVessel
-      ? `-${vesselMaterial}`
-      : `-${vesselMaterial}${color ? `-${color}` : ""}`
-    : "";
+  const matBlock = formatTopMaterialBlock(vesselMaterial, color);
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
   const series = vesselMaterial ? `UR${vesselMaterial}` : "URFX";
