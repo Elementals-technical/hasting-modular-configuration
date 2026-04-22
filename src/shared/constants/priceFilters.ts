@@ -72,6 +72,7 @@ const MATERIAL_TIER_MAP: Record<string, number> = {
   minermalmaro: 2,
   ocritech: 1,
   tekorlux: 3,
+  syntesi: 3,
   tekormud: 3,
   tekorund: 3,
 };

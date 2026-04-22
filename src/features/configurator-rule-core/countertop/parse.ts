@@ -115,6 +115,20 @@ export const normalizeBasinKey = (value: string): string => {
   return stripKnownBasinMarkers(value, false);
 };
 
+export const extractCountertopBasinMaterialTokens = (...values: Array<string | null | undefined>): string[] => {
+  const tokens = new Set<string>();
+
+  values.forEach((value) => {
+    value
+      ?.split(/[/_\s-]+/g)
+      .map((token) => normalizeMaterialToken(token))
+      .filter(Boolean)
+      .forEach((token) => tokens.add(token));
+  });
+
+  return Array.from(tokens);
+};
+
 export const scopeCountertopRulesByBasinStyle = (
   rules: CountertopMatrixRule[],
   activeBasinStyle?: string | null,

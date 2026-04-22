@@ -83,8 +83,7 @@ import { ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
-import { cmToInches } from "@/shared/lib/sku/cmToInches";
-import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
+import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
@@ -622,7 +621,7 @@ export const PlayCanvasIntegration = () => {
       const optionSku = option.metadata?.sku?.trim();
       return !countertopColorSku || !optionSku || optionSku === countertopColorSku;
     });
-    return match?.metadata?.materials ?? [];
+    return match?.metadata?.materials ?? getCountertopMaterialTokensBySku(countertopColorSku);
   }, [activeCountertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useCountertopRules();

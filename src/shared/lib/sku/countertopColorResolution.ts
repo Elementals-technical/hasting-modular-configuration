@@ -44,6 +44,7 @@ const COUNTERTOP_MATERIAL_TOKENS_BY_SKU: Record<string, string[]> = {
   SSMMO: ["mineralmarmo", "minermalmaro", "ssmmo"],
   SSTM: ["sstm", "tekormud", "tekorund"],
   SSTKR: ["sstkr", "tal", "tam", "tekorlux"],
+  SYNTESI: ["syntesi"],
 };
 
 const MATERIAL_ALIAS_GROUPS = [
@@ -54,6 +55,7 @@ const MATERIAL_ALIAS_GROUPS = [
   ["ocritech", "solidsurface", "ssocr", "sst1c", "sst1d"],
   ["por", "porcelain"],
   ["sstkr", "tal", "tam", "tekorlux"],
+  ["syntesi"],
   ["sstm", "tekormud", "tekorund"],
 ];
 
@@ -233,7 +235,7 @@ export const resolveCountertopMaterialTokensFromCandidates = ({
   if (!value) return [];
 
   const candidates = candidatesByValue.get(value) ?? [];
-  if (!candidates.length) return [];
+  if (!candidates.length) return preferredSku ? getCountertopMaterialTokensBySku(preferredSku) : [];
 
   const normalizedPreferredSku = preferredSku?.trim().toUpperCase() ?? null;
   if (normalizedPreferredSku) {

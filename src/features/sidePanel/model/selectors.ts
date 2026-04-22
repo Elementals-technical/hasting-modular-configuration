@@ -1,5 +1,6 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
+import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { sidePanelAvailabilityRule } from "../lib/sidePanelRules";
 
 // ── Plain selectors ────────────────────────────────────────────────────
@@ -45,10 +46,19 @@ const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.act
 const getSelectedProductConfig = (state: RootState) => state.rootStateUI.product.selectedProductConfig;
 const getSelectedDimensions = (state: RootState) => state.rootStateUI.product.selectedDimensions;
 const getSelectedSceneProduct = (state: RootState) => state.rootStateUI.product.selectedSceneProduct;
+const getCountertopColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColorSku;
 
 export const selectSidePanelAvailability = createSelector(
-  [getActiveCabinetType, getSelectedProductConfig, getSelectedDimensions, getSelectedSceneProduct],
-  (cabinetType, selectedProductConfig, dimensions, selectedSceneProduct) => {
+  [getActiveCabinetType, getSelectedProductConfig, getSelectedDimensions, getSelectedSceneProduct, getCountertopColorSku],
+  (cabinetType, selectedProductConfig, dimensions, selectedSceneProduct, countertopColorSku) => {
+    const countertopMaterialTokens = getCountertopMaterialTokensBySku(countertopColorSku);
+    if (countertopMaterialTokens.some((token) => token === "syntesi")) {
+      return {
+        allowed: new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">(),
+        reason: "Syntesi is not available with side panels.",
+      };
+    }
+
     const configName =
       (typeof selectedProductConfig?.name === "string" && selectedProductConfig.name) ||
       (typeof selectedProductConfig?.ProductType === "string" && selectedProductConfig.ProductType) ||
