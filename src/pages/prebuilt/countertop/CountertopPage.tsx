@@ -79,7 +79,7 @@ import {
   buildCountertopColorSkuCandidates,
   extractColorCode,
   getCountertopMaterialTokensFromBasinType,
-  resolveDefaultBasinByCountertopColor,
+  resolveDefaultBasinForCountertopSelection,
   resolveCountertopMaterialTokensFromCandidates,
   cmToInches,
 } from "@/shared/lib/sku";
@@ -1473,21 +1473,23 @@ export const CountertopPage = () => {
 
     const currentStillValid =
       activeBasinStyle && availableBasinOptions.some((option) => (option.name ?? option.title) === activeBasinStyle);
-    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(activeCountertopColor);
-    const hasColorDrivenDefault =
-      !!colorDrivenDefaultBasin &&
-      availableBasinOptions.some((option) => (option.name ?? option.title) === colorDrivenDefaultBasin);
+    const defaultBasin = resolveDefaultBasinForCountertopSelection({
+      countertopColor: activeCountertopColor,
+      materialTokens: activeMaterialTokens,
+    });
+    const hasDefaultBasin =
+      defaultBasin !== null && availableBasinOptions.some((option) => (option.name ?? option.title) === defaultBasin);
     const currentBasinMaterialTokens = new Set(getCountertopMaterialTokensFromBasinType(activeBasinStyle));
-    const defaultBasinMaterialTokens = getCountertopMaterialTokensFromBasinType(colorDrivenDefaultBasin);
+    const defaultBasinMaterialTokens = getCountertopMaterialTokensFromBasinType(defaultBasin);
     const isSameBasinMaterialFamily =
       defaultBasinMaterialTokens.length > 0 &&
       defaultBasinMaterialTokens.some((token) => currentBasinMaterialTokens.has(token));
 
     if (
-      hasColorDrivenDefault &&
+      hasDefaultBasin &&
       (activeBasinStyle === "Top_HPLPrisma" || !activeBasinStyle || !currentStillValid || !isSameBasinMaterialFamily)
     ) {
-      applyBasinStyleFallback(colorDrivenDefaultBasin!);
+      applyBasinStyleFallback(defaultBasin);
       return;
     }
 
@@ -1508,6 +1510,7 @@ export const CountertopPage = () => {
     isActiveCountertopStyleAvailable,
     isVesselStyle,
     activeCountertopColor,
+    activeMaterialTokens,
   ]);
 
   const handleCountertopStyle = async (style: string) => {
