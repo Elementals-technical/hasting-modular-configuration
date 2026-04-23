@@ -58,6 +58,7 @@ import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwa
 import { useGetConfiguratorQuery } from "@/entities";
 import {
   formatSidePanelsExceedMaxReason,
+  SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
@@ -131,18 +132,25 @@ export const CustomAccessoriesPage = () => {
       return optionsSidePanelsData.filter((option) => option.metadata?.value === "None");
     }
 
+    const isSyntesiBlocked =
+      sidePanelAvailability.allowed.size === 0 &&
+      sidePanelAvailability.reason === SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON;
+
     const allowed = new Set<string>(["None"]);
     sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
 
     return optionsSidePanelsData
-      .filter((option) => {
-        const value = option.metadata?.value;
-        if (!value) return true;
-        return allowed.has(value);
-      })
       .map((option) => {
         const value = option.metadata?.value;
         if (!value || value === "None") return option;
+        if (isSyntesiBlocked) {
+          return {
+            ...option,
+            isAvailable: false,
+            disabledReason: sidePanelAvailability.reason,
+          };
+        }
+        if (!allowed.has(value)) return null;
         const totalAfter = computeTotalAfterSpChange(value);
         if (totalAfter === null || lengthGuard.max === null) return option;
         if (lengthGuard.canAccommodateTotal(totalAfter)) return option;
@@ -151,8 +159,10 @@ export const CustomAccessoriesPage = () => {
           isAvailable: false,
           disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max),
         };
-      });
+      })
+      .filter((option): option is (typeof optionsSidePanelsData)[number] => option !== null);
   }, [
+    sidePanelAvailability.reason,
     sidePanelAvailability.allowed,
     sidePanelsBlockedByLength340,
     computeTotalAfterSpChange,
@@ -627,6 +637,7 @@ export const CustomAccessoriesPage = () => {
     if (!value) return;
     if (!isGrooveType(value)) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
+    if (value !== "None" && !sidePanelAvailability.allowed.has(value)) return;
     if (value !== "None") {
       const totalAfter = computeTotalAfterSpChange(value);
       if (totalAfter !== null && !lengthGuard.canAccommodateTotal(totalAfter)) return;

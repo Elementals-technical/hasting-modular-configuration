@@ -9,6 +9,7 @@ import type {
   SyntesiSidePanelRuleInput,
   SyntesiSidePanelRuleResult,
 } from "@/features/configurator-rule-core/options/types";
+import { SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON } from "@/features/configurator-rule-core/countertop";
 
 const isSidePanelsEnabled = (value?: string | null) => {
   if (!value) return false;
@@ -55,7 +56,7 @@ export const syntesiSidePanelRule = ({
   if (!isSidePanelsEnabled(sidePanels)) return { allowed: true };
 
   if (countertopMaterial?.trim() === SYNTESI_MATERIAL_TOKEN) {
-    return { allowed: false, reason: "Syntesi is not available with side panels." };
+    return { allowed: false, reason: SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON };
   }
 
   return { allowed: true };
