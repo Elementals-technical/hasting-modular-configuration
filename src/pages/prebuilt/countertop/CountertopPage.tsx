@@ -106,6 +106,13 @@ const isExcludedCountertopMaterialFilter = (value: string) =>
 
 const INTEGRATED_DEPTH_46_DISABLED_REASON =
   'Integrated basin style not available for 46cm (18.1") depth configurations';
+const VESSEL_SINK_NONE_OPTION_VALUE = "__vessel_sink_none__";
+const VESSEL_SINK_NONE_OPTION: ProductOptionData = {
+  id: "vessel-sink-none",
+  title: "None",
+  name: VESSEL_SINK_NONE_OPTION_VALUE,
+  isShortDesc: false,
+};
 
 type MaterialFilterOption = {
   label: string;
@@ -1029,6 +1036,7 @@ export const CountertopPage = () => {
     return firstAvailable?.title?.trim().toLowerCase() ?? "";
   }, [activeCountertopStyle, filteredStyleOptions, isActiveCountertopStyleAvailable]);
   const isBasinSelectionVesselStyle = basinSelectionStyle === "vessel";
+  const activeBasinOptionValue = isBasinSelectionVesselStyle && !activeBasinStyle ? VESSEL_SINK_NONE_OPTION_VALUE : activeBasinStyle;
 
   const allowedBasinTokens = useMemo(() => {
     return ruleState.allowedBasinTokens;
@@ -1125,7 +1133,7 @@ export const CountertopPage = () => {
         vesselOptions: vesselOptions.map((item) => item.name ?? item.title),
       });
 
-      return vesselOptions;
+      return [VESSEL_SINK_NONE_OPTION, ...vesselOptions];
     }
 
     const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
@@ -1442,6 +1450,14 @@ export const CountertopPage = () => {
     if (selectedOption?.isAvailable === false) return;
 
     await saveSnapshot();
+    if (basinStyle === VESSEL_SINK_NONE_OPTION_VALUE) {
+      if ((activeCountertopStyle ?? "").trim().toLowerCase() !== "vessel") {
+        dispatch(setCountertopStyle("Vessel"));
+      }
+      await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
+      dispatch(setActiveBasinStyle(""));
+      return;
+    }
     if (basinStyle.startsWith("Vessel_")) {
       if ((activeCountertopStyle ?? "").trim().toLowerCase() !== "vessel") {
         dispatch(setCountertopStyle("Vessel"));
@@ -1707,7 +1723,7 @@ export const CountertopPage = () => {
     },
     {
       id: "basin-style",
-      title: isBasinSelectionVesselStyle ? "Vessel Style" : "Basin style",
+      title: isBasinSelectionVesselStyle ? "Vessel Sink Style" : "Basin style",
       content: !hasSelectedMaterial ? (
         <div>Select a material first to enable basin styles.</div>
       ) : !activeThickness ? (
@@ -1715,9 +1731,13 @@ export const CountertopPage = () => {
       ) : isSinkDisabled ? (
         <div>Select a cabinet type with sink support to enable basin styles.</div>
       ) : filteredBasinOptions.length === 0 && isBasinSelectionVesselStyle ? (
-        <div>No vessel styles available for the selected material.</div>
+        <div>No vessel sink styles available for the selected material.</div>
       ) : (
-        <ProductOptionsGrid handleAdd={handleAddBasinStyle} data={filteredBasinOptions} />
+        <ProductOptionsGrid
+          handleAdd={handleAddBasinStyle}
+          data={filteredBasinOptions}
+          activeValue={activeBasinOptionValue}
+        />
       ),
     },
     ...(isVesselStyle
