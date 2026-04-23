@@ -4,6 +4,9 @@ import { Outlet, useMatch, useNavigate, useSearchParams } from "react-router-dom
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
 
+import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
+import { mergePrebuiltModelTransferableOverrides } from "@/entities/product/lib/mergePrebuiltModelTransferableOverrides";
+import { resolvePrebuiltModelTransferableOverrides } from "@/entities/product/lib/prebuiltModelTransferableFields";
 import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
@@ -25,7 +28,7 @@ import {
   setHandleGrooveColor,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
-import { getProductsPresets } from "@/entities/product/model/store/selectors";
+import { getCabinetColor, getHandleGrooveColor, getProductsPresets } from "@/entities/product/model/store/selectors";
 import { findCountertopSkuByColorName } from "@/features/configurator-rule-core/countertop";
 import { useGetConfiguratorQuery } from "@/entities";
 import { BaseButton, ROUTES } from "@/shared";
@@ -43,17 +46,6 @@ import { clearHistory } from "@/entities/history/model/store/slice";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 
 import s from "./ModelPage.module.scss";
-
-const presetKeys: Array<keyof PresetProduct> = [
-  "name",
-  "Width",
-  "Height",
-  "Depth",
-  "CabinetColor",
-  "CountertopColor",
-  "Drawers",
-  "sinkType",
-];
 
 const inferCountertopStyleFromSinkType = (sinkType: string): "Vessel" | "Integrated" => {
   const trimmed = sinkType.trim();
@@ -85,17 +77,6 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   return globalConfig;
 };
 
-const arePresetsEqual = (left: PresetProduct[] = [], right: PresetProduct[] = []) => {
-  if (left.length !== right.length) return false;
-
-  return left.every((item, index) => {
-    const compare = right[index];
-    if (!compare) return false;
-
-    return presetKeys.every((key) => (item[key] ?? null) === (compare[key] ?? null));
-  });
-};
-
 export const ModelPage = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
@@ -104,6 +85,8 @@ export const ModelPage = () => {
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
   const productsPresets = useAppSelector(getProductsPresets);
+  const cabinetColor = useAppSelector(getCabinetColor);
+  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const spGroove = useAppSelector(getSidePanelsOption);
   const { data: configuratorData } = useGetConfiguratorQuery({ id: 4, view: "full", serialize: true });
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
@@ -136,6 +119,17 @@ export const ModelPage = () => {
   }, [searchParams]);
   const configIdFromUrl = useMemo(() => searchParams.get("configId"), [searchParams]);
   const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
+  const transferableOverrides = useMemo(
+    () =>
+      resolvePrebuiltModelTransferableOverrides({
+        presetProducts: productsPresets,
+        selectedOptions: {
+          CabinetColor: cabinetColor,
+          HandleGrooveColor: handleGrooveColor,
+        },
+      }),
+    [cabinetColor, handleGrooveColor, productsPresets],
+  );
 
   const presetFromUrl = useMemo(() => {
     if (presetIdFromUrl === null) return null;
@@ -204,7 +198,7 @@ export const ModelPage = () => {
   const activePresetId = useMemo(() => {
     const target = productsPresets.length ? productsPresets : (productMockData[0]?.presetProducts ?? []);
 
-    const match = productMockData.find((preset) => arePresetsEqual(preset.presetProducts, target));
+    const match = productMockData.find((preset) => arePrebuiltModelPresetsEqual(preset.presetProducts, target));
 
     return match?.id ?? productMockData[0]?.id ?? null;
   }, [productsPresets]);
@@ -212,11 +206,12 @@ export const ModelPage = () => {
   const handleAddPreset = useCallback(
     async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean }) => {
       try {
-        const globalConfig = resolvePresetSceneDefaults(presetProducts);
-        await addPreset(presetProducts, globalConfig);
+        const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], transferableOverrides);
+        const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
+        await addPreset(effectivePresetProducts, globalConfig);
 
-        if (presetProducts) {
-          dispatch(addProductPreset(presetProducts));
+        if (effectivePresetProducts.length) {
+          dispatch(addProductPreset(effectivePresetProducts));
           if (globalConfig.CountertopColor) {
             dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
             const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor);
@@ -225,14 +220,16 @@ export const ModelPage = () => {
           if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
           if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
         }
-        await updateSelectedDimensionsFromScene(presetProducts);
+        await updateSelectedDimensionsFromScene(effectivePresetProducts);
 
         // Re-apply side panels to match the new preset's handle/height/drawers
-        if (spGroove && spGroove !== "None" && presetProducts?.length) {
-          await reapplySidePanelsForPreset(dispatch, spGroove, presetProducts, presetProducts.length);
+        if (spGroove && spGroove !== "None" && effectivePresetProducts.length) {
+          await reapplySidePanelsForPreset(dispatch, spGroove, effectivePresetProducts, effectivePresetProducts.length);
         }
 
-        const presetCabinetColor = presetProducts?.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+        const presetCabinetColor = effectivePresetProducts.find(
+          (p) => typeof p.CabinetColor === "string" && p.CabinetColor,
+        )?.CabinetColor;
         if (presetCabinetColor) dispatch(setCabinetColor(presetCabinetColor));
 
         dispatch(clearHistory());
@@ -246,7 +243,7 @@ export const ModelPage = () => {
         console.error("[ProductModelItem] Failed to apply preset", error);
       }
     },
-    [configuratorData, dispatch, searchParams, setSearchParams, updateSelectedDimensionsFromScene, spGroove],
+    [configuratorData, dispatch, searchParams, setSearchParams, transferableOverrides, updateSelectedDimensionsFromScene, spGroove],
   );
 
   const resetAccessoriesForCustomTransition = useCallback(async () => {
@@ -433,11 +430,12 @@ export const ModelPage = () => {
 
     const run = async () => {
       try {
-        const globalConfig = resolvePresetSceneDefaults(presetProducts);
-        await addPreset(presetProducts, globalConfig);
+        const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
+        const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
+        await addPreset(effectivePresetProducts, globalConfig);
 
         if (!productsPresets.length) {
-          dispatch(addProductPreset(presetProducts));
+          dispatch(addProductPreset(effectivePresetProducts));
           if (globalConfig.CountertopColor) {
             dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
             const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor);
@@ -447,10 +445,12 @@ export const ModelPage = () => {
           if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
         }
 
-        await updateSelectedDimensionsFromScene(presetProducts);
+        await updateSelectedDimensionsFromScene(effectivePresetProducts);
         sessionStorage.setItem("prebuiltModelInitialized", "1");
 
-        const presetCabinetColor = presetProducts.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+        const presetCabinetColor = effectivePresetProducts.find(
+          (p) => typeof p.CabinetColor === "string" && p.CabinetColor,
+        )?.CabinetColor;
         if (presetCabinetColor) dispatch(setCabinetColor(presetCabinetColor));
 
         dispatch(clearHistory());
@@ -459,13 +459,22 @@ export const ModelPage = () => {
       }
     };
     run();
-  }, [canvasReady, configIdFromUrl, configuratorData, dispatch, presetFromUrl, productsPresets, updateSelectedDimensionsFromScene]);
+  }, [
+    canvasReady,
+    configIdFromUrl,
+    configuratorData,
+    dispatch,
+    presetFromUrl,
+    productsPresets,
+    transferableOverrides,
+    updateSelectedDimensionsFromScene,
+  ]);
 
   useEffect(() => {
     if (!canvasReady || !presetFromUrl) return;
     if (configIdFromUrl) return;
     if (!productsPresets.length) return;
-    if (arePresetsEqual(productsPresets, presetFromUrl.presetProducts)) return;
+    if (arePrebuiltModelPresetsEqual(productsPresets, presetFromUrl.presetProducts)) return;
 
     const run = async () => {
       await handleAddPreset(presetFromUrl.presetProducts, presetFromUrl.id, { syncUrl: false });

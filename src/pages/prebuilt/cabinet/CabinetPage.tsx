@@ -543,6 +543,17 @@ export const CabinetPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
+    if (presetsProducts.length) {
+      dispatch(
+        addProductPreset(
+          presetsProducts.map((preset) => ({
+            ...preset,
+            HandleGrooveColor: colorName,
+          })),
+        ),
+      );
+    }
+
     setConfigBatch({}, { HandleGrooveColor: colorName });
 
     dispatch(
