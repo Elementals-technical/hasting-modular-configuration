@@ -3,6 +3,7 @@ export * from "./parse";
 export * from "./rules";
 export * from "./sizeFilters";
 export * from "./lengthLimits";
+export * from "./compositionConstraints";
 export * from "./findCountertopSkuByColorName";
 export * from "./syntesiOptions";
 export * from "./hooks";

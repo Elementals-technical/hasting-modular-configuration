@@ -11,7 +11,7 @@ import {
 
 import {
   getActiveCabinetType,
-  getActiveCountertopColor,
+  getCountertopColorSku,
   getCabinetColorFinish,
   getCabinetColorMaterial,
   getGrainDirection,
@@ -22,6 +22,8 @@ import {
   getSelectedProducts,
   getSidePanelsOption,
 } from "./selectors";
+import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
+import { resolveCountertopCabinetCompositionConstraint } from "@/features/configurator-rule-core/countertop";
 
 export { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 
@@ -77,7 +79,20 @@ export const selectCountertopAdjustedLength = createSelector(
   (sidePanels, dimensions) => sidePanelCountertopLengthRule({ sidePanels, vanityLength: dimensions.width }),
 );
 
+export const selectCountertopCabinetCompositionConstraint = createSelector(
+  [getCountertopColorSku, getSelectedProducts],
+  (countertopColorSku, selectedProducts) =>
+    resolveCountertopCabinetCompositionConstraint({
+      materialTokens: getCountertopMaterialTokensBySku(countertopColorSku),
+      cabinetCount: selectedProducts.length,
+    }),
+);
+
 export const selectSyntesiConstraint = createSelector(
-  [getSidePanelsOption, getActiveCountertopColor],
-  (sidePanels, countertopMaterial) => syntesiSidePanelRule({ sidePanels, countertopMaterial }),
+  [getSidePanelsOption, getCountertopColorSku],
+  (sidePanels, countertopColorSku) =>
+    syntesiSidePanelRule({
+      sidePanels,
+      countertopMaterial: getCountertopMaterialTokensBySku(countertopColorSku)[0] ?? null,
+    }),
 );

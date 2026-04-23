@@ -2,6 +2,10 @@ import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { sidePanelAvailabilityRule } from "../lib/sidePanelRules";
+import {
+  hasSyntesiMaterialToken,
+  SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON,
+} from "@/features/configurator-rule-core/countertop";
 
 // ── Plain selectors ────────────────────────────────────────────────────
 
@@ -52,10 +56,10 @@ export const selectSidePanelAvailability = createSelector(
   [getActiveCabinetType, getSelectedProductConfig, getSelectedDimensions, getSelectedSceneProduct, getCountertopColorSku],
   (cabinetType, selectedProductConfig, dimensions, selectedSceneProduct, countertopColorSku) => {
     const countertopMaterialTokens = getCountertopMaterialTokensBySku(countertopColorSku);
-    if (countertopMaterialTokens.some((token) => token === "syntesi")) {
+    if (hasSyntesiMaterialToken(countertopMaterialTokens)) {
       return {
         allowed: new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">(),
-        reason: "Syntesi is not available with side panels.",
+        reason: SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON,
       };
     }
 

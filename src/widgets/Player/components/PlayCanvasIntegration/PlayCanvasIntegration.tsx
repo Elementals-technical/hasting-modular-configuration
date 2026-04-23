@@ -53,6 +53,7 @@ import {
   getSidePanelRightStatus,
   getHandleGrooveColor,
 } from "@/entities/product/model/store/selectors";
+import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 import { deleteSide as spDeleteSide, useSidePanelEnforce } from "@/features/sidePanel";
@@ -246,6 +247,7 @@ export const PlayCanvasIntegration = () => {
   const vesselColorRef = useRef(vesselColor);
   const { enforce: enforceSidePanelEligibilityForEdgeCabinets } = useSidePanelEnforce(productIds.length);
   vesselColorRef.current = vesselColor;
+  const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
   const productsPresets = useAppSelector(getProductsPresets);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const towelBarOption = useAppSelector(getTowelBarOption);
@@ -672,10 +674,11 @@ export const PlayCanvasIntegration = () => {
   ]);
 
   const canAddAnotherCabinet = useMemo(() => {
+    if (!countertopCompositionConstraint.canAddCabinet) return false;
     if (!addableCabinetWidths.length) return false;
     if (remainingCountertopLength === null) return true;
     return addableCabinetWidths.some((width) => width <= remainingCountertopLength + 0.01);
-  }, [addableCabinetWidths, remainingCountertopLength]);
+  }, [addableCabinetWidths, countertopCompositionConstraint.canAddCabinet, remainingCountertopLength]);
 
   const canDuplicateSelectedCabinet = useMemo(() => {
     if (!canAddAnotherCabinet) return false;
@@ -1386,8 +1389,9 @@ export const PlayCanvasIntegration = () => {
   }, []);
 
   const handleAddFromPrebuilt = useCallback(() => {
+    if (countertopCompositionConstraint.isSingleCabinetOnly) return;
     handleOpenCustomizeModePrompt("add");
-  }, [handleOpenCustomizeModePrompt]);
+  }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
 
   const handleCabinetStyleFromPrebuilt = useCallback(() => {
     handleOpenCustomizeModePrompt("cabinet-style");
@@ -1403,12 +1407,14 @@ export const PlayCanvasIntegration = () => {
   }, [handleOpenCustomizeModePrompt]);
 
   const handleRepositionFromPrebuilt = useCallback(() => {
+    if (countertopCompositionConstraint.isSingleCabinetOnly) return;
     handleOpenCustomizeModePrompt("reposition");
-  }, [handleOpenCustomizeModePrompt]);
+  }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
 
   const handleDuplicateFromPrebuilt = useCallback(() => {
+    if (countertopCompositionConstraint.isSingleCabinetOnly) return;
     handleOpenCustomizeModePrompt("duplicate");
-  }, [handleOpenCustomizeModePrompt]);
+  }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-color");
@@ -2104,7 +2110,8 @@ export const PlayCanvasIntegration = () => {
 
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
-    const canRepositionSelectedCabinet = orderedIds.length > 1;
+    const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
+    const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
 
     if (isPrebuilt) {
       if (isTowelBarEntity) {
@@ -2143,12 +2150,16 @@ export const PlayCanvasIntegration = () => {
             },
           ],
         },
-        {
-          id: "add",
-          label: "Add",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleAddFromPrebuilt,
-        },
+        ...(!hideMultiCabinetActionsForSyntesi
+          ? [
+              {
+                id: "add",
+                label: "Add",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleAddFromPrebuilt,
+              },
+            ]
+          : []),
         {
           id: "details",
           label: "Details",
@@ -2167,12 +2178,16 @@ export const PlayCanvasIntegration = () => {
             },
           ],
         },
-        {
-          id: "duplicate",
-          label: "Duplicate",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleDuplicateFromPrebuilt,
-        },
+        ...(!hideMultiCabinetActionsForSyntesi
+          ? [
+              {
+                id: "duplicate",
+                label: "Duplicate",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleDuplicateFromPrebuilt,
+              },
+            ]
+          : []),
         ...(isOneOrTwoDrawerProduct
           ? [
               {
@@ -2384,6 +2399,7 @@ export const PlayCanvasIntegration = () => {
     selectedSceneProduct,
     sinkBaseCount,
     sideShelfCount,
+    countertopCompositionConstraint.isSingleCabinetOnly,
   ]);
 
   const handleCountertopThicknessSelect = useCallback(

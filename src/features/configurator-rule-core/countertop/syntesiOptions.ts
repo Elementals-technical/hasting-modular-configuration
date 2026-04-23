@@ -1,4 +1,8 @@
-import { resolveCountertopFallbackHex, resolveCountertopFallbackTexture, resolveCountertopNeedsLightBorder } from "@/entities/countertop";
+import {
+  resolveCountertopFallbackHex,
+  resolveCountertopFallbackTexture,
+  resolveCountertopNeedsLightBorder,
+} from "@/entities/countertop";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 import { normalizeMaterialToken } from "./parse";
@@ -23,14 +27,14 @@ const SYNTESI_FINISH_CONFIGS: SyntesiFinishConfig[] = [
   {
     finish: "TAN",
     sourceFinish: "TAL",
-    title: "Bianco Gloss (TAN)",
+    title: "Bianco Gloss TAN",
     value: "Bianco Gloss TAN",
     configValue: "Bianco Gloss TAL",
   },
   {
     finish: "TAP",
     sourceFinish: "TAM",
-    title: "Bianco Matte (TAP)",
+    title: "Bianco Matte TAP",
     value: "Bianco Matte TAP",
     configValue: "Bianco Matte TAM",
   },
@@ -105,10 +109,7 @@ const matchesSourceFinish = (option: ProductOptionData, sourceFinish: string): b
     return tokens.includes(sourceFinish);
   });
 
-const findSourceSwatch = (
-  options: ProductOptionData[],
-  config: SyntesiFinishConfig,
-): ProductOptionData | null => {
+const findSourceSwatch = (options: ProductOptionData[], config: SyntesiFinishConfig): ProductOptionData | null => {
   const sourceOptions = options.filter((option) => matchesSourceFinish(option, config.sourceFinish));
   const tekorluxSource = sourceOptions.find((option) =>
     getOptionMaterialTokens(option).some((token) => SOURCE_MATERIAL_TOKENS.has(token)),
@@ -118,9 +119,7 @@ const findSourceSwatch = (
 };
 
 const isTekorluxSyntesiSourceOption = (option: ProductOptionData): boolean => {
-  const hasSourceMaterial = getOptionMaterialTokens(option).some((token) =>
-    SOURCE_MATERIAL_TOKENS.has(token),
-  );
+  const hasSourceMaterial = getOptionMaterialTokens(option).some((token) => SOURCE_MATERIAL_TOKENS.has(token));
   if (!hasSourceMaterial) return false;
   return SYNTESI_FINISH_CONFIGS.some((config) => matchesSourceFinish(option, config.sourceFinish));
 };

@@ -74,6 +74,7 @@ import {
   getSideShelfCount,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
+import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
@@ -211,6 +212,7 @@ export const CabinetBuilderPage = () => {
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
 
   const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
     useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
@@ -285,9 +287,16 @@ export const CabinetBuilderPage = () => {
         id: meta.id,
         title: meta.title,
         value: String(value),
-        isAvailable: (ruleOption ? !ruleOption.disabled : true) && hasAddableWidthForActiveType,
+        isAvailable:
+          countertopCompositionConstraint.canAddCabinet &&
+          (ruleOption ? !ruleOption.disabled : true) &&
+          hasAddableWidthForActiveType,
         disabledReason:
-          !hasAddableWidthForActiveType && hasProducts ? compositionExceededReason : ruleOption?.reason,
+          !countertopCompositionConstraint.canAddCabinet && hasProducts
+            ? countertopCompositionConstraint.reason
+            : !hasAddableWidthForActiveType && hasProducts
+              ? compositionExceededReason
+              : ruleOption?.reason,
         isMixingRestricted,
         isShortDesc: meta.isShortDesc ?? false,
         metadata: {
@@ -301,9 +310,11 @@ export const CabinetBuilderPage = () => {
     dimensionOptions.drawers,
     activeCabinetType,
     dominantDrawerGroup,
+    countertopCompositionConstraint.canAddCabinet,
+    countertopCompositionConstraint.reason,
     hasAddableWidthForActiveType,
     hasProducts,
-    maxCountertopLength,
+    compositionExceededReason,
   ]);
 
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
@@ -347,19 +358,27 @@ export const CabinetBuilderPage = () => {
             (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
           const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
           const isLengthLimited = hasProducts && !typeHasFittingWidth;
+          const isBlockedByCountertopComposition = hasProducts && !countertopCompositionConstraint.canAddCabinet;
           const isDisabled =
-            isSinkBaseDisabled || isSideShelfDisabled || isShelfRequiresBaseCabinet || isSideShelfHandleBlocked || isLengthLimited;
-          const disabledReason = isSinkBaseDisabled
-            ? "Vanity configurations allow a maximum of two Sink Base units."
-            : isSideShelfDisabled
-              ? "Vanity configurations allow a maximum of two Side Shelf units."
-              : isShelfRequiresBaseCabinet
-                ? "Add at least one Sink Base or Side Cabinet first."
-                : isSideShelfHandleBlocked
-                  ? "This cabinet type is only compatible with a PTO handle."
-                  : isLengthLimited
-                    ? compositionExceededReason
-                    : undefined;
+            isBlockedByCountertopComposition ||
+            isSinkBaseDisabled ||
+            isSideShelfDisabled ||
+            isShelfRequiresBaseCabinet ||
+            isSideShelfHandleBlocked ||
+            isLengthLimited;
+          const disabledReason = isBlockedByCountertopComposition
+            ? countertopCompositionConstraint.reason
+            : isSinkBaseDisabled
+              ? "Vanity configurations allow a maximum of two Sink Base units."
+              : isSideShelfDisabled
+                ? "Vanity configurations allow a maximum of two Side Shelf units."
+                : isShelfRequiresBaseCabinet
+                  ? "Add at least one Sink Base or Side Cabinet first."
+                  : isSideShelfHandleBlocked
+                    ? "This cabinet type is only compatible with a PTO handle."
+                    : isLengthLimited
+                      ? compositionExceededReason
+                      : undefined;
 
           return {
             id: rule.code,
@@ -370,9 +389,11 @@ export const CabinetBuilderPage = () => {
             isAvailable: !isDisabled,
             disabledReason,
             disabledActionLabel:
-              !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked ? "Switch to PTO handle here" : undefined,
+              !isBlockedByCountertopComposition && !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked
+                ? "Switch to PTO handle here"
+                : undefined,
             onDisabledAction:
-              !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked
+              !isBlockedByCountertopComposition && !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked
                 ? () => setIsPtoSwitchPromptOpen(true)
                 : undefined,
             metadata: {
@@ -387,15 +408,18 @@ export const CabinetBuilderPage = () => {
       sideShelfCount,
       dominantDrawerGroup,
       isOssBlockedByHandle,
+      countertopCompositionConstraint.canAddCabinet,
+      countertopCompositionConstraint.reason,
       hasBaseOrSideCabinetOnScene,
       hasProducts,
       remainingCountertopLength,
-      maxCountertopLength,
+      compositionExceededReason,
     ],
   );
 
   const handleApprovePtoSwitch = useCallback(async () => {
     setIsPtoSwitchPromptOpen(false);
+    if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
     await saveSnapshot();
     dispatch(
       setSelectedProductConfig({
@@ -407,7 +431,14 @@ export const CabinetBuilderPage = () => {
     dispatch(setActiveCabinetType("Side-Shelf"));
     dispatch(setDrawerProduct("Side-Shelf"));
     dispatch(setOpenStyleSidebar(true));
-  }, [dispatch, handleGrooveColor, saveSnapshot, selectedProductConfig]);
+  }, [
+    countertopCompositionConstraint.canAddCabinet,
+    dispatch,
+    handleGrooveColor,
+    hasProducts,
+    saveSnapshot,
+    selectedProductConfig,
+  ]);
 
   const handleClose = () => {
     sessionStorage.setItem("instractions", "1");
@@ -417,6 +448,7 @@ export const CabinetBuilderPage = () => {
   const handleSelectCabinetConfig = useCallback(
     (name?: string, config?: addProductConfigI) => {
       if (!name) return;
+      if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
 
       dispatch(setDrawerProduct(name));
       dispatch(setSelectedProductConfig(config ?? null));
@@ -425,7 +457,7 @@ export const CabinetBuilderPage = () => {
         dispatch(setActiveBasinStyle(config.sinkType));
       }
     },
-    [dispatch],
+    [countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts],
   );
 
   const handleOpenStyleSidebar = () => {
@@ -433,6 +465,7 @@ export const CabinetBuilderPage = () => {
   };
 
   const handleSelectDrawerStyle = (id: number) => {
+    if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
     autoAddSignatureRef.current = null;
     if (!hasProducts) allowNextAutoAddRef.current = true;
     setActiveStyleId(id);
@@ -547,18 +580,18 @@ export const CabinetBuilderPage = () => {
     const finalRulesResult =
       newHandle !== currentHandle
         ? applyConfiguratorRules(
-          {
-            cabinetType: inferredCabinetType,
-            width: selectedDimensions.width ?? 0,
-            depth: selectedDimensions.depth ?? 0,
-            height: selectedDimensions.height ?? 0,
-            drawers: drawerRawValue,
-            handle: newHandle || undefined,
-          },
-          undefined,
-          { selectedProductIds: [] },
-          cabinetCatalog,
-        )
+            {
+              cabinetType: inferredCabinetType,
+              width: selectedDimensions.width ?? 0,
+              depth: selectedDimensions.depth ?? 0,
+              height: selectedDimensions.height ?? 0,
+              drawers: drawerRawValue,
+              handle: newHandle || undefined,
+            },
+            undefined,
+            { selectedProductIds: [] },
+            cabinetCatalog,
+          )
         : rulesResult;
 
     const newHeight = finalRulesResult.nextSelection.height;
@@ -910,14 +943,7 @@ export const CabinetBuilderPage = () => {
     };
 
     void runDelete();
-  }, [
-    canvasReady,
-    dispatch,
-    hasBootstrappedCabinetBuilder,
-    productsPresets,
-    selectedProducts,
-    resolveCabinetTypeId,
-  ]);
+  }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, selectedProducts, resolveCabinetTypeId]);
 
   const handleRestoreConfiguration = useCallback(
     async (id: string | number) => {
@@ -1118,8 +1144,12 @@ export const CabinetBuilderPage = () => {
             dispatch(setSidePanelsOption(sidePanel));
             const leftStatus = uiSidePanelLeft ?? "active";
             const rightStatus = uiSidePanelRight ?? "active";
-            dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus as "active" | "none" | "auto-removed" }));
-            dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }));
+            dispatch(
+              setSidePanelSideStatus({ side: "left", status: leftStatus as "active" | "none" | "auto-removed" }),
+            );
+            dispatch(
+              setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }),
+            );
             await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus);
           }
         }
@@ -1360,6 +1390,10 @@ export const CabinetBuilderPage = () => {
     handleResetToDefaultState,
     saveSnapshot,
     cabinetCatalog,
+    countertopStyle,
+    countertopThickness,
+    selectedProducts.length,
+    vesselColor,
   ]);
 
   useEffect(() => {

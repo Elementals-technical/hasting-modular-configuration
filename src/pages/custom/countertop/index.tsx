@@ -74,8 +74,10 @@ import {
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
-  resolveCountertopWidthRuleStyle,
+  resolveCountertopCabinetCompositionConstraint,
   SYNTESI_MATERIAL,
+  resolveCountertopWidthRuleStyle,
+  SYNTESI_SINGLE_CABINET_REASON,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 
@@ -714,9 +716,19 @@ export const CustomCountertopPage = () => {
   }, []);
 
   const evaluateMaterialOptionCompatibility = useCallback(
-    (option: ProductOptionData): { isCompatible: boolean; failedBy: "total" | "selected" | "depth" | null } => {
+    (
+      option: ProductOptionData,
+    ): { isCompatible: boolean; failedBy: "total" | "selected" | "depth" | "composition" | null } => {
       const optionMaterials = option.metadata?.materials ?? [];
       if (!optionMaterials.length) return { isCompatible: true, failedBy: null };
+
+      const compositionConstraint = resolveCountertopCabinetCompositionConstraint({
+        materialTokens: optionMaterials,
+        cabinetCount: selectedProducts.length,
+      });
+      if (!compositionConstraint.isWithinCabinetLimit) {
+        return { isCompatible: false, failedBy: "composition" };
+      }
 
       // Use SB cabinet depth for rule filtering; fall back to selected entity depth
       const effectiveDepth = sinkBaseDims.depth ?? selectedDimensions.depth ?? null;
@@ -765,6 +777,7 @@ export const CustomCountertopPage = () => {
       activeBasinStyle,
       activeCountertopStyle,
       countertopRules,
+      selectedProducts.length,
       sceneTotalWidth,
       sinkBaseDims.depth,
       sinkBaseDims.width,
@@ -791,6 +804,9 @@ export const CustomCountertopPage = () => {
       }
       if (evaluation.failedBy === "selected") {
         return "Not available for current cabinet width";
+      }
+      if (evaluation.failedBy === "composition") {
+        return SYNTESI_SINGLE_CABINET_REASON;
       }
       return "Not available for selected cabinet width/depth/thickness on scene";
     },
@@ -863,6 +879,9 @@ export const CustomCountertopPage = () => {
 
       const hasSelectedFailure = evaluations.some((item) => item.failedBy === "selected");
       if (hasSelectedFailure) return MATERIAL_FILTER_WIDTH_DISABLED_REASON;
+
+      const hasCompositionFailure = evaluations.some((item) => item.failedBy === "composition");
+      if (hasCompositionFailure) return SYNTESI_SINGLE_CABINET_REASON;
 
       return MATERIAL_FILTER_DISABLED_REASON;
     },
@@ -1243,8 +1262,18 @@ export const CustomCountertopPage = () => {
     [filteredCountertopOptions],
   );
   const fullModeCountertopOptions = useMemo(
-    () => [...scopedCountertopOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
-    [scopedCountertopOptions],
+    () =>
+      [...scopedCountertopOptions]
+        .map((option) => {
+          const isAvailable = isMaterialOptionCompatibleBySceneSize(option);
+          return {
+            ...option,
+            isAvailable,
+            disabledReason: isAvailable ? undefined : getMaterialOptionDisabledReason(option),
+          };
+        })
+        .sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    [getMaterialOptionDisabledReason, isMaterialOptionCompatibleBySceneSize, scopedCountertopOptions],
   );
   const sortedVesselColorOptions = useMemo(
     () => [...filteredVesselColorOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
@@ -1300,6 +1329,15 @@ export const CustomCountertopPage = () => {
     metadata?: ProductOptionMetadata,
   ) => {
     if (!colorName) return;
+
+    const selectedOption = scopedCountertopOptions.find((option) => {
+      const optionValue = option.metadata?.value ?? option.name ?? option.title;
+      return optionValue === colorName || option.title === colorName;
+    });
+    if (selectedOption && !evaluateMaterialOptionCompatibility(selectedOption).isCompatible) {
+      return;
+    }
+
     await saveSnapshot();
 
     console.log("Countertop Color", colorName);
