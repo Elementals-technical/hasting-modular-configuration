@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
+import { IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT } from "@/features/inSceneQuickEditorNotification";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
 import {
   openSwatchOrder,
@@ -327,13 +328,9 @@ export function Player() {
           id: "in-scene-quick-editor",
           label: "In-scene quick editor",
           content: {
-            title: "In-Scene Quick Editor",
-            intro: "Use the in-scene editor to make fast-paced edits:",
-            bullets: [
-              "Point and click any element to make edits",
-              "Resize, reposition, clone and duplicate cabinets",
-              "Modify countertop color, style, thickness, etc.",
-            ],
+            title: IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT.title,
+            intro: IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT.intro,
+            bullets: [...(IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT.details ?? [])],
             image: quickEditorStep,
           },
         },
