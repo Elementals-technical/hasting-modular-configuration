@@ -67,7 +67,11 @@ import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functio
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
-import { DEFAULT_DROPDOWN_HEIGHT, DEFAULT_DROPDOWN_WIDTH, getDropdownPosition } from "@/utils/functions/getDropdownPosition";
+import {
+  DEFAULT_DROPDOWN_HEIGHT,
+  DEFAULT_DROPDOWN_WIDTH,
+  getDropdownPosition,
+} from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -457,8 +461,7 @@ export const PlayCanvasIntegration = () => {
     if (!hasCabinets || !countertopId) return null;
 
     const sidePanelOffset =
-      (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) +
-      (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
+      (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) + (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
 
     return {
       countertopId,
@@ -800,26 +803,29 @@ export const PlayCanvasIntegration = () => {
     [cabinetCatalog.typeCabinetRules],
   );
 
-  const showDropdownForEntity = useCallback((entityName: string) => {
-    const iframeEl = containerRef.current;
-    if (!iframeEl) return;
+  const showDropdownForEntity = useCallback(
+    (entityName: string) => {
+      const iframeEl = containerRef.current;
+      if (!iframeEl) return;
 
-    if (isMobileMediaQueryRef.current?.matches) {
-      setDropdownState((prev) => ({ ...prev, visible: true }));
-      return;
-    }
+      if (isMobileMediaQueryRef.current?.matches) {
+        setDropdownState((prev) => ({ ...prev, visible: true }));
+        return;
+      }
 
-    const shouldReserveNotificationSpace = quickEditorNotification.isEligible && !quickEditorNotification.hasSeen;
-    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
-      width: shouldReserveNotificationSpace
-        ? DEFAULT_DROPDOWN_WIDTH +
-          IN_SCENE_QUICK_EDITOR_NOTIFICATION_CLUSTER_GAP +
-          IN_SCENE_QUICK_EDITOR_NOTIFICATION_PANEL_WIDTH
-        : DEFAULT_DROPDOWN_WIDTH,
-      height: DEFAULT_DROPDOWN_HEIGHT,
-    });
-    setDropdownState({ visible: true, x: pos.x, y: pos.y });
-  }, [quickEditorNotification.hasSeen, quickEditorNotification.isEligible]);
+      const shouldReserveNotificationSpace = quickEditorNotification.isEligible && !quickEditorNotification.hasSeen;
+      const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
+        width: shouldReserveNotificationSpace
+          ? DEFAULT_DROPDOWN_WIDTH +
+            IN_SCENE_QUICK_EDITOR_NOTIFICATION_CLUSTER_GAP +
+            IN_SCENE_QUICK_EDITOR_NOTIFICATION_PANEL_WIDTH
+          : DEFAULT_DROPDOWN_WIDTH,
+        height: DEFAULT_DROPDOWN_HEIGHT,
+      });
+      setDropdownState({ visible: true, x: pos.x, y: pos.y });
+    },
+    [quickEditorNotification.hasSeen, quickEditorNotification.isEligible],
+  );
 
   const showCountertopPopoverForEntity = useCallback((entityName: string) => {
     const iframeEl = containerRef.current;
@@ -1142,8 +1148,7 @@ export const PlayCanvasIntegration = () => {
   }, [selectedDimensions]);
 
   useEffect(() => {
-    const currentHandle =
-      typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
+    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
     const prevHandle = prevHandleRef.current;
     prevHandleRef.current = currentHandle;
 
@@ -2004,13 +2009,11 @@ export const PlayCanvasIntegration = () => {
     if (!isPlayCanvasReady || isMobileMenu || isSummaryPage || isDrawerOpen) return;
 
     if (dropdownState.visible || countertopPopoverState.visible) {
-      pendingQuickEditorAutoSelectRef.current = false;
       return;
     }
 
     const target = resolveQuickEditorAutoSelectTarget();
     if (!target) {
-      pendingQuickEditorAutoSelectRef.current = false;
       return;
     }
 
@@ -2035,9 +2038,16 @@ export const PlayCanvasIntegration = () => {
   ]);
 
   useEffect(() => {
+    if (quickEditorNotification.hasSeen || quickEditorNotification.isVisible) {
+      pendingQuickEditorAutoSelectRef.current = false;
+    }
+  }, [quickEditorNotification.hasSeen, quickEditorNotification.isVisible]);
+
+  useEffect(() => {
     if (isMobileMenu || isSummaryPage || isDrawerOpen) return;
     if (!dropdownState.visible) return;
-    if (!quickEditorNotification.isEligible || quickEditorNotification.hasSeen || quickEditorNotification.isVisible) return;
+    if (!quickEditorNotification.isEligible || quickEditorNotification.hasSeen || quickEditorNotification.isVisible)
+      return;
 
     quickEditorNotification.show();
     if (typeof window !== "undefined") {
@@ -2052,6 +2062,7 @@ export const PlayCanvasIntegration = () => {
     quickEditorNotification.isEligible,
     quickEditorNotification.isVisible,
     quickEditorNotification.show,
+    quickEditorNotification,
   ]);
 
   const handleDismissQuickEditorNotification = useCallback(() => {
@@ -2059,7 +2070,7 @@ export const PlayCanvasIntegration = () => {
     if (typeof window !== "undefined") {
       setInSceneQuickEditorNotificationSeen(window.sessionStorage);
     }
-  }, [quickEditorNotification.dismiss]);
+  }, [quickEditorNotification]);
 
   useEffect(() => {
     if (!countertopPopoverState.visible) return;
@@ -2712,7 +2723,9 @@ export const PlayCanvasIntegration = () => {
           <div style={{ pointerEvents: "auto" }}>
             <NestedDropdown items={dropdownItems} />
           </div>
-          {quickEditorNotification.isVisible && <InSceneQuickEditorNotification onClose={handleDismissQuickEditorNotification} />}
+          {quickEditorNotification.isVisible && (
+            <InSceneQuickEditorNotification onClose={handleDismissQuickEditorNotification} />
+          )}
         </div>
       )}
 
