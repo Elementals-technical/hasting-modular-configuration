@@ -1,6 +1,7 @@
 import { typeCabinetCatalog, type ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { autoChange } from "./lib/autoChange";
+export { getUniqueCatalogWidths } from "./lib/catalogDimensions";
 export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
 import { ruleCore } from "./lib/ruleCore";
 import type { Intent, RuleContext } from "./model/types";
