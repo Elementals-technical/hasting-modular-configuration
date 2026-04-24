@@ -67,7 +67,11 @@ import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functio
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
-import { getDropdownPosition } from "@/utils/functions/getDropdownPosition";
+import {
+  DEFAULT_DROPDOWN_HEIGHT,
+  DEFAULT_DROPDOWN_WIDTH,
+  getDropdownPosition,
+} from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -89,6 +93,15 @@ import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/e
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { buildHandleStyleConfigPatch, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  InSceneQuickEditorNotification,
+  getInSceneQuickEditorNotificationSeen,
+  IN_SCENE_QUICK_EDITOR_NOTIFICATION_CLUSTER_GAP,
+  IN_SCENE_QUICK_EDITOR_NOTIFICATION_PANEL_WIDTH,
+  resolveInSceneQuickEditorNotificationBacktrack,
+  setInSceneQuickEditorNotificationSeen,
+  useInSceneQuickEditorNotification,
+} from "@/features/inSceneQuickEditorNotification";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -211,6 +224,8 @@ export const PlayCanvasIntegration = () => {
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
   const countertopPopoverRef = useRef<HTMLDivElement | null>(null);
   const hasFocusedOnceRef = useRef(false);
+  const previousNotificationPathRef = useRef<string | null>(null);
+  const pendingQuickEditorAutoSelectRef = useRef(false);
 
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -222,6 +237,11 @@ export const PlayCanvasIntegration = () => {
   const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
+  const quickEditorNotification = useInSceneQuickEditorNotification({
+    initialState: {
+      hasSeen: typeof window !== "undefined" && getInSceneQuickEditorNotificationSeen(window.sessionStorage),
+    },
+  });
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
@@ -305,6 +325,16 @@ export const PlayCanvasIntegration = () => {
 
     return !openShelfTypes.includes(baseType);
   }, [selectedProductConfig, selectedSceneProduct]);
+
+  const resolveQuickEditorAutoSelectTarget = useCallback(() => {
+    const orderedIds = getOrderedProductIds(productIds);
+
+    if (selectedSceneProduct && orderedIds.includes(selectedSceneProduct)) {
+      return selectedSceneProduct;
+    }
+
+    return orderedIds[0] ?? null;
+  }, [productIds, selectedSceneProduct]);
 
   const isOneOrTwoDrawerProduct = useMemo(() => {
     const drawersRaw =
@@ -431,8 +461,7 @@ export const PlayCanvasIntegration = () => {
     if (!hasCabinets || !countertopId) return null;
 
     const sidePanelOffset =
-      (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) +
-      (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
+      (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) + (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
 
     return {
       countertopId,
@@ -774,18 +803,29 @@ export const PlayCanvasIntegration = () => {
     [cabinetCatalog.typeCabinetRules],
   );
 
-  const showDropdownForEntity = useCallback((entityName: string) => {
-    const iframeEl = containerRef.current;
-    if (!iframeEl) return;
+  const showDropdownForEntity = useCallback(
+    (entityName: string) => {
+      const iframeEl = containerRef.current;
+      if (!iframeEl) return;
 
-    if (isMobileMediaQueryRef.current?.matches) {
-      setDropdownState((prev) => ({ ...prev, visible: true }));
-      return;
-    }
+      if (isMobileMediaQueryRef.current?.matches) {
+        setDropdownState((prev) => ({ ...prev, visible: true }));
+        return;
+      }
 
-    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current);
-    setDropdownState({ visible: true, x: pos.x, y: pos.y });
-  }, []);
+      const shouldReserveNotificationSpace = quickEditorNotification.isEligible && !quickEditorNotification.hasSeen;
+      const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
+        width: shouldReserveNotificationSpace
+          ? DEFAULT_DROPDOWN_WIDTH +
+            IN_SCENE_QUICK_EDITOR_NOTIFICATION_CLUSTER_GAP +
+            IN_SCENE_QUICK_EDITOR_NOTIFICATION_PANEL_WIDTH
+          : DEFAULT_DROPDOWN_WIDTH,
+        height: DEFAULT_DROPDOWN_HEIGHT,
+      });
+      setDropdownState({ visible: true, x: pos.x, y: pos.y });
+    },
+    [quickEditorNotification.hasSeen, quickEditorNotification.isEligible],
+  );
 
   const showCountertopPopoverForEntity = useCallback((entityName: string) => {
     const iframeEl = containerRef.current;
@@ -1108,8 +1148,7 @@ export const PlayCanvasIntegration = () => {
   }, [selectedDimensions]);
 
   useEffect(() => {
-    const currentHandle =
-      typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
+    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
     const prevHandle = prevHandleRef.current;
     prevHandleRef.current = currentHandle;
 
@@ -1940,6 +1979,100 @@ export const PlayCanvasIntegration = () => {
   }
 
   useEffect(() => {
+    const previousPath = previousNotificationPathRef.current;
+    previousNotificationPathRef.current = location.pathname;
+
+    if (!previousPath) return;
+
+    const flow = isCustomPage ? "custom" : "prebuilt";
+    const transition = resolveInSceneQuickEditorNotificationBacktrack({
+      flow,
+      currentPath: location.pathname,
+      previousPath,
+    });
+
+    if (transition.transition === "backtrack" && !quickEditorNotification.hasSeen) {
+      pendingQuickEditorAutoSelectRef.current = true;
+      quickEditorNotification.markEligible();
+    }
+  }, [isCustomPage, location.pathname, quickEditorNotification.hasSeen, quickEditorNotification.markEligible]);
+
+  useEffect(() => {
+    if (!dropdownState.visible && quickEditorNotification.isVisible) {
+      quickEditorNotification.hide();
+    }
+  }, [dropdownState.visible, quickEditorNotification.hide, quickEditorNotification.isVisible]);
+
+  useEffect(() => {
+    if (!pendingQuickEditorAutoSelectRef.current) return;
+    if (!quickEditorNotification.isEligible || quickEditorNotification.hasSeen) return;
+    if (!isPlayCanvasReady || isMobileMenu || isSummaryPage || isDrawerOpen) return;
+
+    if (dropdownState.visible || countertopPopoverState.visible) {
+      return;
+    }
+
+    const target = resolveQuickEditorAutoSelectTarget();
+    if (!target) {
+      return;
+    }
+
+    const nextSelectTool = getSelectTool();
+    if (!nextSelectTool) return;
+
+    pendingQuickEditorAutoSelectRef.current = false;
+    nextSelectTool.deselectAll();
+    window.requestAnimationFrame(() => {
+      nextSelectTool.setSelectedByName(target, { mode: "replace" });
+    });
+  }, [
+    countertopPopoverState.visible,
+    dropdownState.visible,
+    isDrawerOpen,
+    isMobileMenu,
+    isPlayCanvasReady,
+    isSummaryPage,
+    quickEditorNotification.hasSeen,
+    quickEditorNotification.isEligible,
+    resolveQuickEditorAutoSelectTarget,
+  ]);
+
+  useEffect(() => {
+    if (quickEditorNotification.hasSeen || quickEditorNotification.isVisible) {
+      pendingQuickEditorAutoSelectRef.current = false;
+    }
+  }, [quickEditorNotification.hasSeen, quickEditorNotification.isVisible]);
+
+  useEffect(() => {
+    if (isMobileMenu || isSummaryPage || isDrawerOpen) return;
+    if (!dropdownState.visible) return;
+    if (!quickEditorNotification.isEligible || quickEditorNotification.hasSeen || quickEditorNotification.isVisible)
+      return;
+
+    quickEditorNotification.show();
+    if (typeof window !== "undefined") {
+      setInSceneQuickEditorNotificationSeen(window.sessionStorage);
+    }
+  }, [
+    dropdownState.visible,
+    isDrawerOpen,
+    isMobileMenu,
+    isSummaryPage,
+    quickEditorNotification.hasSeen,
+    quickEditorNotification.isEligible,
+    quickEditorNotification.isVisible,
+    quickEditorNotification.show,
+    quickEditorNotification,
+  ]);
+
+  const handleDismissQuickEditorNotification = useCallback(() => {
+    quickEditorNotification.dismiss();
+    if (typeof window !== "undefined") {
+      setInSceneQuickEditorNotificationSeen(window.sessionStorage);
+    }
+  }, [quickEditorNotification]);
+
+  useEffect(() => {
     if (!countertopPopoverState.visible) return;
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -2580,11 +2713,19 @@ export const PlayCanvasIntegration = () => {
             position: "absolute",
             top: dropdownState.y,
             left: dropdownState.x,
-            pointerEvents: "auto",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: `${IN_SCENE_QUICK_EDITOR_NOTIFICATION_CLUSTER_GAP}px`,
+            pointerEvents: "none",
             zIndex: 1000,
           }}
         >
-          <NestedDropdown items={dropdownItems} />
+          <div style={{ pointerEvents: "auto" }}>
+            <NestedDropdown items={dropdownItems} />
+          </div>
+          {quickEditorNotification.isVisible && (
+            <InSceneQuickEditorNotification onClose={handleDismissQuickEditorNotification} />
+          )}
         </div>
       )}
 

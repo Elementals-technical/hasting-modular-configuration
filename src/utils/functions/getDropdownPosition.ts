@@ -1,8 +1,8 @@
 import { getEntityScreenBounds } from "./playcanvas/getEntityScreenBounds";
 
 const DROPDOWN_OFFSET_X = 12;
-const DROPDOWN_WIDTH = 200;
-const DROPDOWN_HEIGHT = 300;
+export const DEFAULT_DROPDOWN_WIDTH = 200;
+export const DEFAULT_DROPDOWN_HEIGHT = 300;
 
 export type DropdownPosition = { x: number; y: number };
 
@@ -20,8 +20,8 @@ export function getDropdownPosition(
   lastPointerPos: { x: number; y: number } | null,
   size?: { width?: number; height?: number },
 ): DropdownPosition {
-  const dropdownWidth = size?.width ?? DROPDOWN_WIDTH;
-  const dropdownHeight = size?.height ?? DROPDOWN_HEIGHT;
+  const dropdownWidth = size?.width ?? DEFAULT_DROPDOWN_WIDTH;
+  const dropdownHeight = size?.height ?? DEFAULT_DROPDOWN_HEIGHT;
   const containerWidth = container.offsetWidth;
   const containerHeight = container.offsetHeight;
 
