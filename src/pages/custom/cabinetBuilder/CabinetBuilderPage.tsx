@@ -82,6 +82,7 @@ import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
+import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -230,13 +231,8 @@ export const CabinetBuilderPage = () => {
       : "Maximum composition length reached for the selected countertop setup.";
 
   const addableCatalogWidths = useMemo(() => {
-    const values = cabinetCatalog.typeCabinetRules
-      .flatMap((rule) => rule.widths ?? [])
-      .filter((value) => Number.isFinite(value) && value > 0);
-
-    if (!values.length) return [];
-    return Array.from(new Set(values)).sort((a, b) => a - b);
-  }, [cabinetCatalog.typeCabinetRules]);
+    return getUniqueCatalogWidths(cabinetCatalog);
+  }, [cabinetCatalog]);
 
   const canAddCabinetByLength = useMemo(() => {
     if (!hasProducts) return true;

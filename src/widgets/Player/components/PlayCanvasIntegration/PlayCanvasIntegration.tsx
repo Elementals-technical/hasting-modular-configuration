@@ -88,7 +88,7 @@ import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } fro
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
+import { buildHandleStyleConfigPatch, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -630,18 +630,8 @@ export const PlayCanvasIntegration = () => {
   const remainingCountertopLength = lengthGuard.remaining;
 
   const addableCabinetWidths = useMemo(() => {
-    const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
-    return filterWidthValuesByCountertopRules({
-      values: baseOptions,
-      activeCabinetCode: null,
-      activeCabinetIsOpen: false,
-      activeMaterialTokens,
-      rules: countertopRules,
-      selectedDepth: selectedDimensions.depth ?? null,
-    })
-      .map((value) => Number(value))
-      .filter((value) => Number.isFinite(value) && value > 0);
-  }, [activeMaterialTokens, countertopRules, dimensionOptions.width, selectedDimensions.depth]);
+    return getUniqueCatalogWidths(cabinetCatalog);
+  }, [cabinetCatalog]);
 
   // When a countertop material is known but no thickness has been set yet, resolve
   // the default from the rules matrix and push it into both Redux and PlayCanvas.
