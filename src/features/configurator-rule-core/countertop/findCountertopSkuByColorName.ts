@@ -13,6 +13,8 @@ const MATERIAL_SKU_BY_TOKEN: Record<string, string> = {
   minermalmaro: "SSMMO",
   ocritech: "SSOCR",
   tekorlux: "SSTKR",
+  tal: "SSTKR",
+  tam: "SSTKR",
   tekormud: "SSTM",
   tekorund: "SSTM",
 };
