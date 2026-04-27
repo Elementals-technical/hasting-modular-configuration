@@ -22,6 +22,7 @@ export type OptionState<TValue> = {
   label?: string;
   enabled: boolean;
   reason?: string;
+  deferAutoChange?: boolean;
 };
 
 export type AvailableOptions = {

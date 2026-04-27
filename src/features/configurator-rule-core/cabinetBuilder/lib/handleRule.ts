@@ -112,12 +112,12 @@ export const handleRule = (
           return { ...option, enabled: false, reason: "Not available for selected cabinet type" };
         }
 
-        if (option.value === "handle_urban_botcut" && !isDrawerAllowed) {
-          return { ...option, enabled: false, reason: CENTRAL_GROOVE_REASON };
-        }
-
         if (heightLockedReason && isHandleLockedConflict(option.value)) {
           return { ...option, enabled: false, reason: heightLockedReason };
+        }
+
+        if (option.value === "handle_urban_botcut" && !isDrawerAllowed) {
+          return { ...option, enabled: false, reason: CENTRAL_GROOVE_REASON, deferAutoChange: !hasDrawerSelection };
         }
 
         return { ...option, enabled: true };

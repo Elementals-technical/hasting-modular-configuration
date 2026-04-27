@@ -175,7 +175,7 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
   const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
   if (currentHandle && ruleResult.availableOptions.handles.length > 0) {
     const handleOption = ruleResult.availableOptions.handles.find((h) => h.value === currentHandle);
-    if (handleOption && !handleOption.enabled) {
+    if (handleOption && !handleOption.enabled && !handleOption.deferAutoChange) {
       const preferred =
         typeof ruleResult.heightLocked === "number"
           ? ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled)
