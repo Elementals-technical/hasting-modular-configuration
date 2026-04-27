@@ -1,14 +1,8 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
-import { MAX_SLOTS as MAX_SWATCHES } from "@/features/swatchOrder";
+import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 
 import s from "./QuotePrintDocument.module.scss";
-
-type PrintSwatch = {
-  value: string;
-  color: string;
-  image?: string;
-};
 
 type PrintItem = {
   id: string;
@@ -37,8 +31,6 @@ type QuotePrintDocumentProps = {
   modelName: string;
   generatedDate: string;
   configurationLink: string;
-  isSwatchesEnabled: boolean;
-  swatchesPreview: PrintSwatch[];
 };
 
 const sectionDisplayMap: Record<string, string> = {
@@ -48,6 +40,13 @@ const sectionDisplayMap: Record<string, string> = {
   faucet: "Faucet",
   basin: "Basin",
 };
+
+const footerItems = [
+  "Hastings Bath Collection",
+  "800-351-0031",
+  "Sales: info@hastingsbath.com",
+  "Support: cs@hastingsbath.com",
+] as const;
 
 const joinValues = (values: Array<string | null | undefined>, separator = " | ") =>
   values
@@ -202,6 +201,22 @@ const resolveCabinetDetails = (item: PrintItem) => {
   return details;
 };
 
+const renderProductName = (title: string) => {
+  const separatorIndex = title.indexOf(":");
+  if (separatorIndex === -1) return title;
+
+  const label = title.slice(0, separatorIndex + 1);
+  const specification = title.slice(separatorIndex + 1).trim();
+  if (!specification) return title;
+
+  return (
+    <>
+      <span className={s.prodNameLabel}>{label}</span>{" "}
+      <span className={s.prodNameSpec}>{specification}</span>
+    </>
+  );
+};
+
 const renderRows = (section?: PrintSection) => {
   if (!section || !section.items.length) return null;
 
@@ -210,7 +225,7 @@ const renderRows = (section?: PrintSection) => {
   const isCabinetSection = section.id === "cabinet";
   const resolvePriceText = (price?: string) => {
     if (!price) return "";
-    if (section.id === "faucet" && price === "$0") return "0";
+    if (section.id === "faucet" && price === "$0") return "$0.00";
     return price === "$0" ? "" : price;
   };
 
@@ -224,16 +239,18 @@ const renderRows = (section?: PrintSection) => {
         const shouldShowSubtitle = Boolean(normalizedSubtitle) && normalizedSubtitle !== normalizedSku;
         const countertopDimsLine = resolveCountertopDimsLine(item);
         const basinStyleLine = resolveBasinStyleLine(item);
-        const shouldHideSubtitle = item.title === "Countertop" && Boolean(countertopDimsLine);
+        const isDuplicateBasinSubtitle = Boolean(basinStyleLine && normalizedSubtitle === basinStyleLine);
+        const shouldHideSubtitle =
+          (item.title === "Countertop" && Boolean(countertopDimsLine)) || isDuplicateBasinSubtitle;
 
         return (
           <div className={s.row} key={item.id}>
-            <div>
-            <div className={s.prodName}>{item.title}</div>
-            {basinStyleLine ? <div className={s.prodSub}>{basinStyleLine}</div> : null}
-            {shouldShowSubtitle && !shouldHideSubtitle ? <div className={s.prodSub}>{item.subtitle}</div> : null}
-            {countertopDimsLine ? <div className={s.prodSub}>{countertopDimsLine}</div> : null}
-            {item.sku ? <div className={s.sku}>{item.sku}</div> : null}
+            <div className={s.productCell}>
+              <div className={s.prodName}>{renderProductName(item.title)}</div>
+              {basinStyleLine ? <div className={s.prodSub}>{basinStyleLine}</div> : null}
+              {shouldShowSubtitle && !shouldHideSubtitle ? <div className={s.prodSub}>{item.subtitle}</div> : null}
+              {countertopDimsLine ? <div className={s.prodSub}>{countertopDimsLine}</div> : null}
+              {item.sku ? <div className={s.sku}>{item.sku}</div> : null}
             </div>
             <div className={s.material}>
               <div>{resolveMaterialText(item)}</div>
@@ -255,14 +272,43 @@ const renderRows = (section?: PrintSection) => {
   );
 };
 
+const SpecHeader = () => (
+  <div className={s.specHeader}>
+    <div>Product</div>
+    <div>Material/Color</div>
+    <div>Price</div>
+  </div>
+);
+
+const CoverLinkArrow = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M11.6666 11.6667H28.3333M28.3333 11.6667V28.3333M28.3333 11.6667L11.6666 28.3333"
+      stroke="#AC5331"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const QuoteFooter = () => (
+  <footer className={s.footer}>
+    {footerItems.map((item, index) => (
+      <span className={s.footerItem} key={item}>
+        {item}
+        {index < footerItems.length - 1 ? <span className={s.footerDivider}>|</span> : null}
+      </span>
+    ))}
+  </footer>
+);
+
 export const QuotePrintDocument = ({
   summarySections,
   previewImage,
   modelName,
   generatedDate,
   configurationLink,
-  isSwatchesEnabled,
-  swatchesPreview,
 }: QuotePrintDocumentProps) => {
   const totalPrice = summarySections.reduce((acc, section) => {
     const sectionSum = section.items.reduce((sum, item) => sum + parsePriceValue(item.price), 0);
@@ -290,49 +336,45 @@ export const QuotePrintDocument = ({
 
           <footer className={s.coverFooter}>
             <div>Hastings Quotation</div>
-            <a className={s.configLink} href={configurationLink}>
-              Configuration link
+            <a className={`${s.configLink} ${s.coverLink}`} href={configurationLink}>
+              Configuration Link <CoverLinkArrow />
             </a>
           </footer>
         </section>
 
-        <section className={s.page}>
+        <section className={`${s.page} ${s.contentPage}`}>
           <div className={s.titleRow}>
+            <div className={s.productIntro}>
+              <h1 className={s.productName}>{modelName}</h1>
+              <p className={s.metaHint}>
+                <span className={s.metaLabel}>Country of Origin:</span> <span className={s.metaValue}>Italy</span>
+              </p>
+              <p className={s.metaHint}>
+                <span className={s.metaLabel}>Lead Time:</span>{" "}
+                <span className={s.metaValue}>10-12 Weeks (from sign-off)</span>
+              </p>
+
+              <div className={s.metaCard}>
+                <div className={s.metaRow}>
+                  <strong>Configuration Link:</strong>
+                  <a className={s.configLink} href={configurationLink}>
+                    Link <ArrowTopRight color="currentColor" />
+                  </a>
+                </div>
+                <div className={s.metaRow}>
+                  <span className={s.metaLabel}>Date Generated:</span>
+                  <span className={s.metaValue}>{generatedDate}</span>
+                </div>
+              </div>
+            </div>
+
             <div className={s.thumbWrap}>
               {previewImage ? <img className={s.thumb} src={previewImage} alt={modelName} /> : null}
             </div>
-            <div>
-              <h1 className={s.productName}>Urban Standard Height</h1>
-              <p className={s.metaHint}>Country or Orgin: Italy</p>
-              <p className={s.metaHint}>Lead Time: 10-12 weeks (from sign-off)</p>
-            </div>
           </div>
 
-          <div className={s.metaCard}>
-            <div className={s.metaRow}>
-              <strong>Configuration link:</strong>
-              <a className={s.configLink} href={configurationLink}>
-                link
-              </a>
-            </div>
-            <div className={s.metaRow}>
-              <strong>Date Generated:</strong>
-              <span>{generatedDate}</span>
-            </div>
-          </div>
-
-          <div className={s.footer}>
-            Hastings Bath Collection | 800-351-0038 | Sales: info@hastingsbath.com | Support: cs@hastingsbath.com
-          </div>
-        </section>
-
-        <section className={s.page}>
-          {/* <h2 className={s.specTitle}>Product Details & Specifications</h2> */}
-          <div className={s.specHeader}>
-            <div />
-            <div>Material/Color</div>
-            <div>Price</div>
-          </div>
+          <h2 className={s.specTitle}>Product Details &amp; Specifications</h2>
+          <SpecHeader />
           {renderRows(cabinetSection)}
 
           {cabinetOptions?.items?.length ? (
@@ -349,53 +391,20 @@ export const QuotePrintDocument = ({
           {renderRows(countertopSection)}
           {renderRows(basinSection)}
 
-          <div className={s.footer}>
-            Hastings Bath Collection | 800-351-0038 | Sales: info@hastingsbath.com | Support: cs@hastingsbath.com
-          </div>
+          <QuoteFooter />
         </section>
 
-        <section className={s.page}>
-          {/* <h2 className={s.specTitle}>Accessories & Additional Items</h2> */}
-          <div className={s.specHeader}>
-            <div />
-            <div>Material/Color</div>
-            <div>Price</div>
-          </div>
+        <section className={`${s.page} ${s.contentPage}`}>
+          <SpecHeader />
           {renderRows(accessoriesSection)}
           {renderRows(faucetSection)}
 
           <div className={s.totalRow}>
-            <span className={s.totalLabel}>Total</span>
+            <span className={s.totalLabel}>Total:</span>
             <span className={s.totalValue}>{formatTotalPrice(totalPrice)}</span>
           </div>
 
-          {isSwatchesEnabled && (
-            <div className={s.specSection}>
-              <div className={s.sectionName}>Swatches</div>
-              <div className={s.swatchGrid}>
-                {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
-                  const swatch = swatchesPreview[index];
-                  return (
-                    <div className={s.swatchItem} key={`${swatch?.value ?? "empty"}-${index}`}>
-                      {swatch ? (
-                        <span
-                          className={s.swatchFill}
-                          style={{
-                            backgroundColor: swatch.color,
-                            backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                          }}
-                        />
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className={s.footer}>
-            Hastings Bath Collection | 800-351-0038 | Sales: info@hastingsbath.com | Support: cs@hastingsbath.com
-          </div>
+          <QuoteFooter />
         </section>
       </div>
     </div>

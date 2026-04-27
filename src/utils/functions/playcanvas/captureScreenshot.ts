@@ -136,10 +136,67 @@ export async function captureScreenshot(): Promise<string | null> {
 
 type CaptureScreenshotOptions = {
   includeLogo?: boolean;
+  transparentBackground?: boolean;
+};
+
+const isTransparentCandidate = (data: Uint8ClampedArray, pixelIndex: number) => {
+  const red = data[pixelIndex];
+  const green = data[pixelIndex + 1];
+  const blue = data[pixelIndex + 2];
+  const alpha = data[pixelIndex + 3];
+
+  return alpha > 0 && red >= 245 && green >= 245 && blue >= 245;
+};
+
+const makeEdgeBackgroundTransparent = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  if (width <= 0 || height <= 0) return;
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const { data } = imageData;
+  const visited = new Uint8Array(width * height);
+  const queue: number[] = [];
+
+  const enqueue = (x: number, y: number) => {
+    const pixel = y * width + x;
+    if (visited[pixel]) return;
+
+    const pixelIndex = pixel * 4;
+    if (!isTransparentCandidate(data, pixelIndex)) return;
+
+    visited[pixel] = 1;
+    queue.push(pixel);
+  };
+
+  for (let x = 0; x < width; x += 1) {
+    enqueue(x, 0);
+    enqueue(x, height - 1);
+  }
+
+  for (let y = 1; y < height - 1; y += 1) {
+    enqueue(0, y);
+    enqueue(width - 1, y);
+  }
+
+  let cursor = 0;
+  while (cursor < queue.length) {
+    const pixel = queue[cursor];
+    cursor += 1;
+
+    const x = pixel % width;
+    const y = Math.floor(pixel / width);
+    data[pixel * 4 + 3] = 0;
+
+    if (x > 0) enqueue(x - 1, y);
+    if (x < width - 1) enqueue(x + 1, y);
+    if (y > 0) enqueue(x, y - 1);
+    if (y < height - 1) enqueue(x, y + 1);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
 };
 
 export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
-  const { includeLogo = true } = options;
+  const { includeLogo = true, transparentBackground = false } = options;
   const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
   const sourceCanvas = iframeEl?.contentDocument?.querySelector("canvas");
 
@@ -160,6 +217,9 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
       await drawBrandedCapture(sourceCanvas, ctx, outputCanvas);
     } else {
       ctx.drawImage(sourceCanvas, 0, 0);
+      if (transparentBackground) {
+        makeEdgeBackgroundTransparent(ctx, outputCanvas.width, outputCanvas.height);
+      }
     }
 
     return outputCanvas.toDataURL("image/png");
