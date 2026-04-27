@@ -172,7 +172,10 @@ export const CountertopPage = () => {
 
   const normalizeMaterialAlias = (value: string) => {
     const trimmed = value.trim();
-    return trimmed.toLowerCase() === "tekorund" ? "Tekormud" : trimmed;
+    const normalized = normalizeMaterialToken(trimmed);
+    if (normalized === "tekorund") return "Tekormud";
+    if (normalized === "sstkr" || normalized === "tal" || normalized === "tam") return "Tekorlux";
+    return trimmed;
   };
 
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
@@ -355,6 +358,8 @@ export const CountertopPage = () => {
         minermalmaro: "SSMMO",
         ocritech: "SSOCR",
         tekorlux: "SSTKR",
+        tal: "SSTKR",
+        tam: "SSTKR",
         tekormud: "SSTM",
         tekorund: "SSTM",
       };
@@ -668,12 +673,7 @@ export const CountertopPage = () => {
         ? filteredByUiBase
         : hasTekorluxSelection
           ? filteredByUiBase.filter((option) => {
-              const optionDesc = normalizeMaterialToken(option.desc ?? "");
-              const optionMaterials = option.metadata?.materials ?? [];
-              return (
-                optionDesc === "tekorlux" ||
-                optionMaterials.some((optionMaterial) => normalizeMaterialToken(optionMaterial) === "tekorlux")
-              );
+              return vesselMaterialsMatchSelection(option, selectedVesselFilter.material ?? "");
             })
           : filteredByUiBase.filter((option) => {
               return selectedVesselMaterialValues.some((selectedMaterial) =>

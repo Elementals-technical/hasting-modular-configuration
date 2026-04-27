@@ -118,12 +118,6 @@ const findSourceSwatch = (options: ProductOptionData[], config: SyntesiFinishCon
   return tekorluxSource ?? sourceOptions[0] ?? null;
 };
 
-const isTekorluxSyntesiSourceOption = (option: ProductOptionData): boolean => {
-  const hasSourceMaterial = getOptionMaterialTokens(option).some((token) => SOURCE_MATERIAL_TOKENS.has(token));
-  if (!hasSourceMaterial) return false;
-  return SYNTESI_FINISH_CONFIGS.some((config) => matchesSourceFinish(option, config.sourceFinish));
-};
-
 const buildSyntesiOption = (
   source: ProductOptionData | null,
   config: SyntesiFinishConfig,
@@ -157,7 +151,7 @@ export const appendSyntesiCountertopOptions = (
   options: ProductOptionData[],
   rules: CountertopMatrixRule[],
 ): CountertopOptionWithSource[] => {
-  const visibleOptions = options.filter((option) => !isTekorluxSyntesiSourceOption(option));
+  const visibleOptions = options;
 
   if (!hasSyntesiRule(rules)) return visibleOptions;
   if (hasSyntesiOption(visibleOptions)) return visibleOptions;

@@ -136,10 +136,151 @@ export async function captureScreenshot(): Promise<string | null> {
 
 type CaptureScreenshotOptions = {
   includeLogo?: boolean;
+  transparentBackground?: boolean;
+  outputSize?: {
+    width: number;
+    height: number;
+  };
+};
+
+type ImageBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+const isTransparentCandidate = (data: Uint8ClampedArray, pixelIndex: number) => {
+  const red = data[pixelIndex];
+  const green = data[pixelIndex + 1];
+  const blue = data[pixelIndex + 2];
+  const alpha = data[pixelIndex + 3];
+
+  return alpha > 0 && red >= 245 && green >= 245 && blue >= 245;
+};
+
+const makeEdgeBackgroundTransparent = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  if (width <= 0 || height <= 0) return;
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const { data } = imageData;
+  const visited = new Uint8Array(width * height);
+  const queue: number[] = [];
+
+  const enqueue = (x: number, y: number) => {
+    const pixel = y * width + x;
+    if (visited[pixel]) return;
+
+    const pixelIndex = pixel * 4;
+    if (!isTransparentCandidate(data, pixelIndex)) return;
+
+    visited[pixel] = 1;
+    queue.push(pixel);
+  };
+
+  for (let x = 0; x < width; x += 1) {
+    enqueue(x, 0);
+    enqueue(x, height - 1);
+  }
+
+  for (let y = 1; y < height - 1; y += 1) {
+    enqueue(0, y);
+    enqueue(width - 1, y);
+  }
+
+  let cursor = 0;
+  while (cursor < queue.length) {
+    const pixel = queue[cursor];
+    cursor += 1;
+
+    const x = pixel % width;
+    const y = Math.floor(pixel / width);
+    data[pixel * 4 + 3] = 0;
+
+    if (x > 0) enqueue(x - 1, y);
+    if (x < width - 1) enqueue(x + 1, y);
+    if (y > 0) enqueue(x, y - 1);
+    if (y < height - 1) enqueue(x, y + 1);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+};
+
+const getOpaqueBounds = (ctx: CanvasRenderingContext2D, width: number, height: number): ImageBounds | null => {
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const { data } = imageData;
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const alpha = data[(y * width + x) * 4 + 3];
+      if (alpha === 0) continue;
+
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  if (maxX < minX || maxY < minY) return null;
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1,
+  };
+};
+
+const drawContainedImage = (
+  ctx: CanvasRenderingContext2D,
+  sourceCanvas: HTMLCanvasElement,
+  outputWidth: number,
+  outputHeight: number,
+) => {
+  const sourceRatio = sourceCanvas.width / sourceCanvas.height;
+  const outputRatio = outputWidth / outputHeight;
+  const targetWidth = sourceRatio > outputRatio ? outputWidth : outputHeight * sourceRatio;
+  const targetHeight = sourceRatio > outputRatio ? outputWidth / sourceRatio : outputHeight;
+  const targetX = (outputWidth - targetWidth) / 2;
+  const targetY = (outputHeight - targetHeight) / 2;
+
+  ctx.drawImage(sourceCanvas, targetX, targetY, targetWidth, targetHeight);
+};
+
+const drawContainedCrop = (
+  ctx: CanvasRenderingContext2D,
+  sourceCanvas: HTMLCanvasElement,
+  sourceBounds: ImageBounds,
+  outputWidth: number,
+  outputHeight: number,
+) => {
+  const sourceRatio = sourceBounds.width / sourceBounds.height;
+  const outputRatio = outputWidth / outputHeight;
+  const targetWidth = sourceRatio > outputRatio ? outputWidth : outputHeight * sourceRatio;
+  const targetHeight = sourceRatio > outputRatio ? outputWidth / sourceRatio : outputHeight;
+  const targetX = (outputWidth - targetWidth) / 2;
+  const targetY = (outputHeight - targetHeight) / 2;
+
+  ctx.drawImage(
+    sourceCanvas,
+    sourceBounds.x,
+    sourceBounds.y,
+    sourceBounds.width,
+    sourceBounds.height,
+    targetX,
+    targetY,
+    targetWidth,
+    targetHeight,
+  );
 };
 
 export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
-  const { includeLogo = true } = options;
+  const { includeLogo = true, outputSize, transparentBackground = false } = options;
   const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
   const sourceCanvas = iframeEl?.contentDocument?.querySelector("canvas");
 
@@ -150,8 +291,8 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
 
   try {
     const outputCanvas = document.createElement("canvas");
-    outputCanvas.width = sourceCanvas.width;
-    outputCanvas.height = sourceCanvas.height;
+    outputCanvas.width = outputSize?.width ?? sourceCanvas.width;
+    outputCanvas.height = outputSize?.height ?? sourceCanvas.height;
 
     const ctx = outputCanvas.getContext("2d");
     if (!ctx) return sourceCanvas.toDataURL("image/png");
@@ -159,7 +300,32 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
     if (includeLogo) {
       await drawBrandedCapture(sourceCanvas, ctx, outputCanvas);
     } else {
-      ctx.drawImage(sourceCanvas, 0, 0);
+      if (outputSize && transparentBackground) {
+        const croppedCanvas = document.createElement("canvas");
+        croppedCanvas.width = sourceCanvas.width;
+        croppedCanvas.height = sourceCanvas.height;
+
+        const croppedCtx = croppedCanvas.getContext("2d");
+        if (!croppedCtx) return sourceCanvas.toDataURL("image/png");
+
+        croppedCtx.drawImage(sourceCanvas, 0, 0);
+        makeEdgeBackgroundTransparent(croppedCtx, croppedCanvas.width, croppedCanvas.height);
+
+        const sourceBounds = getOpaqueBounds(croppedCtx, croppedCanvas.width, croppedCanvas.height);
+        if (sourceBounds) {
+          drawContainedCrop(ctx, croppedCanvas, sourceBounds, outputCanvas.width, outputCanvas.height);
+        } else {
+          drawContainedImage(ctx, croppedCanvas, outputCanvas.width, outputCanvas.height);
+        }
+      } else if (outputSize) {
+        drawContainedImage(ctx, sourceCanvas, outputCanvas.width, outputCanvas.height);
+      } else {
+        ctx.drawImage(sourceCanvas, 0, 0);
+
+        if (transparentBackground) {
+          makeEdgeBackgroundTransparent(ctx, outputCanvas.width, outputCanvas.height);
+        }
+      }
     }
 
     return outputCanvas.toDataURL("image/png");

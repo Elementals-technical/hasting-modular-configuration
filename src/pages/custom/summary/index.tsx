@@ -108,6 +108,7 @@ import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captu
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 import { printQuote } from "@/features/quotePrint/lib/printQuote";
+import { formatQuoteGeneratedDate } from "@/features/quotePrint/lib/formatQuoteGeneratedDate";
 import {
   convertSkuToInchesForSummary,
   formatCabinetDimsForSummary,
@@ -516,7 +517,11 @@ export const CustomSummaryPage = () => {
   useEffect(() => {
     let isMounted = true;
 
-    captureScreenshotWithOptions({ includeLogo: false }).then((image) => {
+    captureScreenshotWithOptions({
+      includeLogo: false,
+      outputSize: { width: 900, height: 446 },
+      transparentBackground: true,
+    }).then((image) => {
       if (!isMounted || !image) return;
       setQuotePreviewImage(image);
     });
@@ -1724,12 +1729,7 @@ export const CustomSummaryPage = () => {
     hasSubmittedCart,
   ]);
 
-  const quoteModelName = useMemo(() => {
-    const firstCabinetTitle = summarySections.find((section) => section.id === "cabinet")?.items[0]?.title;
-    const normalized = (firstCabinetTitle ?? "Urban Standard").toUpperCase();
-    const widthLabel = selectedDimensions.width ? ` - ${selectedDimensions.width}` : "";
-    return `${normalized}${widthLabel}`;
-  }, [summarySections, selectedDimensions.width]);
+  const quoteModelName = "Urban Standard Height";
 
   const swatchOrderData = useMemo(() => adaptThreekitConfig(cabinetColors), [cabinetColors]);
   const summaryAutofillValues = useMemo(() => {
@@ -1794,7 +1794,7 @@ export const CustomSummaryPage = () => {
     [dispatch, mergedSummaryMaterials],
   );
 
-  const quoteGeneratedDate = useMemo(() => new Date().toLocaleDateString("en-US"), []);
+  const quoteGeneratedDate = useMemo(() => formatQuoteGeneratedDate(), []);
   const configurationLink = useMemo(() => {
     const configId = new URLSearchParams(location.search).get("configId") || generatedConfigId;
     if (configId) {
@@ -1983,8 +1983,6 @@ export const CustomSummaryPage = () => {
         modelName={quoteModelName}
         generatedDate={quoteGeneratedDate}
         configurationLink={configurationLink}
-        isSwatchesEnabled={isSwatchesBlockVisible && swatchesSummaryState.isQuoteEnabled}
-        swatchesPreview={displayedSwatchesListPreview}
       />
     </>
   );
