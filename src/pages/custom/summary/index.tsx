@@ -517,7 +517,11 @@ export const CustomSummaryPage = () => {
   useEffect(() => {
     let isMounted = true;
 
-    captureScreenshotWithOptions({ includeLogo: false, transparentBackground: true }).then((image) => {
+    captureScreenshotWithOptions({
+      includeLogo: false,
+      outputSize: { width: 1200, height: 594 },
+      transparentBackground: true,
+    }).then((image) => {
       if (!isMounted || !image) return;
       setQuotePreviewImage(image);
     });
