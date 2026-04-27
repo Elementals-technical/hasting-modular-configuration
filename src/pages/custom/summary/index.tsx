@@ -519,7 +519,7 @@ export const CustomSummaryPage = () => {
 
     captureScreenshotWithOptions({
       includeLogo: false,
-      outputSize: { width: 1200, height: 594 },
+      outputSize: { width: 900, height: 446 },
       transparentBackground: true,
     }).then((image) => {
       if (!isMounted || !image) return;
