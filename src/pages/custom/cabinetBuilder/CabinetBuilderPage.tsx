@@ -553,7 +553,7 @@ export const CabinetBuilderPage = () => {
 
     if (currentHandle && handles.length > 0) {
       const handleOption = handles.find((h) => h.value === currentHandle);
-      if (handleOption && !handleOption.enabled) {
+      if (handleOption && !handleOption.enabled && !handleOption.deferAutoChange) {
         const preferred =
           typeof rulesResult.heightLocked === "number"
             ? handles.find((h) => h.value === "handle_pto" && h.enabled)
