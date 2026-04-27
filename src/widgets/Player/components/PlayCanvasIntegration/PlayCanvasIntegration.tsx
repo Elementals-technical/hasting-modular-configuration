@@ -2392,10 +2392,10 @@ export const PlayCanvasIntegration = () => {
               label: "Reposition",
               children: [
                 ...(canMoveLeft
-                  ? [{ id: "reposition-left", label: "Move left", onClick: () => handleMoveProduct("left") }]
+                  ? [{ id: "reposition-left", label: "Move Left", onClick: () => handleMoveProduct("left") }]
                   : []),
                 ...(canMoveRight
-                  ? [{ id: "reposition-right", label: "Move right", onClick: () => handleMoveProduct("right") }]
+                  ? [{ id: "reposition-right", label: "Move Right", onClick: () => handleMoveProduct("right") }]
                   : []),
               ],
             },
