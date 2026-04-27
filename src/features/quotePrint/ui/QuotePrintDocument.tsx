@@ -203,7 +203,7 @@ const resolveCabinetDetails = (item: PrintItem) => {
 
 const renderProductName = (title: string) => {
   const separatorIndex = title.indexOf(":");
-  if (separatorIndex === -1) return title;
+  if (separatorIndex === -1) return `${title}:`;
 
   const label = title.slice(0, separatorIndex + 1);
   const specification = title.slice(separatorIndex + 1).trim();
@@ -246,10 +246,12 @@ const renderRows = (section?: PrintSection) => {
         return (
           <div className={s.row} key={item.id}>
             <div className={s.productCell}>
-              <div className={s.prodName}>{renderProductName(item.title)}</div>
-              {basinStyleLine ? <div className={s.prodSub}>{basinStyleLine}</div> : null}
-              {shouldShowSubtitle && !shouldHideSubtitle ? <div className={s.prodSub}>{item.subtitle}</div> : null}
-              {countertopDimsLine ? <div className={s.prodSub}>{countertopDimsLine}</div> : null}
+              <div className={s.prodNameRow}>
+                <div className={s.prodName}>{renderProductName(item.title)}</div>
+                {basinStyleLine ? <div className={s.prodSub}>{basinStyleLine}</div> : null}
+                {shouldShowSubtitle && !shouldHideSubtitle ? <div className={s.prodSub}>{item.subtitle}</div> : null}
+                {countertopDimsLine ? <div className={s.prodSub}>{countertopDimsLine}</div> : null}
+              </div>
               {item.sku ? <div className={s.sku}>{item.sku}</div> : null}
             </div>
             <div className={s.material}>
@@ -356,7 +358,7 @@ export const QuotePrintDocument = ({
 
               <div className={s.metaCard}>
                 <div className={s.metaRow}>
-                  <strong>Configuration Link:</strong>
+                  <span className={s.metaLabel}>Configuration Link:</span>
                   <a className={s.configLink} href={configurationLink}>
                     Link <ArrowTopRight color="currentColor" />
                   </a>

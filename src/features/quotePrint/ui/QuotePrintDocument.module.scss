@@ -109,10 +109,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--quote-accent);
+  color: #231f20;
+  font-family: Poppins;
   font-size: 24px;
+  font-style: normal;
+  font-weight: 400;
   line-height: 32px;
-  font-weight: 500;
   text-decoration: underline;
   text-decoration-line: underline;
   text-decoration-style: solid;
@@ -225,10 +227,10 @@
 }
 
 .metaRow .configLink {
-  color: var(--quote-accent);
+  color: #231f20;
   font-size: 24px;
   line-height: 32px;
-  font-weight: 500;
+  font-weight: 400;
   text-underline-offset: 3px;
 }
 
@@ -298,11 +300,18 @@
   min-width: 0;
 }
 
+.prodNameRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-bottom: 6px;
+}
+
 .prodName {
   color: var(--quote-text);
   font-size: 24px;
   line-height: 32px;
-  margin-bottom: 6px;
   font-weight: 500;
 }
 
@@ -322,10 +331,12 @@
 }
 
 .sku {
-  color: var(--quote-text);
+  color: #231f20;
+  font-family: Poppins;
   font-size: 18px;
-  line-height: 24px;
+  font-style: normal;
   font-weight: 400;
+  line-height: 24px;
   margin-top: 6px;
   word-break: break-word;
 }
