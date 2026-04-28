@@ -6,6 +6,7 @@ import {
   type ProductOptionData,
   type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { dedupeProductOptionsByValue } from "@/entities/product/lib/dedupeProductOptionsByValue";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getActiveCountertopColor,
@@ -71,6 +72,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
+import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -341,8 +343,12 @@ export const CountertopPage = () => {
   );
 
   const vesselColorOptions = useMemo(
-    () => countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
-    [countertopOptionsFromApi, isVesselColorOption],
+    () =>
+      dedupeProductOptionsByValue(
+        countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
+        (option) => (isVesselApiOption(option) ? 1 : 0),
+      ),
+    [countertopOptionsFromApi, isVesselApiOption, isVesselColorOption],
   );
 
   const findSkuByColorName = useCallback(
@@ -1352,9 +1358,12 @@ export const CountertopPage = () => {
 
     const playCanvasColorName = metadata?.configValue ?? colorName;
 
-    presetNames.forEach((productName) => {
-      setConfigBatch({ productType: productName }, { CountertopColor: playCanvasColorName });
-    });
+    const countertopColorConfig = { CountertopColor: playCanvasColorName };
+
+    await Promise.all([
+      ...presetNames.map((productName) => setConfigBatch({ productType: productName }, countertopColorConfig)),
+      setConfigBatch(getCountertopProductBatchSelector(), countertopColorConfig),
+    ]);
 
     dispatch(setActiveCountertopColor(colorName));
     dispatch(setCountertopColorSku(metadata?.sku ?? findSkuByColorName(colorName)));

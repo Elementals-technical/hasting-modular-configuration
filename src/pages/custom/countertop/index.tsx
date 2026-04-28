@@ -6,6 +6,7 @@ import {
   type ProductOptionData,
   type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { dedupeProductOptionsByValue } from "@/entities/product/lib/dedupeProductOptionsByValue";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import type { AccordionConfig } from "@/shared/constants/types";
@@ -29,6 +30,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import {
   setActiveBasinStyle,
@@ -338,8 +340,12 @@ export const CustomCountertopPage = () => {
   );
 
   const vesselColorOptions = useMemo(
-    () => countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
-    [countertopOptionsFromApi, isVesselColorOption],
+    () =>
+      dedupeProductOptionsByValue(
+        countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
+        (option) => (isVesselApiOption(option) ? 1 : 0),
+      ),
+    [countertopOptionsFromApi, isVesselApiOption, isVesselColorOption],
   );
 
   const findSkuByColorName = useCallback(
@@ -452,7 +458,9 @@ export const CustomCountertopPage = () => {
   const materialFilters = useMemo(() => {
     const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
     const syntesiOptions = countertopOptions.filter((option) =>
-      option.metadata?.materials?.some((material) => normalizeMaterialToken(material) === normalizeMaterialToken(SYNTESI_MATERIAL)),
+      option.metadata?.materials?.some(
+        (material) => normalizeMaterialToken(material) === normalizeMaterialToken(SYNTESI_MATERIAL),
+      ),
     );
 
     if (!groups.length && !syntesiOptions.length) return defaultMaterialFilters;
@@ -1033,7 +1041,8 @@ export const CustomCountertopPage = () => {
     return firstAvailable?.title?.trim().toLowerCase() ?? "";
   }, [activeCountertopStyle, filteredStyleOptions, isActiveCountertopStyleAvailable]);
   const isBasinSelectionVesselStyle = basinSelectionStyle === "vessel";
-  const activeBasinOptionValue = isBasinSelectionVesselStyle && !activeBasinStyle ? VESSEL_SINK_NONE_OPTION_VALUE : activeBasinStyle;
+  const activeBasinOptionValue =
+    isBasinSelectionVesselStyle && !activeBasinStyle ? VESSEL_SINK_NONE_OPTION_VALUE : activeBasinStyle;
 
   const allowedBasinTokens = useMemo(() => {
     return ruleState.allowedBasinTokens;
@@ -1204,9 +1213,7 @@ export const CustomCountertopPage = () => {
 
       const basinLabelCandidates = isMaterialSpecific ? [restTokens.join(" "), label] : [label];
       const normalizedBasinLabelCandidates = new Set(
-        basinLabelCandidates
-          .map((candidate) => normalizeBasinKey(candidate))
-          .filter(Boolean),
+        basinLabelCandidates.map((candidate) => normalizeBasinKey(candidate)).filter(Boolean),
       );
       const basinRules = applicableIntegratedRules.filter((rule) =>
         normalizedBasinLabelCandidates.has(normalizeBasinKey(rule.basinStyle)),
@@ -1352,9 +1359,12 @@ export const CustomCountertopPage = () => {
 
     const playCanvasColorName = metadata?.configValue ?? colorName;
 
-    setConfigBatch(selectedProducts, {
+    const countertopColorConfig = {
       CountertopColor: playCanvasColorName,
-    });
+    };
+
+    await setConfigBatch({}, countertopColorConfig);
+    await setConfigBatch(getCountertopProductBatchSelector(), countertopColorConfig);
 
     dispatch(setActiveCountertopColor(colorName));
     dispatch(setCountertopColorSku(metadata?.sku ?? findSkuByColorName(colorName)));

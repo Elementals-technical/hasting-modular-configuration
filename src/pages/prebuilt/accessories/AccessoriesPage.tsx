@@ -43,6 +43,8 @@ import {
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
+  getAvailableDividerTypesForDrawer,
+  getDividerTypeFromOptionTitle,
   placeDividerToSlot,
   removeDividerFromSlot,
   setDividerSlotClickHandler,
@@ -50,6 +52,8 @@ import {
   setOnOccupiedSlotClick,
   setVisibleDividerSlotButtons,
   showIconDividerSlots,
+  type DividerType,
+  type DrawerType,
   wrapExitTopView,
   wrapShowTopView,
 } from "@/utils/functions/playcanvas/dividers";
@@ -107,7 +111,12 @@ export const AccessoriesPage = () => {
     [lengthGuard.currentCabinetOnly, resolvedSpSide, sidePanelLeft, sidePanelRight],
   );
   const isPlayCanvasReady = usePlayCanvasReady();
-  const [activeDrawerType, setActiveDrawerType] = useState<"Top" | "TopFull" | "Bot" | null>(null);
+  const [activeDrawerType, setActiveDrawerType] = useState<DrawerType | null>(null);
+  const [dividerAvailability, setDividerAvailability] = useState<{
+    cabinetId: string;
+    drawerType: DrawerType;
+    types: Set<DividerType> | null;
+  } | null>(null);
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
   const isDrawerCameraManagedRef = useRef(false);
   const drawerZoomTargetRef = useRef<number | null>(null);
@@ -130,6 +139,61 @@ export const AccessoriesPage = () => {
     },
     [selectedDividerType],
   );
+
+  const refreshDividerOptionsAvailability = useCallback(
+    async (cabinetId = selectedSceneProduct, drawerType = activeDrawerType) => {
+      if (!isPlayCanvasReady || dividerSelection !== "Customize" || !cabinetId || !drawerType) return;
+
+      const types = await getAvailableDividerTypesForDrawer(cabinetId, drawerType);
+      setDividerAvailability({ cabinetId, drawerType, types });
+    },
+    [activeDrawerType, dividerSelection, isPlayCanvasReady, selectedSceneProduct],
+  );
+
+  useEffect(() => {
+    if (!isPlayCanvasReady || dividerSelection !== "Customize" || !selectedSceneProduct || !activeDrawerType) return;
+
+    let isCurrent = true;
+    const cabinetId = selectedSceneProduct;
+    const drawerType = activeDrawerType;
+
+    void getAvailableDividerTypesForDrawer(cabinetId, drawerType).then((types) => {
+      if (!isCurrent) return;
+      setDividerAvailability({ cabinetId, drawerType, types });
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [activeDrawerType, dividerSelection, isPlayCanvasReady, selectedSceneProduct]);
+
+  const availableDividerTypes = useMemo(() => {
+    if (!dividerAvailability || dividerSelection !== "Customize" || !selectedSceneProduct || !activeDrawerType) {
+      return null;
+    }
+    if (dividerAvailability.cabinetId !== selectedSceneProduct || dividerAvailability.drawerType !== activeDrawerType) {
+      return null;
+    }
+
+    return dividerAvailability.types;
+  }, [activeDrawerType, dividerAvailability, dividerSelection, selectedSceneProduct]);
+
+  const dividerOptions = useMemo(() => {
+    if (!availableDividerTypes) return dividersMockData;
+
+    return dividersMockData.map((option) => {
+      const dividerType = getDividerTypeFromOptionTitle(option.title);
+      const isAvailable = dividerType ? availableDividerTypes.has(dividerType) : true;
+
+      return {
+        ...option,
+        isAvailable,
+        disabledReason: isAvailable
+          ? undefined
+          : "This divider option does not fit in the selected drawer space.",
+      };
+    });
+  }, [availableDividerTypes]);
 
   const cloneCameraState = useCallback((state: Record<string, unknown> | null) => {
     if (!state) return null;
@@ -367,11 +431,9 @@ export const AccessoriesPage = () => {
       button.style.fontFamily = "Poppins, sans-serif";
       button.addEventListener("click", (event) => {
         event.stopPropagation();
-        // @ts-ignore
         const containerRef = window.containerRef;
         const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
-        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
-        api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
+        api?.showTopView?.(drawerInfo.cabinetId, drawerInfo.drawerType);
       });
       parentEl.appendChild(button);
     });
@@ -392,7 +454,6 @@ export const AccessoriesPage = () => {
       button.style.fontSize = "11px";
       button.addEventListener("click", (event) => {
         event.stopPropagation();
-        // @ts-ignore
         const containerRef = window.containerRef;
         const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
         api?.exitTopView?.();
@@ -501,6 +562,7 @@ export const AccessoriesPage = () => {
       );
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
       enforceDrawerZoom();
+      void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
     });
 
     const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
@@ -511,6 +573,7 @@ export const AccessoriesPage = () => {
       if (drawerType) {
         showIconDividerSlots(slotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
+        void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
       }
     });
 
@@ -522,6 +585,7 @@ export const AccessoriesPage = () => {
           dispatch(removePlacedDivider(legacyRemoveKey));
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
           enforceDrawerZoom();
+          void refreshDividerOptionsAvailability(slotInfo.cabinetId, slotInfo.drawerType);
           return;
         }
 
@@ -562,6 +626,7 @@ export const AccessoriesPage = () => {
         );
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
+        void refreshDividerOptionsAvailability(normalizedAddSlotInfo.cabinetId, drawerType);
       });
     }
   }, [
@@ -573,6 +638,7 @@ export const AccessoriesPage = () => {
     resolveDividerType,
     isPlayCanvasReady,
     enforceDrawerZoom,
+    refreshDividerOptionsAvailability,
   ]);
 
   // Side panel invalidation is handled by global listener middleware.
@@ -629,6 +695,8 @@ export const AccessoriesPage = () => {
 
   const handleDividerStyleChange = (value: string) => {
     if (!value) return;
+    const dividerType = getDividerTypeFromOptionTitle(value);
+    if (availableDividerTypes && dividerType && !availableDividerTypes.has(dividerType)) return;
     dispatch(setDividersStyle(value));
   };
 
@@ -729,7 +797,7 @@ export const AccessoriesPage = () => {
           />
           {dividerSelection === "Customize" && (
             <ProductOptionsGrid
-              data={dividersMockData}
+              data={dividerOptions}
               handleAdd={handleDividerStyleChange}
               activeValue={dividerStyle}
             />

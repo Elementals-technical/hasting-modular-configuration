@@ -10,6 +10,11 @@ export { setVisibleDividerSlotButtons } from "./setVisibleDividerSlotButtons";
 export { removeDividerFromSlot } from "./removeDividerFromSlot";
 export { getAvailableDividerTypes } from "./getAvailableDividerTypes";
 export type { DividerSlotKey } from "./getAvailableDividerTypes";
+export {
+  getAvailableDividerTypesForDrawer,
+  getDividerTypeFromOptionTitle,
+  type DividerType,
+} from "./getAvailableDividerTypesForDrawer";
 export { wrapShowTopView } from "./wrapShowTopView";
 export type { DrawerType } from "./wrapShowTopView";
 export { wrapExitTopView } from "./wrapExitTopView";

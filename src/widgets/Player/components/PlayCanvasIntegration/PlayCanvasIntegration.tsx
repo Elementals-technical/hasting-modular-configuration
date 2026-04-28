@@ -1754,12 +1754,11 @@ export const PlayCanvasIntegration = () => {
               };
             }
           | undefined;
-        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
+        const drawerType = drawerInfo.drawerType;
 
         const hideDividerSlots = () => {
           api?.setVisibleDividerSlotButtons?.(false);
-          api?.dividers?.showIconDividerSlots?.(drawerInfo.cabinetId, normalizedDrawerType, false);
-          api?.dividers?.showIconDividerSlots?.(drawerInfo.cabinetId, drawerInfo.drawerType, false);
+          api?.dividers?.showIconDividerSlots?.(drawerInfo.cabinetId, drawerType, false);
 
           // Fallback: force-hide divider slot DOM overlays inside iframe (both + and occupied/check states).
           const iframeDocument = containerRef.current?.contentWindow?.document;
@@ -1778,16 +1777,16 @@ export const PlayCanvasIntegration = () => {
 
         // Preview-only mode: hide divider slot "+" controls.
         hideDividerSlots();
-        const openResult = api?.openDrawer?.(drawerInfo.cabinetId, normalizedDrawerType) as Promise<unknown> | unknown;
+        const openResult = api?.openDrawer?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
         const isThenable = !!openResult && typeof (openResult as Promise<unknown>).then === "function";
         if (isThenable) {
           (openResult as Promise<unknown>)
             .catch(() => null)
             .then(() => {
-              api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
+              api?.showTopView?.(drawerInfo.cabinetId, drawerType);
             });
         } else {
-          api?.showTopView?.(drawerInfo.cabinetId, normalizedDrawerType);
+          api?.showTopView?.(drawerInfo.cabinetId, drawerType);
         }
         window.setTimeout(hideDividerSlots, 0);
         window.setTimeout(hideDividerSlots, 250);
@@ -1835,8 +1834,7 @@ export const PlayCanvasIntegration = () => {
             }
           | undefined;
 
-        const normalizedDrawerType = drawerInfo.drawerType === "TopFull" ? "Top" : drawerInfo.drawerType;
-        const closeResult = api?.closeDrawer?.(drawerInfo.cabinetId, normalizedDrawerType) as
+        const closeResult = api?.closeDrawer?.(drawerInfo.cabinetId, drawerInfo.drawerType) as
           | Promise<unknown>
           | unknown;
         const isThenable = !!closeResult && typeof (closeResult as Promise<unknown>).then === "function";
