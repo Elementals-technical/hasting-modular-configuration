@@ -569,7 +569,7 @@ export const CustomAccessoriesPage = () => {
       );
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
       enforceDrawerZoom();
-      void refreshDividerOptionsAvailability();
+      void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
       console.log("[Dividers] showIconDividerSlots after add");
     });
 
@@ -600,7 +600,7 @@ export const CustomAccessoriesPage = () => {
       if (drawerType) {
         showIconDividerSlots(slotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
-        void refreshDividerOptionsAvailability();
+        void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
         console.log("[Dividers] showIconDividerSlots after remove");
       }
     });
@@ -616,7 +616,7 @@ export const CustomAccessoriesPage = () => {
           dispatch(removePlacedDivider(legacyRemoveKey));
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
           enforceDrawerZoom();
-          void refreshDividerOptionsAvailability();
+          void refreshDividerOptionsAvailability(slotInfo.cabinetId, slotInfo.drawerType);
           return;
         }
 
@@ -669,7 +669,7 @@ export const CustomAccessoriesPage = () => {
         );
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
-        void refreshDividerOptionsAvailability();
+        void refreshDividerOptionsAvailability(normalizedAddSlotInfo.cabinetId, drawerType);
         console.log("[Dividers] legacy showIconDividerSlots after add");
       });
     }

@@ -15,10 +15,10 @@ type DividerZone = {
   slots?: DividerSlot[];
 };
 
-const DIVIDER_TYPES = new Set<DividerType>(["A", "B", "C"]);
+const DIVIDER_TYPES: readonly DividerType[] = ["A", "B", "C"];
 
 const isDividerType = (value: unknown): value is DividerType =>
-  typeof value === "string" && DIVIDER_TYPES.has(value as DividerType);
+  typeof value === "string" && DIVIDER_TYPES.some((type) => type === value);
 
 export const getDividerTypeFromOptionTitle = (title: string): DividerType | null => {
   if (title.trim() === "Option A") return "A";
@@ -39,7 +39,7 @@ export async function getAvailableDividerTypesForDrawer(
   const zones = drawerConfig?.zones;
   if (!zones) return null;
 
-  const available = new Set<DividerType>();
+  let availableForEverySlot: Set<DividerType> | null = null;
   let hasAddableSlot = false;
 
   Object.values(zones).forEach((zone) => {
@@ -50,11 +50,24 @@ export async function getAvailableDividerTypesForDrawer(
 
       hasAddableSlot = true;
       const availableTypes = Array.isArray(slot.other?.availableTypes) ? slot.other.availableTypes : [];
+      const slotAvailableTypes = new Set<DividerType>();
+
       availableTypes.forEach((type) => {
-        if (isDividerType(type)) available.add(type);
+        if (isDividerType(type)) slotAvailableTypes.add(type);
+      });
+
+      if (!availableForEverySlot) {
+        availableForEverySlot = slotAvailableTypes;
+        return;
+      }
+
+      availableForEverySlot.forEach((type) => {
+        if (!slotAvailableTypes.has(type)) {
+          availableForEverySlot?.delete(type);
+        }
       });
     });
   });
 
-  return hasAddableSlot ? available : new Set<DividerType>();
+  return hasAddableSlot ? (availableForEverySlot ?? new Set<DividerType>()) : new Set<DividerType>();
 }

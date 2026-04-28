@@ -562,7 +562,7 @@ export const AccessoriesPage = () => {
       );
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
       enforceDrawerZoom();
-      void refreshDividerOptionsAvailability();
+      void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
     });
 
     const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
@@ -573,7 +573,7 @@ export const AccessoriesPage = () => {
       if (drawerType) {
         showIconDividerSlots(slotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
-        void refreshDividerOptionsAvailability();
+        void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
       }
     });
 
@@ -585,7 +585,7 @@ export const AccessoriesPage = () => {
           dispatch(removePlacedDivider(legacyRemoveKey));
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
           enforceDrawerZoom();
-          void refreshDividerOptionsAvailability();
+          void refreshDividerOptionsAvailability(slotInfo.cabinetId, slotInfo.drawerType);
           return;
         }
 
@@ -626,7 +626,7 @@ export const AccessoriesPage = () => {
         );
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
         enforceDrawerZoom();
-        void refreshDividerOptionsAvailability();
+        void refreshDividerOptionsAvailability(normalizedAddSlotInfo.cabinetId, drawerType);
       });
     }
   }, [
