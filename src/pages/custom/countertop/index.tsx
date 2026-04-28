@@ -6,6 +6,7 @@ import {
   type ProductOptionData,
   type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { dedupeProductOptionsByValue } from "@/entities/product/lib/dedupeProductOptionsByValue";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import type { AccordionConfig } from "@/shared/constants/types";
@@ -339,8 +340,12 @@ export const CustomCountertopPage = () => {
   );
 
   const vesselColorOptions = useMemo(
-    () => countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
-    [countertopOptionsFromApi, isVesselColorOption],
+    () =>
+      dedupeProductOptionsByValue(
+        countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
+        (option) => (isVesselApiOption(option) ? 1 : 0),
+      ),
+    [countertopOptionsFromApi, isVesselApiOption, isVesselColorOption],
   );
 
   const findSkuByColorName = useCallback(

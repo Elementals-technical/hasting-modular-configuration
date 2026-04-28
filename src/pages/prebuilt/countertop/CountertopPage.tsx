@@ -6,6 +6,7 @@ import {
   type ProductOptionData,
   type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { dedupeProductOptionsByValue } from "@/entities/product/lib/dedupeProductOptionsByValue";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
   getActiveCountertopColor,
@@ -342,8 +343,12 @@ export const CountertopPage = () => {
   );
 
   const vesselColorOptions = useMemo(
-    () => countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
-    [countertopOptionsFromApi, isVesselColorOption],
+    () =>
+      dedupeProductOptionsByValue(
+        countertopOptionsFromApi.filter((option) => isVesselColorOption(option)),
+        (option) => (isVesselApiOption(option) ? 1 : 0),
+      ),
+    [countertopOptionsFromApi, isVesselApiOption, isVesselColorOption],
   );
 
   const findSkuByColorName = useCallback(
