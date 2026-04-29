@@ -60,7 +60,7 @@ import {
   isRuleWidthEligibleForIntegratedContext,
   materialMatchesRule,
   matchesDepth,
-  extractCountertopBasinMaterialTokens,
+  extractCountertopBasinMaterialScopeTokens,
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
@@ -1197,7 +1197,7 @@ export const CountertopPage = () => {
       if (!label) return [];
 
       const [, ...restTokens] = label.trim().split(/\s+/);
-      const materialTokens = extractCountertopBasinMaterialTokens(label, option.name);
+      const materialTokens = extractCountertopBasinMaterialScopeTokens(label, option.name);
       const isMaterialSpecific = materialTokens.some((token) =>
         getMaterialAliases(token).some((alias) => allowedMaterials.has(alias)),
       );
