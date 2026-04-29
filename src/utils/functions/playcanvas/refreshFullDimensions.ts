@@ -2,9 +2,13 @@ import { getOrderedProductIds } from "./getOrderedProductIds";
 import { getConfig } from "./getConfig";
 import { showDimensions, hideDimensions } from "./showDimensions";
 import { getDimensionTool } from "./getDimensionTool";
-import { cmToInch } from "@/utils/units";
+import { cmToInch, inchToCm } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
 import { getRememberedSidePanels } from "./sidePanels";
+
+type FullDimensionsOptions = {
+  countertopThickness?: string | number | null;
+};
 
 const readNumericConfigValue = (config: unknown, key: "Width" | "Height" | "Depth") => {
   if (!config || typeof config !== "object") return undefined;
@@ -14,6 +18,21 @@ const readNumericConfigValue = (config: unknown, key: "Width" | "Height" | "Dept
   if (typeof rawValue !== "number" || Number.isNaN(rawValue)) return undefined;
 
   return rawValue;
+};
+
+const parseFiniteNumber = (value: string | number | null | undefined) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  if (typeof value !== "string") return undefined;
+
+  const parsed = Number.parseFloat(value.trim().replace(/"$/, "").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const readCountertopThicknessInches = (config: unknown) => {
+  if (!config || typeof config !== "object") return undefined;
+
+  const rawValue = (config as Record<string, unknown>).Thickness;
+  return typeof rawValue === "string" || typeof rawValue === "number" ? parseFiniteNumber(rawValue) : undefined;
 };
 
 const formatInchesLabel = (value?: number) => {
@@ -28,7 +47,7 @@ const formatInchesLabel = (value?: number) => {
  * Computes full dimensions from all products in the scene and calls showDimensions().
  * Returns true if dimensions were shown, false otherwise.
  */
-export async function computeAndShowFullDimensions(): Promise<boolean> {
+export async function computeAndShowFullDimensions(options: FullDimensionsOptions = {}): Promise<boolean> {
   const ids = getOrderedProductIds();
   if (!ids.length) {
     hideDimensions();
@@ -52,6 +71,12 @@ export async function computeAndShowFullDimensions(): Promise<boolean> {
     const value = readNumericConfigValue(config, "Height");
     return Math.max(max, value ?? 0);
   }, 0);
+  const fallbackThicknessInches = parseFiniteNumber(options.countertopThickness);
+  const maxCountertopThicknessInches = configs.reduce((max, config) => {
+    const value = readCountertopThicknessInches(config);
+    return Math.max(max, value ?? 0);
+  }, fallbackThicknessInches ?? 0);
+  const totalHeight = maxHeight + inchToCm(maxCountertopThicknessInches);
 
   const maxDepth = configs.reduce((max, config) => {
     const value = readNumericConfigValue(config, "Depth");
@@ -62,7 +87,7 @@ export async function computeAndShowFullDimensions(): Promise<boolean> {
     box: {
       nodes: ids,
       width: { label: formatInchesLabel(cmToInch(totalWidth)), offset: 0.05 },
-      height: { label: formatInchesLabel(cmToInch(maxHeight)) },
+      height: { label: formatInchesLabel(cmToInch(totalHeight)) },
       depth: { label: formatInchesLabel(cmToInch(maxDepth)) },
     },
     lines: widthByNode.map(({ node, width }) => ({

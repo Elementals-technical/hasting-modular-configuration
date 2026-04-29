@@ -130,7 +130,7 @@ export const BottomCanvasButtons = () => {
       return;
     }
 
-    const didShow = await computeAndShowFullDimensions();
+    const didShow = await computeAndShowFullDimensions({ countertopThickness });
     if (!didShow) return;
 
     setIsDimensionsEnabled(false);

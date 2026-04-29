@@ -7,6 +7,7 @@ import {
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
+  getActiveCountertopThickness,
 } from "@/entities/product/model/store/selectors";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refreshFullDimensions";
@@ -20,10 +21,14 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
 
   const generationRef = useRef(0);
   const onEmptySceneRef = useRef(onEmptyScene);
-  onEmptySceneRef.current = onEmptyScene;
+
+  useEffect(() => {
+    onEmptySceneRef.current = onEmptyScene;
+  }, [onEmptyScene]);
 
   useEffect(() => {
     if (!isEnabled || isRestoring) return;
@@ -31,7 +36,7 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
     const timer = setTimeout(async () => {
       const gen = ++generationRef.current;
 
-      const didShow = await computeAndShowFullDimensions();
+      const didShow = await computeAndShowFullDimensions({ countertopThickness });
 
       if (gen !== generationRef.current) return;
 
@@ -41,5 +46,14 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [isEnabled, isRestoring, productIds, selectedDimensions, sidePanelsOption, sidePanelLeft, sidePanelRight]);
+  }, [
+    isEnabled,
+    isRestoring,
+    productIds,
+    selectedDimensions,
+    sidePanelsOption,
+    sidePanelLeft,
+    sidePanelRight,
+    countertopThickness,
+  ]);
 }
