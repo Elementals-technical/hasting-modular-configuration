@@ -448,10 +448,9 @@
 .footer {
   margin-top: auto;
   display: grid;
-  grid-template-columns: repeat(4, auto);
+  grid-template-columns: repeat(7, auto);
   justify-content: space-between;
   align-items: center;
-  gap: 36px;
   padding-top: 32px;
   font-size: 18px;
   line-height: 32px;
@@ -462,9 +461,6 @@
 }
 
 .footerItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 56px;
   white-space: nowrap;
 }
 
