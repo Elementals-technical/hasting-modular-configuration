@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { setSummarySkuJson, setSummaryTotal } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
+import { buildMaterialLookup } from "@/shared/lib/buildMaterialLookup";
+import { buildSummaryMaterialElements } from "@/shared/lib/summaryMaterialElements";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
@@ -273,14 +275,17 @@ export const CustomSummaryPage = () => {
   const [openEditMenuSectionId, setOpenEditMenuSectionId] = useState<string | null>(null);
   const editMenuRef = useRef<HTMLDivElement | null>(null);
   const lastSavedHashRef = useRef<string | null>(null);
-  const editPathBySectionId: Record<string, string> = {
-    cabinet: "/custom/cabinet-colors",
-    "cabinet-options": "/custom/cabinet-colors",
-    countertop: "/custom/countertop",
-    basin: "/custom/countertop",
-    accessories: "/custom/accessories",
-    faucet: "/custom/faucet-holes",
-  };
+  const editPathBySectionId = useMemo<Record<string, string>>(
+    () => ({
+      cabinet: "/custom/cabinet-colors",
+      "cabinet-options": "/custom/cabinet-colors",
+      countertop: "/custom/countertop",
+      basin: "/custom/countertop",
+      accessories: "/custom/accessories",
+      faucet: "/custom/faucet-holes",
+    }),
+    [],
+  );
 
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
@@ -406,31 +411,15 @@ export const CustomSummaryPage = () => {
   const resolveItemPrice = useCallback((sku?: string) => (sku ? formatPrice(priceBySku[sku]) : "$0"), [priceBySku]);
 
   const materialLookup = useMemo(() => {
-    const values = (dataMaterial as { materials?: any[] }).materials ?? [];
-    const map = new Map<string, { hex?: string; image?: string; label?: string }>();
-    const scoreEntry = (entry?: { hex?: string; image?: string; label?: string }) => {
-      if (!entry) return 0;
-      return (entry.image ? 2 : 0) + (entry.hex ? 1 : 0) + (entry.label ? 1 : 0);
-    };
-
-    values.forEach((option) => {
-      (option.valuesArray ?? []).forEach((entry: any) => {
-        const key = entry.metadata?.value ?? entry.value;
-        if (!key) return;
-        const next = { hex: entry.metadata?.hex, image: entry.metadata?.image, label: entry.label };
-        const existing = map.get(key);
-        if (!existing || scoreEntry(next) > scoreEntry(existing)) {
-          map.set(key, next);
-        }
-      });
-    });
-
-    map.set(SPECIAL_VARIANT_DISPLAY_VALUE, {
-      image: SPECIAL_VARIANT_DISPLAY_IMAGE,
-      label: SPECIAL_VARIANT_DISPLAY_VALUE,
-    });
-
-    return map;
+    return buildMaterialLookup(dataMaterial, [
+      {
+        value: SPECIAL_VARIANT_DISPLAY_VALUE,
+        entry: {
+          image: SPECIAL_VARIANT_DISPLAY_IMAGE,
+          label: SPECIAL_VARIANT_DISPLAY_VALUE,
+        },
+      },
+    ]);
   }, []);
 
   const resolveSwatch = useCallback(
@@ -563,21 +552,20 @@ export const CustomSummaryPage = () => {
       hdlMaterialSku: string | null;
     }): Record<string, unknown> => {
       const isShelfCabinet = isShelfCabinetType(opts.cabinetType);
-      const elements: Record<string, string>[] = [];
-      if (opts.cabMaterialSku) {
-        elements.push({
-          "Product Elements": "Cabinet",
-          Material: materialSkuLabelMap[opts.cabMaterialSku] ?? opts.cabMaterialSku,
-          "Color Code": opts.cabColor,
-        });
-      }
-      if (!isShelfCabinet && opts.hdlMaterialSku) {
-        elements.push({
-          "Product Elements": "Handle",
-          Material: materialSkuLabelMap[opts.hdlMaterialSku] ?? opts.hdlMaterialSku,
-          "Color Code": opts.hdlColor,
-        });
-      }
+      const elements = buildSummaryMaterialElements([
+        {
+          productElement: "Cabinet",
+          materialSku: opts.cabMaterialSku,
+          colorCode: opts.cabColor,
+          materialSkuLabelMap,
+        },
+        {
+          productElement: "Handle",
+          materialSku: isShelfCabinet ? null : opts.hdlMaterialSku,
+          colorCode: opts.hdlColor,
+          materialSkuLabelMap,
+        },
+      ]);
       return {
         "Product Category": "Vanity",
         Products: "Urban Standard",
@@ -1400,16 +1388,31 @@ export const CustomSummaryPage = () => {
             : { height: selectedDimensions.height, depth: selectedDimensions.depth };
 
       const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+      const sidePanelCabinetMaterialSku = resolveCabinetMaterialSku();
       const spSku = buildSidePanelSku({
         panelType: sidePanelsOption,
         width: SIDE_PANEL_WIDTH_CM,
         height: dims.height,
         depth: dims.depth,
-        cabMaterialSku: resolveCabinetMaterialSku(),
+        cabMaterialSku: sidePanelCabinetMaterialSku,
         cabColorCode: extractColorCode(cabinetColor),
         hdlMaterialSku: handleMaterialSku,
         hdlColorCode: extractColorCode(handleGrooveColor),
       });
+      const sidePanelMaterialElements = buildSummaryMaterialElements([
+        {
+          productElement: "Cabinet",
+          materialSku: sidePanelCabinetMaterialSku,
+          colorCode: cabinetColor,
+          materialSkuLabelMap,
+        },
+        {
+          productElement: "Handle",
+          materialSku: handleMaterialSku,
+          colorCode: handleGrooveColor,
+          materialSkuLabelMap,
+        },
+      ]);
 
       const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
       if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
@@ -1434,6 +1437,7 @@ export const CustomSummaryPage = () => {
             Depth: normalizeSidePanelSummaryDepth(dims.depth),
             "Cabinet Color": cabinetColor || null,
             "Groove Color": handleGrooveColor || null,
+            elements: sidePanelMaterialElements,
           },
         });
       });
