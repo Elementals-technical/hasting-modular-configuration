@@ -36,6 +36,9 @@ const BASIN_PREFIX_MARKERS = Array.from(
   ]),
 ).sort((left, right) => right.length - left.length);
 const BASIN_SUFFIX_MARKERS = ["gres"];
+const BASIN_MATERIAL_SCOPE_MARKERS = Array.from(
+  new Set(["hplfenix", "hpl", ...Object.keys(MATERIAL_ALIASES), ...Object.values(MATERIAL_ALIASES).flat()]),
+).sort((left, right) => right.length - left.length);
 
 const normalizeToken = (value: string) =>
   value
@@ -129,6 +132,38 @@ export const extractCountertopBasinMaterialTokens = (...values: Array<string | n
   });
 
   return Array.from(tokens);
+};
+
+const findLeadingBasinMaterialScope = (value?: string | null): string | null => {
+  const normalized = value?.trim() ?? "";
+  if (!normalized) return null;
+
+  const withoutTopPrefix = normalized.replace(/^top[_\s-]*/i, "");
+  const compact = withoutTopPrefix.replace(/[/_\s-]+/g, "");
+  const compactWithoutDigits = compact.replace(/[0-9]+/g, "");
+  const normalizedCompact = normalizeMaterialToken(compactWithoutDigits);
+
+  if (!normalizedCompact) return null;
+
+  return BASIN_MATERIAL_SCOPE_MARKERS.find((marker) => normalizedCompact.startsWith(marker)) ?? null;
+};
+
+/**
+ * Returns only the leading material scope of a basin option.
+ *
+ * This intentionally differs from extractCountertopBasinMaterialTokens(): basin
+ * style names can contain technical path tokens such as "Top_HPL/Fenix_*".
+ * Those tokens are useful for normalizing style keys, but not for deciding
+ * whether the option belongs to an active HPL or Fenix finish.
+ */
+export const extractCountertopBasinMaterialScopeTokens = (
+  label?: string | null,
+  name?: string | null,
+): string[] => {
+  const scope = findLeadingBasinMaterialScope(label) ?? findLeadingBasinMaterialScope(name);
+  if (!scope) return [];
+
+  return getMaterialAliases(scope);
 };
 
 export const scopeCountertopRulesByBasinStyle = (

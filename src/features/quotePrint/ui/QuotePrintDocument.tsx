@@ -65,7 +65,8 @@ const resolveMaterialText = (item: PrintItem) => {
         const material = typeof record.Material === "string" ? record.Material : null;
         const colorCode = typeof record["Color Code"] === "string" ? record["Color Code"] : null;
 
-        const line = joinValues([left && `${left}:`, material, colorCode], " | ");
+        const valueText = joinValues([material, colorCode], " | ");
+        const line = joinValues([left && valueText ? `${left}: ${valueText}` : left, !left ? valueText : null], " | ");
         return line || null;
       })
       .filter(Boolean);
@@ -296,12 +297,23 @@ const CoverLinkArrow = () => (
 
 const QuoteFooter = () => (
   <footer className={s.footer}>
-    {footerItems.map((item, index) => (
-      <span className={s.footerItem} key={item}>
-        {item}
-        {index < footerItems.length - 1 ? <span className={s.footerDivider}>|</span> : null}
-      </span>
-    ))}
+    {footerItems.flatMap((item, index) => {
+      const nodes = [
+        <span className={s.footerItem} key={item}>
+          {item}
+        </span>,
+      ];
+
+      if (index < footerItems.length - 1) {
+        nodes.push(
+          <span className={s.footerDivider} key={`${item}-divider`}>
+            |
+          </span>,
+        );
+      }
+
+      return nodes;
+    })}
   </footer>
 );
 
