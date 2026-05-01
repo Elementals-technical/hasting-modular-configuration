@@ -6,4 +6,5 @@ export * from "./lengthLimits";
 export * from "./compositionConstraints";
 export * from "./findCountertopSkuByColorName";
 export * from "./syntesiOptions";
+export * from "./vesselCompatibility";
 export * from "./hooks";
