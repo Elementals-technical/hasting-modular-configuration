@@ -1084,16 +1084,17 @@ export const CustomSummaryPage = () => {
       : resolvedCountertopMaterialSku
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
-    const resolvedVesselColor = vesselColor || resolvedCountertopColor;
-    const resolvedVesselMaterialSku =
-      resolveCountertopColorSkuFromCandidates({
-        value: resolvedVesselColor,
-        candidatesByValue: countertopColorSkuCandidatesByValue,
-        preferredMaterialTokens: [
-          ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-          ...preferredCountertopMaterialTokens,
-        ],
-      }) || resolvedCountertopMaterialSku;
+    const resolvedVesselColor = vesselColor;
+    const resolvedVesselMaterialSku = resolvedVesselColor
+      ? resolveCountertopColorSkuFromCandidates({
+          value: resolvedVesselColor,
+          candidatesByValue: countertopColorSkuCandidatesByValue,
+          preferredMaterialTokens: [
+            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+            ...preferredCountertopMaterialTokens,
+          ],
+        })
+      : null;
     const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
     const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
