@@ -14,6 +14,8 @@ import {
   buildMaterialFilters,
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
+  materialFilterValuesMatch,
+  resolveSelectedMaterialFilterValues,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 
@@ -747,44 +749,11 @@ export const CustomCountertopPage = () => {
   ]);
 
   const selectedMaterialValues = useMemo(() => {
-    const selected = selectedFilter.material;
-    if (!selected) return [];
-
-    const findOptionInTree = (
-      options: Array<{ value: string; children?: Array<{ value: string }> }>,
-      target: string,
-    ): { value: string; children?: Array<{ value: string }> } | null => {
-      for (const option of options) {
-        if (option.value === target) return option;
-        if (option.children?.length) {
-          const found = findOptionInTree(
-            option.children.map((child) => ({ value: child.value })),
-            target,
-          );
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    const selectedNode = findOptionInTree(filteredMaterialFilters.materials, selected);
-    if (selectedNode?.children?.length) {
-      return selectedNode.children.map((child) => child.value);
-    }
-
-    return [selected];
+    return resolveSelectedMaterialFilterValues(filteredMaterialFilters.materials, selectedFilter.material);
   }, [filteredMaterialFilters.materials, selectedFilter.material]);
 
   const materialsMatchSelection = useCallback((optionMaterial: string, selectedMaterial: string) => {
-    const optionNormalized = normalizeMaterialToken(optionMaterial);
-    const selectedNormalized = normalizeMaterialToken(selectedMaterial);
-
-    if (optionNormalized === selectedNormalized) return true;
-
-    const optionAliases = getMaterialAliases(optionMaterial);
-    const selectedAliases = getMaterialAliases(selectedMaterial);
-
-    return optionAliases.includes(selectedNormalized) || selectedAliases.includes(optionNormalized);
+    return materialFilterValuesMatch(optionMaterial, selectedMaterial);
   }, []);
 
   const evaluateMaterialOptionCompatibility = useCallback(

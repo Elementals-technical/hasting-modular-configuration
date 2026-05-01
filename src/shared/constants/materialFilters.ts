@@ -23,7 +23,7 @@ type MaterialOption = {
   valuesArray: MaterialValue[];
 };
 
-type FilterOption = { label: string; value: string; children?: FilterOption[] };
+export type FilterOption = { label: string; value: string; children?: FilterOption[] };
 
 type FiltersSet = {
   materials: FilterOption[];
@@ -166,6 +166,37 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
   }
 
   return result;
+};
+
+const findFilterOptionInTree = (options: readonly FilterOption[], target: string): FilterOption | null => {
+  for (const option of options) {
+    if (option.value === target) return option;
+
+    if (option.children?.length) {
+      const found = findFilterOptionInTree(option.children, target);
+      if (found) return found;
+    }
+  }
+
+  return null;
+};
+
+export const resolveSelectedMaterialFilterValues = (
+  options: readonly FilterOption[],
+  selected?: string,
+): string[] => {
+  if (!selected) return [];
+
+  const selectedNode = findFilterOptionInTree(options, selected);
+  if (selectedNode?.children?.length) {
+    return selectedNode.children.map((child) => child.value);
+  }
+
+  return [selected];
+};
+
+export const materialFilterValuesMatch = (optionMaterial: string, selectedMaterial: string): boolean => {
+  return normalizeGroupToken(optionMaterial) === normalizeGroupToken(selectedMaterial);
 };
 
 const flattenFilterOptionsInOrder = (options: FilterOption[]): string[] =>
