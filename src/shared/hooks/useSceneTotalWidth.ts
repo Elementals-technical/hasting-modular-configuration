@@ -49,7 +49,9 @@ export const useSceneTotalWidth = (selectedProducts: string[], fallbackWidth: nu
       if (cancelled) return;
 
       if (!widths.length) {
-        setTotalWidth(fallbackWidth);
+        // Keep the last reliable scene total when PlayCanvas temporarily returns
+        // configs without Width. Fallback is only for the initial unresolved state.
+        setTotalWidth((prev) => prev ?? fallbackWidth);
         return;
       }
 

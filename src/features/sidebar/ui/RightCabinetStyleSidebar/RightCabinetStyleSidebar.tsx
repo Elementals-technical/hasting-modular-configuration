@@ -99,6 +99,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const placementButtonsVisibleRef = useRef(false);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -594,12 +595,19 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const hasAddableWidth = widthOptions.length > 0;
     const options =
       isOpenedStyleSidebar && activeDrawerProduct === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
-    setVisibleButtons(isOpenedStyleSidebar && hasAddableWidth, options);
+    const shouldShowPlacementButtons = isOpenedStyleSidebar && hasAddableWidth;
 
-    return () => {
-      setVisibleButtons(false);
-    };
+    setVisibleButtons(shouldShowPlacementButtons, options);
+    placementButtonsVisibleRef.current = shouldShowPlacementButtons;
   }, [activeDrawerProduct, isOpenedStyleSidebar, widthOptions.length]);
+
+  useEffect(
+    () => () => {
+      if (!placementButtonsVisibleRef.current) return;
+      setVisibleButtons(false);
+    },
+    [],
+  );
 
   // Close sidebar when clicking outside of it.
   useEffect(() => {
