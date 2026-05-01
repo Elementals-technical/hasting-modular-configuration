@@ -1,15 +1,18 @@
 /**
  * Extracts the base color code from a color name string.
  *
- * The finish suffix (GL, MT, etc.) is **not** included because it is already
+ * Known finish suffixes (GL, MT) are **not** included because they are already
  * encoded in the material SKU (LACG = gloss, LACM = matt).
  *
  * Examples:
  *   "Ardesia DD 37 GL"  → "37"
  *   "Blu Pavone A6 MT"  → "A6"
  *   "Front Edge FE MT"  → "FE"
+ *   "Limestone Ash TRF" → "TRF"
  *   "TFF"               → "TFF"
  */
+const FINISH_SUFFIX_TOKENS = new Set(["GL", "MT"]);
+
 export const extractColorCode = (value?: string | null): string | null => {
   if (!value) return null;
 
@@ -24,13 +27,17 @@ export const extractColorCode = (value?: string | null): string | null => {
   const last = tokens[tokens.length - 1];
   const secondLast = tokens.length > 1 ? tokens[tokens.length - 2] : null;
 
-  const isWord = (token: string) => /^[A-Za-z]+$/.test(token);
   const isAlnum = (token: string) => /^[A-Za-z0-9]+$/.test(token);
 
-  // When the last token looks like a finish suffix (e.g. "GL", "MT") and
+  // When the last token is a known finish suffix (e.g. "GL", "MT") and
   // the second-to-last token is the actual color code, return only the
   // color code — the finish is already conveyed by the material SKU.
-  if (secondLast && isWord(last) && last.length <= 3 && isAlnum(secondLast) && secondLast.length <= 3) {
+  if (
+    secondLast &&
+    FINISH_SUFFIX_TOKENS.has(last.toUpperCase()) &&
+    isAlnum(secondLast) &&
+    secondLast.length <= 3
+  ) {
     return secondLast;
   }
 
