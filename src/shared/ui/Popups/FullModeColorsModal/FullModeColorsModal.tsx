@@ -12,6 +12,8 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import {
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
+  materialFilterValuesMatch,
+  resolveSelectedMaterialFilterValues,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
@@ -91,10 +93,29 @@ export const FullModeColorsModal: React.FC<FullModeColorsModalProps> = ({
   const fallbackTierOptions = useMemo(() => buildTierFilterOptions(options), [options]);
   const resolvedTierFilterOptions = tierFilterOptions ?? fallbackTierOptions;
 
-  const filteredOptions = useMemo(
-    () => filterOptionsByTier(filterOptionsByMaterialSelection(options, selectedFilter), selectedFilter.tier),
-    [options, selectedFilter],
+  const selectedMaterialValues = useMemo(
+    () => resolveSelectedMaterialFilterValues(resolvedMaterialFilterOptions, selectedFilter.material),
+    [resolvedMaterialFilterOptions, selectedFilter.material],
   );
+
+  const filteredOptions = useMemo(() => {
+    const filteredWithoutMaterial = filterOptionsByMaterialSelection(options, {
+      ...selectedFilter,
+      material: undefined,
+    });
+
+    const filteredByMaterial =
+      selectedMaterialValues.length === 0
+        ? filteredWithoutMaterial
+        : filteredWithoutMaterial.filter((option) => {
+            const materials = option.metadata?.materials ?? [];
+            return selectedMaterialValues.some((selectedMaterial) =>
+              materials.some((optionMaterial) => materialFilterValuesMatch(optionMaterial, selectedMaterial)),
+            );
+          });
+
+    return filterOptionsByTier(filteredByMaterial, selectedFilter.tier);
+  }, [options, selectedFilter, selectedMaterialValues]);
 
   const clearAllFilters = () => setSelectedFilter({});
 

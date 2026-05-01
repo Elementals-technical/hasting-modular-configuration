@@ -8,6 +8,7 @@ import {
   getSelectedDimensions,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
+import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 
 import { resolveCountertopMaxLengthByRules } from "../lengthLimits";
 
@@ -27,15 +28,19 @@ export const useMaxCountertopLength = (): number | null => {
   const dimensions = useAppSelector(getSelectedDimensions);
 
   return useMemo(
-    () =>
-      resolveCountertopMaxLengthByRules({
+    () => {
+      const skuMaterialTokens = getCountertopMaterialTokensBySku(sku);
+      const materialTokens = skuMaterialTokens.length > 0 ? skuMaterialTokens : sku ? [sku] : [];
+
+      return resolveCountertopMaxLengthByRules({
         rules,
-        materialTokens: sku ? [sku] : [],
+        materialTokens,
         style: style ?? null,
         depth: dimensions.depth ?? null,
         thickness: thickness ?? null,
         activeBasinStyle: basinStyle ?? null,
-      }),
+      });
+    },
     [rules, sku, style, dimensions.depth, thickness, basinStyle],
   );
 };
