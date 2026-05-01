@@ -132,10 +132,11 @@ export const AccessoriesPage = () => {
 
   const resolveDividerType = useCallback(
     (available: string[]) => {
-      if (selectedDividerType && available.includes(selectedDividerType)) return selectedDividerType;
+      if (selectedDividerType) {
+        return available.includes(selectedDividerType) ? selectedDividerType : null;
+      }
 
-      if (available.length > 0) return available[0] as "A" | "B" | "C";
-      return (selectedDividerType || "A") as "A" | "B" | "C";
+      return available.find((type): type is DividerType => type === "A" || type === "B" || type === "C") ?? null;
     },
     [selectedDividerType],
   );
@@ -544,6 +545,11 @@ export const AccessoriesPage = () => {
       const selectedType = resolveDividerType(available);
       const drawerType = slotInfo.drawerType ?? activeDrawerType;
 
+      if (!selectedType) {
+        console.warn("[Dividers] selected divider type is not available for add slot");
+        return;
+      }
+
       if (!drawerType) {
         console.warn("[Dividers] drawerType not resolved for add slot");
         return;
@@ -608,6 +614,12 @@ export const AccessoriesPage = () => {
 
         const selectedType = resolveDividerType(available);
         const drawerType = normalizedAddSlotInfo.drawerType ?? activeDrawerType;
+
+        if (!selectedType) {
+          console.warn("[Dividers] selected divider type is not available for legacy add slot");
+          return;
+        }
+
         if (!drawerType) {
           console.warn("[Dividers] drawerType not resolved for legacy add slot");
           return;
