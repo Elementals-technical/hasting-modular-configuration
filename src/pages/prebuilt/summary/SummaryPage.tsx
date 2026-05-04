@@ -150,6 +150,8 @@ const formatPrice = (value?: number | null) => {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
 
+const INCLUDED_IN_COUNTERTOP_PRICE_LABEL = "Included in Countertop";
+
 const parsePriceValue = (price?: string): number => {
   if (!price) return 0;
   const normalized = price.replace(/[^0-9,.-]/g, "").trim();
@@ -191,6 +193,7 @@ type SummaryItem = {
     image?: string;
   };
   price: string;
+  priceLabel?: string;
   copyable?: boolean;
   description?: Record<string, unknown>;
   showInfo?: boolean;
@@ -1194,6 +1197,8 @@ export const SummaryPage = () => {
       const isBasinLine = lineTitle === basinLabel;
       const isVesselCutoutLine = lineTitle === "Vessel Cutout";
       const isIntegratedBasinLine = lineTitle === "Basin";
+      const priceLabel =
+        isIntegratedBasinLine && isSyntesiCountertop ? INCLUDED_IN_COUNTERTOP_PRICE_LABEL : undefined;
       const optionSubtitle = isBasinLine
         ? (basinStyleLabel ?? undefined)
         : lineTitle === "Hole Cutout"
@@ -1220,7 +1225,8 @@ export const SummaryPage = () => {
             title: lineTitle,
             subtitle: entryBasinStyleLabel ?? undefined,
             sku: basinLine,
-            price: resolveItemPrice(basinLine),
+            price: priceLabel ? "$0" : resolveItemPrice(basinLine),
+            priceLabel,
             copyable: true,
             showInfo: true,
             description: {
@@ -1231,7 +1237,7 @@ export const SummaryPage = () => {
         });
       }
       const itemCount = lineTitle === "Basin" || isVesselCutoutLine ? sinkBaseCountForHcut : 1;
-      const linePrice = resolveItemPrice(line);
+      const linePrice = priceLabel ? "$0" : resolveItemPrice(line);
 
       return Array.from({ length: itemCount }, (_, index) => ({
         id: `countertop-sku-${i + 1}-${index}`,
@@ -1239,6 +1245,7 @@ export const SummaryPage = () => {
         subtitle: optionSubtitle,
         sku: line,
         price: linePrice,
+        priceLabel,
         copyable: true,
         showInfo: isBasinLine || isVesselCutoutLine,
         description: {
@@ -1900,8 +1907,10 @@ export const SummaryPage = () => {
                     )}
 
                     <div className={s.price}>
-                      {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
+                      {!item.priceLabel && item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
                         <span className={s.priceSpinner} />
+                      ) : item.priceLabel ? (
+                        item.priceLabel
                       ) : item.price !== "$0" ? (
                         item.price
                       ) : null}

@@ -58,6 +58,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
+  isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
   resolveDefaultThicknessFromRules,
   useCountertopRules,
@@ -363,6 +364,9 @@ export function usePriceCalculation() {
     const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const effectiveCountertopMaterialSku =
       resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
+    const isSyntesiCountertop =
+      isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku) ||
+      normalizeMaterialToken(resolvedSinkType ?? "").includes("syntesi");
     const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const resolveNameFromRaw = (value: string) => {
       const lastDash = value.lastIndexOf("-");
@@ -801,7 +805,10 @@ export function usePriceCalculation() {
     });
     const aggregateCountertopSkuSet = new Set(aggregateCountertopLines);
     aggregateCountertopLines.forEach((line, index) => {
-      if (index === 1 && !isVesselCountertop && sinkBaseEntriesForPricing.length > 0) {
+      const isIntegratedBasinSkuLine = index === 1 && !isVesselCountertop;
+      if (isIntegratedBasinSkuLine && isSyntesiCountertop) return;
+
+      if (isIntegratedBasinSkuLine && sinkBaseEntriesForPricing.length > 0) {
         sinkBaseEntriesForPricing.forEach((entry) => {
           const basinLine =
             buildCountertopSku({
