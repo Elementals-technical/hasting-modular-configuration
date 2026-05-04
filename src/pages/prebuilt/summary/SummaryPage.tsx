@@ -1377,6 +1377,13 @@ export const SummaryPage = () => {
           materialSkuLabelMap,
         },
       ]);
+      const sidePanelCabinetSwatch = resolveSwatch(sidePanelCabinetColor);
+      const sidePanelCabinetMaterialLabel = sidePanelCabinetMaterialSku
+        ? (materialSkuLabelMap[sidePanelCabinetMaterialSku] ?? sidePanelCabinetMaterialSku)
+        : null;
+      const sidePanelCabinetMaterialText = [sidePanelCabinetMaterialLabel, sidePanelCabinetColor]
+        .filter(Boolean)
+        .join(" | ");
 
       const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
       if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
@@ -1389,6 +1396,14 @@ export const SummaryPage = () => {
           title: label,
           subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
           sku: spSku,
+          swatch: sidePanelCabinetMaterialText
+            ? {
+                label: "Cabinet",
+                value: sidePanelCabinetMaterialText,
+                color: sidePanelCabinetSwatch.color,
+                image: sidePanelCabinetSwatch.image,
+              }
+            : undefined,
           price: resolveItemPrice(spSku),
           copyable: true,
           showInfo: true,
@@ -1399,7 +1414,7 @@ export const SummaryPage = () => {
             Width: SIDE_PANEL_WIDTH_CM,
             Height: dims.height,
             Depth: normalizeSidePanelSummaryDepth(dims.depth),
-            "Cabinet Color": cabinetColor || null,
+            "Cabinet Color": sidePanelCabinetColor || null,
             "Groove Color": handleGrooveColor || null,
             elements: sidePanelMaterialElements,
           },

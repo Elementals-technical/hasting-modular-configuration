@@ -1412,6 +1412,13 @@ export const CustomSummaryPage = () => {
           materialSkuLabelMap,
         },
       ]);
+      const sidePanelCabinetSwatch = resolveSwatch(cabinetColor);
+      const sidePanelCabinetMaterialLabel = sidePanelCabinetMaterialSku
+        ? (materialSkuLabelMap[sidePanelCabinetMaterialSku] ?? sidePanelCabinetMaterialSku)
+        : null;
+      const sidePanelCabinetMaterialText = [sidePanelCabinetMaterialLabel, cabinetColor]
+        .filter(Boolean)
+        .join(" | ");
 
       const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
       if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
@@ -1424,6 +1431,14 @@ export const CustomSummaryPage = () => {
           title: label,
           subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
           sku: spSku,
+          swatch: sidePanelCabinetMaterialText
+            ? {
+                label: "Cabinet",
+                value: sidePanelCabinetMaterialText,
+                color: sidePanelCabinetSwatch.color,
+                image: sidePanelCabinetSwatch.image,
+              }
+            : undefined,
           price: resolveItemPrice(spSku),
           copyable: true,
           showInfo: true,
