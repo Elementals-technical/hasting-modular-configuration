@@ -73,6 +73,8 @@ import {
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
   resolveCabinetPricingMaterialSku,
+  resolveCountertopMaterialSkuFromBasinType,
+  resolveCountertopMaterialSkuFromColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import {
@@ -133,19 +135,6 @@ const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
-const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
-  const basin = basinType?.trim() ?? "";
-  if (!basin) return null;
-  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
-  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
-  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
-  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
-  if (basin.startsWith("Top_Porcelain_")) return "POR";
-  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
-  if (basin.startsWith("Top_HPL")) return "HPL";
-  return null;
-};
-
 const buildImageSrc = (imagePath?: string) => {
   if (!imagePath) return undefined;
   if (imagePath.startsWith("http")) return imagePath;
@@ -164,6 +153,8 @@ const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$0";
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
+
+const INCLUDED_IN_COUNTERTOP_PRICE_LABEL = "Included in Countertop";
 
 const parsePriceValue = (price?: string): number => {
   if (!price) return 0;
@@ -206,6 +197,7 @@ type SummaryItem = {
     image?: string;
   };
   price: string;
+  priceLabel?: string;
   copyable?: boolean;
   description?: Record<string, unknown>;
   showInfo?: boolean;
@@ -1068,7 +1060,7 @@ export const CustomSummaryPage = () => {
         candidatesByValue: countertopColorSkuCandidatesByValue,
         preferredMaterialTokens: preferredCountertopMaterialTokens,
       }) ||
-      inferMaterialSkuFromBasinType(resolvedSinkType) ||
+      resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
     const isSyntesiCountertop =
       isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku) ||
@@ -1095,10 +1087,12 @@ export const CustomSummaryPage = () => {
           ],
         })
       : null;
-    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
     const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
-    const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
+    const effectiveCountertopMaterialSku =
+      resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
+    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const materialForThicknessRules =
+      resolvedCountertopMaterialSku || resolveCountertopMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
       activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
@@ -1213,6 +1207,8 @@ export const CustomSummaryPage = () => {
       const isBasinLine = lineTitle === basinLabel;
       const isVesselCutoutLine = lineTitle === "Vessel Cutout";
       const isIntegratedBasinLine = lineTitle === "Basin";
+      const priceLabel =
+        isIntegratedBasinLine && isSyntesiCountertop ? INCLUDED_IN_COUNTERTOP_PRICE_LABEL : undefined;
       const optionSubtitle = isBasinLine
         ? (basinStyleLabel ?? undefined)
         : lineTitle === "Hole Cutout"
@@ -1239,7 +1235,8 @@ export const CustomSummaryPage = () => {
             title: lineTitle,
             subtitle: entryBasinStyleLabel ?? undefined,
             sku: basinLine,
-            price: resolveItemPrice(basinLine),
+            price: priceLabel ? "$0" : resolveItemPrice(basinLine),
+            priceLabel,
             copyable: true,
             showInfo: true,
             description: {
@@ -1250,7 +1247,7 @@ export const CustomSummaryPage = () => {
         });
       }
       const itemCount = lineTitle === "Basin" || isVesselCutoutLine ? sinkBaseCountForHcut : 1;
-      const linePrice = resolveItemPrice(line);
+      const linePrice = priceLabel ? "$0" : resolveItemPrice(line);
 
       return Array.from({ length: itemCount }, (_, index) => ({
         id: `countertop-sku-${i + 1}-${index}`,
@@ -1258,6 +1255,7 @@ export const CustomSummaryPage = () => {
         subtitle: optionSubtitle,
         sku: line,
         price: linePrice,
+        priceLabel,
         copyable: true,
         showInfo: isBasinLine || isVesselCutoutLine,
         description: {
@@ -1903,8 +1901,10 @@ export const CustomSummaryPage = () => {
                     )}
 
                     <div className={s.price}>
-                      {item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
+                      {!item.priceLabel && item.sku && isPriceLoading && !(item.sku in priceBySku) ? (
                         <span className={s.priceSpinner} />
+                      ) : item.priceLabel ? (
+                        item.priceLabel
                       ) : item.price !== "$0" ? (
                         item.price
                       ) : null}

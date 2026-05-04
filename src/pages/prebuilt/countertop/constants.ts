@@ -308,7 +308,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3023,
-    title: "Tekorlux Syntesi 48",
+    title: "Syntesi 48",
     name: "Top_Tekorlux_Syntesi",
     isShortDesc: false,
     metadata: {

@@ -1,3 +1,6 @@
+import { extractColorCode } from "./extractColorCode";
+import { resolveCountertopMaterialSkuFromColorCode } from "./countertopSkuMaps";
+
 type ConfiguratorVariantMetadataLike = {
   sku?: string;
   value?: string;
@@ -42,6 +45,7 @@ const COUNTERTOP_MATERIAL_TOKENS_BY_SKU: Record<string, string[]> = {
   POR: ["por", "porcelain"],
   SSOCR: ["ocritech", "ssocr", "solidsurface", "sst1c", "sst1d"],
   SSMMO: ["mineralmarmo", "minermalmaro", "ssmmo"],
+  SSSYN: ["syntesi"],
   SSTM: ["sstm", "tekormud", "tekorund"],
   SSTKR: ["sstkr", "tal", "tam", "tekorlux"],
   SYNTESI: ["syntesi"],
@@ -197,6 +201,9 @@ export const resolveCountertopColorSkuFromCandidates = ({
   preferredMaterialTokens?: string[];
 }): string | null => {
   if (!value) return null;
+
+  const colorMaterialSku = resolveCountertopMaterialSkuFromColorCode(extractColorCode(value));
+  if (colorMaterialSku) return colorMaterialSku;
 
   const candidates = candidatesByValue.get(value) ?? [];
   if (!candidates.length) return null;

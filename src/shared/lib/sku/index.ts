@@ -19,7 +19,13 @@ export {
   dividerSkuMap,
   towelBarSkuMap,
 } from "./cabinetSkuMaps";
-export { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
+export {
+  countertopStyleSkuMap,
+  countertopMaterialSkuMap,
+  basinSkuMap,
+  resolveCountertopMaterialSkuFromBasinType,
+  resolveCountertopMaterialSkuFromColorCode,
+} from "./countertopSkuMaps";
 export { buildVesselSku, type VesselSkuInput } from "./buildVesselSku";
 export {
   vesselSeriesSkuMap,
