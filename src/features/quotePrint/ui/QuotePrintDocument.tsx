@@ -283,6 +283,21 @@ const SpecHeader = () => (
   </div>
 );
 
+const renderCabinetDetails = (section?: PrintSection) => {
+  if (!section?.items.length) return null;
+
+  return (
+    <div className={s.details}>
+      <div className={s.detailsTitle}>Cabinet Details</div>
+      {section.items.map((item) => (
+        <div className={s.detailsLine} key={item.id}>
+          - {item.title}: {item.subtitle ?? "If applicable"}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const CoverLinkArrow = () => (
   <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
@@ -390,18 +405,13 @@ export const QuotePrintDocument = ({
           <h2 className={s.specTitle}>Product Details &amp; Specifications</h2>
           <SpecHeader />
           {renderRows(cabinetSection)}
+          {renderCabinetDetails(cabinetOptions)}
 
-          {cabinetOptions?.items?.length ? (
-            <div className={s.details}>
-              <div className={s.detailsTitle}>Cabinet Details</div>
-              {cabinetOptions.items.map((item) => (
-                <div className={s.detailsLine} key={item.id}>
-                  - {item.title}: {item.subtitle ?? "If applicable"}
-                </div>
-              ))}
-            </div>
-          ) : null}
+          <QuoteFooter />
+        </section>
 
+        <section className={`${s.page} ${s.contentPage}`}>
+          <SpecHeader />
           {renderRows(countertopSection)}
           {renderRows(basinSection)}
 
