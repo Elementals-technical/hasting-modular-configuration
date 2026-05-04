@@ -1,8 +1,23 @@
-export const printQuote = async () => {
+import { captureQuotePreviewImage } from "./captureQuotePreviewImage";
+
+type PrintQuoteOptions = {
+  previewImage?: string | null;
+};
+
+const applyQuotePreviewImage = (root: HTMLElement, previewImage?: string | null) => {
+  if (!previewImage) return;
+
+  root.querySelectorAll<HTMLImageElement>("[data-quote-preview-image]").forEach((image) => {
+    image.src = previewImage;
+  });
+};
+
+export const printQuote = async (options: PrintQuoteOptions = {}) => {
   const content = document.getElementById("quote-print-root") ?? document.getElementById("summary-content");
   if (!content) return;
 
   const clone = content.cloneNode(true) as HTMLElement;
+  applyQuotePreviewImage(clone, options.previewImage);
   clone.id = "summary-print-clone";
   document.body.appendChild(clone);
 
@@ -36,4 +51,9 @@ export const printQuote = async () => {
 
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   window.print();
+};
+
+export const printQuoteWithCurrentPreview = async () => {
+  const previewImage = await captureQuotePreviewImage();
+  await printQuote({ previewImage });
 };

@@ -108,10 +108,10 @@ import {
   MAX_SLOTS as MAX_SWATCHES,
   openSwatchOrder,
 } from "@/features/swatchOrder";
-import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 import { printQuote } from "@/features/quotePrint/lib/printQuote";
+import { captureQuotePreviewImage } from "@/features/quotePrint/lib/captureQuotePreviewImage";
 import { formatQuoteGeneratedDate } from "@/features/quotePrint/lib/formatQuoteGeneratedDate";
 import {
   convertSkuToInchesForSummary,
@@ -498,11 +498,7 @@ export const CustomSummaryPage = () => {
   useEffect(() => {
     let isMounted = true;
 
-    captureScreenshotWithOptions({
-      includeLogo: false,
-      outputSize: { width: 900, height: 446 },
-      transparentBackground: true,
-    }).then((image) => {
+    captureQuotePreviewImage().then((image) => {
       if (!isMounted || !image) return;
       setQuotePreviewImage(image);
     });
@@ -513,21 +509,35 @@ export const CustomSummaryPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!quotePreviewImage) return;
     const params = new URLSearchParams(location.search);
     if (params.get("print") !== "1") return;
+    let isCancelled = false;
 
     const timer = window.setTimeout(() => {
-      printQuote();
-      params.delete("print");
-      navigate(
-        { pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" },
-        { replace: true },
-      );
+      void (async () => {
+        const image = await captureQuotePreviewImage();
+        if (isCancelled) return;
+
+        if (image) {
+          setQuotePreviewImage(image);
+        }
+
+        await printQuote({ previewImage: image });
+        if (isCancelled) return;
+
+        params.delete("print");
+        navigate(
+          { pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" },
+          { replace: true },
+        );
+      })();
     }, 300);
 
-    return () => window.clearTimeout(timer);
-  }, [quotePreviewImage, location.search, location.pathname, navigate]);
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [location.search, location.pathname, navigate]);
 
   const buildCabinetDescription = useCallback(
     (opts: {

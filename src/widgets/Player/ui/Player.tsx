@@ -13,7 +13,7 @@ import {
   getIsAutofillEnabled,
   getHasSubmittedCart,
 } from "@/features/swatchOrder";
-import { printQuote } from "@/features/quotePrint/lib/printQuote";
+import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -160,7 +160,7 @@ export function Player() {
   };
 
   const handleGenerateQuote = () => {
-    void printQuote();
+    void printQuoteWithCurrentPreview();
   };
 
   const handleCopyShareValue = async () => {

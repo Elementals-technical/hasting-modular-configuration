@@ -8,7 +8,7 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { getSummarySkuJson, getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
-import { printQuote } from "@/features/quotePrint/lib/printQuote";
+import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -45,7 +45,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
 
   const handleQuoteClick = () => {
     if (isSummaryPage) {
-      printQuote();
+      void printQuoteWithCurrentPreview();
       return;
     }
 

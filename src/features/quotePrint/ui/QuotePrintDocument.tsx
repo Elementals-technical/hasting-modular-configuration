@@ -33,6 +33,9 @@ type QuotePrintDocumentProps = {
   configurationLink: string;
 };
 
+const EMPTY_PREVIEW_IMAGE =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
 const sectionDisplayMap: Record<string, string> = {
   cabinet: "Cabinet",
   countertop: "Countertop",
@@ -339,6 +342,7 @@ export const QuotePrintDocument = ({
   generatedDate,
   configurationLink,
 }: QuotePrintDocumentProps) => {
+  const previewImageSrc = previewImage || EMPTY_PREVIEW_IMAGE;
   const totalPrice = summarySections.reduce((acc, section) => {
     const sectionSum = section.items.reduce((sum, item) => sum + parsePriceValue(item.price), 0);
     return acc + sectionSum;
@@ -360,7 +364,7 @@ export const QuotePrintDocument = ({
           </div>
 
           <div className={s.heroWrap}>
-            {previewImage ? <img className={s.heroImage} src={previewImage} alt={modelName} /> : null}
+            <img className={s.heroImage} src={previewImageSrc} alt={modelName} data-quote-preview-image />
           </div>
 
           <footer className={s.coverFooter}>
@@ -398,7 +402,7 @@ export const QuotePrintDocument = ({
             </div>
 
             <div className={s.thumbWrap}>
-              {previewImage ? <img className={s.thumb} src={previewImage} alt={modelName} /> : null}
+              <img className={s.thumb} src={previewImageSrc} alt={modelName} data-quote-preview-image />
             </div>
           </div>
 
