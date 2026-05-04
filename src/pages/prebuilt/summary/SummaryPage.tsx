@@ -73,6 +73,8 @@ import {
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
   resolveCabinetPricingMaterialSku,
+  resolveCountertopMaterialSkuFromBasinType,
+  resolveCountertopMaterialSkuFromColorCode,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
@@ -128,19 +130,6 @@ const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
-
-const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
-  const basin = basinType?.trim() ?? "";
-  if (!basin) return null;
-  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
-  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
-  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
-  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
-  if (basin.startsWith("Top_Porcelain_")) return "POR";
-  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
-  if (basin.startsWith("Top_HPL")) return "HPL";
-  return null;
-};
 
 const buildImageSrc = (imagePath?: string) => {
   if (!imagePath) return undefined;
@@ -1063,7 +1052,7 @@ export const SummaryPage = () => {
         candidatesByValue: countertopColorSkuCandidatesByValue,
         preferredMaterialTokens: preferredCountertopMaterialTokens,
       }) ||
-      inferMaterialSkuFromBasinType(resolvedSinkType) ||
+      resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
     const isSyntesiCountertop =
       isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku) ||
@@ -1090,10 +1079,12 @@ export const SummaryPage = () => {
           ],
         })
       : null;
-    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const effectiveCountertopMaterialSku = resolvedCountertopMaterialSku;
     const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
-    const materialForThicknessRules = resolvedCountertopMaterialSku || inferMaterialSkuFromBasinType(resolvedSinkType);
+    const effectiveCountertopMaterialSku =
+      resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
+    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
+    const materialForThicknessRules =
+      resolvedCountertopMaterialSku || resolveCountertopMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
       rules: countertopRules,
       activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],

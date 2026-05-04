@@ -9,7 +9,7 @@ import { normalizeMaterialToken } from "./parse";
 import type { CountertopMatrixRule } from "./types";
 
 export const SYNTESI_MATERIAL = "Syntesi";
-export const SYNTESI_MATERIAL_SKU = "Syntesi";
+export const SYNTESI_MATERIAL_SKU = "SSSYN";
 
 type CountertopOptionWithSource = ProductOptionData & {
   sourceGroup?: string;
@@ -41,7 +41,10 @@ const SYNTESI_FINISH_CONFIGS: SyntesiFinishConfig[] = [
 ];
 
 const SOURCE_MATERIAL_TOKENS = new Set(["tekorlux", "sstkr", "tal", "tam"]);
-const SYNTESI_MATERIAL_SKU_TOKEN = normalizeMaterialToken(SYNTESI_MATERIAL_SKU);
+const SYNTESI_MATERIAL_SKU_TOKENS = new Set([
+  normalizeMaterialToken(SYNTESI_MATERIAL),
+  normalizeMaterialToken(SYNTESI_MATERIAL_SKU),
+]);
 const SYNTESI_UI_VALUE_BY_COLOR_KEY = new Map(
   SYNTESI_FINISH_CONFIGS.flatMap((config) => [
     [normalizeMaterialToken(config.title), config.value],
@@ -51,7 +54,7 @@ const SYNTESI_UI_VALUE_BY_COLOR_KEY = new Map(
 );
 
 export const isSyntesiCountertopMaterialSku = (value?: string | null): boolean =>
-  normalizeMaterialToken(value ?? "") === SYNTESI_MATERIAL_SKU_TOKEN;
+  SYNTESI_MATERIAL_SKU_TOKENS.has(normalizeMaterialToken(value ?? ""));
 
 export const findSyntesiCountertopUiValue = (value?: string | null): string | null => {
   const normalized = normalizeMaterialToken(value ?? "");

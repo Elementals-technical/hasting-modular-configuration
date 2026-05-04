@@ -26,6 +26,8 @@ const MATERIAL_ALIASES: Record<string, string[]> = {
   fenix: ["fx"],
   por: ["porcelain"],
   porcelain: ["por"],
+  sssyn: ["syntesi"],
+  syntesi: ["sssyn"],
 };
 
 const BASIN_PREFIX_MARKERS = Array.from(
@@ -145,16 +147,21 @@ const findLeadingBasinMaterialScope = (value?: string | null): string | null => 
 
   if (!normalizedCompact) return null;
 
-  return BASIN_MATERIAL_SCOPE_MARKERS.find((marker) => normalizedCompact.startsWith(marker)) ?? null;
+  const leadingScope = BASIN_MATERIAL_SCOPE_MARKERS.find((marker) => normalizedCompact.startsWith(marker)) ?? null;
+  if (!leadingScope) return null;
+
+  const remainingScope = normalizedCompact.slice(leadingScope.length);
+  return BASIN_MATERIAL_SCOPE_MARKERS.find((marker) => remainingScope.includes(marker)) ?? leadingScope;
 };
 
 /**
- * Returns only the leading material scope of a basin option.
+ * Returns the material scope of a basin option.
  *
  * This intentionally differs from extractCountertopBasinMaterialTokens(): basin
- * style names can contain technical path tokens such as "Top_HPL/Fenix_*".
- * Those tokens are useful for normalizing style keys, but not for deciding
- * whether the option belongs to an active HPL or Fenix finish.
+ * style names can contain technical path tokens such as "Top_HPL/Fenix_*" or
+ * family-qualified names such as "Tekorlux Syntesi". Those tokens are useful
+ * for normalizing style keys, but material filtering needs the most specific
+ * material token after the leading family token when one exists.
  */
 export const extractCountertopBasinMaterialScopeTokens = (
   label?: string | null,

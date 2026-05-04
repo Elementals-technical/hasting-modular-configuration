@@ -17,7 +17,49 @@ export const countertopMaterialSkuMap: Record<string, string> = {
   Tekormud: "SSTM",
   Ocritech: "SSOCR",
   Tekorlux: "SSTKR",
-  Syntesi: "SSTKR",
+  Syntesi: "SSSYN",
+};
+
+const countertopMaterialSkuByColorCode: Record<string, string> = {
+  TAN: "SSSYN",
+  TAP: "SSSYN",
+};
+
+type BasinMaterialSkuRule = {
+  match: string;
+  sku: string;
+  strategy: "exact" | "prefix";
+};
+
+const countertopBasinMaterialSkuRules: BasinMaterialSkuRule[] = [
+  { match: "Top_Tekorlux_Syntesi", sku: "SSSYN", strategy: "exact" },
+  { match: "Top_Tekorlux_", sku: "SSTKR", strategy: "prefix" },
+  { match: "Top_Tekormud_", sku: "SSTM", strategy: "prefix" },
+  { match: "Top_Tekorund_", sku: "SSTM", strategy: "prefix" },
+  { match: "Top_Ocritech_", sku: "SSOCR", strategy: "prefix" },
+  { match: "Top_Mineralmarmo_", sku: "SSMMO", strategy: "prefix" },
+  { match: "Top_Porcelain_", sku: "POR", strategy: "prefix" },
+  { match: "Top_HPL/Fenix_", sku: "FX", strategy: "prefix" },
+  { match: "Fenix_Strip_Gres", sku: "FX", strategy: "exact" },
+  { match: "Top_HPL", sku: "HPL", strategy: "prefix" },
+];
+
+export const resolveCountertopMaterialSkuFromBasinType = (basinType: string | null): string | null => {
+  const basin = basinType?.trim() ?? "";
+  if (!basin) return null;
+
+  const rule = countertopBasinMaterialSkuRules.find(({ match, strategy }) =>
+    strategy === "exact" ? basin === match : basin.startsWith(match),
+  );
+
+  return rule?.sku ?? null;
+};
+
+export const resolveCountertopMaterialSkuFromColorCode = (colorCode: string | null): string | null => {
+  const normalizedColorCode = colorCode?.trim().toUpperCase() ?? "";
+  if (!normalizedColorCode) return null;
+
+  return countertopMaterialSkuByColorCode[normalizedColorCode] ?? null;
 };
 
 /** PlayCanvas sinkType → Basin SKU code */

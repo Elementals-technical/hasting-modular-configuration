@@ -1,5 +1,11 @@
 import { cmToInches } from "./cmToInches";
-import { countertopStyleSkuMap, countertopMaterialSkuMap, basinSkuMap } from "./countertopSkuMaps";
+import {
+  countertopStyleSkuMap,
+  countertopMaterialSkuMap,
+  basinSkuMap,
+  resolveCountertopMaterialSkuFromBasinType,
+  resolveCountertopMaterialSkuFromColorCode,
+} from "./countertopSkuMaps";
 
 export type CountertopSkuInput = {
   /** "plain" | "integrated" | "vessel" | "undermount" */
@@ -31,21 +37,6 @@ const formatThicknessToken = (value: number): string => {
 const formatTopMaterialBlock = (materialSku: string | null, colorCode: string | null): string => {
   if (!materialSku) return "";
   return `-${materialSku}${colorCode ? `-${colorCode}` : ""}`;
-};
-
-const inferMaterialSkuFromBasinType = (basinType: string | null): string | null => {
-  const basin = basinType?.trim() ?? "";
-  if (!basin) return null;
-
-  if (basin.startsWith("Top_Tekorlux_")) return "SSTKR";
-  if (basin.startsWith("Top_Tekormud_") || basin.startsWith("Top_Tekorund_")) return "SSTM";
-  if (basin.startsWith("Top_Ocritech_")) return "SSOCR";
-  if (basin.startsWith("Top_Mineralmarmo_")) return "SSMMO";
-  if (basin.startsWith("Top_Porcelain_")) return "POR";
-  if (basin.startsWith("Top_HPL/Fenix_") || basin === "Fenix_Strip_Gres") return "FX";
-  if (basin.startsWith("Top_HPL")) return "HPL";
-
-  return null;
 };
 
 const resolve = (
@@ -95,10 +86,12 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     caseInsensitiveKey: true,
     allowMappedValue: true,
   });
-  const inferredMaterial = inferMaterialSkuFromBasinType(input.basinType);
-  // Basin type is the most reliable source of countertop material for integrated tops.
-  // Prefer it over color-derived/material token when present.
+  const inferredMaterial = resolveCountertopMaterialSkuFromBasinType(input.basinType);
+  const colorMaterial = resolveCountertopMaterialSkuFromColorCode(input.countertopColorCode);
+  // Syntesi finish codes are the strongest signal because API/scene state can still
+  // carry the generic Tekorlux material SKU while the selected color is TAN/TAP.
   const mat =
+    colorMaterial ??
     inferredMaterial ??
     (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
   const vesselMaterial = isVessel ? mat ?? "FX" : mat;
