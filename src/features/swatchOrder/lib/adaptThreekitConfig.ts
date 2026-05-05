@@ -9,6 +9,7 @@ import {
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,
 } from "@/shared/lib/sku";
+import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import {
   resolveCountertopFallbackHex,
   resolveCountertopNeedsLightBorder,
@@ -19,6 +20,10 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+import {
+  appendSyntesiCountertopOptions,
+  type CountertopMatrixRule,
+} from "@/features/configurator-rule-core/countertop";
 
 const uid = () =>
   typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
@@ -45,6 +50,10 @@ const pickString = (...candidates: unknown[]): string | undefined => {
 };
 
 const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
+
+type AdaptThreekitConfigOptions = {
+  countertopRules?: CountertopMatrixRule[];
+};
 
 const inferCountertopMaterial = ({
   explicitMaterial,
@@ -105,8 +114,97 @@ const inferCountertopMaterial = ({
   return undefined;
 };
 
+const joinList = (values: string[] | undefined): string | undefined => {
+  const normalized = values?.map((value) => value.trim()).filter(Boolean) ?? [];
+  return normalized.length ? normalized.join(", ") : undefined;
+};
+
+const toCountertopSourceOption = (item: AttributeValue): ProductOptionData => {
+  const finish = item.metadata?.Finish ?? item.metadata?.Material;
+
+  return {
+    id: item.id,
+    title: item.metadata?.label ?? item.label,
+    name: item.name ?? item.metadata?.value ?? item.value ?? item.label,
+    desc: finish,
+    isShortDesc: false,
+    metadata: {
+      image: item.metadata?.image,
+      value: item.metadata?.value ?? item.value,
+      sku: item.metadata?.sku,
+      materials: splitCsv(finish),
+      colors: splitCsv(item.metadata?.Color),
+      looks: splitCsv(item.metadata?.Look),
+      hex: item.metadata?.hex,
+      lightBorder: item.metadata?.lightBorder,
+    },
+  };
+};
+
+const toCountertopAttributeValue = (option: ProductOptionData): AttributeValue => {
+  const value = option.metadata?.value ?? option.name ?? option.title;
+  const material = option.desc;
+
+  return {
+    id: String(option.id),
+    assetId: String(option.id),
+    name: option.name ?? option.title,
+    parentName: COUNTERTOP_PRODUCT_ELEMENT,
+    optionName: COUNTERTOP_PRODUCT_ELEMENT,
+    label: option.title,
+    value,
+    count: 1,
+    metadata: {
+      label: option.title,
+      value,
+      Material: material,
+      Finish: material,
+      Color: joinList(option.metadata?.colors),
+      Look: joinList(option.metadata?.looks),
+      image: option.metadata?.image,
+      hex: option.metadata?.hex,
+      sku: option.metadata?.sku,
+      configValue: option.metadata?.configValue,
+      lightBorder: option.metadata?.lightBorder,
+    },
+  };
+};
+
+const appendCountertopRuleBackedSwatches = (
+  productElementOptions: IProductElementOption[],
+  allMaterialValues: AttributeValue[],
+  rules: CountertopMatrixRule[] | undefined,
+) => {
+  if (!rules?.length) return;
+
+  const countertopGroup = productElementOptions.find((group) => group.value === COUNTERTOP_PRODUCT_ELEMENT);
+  const sourceValues = countertopGroup?.valuesArray ?? [];
+  const sourceOptions = sourceValues.map(toCountertopSourceOption);
+  const sourceOptionIds = new Set(sourceOptions.map((option) => String(option.id)));
+  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules);
+  const syntheticValues = nextOptions
+    .filter((option) => !sourceOptionIds.has(String(option.id)))
+    .map(toCountertopAttributeValue);
+
+  if (!syntheticValues.length) return;
+
+  if (countertopGroup) {
+    countertopGroup.valuesArray.push(...syntheticValues);
+  } else {
+    productElementOptions.push({
+      id: "pe-countertop-color",
+      value: COUNTERTOP_PRODUCT_ELEMENT,
+      label: COUNTERTOP_PRODUCT_ELEMENT,
+      valuesArray: syntheticValues,
+    });
+  }
+
+  allMaterialValues.push(...syntheticValues);
+};
+
 export const adaptThreekitConfig = (
   data: IThreekitConfiguration | null | undefined,
+  options: AdaptThreekitConfigOptions = {},
 ): IMapUIData => {
   if (!data?.availableOptions?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
@@ -197,6 +295,7 @@ export const adaptThreekitConfig = (
         const metadata: IMaterialMetadata = {
           label,
           value,
+          sku: pickString(outer.sku, nested.sku),
           Material: material,
           Finish: material,
           Color: color,
@@ -236,6 +335,12 @@ export const adaptThreekitConfig = (
       });
     }
   }
+
+  appendCountertopRuleBackedSwatches(
+    productElementOptions,
+    allMaterialValues,
+    options.countertopRules,
+  );
 
   allMaterialValues.sort((a, b) =>
     (a.label?.toLowerCase() ?? "").localeCompare(b.label?.toLowerCase() ?? ""),

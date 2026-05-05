@@ -37,6 +37,7 @@ import {
   deriveAutofillMaterials,
   mergeAutofillWithSelectedMaterials,
 } from "../lib/deriveAutofillMaterials";
+import { useCountertopRules } from "@/features/configurator-rule-core/countertop";
 import s from "./SwatchOrder.module.scss";
 
 const ANIMATION_MS = 250;
@@ -83,6 +84,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const vesselColor = useAppSelector(getVesselColor);
   const [activeElements, setActiveElements] = useState<string[]>([]);
   const { mounted } = useMount({ opened: isOpen, animationDurationMs: ANIMATION_MS });
+  const countertopRules = useCountertopRules({ skip: !isOpen });
 
   const { data, isFetching } = useGetConfiguratorQuery({
     id: 4,
@@ -91,8 +93,11 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   });
 
   const mapped = useMemo(
-    () => adaptThreekitConfig(data as unknown as IThreekitConfiguration | undefined),
-    [data],
+    () =>
+      adaptThreekitConfig(data as unknown as IThreekitConfiguration | undefined, {
+        countertopRules,
+      }),
+    [data, countertopRules],
   );
   const autofillMaterials = useMemo(
     () =>

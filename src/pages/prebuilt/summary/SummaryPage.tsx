@@ -1765,7 +1765,10 @@ export const SummaryPage = () => {
 
   const quoteModelName = "Urban Standard Height";
 
-  const swatchOrderData = useMemo(() => adaptThreekitConfig(cabinetColors), [cabinetColors]);
+  const swatchOrderData = useMemo(
+    () => adaptThreekitConfig(cabinetColors, { countertopRules }),
+    [cabinetColors, countertopRules],
+  );
   const summaryAutofillValues = useMemo(() => {
     const values = summarySections.flatMap((section) => section.items.map((item) => item.swatch?.value));
     values.push(handleGrooveColor, towelBarColor, vesselColor);

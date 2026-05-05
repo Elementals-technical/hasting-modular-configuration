@@ -5,6 +5,8 @@ export interface IMaterialMetadata {
   hex?: string;
   label?: string;
   value?: string;
+  sku?: string;
+  configValue?: string;
   Material?: string;
   Finish?: string;
   zoomIconColor?: string;
