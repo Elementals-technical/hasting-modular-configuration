@@ -26,6 +26,7 @@ const QUOTE_PREVIEW_DISPLAY_SIZE = {
 
 const QUOTE_PREVIEW_SCALE = 2;
 const QUOTE_CAPTURE_FRAMING_SCALE = 0.85;
+const QUOTE_PREVIEW_CONTENT_PADDING_RATIO = 0.04;
 const QUOTE_CAPTURE_MIN_PADDING = 1;
 const QUOTE_CAPTURE_DEFAULT_PADDING_WIDE = 1.2;
 const QUOTE_CAPTURE_DEFAULT_PADDING_TALL = 1.6;
@@ -103,6 +104,7 @@ export const captureQuotePreviewImage = async () => {
       outputSize: QUOTE_PREVIEW_SIZE,
       renderSourceAtOutputSize: true,
       transparentBackground: true,
+      transparentContentPaddingRatio: QUOTE_PREVIEW_CONTENT_PADDING_RATIO,
     });
   } finally {
     if (cameraState) {

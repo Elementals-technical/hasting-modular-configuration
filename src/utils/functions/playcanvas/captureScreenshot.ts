@@ -9,6 +9,7 @@ const FOOTER_FONT_SIZE = 18;
 const FOOTER_LINE_HEIGHT = 32;
 const FOOTER_MIN_FONT_SIZE = 12;
 const FOOTER_MAX_CONTENT_WIDTH = 1444;
+const MAX_TRANSPARENT_CONTENT_PADDING_RATIO = 0.45;
 const FOOTER_SEGMENTS = [
   "Hastings Bath Collection",
   "|",
@@ -138,6 +139,7 @@ export async function captureScreenshot(): Promise<string | null> {
 type CaptureScreenshotOptions = {
   includeLogo?: boolean;
   transparentBackground?: boolean;
+  transparentContentPaddingRatio?: number;
   renderSourceAtOutputSize?: boolean;
   outputSize?: {
     width: number;
@@ -238,6 +240,11 @@ const getOpaqueBounds = (ctx: CanvasRenderingContext2D, width: number, height: n
   };
 };
 
+const normalizeContentPaddingRatio = (value: number) => {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(Math.max(value, 0), MAX_TRANSPARENT_CONTENT_PADDING_RATIO);
+};
+
 const drawContainedImage = (
   ctx: CanvasRenderingContext2D,
   sourceCanvas: HTMLCanvasElement,
@@ -260,11 +267,15 @@ const drawContainedCrop = (
   sourceBounds: ImageBounds,
   outputWidth: number,
   outputHeight: number,
+  paddingRatio = 0,
 ) => {
   const sourceRatio = sourceBounds.width / sourceBounds.height;
-  const outputRatio = outputWidth / outputHeight;
-  const targetWidth = sourceRatio > outputRatio ? outputWidth : outputHeight * sourceRatio;
-  const targetHeight = sourceRatio > outputRatio ? outputWidth / sourceRatio : outputHeight;
+  const normalizedPaddingRatio = normalizeContentPaddingRatio(paddingRatio);
+  const safeAreaWidth = outputWidth * (1 - normalizedPaddingRatio * 2);
+  const safeAreaHeight = outputHeight * (1 - normalizedPaddingRatio * 2);
+  const safeAreaRatio = safeAreaWidth / safeAreaHeight;
+  const targetWidth = sourceRatio > safeAreaRatio ? safeAreaWidth : safeAreaHeight * sourceRatio;
+  const targetHeight = sourceRatio > safeAreaRatio ? safeAreaWidth / sourceRatio : safeAreaHeight;
   const targetX = (outputWidth - targetWidth) / 2;
   const targetY = (outputHeight - targetHeight) / 2;
 
@@ -295,7 +306,13 @@ const createCanvasFromImageSource = async (src: string): Promise<HTMLCanvasEleme
 };
 
 export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
-  const { includeLogo = true, outputSize, renderSourceAtOutputSize = false, transparentBackground = false } = options;
+  const {
+    includeLogo = true,
+    outputSize,
+    renderSourceAtOutputSize = false,
+    transparentBackground = false,
+    transparentContentPaddingRatio = 0,
+  } = options;
   const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
   const visibleCanvas = iframeEl?.contentDocument?.querySelector("canvas");
 
@@ -340,7 +357,14 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
 
         const sourceBounds = getOpaqueBounds(croppedCtx, croppedCanvas.width, croppedCanvas.height);
         if (sourceBounds) {
-          drawContainedCrop(ctx, croppedCanvas, sourceBounds, outputCanvas.width, outputCanvas.height);
+          drawContainedCrop(
+            ctx,
+            croppedCanvas,
+            sourceBounds,
+            outputCanvas.width,
+            outputCanvas.height,
+            transparentContentPaddingRatio,
+          );
         } else {
           drawContainedImage(ctx, croppedCanvas, outputCanvas.width, outputCanvas.height);
         }
