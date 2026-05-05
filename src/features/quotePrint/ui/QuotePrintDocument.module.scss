@@ -142,8 +142,8 @@
 
 .titleRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 520px;
-  gap: 72px;
+  grid-template-columns: minmax(0, 1fr) 820px;
+  gap: 48px;
   margin-bottom: 70px;
   align-items: center;
 }
@@ -156,13 +156,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 230px;
+  min-height: 410px;
   background: transparent;
 }
 
 .thumb {
   width: 100%;
-  max-height: 230px;
+  max-height: 410px;
   object-fit: contain;
   background: transparent;
 }

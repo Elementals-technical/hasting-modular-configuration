@@ -108,10 +108,10 @@ import {
   MAX_SLOTS as MAX_SWATCHES,
   openSwatchOrder,
 } from "@/features/swatchOrder";
-import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 import { printQuote } from "@/features/quotePrint/lib/printQuote";
+import { captureQuotePreviewImage } from "@/features/quotePrint/lib/captureQuotePreviewImage";
 import { formatQuoteGeneratedDate } from "@/features/quotePrint/lib/formatQuoteGeneratedDate";
 import {
   convertSkuToInchesForSummary,
@@ -498,11 +498,7 @@ export const CustomSummaryPage = () => {
   useEffect(() => {
     let isMounted = true;
 
-    captureScreenshotWithOptions({
-      includeLogo: false,
-      outputSize: { width: 900, height: 446 },
-      transparentBackground: true,
-    }).then((image) => {
+    captureQuotePreviewImage().then((image) => {
       if (!isMounted || !image) return;
       setQuotePreviewImage(image);
     });
@@ -513,21 +509,35 @@ export const CustomSummaryPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!quotePreviewImage) return;
     const params = new URLSearchParams(location.search);
     if (params.get("print") !== "1") return;
+    let isCancelled = false;
 
     const timer = window.setTimeout(() => {
-      printQuote();
-      params.delete("print");
-      navigate(
-        { pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" },
-        { replace: true },
-      );
+      void (async () => {
+        const image = await captureQuotePreviewImage();
+        if (isCancelled) return;
+
+        if (image) {
+          setQuotePreviewImage(image);
+        }
+
+        await printQuote({ previewImage: image });
+        if (isCancelled) return;
+
+        params.delete("print");
+        navigate(
+          { pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" },
+          { replace: true },
+        );
+      })();
     }, 300);
 
-    return () => window.clearTimeout(timer);
-  }, [quotePreviewImage, location.search, location.pathname, navigate]);
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [location.search, location.pathname, navigate]);
 
   const buildCabinetDescription = useCallback(
     (opts: {
@@ -1412,6 +1422,13 @@ export const CustomSummaryPage = () => {
           materialSkuLabelMap,
         },
       ]);
+      const sidePanelCabinetSwatch = resolveSwatch(cabinetColor);
+      const sidePanelCabinetMaterialLabel = sidePanelCabinetMaterialSku
+        ? (materialSkuLabelMap[sidePanelCabinetMaterialSku] ?? sidePanelCabinetMaterialSku)
+        : null;
+      const sidePanelCabinetMaterialText = [sidePanelCabinetMaterialLabel, cabinetColor]
+        .filter(Boolean)
+        .join(" | ");
 
       const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
       if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
@@ -1424,6 +1441,14 @@ export const CustomSummaryPage = () => {
           title: label,
           subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
           sku: spSku,
+          swatch: sidePanelCabinetMaterialText
+            ? {
+                label: "Cabinet",
+                value: sidePanelCabinetMaterialText,
+                color: sidePanelCabinetSwatch.color,
+                image: sidePanelCabinetSwatch.image,
+              }
+            : undefined,
           price: resolveItemPrice(spSku),
           copyable: true,
           showInfo: true,
