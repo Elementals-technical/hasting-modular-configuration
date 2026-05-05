@@ -7,6 +7,11 @@ import {
   setFramingConfig,
   type CameraFramingConfig,
 } from "@/utils/functions/playcanvas/camera";
+import {
+  captureOrbitCameraState,
+  restoreOrbitCameraState,
+  type OrbitCameraState,
+} from "@/utils/functions/playcanvas/orbitCamera";
 
 const QUOTE_PREVIEW_DISPLAY_SIZE = {
   width: 900,
@@ -44,10 +49,29 @@ const resolveQuoteCaptureFraming = (current: CameraFramingConfig | null): Camera
   paddingTall: resolveCapturePadding(current?.paddingTall, QUOTE_CAPTURE_DEFAULT_PADDING_TALL),
 });
 
+const resolveQuoteOrbitState = (
+  focusedState: OrbitCameraState | null,
+  originalState: OrbitCameraState | null,
+): OrbitCameraState | null => {
+  if (!focusedState || !originalState) return null;
+
+  return {
+    distance: focusedState.distance,
+    pitch: originalState.pitch,
+    pivotPoint: focusedState.pivotPoint,
+    targetDistance: focusedState.targetDistance ?? focusedState.distance,
+    targetPitch: originalState.targetPitch ?? originalState.pitch,
+    targetPivotPoint: focusedState.targetPivotPoint ?? focusedState.pivotPoint,
+    targetYaw: originalState.targetYaw ?? originalState.yaw,
+    yaw: originalState.yaw,
+  };
+};
+
 export const captureQuotePreviewImage = async () => {
   await waitForAnimationFrames(RENDER_SETTLE_FRAMES);
 
   const cameraState = exportCameraState();
+  const orbitCameraState = captureOrbitCameraState();
   const framingConfig = getFramingConfig();
 
   try {
@@ -55,6 +79,12 @@ export const captureQuotePreviewImage = async () => {
       setFramingConfig(resolveQuoteCaptureFraming(framingConfig));
       focusCamera();
       await waitForAnimationFrames(CAMERA_SETTLE_FRAMES);
+
+      const quoteOrbitState = resolveQuoteOrbitState(captureOrbitCameraState(), orbitCameraState);
+      if (quoteOrbitState) {
+        restoreOrbitCameraState(quoteOrbitState);
+        await waitForAnimationFrames(CAMERA_SETTLE_FRAMES);
+      }
     }
 
     return await captureScreenshotWithOptions({
@@ -67,6 +97,8 @@ export const captureQuotePreviewImage = async () => {
     if (cameraState) {
       importCameraState(cameraState);
     }
+
+    restoreOrbitCameraState(orbitCameraState);
 
     if (framingConfig) {
       setFramingConfig(framingConfig);
