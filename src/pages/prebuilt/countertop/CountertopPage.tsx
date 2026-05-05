@@ -1280,16 +1280,16 @@ export const CountertopPage = () => {
   );
   const fullModeCountertopOptions = useMemo(
     () =>
-      [...scopedCountertopOptions]
-        .map((option) => {
+      sortCountertopOptionsByAvailability(
+        scopedCountertopOptions.map((option) => {
           const isAvailable = isMaterialOptionCompatibleBySceneSize(option);
           return {
             ...option,
             isAvailable,
             disabledReason: isAvailable ? undefined : getMaterialOptionDisabledReason(option),
           };
-        })
-        .sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+        }),
+      ),
     [getMaterialOptionDisabledReason, isMaterialOptionCompatibleBySceneSize, scopedCountertopOptions],
   );
   const sortedVesselColorOptions = useMemo(
