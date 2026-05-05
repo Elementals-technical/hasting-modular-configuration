@@ -13,6 +13,12 @@ import {
   type OrbitCameraState,
 } from "@/utils/functions/playcanvas/orbitCamera";
 
+export const QUOTE_PREVIEW_CAMERA_RESTORED_EVENT = "quote-preview-camera-restored";
+
+let activeQuotePreviewCaptureCount = 0;
+
+export const getActiveQuotePreviewCaptureCount = () => activeQuotePreviewCaptureCount;
+
 const QUOTE_PREVIEW_DISPLAY_SIZE = {
   width: 900,
   height: 446,
@@ -68,13 +74,18 @@ const resolveQuoteOrbitState = (
 };
 
 export const captureQuotePreviewImage = async () => {
-  await waitForAnimationFrames(RENDER_SETTLE_FRAMES);
-
-  const cameraState = exportCameraState();
-  const orbitCameraState = captureOrbitCameraState();
-  const framingConfig = getFramingConfig();
+  activeQuotePreviewCaptureCount += 1;
+  let cameraState: ReturnType<typeof exportCameraState> = null;
+  let orbitCameraState: OrbitCameraState | null = null;
+  let framingConfig: CameraFramingConfig | null = null;
 
   try {
+    await waitForAnimationFrames(RENDER_SETTLE_FRAMES);
+
+    cameraState = exportCameraState();
+    orbitCameraState = captureOrbitCameraState();
+    framingConfig = getFramingConfig();
+
     if (cameraState) {
       setFramingConfig(resolveQuoteCaptureFraming(framingConfig));
       focusCamera();
@@ -102,6 +113,11 @@ export const captureQuotePreviewImage = async () => {
 
     if (framingConfig) {
       setFramingConfig(framingConfig);
+    }
+
+    activeQuotePreviewCaptureCount = Math.max(activeQuotePreviewCaptureCount - 1, 0);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event(QUOTE_PREVIEW_CAMERA_RESTORED_EVENT));
     }
   }
 };
