@@ -1,4 +1,5 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
+import { takeSnapshot } from "./camera";
 
 const BRAND_COLOR = "#231F20";
 const BRAND_BACKGROUND = "#FFFFFF";
@@ -137,6 +138,7 @@ export async function captureScreenshot(): Promise<string | null> {
 type CaptureScreenshotOptions = {
   includeLogo?: boolean;
   transparentBackground?: boolean;
+  renderSourceAtOutputSize?: boolean;
   outputSize?: {
     width: number;
     height: number;
@@ -279,17 +281,42 @@ const drawContainedCrop = (
   );
 };
 
-export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
-  const { includeLogo = true, outputSize, transparentBackground = false } = options;
-  const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
-  const sourceCanvas = iframeEl?.contentDocument?.querySelector("canvas");
+const createCanvasFromImageSource = async (src: string): Promise<HTMLCanvasElement | null> => {
+  const image = await loadImage(src);
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
 
-  if (!sourceCanvas) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.drawImage(image, 0, 0);
+  return canvas;
+};
+
+export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
+  const { includeLogo = true, outputSize, renderSourceAtOutputSize = false, transparentBackground = false } = options;
+  const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
+  const visibleCanvas = iframeEl?.contentDocument?.querySelector("canvas");
+
+  if (!visibleCanvas) {
     console.warn("[PlayCanvas] Canvas not found in iframe");
     return null;
   }
 
   try {
+    const snapshot =
+      renderSourceAtOutputSize && outputSize
+        ? await takeSnapshot({
+            width: outputSize.width,
+            height: outputSize.height,
+            rerender: true,
+            format: "image/png",
+          })
+        : null;
+    const snapshotCanvas = snapshot ? await createCanvasFromImageSource(snapshot) : null;
+    const sourceCanvas = snapshotCanvas ?? visibleCanvas;
+
     const outputCanvas = document.createElement("canvas");
     outputCanvas.width = outputSize?.width ?? sourceCanvas.width;
     outputCanvas.height = outputSize?.height ?? sourceCanvas.height;
