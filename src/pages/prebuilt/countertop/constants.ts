@@ -423,7 +423,7 @@ export const optionsMockData3 = [
   },
   {
     id: 3038,
-    title: "Vessel Aquarius",
+    title: "Vessel Acquarius",
     name: "Vessel_Aquarius",
     isShortDesc: false,
     metadata: {
