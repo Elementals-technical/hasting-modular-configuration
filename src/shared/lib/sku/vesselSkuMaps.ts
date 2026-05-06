@@ -4,6 +4,7 @@ export const vesselSeriesSkuMap: Record<string, string> = {
   Vessel_UrbanModo_Flat: "URMOD",
   Vessel_UrbanModo_Seam: "URMOD",
   Vessel_UrbanModo_Cover: "URMOD",
+  Vessel_Aquarius: "ACQS",
   Vessel_UrbanKant: "URKNT",
   Vessel_UrbanMorris: "URMOR",
   Vessel_Blade18: "BLD18",
@@ -25,9 +26,17 @@ export const vesselMaterialSkuMap: Record<string, string> = {
   Vessel_Blade18: "CER",
 };
 
+export type VesselMaterialBlockMode = "selected" | "none";
+
+/** PlayCanvas vessel type → material/color SKU block behavior */
+export const vesselMaterialBlockModeMap: Record<string, VesselMaterialBlockMode> = {
+  Vessel_Aquarius: "none",
+};
+
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
 export const vesselHeightCmMap: Record<string, number> = {
   Vessel_UrbanModo: 14,
+  Vessel_Aquarius: 14,
   Vessel_UrbanMorris: 13,
   Vessel_Blade18: 15.5,
   Vessel_Blade11: 15.5,
@@ -36,6 +45,7 @@ export const vesselHeightCmMap: Record<string, number> = {
 /** Fixed width in inches per vessel type (overrides dynamic input) */
 export const vesselFixedWidthInMap: Record<string, string> = {
   Vessel_UrbanModo: "19.7",
+  Vessel_Aquarius: "18.9",
   Vessel_Blade11: "19.7",
   Vessel_UrbanMorris: "22.8",
   Vessel_Blade18: "21.7",
@@ -44,6 +54,7 @@ export const vesselFixedWidthInMap: Record<string, string> = {
 /** Fixed depth in inches per vessel type (overrides dynamic input) */
 export const vesselFixedDepthInMap: Record<string, string> = {
   Vessel_UrbanModo: "13",
+  Vessel_Aquarius: "13.4",
   Vessel_Blade11: "15",
   Vessel_UrbanMorris: "14.6",
   Vessel_Blade18: "15",
