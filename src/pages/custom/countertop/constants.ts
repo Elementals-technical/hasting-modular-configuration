@@ -25,8 +25,6 @@ import vesselImage from "@/shared/assets/images/png/countertop/Vessel.png";
 import vesselAquarius48Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Aquarius48.png";
 import vesselBlade11Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Blade11.png";
 import vesselBlade18Image from "@/shared/assets/images/png/countertop/vessel/Vessel_Blade18.png";
-import vesselFrameImage from "@/shared/assets/images/png/countertop/vessel/Vessel_Frame.png";
-import vesselIrisImage from "@/shared/assets/images/png/countertop/vessel/Vessel_Iris.png";
 import vesselUrbanModoCoverImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Cover.png";
 import vesselUrbanModoFlatImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Flat.png";
 import vesselUrbanModoSeamImage from "@/shared/assets/images/png/countertop/vessel/Vessel_UrbanModo_Seam.png";
@@ -374,24 +372,6 @@ export const optionsMockData3 = [
     isShortDesc: false,
     metadata: {
       image: vesselBlade18Image,
-    },
-  },
-  {
-    id: 3031,
-    title: "Vessel Frame",
-    name: "Vessel_Frame",
-    isShortDesc: false,
-    metadata: {
-      image: vesselFrameImage,
-    },
-  },
-  {
-    id: 3032,
-    title: "Vessel Iris",
-    name: "Vessel_Iris",
-    isShortDesc: false,
-    metadata: {
-      image: vesselIrisImage,
     },
   },
   {

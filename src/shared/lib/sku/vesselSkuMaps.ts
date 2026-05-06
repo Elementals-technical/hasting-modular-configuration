@@ -13,7 +13,6 @@ export const vesselSeriesSkuMap: Record<string, string> = {
   Vessel_MiloR: "MILOR",
   Vessel_Oliver: "OLIV",
   Vessel_OliverR: "OLIVR",
-  // Vessel_Frame, Vessel_Iris — series TBD
 };
 
 /**
