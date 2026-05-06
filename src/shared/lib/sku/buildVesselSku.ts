@@ -1,4 +1,5 @@
 import { cmToInches } from "./cmToInches";
+import { extractColorCode } from "./extractColorCode";
 import {
   vesselSeriesSkuMap,
   vesselFixedWidthInMap,
@@ -49,7 +50,7 @@ export function buildVesselSku(input: VesselSkuInput): string {
   const fixedMat = input.vesselType ? vesselMaterialSkuMap[input.vesselType] : undefined;
   const rawMat = fixedMat ?? input.materialSku?.trim() ?? null;
   const mat = rawMat ? (vesselMaterialSkuAliasMap[rawMat.toUpperCase()] ?? rawMat) : null;
-  const color = input.colorCode?.trim() || null;
+  const color = extractColorCode(input.colorCode)?.trim() || null;
   const matBlock = mat ? `-${mat}${color ? `-${color}` : ""}` : "";
 
   return `${CATEGORY}-${series}-${model}-${w}-${h}-${d}${matBlock}`;

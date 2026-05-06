@@ -202,10 +202,11 @@ export const buildCountertopColorSkuCandidates = (
             resolveCountertopMaterialSkuFromColorCode(colorCode) ??
             resolveCountertopMaterialSkuFromTokens(materialTokens);
           if (!sku) return;
+          const normalizedColorCode = colorCode ? extractColorCode(colorCode) : null;
 
           const candidate: CountertopColorSkuCandidate = {
             sku,
-            colorCode: colorCode ?? undefined,
+            colorCode: normalizedColorCode ?? undefined,
             materialTokens,
           };
 
