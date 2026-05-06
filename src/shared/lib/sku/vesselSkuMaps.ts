@@ -95,3 +95,15 @@ export const vesselAllowedMaterialColorCodesMap: Record<string, Record<string, s
     tekorlux: ["TAL", "TAM"],
   },
 };
+
+/**
+ * Optional PlayCanvas vessel type → material token → unavailable color codes.
+ *
+ * This complements the allow-list above when product availability excludes a
+ * specific finish inside an otherwise supported material family.
+ */
+export const vesselUnavailableMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
+  Vessel_UrbanModo: {
+    porcelain: ["TQ2"],
+  },
+};

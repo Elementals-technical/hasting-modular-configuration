@@ -32,6 +32,7 @@ export {
   vesselHeightCmMap,
   vesselAllowedMaterialsMap,
   vesselAllowedMaterialColorCodesMap,
+  vesselUnavailableMaterialColorCodesMap,
 } from "./vesselSkuMaps";
 export {
   resolveDefaultBasinByCountertopColor,

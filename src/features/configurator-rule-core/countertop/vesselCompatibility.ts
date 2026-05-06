@@ -1,4 +1,8 @@
-import { vesselAllowedMaterialColorCodesMap, vesselAllowedMaterialsMap } from "@/shared/lib/sku";
+import {
+  vesselAllowedMaterialColorCodesMap,
+  vesselAllowedMaterialsMap,
+  vesselUnavailableMaterialColorCodesMap,
+} from "@/shared/lib/sku";
 
 import { getMaterialAliases, normalizeMaterialToken } from "./parse";
 
@@ -45,10 +49,13 @@ export const getAllowedVesselMaterialTokens = (vesselStyle?: string | null): Set
   );
 };
 
-const getAllowedMaterialColorCodeRules = (vesselStyle?: string | null): VesselMaterialColorCodeRule[] => {
+const getMaterialColorCodeRules = (
+  ruleMap: Record<string, Record<string, string[]>>,
+  vesselStyle?: string | null,
+): VesselMaterialColorCodeRule[] => {
   if (!isVesselSinkStyle(vesselStyle)) return [];
 
-  const rawRules = resolveVesselStyleRule(vesselAllowedMaterialColorCodesMap, vesselStyle?.trim() ?? "");
+  const rawRules = resolveVesselStyleRule(ruleMap, vesselStyle?.trim() ?? "");
   if (!rawRules) return [];
 
   return Object.entries(rawRules)
@@ -64,6 +71,12 @@ const getAllowedMaterialColorCodeRules = (vesselStyle?: string | null): VesselMa
     })
     .filter((rule) => rule.materialTokens.size > 0 && rule.colorCodes.size > 0);
 };
+
+const getAllowedMaterialColorCodeRules = (vesselStyle?: string | null): VesselMaterialColorCodeRule[] =>
+  getMaterialColorCodeRules(vesselAllowedMaterialColorCodesMap, vesselStyle);
+
+const getUnavailableMaterialColorCodeRules = (vesselStyle?: string | null): VesselMaterialColorCodeRule[] =>
+  getMaterialColorCodeRules(vesselUnavailableMaterialColorCodesMap, vesselStyle);
 
 export const isMaterialCompatibleWithVesselStyle = ({
   vesselStyle,
@@ -97,11 +110,22 @@ export const isMaterialCompatibleWithVesselStyle = ({
   const hasAllowedToken = Array.from(candidateTokens).some((token) => allowedTokens.has(token));
   if (!hasAllowedToken) return false;
 
+  const materialMatchesRule = (rule: VesselMaterialColorCodeRule) =>
+    Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token));
+
+  const unavailableMaterialColorCodeRules = getUnavailableMaterialColorCodeRules(vesselStyle);
+  if (
+    normalizedColorCode &&
+    unavailableMaterialColorCodeRules.some(
+      (rule) => materialMatchesRule(rule) && rule.colorCodes.has(normalizedColorCode),
+    )
+  ) {
+    return false;
+  }
+
   const materialColorCodeRules = getAllowedMaterialColorCodeRules(vesselStyle);
   if (!materialColorCodeRules.length) return true;
 
-  const materialMatchesRule = (rule: VesselMaterialColorCodeRule) =>
-    Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token));
   const hasMaterialColorCodeRule = materialColorCodeRules.some((rule) => materialMatchesRule(rule));
   if (!hasMaterialColorCodeRule) return true;
 
