@@ -7,43 +7,10 @@ import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct"
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { restoreSidePanelState } from "@/features/sidePanel";
-
-function resolveProductType(productId: string, config: Record<string, unknown>): string {
-  const configProductType = typeof config?.productType === "string" ? config.productType : null;
-  if (configProductType) return normalizeProductType(configProductType, productId);
-
-  const configEntityName = typeof config?.entityName === "string" ? config.entityName : null;
-  if (configEntityName) return normalizeProductType(configEntityName, productId);
-
-  const lastDash = productId.lastIndexOf("-");
-  if (lastDash > 0) {
-    return productId.slice(0, lastDash);
-  }
-
-  return productId;
-}
-
-function normalizeProductType(value: string, productId: string): string {
-  const lastDash = value.lastIndexOf("-");
-  if (lastDash > 0) {
-    const suffix = value.slice(lastDash + 1);
-    if (suffix.length >= 6) {
-      return value.slice(0, lastDash);
-    }
-  }
-
-  if (value === productId) {
-    const idLastDash = productId.lastIndexOf("-");
-    if (idLastDash > 0) {
-      const idSuffix = productId.slice(idLastDash + 1);
-      if (idSuffix.length >= 6) {
-        return productId.slice(0, idLastDash);
-      }
-    }
-  }
-
-  return value;
-}
+import {
+  resolveRuntimeProductType,
+  withRuntimeProductType,
+} from "@/entities/product/lib/resolveRuntimeProductType";
 
 function mapConfigToDrawerValue(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -67,18 +34,19 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     const config = snapshot.productConfigs[oldId];
     if (!config) continue;
 
-    const productType = resolveProductType(oldId, config);
-    const newId = await addProduct(productType, config as addProductConfigI);
+    const productType = resolveRuntimeProductType(oldId, config);
+    const productConfig = withRuntimeProductType(config, productType);
+    const newId = await addProduct(productType, productConfig as addProductConfigI);
 
     if (newId) {
-      await setConfig(newId, config);
+      await setConfig(newId, productConfig);
       newProductIds.push(newId);
 
       if (!restoredSelectedProductConfig) {
-        restoredSelectedProductConfig = { ...config };
+        restoredSelectedProductConfig = { ...productConfig };
       }
 
-      const drawerRawValue = mapConfigToDrawerValue(config.Drawers);
+      const drawerRawValue = mapConfigToDrawerValue(productConfig.Drawers);
       if (drawerRawValue) {
         restoredPlacedCabinetStyles[newId] = drawerRawValue;
       }

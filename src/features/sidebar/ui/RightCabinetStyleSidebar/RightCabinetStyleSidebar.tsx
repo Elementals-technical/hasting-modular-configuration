@@ -56,6 +56,7 @@ import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { useGetConfiguratorQuery } from "@/entities";
 import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
+import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
@@ -694,7 +695,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         const isSinkBase = activeDrawerProduct.toLowerCase().includes("sink-base");
         const isVesselStyle = countertopStyle?.toLowerCase() === "vessel";
         const resolvedSinkType = sinkType || (isVesselStyle ? "Vessel" : "");
-        const nextConfig: Record<string, unknown> =
+        const nextConfigBase: Record<string, unknown> =
           isSinkBase && (resolvedSinkType || countertopStyle)
             ? {
                 ...productConfig,
@@ -702,6 +703,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
                 ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}),
               }
             : { ...(productConfig ?? {}) };
+        const nextConfig = withRuntimeProductType(nextConfigBase, activeDrawerProduct);
 
         if (widthForAddedCabinet !== null) {
           nextConfig.Width = widthForAddedCabinet;
