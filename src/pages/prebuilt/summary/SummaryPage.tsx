@@ -1132,6 +1132,10 @@ export const SummaryPage = () => {
       matrixDefaultThickness;
     const displayCountertopThickness = formatCountertopThicknessLabel(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(displayCountertopColor);
+    const vesselSwatch = resolvedVesselColor ? resolveSwatch(resolvedVesselColor) : null;
+    const displayVesselMaterial = resolvedVesselMaterialSku
+      ? (materialSkuLabelMap[resolvedVesselMaterialSku] ?? resolvedVesselMaterialSku)
+      : null;
 
     const bookMatchingInfo = deriveBookMatchingChargeInfo({
       grainDirection,
@@ -1576,9 +1580,22 @@ export const SummaryPage = () => {
                 title: "Vessel",
                 subtitle: basinStyleLabel ?? "Vessel",
                 sku: vesselSku,
+                swatch: vesselSwatch
+                  ? {
+                      label: "Vessel",
+                      value: vesselSwatch.value,
+                      color: vesselSwatch.color,
+                      image: vesselSwatch.image,
+                    }
+                  : undefined,
                 price: resolveItemPrice(vesselSku),
                 copyable: true,
-                description: { "Product Category": "Vessel", Type: resolvedSinkType },
+                description: {
+                  "Product Category": "Vessel",
+                  Type: resolvedSinkType,
+                  Material: displayVesselMaterial,
+                  "Color Code": resolvedVesselColor,
+                },
               })),
             },
           ]
