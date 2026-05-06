@@ -4,7 +4,6 @@ import {
   vesselFixedWidthInMap,
   vesselFixedDepthInMap,
   vesselMaterialSkuMap,
-  vesselMaterialBlockModeMap,
 } from "./vesselSkuMaps";
 
 export type VesselSkuInput = {
@@ -45,10 +44,9 @@ export function buildVesselSku(input: VesselSkuInput): string {
   const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
   const d = fixedD ? `${fixedD}D` : normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
-  const materialBlockMode = input.vesselType ? (vesselMaterialBlockModeMap[input.vesselType] ?? "selected") : "selected";
   // Fixed material SKU per vessel type takes priority over the passed-in value
   const fixedMat = input.vesselType ? vesselMaterialSkuMap[input.vesselType] : undefined;
-  const mat = materialBlockMode === "none" ? null : (fixedMat ?? input.materialSku?.trim() ?? null);
+  const mat = fixedMat ?? input.materialSku?.trim() ?? null;
   const color = input.colorCode?.trim() || null;
   // Keep Blade SKUs (BLD11/BLD18) untouched, including the CER-specific suffix.
   const isBladeSeries = series === "BLD11" || series === "BLD18";

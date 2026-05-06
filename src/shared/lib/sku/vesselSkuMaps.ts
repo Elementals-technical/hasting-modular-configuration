@@ -26,13 +26,6 @@ export const vesselMaterialSkuMap: Record<string, string> = {
   Vessel_Blade18: "CER",
 };
 
-export type VesselMaterialBlockMode = "selected" | "none";
-
-/** PlayCanvas vessel type → material/color SKU block behavior */
-export const vesselMaterialBlockModeMap: Record<string, VesselMaterialBlockMode> = {
-  Vessel_Aquarius: "none",
-};
-
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
 export const vesselHeightCmMap: Record<string, number> = {
   Vessel_UrbanModo: 14,
