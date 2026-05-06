@@ -3,6 +3,7 @@ import {
   vesselSeriesSkuMap,
   vesselFixedWidthInMap,
   vesselFixedDepthInMap,
+  vesselMaterialSkuAliasMap,
   vesselMaterialSkuMap,
 } from "./vesselSkuMaps";
 
@@ -46,7 +47,8 @@ export function buildVesselSku(input: VesselSkuInput): string {
 
   // Fixed material SKU per vessel type takes priority over the passed-in value
   const fixedMat = input.vesselType ? vesselMaterialSkuMap[input.vesselType] : undefined;
-  const mat = fixedMat ?? input.materialSku?.trim() ?? null;
+  const rawMat = fixedMat ?? input.materialSku?.trim() ?? null;
+  const mat = rawMat ? (vesselMaterialSkuAliasMap[rawMat.toUpperCase()] ?? rawMat) : null;
   const color = input.colorCode?.trim() || null;
   const matBlock = mat ? `-${mat}${color ? `-${color}` : ""}` : "";
 

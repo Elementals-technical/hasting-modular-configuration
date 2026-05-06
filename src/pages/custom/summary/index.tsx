@@ -72,6 +72,7 @@ import {
   buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
+  resolveCountertopColorCodeFromCandidates,
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
@@ -1087,14 +1088,23 @@ export const CustomSummaryPage = () => {
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
-    const resolvedVesselMaterialSku = resolvedVesselColor
-      ? resolveCountertopColorSkuFromCandidates({
+    const vesselPreferredMaterialTokens = [
+      ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+      ...preferredCountertopMaterialTokens,
+    ];
+    const resolvedVesselColorCode = resolvedVesselColor
+      ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
           candidatesByValue: countertopColorSkuCandidatesByValue,
-          preferredMaterialTokens: [
-            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-            ...preferredCountertopMaterialTokens,
-          ],
+          preferredMaterialTokens: vesselPreferredMaterialTokens,
+        })
+      : null;
+    const resolvedVesselMaterialSku = resolvedVesselColor
+      ? resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
+        resolveCountertopColorSkuFromCandidates({
+          value: resolvedVesselColor,
+          candidatesByValue: countertopColorSkuCandidatesByValue,
+          preferredMaterialTokens: vesselPreferredMaterialTokens,
         })
       : null;
     const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
@@ -1204,7 +1214,7 @@ export const CustomSummaryPage = () => {
           height: vesselHeightCmMap[vesselType] ?? null,
           depth: selectedDimensions.depth,
           materialSku: resolvedVesselMaterialSku,
-          colorCode: extractColorCode(resolvedVesselColor),
+          colorCode: resolvedVesselColorCode,
         })
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);

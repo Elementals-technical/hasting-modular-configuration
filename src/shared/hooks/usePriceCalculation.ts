@@ -50,6 +50,7 @@ import {
   buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
+  resolveCountertopColorCodeFromCandidates,
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
@@ -351,14 +352,23 @@ export function usePriceCalculation() {
       resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
     const resolvedVesselColor = vesselColor;
-    const resolvedVesselMaterialSku = resolvedVesselColor
-      ? resolveCountertopColorSkuFromCandidates({
+    const vesselPreferredMaterialTokens = [
+      ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+      ...preferredCountertopMaterialTokens,
+    ];
+    const resolvedVesselColorCode = resolvedVesselColor
+      ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
           candidatesByValue: countertopColorSkuCandidatesByValue,
-          preferredMaterialTokens: [
-            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-            ...preferredCountertopMaterialTokens,
-          ],
+          preferredMaterialTokens: vesselPreferredMaterialTokens,
+        })
+      : null;
+    const resolvedVesselMaterialSku = resolvedVesselColor
+      ? resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
+        resolveCountertopColorSkuFromCandidates({
+          value: resolvedVesselColor,
+          candidatesByValue: countertopColorSkuCandidatesByValue,
+          preferredMaterialTokens: vesselPreferredMaterialTokens,
         })
       : null;
     const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
@@ -857,7 +867,7 @@ export function usePriceCalculation() {
         height: vesselHeightCmMap[vesselType] ?? null,
         depth: selectedDimensions.depth,
         materialSku: resolvedVesselMaterialSku,
-        colorCode: extractColorCode(resolvedVesselColor),
+        colorCode: resolvedVesselColorCode,
       });
       for (let i = 0; i < sinkBaseCountForPricing; i++) {
         console.log(LOG_PREFIX, `Resolver 2b (Vessel #${i + 1}):`, vesselSku);

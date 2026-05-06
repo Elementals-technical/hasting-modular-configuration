@@ -41,6 +41,7 @@ export {
 export {
   buildCountertopColorSkuCandidates,
   resolveCountertopColorSkuFromCandidates,
+  resolveCountertopColorCodeFromCandidates,
   resolveCountertopMaterialTokensFromCandidates,
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,

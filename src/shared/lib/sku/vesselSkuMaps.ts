@@ -26,6 +26,11 @@ export const vesselMaterialSkuMap: Record<string, string> = {
   Vessel_Blade18: "CER",
 };
 
+/** Countertop material SKU → vessel material SKU. */
+export const vesselMaterialSkuAliasMap: Record<string, string> = {
+  SSOCR: "SS",
+};
+
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
 export const vesselHeightCmMap: Record<string, number> = {
   Vessel_UrbanModo: 14,
@@ -89,6 +94,7 @@ export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
  */
 export const vesselAllowedMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
   Vessel_UrbanModo: {
+    solidsurface: ["T1C", "T1D"],
     hpl: ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"],
   },
   Vessel_UrbanMorris: {
