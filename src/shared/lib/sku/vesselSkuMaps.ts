@@ -63,7 +63,7 @@ export const vesselFixedDepthInMap: Record<string, string> = {
  * Series mapping:
  *   BLD  (Blade11/18)   → ceramic
  *   URMOD (UrbanModo)   → solidsurface, selected hpl finishes, porcelain
- *   URMOR (UrbanMorris) → fenix, tekorlux
+ *   URMOR (UrbanMorris) → selected tekorlux finishes
  */
 export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
   // BLD — Ceramic only, hidden when other materials are selected
@@ -73,7 +73,7 @@ export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
   // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), selected HPL finishes, Porcelain
   Vessel_UrbanModo: ["solidsurface", "hpl", "porcelain"],
 
-  // URMOR — Tekorlux (TAL / TAM only in pricing, but material token "tekorlux" must also match)
+  // URMOR — Tekorlux TAL / TAM only
   Vessel_UrbanMorris: ["tekorlux", "sstkr", "tal", "tam"],
 
   // ACQS — Tekorlux (TAL / TAM + all SSTKR colors)
@@ -90,5 +90,8 @@ export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
 export const vesselAllowedMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
   Vessel_UrbanModo: {
     hpl: ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"],
+  },
+  Vessel_UrbanMorris: {
+    tekorlux: ["TAL", "TAM"],
   },
 };
