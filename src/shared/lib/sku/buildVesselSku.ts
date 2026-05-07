@@ -1,5 +1,12 @@
 import { cmToInches } from "./cmToInches";
-import { vesselSeriesSkuMap, vesselFixedWidthInMap, vesselFixedDepthInMap, vesselMaterialSkuMap } from "./vesselSkuMaps";
+import { extractColorCode } from "./extractColorCode";
+import {
+  vesselSeriesSkuMap,
+  vesselFixedWidthInMap,
+  vesselFixedDepthInMap,
+  vesselMaterialSkuAliasMap,
+  vesselMaterialSkuMap,
+} from "./vesselSkuMaps";
 
 export type VesselSkuInput = {
   /** PlayCanvas vessel type, e.g. "Vessel_Blade11", "Vessel_UrbanModo" */
@@ -20,7 +27,7 @@ const CATEGORY = "VES";
 
 /**
  * Returns a SKU line for a vessel sink:
- *   VES-{SERIES}-X-{W}W-{H}H-{D}D[-VES-{MaterialSKU}-{ColorCode}]
+ *   VES-{SERIES}-X-{W}W-{H}H-{D}D[-{MaterialSKU}-{ColorCode}]
  *
  * SERIES is derived from vessel type (e.g. Vessel_Blade11 → BLD11, Vessel_UrbanModo → URMOD).
  * Model is "X" by default, or "URSTD" for the standard countertop-top variant.
@@ -41,19 +48,10 @@ export function buildVesselSku(input: VesselSkuInput): string {
 
   // Fixed material SKU per vessel type takes priority over the passed-in value
   const fixedMat = input.vesselType ? vesselMaterialSkuMap[input.vesselType] : undefined;
-  const mat = fixedMat ?? input.materialSku?.trim() ?? null;
-  const color = input.colorCode?.trim() || null;
-  // Keep Blade SKUs (BLD11/BLD18) untouched, including the CER-specific suffix.
-  const isBladeSeries = series === "BLD11" || series === "BLD18";
-  const matBlock = isBladeSeries
-    ? mat === "CER"
-      ? `-${CATEGORY}-${mat}${color ? `-${color}` : ""}`
-      : mat
-        ? `-${mat}`
-        : ""
-    : mat
-      ? `-${mat}${color ? `-${color}` : ""}`
-      : "";
+  const rawMat = fixedMat ?? input.materialSku?.trim() ?? null;
+  const mat = rawMat ? (vesselMaterialSkuAliasMap[rawMat.toUpperCase()] ?? rawMat) : null;
+  const color = extractColorCode(input.colorCode)?.trim() || null;
+  const matBlock = mat ? `-${mat}${color ? `-${color}` : ""}` : "";
 
   return `${CATEGORY}-${series}-${model}-${w}-${h}-${d}${matBlock}`;
 }

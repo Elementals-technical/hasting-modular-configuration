@@ -300,6 +300,7 @@ export const CustomCountertopPage = () => {
                 metadata: {
                   image: meta.image ?? resolveCountertopFallbackTexture(variant.name),
                   value: meta.value ?? variant.name,
+                  codeColor: metaCodeColor,
                   sku: toOptionalString((variant.metadata as Record<string, unknown>)?.sku),
                   materials: buildMaterialTokens(option.name || variant.name, metaMaterial, [
                     ...(group.proxyName ? [group.proxyName] : []),
@@ -627,7 +628,8 @@ export const CustomCountertopPage = () => {
       isMaterialCompatibleWithVesselStyle({
         vesselStyle,
         materialTokens: getVesselOptionMaterialTokens(option),
-        colorCode: extractColorCode(option.metadata?.value ?? option.name ?? option.title),
+        colorCode:
+          option.metadata?.codeColor ?? extractColorCode(option.metadata?.value ?? option.name ?? option.title),
       }),
     [activeBasinStyle, getVesselOptionMaterialTokens],
   );

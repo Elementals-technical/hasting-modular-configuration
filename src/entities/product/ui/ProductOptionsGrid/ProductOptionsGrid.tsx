@@ -15,6 +15,7 @@ export type ProductOptionMetadata = {
   looks?: string[];
   hex?: string;
   value?: string;
+  codeColor?: string;
   image?: string;
   sku?: string;
   lightBorder?: boolean;

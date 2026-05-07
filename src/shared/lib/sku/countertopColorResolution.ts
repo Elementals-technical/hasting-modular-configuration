@@ -4,6 +4,8 @@ import { resolveCountertopMaterialSkuFromColorCode } from "./countertopSkuMaps";
 type ConfiguratorVariantMetadataLike = {
   sku?: string;
   value?: string;
+  codeColor?: string;
+  codecolor?: string;
   Material?: string;
   metadata?: Record<string, unknown>;
 };
@@ -26,6 +28,7 @@ type ConfiguratorAvailableOptionLike = {
 
 export type CountertopColorSkuCandidate = {
   sku: string;
+  colorCode?: string;
   materialTokens: string[];
 };
 
@@ -136,11 +139,11 @@ export const getCountertopMaterialTokensFromBasinType = (basinType?: string | nu
 const getMaterialTokensForOptionCandidate = ({
   optionName,
   rawMaterial,
-  sku,
+  sku = null,
 }: {
   optionName: string;
   rawMaterial: string | null;
-  sku: string;
+  sku?: string | null;
 }): string[] => {
   const tokens = new Set<string>();
 
@@ -149,6 +152,17 @@ const getMaterialTokensForOptionCandidate = ({
   getCountertopMaterialTokensBySku(sku).forEach((token) => addMaterialToken(tokens, token));
 
   return Array.from(tokens);
+};
+
+const resolveCountertopMaterialSkuFromTokens = (tokens: readonly string[]): string | null => {
+  const normalizedTokens = new Set<string>();
+  tokens.forEach((token) => addMaterialToken(normalizedTokens, token));
+
+  const matchedSkus = Object.entries(COUNTERTOP_MATERIAL_TOKENS_BY_SKU)
+    .filter(([, skuTokens]) => skuTokens.some((token) => normalizedTokens.has(token)))
+    .map(([sku]) => sku);
+
+  return matchedSkus.length === 1 ? matchedSkus[0] : null;
 };
 
 export const buildCountertopColorSkuCandidates = (
@@ -167,18 +181,33 @@ export const buildCountertopColorSkuCandidates = (
           const variantMetadata = variant.metadata ?? {};
           const nestedMetadata = getNestedMetadataRecord(variantMetadata.metadata);
           const value = getString(variantMetadata.value) ?? getString(nestedMetadata?.value) ?? variant.name;
-          const sku = getString(variantMetadata.sku);
+          const explicitSku = getString(variantMetadata.sku);
           const rawMaterial = getString(variantMetadata.Material) ?? getString(nestedMetadata?.Material);
+          const colorCode =
+            getString(variantMetadata.codeColor) ??
+            getString(variantMetadata.codecolor) ??
+            getString(nestedMetadata?.codeColor) ??
+            getString(nestedMetadata?.codecolor) ??
+            null;
 
-          if (!value || !sku) return;
+          if (!value) return;
+
+          const materialTokens = getMaterialTokensForOptionCandidate({
+            optionName: option.name,
+            rawMaterial,
+            sku: explicitSku,
+          });
+          const sku =
+            explicitSku ??
+            resolveCountertopMaterialSkuFromColorCode(colorCode) ??
+            resolveCountertopMaterialSkuFromTokens(materialTokens);
+          if (!sku) return;
+          const normalizedColorCode = colorCode ? extractColorCode(colorCode) : null;
 
           const candidate: CountertopColorSkuCandidate = {
             sku,
-            materialTokens: getMaterialTokensForOptionCandidate({
-              optionName: option.name,
-              rawMaterial,
-              sku,
-            }),
+            colorCode: normalizedColorCode ?? undefined,
+            materialTokens,
           };
 
           const existing = result.get(value) ?? [];
@@ -189,6 +218,29 @@ export const buildCountertopColorSkuCandidates = (
     });
 
   return result;
+};
+
+const selectCountertopColorCandidates = ({
+  value,
+  candidates,
+  preferredMaterialTokens = [],
+}: {
+  value: string;
+  candidates: CountertopColorSkuCandidate[];
+  preferredMaterialTokens?: string[];
+}): CountertopColorSkuCandidate[] => {
+  if (!candidates.length) return [];
+  if (candidates.length === 1) return candidates;
+
+  const preferredTokens = new Set<string>();
+  preferredMaterialTokens.forEach((token) => addMaterialToken(preferredTokens, token));
+
+  const preferredMatches =
+    preferredTokens.size > 0
+      ? candidates.filter((candidate) => candidate.materialTokens.some((token) => preferredTokens.has(token)))
+      : candidates;
+
+  return filterCandidatesByFinish(preferredMatches, value);
 };
 
 export const resolveCountertopColorSkuFromCandidates = ({
@@ -209,15 +261,11 @@ export const resolveCountertopColorSkuFromCandidates = ({
   if (!candidates.length) return null;
   if (candidates.length === 1) return candidates[0].sku;
 
-  const preferredTokens = new Set<string>();
-  preferredMaterialTokens.forEach((token) => addMaterialToken(preferredTokens, token));
-
-  const preferredMatches =
-    preferredTokens.size > 0
-      ? candidates.filter((candidate) => candidate.materialTokens.some((token) => preferredTokens.has(token)))
-      : candidates;
-
-  const narrowedCandidates = filterCandidatesByFinish(preferredMatches, value);
+  const narrowedCandidates = selectCountertopColorCandidates({
+    value,
+    candidates,
+    preferredMaterialTokens,
+  });
   const uniqueSkus = Array.from(new Set(narrowedCandidates.map((candidate) => candidate.sku)));
 
   if (uniqueSkus.length === 1) return uniqueSkus[0];
@@ -226,6 +274,39 @@ export const resolveCountertopColorSkuFromCandidates = ({
   const uniqueFinishFilteredSkus = Array.from(new Set(finishFilteredAll.map((candidate) => candidate.sku)));
 
   return uniqueFinishFilteredSkus.length === 1 ? uniqueFinishFilteredSkus[0] : null;
+};
+
+export const resolveCountertopColorCodeFromCandidates = ({
+  value,
+  candidatesByValue,
+  preferredMaterialTokens = [],
+}: {
+  value?: string | null;
+  candidatesByValue: CountertopColorSkuCandidatesByValue;
+  preferredMaterialTokens?: string[];
+}): string | null => {
+  if (!value) return null;
+
+  const extractedColorCode = extractColorCode(value);
+  const candidates = candidatesByValue.get(value) ?? [];
+  if (!candidates.length) return extractedColorCode;
+
+  const narrowedCandidates = selectCountertopColorCandidates({
+    value,
+    candidates,
+    preferredMaterialTokens,
+  });
+  const colorCodes = Array.from(
+    new Set(narrowedCandidates.map((candidate) => candidate.colorCode).filter((code): code is string => Boolean(code))),
+  );
+
+  if (colorCodes.length === 1) return colorCodes[0];
+
+  const allColorCodes = Array.from(
+    new Set(candidates.map((candidate) => candidate.colorCode).filter((code): code is string => Boolean(code))),
+  );
+
+  return allColorCodes.length === 1 ? allColorCodes[0] : extractedColorCode;
 };
 
 export const resolveCountertopMaterialTokensFromCandidates = ({

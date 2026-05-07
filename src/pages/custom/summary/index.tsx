@@ -72,6 +72,7 @@ import {
   buildCountertopColorSkuCandidates,
   resolveDefaultBasinByCountertopColor,
   resolveCountertopColorSkuFromCandidates,
+  resolveCountertopColorCodeFromCandidates,
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
@@ -1087,14 +1088,23 @@ export const CustomSummaryPage = () => {
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
-    const resolvedVesselMaterialSku = resolvedVesselColor
-      ? resolveCountertopColorSkuFromCandidates({
+    const vesselPreferredMaterialTokens = [
+      ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+      ...preferredCountertopMaterialTokens,
+    ];
+    const resolvedVesselColorCode = resolvedVesselColor
+      ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
           candidatesByValue: countertopColorSkuCandidatesByValue,
-          preferredMaterialTokens: [
-            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-            ...preferredCountertopMaterialTokens,
-          ],
+          preferredMaterialTokens: vesselPreferredMaterialTokens,
+        })
+      : null;
+    const resolvedVesselMaterialSku = resolvedVesselColor
+      ? resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
+        resolveCountertopColorSkuFromCandidates({
+          value: resolvedVesselColor,
+          candidatesByValue: countertopColorSkuCandidatesByValue,
+          preferredMaterialTokens: vesselPreferredMaterialTokens,
         })
       : null;
     const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
@@ -1127,6 +1137,10 @@ export const CustomSummaryPage = () => {
       matrixDefaultThickness;
     const displayCountertopThickness = formatCountertopThicknessLabel(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(displayCountertopColor);
+    const vesselSwatch = resolvedVesselColor ? resolveSwatch(resolvedVesselColor) : null;
+    const displayVesselMaterial = resolvedVesselMaterialSku
+      ? (materialSkuLabelMap[resolvedVesselMaterialSku] ?? resolvedVesselMaterialSku)
+      : null;
 
     const bookMatchingInfo = deriveBookMatchingChargeInfo({
       grainDirection,
@@ -1204,7 +1218,7 @@ export const CustomSummaryPage = () => {
           height: vesselHeightCmMap[vesselType] ?? null,
           depth: selectedDimensions.depth,
           materialSku: resolvedVesselMaterialSku,
-          colorCode: extractColorCode(resolvedVesselColor),
+          colorCode: resolvedVesselColorCode,
         })
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
@@ -1560,9 +1574,22 @@ export const CustomSummaryPage = () => {
                 title: "Vessel",
                 subtitle: basinStyleLabel ?? "Vessel",
                 sku: vesselSku,
+                swatch: vesselSwatch
+                  ? {
+                      label: "Vessel",
+                      value: vesselSwatch.value,
+                      color: vesselSwatch.color,
+                      image: vesselSwatch.image,
+                    }
+                  : undefined,
                 price: resolveItemPrice(vesselSku),
                 copyable: true,
-                description: { "Product Category": "Vessel", Type: resolvedSinkType },
+                description: {
+                  "Product Category": "Vessel",
+                  Type: resolvedSinkType,
+                  Material: displayVesselMaterial,
+                  "Color Code": resolvedVesselColor,
+                },
               })),
             },
           ]

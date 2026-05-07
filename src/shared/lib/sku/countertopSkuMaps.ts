@@ -21,6 +21,8 @@ export const countertopMaterialSkuMap: Record<string, string> = {
 };
 
 const countertopMaterialSkuByColorCode: Record<string, string> = {
+  T1C: "SSOCR",
+  T1D: "SSOCR",
   TAN: "SSSYN",
   TAP: "SSSYN",
 };

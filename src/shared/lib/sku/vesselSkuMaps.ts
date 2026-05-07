@@ -4,6 +4,7 @@ export const vesselSeriesSkuMap: Record<string, string> = {
   Vessel_UrbanModo_Flat: "URMOD",
   Vessel_UrbanModo_Seam: "URMOD",
   Vessel_UrbanModo_Cover: "URMOD",
+  Vessel_Aquarius: "ACQS",
   Vessel_UrbanKant: "URKNT",
   Vessel_UrbanMorris: "URMOR",
   Vessel_Blade18: "BLD18",
@@ -13,7 +14,6 @@ export const vesselSeriesSkuMap: Record<string, string> = {
   Vessel_MiloR: "MILOR",
   Vessel_Oliver: "OLIV",
   Vessel_OliverR: "OLIVR",
-  // Vessel_Frame, Vessel_Iris — series TBD
 };
 
 /**
@@ -26,9 +26,15 @@ export const vesselMaterialSkuMap: Record<string, string> = {
   Vessel_Blade18: "CER",
 };
 
+/** Countertop material SKU → vessel material SKU. */
+export const vesselMaterialSkuAliasMap: Record<string, string> = {
+  SSOCR: "SS",
+};
+
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
 export const vesselHeightCmMap: Record<string, number> = {
   Vessel_UrbanModo: 14,
+  Vessel_Aquarius: 14,
   Vessel_UrbanMorris: 13,
   Vessel_Blade18: 15.5,
   Vessel_Blade11: 15.5,
@@ -37,6 +43,7 @@ export const vesselHeightCmMap: Record<string, number> = {
 /** Fixed width in inches per vessel type (overrides dynamic input) */
 export const vesselFixedWidthInMap: Record<string, string> = {
   Vessel_UrbanModo: "19.7",
+  Vessel_Aquarius: "18.9",
   Vessel_Blade11: "19.7",
   Vessel_UrbanMorris: "22.8",
   Vessel_Blade18: "21.7",
@@ -45,6 +52,7 @@ export const vesselFixedWidthInMap: Record<string, string> = {
 /** Fixed depth in inches per vessel type (overrides dynamic input) */
 export const vesselFixedDepthInMap: Record<string, string> = {
   Vessel_UrbanModo: "13",
+  Vessel_Aquarius: "13.4",
   Vessel_Blade11: "15",
   Vessel_UrbanMorris: "14.6",
   Vessel_Blade18: "15",
@@ -59,20 +67,49 @@ export const vesselFixedDepthInMap: Record<string, string> = {
  *
  * Series mapping:
  *   BLD  (Blade11/18)   → ceramic
- *   URMOD (UrbanModo)   → solidsurface, hpl, porcelain
- *   URMOR (UrbanMorris) → fenix, tekorlux
+ *   URMOD (UrbanModo)   → solidsurface, selected hpl finishes, porcelain
+ *   URMOR (UrbanMorris) → selected tekorlux finishes
  */
 export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
   // BLD — Ceramic only, hidden when other materials are selected
   Vessel_Blade11: ["ceramic"],
   Vessel_Blade18: ["ceramic"],
 
-  // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), HPL, Porcelain
+  // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), selected HPL finishes, Porcelain
   Vessel_UrbanModo: ["solidsurface", "hpl", "porcelain"],
 
-  // URMOR — Tekorlux (TAL / TAM only in pricing, but material token "tekorlux" must also match)
+  // URMOR — Tekorlux TAL / TAM only
   Vessel_UrbanMorris: ["tekorlux", "sstkr", "tal", "tam"],
 
   // ACQS — Tekorlux (TAL / TAM + all SSTKR colors)
   Vessel_Aquarius: ["tekorlux", "sstkr", "tal", "tam"],
+};
+
+/**
+ * Optional PlayCanvas vessel type → material token → allowed color codes.
+ *
+ * If a vessel style has no entry here, material-level compatibility is enough.
+ * If a candidate color belongs to a constrained material, it must match one of
+ * the listed finish codes.
+ */
+export const vesselAllowedMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
+  Vessel_UrbanModo: {
+    solidsurface: ["T1C", "T1D"],
+    hpl: ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"],
+  },
+  Vessel_UrbanMorris: {
+    tekorlux: ["TAL", "TAM"],
+  },
+};
+
+/**
+ * Optional PlayCanvas vessel type → material token → unavailable color codes.
+ *
+ * This complements the allow-list above when product availability excludes a
+ * specific finish inside an otherwise supported material family.
+ */
+export const vesselUnavailableMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
+  Vessel_UrbanModo: {
+    porcelain: ["TQ2"],
+  },
 };

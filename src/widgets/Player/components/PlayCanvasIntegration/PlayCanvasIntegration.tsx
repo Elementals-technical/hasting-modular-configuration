@@ -92,6 +92,7 @@ import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } fro
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
+import { resolveRuntimeProductType, withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { buildHandleStyleConfigPatch, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   InSceneQuickEditorNotification,
@@ -1259,46 +1260,11 @@ export const PlayCanvasIntegration = () => {
     } finally {
       setDropdownState((prev) => ({ ...prev, visible: false }));
     }
-  }, [dispatch, isTowelBarEntity, selectedSceneProduct, towelBarOption, saveSnapshot]);
+  }, [dispatch, isTowelBarEntity, selectedSceneProduct, towelBarOption, saveSnapshot, productIds.length]);
 
-  const normalizeProductType = useCallback((value: string, productId: string) => {
-    const lastDash = value.lastIndexOf("-");
-    if (lastDash > 0) {
-      const suffix = value.slice(lastDash + 1);
-      if (suffix.length >= 6) {
-        return value.slice(0, lastDash);
-      }
-    }
-
-    if (value === productId) {
-      const idLastDash = productId.lastIndexOf("-");
-      if (idLastDash > 0) {
-        const idSuffix = productId.slice(idLastDash + 1);
-        if (idSuffix.length >= 6) {
-          return productId.slice(0, idLastDash);
-        }
-      }
-    }
-
-    return value;
+  const resolveProductTypeFromId = useCallback((productId: string, config?: Record<string, unknown>) => {
+    return resolveRuntimeProductType(productId, config);
   }, []);
-  const resolveProductTypeFromId = useCallback(
-    (productId: string, config?: Record<string, unknown>) => {
-      const configProductType = typeof config?.productType === "string" ? config.productType : null;
-      if (configProductType) return normalizeProductType(configProductType, productId);
-
-      const configEntityName = typeof config?.entityName === "string" ? config.entityName : null;
-      if (configEntityName) return normalizeProductType(configEntityName, productId);
-
-      const lastDash = productId.lastIndexOf("-");
-      if (lastDash > 0) {
-        return productId.slice(0, lastDash);
-      }
-
-      return productId;
-    },
-    [normalizeProductType],
-  );
 
   const handleDuplicateProduct = useCallback(() => {
     if (!selectedSceneProduct || !canDuplicateSelectedCabinet) return;
@@ -1348,7 +1314,7 @@ export const PlayCanvasIntegration = () => {
         const productId = await setProductByParams(productType, entityId, side);
         if (!productId) return;
 
-        await setConfig(productId, mergedConfig);
+        await setConfig(productId, withRuntimeProductType(mergedConfig, productType));
         // Re-apply VesselColor after duplicating a Sink-Base with vessel
         if (
           vesselColorRef.current &&
@@ -1386,6 +1352,7 @@ export const PlayCanvasIntegration = () => {
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProductConfig,
+    productIds.length
   ]);
 
   // Navigate to the Cabinet builder page with the enabled Right sidebar.

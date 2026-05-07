@@ -1,30 +1,9 @@
 import type { PresetProduct } from "@/entities/product/types";
+import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 
 type ConfigurationMap = Record<string, Record<string, unknown>>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
-
-const stripRuntimeSuffix = (value: string): string => {
-  const trimmed = value.trim();
-  const lastDash = trimmed.lastIndexOf("-");
-  if (lastDash > 0) {
-    const suffix = trimmed.slice(lastDash + 1);
-    if (suffix.length >= 6) return trimmed.slice(0, lastDash);
-  }
-  return trimmed;
-};
-
-const toCompact = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const toCanonicalCabinetName = (value: string) => {
-  const compact = toCompact(value);
-  if (compact.includes("sinkbase")) return "Sink-Base";
-  if (compact.includes("sinkcabinet")) return "Sink-Cabinet";
-  if (compact.includes("sidecabinet")) return "Side-Cabinet";
-  if (compact.includes("openshelf")) return "Open-Shelf";
-  if (compact.includes("sideshelf")) return "Side-Shelf";
-  return value;
-};
 
 const readString = (record: Record<string, unknown>, keys: string[]): string | undefined => {
   for (const key of keys) {
@@ -42,20 +21,6 @@ const readNumber = (record: Record<string, unknown>, keys: string[]): number | u
   return undefined;
 };
 
-const inferProductName = (id: string, config?: Record<string, unknown>) => {
-  const productType = config?.productType ?? config?.ProductType;
-  if (typeof productType === "string" && productType.length) {
-    return toCanonicalCabinetName(stripRuntimeSuffix(productType));
-  }
-
-  const entityName = config?.entityName ?? config?.EntityName;
-  if (typeof entityName === "string" && entityName.length) {
-    return toCanonicalCabinetName(stripRuntimeSuffix(entityName));
-  }
-
-  return toCanonicalCabinetName(stripRuntimeSuffix(id));
-};
-
 export const buildPresetFromConfiguration = (
   configuration: Record<string, unknown>,
   orderedIds?: string[],
@@ -69,7 +34,7 @@ export const buildPresetFromConfiguration = (
 
       const config = configRaw as ConfigurationMap[string];
 
-      const name = inferProductName(id, config);
+      const name = resolveRuntimeProductType(id, config);
 
       const preset: PresetProduct = { name };
 
