@@ -1123,6 +1123,7 @@ export const SummaryPage = () => {
         (firstSceneCabinetConfig && typeof firstSceneCabinetConfig.Depth === "number"
           ? firstSceneCabinetConfig.Depth
           : null),
+      activeCountertopStyle: countertopStyle || null,
     });
     const resolvedCountertopThickness =
       countertopThickness ||

@@ -1,7 +1,8 @@
 import type { CountertopMatrixRule } from "./types";
 import {
+  getCountertopRuleDepthsForStyle,
   materialMatchesRule,
-  matchesDepth,
+  matchesDepthForStyle,
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
@@ -121,17 +122,17 @@ export const filterWidthValuesByCountertopRules = ({
   if (activeCabinetCode === "Sink-Cabinet") return values;
   if (!activeMaterialTokens.length || !rules.length) return values;
 
+  const widthRuleStyle = resolveCountertopWidthRuleStyle({
+    activeCountertopStyle,
+    activeBasinStyle,
+  });
   const matchingRules = rules.filter((rule) => {
-    if (!matchesDepth(rule, selectedDepth)) return false;
+    if (!matchesDepthForStyle(rule, selectedDepth, widthRuleStyle)) return false;
     return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
   });
 
   if (!matchingRules.length) return values;
 
-  const widthRuleStyle = resolveCountertopWidthRuleStyle({
-    activeCountertopStyle,
-    activeBasinStyle,
-  });
   const isIntegratedStyle = widthRuleStyle === "integrated";
   const activeBasinKey = activeBasinStyle ? normalizeBasinKey(activeBasinStyle) : "";
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
@@ -252,7 +253,7 @@ export const filterDepthValuesByCountertopRules = ({
       const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
       if (!matchesMaterial) return;
 
-      [...rule.depths, ...rule.depthOnlyCm].forEach((depth) => {
+      getCountertopRuleDepthsForStyle(rule, normalizedStyle).forEach((depth) => {
         if (Number.isFinite(depth)) {
           allowedDepths.add(Number(depth.toFixed(3)));
         }

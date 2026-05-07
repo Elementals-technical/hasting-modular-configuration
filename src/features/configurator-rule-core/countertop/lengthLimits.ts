@@ -1,7 +1,7 @@
 import type { CountertopMatrixRule } from "./types";
 import {
   materialMatchesRule,
-  matchesDepth,
+  matchesDepthForStyle,
   normalizeBasinKey,
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
@@ -57,7 +57,7 @@ export const resolveCountertopMaxLengthByRules = ({
   const activeThicknessValue = thickness ? parseThicknessValue(thickness) : null;
 
   const matchingRules = rules.filter((rule) => {
-    if (!matchesDepth(rule, depth)) return false;
+    if (!matchesDepthForStyle(rule, depth, normalizedStyle)) return false;
 
     if (activeThicknessValue !== null) {
       const hasThickness = rule.topThicknesses

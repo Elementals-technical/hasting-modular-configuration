@@ -2,6 +2,7 @@ export type CountertopMatrixRule = {
   material: string;
   topThicknesses: string[];
   depths: number[];
+  depthsByStyle: Record<string, number[]>;
   basinStyle: string;
   minSbCm: number | null;
   maxIntegratedCm: number | null;

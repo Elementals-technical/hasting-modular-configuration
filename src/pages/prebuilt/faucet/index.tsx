@@ -9,6 +9,7 @@ import {
   getActiveCountertopColor,
   getCountertopColorSku,
   getActiveCountertopThickness,
+  getCountertopStyle,
   getFaucetHolesAmount,
   getSelectedDimensions,
   getSelectedProducts,
@@ -35,6 +36,7 @@ export const FaucetPage = () => {
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
+  const activeCountertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
@@ -76,11 +78,13 @@ export const FaucetPage = () => {
         activeMaterialTokens,
         width: sinkBaseDims.width ?? selectedDimensions.width,
         depth: sinkBaseDims.depth ?? selectedDimensions.depth,
+        activeCountertopStyle,
         activeBasinStyle,
         activeThickness,
       }),
     [
       activeBasinStyle,
+      activeCountertopStyle,
       activeMaterialTokens,
       activeThickness,
       countertopRules,

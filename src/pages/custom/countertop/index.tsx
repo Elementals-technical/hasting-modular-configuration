@@ -72,7 +72,7 @@ import {
   isRuleWidthEligibleForIntegratedContext,
   filterThicknessValuesByCountertopRules,
   materialMatchesRule,
-  matchesDepth,
+  matchesDepthForStyle,
   extractCountertopBasinMaterialScopeTokens,
   normalizeBasinKey,
   normalizeMaterialToken,
@@ -433,11 +433,13 @@ export const CustomCountertopPage = () => {
         sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width,
         totalWidth: sceneTotalWidth ?? selectedDimensions.width,
         depth: sinkBaseDims.depth ?? selectedDimensions.depth,
+        activeCountertopStyle,
         activeBasinStyle,
         activeThickness,
       }),
     [
       activeBasinStyle,
+      activeCountertopStyle,
       activeMaterialTokens,
       activeThickness,
       countertopRules,
@@ -786,7 +788,9 @@ export const CustomCountertopPage = () => {
       const materialMatchingRules = countertopRules.filter((rule) =>
         optionMaterials.some((material) => materialMatchesRule(material, rule.material)),
       );
-      const applicableRules = materialMatchingRules.filter((rule) => matchesDepth(rule, effectiveDepth));
+      const applicableRules = materialMatchingRules.filter((rule) =>
+        matchesDepthForStyle(rule, effectiveDepth, widthRuleStyle),
+      );
 
       if (!applicableRules.length) {
         if (materialMatchingRules.length > 0) {
@@ -875,7 +879,7 @@ export const CustomCountertopPage = () => {
       });
 
       const relevantRules = countertopRules.filter((rule) => {
-        if (!matchesDepth(rule, selectedDepth)) return false;
+        if (!matchesDepthForStyle(rule, selectedDepth, widthRuleStyle)) return false;
         return materialMatchesRule(materialValue, rule.material);
       });
       if (!relevantRules.length) return null;
@@ -1453,7 +1457,7 @@ export const CustomCountertopPage = () => {
       const basinKey = normalizeBasinKey(basinLabel);
 
       const applicableRules = countertopRules.filter((rule) => {
-        if (!matchesDepth(rule, selectedDepth)) return false;
+        if (!matchesDepthForStyle(rule, selectedDepth, "integrated")) return false;
 
         if (activeThicknessValue !== null) {
           const matchesThickness = rule.topThicknesses
