@@ -6,7 +6,7 @@ import Tortora_TA2 from "@/shared/assets/images/materials/Tortora_TA2_Diff.jpg";
 import Matte_Black_T1D from "@/shared/assets/images/materials/Matte_BlackT1D.jpg";
 import White from "@/shared/assets/images/materials/White.jpg";
 import Cenere_Matte_OCE from "@/shared/assets/images/materials/Cenere_Matte OCE.jpg";
-import Cemento_Matte_OCD from "@/shared/assets/images/materials/Cemento_Matte OCD1.jpg";
+import Cemento_Matte_OCD from "@/shared/assets/images/materials/Cemento_Matte_OCD_2.jpg";
 import Antracite_Matte_OCF from "@/shared/assets/images/materials/Antracite_Matte OCF.jpg";
 
 const FALLBACK_TEXTURES: Record<string, string> = {
