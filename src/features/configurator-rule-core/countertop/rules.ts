@@ -3,7 +3,7 @@ import { cmToInches } from "@/shared/lib/sku";
 import {
   normalizeBasinKey,
   materialMatchesRule,
-  matchesDepth,
+  matchesDepthForStyle,
   normalizeBasinToken,
   normalizeFaucetHoleToken,
   normalizeMaterialToken,
@@ -18,6 +18,7 @@ export type CountertopRuleInput = {
   sinkBaseWidth?: number | null;
   totalWidth?: number | null;
   depth: number | null;
+  activeCountertopStyle?: string | null;
   activeBasinStyle: string | null;
   activeThickness: string | null;
 };
@@ -45,6 +46,7 @@ type ResolveDefaultThicknessInput = {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
   depth: number | null;
+  activeCountertopStyle?: string | null;
   width?: number | null;
 };
 
@@ -106,10 +108,11 @@ export const resolveDefaultThicknessFromRules = ({
   rules,
   activeMaterialTokens,
   depth,
+  activeCountertopStyle,
   width = null,
 }: ResolveDefaultThicknessInput): string | null => {
   const matchingRules = rules.filter((rule) => {
-    if (!matchesDepth(rule, depth)) return false;
+    if (!matchesDepthForStyle(rule, depth, activeCountertopStyle)) return false;
     if (!activeMaterialTokens.length) return true;
     return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
   });
@@ -145,6 +148,7 @@ export const buildCountertopRuleState = ({
   sinkBaseWidth,
   totalWidth,
   depth,
+  activeCountertopStyle,
   activeBasinStyle,
   activeThickness,
 }: CountertopRuleInput): CountertopRuleResult => {
@@ -165,6 +169,7 @@ export const buildCountertopRuleState = ({
     totalWidth: totalWidth ?? width,
   };
   const styleWidth = totalWidth ?? width;
+  const activeStyle = activeCountertopStyle?.trim().toLowerCase() ?? null;
 
   if (!rules.length) {
     return {
@@ -180,15 +185,16 @@ export const buildCountertopRuleState = ({
   }
 
   rules.forEach((rule) => {
-    if (!matchesDepth(rule, depth)) return;
+    if (!matchesDepthForStyle(rule, depth, activeStyle)) return;
     allowedMaterials.add(normalizeMaterialToken(rule.material));
   });
 
-  const matchingRules = rules.filter((rule) => {
-    if (!matchesDepth(rule, depth)) return false;
-    if (!activeMaterialTokens.length) return true;
-    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
-  });
+  const getMatchingRulesForStyle = (style: string | null) =>
+    rules.filter((rule) => {
+      if (!matchesDepthForStyle(rule, depth, style)) return false;
+      if (!activeMaterialTokens.length) return true;
+      return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+    });
 
   const matchesActiveThickness = (rule: CountertopMatrixRule): boolean => {
     if (activeThicknessValue === null) return true;
@@ -198,6 +204,11 @@ export const buildCountertopRuleState = ({
 
     return parsedThicknesses.some((value) => Math.abs(value - activeThicknessValue) < 0.001);
   };
+
+  const matchingRules = getMatchingRulesForStyle(activeStyle);
+
+  const getThicknessScopedRulesForStyle = (style: CountertopStyleKey) =>
+    getMatchingRulesForStyle(style).filter((rule) => matchesActiveThickness(rule));
 
   matchingRules
     .filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext))
@@ -219,21 +230,20 @@ export const buildCountertopRuleState = ({
   });
 
   // Countertop-style constraints (Vessel / Undermount) should not depend on basin rules.
-  matchingRules.forEach((rule) => {
-    if (!matchesActiveThickness(rule)) return;
-
+  getThicknessScopedRulesForStyle("vessel").forEach((rule) => {
     if (isWidthValid(rule.maxVesselCm)) {
       allowedStyles.add("vessel");
     }
+  });
 
+  getThicknessScopedRulesForStyle("undermount").forEach((rule) => {
     if (isWidthValid(rule.maxUndermountCm)) {
       allowedStyles.add("undermount");
     }
   });
 
   // Integrated rules are basin-driven.
-  matchingRules.forEach((rule) => {
-    if (!matchesActiveThickness(rule)) return;
+  getThicknessScopedRulesForStyle("integrated").forEach((rule) => {
     if (!isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext)) return;
     allowedStyles.add("integrated");
   });
@@ -241,12 +251,13 @@ export const buildCountertopRuleState = ({
   const thicknessScopedRules = matchingRules.filter((rule) => matchesActiveThickness(rule));
 
   const buildStyleAvailabilityState = (style: CountertopStyleKey): CountertopStyleAvailability => {
-    if (!thicknessScopedRules.length) {
+    const styleThicknessScopedRules = getThicknessScopedRulesForStyle(style);
+    if (!styleThicknessScopedRules.length) {
       return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
     }
 
     if (style === "integrated") {
-      const integratedRules = thicknessScopedRules.filter(
+      const integratedRules = styleThicknessScopedRules.filter(
         (rule) => rule.maxIntegratedCm !== null || rule.minSbCm !== null || rule.integratedAllowedSizesOnly.length > 0,
       );
       if (!integratedRules.length) {
@@ -311,7 +322,7 @@ export const buildCountertopRuleState = ({
       return { isAvailable: false, maxCompatibleWidthCm, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
     }
 
-    const maxCompatibleWidthCm = thicknessScopedRules
+    const maxCompatibleWidthCm = styleThicknessScopedRules
       .map((rule) => (style === "vessel" ? rule.maxVesselCm : rule.maxUndermountCm))
       .filter((value): value is number => value !== null)
       .reduce<number | null>((currentMax, value) => (currentMax === null || value > currentMax ? value : currentMax), null);

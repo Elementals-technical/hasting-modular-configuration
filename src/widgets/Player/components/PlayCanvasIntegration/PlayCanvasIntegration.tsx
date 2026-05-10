@@ -677,6 +677,7 @@ export const PlayCanvasIntegration = () => {
       activeMaterialTokens,
       width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
       depth: selectedDimensions.depth ?? null,
+      activeCountertopStyle: countertopStyle ?? null,
     });
 
     if (defaultThickness) {
@@ -687,6 +688,7 @@ export const PlayCanvasIntegration = () => {
     activeCountertopThickness,
     activeMaterialTokens,
     countertopRules,
+    countertopStyle,
     sinkBaseDims.width,
     selectedDimensions.width,
     selectedDimensions.depth,
@@ -716,12 +718,14 @@ export const PlayCanvasIntegration = () => {
         sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width ?? null,
         totalWidth: sceneTotalWidth ?? selectedDimensions.width ?? null,
         depth: sinkBaseDims.depth ?? selectedDimensions.depth ?? null,
+        activeCountertopStyle: countertopStyle ?? null,
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
       }),
     [
       activeBasinStyle,
       activeCountertopThickness,
+      countertopStyle,
       activeMaterialTokens,
       countertopRules,
       sinkBaseDims.depth,

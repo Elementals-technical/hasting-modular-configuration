@@ -485,6 +485,7 @@ export function usePriceCalculation() {
         (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
         sceneConfigs[0]?.Depth ??
         null,
+      activeCountertopStyle: countertopStyle || null,
     });
     const resolvedCountertopThickness =
       countertopThickness || sceneConfigs[0]?.Thickness || matrixDefaultThickness || null;

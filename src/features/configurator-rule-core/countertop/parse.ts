@@ -64,6 +64,21 @@ const parseNumberList = (raw?: string): number[] =>
     .map((value) => parseLocaleNumber(value))
     .filter((value) => Number.isFinite(value));
 
+const STYLE_DEPTH_COLUMN_PREFIX = "depths_cm_";
+
+const parseDepthsByStyle = (row: Record<string, string>): Record<string, number[]> =>
+  Object.entries(row).reduce<Record<string, number[]>>((acc, [key, value]) => {
+    if (!key.startsWith(STYLE_DEPTH_COLUMN_PREFIX)) return acc;
+
+    const style = normalizeToken(key.slice(STYLE_DEPTH_COLUMN_PREFIX.length));
+    const depths = parseNumberList(value);
+    if (style && depths.length > 0) {
+      acc[style] = depths;
+    }
+
+    return acc;
+  }, {});
+
 const parseBoolean = (raw?: string): boolean | null => {
   if (!raw) return null;
   const normalized = raw.trim().toUpperCase();
@@ -237,6 +252,29 @@ export const matchesDepth = (rule: CountertopMatrixRule, depth: number | null): 
   return rule.depths.some((value) => Math.abs(value - depth) < 0.01);
 };
 
+const normalizeCountertopDepthStyle = (style?: string | null): string => (style ? normalizeToken(style) : "");
+
+export const getCountertopRuleDepthsForStyle = (rule: CountertopMatrixRule, style?: string | null): number[] => {
+  if (rule.depthOnlyCm.length > 0) return rule.depthOnlyCm;
+  const styleDepths = rule.depthsByStyle[normalizeCountertopDepthStyle(style)];
+  if (styleDepths?.length > 0) {
+    return styleDepths;
+  }
+  return rule.depths;
+};
+
+export const matchesDepthForStyle = (
+  rule: CountertopMatrixRule,
+  depth: number | null,
+  style?: string | null,
+): boolean => {
+  if (!depth) return true;
+
+  const depths = getCountertopRuleDepthsForStyle(rule, style);
+  if (depths.length === 0) return true;
+  return depths.some((value) => Math.abs(value - depth) < 0.01);
+};
+
 export const parseCountertopMatrix = (datatable?: CountertopDatatable): CountertopMatrixRule[] => {
   if (!datatable?.rows?.length) return [];
 
@@ -244,6 +282,7 @@ export const parseCountertopMatrix = (datatable?: CountertopDatatable): Countert
     material: row.material ?? "",
     topThicknesses: parseStringList(row.top_thicknesses),
     depths: parseNumberList(row.depths_cm),
+    depthsByStyle: parseDepthsByStyle(row),
     basinStyle: row.basin_style ?? "",
     minSbCm: parseNullableNumber(row.min_sb_cm),
     maxIntegratedCm: parseNullableNumber(row.max_integrated_cm),
