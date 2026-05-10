@@ -280,6 +280,17 @@
   margin-top: 0;
 }
 
+.printBlock {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.specHeader + .printBlock .specSection {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
 .sectionName {
   color: var(--quote-text);
   font-size: 28px;

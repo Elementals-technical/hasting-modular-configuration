@@ -106,6 +106,75 @@ const isLineItem = (item: PrintItem) => Boolean(item.sku || item.price) && item.
 
 const sectionById = (sections: PrintSection[], id: string) => sections.find((section) => section.id === id);
 
+type RowSectionBlock = {
+  kind: "rows";
+  section: PrintSection;
+  items: PrintItem[];
+};
+
+type DetailsBlock = {
+  kind: "details";
+  section: PrintSection;
+};
+
+type TotalBlock = {
+  kind: "total";
+};
+
+type PrintPageBlock = RowSectionBlock | DetailsBlock | TotalBlock;
+
+const FIRST_SPEC_PAGE_CAPACITY = 410;
+const SPEC_PAGE_CAPACITY = 905;
+const SECTION_HEADER_HEIGHT = 84;
+const ROW_VERTICAL_GAP = 20;
+const DETAILS_HEADER_HEIGHT = 46;
+const DETAILS_ROW_HEIGHT = 32;
+const DETAILS_BLOCK_VERTICAL_PADDING = 50;
+const TOTAL_BLOCK_HEIGHT = 96;
+
+const estimateTextLines = (value: string | null | undefined, charsPerLine: number) => {
+  if (!value?.trim()) return 0;
+
+  return value
+    .split("\n")
+    .reduce((sum, line) => sum + Math.max(1, Math.ceil(line.trim().length / charsPerLine)), 0);
+};
+
+const estimateRowHeight = (section: PrintSection, item: PrintItem) => {
+  const normalizedSubtitle = item.subtitle?.trim();
+  const normalizedSku = item.sku?.trim();
+  const shouldShowSubtitle = Boolean(normalizedSubtitle) && normalizedSubtitle !== normalizedSku;
+  const countertopDimsLine = resolveCountertopDimsLine(item);
+  const basinStyleLine = resolveBasinStyleLine(item);
+  const isDuplicateBasinSubtitle = Boolean(basinStyleLine && normalizedSubtitle === basinStyleLine);
+  const shouldHideSubtitle =
+    (item.title === "Countertop" && Boolean(countertopDimsLine)) || isDuplicateBasinSubtitle;
+  const productLines =
+    estimateTextLines(item.title, 36) +
+    (basinStyleLine ? estimateTextLines(basinStyleLine, 34) : 0) +
+    (shouldShowSubtitle && !shouldHideSubtitle ? estimateTextLines(item.subtitle, 34) : 0) +
+    (countertopDimsLine ? estimateTextLines(countertopDimsLine, 34) : 0);
+  const productHeight = Math.max(32, productLines * 32) + (item.sku ? estimateTextLines(item.sku, 42) * 24 + 6 : 0);
+
+  const materialLines = estimateTextLines(resolveMaterialText(item), 42);
+  const cabinetDetailsLines = section.id === "cabinet" ? resolveCabinetDetails(item).length : 0;
+  const materialHeight = Math.max(24, materialLines * 24 + cabinetDetailsLines * 24);
+
+  return Math.max(productHeight, materialHeight, 32) + ROW_VERTICAL_GAP;
+};
+
+const estimateRowsBlockHeight = (block: RowSectionBlock) =>
+  SECTION_HEADER_HEIGHT + block.items.reduce((sum, item) => sum + estimateRowHeight(block.section, item), 0);
+
+const estimateDetailsBlockHeight = (section: PrintSection) =>
+  DETAILS_BLOCK_VERTICAL_PADDING + DETAILS_HEADER_HEIGHT + section.items.length * DETAILS_ROW_HEIGHT;
+
+const estimateBlockHeight = (block: PrintPageBlock) => {
+  if (block.kind === "rows") return estimateRowsBlockHeight(block);
+  if (block.kind === "details") return estimateDetailsBlockHeight(block.section);
+  return TOTAL_BLOCK_HEIGHT;
+};
+
 const parsePriceValue = (price?: string): number => {
   if (!price) return 0;
   const normalized = price.replace(/[^0-9,.-]/g, "").trim();
@@ -221,10 +290,10 @@ const renderProductName = (title: string) => {
   );
 };
 
-const renderRows = (section?: PrintSection) => {
+const renderRows = (section?: PrintSection, itemsOverride?: PrintItem[]) => {
   if (!section || !section.items.length) return null;
 
-  const lines = section.items.filter(isLineItem);
+  const lines = (itemsOverride ?? section.items).filter(isLineItem);
   if (!lines.length) return null;
   const isCabinetSection = section.id === "cabinet";
   const resolvePriceText = (price?: string) => {
@@ -335,6 +404,91 @@ const QuoteFooter = () => (
   </footer>
 );
 
+const addBlockToPages = (pages: PrintPageBlock[][], block: PrintPageBlock) => {
+  let pageIndex = Math.max(pages.length - 1, 0);
+  if (!pages.length) pages.push([]);
+
+  const blockHeight = estimateBlockHeight(block);
+
+  while (true) {
+    const capacity = pageIndex === 0 ? FIRST_SPEC_PAGE_CAPACITY : SPEC_PAGE_CAPACITY;
+    const used = pages[pageIndex].reduce((sum, pageBlock) => sum + estimateBlockHeight(pageBlock), 0);
+
+    if (!pages[pageIndex].length || used + blockHeight <= capacity) {
+      pages[pageIndex].push(block);
+      return;
+    }
+
+    pages.push([]);
+    pageIndex += 1;
+  }
+};
+
+const addRowSectionToPages = (pages: PrintPageBlock[][], section?: PrintSection) => {
+  if (!section) return;
+
+  const rows = section.items.filter(isLineItem);
+  if (!rows.length) return;
+
+  let currentItems: PrintItem[] = [];
+
+  rows.forEach((item) => {
+    const nextBlock: RowSectionBlock = { kind: "rows", section, items: [...currentItems, item] };
+    const pageIndex = Math.max(pages.length - 1, 0);
+    const capacity = pageIndex === 0 ? FIRST_SPEC_PAGE_CAPACITY : SPEC_PAGE_CAPACITY;
+    const used = pages[pageIndex]?.reduce((sum, pageBlock) => sum + estimateBlockHeight(pageBlock), 0) ?? 0;
+    const canFit = currentItems.length === 0 || used + estimateRowsBlockHeight(nextBlock) <= capacity;
+
+    if (canFit) {
+      currentItems = nextBlock.items;
+      return;
+    }
+
+    addBlockToPages(pages, { kind: "rows", section, items: currentItems });
+    currentItems = [item];
+  });
+
+  if (currentItems.length) {
+    addBlockToPages(pages, { kind: "rows", section, items: currentItems });
+  }
+};
+
+const buildSpecPages = (sections: PrintSection[]) => {
+  const pages: PrintPageBlock[][] = [[]];
+  const cabinetSection = sectionById(sections, "cabinet");
+  const cabinetOptions = sectionById(sections, "cabinet-options");
+  const countertopSection = sectionById(sections, "countertop");
+  const basinSection = sectionById(sections, "basin");
+  const accessoriesSection = sectionById(sections, "accessories");
+  const faucetSection = sectionById(sections, "faucet");
+
+  addRowSectionToPages(pages, cabinetSection);
+
+  if (cabinetOptions?.items.length) {
+    addBlockToPages(pages, { kind: "details", section: cabinetOptions });
+  }
+
+  addRowSectionToPages(pages, countertopSection);
+  addRowSectionToPages(pages, basinSection);
+  addRowSectionToPages(pages, accessoriesSection);
+  addRowSectionToPages(pages, faucetSection);
+  addBlockToPages(pages, { kind: "total" });
+
+  return pages.filter((page) => page.length);
+};
+
+const renderSpecBlock = (block: PrintPageBlock, totalPrice: number) => {
+  if (block.kind === "rows") return renderRows(block.section, block.items);
+  if (block.kind === "details") return renderCabinetDetails(block.section);
+
+  return (
+    <div className={s.totalRow}>
+      <span className={s.totalLabel}>Total:</span>
+      <span className={s.totalValue}>{formatTotalPrice(totalPrice)}</span>
+    </div>
+  );
+};
+
 export const QuotePrintDocument = ({
   summarySections,
   previewImage,
@@ -347,13 +501,7 @@ export const QuotePrintDocument = ({
     const sectionSum = section.items.reduce((sum, item) => sum + parsePriceValue(item.price), 0);
     return acc + sectionSum;
   }, 0);
-
-  const cabinetSection = sectionById(summarySections, "cabinet");
-  const cabinetOptions = sectionById(summarySections, "cabinet-options");
-  const countertopSection = sectionById(summarySections, "countertop");
-  const accessoriesSection = sectionById(summarySections, "accessories");
-  const faucetSection = sectionById(summarySections, "faucet");
-  const basinSection = sectionById(summarySections, "basin");
+  const specPages = buildSpecPages(summarySections);
 
   return (
     <div id="quote-print-root" className={s.root} data-print-doc="quote">
@@ -375,65 +523,54 @@ export const QuotePrintDocument = ({
           </footer>
         </section>
 
-        <section className={`${s.page} ${s.contentPage}`}>
-          <div className={s.titleRow}>
-            <div className={s.productIntro}>
-              <h1 className={s.productName}>{modelName}</h1>
-              <p className={s.metaHint}>
-                <span className={s.metaLabel}>Country of Origin:</span> <span className={s.metaValue}>Italy</span>
-              </p>
-              <p className={s.metaHint}>
-                <span className={s.metaLabel}>Lead Time:</span>{" "}
-                <span className={s.metaValue}>10-12 Weeks (from sign-off)</span>
-              </p>
+        {specPages.map((pageBlocks, pageIndex) => (
+          <section className={`${s.page} ${s.contentPage}`} key={`spec-page-${pageIndex}`}>
+            {pageIndex === 0 ? (
+              <>
+                <div className={s.titleRow}>
+                  <div className={s.productIntro}>
+                    <h1 className={s.productName}>{modelName}</h1>
+                    <p className={s.metaHint}>
+                      <span className={s.metaLabel}>Country of Origin:</span> <span className={s.metaValue}>Italy</span>
+                    </p>
+                    <p className={s.metaHint}>
+                      <span className={s.metaLabel}>Lead Time:</span>{" "}
+                      <span className={s.metaValue}>10-12 Weeks (from sign-off)</span>
+                    </p>
 
-              <div className={s.metaCard}>
-                <div className={s.metaRow}>
-                  <span className={s.metaLabel}>Configuration Link:</span>
-                  <a className={s.configLink} href={configurationLink}>
-                    Link <ArrowTopRight color="currentColor" />
-                  </a>
+                    <div className={s.metaCard}>
+                      <div className={s.metaRow}>
+                        <span className={s.metaLabel}>Configuration Link:</span>
+                        <a className={s.configLink} href={configurationLink}>
+                          Link <ArrowTopRight color="currentColor" />
+                        </a>
+                      </div>
+                      <div className={s.metaRow}>
+                        <span className={s.metaLabel}>Date Generated:</span>
+                        <span className={s.metaValue}>{generatedDate}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={s.thumbWrap}>
+                    <img className={s.thumb} src={previewImageSrc} alt={modelName} data-quote-preview-image />
+                  </div>
                 </div>
-                <div className={s.metaRow}>
-                  <span className={s.metaLabel}>Date Generated:</span>
-                  <span className={s.metaValue}>{generatedDate}</span>
-                </div>
+
+                <h2 className={s.specTitle}>Product Details &amp; Specifications</h2>
+              </>
+            ) : null}
+
+            <SpecHeader />
+            {pageBlocks.map((block, blockIndex) => (
+              <div className={s.printBlock} key={`${block.kind}-${blockIndex}`}>
+                {renderSpecBlock(block, totalPrice)}
               </div>
-            </div>
+            ))}
 
-            <div className={s.thumbWrap}>
-              <img className={s.thumb} src={previewImageSrc} alt={modelName} data-quote-preview-image />
-            </div>
-          </div>
-
-          <h2 className={s.specTitle}>Product Details &amp; Specifications</h2>
-          <SpecHeader />
-          {renderRows(cabinetSection)}
-          {renderCabinetDetails(cabinetOptions)}
-
-          <QuoteFooter />
-        </section>
-
-        <section className={`${s.page} ${s.contentPage}`}>
-          <SpecHeader />
-          {renderRows(countertopSection)}
-          {renderRows(basinSection)}
-
-          <QuoteFooter />
-        </section>
-
-        <section className={`${s.page} ${s.contentPage}`}>
-          <SpecHeader />
-          {renderRows(accessoriesSection)}
-          {renderRows(faucetSection)}
-
-          <div className={s.totalRow}>
-            <span className={s.totalLabel}>Total:</span>
-            <span className={s.totalValue}>{formatTotalPrice(totalPrice)}</span>
-          </div>
-
-          <QuoteFooter />
-        </section>
+            <QuoteFooter />
+          </section>
+        ))}
       </div>
     </div>
   );
