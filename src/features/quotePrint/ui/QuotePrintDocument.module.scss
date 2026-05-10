@@ -251,7 +251,7 @@
   font-size: 20px;
   line-height: 28px;
   font-weight: 500;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .specHeader > div:last-child {
@@ -261,17 +261,17 @@
 
 .specTitle {
   border-bottom: 2px solid var(--quote-text);
-  padding-bottom: 18px;
+  padding-bottom: 16px;
   font-size: 32px;
   line-height: 40px;
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   font-weight: 600;
 }
 
 .specSection {
   border-top: 1px solid var(--quote-border);
-  padding-top: 24px;
-  margin-top: 24px;
+  padding-top: 18px;
+  margin-top: 18px;
 }
 
 .specSectionContinuation {
@@ -301,7 +301,7 @@
   font-size: 28px;
   line-height: 40px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .row {
@@ -309,7 +309,7 @@
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) 170px;
   gap: 24px;
   align-items: flex-start;
-  padding: 0 0 20px;
+  padding: 0 0 16px;
 }
 
 .productCell {
@@ -438,8 +438,8 @@
 }
 
 .totalRow {
-  margin-top: 28px;
-  padding-top: 28px;
+  margin-top: 20px;
+  padding-top: 20px;
   border-top: 1px solid var(--quote-border);
   display: flex;
   justify-content: flex-end;

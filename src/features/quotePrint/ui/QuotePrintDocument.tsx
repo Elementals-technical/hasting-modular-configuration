@@ -124,14 +124,15 @@ type TotalBlock = {
 
 type PrintPageBlock = RowSectionBlock | DetailsBlock | TotalBlock;
 
-const FIRST_SPEC_PAGE_CAPACITY = 410;
-const SPEC_PAGE_CAPACITY = 905;
-const SECTION_HEADER_HEIGHT = 84;
-const ROW_VERTICAL_GAP = 20;
+const FIRST_SPEC_PAGE_CAPACITY = 430;
+const SPEC_PAGE_CAPACITY = 955;
+const SECTION_HEADER_HEIGHT = 74;
+const ROW_VERTICAL_GAP = 16;
 const DETAILS_HEADER_HEIGHT = 46;
 const DETAILS_ROW_HEIGHT = 32;
 const DETAILS_BLOCK_VERTICAL_PADDING = 50;
-const TOTAL_BLOCK_HEIGHT = 96;
+const TOTAL_BLOCK_HEIGHT = 76;
+const TOTAL_FIT_TOLERANCE = 160;
 
 const estimateTextLines = (value: string | null | undefined, charsPerLine: number) => {
   if (!value?.trim()) return 0;
@@ -176,6 +177,11 @@ const estimateBlockHeight = (block: PrintPageBlock) => {
   if (block.kind === "details") return estimateDetailsBlockHeight(block.section);
   return TOTAL_BLOCK_HEIGHT;
 };
+
+const getPageCapacity = (pageIndex: number) => (pageIndex === 0 ? FIRST_SPEC_PAGE_CAPACITY : SPEC_PAGE_CAPACITY);
+
+const getPageUsedHeight = (page: PrintPageBlock[]) =>
+  page.reduce((sum, pageBlock) => sum + estimateBlockHeight(pageBlock), 0);
 
 const parsePriceValue = (price?: string): number => {
   if (!price) return 0;
@@ -413,8 +419,8 @@ const addBlockToPages = (pages: PrintPageBlock[][], block: PrintPageBlock) => {
   const blockHeight = estimateBlockHeight(block);
 
   while (true) {
-    const capacity = pageIndex === 0 ? FIRST_SPEC_PAGE_CAPACITY : SPEC_PAGE_CAPACITY;
-    const used = pages[pageIndex].reduce((sum, pageBlock) => sum + estimateBlockHeight(pageBlock), 0);
+    const capacity = getPageCapacity(pageIndex);
+    const used = getPageUsedHeight(pages[pageIndex]);
 
     if (!pages[pageIndex].length || used + blockHeight <= capacity) {
       pages[pageIndex].push(block);
@@ -424,6 +430,22 @@ const addBlockToPages = (pages: PrintPageBlock[][], block: PrintPageBlock) => {
     pages.push([]);
     pageIndex += 1;
   }
+};
+
+const addTotalBlockToPages = (pages: PrintPageBlock[][]) => {
+  if (!pages.length) pages.push([]);
+
+  const pageIndex = Math.max(pages.length - 1, 0);
+  const page = pages[pageIndex];
+  const used = getPageUsedHeight(page);
+  const capacity = getPageCapacity(pageIndex);
+
+  if (!page.length || used + TOTAL_BLOCK_HEIGHT <= capacity + TOTAL_FIT_TOLERANCE) {
+    page.push({ kind: "total" });
+    return;
+  }
+
+  pages.push([{ kind: "total" }]);
 };
 
 const addRowSectionToPages = (pages: PrintPageBlock[][], section?: PrintSection) => {
@@ -438,8 +460,8 @@ const addRowSectionToPages = (pages: PrintPageBlock[][], section?: PrintSection)
   rows.forEach((item) => {
     const nextBlock: RowSectionBlock = { kind: "rows", section, items: [...currentItems, item], showTitle: shouldShowTitle };
     const pageIndex = Math.max(pages.length - 1, 0);
-    const capacity = pageIndex === 0 ? FIRST_SPEC_PAGE_CAPACITY : SPEC_PAGE_CAPACITY;
-    const used = pages[pageIndex]?.reduce((sum, pageBlock) => sum + estimateBlockHeight(pageBlock), 0) ?? 0;
+    const capacity = getPageCapacity(pageIndex);
+    const used = getPageUsedHeight(pages[pageIndex] ?? []);
     const canFit = currentItems.length === 0 || used + estimateRowsBlockHeight(nextBlock) <= capacity;
 
     if (canFit) {
@@ -476,7 +498,7 @@ const buildSpecPages = (sections: PrintSection[]) => {
   addRowSectionToPages(pages, basinSection);
   addRowSectionToPages(pages, accessoriesSection);
   addRowSectionToPages(pages, faucetSection);
-  addBlockToPages(pages, { kind: "total" });
+  addTotalBlockToPages(pages);
 
   return pages.filter((page) => page.length);
 };
