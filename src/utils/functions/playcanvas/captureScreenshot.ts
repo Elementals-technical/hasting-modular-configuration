@@ -154,13 +154,69 @@ type ImageBounds = {
   height: number;
 };
 
-const isTransparentCandidate = (data: Uint8ClampedArray, pixelIndex: number) => {
-  const red = data[pixelIndex];
-  const green = data[pixelIndex + 1];
-  const blue = data[pixelIndex + 2];
-  const alpha = data[pixelIndex + 3];
+type RgbaColor = {
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+};
 
-  return alpha > 0 && red >= 245 && green >= 245 && blue >= 245;
+const EDGE_BACKGROUND_COLOR_TOLERANCE = 24;
+const EDGE_SAMPLE_STEPS = 16;
+const NEAR_WHITE_THRESHOLD = 245;
+
+const readColor = (data: Uint8ClampedArray, pixelIndex: number): RgbaColor => ({
+  red: data[pixelIndex],
+  green: data[pixelIndex + 1],
+  blue: data[pixelIndex + 2],
+  alpha: data[pixelIndex + 3],
+});
+
+const isNearWhite = (color: RgbaColor) =>
+  color.red >= NEAR_WHITE_THRESHOLD && color.green >= NEAR_WHITE_THRESHOLD && color.blue >= NEAR_WHITE_THRESHOLD;
+
+const getColorDistanceSquared = (left: RgbaColor, right: RgbaColor) => {
+  const redDiff = left.red - right.red;
+  const greenDiff = left.green - right.green;
+  const blueDiff = left.blue - right.blue;
+  return redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff;
+};
+
+const isSimilarColor = (left: RgbaColor, right: RgbaColor, tolerance: number) =>
+  getColorDistanceSquared(left, right) <= tolerance * tolerance;
+
+const collectEdgeBackgroundColors = (data: Uint8ClampedArray, width: number, height: number) => {
+  const colors: RgbaColor[] = [];
+  const addColor = (x: number, y: number) => {
+    const color = readColor(data, (y * width + x) * 4);
+    if (color.alpha === 0) return;
+    if (colors.some((existing) => isSimilarColor(existing, color, 4))) return;
+    colors.push(color);
+  };
+
+  for (let step = 0; step <= EDGE_SAMPLE_STEPS; step += 1) {
+    const x = Math.round((width - 1) * (step / EDGE_SAMPLE_STEPS));
+    const y = Math.round((height - 1) * (step / EDGE_SAMPLE_STEPS));
+    addColor(x, 0);
+    addColor(x, height - 1);
+    addColor(0, y);
+    addColor(width - 1, y);
+  }
+
+  return colors;
+};
+
+const isTransparentCandidate = (
+  data: Uint8ClampedArray,
+  pixelIndex: number,
+  backgroundColors: RgbaColor[],
+) => {
+  const color = readColor(data, pixelIndex);
+  if (color.alpha === 0) return false;
+  if (isNearWhite(color)) return true;
+  return backgroundColors.some((backgroundColor) =>
+    isSimilarColor(color, backgroundColor, EDGE_BACKGROUND_COLOR_TOLERANCE),
+  );
 };
 
 const makeEdgeBackgroundTransparent = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -168,6 +224,7 @@ const makeEdgeBackgroundTransparent = (ctx: CanvasRenderingContext2D, width: num
 
   const imageData = ctx.getImageData(0, 0, width, height);
   const { data } = imageData;
+  const backgroundColors = collectEdgeBackgroundColors(data, width, height);
   const visited = new Uint8Array(width * height);
   const queue: number[] = [];
 
@@ -176,7 +233,7 @@ const makeEdgeBackgroundTransparent = (ctx: CanvasRenderingContext2D, width: num
     if (visited[pixel]) return;
 
     const pixelIndex = pixel * 4;
-    if (!isTransparentCandidate(data, pixelIndex)) return;
+    if (!isTransparentCandidate(data, pixelIndex, backgroundColors)) return;
 
     visited[pixel] = 1;
     queue.push(pixel);
