@@ -110,6 +110,7 @@ type RowSectionBlock = {
   kind: "rows";
   section: PrintSection;
   items: PrintItem[];
+  showTitle: boolean;
 };
 
 type DetailsBlock = {
@@ -164,7 +165,8 @@ const estimateRowHeight = (section: PrintSection, item: PrintItem) => {
 };
 
 const estimateRowsBlockHeight = (block: RowSectionBlock) =>
-  SECTION_HEADER_HEIGHT + block.items.reduce((sum, item) => sum + estimateRowHeight(block.section, item), 0);
+  (block.showTitle ? SECTION_HEADER_HEIGHT : 0) +
+  block.items.reduce((sum, item) => sum + estimateRowHeight(block.section, item), 0);
 
 const estimateDetailsBlockHeight = (section: PrintSection) =>
   DETAILS_BLOCK_VERTICAL_PADDING + DETAILS_HEADER_HEIGHT + section.items.length * DETAILS_ROW_HEIGHT;
@@ -290,7 +292,7 @@ const renderProductName = (title: string) => {
   );
 };
 
-const renderRows = (section?: PrintSection, itemsOverride?: PrintItem[]) => {
+const renderRows = (section?: PrintSection, itemsOverride?: PrintItem[], showTitle = true) => {
   if (!section || !section.items.length) return null;
 
   const lines = (itemsOverride ?? section.items).filter(isLineItem);
@@ -303,8 +305,8 @@ const renderRows = (section?: PrintSection, itemsOverride?: PrintItem[]) => {
   };
 
   return (
-    <div className={s.specSection}>
-      <div className={s.sectionName}>{sectionDisplayMap[section.id] ?? section.title}</div>
+    <div className={`${s.specSection} ${!showTitle ? s.specSectionContinuation : ""}`}>
+      {showTitle ? <div className={s.sectionName}>{sectionDisplayMap[section.id] ?? section.title}</div> : null}
       {lines.map((item) => {
         const cabinetDetails = isCabinetSection ? resolveCabinetDetails(item) : [];
         const normalizedSubtitle = item.subtitle?.trim();
@@ -431,9 +433,10 @@ const addRowSectionToPages = (pages: PrintPageBlock[][], section?: PrintSection)
   if (!rows.length) return;
 
   let currentItems: PrintItem[] = [];
+  let shouldShowTitle = true;
 
   rows.forEach((item) => {
-    const nextBlock: RowSectionBlock = { kind: "rows", section, items: [...currentItems, item] };
+    const nextBlock: RowSectionBlock = { kind: "rows", section, items: [...currentItems, item], showTitle: shouldShowTitle };
     const pageIndex = Math.max(pages.length - 1, 0);
     const capacity = pageIndex === 0 ? FIRST_SPEC_PAGE_CAPACITY : SPEC_PAGE_CAPACITY;
     const used = pages[pageIndex]?.reduce((sum, pageBlock) => sum + estimateBlockHeight(pageBlock), 0) ?? 0;
@@ -444,12 +447,13 @@ const addRowSectionToPages = (pages: PrintPageBlock[][], section?: PrintSection)
       return;
     }
 
-    addBlockToPages(pages, { kind: "rows", section, items: currentItems });
+    addBlockToPages(pages, { kind: "rows", section, items: currentItems, showTitle: shouldShowTitle });
     currentItems = [item];
+    shouldShowTitle = false;
   });
 
   if (currentItems.length) {
-    addBlockToPages(pages, { kind: "rows", section, items: currentItems });
+    addBlockToPages(pages, { kind: "rows", section, items: currentItems, showTitle: shouldShowTitle });
   }
 };
 
@@ -478,7 +482,7 @@ const buildSpecPages = (sections: PrintSection[]) => {
 };
 
 const renderSpecBlock = (block: PrintPageBlock, totalPrice: number) => {
-  if (block.kind === "rows") return renderRows(block.section, block.items);
+  if (block.kind === "rows") return renderRows(block.section, block.items, block.showTitle);
   if (block.kind === "details") return renderCabinetDetails(block.section);
 
   return (
