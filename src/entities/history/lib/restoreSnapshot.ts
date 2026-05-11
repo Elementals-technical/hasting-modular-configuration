@@ -3,7 +3,6 @@ import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { addProduct } from "@/utils/functions/playcanvas/addProduct";
-import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { restoreSidePanelState } from "@/features/sidePanel";
@@ -36,7 +35,7 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
 
     const productType = resolveRuntimeProductType(oldId, config);
     const productConfig = withRuntimeProductType(config, productType);
-    const newId = await addProduct(productType, productConfig as addProductConfigI);
+    const newId = await addProduct(productType, productConfig);
 
     if (newId) {
       await setConfig(newId, productConfig);

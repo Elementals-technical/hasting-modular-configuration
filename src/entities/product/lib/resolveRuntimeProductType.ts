@@ -1,8 +1,21 @@
 const RUNTIME_SUFFIX_PATTERN = /^[a-z0-9]{6,}$/i;
 
-const CANONICAL_PRODUCT_TYPES = ["Sink-Base", "Sink-Cabinet", "Side-Cabinet", "Open-Shelf", "Side-Shelf"] as const;
+type RuntimeProductType = "Sink-Base" | "Sink-Cabinet" | "Open-Shelf" | "Side-Shelf";
 
-type CanonicalProductType = (typeof CANONICAL_PRODUCT_TYPES)[number];
+const EXACT_RUNTIME_PRODUCT_TYPE_ALIASES: Record<string, RuntimeProductType> = {
+  sb: "Sink-Base",
+  sc: "Sink-Cabinet",
+  os: "Open-Shelf",
+  oss: "Side-Shelf",
+};
+
+const NAMED_RUNTIME_PRODUCT_TYPE_ALIASES: Record<string, RuntimeProductType> = {
+  sinkbase: "Sink-Base",
+  sinkcabinet: "Sink-Cabinet",
+  sidecabinet: "Sink-Cabinet",
+  openshelf: "Open-Shelf",
+  sideshelf: "Side-Shelf",
+};
 
 const stripRuntimeSuffix = (value: string): string => {
   const trimmed = value.trim();
@@ -15,16 +28,23 @@ const stripRuntimeSuffix = (value: string): string => {
 
 const toCompact = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-const resolveCanonicalProductType = (value: string): CanonicalProductType | null => {
-  const compact = toCompact(stripRuntimeSuffix(value));
+const resolveCompactRuntimeProductTypeAlias = (compact: string): RuntimeProductType | null => {
+  const exactMatch =
+    EXACT_RUNTIME_PRODUCT_TYPE_ALIASES[compact] ?? NAMED_RUNTIME_PRODUCT_TYPE_ALIASES[compact];
+  if (exactMatch) return exactMatch;
 
-  if (compact === "oss" || compact.includes("sideshelf")) return "Side-Shelf";
-  if (compact === "os" || compact.includes("openshelf")) return "Open-Shelf";
-  if (compact.includes("sinkcabinet")) return "Sink-Cabinet";
-  if (compact.includes("sidecabinet")) return "Side-Cabinet";
-  if (compact.includes("sinkbase")) return "Sink-Base";
+  for (const [alias, productType] of Object.entries(NAMED_RUNTIME_PRODUCT_TYPE_ALIASES)) {
+    if (compact.includes(alias)) return productType;
+  }
 
   return null;
+};
+
+const resolveRuntimeProductTypeAlias = (value: string): RuntimeProductType | null => {
+  return (
+    resolveCompactRuntimeProductTypeAlias(toCompact(value)) ??
+    resolveCompactRuntimeProductTypeAlias(toCompact(stripRuntimeSuffix(value)))
+  );
 };
 
 const readString = (record: Record<string, unknown>, key: string): string | null => {
@@ -33,13 +53,13 @@ const readString = (record: Record<string, unknown>, key: string): string | null
 };
 
 export const normalizeRuntimeProductType = (value: string): string => {
-  return resolveCanonicalProductType(value) ?? stripRuntimeSuffix(value);
+  return resolveRuntimeProductTypeAlias(value) ?? stripRuntimeSuffix(value);
 };
 
 export const resolveRuntimeProductType = (productId: string, config?: Record<string, unknown>): string => {
   const productIdType = normalizeRuntimeProductType(productId);
 
-  if (resolveCanonicalProductType(productIdType)) {
+  if (resolveRuntimeProductTypeAlias(productIdType)) {
     return productIdType;
   }
 
@@ -59,13 +79,15 @@ export const resolveRuntimeProductType = (productId: string, config?: Record<str
   return productIdType;
 };
 
-export const withRuntimeProductType = (
-  config: Record<string, unknown>,
+export const withRuntimeProductType = <TConfig extends object>(
+  config: TConfig,
   productType: string,
-): Record<string, unknown> => {
+): TConfig & { ProductType: string; productType: string } => {
+  const runtimeProductType = normalizeRuntimeProductType(productType);
+
   return {
     ...config,
-    ProductType: productType,
-    productType,
+    ProductType: runtimeProductType,
+    productType: runtimeProductType,
   };
 };

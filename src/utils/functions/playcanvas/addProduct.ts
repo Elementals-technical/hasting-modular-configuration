@@ -1,3 +1,8 @@
+import {
+  normalizeRuntimeProductType,
+  withRuntimeProductType,
+} from "@/entities/product/lib/resolveRuntimeProductType";
+
 export interface addProductConfigI {
   Height: number;
   Depth: number;
@@ -9,15 +14,17 @@ export interface addProductConfigI {
 }
 
 // Return product and its ID
-export async function addProduct(name: string, config?: addProductConfigI) {
+export async function addProduct(name: string, config?: Record<string, unknown>) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
 
   const addProduct = canvasIframe?.ConfiguratorAPI?.addProduct;
+  const runtimeName = normalizeRuntimeProductType(name);
+  const runtimeConfig = config ? withRuntimeProductType(config, runtimeName) : undefined;
 
   console.log("call addProduct", addProduct);
-  console.log("name", name);
+  console.log("name", runtimeName);
 
   if (!addProduct) {
     console.warn("[PlayCanvas] ConfiguratorAPI.addProduct not ready");
@@ -25,7 +32,7 @@ export async function addProduct(name: string, config?: addProductConfigI) {
   }
 
   try {
-    const productId = await addProduct(name, config);
+    const productId = await addProduct(runtimeName, runtimeConfig);
     console.log(productId);
 
     return productId;

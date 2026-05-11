@@ -1,3 +1,7 @@
+import {
+  normalizeRuntimeProductType,
+  withRuntimeProductType,
+} from "@/entities/product/lib/resolveRuntimeProductType";
 import { type PresetProduct } from "@/entities/product/types";
 
 export async function addPreset(presetProducts: PresetProduct[] = [], globalConfig?: Record<string, unknown>) {
@@ -6,9 +10,17 @@ export async function addPreset(presetProducts: PresetProduct[] = [], globalConf
   const canvasIframe = containerRef?.current?.contentWindow as any;
 
   const addPreset = canvasIframe?.ConfiguratorAPI?.presetProducts;
+  const runtimePresetProducts = presetProducts.map((product) => {
+    const runtimeName = normalizeRuntimeProductType(product.name);
+
+    return {
+      ...withRuntimeProductType(product, runtimeName),
+      name: runtimeName,
+    };
+  });
 
   console.log("call addPreset", addPreset);
-  console.log("presetProducts", presetProducts);
+  console.log("presetProducts", runtimePresetProducts);
   console.log("config", globalConfig);
 
   if (!addPreset) {
@@ -17,7 +29,7 @@ export async function addPreset(presetProducts: PresetProduct[] = [], globalConf
   }
 
   try {
-    await addPreset(presetProducts, globalConfig);
+    await addPreset(runtimePresetProducts, globalConfig);
   } catch (error) {
     console.error("[PlayCanvas] Failed to set width", error);
     return null;
