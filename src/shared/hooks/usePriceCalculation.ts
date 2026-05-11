@@ -59,6 +59,7 @@ import { useGetConfiguratorQuery } from "@/entities";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
+  getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
   resolveDefaultThicknessFromRules,
@@ -354,10 +355,17 @@ export function usePriceCalculation() {
       resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
     const resolvedVesselColor = vesselColor;
-    const vesselPreferredMaterialTokens = [
-      ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-      ...preferredCountertopMaterialTokens,
-    ];
+    const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    const allowedVesselMaterialTokens = vesselTypeForTokens
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      : [];
+    const vesselPreferredMaterialTokens =
+      allowedVesselMaterialTokens.length > 0
+        ? allowedVesselMaterialTokens
+        : [
+            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+            ...preferredCountertopMaterialTokens,
+          ];
     const resolvedVesselColorCode = resolvedVesselColor
       ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,

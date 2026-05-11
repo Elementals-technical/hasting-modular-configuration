@@ -83,6 +83,7 @@ import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 import {
   SYNTESI_MATERIAL,
   findSyntesiCountertopUiValue,
+  getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
   resolveDefaultThicknessFromRules,
@@ -1085,10 +1086,17 @@ export const SummaryPage = () => {
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
-    const vesselPreferredMaterialTokens = [
-      ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-      ...preferredCountertopMaterialTokens,
-    ];
+    const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    const allowedVesselMaterialTokens = vesselTypeForTokens
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      : [];
+    const vesselPreferredMaterialTokens =
+      allowedVesselMaterialTokens.length > 0
+        ? allowedVesselMaterialTokens
+        : [
+            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+            ...preferredCountertopMaterialTokens,
+          ];
     const resolvedVesselColorCode = resolvedVesselColor
       ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
