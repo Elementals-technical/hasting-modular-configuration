@@ -20,6 +20,12 @@ const normalizeMaterialToken = (value: string): string =>
 
 const MATERIAL_TOKEN_SET = new Set(BASIN_MATERIAL_TOKENS.map(normalizeMaterialToken));
 
+const BASIN_STYLE_DISPLAY_ALIASES: Record<string, string> = {
+  Aquarius: "Acquarius",
+  UrbanModo: "Urban Modo",
+  UrbanMorris: "Urban Morris",
+};
+
 const escapeForRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const formatBasinStyle = (value: string | null): string | null => {
@@ -48,5 +54,7 @@ export const formatBasinStyle = (value: string | null): string | null => {
     .filter((token) => !MATERIAL_TOKEN_SET.has(normalizeMaterialToken(token)));
 
   const normalizedStyle = (styleTokens.length > 0 ? styleTokens.join(" ") : cleaned.replace(/_/g, " ")).trim();
-  return normalizedStyle || null;
+  if (!normalizedStyle) return null;
+
+  return BASIN_STYLE_DISPLAY_ALIASES[normalizedStyle] ?? normalizedStyle;
 };

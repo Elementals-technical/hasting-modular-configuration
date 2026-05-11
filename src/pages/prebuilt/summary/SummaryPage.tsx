@@ -1585,7 +1585,7 @@ export const SummaryPage = () => {
         ? [
             {
               id: "basin",
-              title: "Basin",
+              title: "Vessel",
               items: Array.from({ length: sinkBaseCountForHcut }, (_, index) => ({
                 id: `basin-vessel-sku-${index}`,
                 title: "Vessel",
@@ -1601,9 +1601,10 @@ export const SummaryPage = () => {
                   : undefined,
                 price: resolveItemPrice(vesselSku),
                 copyable: true,
+                showInfo: true,
                 description: {
                   "Product Category": "Vessel",
-                  Type: resolvedSinkType,
+                  Type: basinStyleLabel ?? resolvedSinkType,
                   Material: displayVesselMaterial,
                   "Color Code": resolvedVesselColor,
                 },
