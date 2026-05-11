@@ -599,6 +599,8 @@ export const CustomSummaryPage = () => {
         materialSku,
       });
     };
+    const resolveMaterialColorCode = (colorValue: string | null | undefined, materialSku: string | null) =>
+      extractColorCode(colorValue, { materialSku });
     const shouldUsePresets = shouldUsePresetProducts({
       productsPresetsCount: productsPresets.length,
       productIdsCount: selectedProducts.length,
@@ -691,7 +693,7 @@ export const CustomSummaryPage = () => {
           height: height ?? null,
           depth: depth ?? null,
           cabinetMaterialSku: cabinetMaterialSku,
-          cabinetColorCode: extractColorCode(swatchValue),
+          cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
           grainDirection: grainSku,
         });
       } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
@@ -702,7 +704,7 @@ export const CustomSummaryPage = () => {
           height: height ?? null,
           depth: depth ?? null,
           cabinetMaterialSku: cabinetMaterialSku,
-          cabinetColorCode: extractColorCode(swatchValue),
+          cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
           grainDirection: grainSku,
         });
       } else {
@@ -717,12 +719,12 @@ export const CustomSummaryPage = () => {
           cab: cabinetMaterialSku
             ? {
                 materialSku: cabinetMaterialSku,
-                colorCode: extractColorCode(swatchValue),
+                colorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
                 grainDirection: grainSku,
               }
             : null,
           hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -781,7 +783,7 @@ export const CustomSummaryPage = () => {
               height: preset.Height ?? null,
               depth: preset.Depth ?? null,
               cabinetMaterialSku: cabinetMaterialSku,
-              cabinetColorCode: extractColorCode(swatchValue),
+              cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
               grainDirection: grainSku,
             });
           } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
@@ -792,7 +794,7 @@ export const CustomSummaryPage = () => {
               height: preset.Height ?? null,
               depth: preset.Depth ?? null,
               cabinetMaterialSku: cabinetMaterialSku,
-              cabinetColorCode: extractColorCode(swatchValue),
+              cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
               grainDirection: grainSku,
             });
           } else {
@@ -807,12 +809,12 @@ export const CustomSummaryPage = () => {
               cab: cabinetMaterialSku
                 ? {
                     materialSku: cabinetMaterialSku,
-                    colorCode: extractColorCode(swatchValue),
+                    colorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
                     grainDirection: grainSku,
                   }
                 : null,
               hdl: handleMaterialSku
-                ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
                 : null,
               msp: null,
               bkpl: null,
@@ -865,12 +867,12 @@ export const CustomSummaryPage = () => {
           cab: cabinetMaterialSku
             ? {
                 materialSku: cabinetMaterialSku,
-                colorCode: extractColorCode(cabinetColor),
+                colorCode: resolveMaterialColorCode(cabinetColor, cabinetMaterialSku),
                 grainDirection: grainSku,
               }
             : null,
           hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -1419,9 +1421,9 @@ export const CustomSummaryPage = () => {
         height: dims.height,
         depth: dims.depth,
         cabMaterialSku: sidePanelCabinetMaterialSku,
-        cabColorCode: extractColorCode(cabinetColor),
+        cabColorCode: resolveMaterialColorCode(cabinetColor, sidePanelCabinetMaterialSku),
         hdlMaterialSku: handleMaterialSku,
-        hdlColorCode: extractColorCode(handleGrooveColor),
+        hdlColorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
       });
       const sidePanelMaterialElements = buildSummaryMaterialElements([
         {
