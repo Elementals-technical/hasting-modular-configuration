@@ -58,6 +58,8 @@ import {
   buildProductSku,
   buildCountertopSku,
   buildVesselSku,
+  resolveVesselDimensionTokens,
+  formatVesselDimensionLabel,
   vesselHeightCmMap,
   buildTowelBarSku,
   TOWEL_BAR_DEFAULTS,
@@ -1232,6 +1234,14 @@ export const CustomSummaryPage = () => {
           colorCode: resolvedVesselColorCode,
         })
       : null;
+    const vesselDimensionTokens = vesselType
+      ? resolveVesselDimensionTokens({
+          vesselType,
+          width: totalCountertopWidth,
+          height: vesselHeightCmMap[vesselType] ?? null,
+          depth: selectedDimensions.depth,
+        })
+      : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
 
     const basinLabel = isVesselCountertop ? "Vessel Cutout" : "Basin";
@@ -1599,6 +1609,9 @@ export const CustomSummaryPage = () => {
                 description: {
                   "Product Category": "Vessel",
                   Type: basinStyleLabel ?? resolvedSinkType,
+                  Width: formatVesselDimensionLabel(vesselDimensionTokens?.width),
+                  Height: formatVesselDimensionLabel(vesselDimensionTokens?.height),
+                  Depth: formatVesselDimensionLabel(vesselDimensionTokens?.depth),
                   Material: displayVesselMaterial,
                   "Color Code": resolvedVesselColor,
                 },
