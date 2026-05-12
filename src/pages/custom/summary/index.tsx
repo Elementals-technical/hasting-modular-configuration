@@ -87,6 +87,7 @@ import { buildConfigurationMetadata } from "@/features/saveConfiguration";
 import {
   SYNTESI_MATERIAL,
   findSyntesiCountertopUiValue,
+  getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
   parseCountertopMatrix,
@@ -599,6 +600,8 @@ export const CustomSummaryPage = () => {
         materialSku,
       });
     };
+    const resolveMaterialColorCode = (colorValue: string | null | undefined, materialSku: string | null) =>
+      extractColorCode(colorValue, { materialSku });
     const shouldUsePresets = shouldUsePresetProducts({
       productsPresetsCount: productsPresets.length,
       productIdsCount: selectedProducts.length,
@@ -691,7 +694,7 @@ export const CustomSummaryPage = () => {
           height: height ?? null,
           depth: depth ?? null,
           cabinetMaterialSku: cabinetMaterialSku,
-          cabinetColorCode: extractColorCode(swatchValue),
+          cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
           grainDirection: grainSku,
         });
       } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
@@ -702,7 +705,7 @@ export const CustomSummaryPage = () => {
           height: height ?? null,
           depth: depth ?? null,
           cabinetMaterialSku: cabinetMaterialSku,
-          cabinetColorCode: extractColorCode(swatchValue),
+          cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
           grainDirection: grainSku,
         });
       } else {
@@ -717,12 +720,12 @@ export const CustomSummaryPage = () => {
           cab: cabinetMaterialSku
             ? {
                 materialSku: cabinetMaterialSku,
-                colorCode: extractColorCode(swatchValue),
+                colorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
                 grainDirection: grainSku,
               }
             : null,
           hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -781,7 +784,7 @@ export const CustomSummaryPage = () => {
               height: preset.Height ?? null,
               depth: preset.Depth ?? null,
               cabinetMaterialSku: cabinetMaterialSku,
-              cabinetColorCode: extractColorCode(swatchValue),
+              cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
               grainDirection: grainSku,
             });
           } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
@@ -792,7 +795,7 @@ export const CustomSummaryPage = () => {
               height: preset.Height ?? null,
               depth: preset.Depth ?? null,
               cabinetMaterialSku: cabinetMaterialSku,
-              cabinetColorCode: extractColorCode(swatchValue),
+              cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
               grainDirection: grainSku,
             });
           } else {
@@ -807,12 +810,12 @@ export const CustomSummaryPage = () => {
               cab: cabinetMaterialSku
                 ? {
                     materialSku: cabinetMaterialSku,
-                    colorCode: extractColorCode(swatchValue),
+                    colorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
                     grainDirection: grainSku,
                   }
                 : null,
               hdl: handleMaterialSku
-                ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+                ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
                 : null,
               msp: null,
               bkpl: null,
@@ -865,12 +868,12 @@ export const CustomSummaryPage = () => {
           cab: cabinetMaterialSku
             ? {
                 materialSku: cabinetMaterialSku,
-                colorCode: extractColorCode(cabinetColor),
+                colorCode: resolveMaterialColorCode(cabinetColor, cabinetMaterialSku),
                 grainDirection: grainSku,
               }
             : null,
           hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: extractColorCode(handleGrooveColor) }
+            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -1088,10 +1091,17 @@ export const CustomSummaryPage = () => {
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
-    const vesselPreferredMaterialTokens = [
-      ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-      ...preferredCountertopMaterialTokens,
-    ];
+    const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    const allowedVesselMaterialTokens = vesselTypeForTokens
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      : [];
+    const vesselPreferredMaterialTokens =
+      allowedVesselMaterialTokens.length > 0
+        ? allowedVesselMaterialTokens
+        : [
+            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
+            ...preferredCountertopMaterialTokens,
+          ];
     const resolvedVesselColorCode = resolvedVesselColor
       ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
@@ -1419,9 +1429,9 @@ export const CustomSummaryPage = () => {
         height: dims.height,
         depth: dims.depth,
         cabMaterialSku: sidePanelCabinetMaterialSku,
-        cabColorCode: extractColorCode(cabinetColor),
+        cabColorCode: resolveMaterialColorCode(cabinetColor, sidePanelCabinetMaterialSku),
         hdlMaterialSku: handleMaterialSku,
-        hdlColorCode: extractColorCode(handleGrooveColor),
+        hdlColorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
       });
       const sidePanelMaterialElements = buildSummaryMaterialElements([
         {
@@ -1569,7 +1579,7 @@ export const CustomSummaryPage = () => {
         ? [
             {
               id: "basin",
-              title: "Basin",
+              title: "Vessel",
               items: Array.from({ length: sinkBaseCountForHcut }, (_, index) => ({
                 id: `basin-vessel-sku-${index}`,
                 title: "Vessel",
@@ -1585,9 +1595,10 @@ export const CustomSummaryPage = () => {
                   : undefined,
                 price: resolveItemPrice(vesselSku),
                 copyable: true,
+                showInfo: true,
                 description: {
                   "Product Category": "Vessel",
-                  Type: resolvedSinkType,
+                  Type: basinStyleLabel ?? resolvedSinkType,
                   Material: displayVesselMaterial,
                   "Color Code": resolvedVesselColor,
                 },

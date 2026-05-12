@@ -1,3 +1,5 @@
+import { normalizeRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
+
 export type SetProductByParamsSide = "left" | "right";
 
 export async function setProductByParams(type: string, entityName: string | null, side: SetProductByParamsSide) {
@@ -6,9 +8,10 @@ export async function setProductByParams(type: string, entityName: string | null
   const canvasIframe = containerRef?.current?.contentWindow as any;
 
   const setProductByParams = canvasIframe?.ConfiguratorAPI?.setProductByParams;
+  const runtimeType = normalizeRuntimeProductType(type);
 
   console.log("call setProductByParams", setProductByParams);
-  console.log("type", type);
+  console.log("type", runtimeType);
   console.log("prevEntityId", entityName);
   console.log("side", side);
 
@@ -18,7 +21,7 @@ export async function setProductByParams(type: string, entityName: string | null
   }
 
   try {
-    const productId = await setProductByParams(type, entityName, side);
+    const productId = await setProductByParams(runtimeType, entityName, side);
     console.log(productId);
 
     return productId;
