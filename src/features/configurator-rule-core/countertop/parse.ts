@@ -285,6 +285,7 @@ export const parseCountertopMatrix = (datatable?: CountertopDatatable): Countert
     depthsByStyle: parseDepthsByStyle(row),
     basinStyle: row.basin_style ?? "",
     minSbCm: parseNullableNumber(row.min_sb_cm),
+    minVesselCm: parseNullableNumber(row.min_vsl_cm),
     maxIntegratedCm: parseNullableNumber(row.max_integrated_cm),
     maxVesselCm: parseNullableNumber(row.max_vessel_cm),
     maxUndermountCm: parseNullableNumber(row.max_undermount_cm),

@@ -5,6 +5,7 @@ export type CountertopMatrixRule = {
   depthsByStyle: Record<string, number[]>;
   basinStyle: string;
   minSbCm: number | null;
+  minVesselCm: number | null;
   maxIntegratedCm: number | null;
   maxVesselCm: number | null;
   maxUndermountCm: number | null;

@@ -8,8 +8,10 @@ import {
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
 } from "./parse";
+import { isVesselSinkStyle } from "./vesselCompatibility";
 
 const INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM = [46];
+const WIDTH_EPSILON = 0.01;
 const INTEGRATED_STYLE_RESTRICTED_MATERIAL_TOKENS = new Set([
   "tekormud",
   "tekorund",
@@ -81,15 +83,22 @@ export const isCountertopRuleWidthAllowed = ({
   width,
   style,
   context,
+  activeBasinStyle,
 }: {
   rule: CountertopMatrixRule;
   width: number;
   style: CountertopWidthRuleStyle;
   context: CountertopWidthRuleContext;
+  activeBasinStyle?: string | null;
 }): boolean => {
   const isIntegratedSinkBaseContext = style === "integrated" && context === "sink-base";
+  const isActiveVesselSinkBaseContext =
+    style === "vessel" && context === "sink-base" && isVesselSinkStyle(activeBasinStyle);
 
   if (isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm) return false;
+  if (isActiveVesselSinkBaseContext && rule.minVesselCm !== null && width + WIDTH_EPSILON < rule.minVesselCm) {
+    return false;
+  }
 
   const maxLimits = getCountertopRuleMaxWidthsForStyle(rule, style);
   if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
@@ -163,6 +172,7 @@ export const filterWidthValuesByCountertopRules = ({
         width,
         style: widthRuleStyle,
         context: shouldEnforceMinSb ? "sink-base" : "generic",
+        activeBasinStyle,
       });
     });
 

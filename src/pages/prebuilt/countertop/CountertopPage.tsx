@@ -808,6 +808,7 @@ export const CountertopPage = () => {
             width,
             style: widthRuleStyle,
             context: context === "sb" ? "sink-base" : "generic",
+            activeBasinStyle,
           });
         });
 
@@ -1138,6 +1139,16 @@ export const CountertopPage = () => {
         const name = option.name ?? "";
         return isVisibleVesselSinkStyle(name);
       });
+      const vesselSinkAvailability = ruleState.vesselSinkAvailability;
+      const availabilityScopedVesselOptions = vesselOptions.map((option) => {
+        if (vesselSinkAvailability.isAvailable) return option;
+
+        return {
+          ...option,
+          isAvailable: false,
+          disabledReason: vesselSinkAvailability.disabledReason,
+        };
+      });
 
       console.log("[BASIN/DEBUG][prebuilt][vessel]", {
         normalizedStyle,
@@ -1146,10 +1157,10 @@ export const CountertopPage = () => {
         activeBasinStyle,
         normalizedActiveMaterials,
         allowedStyles: Array.from(allowedStyles),
-        vesselOptions: vesselOptions.map((item) => item.name ?? item.title),
+        vesselOptions: availabilityScopedVesselOptions.map((item) => item.name ?? item.title),
       });
 
-      return [VESSEL_SINK_NONE_OPTION, ...vesselOptions];
+      return [VESSEL_SINK_NONE_OPTION, ...availabilityScopedVesselOptions];
     }
 
     const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
@@ -1268,6 +1279,7 @@ export const CountertopPage = () => {
     allowedMaterials,
     ruleState.allowedStyles,
     ruleState.matchingRules,
+    ruleState.vesselSinkAvailability,
     activeBasinStyle,
     activeThickness,
     basinSelectionStyle,
@@ -1641,6 +1653,15 @@ export const CountertopPage = () => {
     activeCountertopColor,
     activeMaterialTokens,
   ]);
+
+  useEffect(() => {
+    if (!isVesselStyle) return;
+    if (ruleState.vesselSinkAvailability.isAvailable) return;
+    if (!activeBasinStyle.startsWith("Vessel_")) return;
+
+    setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
+    dispatch(setActiveBasinStyle(""));
+  }, [activeBasinStyle, dispatch, isVesselStyle, ruleState.vesselSinkAvailability.isAvailable]);
 
   const handleCountertopStyle = async (style: string) => {
     if (!style) return;
