@@ -70,6 +70,18 @@ export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
     return parts.length > 0 ? `Basin - ${parts.join(", ")}` : "Basin";
   }
 
+  if (category === "Vessel") {
+    const parts = [
+      str("Type") ? `Type: ${str("Type")}` : null,
+      str("Width") ? `${str("Width")} W` : null,
+      str("Height") ? `${str("Height")} H` : null,
+      str("Depth") ? `${str("Depth")} D` : null,
+      str("Material") ? `Material: ${str("Material")}` : null,
+      str("Color Code") ? `Color: ${str("Color Code")}` : null,
+    ].filter(Boolean);
+    return parts.length > 0 ? `Vessel - ${parts.join(", ")}` : "Vessel";
+  }
+
   if (category === "Side Panel") {
     const widthIn = desc.Width != null ? formatInches(Number(desc.Width)) : null;
     const heightIn = desc.Height != null ? formatInches(Number(desc.Height)) : null;

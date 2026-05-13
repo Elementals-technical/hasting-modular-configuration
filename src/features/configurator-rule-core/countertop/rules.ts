@@ -32,6 +32,7 @@ export type CountertopRuleResult = {
   allowedFaucetHoles: Set<string>;
   allowedStyles: Set<string>;
   styleAvailability: Record<CountertopStyleKey, CountertopStyleAvailability>;
+  vesselSinkAvailability: VesselSinkAvailability;
 };
 
 export type CountertopStyleKey = "integrated" | "vessel" | "undermount";
@@ -40,6 +41,12 @@ export type CountertopStyleAvailability = {
   isAvailable: boolean;
   disabledReason?: string;
   maxCompatibleWidthCm: number | null;
+};
+
+export type VesselSinkAvailability = {
+  isAvailable: boolean;
+  disabledReason?: string;
+  minSinkBaseWidthCm: number | null;
 };
 
 type ResolveDefaultThicknessInput = {
@@ -71,6 +78,7 @@ const resolveIntegratedWidthContext = (context: IntegratedWidthContext) => {
 
 const STYLE_WIDTH_EPSILON = 0.01;
 const DEFAULT_STYLE_DISABLED_REASON = "Not available for selected cabinet width/depth/thickness on scene";
+export const VESSEL_SINK_SIZE_UNAVAILABLE_REASON = "Not available for selected sink base cabinet size";
 
 const formatWidthCompatibilityDisabledReason = (maxWidth: number) =>
   `Not available for current configuration width, maximum compatibility size ${maxWidth} cm (${cmToInches(maxWidth)}").`;
@@ -101,6 +109,14 @@ export const isRuleWidthEligibleForIntegratedContext = (
   }
 
   return true;
+};
+
+export const isRuleWidthEligibleForVesselSinkContext = (
+  rule: CountertopMatrixRule,
+  sinkBaseWidth: number | null,
+): boolean => {
+  if (sinkBaseWidth === null || rule.minVesselCm === null) return true;
+  return sinkBaseWidth + STYLE_WIDTH_EPSILON >= rule.minVesselCm;
 };
 
 /** Returns first valid thickness (as string) for current material/depth matrix context. */
@@ -163,6 +179,10 @@ export const buildCountertopRuleState = ({
     vessel: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
     undermount: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
   };
+  let vesselSinkAvailability: VesselSinkAvailability = {
+    isAvailable: true,
+    minSinkBaseWidthCm: null,
+  };
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
   const integratedWidthContext = {
     sinkBaseWidth: sinkBaseWidth ?? width,
@@ -181,6 +201,7 @@ export const buildCountertopRuleState = ({
       allowedFaucetHoles,
       allowedStyles,
       styleAvailability,
+      vesselSinkAvailability,
     };
   }
 
@@ -346,6 +367,32 @@ export const buildCountertopRuleState = ({
   styleAvailability.vessel = buildStyleAvailabilityState("vessel");
   styleAvailability.undermount = buildStyleAvailabilityState("undermount");
 
+  const vesselSinkRules = getThicknessScopedRulesForStyle("vessel").filter((rule) =>
+    matchesDepthForStyle(rule, depth, "vessel"),
+  );
+  const vesselSinkMinWidth = vesselSinkRules
+    .map((rule) => rule.minVesselCm)
+    .filter((value): value is number => value !== null)
+    .reduce<number | null>((currentMin, value) => (currentMin === null || value < currentMin ? value : currentMin), null);
+  const currentSinkBaseWidth = integratedWidthContext.sinkBaseWidth;
+
+  if (
+    typeof currentSinkBaseWidth === "number" &&
+    vesselSinkMinWidth !== null &&
+    !vesselSinkRules.some((rule) => isRuleWidthEligibleForVesselSinkContext(rule, currentSinkBaseWidth))
+  ) {
+    vesselSinkAvailability = {
+      isAvailable: false,
+      minSinkBaseWidthCm: vesselSinkMinWidth,
+      disabledReason: VESSEL_SINK_SIZE_UNAVAILABLE_REASON,
+    };
+  } else {
+    vesselSinkAvailability = {
+      isAvailable: true,
+      minSinkBaseWidthCm: vesselSinkMinWidth,
+    };
+  }
+
   const faucetHoleRules = scopeCountertopRulesByBasinStyle(
     thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules,
     activeBasinStyle,
@@ -366,5 +413,6 @@ export const buildCountertopRuleState = ({
     allowedFaucetHoles,
     allowedStyles,
     styleAvailability,
+    vesselSinkAvailability,
   };
 };

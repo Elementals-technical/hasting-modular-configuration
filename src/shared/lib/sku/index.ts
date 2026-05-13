@@ -26,7 +26,14 @@ export {
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
 } from "./countertopSkuMaps";
-export { buildVesselSku, type VesselSkuInput } from "./buildVesselSku";
+export {
+  buildVesselSku,
+  resolveVesselDimensionTokens,
+  formatVesselDimensionLabel,
+  type VesselSkuInput,
+  type VesselDimensionInput,
+  type VesselDimensionTokens,
+} from "./buildVesselSku";
 export {
   vesselSeriesSkuMap,
   vesselHeightCmMap,

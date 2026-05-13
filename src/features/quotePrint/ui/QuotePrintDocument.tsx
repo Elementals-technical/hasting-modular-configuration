@@ -148,6 +148,7 @@ const estimateRowHeight = (section: PrintSection, item: PrintItem) => {
   const shouldShowSubtitle = Boolean(normalizedSubtitle) && normalizedSubtitle !== normalizedSku;
   const countertopDimsLine = resolveCountertopDimsLine(item);
   const basinStyleLine = resolveBasinStyleLine(item);
+  const vesselDimsLine = resolveVesselDimsLine(item);
   const isDuplicateBasinSubtitle = Boolean(basinStyleLine && normalizedSubtitle === basinStyleLine);
   const shouldHideSubtitle =
     (item.title === "Countertop" && Boolean(countertopDimsLine)) || isDuplicateBasinSubtitle;
@@ -155,7 +156,8 @@ const estimateRowHeight = (section: PrintSection, item: PrintItem) => {
     estimateTextLines(item.title, 36) +
     (basinStyleLine ? estimateTextLines(basinStyleLine, 34) : 0) +
     (shouldShowSubtitle && !shouldHideSubtitle ? estimateTextLines(item.subtitle, 34) : 0) +
-    (countertopDimsLine ? estimateTextLines(countertopDimsLine, 34) : 0);
+    (countertopDimsLine ? estimateTextLines(countertopDimsLine, 34) : 0) +
+    (vesselDimsLine ? estimateTextLines(vesselDimsLine, 34) : 0);
   const productHeight = Math.max(32, productLines * 32) + (item.sku ? estimateTextLines(item.sku, 42) * 24 + 6 : 0);
 
   const materialLines = estimateTextLines(resolveMaterialText(item), 42);
@@ -231,6 +233,15 @@ const formatThicknessLabel = (value: unknown): string | null => {
   return formatCountertopThicknessLabel(value);
 };
 
+const formatDisplayDimension = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    return normalized || null;
+  }
+
+  return formatInchesFromCm(value);
+};
+
 const toTitleCase = (value: string): string =>
   value
     .split(/\s+/)
@@ -257,6 +268,19 @@ const resolveBasinStyleLine = (item: PrintItem): string | null => {
   const value = item.description?.["Basin Style"];
   if (typeof value !== "string" || !value.trim()) return null;
   return value.trim();
+};
+
+const resolveVesselDimsLine = (item: PrintItem): string | null => {
+  const category = item.description?.["Product Category"];
+  if (category !== "Vessel") return null;
+
+  const description = item.description ?? {};
+  const width = formatDisplayDimension(description.Width);
+  const height = formatDisplayDimension(description.Height);
+  const depth = formatDisplayDimension(description.Depth);
+  const line = joinValues([width ? `${width}W` : null, height ? `${height}H` : null, depth ? `${depth}D` : null], "-");
+
+  return line || null;
 };
 
 const resolveCabinetDetails = (item: PrintItem) => {
@@ -320,6 +344,7 @@ const renderRows = (section?: PrintSection, itemsOverride?: PrintItem[], showTit
         const shouldShowSubtitle = Boolean(normalizedSubtitle) && normalizedSubtitle !== normalizedSku;
         const countertopDimsLine = resolveCountertopDimsLine(item);
         const basinStyleLine = resolveBasinStyleLine(item);
+        const vesselDimsLine = resolveVesselDimsLine(item);
         const isDuplicateBasinSubtitle = Boolean(basinStyleLine && normalizedSubtitle === basinStyleLine);
         const shouldHideSubtitle =
           (item.title === "Countertop" && Boolean(countertopDimsLine)) || isDuplicateBasinSubtitle;
@@ -332,6 +357,7 @@ const renderRows = (section?: PrintSection, itemsOverride?: PrintItem[], showTit
                 {basinStyleLine ? <div className={s.prodSub}>{basinStyleLine}</div> : null}
                 {shouldShowSubtitle && !shouldHideSubtitle ? <div className={s.prodSub}>{item.subtitle}</div> : null}
                 {countertopDimsLine ? <div className={s.prodSub}>{countertopDimsLine}</div> : null}
+                {vesselDimsLine ? <div className={s.prodSub}>{vesselDimsLine}</div> : null}
               </div>
               {item.sku ? <div className={s.sku}>{item.sku}</div> : null}
             </div>

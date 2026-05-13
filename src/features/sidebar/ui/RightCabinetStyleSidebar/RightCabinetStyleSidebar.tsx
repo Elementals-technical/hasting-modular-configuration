@@ -641,10 +641,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const availableAddWidths = filterWidthValuesByCountertopRules({
         values: dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value),
         activeCabinetCode: activeCabinetRule?.code,
+        isSinkBaseCabinet: activeDrawerProduct?.toLowerCase().includes("sink-base"),
         activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
         activeMaterialTokens,
         rules: countertopRules,
         selectedDepth: selectedDimensions.depth ?? null,
+        activeCountertopStyle: countertopStyle ?? null,
+        activeBasinStyle: sinkType ?? null,
+        activeThickness: countertopThickness ?? null,
       })
         .map((value) => Number(value))
         .filter((value) => Number.isFinite(value) && value > 0);
@@ -749,13 +753,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     activeCabinetRule?.code,
     activeCabinetRule?.isOpen,
     activeMaterialTokens,
+    countertopStyle,
+    countertopThickness,
     countertopRules,
     dimensionOptions.width,
     selectedDimensions.depth,
     sinkType,
     dispatch,
     vesselColor,
-    countertopStyle,
   ]);
 
   return (

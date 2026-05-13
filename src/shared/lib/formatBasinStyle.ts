@@ -28,6 +28,13 @@ const BASIN_STYLE_DISPLAY_ALIASES: Record<string, string> = {
 
 const escapeForRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const splitCompoundStyleName = (value: string): string =>
+  value
+    .replace(/([a-z])([A-Z0-9])/g, "$1 $2")
+    .replace(/([0-9])([A-Za-z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+
 export const formatBasinStyle = (value: string | null): string | null => {
   if (!value) return null;
 
@@ -56,5 +63,5 @@ export const formatBasinStyle = (value: string | null): string | null => {
   const normalizedStyle = (styleTokens.length > 0 ? styleTokens.join(" ") : cleaned.replace(/_/g, " ")).trim();
   if (!normalizedStyle) return null;
 
-  return BASIN_STYLE_DISPLAY_ALIASES[normalizedStyle] ?? normalizedStyle;
+  return splitCompoundStyleName(BASIN_STYLE_DISPLAY_ALIASES[normalizedStyle] ?? normalizedStyle);
 };
