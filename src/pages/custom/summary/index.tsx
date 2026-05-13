@@ -78,6 +78,7 @@ import {
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
+  resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import {
@@ -119,9 +120,7 @@ import { captureQuotePreviewImage } from "@/features/quotePrint/lib/captureQuote
 import { formatQuoteGeneratedDate } from "@/features/quotePrint/lib/formatQuoteGeneratedDate";
 import {
   convertSkuToInchesForSummary,
-  formatCabinetDimsForSummary,
-  formatCabinetDimsForSummaryWithFallback,
-  formatCabinetDrawersForSummary,
+  formatCabinetSubtitleForSummary,
   formatCabinetTitleForSummary,
   isShelfCabinetType,
 } from "@/shared/lib/summaryFormatters";
@@ -612,6 +611,7 @@ export const CustomSummaryPage = () => {
     });
     const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
     const orderedProductIds = getOrderedProductIds(selectedProducts);
+    const orderedCabinetProductIds = orderedProductIds.filter((id) => selectedProducts.includes(id));
     const productOrder = new Map((orderedProductIds.length ? orderedProductIds : selectedProducts).map((id, index) => [id, index]));
     const sortBySceneOrder = (
       left: NormalizedProductConfigSnapshot,
@@ -670,9 +670,6 @@ export const CustomSummaryPage = () => {
       const width = typeof config.Width === "number" ? config.Width : undefined;
       const depth = typeof config.Depth === "number" ? config.Depth : undefined;
       const height = typeof config.Height === "number" ? config.Height : undefined;
-      const drawers = formatCabinetDrawersForSummary(config.Drawers);
-      const dims = formatCabinetDimsForSummary(width, depth, height);
-      const subtitle = [drawers, dims].filter(Boolean).join(" | ");
       const name =
         config.ProductType ??
         config.productType ??
@@ -684,6 +681,13 @@ export const CustomSummaryPage = () => {
       const swatch = resolveSwatch(swatchValue);
 
       const productCabinetType = name ?? activeCabinetType;
+      const subtitle = formatCabinetSubtitleForSummary({
+        cabinetType: productCabinetType,
+        drawers: config.Drawers,
+        width,
+        depth,
+        height,
+      });
       const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
       const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
@@ -700,7 +704,11 @@ export const CustomSummaryPage = () => {
           grainDirection: grainSku,
         });
       } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-        const side: "L" | "R" = index === 0 ? "L" : "R";
+        const side = resolveOpenSideShelfSide({
+          productIds: [config.id, config._productId],
+          orderedProductIds: orderedCabinetProductIds,
+          fallbackIndex: index,
+        });
         sku = buildOpenSideShelfSku({
           side,
           width: width ?? null,
@@ -765,11 +773,8 @@ export const CustomSummaryPage = () => {
     });
     const presetCabinetItems = shouldUsePresets
       ? productsPresets.map((preset, index) => {
-          const drawers = formatCabinetDrawersForSummary(preset.Drawers);
           const presetHeight = selectedDimensions.height ?? preset.Height ?? undefined;
           const presetDepth = selectedDimensions.depth ?? preset.Depth ?? undefined;
-          const dims = formatCabinetDimsForSummary(preset.Width, presetDepth, presetHeight);
-          const subtitle = [drawers, dims].filter(Boolean).join(" | ");
           const swatchValue = preset.CabinetColor ?? cabinetColor;
           const swatch = resolveSwatch(swatchValue);
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
@@ -777,6 +782,13 @@ export const CustomSummaryPage = () => {
           const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
           const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
           const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
+          const subtitle = formatCabinetSubtitleForSummary({
+            cabinetType: normalizedPresetType ?? activeCabinetType,
+            drawers: preset.Drawers,
+            width: preset.Width,
+            depth: presetDepth,
+            height: presetHeight,
+          });
           const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
 
           let sku: string;
@@ -790,7 +802,7 @@ export const CustomSummaryPage = () => {
               grainDirection: grainSku,
             });
           } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
-            const side: "L" | "R" = index === 0 ? "L" : "R";
+            const side = resolveOpenSideShelfSide({ fallbackIndex: index });
             sku = buildOpenSideShelfSku({
               side,
               width: preset.Width ?? null,
@@ -881,22 +893,20 @@ export const CustomSummaryPage = () => {
           bkpl: null,
         });
 
+        const fallbackCabinetType =
+          typeof selectedProductConfig?.name === "string" ? selectedProductConfig.name : activeCabinetType;
+
         return {
           id: "cabinet-1",
-          title:
-            typeof selectedProductConfig?.name === "string"
-              ? formatCabinetTitleForSummary(selectedProductConfig.name)
-              : formatCabinetTitleForSummary(activeCabinetType),
-          subtitle: [
-            formatCabinetDrawersForSummary(selectedProductConfig?.Drawers),
-            formatCabinetDimsForSummaryWithFallback(
-              selectedDimensions.width,
-              selectedDimensions.depth,
-              selectedDimensions.height,
-            ),
-          ]
-            .filter(Boolean)
-            .join(" | "),
+          title: formatCabinetTitleForSummary(fallbackCabinetType),
+          subtitle: formatCabinetSubtitleForSummary({
+            cabinetType: fallbackCabinetType,
+            drawers: selectedProductConfig?.Drawers,
+            width: selectedDimensions.width,
+            depth: selectedDimensions.depth,
+            height: selectedDimensions.height,
+            withFallback: true,
+          }),
           sku,
           swatch: {
             ...resolveSwatch(cabinetColor),

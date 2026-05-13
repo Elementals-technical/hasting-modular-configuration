@@ -54,6 +54,7 @@ import {
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
+  resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
@@ -507,6 +508,7 @@ export function usePriceCalculation() {
     const getConfigDrawerStyle = (cfg: NormalizedProductConfigSnapshot) =>
       cfg.Drawers ?? getPlacedDrawerStyle(cfg.id) ?? getPlacedDrawerStyle(cfg._productId) ?? selectedProductDrawerStyle;
     const orderedProductIds = getOrderedProductIds(productIds);
+    const orderedCabinetProductIds = orderedProductIds.filter((id) => productIds.includes(id));
     const productOrder = new Map((orderedProductIds.length ? orderedProductIds : productIds).map((id, index) => [id, index]));
     const sortBySceneOrder = (left: NormalizedProductConfigSnapshot, right: NormalizedProductConfigSnapshot) =>
       (productOrder.get(left.id) ?? productOrder.get(left._productId) ?? Number.MAX_SAFE_INTEGER) -
@@ -539,8 +541,7 @@ export function usePriceCalculation() {
 
         // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D-CAB-{mat}-{color}
         if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
-          // Determine side: if it's before the main cabinet → L, after → R
-          const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const side = resolveOpenSideShelfSide({ fallbackIndex: idx });
           const swatchValue = preset.CabinetColor ?? cabinetColor;
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
           const sku = buildOpenSideShelfSku({
@@ -606,7 +607,11 @@ export function usePriceCalculation() {
         }
 
         if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-          const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const side = resolveOpenSideShelfSide({
+            productIds: [cfg.id, cfg._productId],
+            orderedProductIds: orderedCabinetProductIds,
+            fallbackIndex: idx,
+          });
           const swatchValue = cfg.CabinetColor ?? cabinetColor;
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
           skus.push(
@@ -669,7 +674,11 @@ export function usePriceCalculation() {
 
         // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
         if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-          const side: "L" | "R" = idx === 0 ? "L" : "R";
+          const side = resolveOpenSideShelfSide({
+            productIds: [cfg.id, cfg._productId],
+            orderedProductIds: orderedCabinetProductIds,
+            fallbackIndex: idx,
+          });
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
           const sku = buildOpenSideShelfSku({
             side,

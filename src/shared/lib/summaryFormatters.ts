@@ -60,3 +60,26 @@ export const formatCabinetDimsForSummaryWithFallback = (
   const depthText = typeof depth === "number" ? `${cmToInches(toSkuDepth(depth))}D` : "-D";
   return `${widthText}-${heightText}-${depthText}`;
 };
+
+export const formatCabinetSubtitleForSummary = ({
+  cabinetType,
+  drawers,
+  width,
+  depth,
+  height,
+  withFallback = false,
+}: {
+  cabinetType: string | null | undefined;
+  drawers: unknown;
+  width: number | null | undefined;
+  depth: number | null | undefined;
+  height: number | null | undefined;
+  withFallback?: boolean;
+}): string => {
+  const drawerLabel = isShelfCabinetType(cabinetType) ? "" : formatCabinetDrawersForSummary(drawers);
+  const dims = withFallback
+    ? formatCabinetDimsForSummaryWithFallback(width, depth, height)
+    : formatCabinetDimsForSummary(width, depth, height);
+
+  return [drawerLabel, dims].filter(Boolean).join(" | ");
+};
