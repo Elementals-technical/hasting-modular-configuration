@@ -119,6 +119,30 @@ export const isRuleWidthEligibleForVesselSinkContext = (
   return sinkBaseWidth + STYLE_WIDTH_EPSILON >= rule.minVesselCm;
 };
 
+const resolveCountertopStyleKey = (style?: string | null): CountertopStyleKey | null => {
+  const normalized = style?.trim().toLowerCase();
+  if (normalized === "integrated" || normalized === "vessel" || normalized === "undermount") return normalized;
+  return null;
+};
+
+const getRuleMaxWidthForStyle = (rule: CountertopMatrixRule, style: CountertopStyleKey): number | null => {
+  if (style === "vessel") return rule.maxVesselCm;
+  if (style === "undermount") return rule.maxUndermountCm;
+  return rule.maxIntegratedCm;
+};
+
+const isRuleWidthEligibleForCountertopStyleContext = (
+  rule: CountertopMatrixRule,
+  style: CountertopStyleKey,
+  context: IntegratedWidthContext,
+): boolean => {
+  if (style === "integrated") return isRuleWidthEligibleForIntegratedContext(rule, context);
+
+  const { totalWidth } = resolveIntegratedWidthContext(context);
+  const maxWidth = getRuleMaxWidthForStyle(rule, style);
+  return maxWidth !== null && (totalWidth === null || totalWidth <= maxWidth + STYLE_WIDTH_EPSILON);
+};
+
 /** Returns first valid thickness (as string) for current material/depth matrix context. */
 export const resolveDefaultThicknessFromRules = ({
   rules,
@@ -133,7 +157,12 @@ export const resolveDefaultThicknessFromRules = ({
     return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
   });
 
-  const rulesForThickness = matchingRules.filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, width));
+  const activeStyle = resolveCountertopStyleKey(activeCountertopStyle);
+  const rulesForThickness = matchingRules.filter((rule) =>
+    activeStyle
+      ? isRuleWidthEligibleForCountertopStyleContext(rule, activeStyle, width)
+      : isRuleWidthEligibleForIntegratedContext(rule, width),
+  );
 
   for (const rule of rulesForThickness) {
     for (const raw of rule.topThicknesses) {
@@ -190,6 +219,7 @@ export const buildCountertopRuleState = ({
   };
   const styleWidth = totalWidth ?? width;
   const activeStyle = activeCountertopStyle?.trim().toLowerCase() ?? null;
+  const activeStyleKey = resolveCountertopStyleKey(activeCountertopStyle);
 
   if (!rules.length) {
     return {
@@ -232,7 +262,11 @@ export const buildCountertopRuleState = ({
     getMatchingRulesForStyle(style).filter((rule) => matchesActiveThickness(rule));
 
   matchingRules
-    .filter((rule) => isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext))
+    .filter((rule) =>
+      activeStyleKey
+        ? isRuleWidthEligibleForCountertopStyleContext(rule, activeStyleKey, integratedWidthContext)
+        : isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext),
+    )
     .forEach((rule) => {
       rule.topThicknesses.forEach((value) => {
         const parsed = parseThicknessValue(value);

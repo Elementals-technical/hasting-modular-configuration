@@ -1,5 +1,6 @@
 import { extractColorCode } from "./extractColorCode";
 import { resolveCountertopMaterialSkuFromColorCode } from "./countertopSkuMaps";
+import { resolveDefaultBasinByCountertopColor } from "./resolveDefaultBasinByCountertopColor";
 
 type ConfiguratorVariantMetadataLike = {
   sku?: string;
@@ -220,6 +221,14 @@ export const buildCountertopColorSkuCandidates = (
   return result;
 };
 
+const resolveEffectivePreferredMaterialTokens = (
+  value: string,
+  preferredMaterialTokens: readonly string[],
+): readonly string[] => {
+  if (preferredMaterialTokens.length > 0) return preferredMaterialTokens;
+  return getCountertopMaterialTokensFromBasinType(resolveDefaultBasinByCountertopColor(value));
+};
+
 const selectCountertopColorCandidates = ({
   value,
   candidates,
@@ -233,7 +242,9 @@ const selectCountertopColorCandidates = ({
   if (candidates.length === 1) return candidates;
 
   const preferredTokens = new Set<string>();
-  preferredMaterialTokens.forEach((token) => addMaterialToken(preferredTokens, token));
+  resolveEffectivePreferredMaterialTokens(value, preferredMaterialTokens).forEach((token) =>
+    addMaterialToken(preferredTokens, token),
+  );
 
   const preferredMatches =
     preferredTokens.size > 0
@@ -332,7 +343,9 @@ export const resolveCountertopMaterialTokensFromCandidates = ({
   }
 
   const preferredTokens = new Set<string>();
-  preferredMaterialTokens.forEach((token) => addMaterialToken(preferredTokens, token));
+  resolveEffectivePreferredMaterialTokens(value, preferredMaterialTokens).forEach((token) =>
+    addMaterialToken(preferredTokens, token),
+  );
 
   const preferredMatches =
     preferredTokens.size > 0
