@@ -78,6 +78,7 @@ import {
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
+  resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import {
@@ -612,6 +613,7 @@ export const CustomSummaryPage = () => {
     });
     const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
     const orderedProductIds = getOrderedProductIds(selectedProducts);
+    const orderedCabinetProductIds = orderedProductIds.filter((id) => selectedProducts.includes(id));
     const productOrder = new Map((orderedProductIds.length ? orderedProductIds : selectedProducts).map((id, index) => [id, index]));
     const sortBySceneOrder = (
       left: NormalizedProductConfigSnapshot,
@@ -700,7 +702,11 @@ export const CustomSummaryPage = () => {
           grainDirection: grainSku,
         });
       } else if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-        const side: "L" | "R" = index === 0 ? "L" : "R";
+        const side = resolveOpenSideShelfSide({
+          productIds: [config.id, config._productId],
+          orderedProductIds: orderedCabinetProductIds,
+          fallbackIndex: index,
+        });
         sku = buildOpenSideShelfSku({
           side,
           width: width ?? null,
@@ -790,7 +796,7 @@ export const CustomSummaryPage = () => {
               grainDirection: grainSku,
             });
           } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
-            const side: "L" | "R" = index === 0 ? "L" : "R";
+            const side = resolveOpenSideShelfSide({ fallbackIndex: index });
             sku = buildOpenSideShelfSku({
               side,
               width: preset.Width ?? null,
