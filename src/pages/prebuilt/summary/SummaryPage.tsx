@@ -2053,6 +2053,10 @@ export const SummaryPage = () => {
                   );
                 }
 
+                const tooltipLabel = swatch.materialAcronym
+                  ? `${swatch.label} ${swatch.materialAcronym}`
+                  : swatch.label;
+
                 return (
                   <div key={swatch.value} className={s.swatchTile}>
                     <span
@@ -2064,11 +2068,12 @@ export const SummaryPage = () => {
                         backgroundPosition: "center",
                       }}
                       tabIndex={0}
-                      aria-label={swatch.label}
+                      aria-label={tooltipLabel}
                       aria-describedby={`summary-swatch-tooltip-${index}`}
                     />
                     <span id={`summary-swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
-                      {swatch.label}
+                      <span>{swatch.label}</span>
+                      {swatch.materialAcronym && <span className={s.tileTooltipAcronym}>{swatch.materialAcronym}</span>}
                     </span>
                   </div>
                 );

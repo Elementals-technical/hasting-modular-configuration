@@ -36,6 +36,8 @@ export const SwatchesList = () => {
           const image = AttributeHelper.getImage(val);
           const hex = AttributeHelper.getHexColor(val) ?? "#e5e5e5";
           const label = AttributeHelper.getValueLabel(val);
+          const materialAcronym = AttributeHelper.getMaterialAcronym(val);
+          const tooltipLabel = materialAcronym ? `${label} ${materialAcronym}` : label;
           const key = `${val.metadata?.label ?? index}/${val.parentName}`;
 
           return (
@@ -47,11 +49,12 @@ export const SwatchesList = () => {
                   backgroundImage: image ? `url(${image})` : undefined,
                 }}
                 tabIndex={0}
-                aria-label={label}
+                aria-label={tooltipLabel}
                 aria-describedby={`swatch-tooltip-${index}`}
               />
               <span id={`swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
-                {label}
+                <span>{label}</span>
+                {materialAcronym && <span className={s.tileTooltipAcronym}>{materialAcronym}</span>}
               </span>
 
               <button

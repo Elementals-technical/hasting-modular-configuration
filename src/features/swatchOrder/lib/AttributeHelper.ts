@@ -15,6 +15,11 @@ const toOptionalString = (value: unknown): string | undefined =>
 const toNullableString = (value: unknown): string | null =>
   typeof value === "string" ? value : null;
 
+const normalizeOptionalString = (value: unknown): string | undefined => {
+  const raw = toOptionalString(value)?.trim();
+  return raw || undefined;
+};
+
 export const AttributeHelper = {
   getImage(value: AttributeValue): string | undefined {
     const raw = value?.metadata?.image ?? value?.metadata?.Image;
@@ -32,6 +37,14 @@ export const AttributeHelper = {
       toOptionalString(attribute?.metadata?.label ?? attribute?.metadata?.Label) ??
       attribute?.name ??
       "Unnamed"
+    );
+  },
+
+  getMaterialAcronym(attribute: AttributeValue): string | undefined {
+    return (
+      normalizeOptionalString(attribute?.metadata?.sku) ??
+      normalizeOptionalString(attribute?.metadata?.Material) ??
+      normalizeOptionalString(attribute?.metadata?.Finish)
     );
   },
 

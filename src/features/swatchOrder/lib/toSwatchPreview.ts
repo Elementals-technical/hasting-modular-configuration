@@ -4,6 +4,7 @@ import { AttributeHelper } from "./AttributeHelper";
 export interface SwatchPreview {
   value: string;
   label: string;
+  materialAcronym?: string;
   color: string;
   image?: string;
 }
@@ -13,6 +14,7 @@ export const toSwatchPreview = (item: AttributeValue): SwatchPreview => {
   return {
     value,
     label: AttributeHelper.getValueLabel(item),
+    materialAcronym: AttributeHelper.getMaterialAcronym(item),
     color: AttributeHelper.getHexColor(item) ?? "#dcdcdc",
     image: AttributeHelper.getImage(item),
   };
