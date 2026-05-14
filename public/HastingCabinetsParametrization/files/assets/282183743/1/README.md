@@ -73,6 +73,15 @@ ConfiguratorAPI.showDimensions({
       start: [x, y, z],                       // custom start position (overrides auto)
       end:   [x, y, z],                       // custom end position
     },
+
+    // Optional segmented height labels. Labels are still manual.
+    // The bridge resolves cabinet nodes from box.nodes, countertop from Top_Solid,
+    // and vessel/sink/basin from the direct child under Sink_Point.
+    heightSegments: {
+      cabinet:    { label: '22"', color: '#E53935' },
+      countertop: { label: '4"',  color: '#E53935' },
+      vessel:     { label: '5"',  color: '#E53935' },
+    },
   },
 
   // ── Line dimensions (per-entity or custom) ──
@@ -124,6 +133,153 @@ Each dimension (box width/height/depth, or line) accepts:
 | `offsetZ` | `number` | `0` | Additive Z offset |
 | `start` | `[x,y,z]` or `{x,y,z}` | auto | Custom start position (overrides auto-positioning) |
 | `end` | `[x,y,z]` or `{x,y,z}` | auto | Custom end position |
+| `color` | `string` | `#000000` | Line and endcap color, for example `#E53935` |
+| `side` | `'right'`\|`'left'`\|`'camera'` | `'camera'` | Height segment only: `camera` keeps the vertical segment on the camera-facing left/right side; `left`/`right` pin it to a stable world side |
+| `linePlacement` | `'outside'`\|`'inside'` | `'outside'` | Height segment only: place line outside or inside the box side |
+| `labelPlacement` | `'outside'`\|`'inside'`\|`'side'` | `linePlacement` | Height segment only: place text outside or inside relative to the segment line; `side` is an alias for `outside`. Segment-level `labelPosition: 'inside'/'outside'/'side'` is also accepted, but `labelPlacement` is preferred |
+| `excludeNodeNames` | `string[]` | `[]` | Height segment only: skip exact child node names while measuring the segment AABB |
+
+### Box height segments
+
+Use `box.height` for the total height label and `box.heightSegments` for the cabinet/countertop/sink split. The labels are manual, same as existing width/height/depth labels.
+
+```js
+ConfiguratorAPI.showDimensions({
+  box: {
+    nodes: ids, // cabinet product ids only
+    width:  { label: '23.6"' },
+    height: { label: '26"' },   // total height
+    depth:  { label: '19.9"' },
+    heightSegments: {
+      cabinet:    { label: '22"', color: '#E53935', side: 'camera', linePlacement: 'outside', labelPlacement: 'outside' },
+      countertop: { label: '4"',  color: '#E53935', side: 'camera', linePlacement: 'outside', labelPlacement: 'outside' },
+      vessel:     { label: '5"',  color: '#E53935', side: 'camera', linePlacement: 'outside', labelPlacement: 'outside' },
+    },
+  },
+  labelSettings: { offset: 0.05, labelGap: 'auto', labelPosition: 'center' },
+});
+```
+
+The bridge automatically adds the global countertop entity to `box.nodes` for total dimensions. The total box and the cabinet segment both skip the `Sink_Point` subtree by default, so a basin does not extend the total-height or cabinet-height markers. For segmented height it keeps `cabinet` bound to the original cabinet nodes, binds `countertop` to the `Top_Solid` countertop entity, and binds `sink`/`slink`/`vessel`/`basin` keys to the current direct child under `Sink_Point`.
+
+Height segments default to dynamic camera positioning: `side: 'camera'`, `linePlacement: 'outside'`, `labelPlacement: 'outside'`, `labelGap: 0`, and `labelPosition: 'above'` even when global settings use `labelGap: 'auto'` and `labelPosition: 'center'`. The segment line follows the same left/right camera side behavior as the total height line. Labels then move relative to the actual line position: `outside`/`side` puts the text on the side opposite the object, while `inside` puts it between the line and the object. Use `side: 'left'` or `side: 'right'` only when a segment must be pinned to a stable world side.
+
+### Frontend integration recipes
+
+`ConfiguratorAPI.showDimensions(...)` replaces the currently visible dimensions. The UI should call it with the full desired state each time a user changes the dimension mode or edits a manual label.
+
+Use these rules when building the UI payload:
+
+- `box.nodes` should contain the selected cabinet product ids.
+- `width`, `height`, and `depth` are manual labels. The system displays the provided text as-is.
+- Use `box.height` when the UI needs one total-height line.
+- Omit `box.height` and use `box.heightSegments` when the UI needs split height labels.
+- The bridge resolves `cabinet`, `countertop`, and `vessel` segments automatically. The UI does not need to pass entity names for those common segment keys.
+- `labelPlacement: 'outside'` or `'side'` keeps labels outside the object, relative to the current camera-side line.
+- `labelPlacement: 'inside'` puts labels between the line and the object.
+
+#### Total width/depth/height
+
+```js
+ConfiguratorAPI.showDimensions({
+  box: {
+    nodes: ids,
+    width:  { label: '33.5"' },
+    depth:  { label: '19.9"' },
+    height: { label: '24"' },
+  },
+  labelSettings: {
+    offset: 0.05,
+    labelGap: 'auto',
+    labelPosition: 'center',
+  },
+});
+```
+
+#### Split height: cabinet + countertop + vessel
+
+```js
+ConfiguratorAPI.showDimensions({
+  box: {
+    nodes: ids,
+    width: { label: '33.5"' },
+    depth: { label: '19.9"' },
+    heightSegments: {
+      cabinet: {
+        label: '22"',
+        labelPlacement: 'outside',
+      },
+      countertop: {
+        label: '2"',
+        labelPlacement: 'outside',
+      },
+      vessel: {
+        label: '5"',
+        labelPlacement: 'outside',
+      },
+    },
+  },
+  labelSettings: {
+    offset: 0.05,
+    labelGap: 'auto',
+    labelPosition: 'center',
+  },
+});
+```
+
+#### Split height: cabinet + countertop
+
+Use this when there is no visible vessel/sink height label, or when the UI should hide it.
+
+```js
+ConfiguratorAPI.showDimensions({
+  box: {
+    nodes: ids,
+    width: { label: '33.5"' },
+    depth: { label: '19.9"' },
+    heightSegments: {
+      cabinet: {
+        label: '22"',
+        labelPlacement: 'outside',
+      },
+      countertop: {
+        label: '2"',
+        labelPlacement: 'outside',
+      },
+    },
+  },
+  labelSettings: {
+    offset: 0.05,
+    labelGap: 'auto',
+    labelPosition: 'center',
+  },
+});
+```
+
+#### Split height: cabinet only
+
+Use this when the UI needs only the cabinet-height zone and should hide countertop/vessel labels.
+
+```js
+ConfiguratorAPI.showDimensions({
+  box: {
+    nodes: ids,
+    width: { label: '33.5"' },
+    depth: { label: '19.9"' },
+    heightSegments: {
+      cabinet: {
+        label: '22"',
+        labelPlacement: 'outside',
+      },
+    },
+  },
+  labelSettings: {
+    offset: 0.05,
+    labelGap: 'auto',
+    labelPosition: 'center',
+  },
+});
+```
 
 ---
 
