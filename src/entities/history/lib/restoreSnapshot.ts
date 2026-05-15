@@ -55,6 +55,7 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   dispatch(
     restoreProductState({
       productIds: newProductIds,
+      productsPresets: snapshot.productsPresets?.map((preset) => ({ ...preset })),
       productOptions: {
         ...snapshot.productOptions,
         VesselColor: snapshot.productOptions?.VesselColor ?? "",

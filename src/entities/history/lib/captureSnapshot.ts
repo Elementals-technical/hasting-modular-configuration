@@ -19,6 +19,7 @@ export async function captureSnapshot(getState: () => RootState): Promise<SceneS
   return {
     productIds: ids,
     productConfigs: configs,
+    productsPresets: state.productsPresets.map((preset) => ({ ...preset })),
     productOptions: { ...state.productOptions },
     activeCabinetType: state.activeCabinetType,
     selectedDimensions: { ...state.selectedDimensions },

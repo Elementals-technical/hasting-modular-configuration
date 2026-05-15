@@ -600,6 +600,7 @@ const productSlice = createSlice({
         placedDividers?: PlacedDivider[];
         selectedProductConfig?: ProductConfig | null;
         placedCabinetStyles?: Record<string, string>;
+        productsPresets?: PresetProduct[];
       }>,
     ) {
       const {
@@ -610,6 +611,7 @@ const productSlice = createSlice({
         placedDividers,
         selectedProductConfig,
         placedCabinetStyles,
+        productsPresets,
       } = action.payload;
       state.productIds = productIds;
       state.productOptions = productOptions;
@@ -618,6 +620,9 @@ const productSlice = createSlice({
       state.placedDividers = placedDividers ?? [];
       state.selectedProductConfig = selectedProductConfig ?? null;
       state.placedCabinetStyles = placedCabinetStyles ?? {};
+      if (productsPresets !== undefined) {
+        state.productsPresets = productsPresets.map((preset) => ({ ...preset }));
+      }
       applyRulesToState(state);
     },
   },

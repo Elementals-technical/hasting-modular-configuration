@@ -26,6 +26,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getCabinetColor,
@@ -68,6 +69,7 @@ export const CabinetPage = () => {
   const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
+  const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -391,7 +393,9 @@ export const CabinetPage = () => {
   // material (not the global store default) before the user picks a color.
   useEffect(() => {
     if (!basePanelOptions.length) return;
-    const presetColor = presetsProducts.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
+    const presetColor = isHistoryRestoring
+      ? undefined
+      : presetsProducts.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor;
 
     const targetColor = presetColor || activeCabinetColor;
     if (!targetColor) return;
@@ -416,6 +420,7 @@ export const CabinetPage = () => {
     presetsProducts,
     activeCabinetColor,
     cabinetMaterial,
+    isHistoryRestoring,
     basePanelOptions,
     findOptionByColorName,
     findSkuByColorName,
@@ -505,13 +510,11 @@ export const CabinetPage = () => {
     </FilterRow>
   );
 
-  const presetNames = presetsProducts.map((i) => {
-    return i.name;
-  });
-
   const handleChangeColor = async (colorName?: string) => {
     if (!colorName) return;
     await saveSnapshot();
+
+    await setConfigBatch({}, { CabinetColor: colorName });
 
     if (presetsProducts.length) {
       dispatch(
@@ -523,10 +526,6 @@ export const CabinetPage = () => {
         ),
       );
     }
-
-    presetNames.forEach(() => {
-      setConfigBatch({}, { CabinetColor: colorName });
-    });
 
     dispatch(setCabinetColor(colorName));
     dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
@@ -543,6 +542,8 @@ export const CabinetPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
+    await setConfigBatch({}, { HandleGrooveColor: colorName });
+
     if (presetsProducts.length) {
       dispatch(
         addProductPreset(
@@ -553,8 +554,6 @@ export const CabinetPage = () => {
         ),
       );
     }
-
-    setConfigBatch({}, { HandleGrooveColor: colorName });
 
     dispatch(
       setSelectedProductConfig({
