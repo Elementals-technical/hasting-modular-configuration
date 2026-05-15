@@ -11,8 +11,10 @@ import {
   removeProductId,
   resetCabinetBuilderBootstrap,
   resetProducts,
+  setActiveBasinStyle,
   setActiveCabinetType,
   setActiveCountertopThickness,
+  setCountertopStyle,
   setPlacedCabinetStyle,
   setSelectedDimensions,
   setSelectedProductConfig,
@@ -20,10 +22,15 @@ import {
   swapProductIds,
   setTowelBarOption,
   setTowelBarColor,
+  setVesselColor,
 } from "@/entities/product/model/store/slice";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
-import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
+import {
+  getSelectTool,
+  type SelectionAction,
+  type SelectionInfo,
+} from "@/utils/functions/playcanvas/getSelectTool";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
@@ -103,6 +110,12 @@ import {
   setInSceneQuickEditorNotificationSeen,
   useInSceneQuickEditorNotification,
 } from "@/features/inSceneQuickEditorNotification";
+import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
+import {
+  canExecuteSetConfigSelectionAction,
+  findVesselBasinSelectionInfo,
+  VESSEL_PLACEHOLDER_SINK_TYPE,
+} from "./lib/vesselBasinSelection";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -111,6 +124,10 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const SIDE_SHELF_WIDTH_CM = 15;
+
+const waitForNextAnimationFrame = (): Promise<void> =>
+  new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+
 const stripRuntimeEntitySuffix = (value: string): string => {
   const trimmed = value.trim();
   const lastDash = trimmed.lastIndexOf("-");
@@ -215,6 +232,7 @@ export const PlayCanvasIntegration = () => {
   });
 
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null);
+  const [vesselBasinSelectionInfo, setVesselBasinSelectionInfo] = useState<SelectionInfo | null>(null);
   const [isCustomizeModePromptOpen, setIsCustomizeModePromptOpen] = useState(false);
   const [customizeModePromptAction, setCustomizeModePromptAction] = useState<CustomizeModePromptAction>("default");
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
@@ -1166,6 +1184,7 @@ export const PlayCanvasIntegration = () => {
   useEffect(() => {
     if (!isDrawerOpen) return;
 
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isDrawerOpen]);
@@ -1266,6 +1285,45 @@ export const PlayCanvasIntegration = () => {
     }
   }, [dispatch, isTowelBarEntity, selectedSceneProduct, towelBarOption, saveSnapshot, productIds.length]);
 
+  const handleExecuteVesselBasinAction = useCallback(
+    async (action: SelectionAction) => {
+      if (!canExecuteSetConfigSelectionAction(action)) {
+        console.warn("[PlayCanvasIntegration] Unsupported Vessel Basin action descriptor", action);
+        return;
+      }
+
+      const actionConfig = action.config;
+
+      try {
+        await saveSnapshot();
+        getSelectTool()?.deselectAll();
+        await waitForNextAnimationFrame();
+        await setConfig(action.productId, actionConfig);
+
+        const nextSinkType = actionConfig.sinkType;
+        if (typeof nextSinkType === "string") {
+          if (nextSinkType === VESSEL_PLACEHOLDER_SINK_TYPE) {
+            dispatch(setCountertopStyle(VESSEL_PLACEHOLDER_SINK_TYPE));
+            dispatch(setActiveBasinStyle(""));
+          } else {
+            dispatch(setActiveBasinStyle(nextSinkType));
+          }
+        }
+
+        const nextVesselColor = actionConfig.VesselColor;
+        if (typeof nextVesselColor === "string") {
+          dispatch(setVesselColor(nextVesselColor));
+        }
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to execute Vessel Basin action", error);
+      } finally {
+        setVesselBasinSelectionInfo(null);
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [dispatch, saveSnapshot],
+  );
+
   const resolveProductTypeFromId = useCallback((productId: string, config?: Record<string, unknown>) => {
     return resolveRuntimeProductType(productId, config);
   }, []);
@@ -1356,7 +1414,7 @@ export const PlayCanvasIntegration = () => {
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProductConfig,
-    productIds.length
+    productIds.length,
   ]);
 
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
@@ -1868,8 +1926,9 @@ export const PlayCanvasIntegration = () => {
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
 
-    selectTool.on("select", (selectedEntity) => {
+    selectTool.on("select", (selectedEntity, selectionInfo) => {
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
+      const vesselBasinInfo = findVesselBasinSelectionInfo(selectionInfo);
 
       if (firstSelected) {
         if (openDrawerButtonsTargetRef.current && firstSelected.name !== openDrawerButtonsTargetRef.current) {
@@ -1877,6 +1936,25 @@ export const PlayCanvasIntegration = () => {
         }
 
         console.log(`Выбран объект: ${firstSelected.name}`);
+
+        if (vesselBasinInfo) {
+          const selectedProductId = vesselBasinInfo.productId ?? firstSelected.name ?? "";
+          const selectionAnchor = vesselBasinInfo.entityName ?? firstSelected.name ?? selectedProductId;
+
+          setVesselBasinSelectionInfo(vesselBasinInfo);
+          dispatch(setSelectedSceneProduct(selectedProductId));
+          setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+
+          if (suppressNextDropdownOpenRef.current) {
+            suppressNextDropdownOpenRef.current = false;
+            return;
+          }
+
+          showDropdownForEntity(selectionAnchor);
+          return;
+        }
+
+        setVesselBasinSelectionInfo(null);
 
         (async () => {
           const config = await getConfig(firstSelected.name ?? "");
@@ -1941,6 +2019,7 @@ export const PlayCanvasIntegration = () => {
           hideOpenDrawerButtons();
         }
         // dispatch(setSelectedSceneProduct(""));
+        setVesselBasinSelectionInfo(null);
         setDropdownState((prev) => ({ ...prev, visible: false }));
         setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
       }
@@ -1964,13 +2043,28 @@ export const PlayCanvasIntegration = () => {
       pendingQuickEditorAutoSelectRef.current = true;
       quickEditorNotification.markEligible();
     }
-  }, [isCustomPage, location.pathname, quickEditorNotification.hasSeen, quickEditorNotification.markEligible]);
+  }, [
+    isCustomPage,
+    location.pathname,
+    quickEditorNotification.hasSeen,
+    quickEditorNotification,
+    quickEditorNotification.markEligible,
+  ]);
 
   useEffect(() => {
     if (!dropdownState.visible && quickEditorNotification.isVisible) {
       quickEditorNotification.hide();
     }
-  }, [dropdownState.visible, quickEditorNotification.hide, quickEditorNotification.isVisible]);
+    if (vesselBasinSelectionInfo && quickEditorNotification.isVisible) {
+      quickEditorNotification.hide();
+    }
+  }, [
+    dropdownState.visible,
+    quickEditorNotification.hide,
+    quickEditorNotification.isVisible,
+    vesselBasinSelectionInfo,
+    quickEditorNotification,
+  ]);
 
   useEffect(() => {
     if (!pendingQuickEditorAutoSelectRef.current) return;
@@ -2015,6 +2109,7 @@ export const PlayCanvasIntegration = () => {
   useEffect(() => {
     if (isMobileMenu || isSummaryPage || isDrawerOpen) return;
     if (!dropdownState.visible) return;
+    if (vesselBasinSelectionInfo) return;
     if (!quickEditorNotification.isEligible || quickEditorNotification.hasSeen || quickEditorNotification.isVisible)
       return;
 
@@ -2032,6 +2127,7 @@ export const PlayCanvasIntegration = () => {
     quickEditorNotification.isVisible,
     quickEditorNotification.show,
     quickEditorNotification,
+    vesselBasinSelectionInfo,
   ]);
 
   const handleDismissQuickEditorNotification = useCallback(() => {
@@ -2058,6 +2154,7 @@ export const PlayCanvasIntegration = () => {
 
   useEffect(() => {
     const handleGlobalModalOpened = () => {
+      setVesselBasinSelectionInfo(null);
       setDropdownState((prev) => (prev.visible ? { ...prev, visible: false } : prev));
       setCountertopPopoverState((prev) => (prev.visible ? { ...prev, visible: false } : prev));
     };
@@ -2529,6 +2626,13 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
 
+  const handleOpenVesselBasinColor = useCallback(() => {
+    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=vessel-color" : "/custom/countertop?accordion=vessel-color");
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [isPrebuilt, navigate]);
+
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
   }, [navigate]);
@@ -2626,6 +2730,16 @@ export const PlayCanvasIntegration = () => {
     thicknessOptions,
   ]);
 
+  const vesselBasinDropdownItems: DropdownItem[] = useMemo(() => {
+    return buildVesselBasinDropdownItems({
+      actions: vesselBasinSelectionInfo?.actions ?? [],
+      onOpenColor: handleOpenVesselBasinColor,
+      onExecuteAction: handleExecuteVesselBasinAction,
+    });
+  }, [handleExecuteVesselBasinAction, handleOpenVesselBasinColor, vesselBasinSelectionInfo?.actions]);
+
+  const activeDropdownItems = vesselBasinSelectionInfo ? vesselBasinDropdownItems : dropdownItems;
+
   return (
     <div style={{ position: "relative", height: "100%" }}>
       <iframe
@@ -2690,9 +2804,9 @@ export const PlayCanvasIntegration = () => {
           }}
         >
           <div style={{ pointerEvents: "auto" }}>
-            <NestedDropdown items={dropdownItems} />
+            <NestedDropdown items={activeDropdownItems} />
           </div>
-          {quickEditorNotification.isVisible && (
+          {!vesselBasinSelectionInfo && quickEditorNotification.isVisible && (
             <InSceneQuickEditorNotification onClose={handleDismissQuickEditorNotification} />
           )}
         </div>
@@ -2730,10 +2844,13 @@ export const PlayCanvasIntegration = () => {
           }}
         >
           <MobileNestedMenu
-            key={`mobile-dropdown-${selectedSceneProduct ?? "unknown"}`}
-            items={dropdownItems}
-            onClose={() => setDropdownState((prev) => ({ ...prev, visible: false }))}
-            previewLabel={selectedSceneProduct}
+            key={`mobile-dropdown-${vesselBasinSelectionInfo?.entityName ?? selectedSceneProduct ?? "unknown"}`}
+            items={activeDropdownItems}
+            onClose={() => {
+              setVesselBasinSelectionInfo(null);
+              setDropdownState((prev) => ({ ...prev, visible: false }));
+            }}
+            previewLabel={vesselBasinSelectionInfo?.displayName ?? selectedSceneProduct}
             previewImage={mobilePreviewImage}
             selectedDimensions={selectedDimensions}
           />
