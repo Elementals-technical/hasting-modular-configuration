@@ -1,3 +1,4 @@
+import { installConfiguratorApiLogger } from "@/utils/functions/playcanvas/apiLogger";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 
 type ConfigBatchFilter = (productId: string, config: Record<string, unknown>) => boolean;
@@ -16,6 +17,8 @@ export async function setConfigBatch(ids: ConfigBatchIds, config: any) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
+
+  installConfiguratorApiLogger();
 
   const setConfigBatchApi = canvasIframe?.ConfiguratorAPI?.setConfigBatch;
 
