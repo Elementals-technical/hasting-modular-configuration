@@ -52,6 +52,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
   resolveCountertopColorCodeFromCandidates,
   resolveCabinetPricingMaterialSku,
+  resolveHandleGroovePricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
   resolveOpenSideShelfSide,
@@ -323,6 +324,12 @@ export function usePriceCalculation() {
     };
     const resolveMaterialColorCode = (colorValue: string | null | undefined, materialSku: string | null) =>
       extractColorCode(colorValue, { materialSku });
+    const resolveHandleGrooveMaterialSku = (cabinetMaterialSku: string | null) =>
+      resolveHandleGroovePricingMaterialSku({
+        cabinetMaterialSku,
+        colorName: handleGrooveColor,
+        materialSku: handleMaterialSku,
+      });
     const shouldUsePresetCountertopColor =
       shouldUsePresets && countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
     const shouldUsePresetSinkType =
@@ -564,6 +571,7 @@ export function usePriceCalculation() {
 
         const swatchValue = preset.CabinetColor ?? cabinetColor;
         const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
+        const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: preset.Drawers ?? null,
@@ -575,8 +583,8 @@ export function usePriceCalculation() {
           cab: cabMaterialSku
             ? { materialSku: cabMaterialSku, colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku), grainDirection: grainSku }
             : null,
-          hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+          hdl: hdlMaterialSku
+            ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -630,6 +638,7 @@ export function usePriceCalculation() {
 
         const swatchValue = cfg.CabinetColor ?? cabinetColor;
         const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
+        const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: cfg.Drawers,
@@ -641,8 +650,8 @@ export function usePriceCalculation() {
           cab: cabMaterialSku
             ? { materialSku: cabMaterialSku, colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku), grainDirection: grainSku }
             : null,
-          hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+          hdl: hdlMaterialSku
+            ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -695,6 +704,7 @@ export function usePriceCalculation() {
         }
 
         const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
+        const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
         const sku = buildProductSku({
           cabinetType: resolvedType,
           drawers: cfg.Drawers,
@@ -706,8 +716,8 @@ export function usePriceCalculation() {
           cab: cabMaterialSku
             ? { materialSku: cabMaterialSku, colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku), grainDirection: grainSku }
             : null,
-          hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+          hdl: hdlMaterialSku
+            ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
             : null,
           msp: null,
           bkpl: null,
@@ -718,6 +728,7 @@ export function usePriceCalculation() {
     } else {
       // Fallback: single product from selectedProductConfig
       const cabMaterialSku = resolveCabinetMaterialSku(cabinetColor);
+      const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
       const cabinetSku = buildProductSku({
         cabinetType: activeCabinetType,
         drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
@@ -733,8 +744,8 @@ export function usePriceCalculation() {
               grainDirection: grainSku,
             }
           : null,
-        hdl: handleMaterialSku
-          ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+        hdl: hdlMaterialSku
+          ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
           : null,
         msp: null,
         bkpl: null,
