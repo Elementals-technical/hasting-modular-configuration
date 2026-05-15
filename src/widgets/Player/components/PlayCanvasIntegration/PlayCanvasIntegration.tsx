@@ -29,7 +29,6 @@ import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import {
   getSelectTool,
   type SelectionAction,
-  type SelectionActionConfig,
   type SelectionInfo,
 } from "@/utils/functions/playcanvas/getSelectTool";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
@@ -111,6 +110,12 @@ import {
   setInSceneQuickEditorNotificationSeen,
   useInSceneQuickEditorNotification,
 } from "@/features/inSceneQuickEditorNotification";
+import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
+import {
+  canExecuteSetConfigSelectionAction,
+  findVesselBasinSelectionInfo,
+  VESSEL_PLACEHOLDER_SINK_TYPE,
+} from "./lib/vesselBasinSelection";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
@@ -119,37 +124,6 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const SIDE_SHELF_WIDTH_CM = 15;
-const VESSEL_BASIN_SELECTION_TYPE = "vessel-basin";
-const VESSEL_PLACEHOLDER_SINK_TYPE = "Vessel";
-const SELECTION_ACTION_COLOR_ID = "color";
-const SELECTION_ACTION_DELETE_ID = "delete";
-const SELECTION_ACTION_SET_CONFIG_METHOD = "setConfig";
-
-const normalizeSelectionActionKey = (action: SelectionAction): string =>
-  String(action.id || action.label || "")
-    .trim()
-    .toLowerCase();
-
-const isVesselBasinSelectionInfo = (info: SelectionInfo | null | undefined): info is SelectionInfo =>
-  info?.selectionType === VESSEL_BASIN_SELECTION_TYPE;
-
-const findVesselBasinSelectionInfo = (selectionInfo: SelectionInfo[] | undefined): SelectionInfo | null =>
-  selectionInfo?.find(isVesselBasinSelectionInfo) ?? null;
-
-const isSelectionActionConfig = (value: unknown): value is SelectionActionConfig =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-type ExecutableSetConfigSelectionAction = SelectionAction & {
-  method: typeof SELECTION_ACTION_SET_CONFIG_METHOD;
-  productId: string;
-  config: SelectionActionConfig;
-};
-
-const canExecuteSetConfigSelectionAction = (action: SelectionAction): action is ExecutableSetConfigSelectionAction =>
-  action.method === SELECTION_ACTION_SET_CONFIG_METHOD &&
-  typeof action.productId === "string" &&
-  action.productId.length > 0 &&
-  isSelectionActionConfig(action.config);
 
 const waitForNextAnimationFrame = (): Promise<void> =>
   new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
@@ -2757,48 +2731,11 @@ export const PlayCanvasIntegration = () => {
   ]);
 
   const vesselBasinDropdownItems: DropdownItem[] = useMemo(() => {
-    const actions = vesselBasinSelectionInfo?.actions ?? [];
-
-    return actions.reduce<DropdownItem[]>((items, action, index) => {
-      const actionKey = normalizeSelectionActionKey(action);
-      const actionId = actionKey || `action-${index}`;
-      const label = action.label || action.id || "Action";
-
-      if (actionKey === SELECTION_ACTION_COLOR_ID && action.configKey) {
-        items.push({
-          id: `vessel-basin-${actionId}`,
-          label,
-          children: [
-            {
-              id: `vessel-basin-${actionId}-select`,
-              label: "Select Color",
-              trailing: <ArrowTopRight color={"#333"} />,
-              onClick: handleOpenVesselBasinColor,
-            },
-          ],
-        });
-        return items;
-      }
-
-      if (canExecuteSetConfigSelectionAction(action)) {
-        items.push({
-          id: `vessel-basin-${actionId}`,
-          label,
-          trailing: actionKey === SELECTION_ACTION_DELETE_ID ? <DeleteMenuIcon /> : undefined,
-          onClick: () => handleExecuteVesselBasinAction(action),
-        });
-        return items;
-      }
-
-      items.push({
-        id: `vessel-basin-${actionId}`,
-        label,
-        disabled: true,
-        disabledReason: "Unsupported action descriptor",
-      });
-
-      return items;
-    }, []);
+    return buildVesselBasinDropdownItems({
+      actions: vesselBasinSelectionInfo?.actions ?? [],
+      onOpenColor: handleOpenVesselBasinColor,
+      onExecuteAction: handleExecuteVesselBasinAction,
+    });
   }, [handleExecuteVesselBasinAction, handleOpenVesselBasinColor, vesselBasinSelectionInfo?.actions]);
 
   const activeDropdownItems = vesselBasinSelectionInfo ? vesselBasinDropdownItems : dropdownItems;
