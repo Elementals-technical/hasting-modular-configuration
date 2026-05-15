@@ -440,9 +440,7 @@ export const CustomCabinetColorsPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    console.log("colorName", colorName);
-
-    setConfigBatch(
+    await setConfigBatch(
       {},
       {
         CabinetColor: colorName,
@@ -464,7 +462,7 @@ export const CustomCabinetColorsPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    setConfigBatch(
+    await setConfigBatch(
       {},
       {
         HandleGrooveColor: colorName,

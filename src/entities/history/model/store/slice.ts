@@ -1,9 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { HandleOption, PlacedDivider } from "@/entities/product/model/store/slice";
+import type { PresetProduct } from "@/entities/product/types";
 
 export type SceneSnapshot = {
   productIds: string[];
   productConfigs: Record<string, Record<string, unknown>>;
+  productsPresets?: PresetProduct[];
   productOptions: {
     CabinetColor: string;
     CabinetColorSku: string;
