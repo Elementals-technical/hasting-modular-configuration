@@ -1,6 +1,9 @@
 type DimensionAxis = "x" | "y" | "z";
 type DimensionUnit = "m" | "cm" | "mm" | "in" | "ft";
 type LabelPosition = "above" | "below" | "center";
+type HeightSegmentSide = "left" | "right" | "camera";
+type HeightSegmentLinePlacement = "outside" | "inside";
+type HeightSegmentLabelPlacement = "outside" | "inside" | "side";
 
 type Vec3Input = {
   x: number;
@@ -25,11 +28,32 @@ type DimensionValue = {
   labelTemplate?: string;
 };
 
+export type HeightSegmentValue = Omit<DimensionValue, "labelPosition"> & {
+  key?: string;
+  type?: string;
+  segment?: string;
+  nodes?: string[];
+  source?: string;
+  sourceNodes?: string[];
+  color?: string;
+  side?: HeightSegmentSide;
+  linePlacement?: HeightSegmentLinePlacement;
+  labelPlacement?: HeightSegmentLabelPlacement;
+  labelPosition?: LabelPosition | HeightSegmentLabelPlacement;
+  excludeNodeNames?: string[];
+};
+
+export type HeightSegmentsPayload =
+  | HeightSegmentValue[]
+  | Record<string, string | number | HeightSegmentValue>;
+
 type DimensionsBoxPayload = {
   nodes: string[];
   width?: string | DimensionValue;
   height?: string | DimensionValue;
   depth?: string | DimensionValue;
+  heightSegments?: HeightSegmentsPayload;
+  excludeNodeNames?: string[];
 };
 
 type DimensionsLinePayload = {

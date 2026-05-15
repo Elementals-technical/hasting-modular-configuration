@@ -22,6 +22,7 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
+  const productIdsKey = productIds.join("|");
 
   const generationRef = useRef(0);
   const onEmptySceneRef = useRef(onEmptyScene);
@@ -49,8 +50,10 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
   }, [
     isEnabled,
     isRestoring,
-    productIds,
-    selectedDimensions,
+    productIdsKey,
+    selectedDimensions.width,
+    selectedDimensions.height,
+    selectedDimensions.depth,
     sidePanelsOption,
     sidePanelLeft,
     sidePanelRight,
