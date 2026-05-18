@@ -2052,7 +2052,10 @@ export const CustomSummaryPage = () => {
 
             <p className={s.sectionHint}>Let us fill your swatch cart with your selected finishes</p>
 
-            <div className={s.swatchesListHeader}>Swatches list</div>
+            <div className={s.swatchesListHeader}>
+              <span>Swatches list</span>
+              <span className={s.swatchesListFree}>Free</span>
+            </div>
 
             <div className={s.swatchesList}>
               {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
