@@ -10,7 +10,7 @@ export { buildBookMatchingSku, type BookMatchingSkuInput } from "./buildBookMatc
 export { cmToInches } from "./cmToInches";
 export { toSkuDepth } from "./toSkuDepth";
 export { extractColorCode } from "./extractColorCode";
-export { resolveCabinetPricingMaterialSku } from "./resolveCabinetPricingMaterialSku";
+export { resolveCabinetPricingMaterialSku, resolveHandleGroovePricingMaterialSku } from "./resolveCabinetPricingMaterialSku";
 export {
   cabinetTypeSkuMap,
   drawerSkuMap,

@@ -1,6 +1,6 @@
 import { getOrderedProductIds } from "./getOrderedProductIds";
 import { getConfig } from "./getConfig";
-import { showDimensions, hideDimensions } from "./showDimensions";
+import { showDimensions, hideDimensions, type HeightSegmentsPayload } from "./showDimensions";
 import { getDimensionTool } from "./getDimensionTool";
 import { cmToInch, inchToCm } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
@@ -43,6 +43,27 @@ const formatInchesLabel = (value?: number) => {
   return `${normalized} "`;
 };
 
+const buildHeightSegments = (
+  cabinetHeightCm: number,
+  countertopThicknessInches: number,
+): HeightSegmentsPayload | undefined => {
+  const segmentDefinitions = [
+    { key: "cabinet", valueInches: cmToInch(cabinetHeightCm) },
+    { key: "countertop", valueInches: countertopThicknessInches },
+  ].filter(({ valueInches }) => valueInches > 0);
+
+  if (segmentDefinitions.length < 2) return undefined;
+
+  return Object.fromEntries(
+    segmentDefinitions.map(({ key, valueInches }) => [
+      key,
+      {
+        label: formatInchesLabel(valueInches),
+      },
+    ]),
+  );
+};
+
 /**
  * Computes full dimensions from all products in the scene and calls showDimensions().
  * Returns true if dimensions were shown, false otherwise.
@@ -77,6 +98,7 @@ export async function computeAndShowFullDimensions(options: FullDimensionsOption
     return Math.max(max, value ?? 0);
   }, fallbackThicknessInches ?? 0);
   const totalHeight = maxHeight + inchToCm(maxCountertopThicknessInches);
+  const heightSegments = buildHeightSegments(maxHeight, maxCountertopThicknessInches);
 
   const maxDepth = configs.reduce((max, config) => {
     const value = readNumericConfigValue(config, "Depth");
@@ -87,8 +109,10 @@ export async function computeAndShowFullDimensions(options: FullDimensionsOption
     box: {
       nodes: ids,
       width: { label: formatInchesLabel(cmToInch(totalWidth)), offset: 0.05 },
-      height: { label: formatInchesLabel(cmToInch(totalHeight)) },
       depth: { label: formatInchesLabel(cmToInch(maxDepth)) },
+      ...(heightSegments
+        ? { heightSegments }
+        : { height: { label: formatInchesLabel(cmToInch(totalHeight)) } }),
     },
     lines: widthByNode.map(({ node, width }) => ({
       node,

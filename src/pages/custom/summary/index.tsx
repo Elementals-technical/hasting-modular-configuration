@@ -76,6 +76,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
   resolveCountertopColorCodeFromCandidates,
   resolveCabinetPricingMaterialSku,
+  resolveHandleGroovePricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
   resolveOpenSideShelfSide,
@@ -603,6 +604,12 @@ export const CustomSummaryPage = () => {
     };
     const resolveMaterialColorCode = (colorValue: string | null | undefined, materialSku: string | null) =>
       extractColorCode(colorValue, { materialSku });
+    const resolveHandleGrooveMaterialSku = (cabinetMaterialSku: string | null) =>
+      resolveHandleGroovePricingMaterialSku({
+        cabinetMaterialSku,
+        colorName: handleGrooveColor,
+        materialSku: handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null,
+      });
     const shouldUsePresets = shouldUsePresetProducts({
       productsPresetsCount: productsPresets.length,
       productIdsCount: selectedProducts.length,
@@ -691,7 +698,7 @@ export const CustomSummaryPage = () => {
       const normalizedName = normalizeCabinetToken(productCabinetType ?? "");
       const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
-      const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+      const handlePricingMaterialSku = resolveHandleGrooveMaterialSku(cabinetMaterialSku);
 
       let sku: string;
       if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
@@ -734,8 +741,11 @@ export const CustomSummaryPage = () => {
                 grainDirection: grainSku,
               }
             : null,
-          hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+          hdl: handlePricingMaterialSku
+            ? {
+                materialSku: handlePricingMaterialSku,
+                colorCode: resolveMaterialColorCode(handleGrooveColor, handlePricingMaterialSku),
+              }
             : null,
           msp: null,
           bkpl: null,
@@ -780,6 +790,7 @@ export const CustomSummaryPage = () => {
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
           const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
+          const handlePricingMaterialSku = resolveHandleGrooveMaterialSku(cabinetMaterialSku);
           const normalizedPresetName = normalizeCabinetToken(preset.name ?? "");
           const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
           const subtitle = formatCabinetSubtitleForSummary({
@@ -828,8 +839,11 @@ export const CustomSummaryPage = () => {
                     grainDirection: grainSku,
                   }
                 : null,
-              hdl: handleMaterialSku
-                ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+              hdl: handlePricingMaterialSku
+                ? {
+                    materialSku: handlePricingMaterialSku,
+                    colorCode: resolveMaterialColorCode(handleGrooveColor, handlePricingMaterialSku),
+                  }
                 : null,
               msp: null,
               bkpl: null,
@@ -870,6 +884,7 @@ export const CustomSummaryPage = () => {
       (() => {
         const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
         const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
+        const handlePricingMaterialSku = resolveHandleGrooveMaterialSku(cabinetMaterialSku);
 
         const sku = buildProductSku({
           cabinetType: activeCabinetType,
@@ -886,8 +901,11 @@ export const CustomSummaryPage = () => {
                 grainDirection: grainSku,
               }
             : null,
-          hdl: handleMaterialSku
-            ? { materialSku: handleMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku) }
+          hdl: handlePricingMaterialSku
+            ? {
+                materialSku: handlePricingMaterialSku,
+                colorCode: resolveMaterialColorCode(handleGrooveColor, handlePricingMaterialSku),
+              }
             : null,
           msp: null,
           bkpl: null,
