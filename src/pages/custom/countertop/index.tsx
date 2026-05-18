@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 import {
   ProductOptionsGrid,
@@ -125,6 +125,7 @@ type MaterialFilterOption = {
 };
 
 export const CustomCountertopPage = () => {
+  const { key: locationKey } = useLocation();
   const [searchParams] = useSearchParams();
 
   const dispatch = useAppDispatch();
@@ -1868,6 +1869,7 @@ export const CustomCountertopPage = () => {
     values: accordionValues,
     defaultValue,
     requestedValue: searchParams.get("accordion"),
+    requestKey: locationKey,
   });
 
   return (

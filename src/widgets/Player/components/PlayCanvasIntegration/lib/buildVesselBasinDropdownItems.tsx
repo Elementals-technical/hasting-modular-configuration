@@ -12,12 +12,14 @@ import {
 
 type BuildVesselBasinDropdownItemsParams = {
   actions: SelectionAction[];
+  onOpenStyle: () => void;
   onOpenColor: () => void;
   onExecuteAction: (action: SelectionAction) => void | Promise<void>;
 };
 
 export const buildVesselBasinDropdownItems = ({
   actions,
+  onOpenStyle,
   onOpenColor,
   onExecuteAction,
 }: BuildVesselBasinDropdownItemsParams): DropdownItem[] =>
@@ -60,4 +62,17 @@ export const buildVesselBasinDropdownItems = ({
     });
 
     return items;
-  }, []);
+  }, [
+    {
+      id: "vessel-basin-style",
+      label: "Style",
+      children: [
+        {
+          id: "vessel-basin-style-select",
+          label: "Select Style",
+          trailing: <ArrowTopRight color={"#333"} />,
+          onClick: onOpenStyle,
+        },
+      ],
+    },
+  ]);
