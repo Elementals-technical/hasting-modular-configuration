@@ -40,11 +40,11 @@ export const AttributeHelper = {
     );
   },
 
-  getMaterialAcronym(attribute: AttributeValue): string | undefined {
+  getMaterialDisplayName(attribute: AttributeValue): string | undefined {
     return (
-      normalizeOptionalString(attribute?.metadata?.sku) ??
       normalizeOptionalString(attribute?.metadata?.Material) ??
-      normalizeOptionalString(attribute?.metadata?.Finish)
+      normalizeOptionalString(attribute?.metadata?.Finish) ??
+      normalizeOptionalString(attribute?.metadata?.sku)
     );
   },
 

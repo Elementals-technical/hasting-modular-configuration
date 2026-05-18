@@ -2065,8 +2065,8 @@ export const CustomSummaryPage = () => {
                   );
                 }
 
-                const tooltipLabel = swatch.materialAcronym
-                  ? `${swatch.label} ${swatch.materialAcronym}`
+                const tooltipLabel = swatch.materialLabel
+                  ? `${swatch.label} ${swatch.materialLabel}`
                   : swatch.label;
 
                 return (
@@ -2085,7 +2085,7 @@ export const CustomSummaryPage = () => {
                     />
                     <span id={`summary-swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
                       <span>{swatch.label}</span>
-                      {swatch.materialAcronym && <span className={s.tileTooltipAcronym}>{swatch.materialAcronym}</span>}
+                      {swatch.materialLabel && <span className={s.tileTooltipAcronym}>{swatch.materialLabel}</span>}
                     </span>
                   </div>
                 );
