@@ -6,8 +6,9 @@ type WrapExitTopViewOptions = {
 
 type ExitTopView = () => unknown;
 
+const toPromise = (value: unknown): Promise<unknown> => Promise.resolve(value);
+
 export function wrapExitTopView({ onExit }: WrapExitTopViewOptions): ExitTopView | null {
-  // @ts-ignore
   const containerRef = window.containerRef;
   const api = containerRef?.current?.contentWindow?.ConfiguratorAPI as
     | {
@@ -33,11 +34,17 @@ export function wrapExitTopView({ onExit }: WrapExitTopViewOptions): ExitTopView
       const drawerType = api.__activeDrawerType;
       api.__activeDrawerCabinetId = undefined;
       api.__activeDrawerType = undefined;
-      if (cabinetId && drawerType) {
-        api.closeDrawer?.(cabinetId, drawerType);
-      }
-      api.__exitTopViewOnExit?.();
-      return originalExitTopView();
+
+      const closeActiveDrawer = () => {
+        if (!cabinetId || !drawerType) return undefined;
+        return api.closeDrawer?.(cabinetId, drawerType);
+      };
+
+      return toPromise(originalExitTopView())
+        .then(closeActiveDrawer)
+        .finally(() => {
+          api.__exitTopViewOnExit?.();
+        });
     };
     api.__wrappedExitTopView = true;
   }

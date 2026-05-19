@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
   addProductPreset,
+  clearPlacedDividers,
+  clearPlacedDividersForCabinet,
   removeProductId,
   resetCabinetBuilderBootstrap,
   resetProducts,
@@ -70,6 +72,14 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
+import {
+  buildResetDividersConfig,
+  prepareCabinetDividersForResize,
+} from "@/utils/functions/playcanvas/dividers/prepareDividersForResize";
+import {
+  sanitizePlayCanvasMeshInstances,
+  watchPlayCanvasMeshInstancesDuringRender,
+} from "@/utils/functions/playcanvas/sanitizeMeshInstances";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
@@ -1036,7 +1046,16 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
+        await prepareCabinetDividersForResize(selectedSceneProduct);
+        dispatch(clearPlacedDividersForCabinet(selectedSceneProduct));
+        watchPlayCanvasMeshInstancesDuringRender();
+        await setConfig(selectedSceneProduct, buildResetDividersConfig());
+        watchPlayCanvasMeshInstancesDuringRender();
+        sanitizePlayCanvasMeshInstances();
+        await waitForNextAnimationFrame();
+        sanitizePlayCanvasMeshInstances();
         await setConfig(selectedSceneProduct, { Width: width });
+        sanitizePlayCanvasMeshInstances();
         await syncCountertopConfig();
 
         dispatch(setSelectedDimensions({ width }));
@@ -1057,7 +1076,18 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
+        for (const productId of productIds) {
+          await prepareCabinetDividersForResize(productId);
+        }
+        dispatch(clearPlacedDividers());
+        watchPlayCanvasMeshInstancesDuringRender();
+        await setConfigBatch({}, buildResetDividersConfig());
+        watchPlayCanvasMeshInstancesDuringRender();
+        sanitizePlayCanvasMeshInstances();
+        await waitForNextAnimationFrame();
+        sanitizePlayCanvasMeshInstances();
         await setConfigBatch({}, { Depth: depth });
+        sanitizePlayCanvasMeshInstances();
 
         dispatch(setSelectedDimensions({ depth }));
       } catch (error) {
@@ -1636,6 +1666,20 @@ export const PlayCanvasIntegration = () => {
     if (!productsPresets.length) return;
 
     const orderedIds = getOrderedProductIds();
+
+    if (action === "resize") {
+      for (const productId of orderedIds) {
+        await prepareCabinetDividersForResize(productId);
+      }
+      watchPlayCanvasMeshInstancesDuringRender();
+      await setConfigBatch(orderedIds, buildResetDividersConfig());
+      watchPlayCanvasMeshInstancesDuringRender();
+      sanitizePlayCanvasMeshInstances();
+      await waitForNextAnimationFrame();
+      sanitizePlayCanvasMeshInstances();
+      dispatch(clearPlacedDividers());
+    }
+
     const sceneConfigs = await Promise.all(orderedIds.map((productId) => getConfig(productId)));
 
     const updatedPresets = productsPresets.map((preset, index) => {
