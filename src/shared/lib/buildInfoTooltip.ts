@@ -14,6 +14,8 @@ const formatSidePanelDepthInches = (cm: number): string => {
   return formatInches(SIDE_PANEL_TOOLTIP_DEPTH_MAP[cm] ?? cm);
 };
 
+const formatDrawerPanelFluting = (value: string): string => value.replace(/([a-z])([A-Z])/g, "$1 $2");
+
 export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
   const str = (key: string) => {
     const v = desc[key];
@@ -34,11 +36,15 @@ export const buildInfoTooltip = (desc: Record<string, unknown>): string => {
     const widthIn = desc.Width != null ? formatInches(Number(desc.Width)) : null;
     const heightIn = desc.Height != null ? formatInches(Number(desc.Height)) : null;
     const depthIn = desc.Depth != null ? formatInches(Number(desc.Depth)) : null;
+    const drawerPanelFluting = str("Drawer Panel Fluting");
 
     const parts = [
       `${str("Products") ?? "Urban Standard"} Height cabinet: ${str("Cabinet Type") ?? "Cabinet"} unit`,
       str("Cabinet Style"),
       str("Handle Style") ? `${str("Handle Style")} handle` : null,
+      drawerPanelFluting && drawerPanelFluting !== "None"
+        ? `Drawer Panel Fluting: ${formatDrawerPanelFluting(drawerPanelFluting)}`
+        : null,
       widthIn ? `${widthIn}" W` : null,
       heightIn ? `${heightIn}" H` : null,
       depthIn ? `${depthIn}" D` : null,

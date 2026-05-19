@@ -2052,44 +2052,53 @@ export const CustomSummaryPage = () => {
 
             <p className={s.sectionHint}>Let us fill your swatch cart with your selected finishes</p>
 
-            <div className={s.swatchesListHeader}>Swatches list</div>
+            <div className={s.swatchesListHeader}>
+              <span>Swatches list</span>
+              <span className={s.swatchesListFree}>Free</span>
+            </div>
 
-            <div className={s.swatchesList}>
-              {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
-                const swatch = displayedSwatchesListPreview[index];
-                if (!swatch) {
+            <div className={s.swatchesListRow}>
+              <div className={s.swatchesList}>
+                {Array.from({ length: MAX_SWATCHES }).map((_, index) => {
+                  const swatch = displayedSwatchesListPreview[index];
+                  if (!swatch) {
+                    return (
+                      <div key={`empty-${index}`} className={s.swatchTile}>
+                        <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                      </div>
+                    );
+                  }
+
+                  const tooltipLabel = swatch.materialLabel
+                    ? `${swatch.label} ${swatch.materialLabel}`
+                    : swatch.label;
+
                   return (
-                    <div key={`empty-${index}`} className={s.swatchTile}>
-                      <span className={`${s.tileColor} ${s.tileEmpty}`} />
+                    <div key={swatch.value} className={s.swatchTile}>
+                      <span
+                        className={s.tileColor}
+                        style={{
+                          backgroundColor: swatch.color,
+                          backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                        tabIndex={0}
+                        aria-label={tooltipLabel}
+                        aria-describedby={`summary-swatch-tooltip-${index}`}
+                      />
+                      <span id={`summary-swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
+                        <span>{swatch.label}</span>
+                        {swatch.materialLabel && <span className={s.tileTooltipAcronym}>{swatch.materialLabel}</span>}
+                      </span>
                     </div>
                   );
-                }
+                })}
+              </div>
 
-                const tooltipLabel = swatch.materialAcronym
-                  ? `${swatch.label} ${swatch.materialAcronym}`
-                  : swatch.label;
-
-                return (
-                  <div key={swatch.value} className={s.swatchTile}>
-                    <span
-                      className={s.tileColor}
-                      style={{
-                        backgroundColor: swatch.color,
-                        backgroundImage: swatch.image ? `url(${swatch.image})` : undefined,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                      tabIndex={0}
-                      aria-label={tooltipLabel}
-                      aria-describedby={`summary-swatch-tooltip-${index}`}
-                    />
-                    <span id={`summary-swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
-                      <span>{swatch.label}</span>
-                      {swatch.materialAcronym && <span className={s.tileTooltipAcronym}>{swatch.materialAcronym}</span>}
-                    </span>
-                  </div>
-                );
-              })}
+              <button type="button" className={s.orderSwatchesButton} onClick={() => handleEditSection("swatches")}>
+                Order Swatches
+              </button>
             </div>
           </div>
         )}

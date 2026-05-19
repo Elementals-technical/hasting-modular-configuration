@@ -36,8 +36,8 @@ export const SwatchesList = () => {
           const image = AttributeHelper.getImage(val);
           const hex = AttributeHelper.getHexColor(val) ?? "#e5e5e5";
           const label = AttributeHelper.getValueLabel(val);
-          const materialAcronym = AttributeHelper.getMaterialAcronym(val);
-          const tooltipLabel = materialAcronym ? `${label} ${materialAcronym}` : label;
+          const materialLabel = AttributeHelper.getMaterialDisplayName(val);
+          const tooltipLabel = materialLabel ? `${label} ${materialLabel}` : label;
           const key = `${val.metadata?.label ?? index}/${val.parentName}`;
 
           return (
@@ -54,7 +54,7 @@ export const SwatchesList = () => {
               />
               <span id={`swatch-tooltip-${index}`} className={s.tileTooltip} role="tooltip">
                 <span>{label}</span>
-                {materialAcronym && <span className={s.tileTooltipAcronym}>{materialAcronym}</span>}
+                {materialLabel && <span className={s.tileTooltipAcronym}>{materialLabel}</span>}
               </span>
 
               <button

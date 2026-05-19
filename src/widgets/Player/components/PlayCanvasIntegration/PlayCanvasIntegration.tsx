@@ -2633,6 +2633,14 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
 
+  const handleOpenVesselBasinStyle = useCallback(() => {
+    dispatch(setCountertopStyle(VESSEL_PLACEHOLDER_SINK_TYPE));
+    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [dispatch, isPrebuilt, navigate]);
+
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
   }, [navigate]);
@@ -2733,10 +2741,16 @@ export const PlayCanvasIntegration = () => {
   const vesselBasinDropdownItems: DropdownItem[] = useMemo(() => {
     return buildVesselBasinDropdownItems({
       actions: vesselBasinSelectionInfo?.actions ?? [],
+      onOpenStyle: handleOpenVesselBasinStyle,
       onOpenColor: handleOpenVesselBasinColor,
       onExecuteAction: handleExecuteVesselBasinAction,
     });
-  }, [handleExecuteVesselBasinAction, handleOpenVesselBasinColor, vesselBasinSelectionInfo?.actions]);
+  }, [
+    handleExecuteVesselBasinAction,
+    handleOpenVesselBasinColor,
+    handleOpenVesselBasinStyle,
+    vesselBasinSelectionInfo?.actions,
+  ]);
 
   const activeDropdownItems = vesselBasinSelectionInfo ? vesselBasinDropdownItems : dropdownItems;
 

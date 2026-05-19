@@ -442,16 +442,61 @@
 }
 
 .swatchesListHeader {
+  position: relative;
+  width: fit-content;
   margin-bottom: 10px;
   color: #333;
   font-size: 13px;
   font-weight: 700;
 }
 
+.swatchesListFree {
+  position: absolute;
+  top: -6px;
+  right: -22px;
+  color: var(--swatch-accent, #df6f4a);
+  font-size: 8px;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.swatchesListRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .swatchesList {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.orderSwatchesButton {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #ac5331;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: #8f4326;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(172, 83, 49, 0.35);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
 }
 
 .swatchesMuted {
@@ -567,6 +612,11 @@
 
   .price {
     justify-self: start;
+  }
+
+  .swatchesListRow {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

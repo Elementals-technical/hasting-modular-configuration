@@ -6,11 +6,13 @@ type UseSyncedAccordionValueParams = {
   values: string[];
   defaultValue?: string;
   requestedValue?: string | null;
+  requestKey?: string;
 };
 
 type UserAccordionSelection = {
   value: string;
   requestedValue?: string | null;
+  requestKey?: string;
 };
 
 const COLLAPSED_ACCORDION_VALUE = "";
@@ -43,6 +45,7 @@ export const useSyncedAccordionValue = ({
   values,
   defaultValue,
   requestedValue,
+  requestKey,
 }: UseSyncedAccordionValueParams) => {
   const [userSelection, setUserSelection] = useState<UserAccordionSelection | null>(null);
 
@@ -55,7 +58,7 @@ export const useSyncedAccordionValue = ({
   const value = useMemo(() => {
     const selection = userSelection;
 
-    if (selection && selection.requestedValue === requestedValue) {
+    if (selection && selection.requestedValue === requestedValue && selection.requestKey === requestKey) {
       if (
         selection.value === COLLAPSED_ACCORDION_VALUE ||
         isAvailableValue(selection.value, availableValues)
@@ -65,11 +68,11 @@ export const useSyncedAccordionValue = ({
     }
 
     return resolveInitialValue({ values: availableValues, defaultValue, requestedValue });
-  }, [availableValues, defaultValue, requestedValue, userSelection]);
+  }, [availableValues, defaultValue, requestedValue, requestKey, userSelection]);
 
   const handleValueChange = useCallback((nextValue: string) => {
-    setUserSelection({ value: nextValue, requestedValue });
-  }, [requestedValue]);
+    setUserSelection({ value: nextValue, requestedValue, requestKey });
+  }, [requestedValue, requestKey]);
 
   return {
     value,

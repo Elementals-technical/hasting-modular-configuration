@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useGetConfiguratorQuery } from "@/entities";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { FAUCET_HOLE_HELPER_COPY } from "@/shared/constants/faucetHoles";
 import type { AccordionConfig } from "@/shared/constants/types";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -29,6 +30,8 @@ import {
   getCountertopMaterialTokensFromBasinType,
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
+
+import s from "./CustomFaucetHolesPage.module.scss";
 
 export const CustomFaucetHolesPage = () => {
   const dispatch = useAppDispatch();
@@ -137,6 +140,9 @@ export const CustomFaucetHolesPage = () => {
             selectedValue={faucetAmount}
             onSelectChange={handleFaucetAmountChange}
           />
+          {FAUCET_HOLE_HELPER_COPY[faucetAmount] && (
+            <p className={s.helperText}>{FAUCET_HOLE_HELPER_COPY[faucetAmount]}</p>
+          )}
         </>
       ),
     },

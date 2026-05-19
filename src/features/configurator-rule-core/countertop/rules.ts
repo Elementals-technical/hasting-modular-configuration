@@ -78,7 +78,6 @@ const resolveIntegratedWidthContext = (context: IntegratedWidthContext) => {
 
 const STYLE_WIDTH_EPSILON = 0.01;
 const DEFAULT_STYLE_DISABLED_REASON = "Not available for selected cabinet width/depth/thickness on scene";
-export const VESSEL_SINK_SIZE_UNAVAILABLE_REASON = "Not available for selected sink base cabinet size";
 
 const formatWidthCompatibilityDisabledReason = (maxWidth: number) =>
   `Not available for current configuration width, maximum compatibility size ${maxWidth} cm (${cmToInches(maxWidth)}").`;
@@ -90,6 +89,9 @@ const formatAllowedSinkBaseWidthsDisabledReason = (allowedWidths: number[]) => {
   const formattedAllowedWidths = allowedWidths.map((value) => `${value} cm (${cmToInches(value)}")`).join(", ");
   return `Not available for current sink base width. Allowed widths: ${formattedAllowedWidths}.`;
 };
+
+const formatVesselSinkMinWidthDisabledReason = (minWidth: number) =>
+  `Not available for selected sink base cabinet width. Minimum width required ${minWidth}cm (${cmToInches(minWidth)}")`;
 
 export const isRuleWidthEligibleForIntegratedContext = (
   rule: CountertopMatrixRule,
@@ -418,7 +420,7 @@ export const buildCountertopRuleState = ({
     vesselSinkAvailability = {
       isAvailable: false,
       minSinkBaseWidthCm: vesselSinkMinWidth,
-      disabledReason: VESSEL_SINK_SIZE_UNAVAILABLE_REASON,
+      disabledReason: formatVesselSinkMinWidthDisabledReason(vesselSinkMinWidth),
     };
   } else {
     vesselSinkAvailability = {
