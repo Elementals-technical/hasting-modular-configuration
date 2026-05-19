@@ -1816,7 +1816,6 @@ export const PlayCanvasIntegration = () => {
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
               showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-              openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
               setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
               dividers?: {
                 showIconDividerSlots?: (
@@ -1850,16 +1849,10 @@ export const PlayCanvasIntegration = () => {
 
         // Preview-only mode: hide divider slot "+" controls.
         hideDividerSlots();
-        const openResult = api?.openDrawer?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
+        const openResult = api?.showTopView?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
         const isThenable = !!openResult && typeof (openResult as Promise<unknown>).then === "function";
         if (isThenable) {
-          (openResult as Promise<unknown>)
-            .catch(() => null)
-            .then(() => {
-              api?.showTopView?.(drawerInfo.cabinetId, drawerType);
-            });
-        } else {
-          api?.showTopView?.(drawerInfo.cabinetId, drawerType);
+          (openResult as Promise<unknown>).catch(() => null);
         }
         window.setTimeout(hideDividerSlots, 0);
         window.setTimeout(hideDividerSlots, 250);
@@ -1883,7 +1876,7 @@ export const PlayCanvasIntegration = () => {
       parentEl.appendChild(button);
     });
 
-    onDrawerCloseWidgetRender((drawerInfo, parentEl) => {
+    onDrawerCloseWidgetRender((_, parentEl) => {
       parentEl.innerHTML = "";
       parentEl.style.pointerEvents = "auto";
 
@@ -1902,32 +1895,32 @@ export const PlayCanvasIntegration = () => {
 
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
-              closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
               exitTopView?: () => unknown;
             }
           | undefined;
 
-        const closeResult = api?.closeDrawer?.(drawerInfo.cabinetId, drawerInfo.drawerType) as
-          | Promise<unknown>
-          | unknown;
-        const isThenable = !!closeResult && typeof (closeResult as Promise<unknown>).then === "function";
-
         const finishClose = () => {
-          api?.exitTopView?.();
-          setVisibleDrawerButtons(true);
-          setDropdownState((prev) => ({ ...prev, visible: false }));
-          setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-          if (selectedSceneProduct) {
-            suppressNextDropdownOpenRef.current = true;
-            getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+          const exitResult = api?.exitTopView?.() as Promise<unknown> | unknown;
+          const isExitThenable = !!exitResult && typeof (exitResult as Promise<unknown>).then === "function";
+
+          const finalizeClose = () => {
+            setVisibleDrawerButtons(true);
+            setDropdownState((prev) => ({ ...prev, visible: false }));
+            setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+            if (selectedSceneProduct) {
+              suppressNextDropdownOpenRef.current = true;
+              getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+            }
+          };
+
+          if (isExitThenable) {
+            (exitResult as Promise<unknown>).catch(() => null).then(finalizeClose);
+          } else {
+            finalizeClose();
           }
         };
 
-        if (isThenable) {
-          (closeResult as Promise<unknown>).catch(() => null).then(finishClose);
-        } else {
-          finishClose();
-        }
+        finishClose();
       });
       parentEl.appendChild(button);
     });
