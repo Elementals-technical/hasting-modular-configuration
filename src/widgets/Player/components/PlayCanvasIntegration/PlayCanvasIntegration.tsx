@@ -1079,9 +1079,6 @@ export const PlayCanvasIntegration = () => {
         for (const productId of productIds) {
           await prepareCabinetDividersForResize(productId);
         }
-        dispatch(clearPlacedDividers());
-        watchPlayCanvasMeshInstancesDuringRender();
-        await setConfigBatch({}, buildResetDividersConfig());
         watchPlayCanvasMeshInstancesDuringRender();
         sanitizePlayCanvasMeshInstances();
         await waitForNextAnimationFrame();

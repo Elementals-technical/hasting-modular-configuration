@@ -758,7 +758,13 @@ export function usePriceCalculation() {
     // Prebuilt: each preset has its own W/H/D + sinkType
     // Custom:   each sceneConfig has its own W/H/D (sinkType global)
     // Fallback: single selectedDimensions
-    type ProductDims = { width: number | null; height: number | null; depth: number | null; sinkType: string | null };
+    type ProductDims = {
+      productId: string | null;
+      width: number | null;
+      height: number | null;
+      depth: number | null;
+      sinkType: string | null;
+    };
     let productDimsList: ProductDims[];
     const cabinetCount = shouldUsePresets
       ? productsPresets.length + sceneConfigs.length
@@ -769,13 +775,15 @@ export function usePriceCalculation() {
 
     if (shouldUsePresets) {
       productDimsList = [
-        ...productsPresets.map((p) => ({
+        ...productsPresets.map((p, index) => ({
+          productId: productIds[index] ?? null,
           width: p.Width ?? null,
           height: p.Height ?? null,
-          depth: p.Depth ?? null,
+          depth: selectedDimensions.depth ?? p.Depth ?? null,
           sinkType: shouldUsePresetSinkType ? (p.sinkType ?? resolvedSinkType) : resolvedSinkType,
         })),
         ...sceneConfigsInSceneOrder.map((cfg) => ({
+          productId: cfg.id ?? cfg._productId,
           width: cfg.Width,
           height: cfg.Height,
           depth: cfg.Depth,
@@ -799,6 +807,7 @@ export function usePriceCalculation() {
       ];
     } else if (sceneConfigs.length > 0) {
       productDimsList = sceneConfigs.map((cfg) => ({
+        productId: cfg.id ?? cfg._productId,
         width: cfg.Width,
         height: cfg.Height,
         depth: cfg.Depth,
@@ -816,6 +825,7 @@ export function usePriceCalculation() {
     } else {
       productDimsList = [
         {
+          productId: productIds[0] ?? null,
           width: selectedDimensions.width,
           height: selectedDimensions.height,
           depth: selectedDimensions.depth,
@@ -991,6 +1001,9 @@ export function usePriceCalculation() {
     }
 
     // Dividers — prefer per-slot placed types (A/B/C). Fallback to selected style per cabinet.
+    const resolveDividerDepth = (cabinetId: string): number | null =>
+      productDimsList.find((dims) => dims.productId === cabinetId)?.depth ?? null;
+
     if (placedDividers.length > 0) {
       const typeToStyle: Record<"A" | "B" | "C", "Option A" | "Option B" | "Option C"> = {
         A: "Option A",
@@ -1000,15 +1013,20 @@ export function usePriceCalculation() {
 
       placedDividers.forEach((divider, index) => {
         const style = typeToStyle[divider.type];
-        const divSku = style ? buildDividerSku({ dividerStyle: style }) : null;
+        const divSku = style
+          ? buildDividerSku({ dividerStyle: style, cabinetDepth: resolveDividerDepth(divider.cabinetId) })
+          : null;
         if (!divSku) return;
         console.log(LOG_PREFIX, `Resolver 4 (Divider #${index + 1}):`, divSku, divider);
         skus.push(divSku);
       });
     } else if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
-      const divSku = buildDividerSku({ dividerStyle: dividersStyle });
-      if (divSku) {
-        for (let i = 0; i < cabinetCount; i++) {
+      for (let i = 0; i < cabinetCount; i++) {
+        const divSku = buildDividerSku({
+          dividerStyle: dividersStyle,
+          cabinetDepth: productDimsList[i]?.depth ?? null,
+        });
+        if (divSku) {
           console.log(LOG_PREFIX, `Resolver 4 (Divider #${i + 1}):`, divSku);
           skus.push(divSku);
         }
