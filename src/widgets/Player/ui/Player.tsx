@@ -159,8 +159,16 @@ export function Player() {
     }
   };
 
-  const handleGenerateQuote = () => {
-    void printQuoteWithCurrentPreview();
+  const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
+
+  const handleGenerateQuote = async () => {
+    if (isGeneratingQuote) return;
+    setIsGeneratingQuote(true);
+    try {
+      await printQuoteWithCurrentPreview();
+    } finally {
+      setIsGeneratingQuote(false);
+    }
   };
 
   const handleCopyShareValue = async () => {
@@ -438,8 +446,15 @@ export function Player() {
       <BottomCanvasButtons />
 
       {isSummaryPage && (
-        <div className={s.generateBtn} onClick={handleGenerateQuote}>
-          <span>Generate Quote</span>
+        <div
+          className={s.generateBtn}
+          aria-disabled={isGeneratingQuote}
+          onClick={() => {
+            if (isGeneratingQuote) return;
+            void handleGenerateQuote();
+          }}
+        >
+          <span>{isGeneratingQuote ? "Generating..." : "Generate Quote"}</span>
           <QuoteIcon />
         </div>
       )}
