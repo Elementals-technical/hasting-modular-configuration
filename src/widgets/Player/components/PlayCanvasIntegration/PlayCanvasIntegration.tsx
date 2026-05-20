@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
   addProductPreset,
+  clearPlacedDividers,
+  clearPlacedDividersForCabinet,
   removeProductId,
   resetCabinetBuilderBootstrap,
   resetProducts,
@@ -70,6 +72,14 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
+import {
+  buildResetDividersConfig,
+  prepareCabinetDividersForResize,
+} from "@/utils/functions/playcanvas/dividers/prepareDividersForResize";
+import {
+  sanitizePlayCanvasMeshInstances,
+  watchPlayCanvasMeshInstancesDuringRender,
+} from "@/utils/functions/playcanvas/sanitizeMeshInstances";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
@@ -1036,7 +1046,16 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
+        await prepareCabinetDividersForResize(selectedSceneProduct);
+        dispatch(clearPlacedDividersForCabinet(selectedSceneProduct));
+        watchPlayCanvasMeshInstancesDuringRender();
+        await setConfig(selectedSceneProduct, buildResetDividersConfig());
+        watchPlayCanvasMeshInstancesDuringRender();
+        sanitizePlayCanvasMeshInstances();
+        await waitForNextAnimationFrame();
+        sanitizePlayCanvasMeshInstances();
         await setConfig(selectedSceneProduct, { Width: width });
+        sanitizePlayCanvasMeshInstances();
         await syncCountertopConfig();
 
         dispatch(setSelectedDimensions({ width }));
@@ -1057,7 +1076,15 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
+        for (const productId of productIds) {
+          await prepareCabinetDividersForResize(productId);
+        }
+        watchPlayCanvasMeshInstancesDuringRender();
+        sanitizePlayCanvasMeshInstances();
+        await waitForNextAnimationFrame();
+        sanitizePlayCanvasMeshInstances();
         await setConfigBatch({}, { Depth: depth });
+        sanitizePlayCanvasMeshInstances();
 
         dispatch(setSelectedDimensions({ depth }));
       } catch (error) {
@@ -1636,6 +1663,20 @@ export const PlayCanvasIntegration = () => {
     if (!productsPresets.length) return;
 
     const orderedIds = getOrderedProductIds();
+
+    if (action === "resize") {
+      for (const productId of orderedIds) {
+        await prepareCabinetDividersForResize(productId);
+      }
+      watchPlayCanvasMeshInstancesDuringRender();
+      await setConfigBatch(orderedIds, buildResetDividersConfig());
+      watchPlayCanvasMeshInstancesDuringRender();
+      sanitizePlayCanvasMeshInstances();
+      await waitForNextAnimationFrame();
+      sanitizePlayCanvasMeshInstances();
+      dispatch(clearPlacedDividers());
+    }
+
     const sceneConfigs = await Promise.all(orderedIds.map((productId) => getConfig(productId)));
 
     const updatedPresets = productsPresets.map((preset, index) => {
@@ -1772,7 +1813,6 @@ export const PlayCanvasIntegration = () => {
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
               showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
-              openDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
               setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
               dividers?: {
                 showIconDividerSlots?: (
@@ -1806,16 +1846,10 @@ export const PlayCanvasIntegration = () => {
 
         // Preview-only mode: hide divider slot "+" controls.
         hideDividerSlots();
-        const openResult = api?.openDrawer?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
+        const openResult = api?.showTopView?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
         const isThenable = !!openResult && typeof (openResult as Promise<unknown>).then === "function";
         if (isThenable) {
-          (openResult as Promise<unknown>)
-            .catch(() => null)
-            .then(() => {
-              api?.showTopView?.(drawerInfo.cabinetId, drawerType);
-            });
-        } else {
-          api?.showTopView?.(drawerInfo.cabinetId, drawerType);
+          (openResult as Promise<unknown>).catch(() => null);
         }
         window.setTimeout(hideDividerSlots, 0);
         window.setTimeout(hideDividerSlots, 250);
@@ -1839,7 +1873,7 @@ export const PlayCanvasIntegration = () => {
       parentEl.appendChild(button);
     });
 
-    onDrawerCloseWidgetRender((drawerInfo, parentEl) => {
+    onDrawerCloseWidgetRender((_, parentEl) => {
       parentEl.innerHTML = "";
       parentEl.style.pointerEvents = "auto";
 
@@ -1858,32 +1892,32 @@ export const PlayCanvasIntegration = () => {
 
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
-              closeDrawer?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
               exitTopView?: () => unknown;
             }
           | undefined;
 
-        const closeResult = api?.closeDrawer?.(drawerInfo.cabinetId, drawerInfo.drawerType) as
-          | Promise<unknown>
-          | unknown;
-        const isThenable = !!closeResult && typeof (closeResult as Promise<unknown>).then === "function";
-
         const finishClose = () => {
-          api?.exitTopView?.();
-          setVisibleDrawerButtons(true);
-          setDropdownState((prev) => ({ ...prev, visible: false }));
-          setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-          if (selectedSceneProduct) {
-            suppressNextDropdownOpenRef.current = true;
-            getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+          const exitResult = api?.exitTopView?.() as Promise<unknown> | unknown;
+          const isExitThenable = !!exitResult && typeof (exitResult as Promise<unknown>).then === "function";
+
+          const finalizeClose = () => {
+            setVisibleDrawerButtons(true);
+            setDropdownState((prev) => ({ ...prev, visible: false }));
+            setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+            if (selectedSceneProduct) {
+              suppressNextDropdownOpenRef.current = true;
+              getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+            }
+          };
+
+          if (isExitThenable) {
+            (exitResult as Promise<unknown>).catch(() => null).then(finalizeClose);
+          } else {
+            finalizeClose();
           }
         };
 
-        if (isThenable) {
-          (closeResult as Promise<unknown>).catch(() => null).then(finishClose);
-        } else {
-          finishClose();
-        }
+        finishClose();
       });
       parentEl.appendChild(button);
     });

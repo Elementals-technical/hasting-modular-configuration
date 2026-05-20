@@ -565,6 +565,9 @@ const productSlice = createSlice({
     removePlacedDivider(state, action: PayloadAction<string>) {
       state.placedDividers = state.placedDividers.filter((d) => d.key !== action.payload);
     },
+    clearPlacedDividersForCabinet(state, action: PayloadAction<string>) {
+      state.placedDividers = state.placedDividers.filter((d) => d.cabinetId !== action.payload);
+    },
     clearPlacedDividers(state) {
       state.placedDividers = [];
     },
@@ -663,6 +666,7 @@ export const {
   setDividersStyle,
   addPlacedDivider,
   removePlacedDivider,
+  clearPlacedDividersForCabinet,
   clearPlacedDividers,
   setTowelBarOption,
   setTowelBarColor,

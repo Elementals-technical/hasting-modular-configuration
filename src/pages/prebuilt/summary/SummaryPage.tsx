@@ -1496,12 +1496,40 @@ export const SummaryPage = () => {
     }
 
     const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
+    const dividerDepthByCabinetId = new Map<string, number | null>();
+
+    sceneProductConfigsInSceneOrder.forEach((config) => {
+      const depth = typeof config.Depth === "number" ? config.Depth : null;
+      dividerDepthByCabinetId.set(config.id, depth);
+      dividerDepthByCabinetId.set(config._productId, depth);
+    });
+
+    productsPresets.forEach((preset, index) => {
+      const productId = selectedProducts[index];
+      if (!productId || dividerDepthByCabinetId.has(productId)) return;
+      dividerDepthByCabinetId.set(productId, selectedDimensions.depth ?? preset.Depth ?? null);
+    });
+
+    const resolveDividerDepthByIndex = (index: number): number | null => {
+      if (shouldUsePresets && index < productsPresets.length) {
+        return selectedDimensions.depth ?? productsPresets[index]?.Depth ?? null;
+      }
+
+      const configIndex = shouldUsePresets ? index - productsPresets.length : index;
+      const depth = cabinetConfigs[configIndex]?.Depth;
+      return typeof depth === "number" ? depth : selectedDimensions.depth;
+    };
 
     const dividerItems: SummaryItem[] = (() => {
       if (placedDividers.length > 0) {
         return placedDividers.map((divider, index) => {
           const style = typeToStyleMap[divider.type];
-          const sku = style ? buildDividerSku({ dividerStyle: style }) : null;
+          const sku = style
+            ? buildDividerSku({
+                dividerStyle: style,
+                cabinetDepth: dividerDepthByCabinetId.get(divider.cabinetId) ?? null,
+              })
+            : null;
           const unitPrice = sku ? (priceBySku[sku] ?? 0) : 0;
           return {
             id: `accessories-dividers-${divider.key}-${index}`,
@@ -1518,19 +1546,28 @@ export const SummaryPage = () => {
 
       // Fallback: style selected but no individual dividers placed — one per cabinet
       if (dividersStyle && dividersStyle !== "None") {
-        const sku = buildDividerSku({ dividerStyle: dividersStyle });
-        if (!sku) return [];
-        const unitPrice = priceBySku[sku] ?? 0;
-        return Array.from({ length: cabinetCount }, (_, index) => ({
-          id: `accessories-dividers-style-${index}`,
-          title: "Dividers",
-          subtitle: dividersStyle,
-          sku,
-          price: formatPrice(unitPrice),
-          copyable: true,
-          showInfo: true,
-          description: { "Product Category": "Divider", "Divider Style": dividersStyle },
-        }));
+        const items: SummaryItem[] = [];
+
+        for (let index = 0; index < cabinetCount; index += 1) {
+          const sku = buildDividerSku({
+            dividerStyle: dividersStyle,
+            cabinetDepth: resolveDividerDepthByIndex(index),
+          });
+          if (!sku) continue;
+          const unitPrice = priceBySku[sku] ?? 0;
+          items.push({
+            id: `accessories-dividers-style-${index}`,
+            title: "Dividers",
+            subtitle: dividersStyle,
+            sku,
+            price: formatPrice(unitPrice),
+            copyable: true,
+            showInfo: true,
+            description: { "Product Category": "Divider", "Divider Style": dividersStyle },
+          });
+        }
+
+        return items;
       }
 
       return [];
