@@ -67,6 +67,32 @@ const resolvePageElements = (clone: HTMLElement): HTMLElement[] => {
   return children.length ? children : [clone];
 };
 
+const isHyperlinkHref = (href: string | null): href is string => {
+  if (!href) return false;
+  const trimmed = href.trim();
+  if (!trimmed || trimmed.startsWith("#")) return false;
+  return true;
+};
+
+const addAnchorAnnotations = (pdf: jsPDF, pageElement: HTMLElement) => {
+  const pageRect = pageElement.getBoundingClientRect();
+  if (pageRect.width <= 0 || pageRect.height <= 0) return;
+
+  const anchors = pageElement.querySelectorAll<HTMLAnchorElement>("a[href]");
+  anchors.forEach((anchor) => {
+    const href = anchor.getAttribute("href");
+    if (!isHyperlinkHref(href)) return;
+
+    const rect = anchor.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    const x = rect.left - pageRect.left;
+    const y = rect.top - pageRect.top;
+
+    pdf.link(x, y, rect.width, rect.height, { url: href });
+  });
+};
+
 export const printQuote = async (options: PrintQuoteOptions = {}) => {
   const content = document.getElementById("quote-print-root") ?? document.getElementById("summary-content");
   if (!content) return;
@@ -119,6 +145,7 @@ export const printQuote = async (options: PrintQuoteOptions = {}) => {
         pdf.addPage([PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT], "landscape");
       }
       pdf.addImage(imageData, "PNG", 0, 0, PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT);
+      addAnchorAnnotations(pdf, pageElement);
     }
 
     pdf.save(buildFileName(options.fileName));
