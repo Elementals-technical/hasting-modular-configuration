@@ -109,6 +109,7 @@ import {
   toSwatchPreview,
   MAX_SLOTS as MAX_SWATCHES,
   openSwatchOrder,
+  type AutofillValueRequest,
 } from "@/features/swatchOrder";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
@@ -250,6 +251,19 @@ const sidePanelLabelMap: Record<string, string> = {
 const SIDE_PANEL_SUMMARY_DEPTH_MAP: Record<number, number> = {
   46: 45.5,
   50.5: 50,
+};
+
+// Maps a summary `section.id` to the Threekit parent group name the section's
+// swatch values originate from. Used to disambiguate variants that share the
+// same `value` across multiple Threekit groups (e.g. "Aragosta 77 MT" present
+// in both Cabinet Color and Countertop Color groups).
+const inferSummarySectionParentName = (sectionId: string): string | undefined => {
+  if (sectionId === "color" || sectionId.startsWith("cabinet")) return "Cabinet Color";
+  if (sectionId.startsWith("countertop")) return "Countertop Color";
+  if (sectionId.startsWith("basin")) return "Vessels";
+  if (sectionId.startsWith("accessories-side-panel")) return "Cabinet Color";
+  if (sectionId.startsWith("accessories-towel-bar")) return "Towel Bar Color";
+  return undefined;
 };
 
 const normalizeSidePanelSummaryDepth = (value: number | null): number | null => {
@@ -1886,10 +1900,22 @@ export const SummaryPage = () => {
     () => adaptThreekitConfig(cabinetColors, { countertopRules }),
     [cabinetColors, countertopRules],
   );
-  const summaryAutofillValues = useMemo(() => {
-    const values = summarySections.flatMap((section) => section.items.map((item) => item.swatch?.value));
-    values.push(handleGrooveColor, towelBarColor, vesselColor);
-    return values;
+  const summaryAutofillValues = useMemo<AutofillValueRequest[]>(() => {
+    const requests: AutofillValueRequest[] = [];
+    summarySections.forEach((section) => {
+      const preferredParentName = inferSummarySectionParentName(section.id);
+      section.items.forEach((item) => {
+        if (item.swatch?.value) {
+          requests.push({ value: item.swatch.value, preferredParentName });
+        }
+      });
+    });
+    requests.push(
+      { value: handleGrooveColor, preferredParentName: "Handle Groove Color" },
+      { value: towelBarColor, preferredParentName: "Towel Bar Color" },
+      { value: vesselColor, preferredParentName: "Vessels" },
+    );
+    return requests;
   }, [summarySections, handleGrooveColor, towelBarColor, vesselColor]);
   const autofillMaterials = useMemo(
     () =>
