@@ -105,7 +105,7 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
               dispatch(isSidebarOpen ? close() : open());
             }}
           >
-            Select {title} <span>{<ArrowDown width="12" height="12" />}</span>
+            {title} <span>{<ArrowDown width="12" height="12" />}</span>
           </div>
         ) : (
           <div>Your Configuration</div>
