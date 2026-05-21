@@ -103,7 +103,13 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
     () =>
       deriveAutofillMaterials({
         allMaterialValues: mapped.allMaterialValues,
-        values: [cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor],
+        values: [
+          { value: cabinetColor, preferredParentName: "Cabinet Color" },
+          { value: handleGrooveColor, preferredParentName: "Handle Groove Color" },
+          { value: countertopColor, preferredParentName: COUNTERTOP_PRODUCT_ELEMENT },
+          { value: towelBarColor, preferredParentName: "Towel Bar Color" },
+          { value: vesselColor, preferredParentName: "Vessels" },
+        ],
       }),
     [mapped.allMaterialValues, cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor],
   );

@@ -568,6 +568,12 @@ const productSlice = createSlice({
     clearPlacedDividersForCabinet(state, action: PayloadAction<string>) {
       state.placedDividers = state.placedDividers.filter((d) => d.cabinetId !== action.payload);
     },
+    clearTopPlacedDividersForCabinets(state, action: PayloadAction<string[]>) {
+      const cabinetIds = new Set(action.payload);
+      state.placedDividers = state.placedDividers.filter(
+        (divider) => !cabinetIds.has(divider.cabinetId) || divider.drawerType === "Bot",
+      );
+    },
     clearPlacedDividers(state) {
       state.placedDividers = [];
     },
@@ -667,6 +673,7 @@ export const {
   addPlacedDivider,
   removePlacedDivider,
   clearPlacedDividersForCabinet,
+  clearTopPlacedDividersForCabinets,
   clearPlacedDividers,
   setTowelBarOption,
   setTowelBarColor,

@@ -32,6 +32,7 @@ export {
   deriveAutofillMaterials,
   mergeAutofillWithSelectedMaterials,
   areSameMaterialLists,
+  type AutofillValueRequest,
 } from "./lib/deriveAutofillMaterials";
 export { resolveSwatchesSummaryState } from "./lib/resolveSwatchesSummaryState";
 export { MAX_SLOTS } from "./model/constants";

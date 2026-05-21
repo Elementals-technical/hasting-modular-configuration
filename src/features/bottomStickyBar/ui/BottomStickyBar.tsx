@@ -3,7 +3,7 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import s from "./BottomStickyBar.module.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
-import { type PropsWithChildren, useSyncExternalStore } from "react";
+import { type PropsWithChildren, useState, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
@@ -31,6 +31,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
   const isSummaryPage = location.pathname.includes("/summary");
   const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
   const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
+  const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
@@ -43,9 +44,16 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
     }
   };
 
-  const handleQuoteClick = () => {
+  const handleQuoteClick = async () => {
+    if (isGeneratingQuote) return;
+
     if (isSummaryPage) {
-      void printQuoteWithCurrentPreview();
+      setIsGeneratingQuote(true);
+      try {
+        await printQuoteWithCurrentPreview();
+      } finally {
+        setIsGeneratingQuote(false);
+      }
       return;
     }
 
@@ -82,12 +90,14 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
         <span className={s.showroom_link}>
           <Link
             to="#"
+            aria-disabled={isGeneratingQuote}
             onClick={(e) => {
               e.preventDefault();
-              handleQuoteClick();
+              if (isGeneratingQuote) return;
+              void handleQuoteClick();
             }}
           >
-            <span>Quote</span>
+            <span>{isGeneratingQuote ? "Generating..." : "Quote"}</span>
             <span className={s.icon}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -6,17 +6,41 @@ const toLookupValue = (item: AttributeValue): string => item.metadata?.value ?? 
 const toIdentity = (item: AttributeValue): string =>
   `${item.parentName}__${item.metadata?.label ?? item.label}`;
 
-const normalizeValues = (values: Array<string | null | undefined>): string[] => {
-  const unique = new Set<string>();
+export type AutofillValueRequest =
+  | string
+  | null
+  | undefined
+  | { value: string | null | undefined; preferredParentName?: string };
 
-  values.forEach((value) => {
-    if (typeof value !== "string") return;
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    unique.add(trimmed);
-  });
+type NormalizedAutofillRequest = { value: string; preferredParentName?: string };
 
-  return Array.from(unique);
+const normalizeAutofillRequest = (request: AutofillValueRequest): NormalizedAutofillRequest | null => {
+  if (request === null || request === undefined) return null;
+  if (typeof request === "string") {
+    const trimmed = request.trim();
+    return trimmed ? { value: trimmed } : null;
+  }
+  if (typeof request.value !== "string") return null;
+  const trimmed = request.value.trim();
+  if (!trimmed) return null;
+  return { value: trimmed, preferredParentName: request.preferredParentName };
+};
+
+// Picks the variant whose parentName matches the slot the user is autofilling
+// from. The same `value` (e.g. "Aragosta 77 MT") can exist under multiple
+// Threekit groups (Cabinet Color, Countertop Color, …) — without this hint
+// the first occurrence wins and the swatch lands under the wrong parentName,
+// which breaks parent-scoped UI logic such as material-family acronyms.
+const selectVariantForRequest = (
+  variants: AttributeValue[],
+  preferredParentName?: string,
+): AttributeValue | undefined => {
+  if (!variants.length) return undefined;
+  if (preferredParentName) {
+    const preferred = variants.find((item) => item.parentName === preferredParentName);
+    if (preferred) return preferred;
+  }
+  return variants[0];
 };
 
 export const deriveAutofillMaterials = ({
@@ -25,21 +49,24 @@ export const deriveAutofillMaterials = ({
   limit = MAX_SLOTS,
 }: {
   allMaterialValues: AttributeValue[];
-  values: Array<string | null | undefined>;
+  values: Array<AutofillValueRequest>;
   limit?: number;
 }): AttributeValue[] => {
   if (!allMaterialValues.length || limit <= 0) return [];
 
-  const wantedValues = normalizeValues(values);
-  if (!wantedValues.length) return [];
+  const requests = values
+    .map(normalizeAutofillRequest)
+    .filter((request): request is NormalizedAutofillRequest => request !== null);
+  if (!requests.length) return [];
 
   const seen = new Set<string>();
   const resolved: AttributeValue[] = [];
 
-  wantedValues.forEach((wantedValue) => {
+  requests.forEach(({ value, preferredParentName }) => {
     if (resolved.length >= limit) return;
 
-    const match = allMaterialValues.find((item) => toLookupValue(item) === wantedValue);
+    const matches = allMaterialValues.filter((item) => toLookupValue(item) === value);
+    const match = selectVariantForRequest(matches, preferredParentName);
     if (!match) return;
 
     const identity = toIdentity(match);
