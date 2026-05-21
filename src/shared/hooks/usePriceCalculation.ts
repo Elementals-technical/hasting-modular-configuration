@@ -190,7 +190,7 @@ export function usePriceCalculation() {
     // When presets exist the bootstrap phase calls addProductId for each preset product first.
     // Only products whose index is >= presetsCount are truly "extra" (added via sidebar).
     // Special cases:
-    //  - On the prebuilt page productIds is empty (no bootstrap yet) — keep preset path.
+    //  - On the prebuilt page productIds can be empty before PlayCanvas preset ids are synced — keep preset path.
     //  - In Custom Mode, once productIds has been populated by bootstrap and then drops
     //    below presetsCount (user deleted a preset product), fall back to fetching ALL
     //    productIds — the preset-based slicing assumption no longer holds.
