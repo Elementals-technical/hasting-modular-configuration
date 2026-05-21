@@ -124,6 +124,7 @@ import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownIte
 import {
   canExecuteSetConfigSelectionAction,
   findVesselBasinSelectionInfo,
+  isVesselBasinSelectionInfo,
   VESSEL_PLACEHOLDER_SINK_TYPE,
 } from "./lib/vesselBasinSelection";
 
@@ -2668,12 +2669,12 @@ export const PlayCanvasIntegration = () => {
   }, [isPrebuilt, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
-    dispatch(setCountertopStyle(VESSEL_PLACEHOLDER_SINK_TYPE));
+    dispatch(setCountertopStyle(isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated"));
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [dispatch, isPrebuilt, navigate]);
+  }, [dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
 
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");

@@ -5,6 +5,7 @@ import type {
 } from "@/utils/functions/playcanvas/getSelectTool";
 
 export const VESSEL_BASIN_SELECTION_TYPE = "vessel-basin";
+export const SINK_BASIN_SELECTION_TYPE = "sink-basin";
 export const VESSEL_PLACEHOLDER_SINK_TYPE = "Vessel";
 export const SELECTION_ACTION_COLOR_ID = "color";
 export const SELECTION_ACTION_DELETE_ID = "delete";
@@ -18,8 +19,14 @@ export const normalizeSelectionActionKey = (action: SelectionAction): string =>
 export const isVesselBasinSelectionInfo = (info: SelectionInfo | null | undefined): info is SelectionInfo =>
   info?.selectionType === VESSEL_BASIN_SELECTION_TYPE;
 
+export const isSinkBasinSelectionInfo = (info: SelectionInfo | null | undefined): info is SelectionInfo =>
+  info?.selectionType === SINK_BASIN_SELECTION_TYPE;
+
+export const isInPlayerBasinSelectionInfo = (info: SelectionInfo | null | undefined): info is SelectionInfo =>
+  isVesselBasinSelectionInfo(info) || isSinkBasinSelectionInfo(info);
+
 export const findVesselBasinSelectionInfo = (selectionInfo: SelectionInfo[] | undefined): SelectionInfo | null =>
-  selectionInfo?.find(isVesselBasinSelectionInfo) ?? null;
+  selectionInfo?.find(isInPlayerBasinSelectionInfo) ?? null;
 
 const isSelectionActionConfig = (value: unknown): value is SelectionActionConfig =>
   typeof value === "object" && value !== null && !Array.isArray(value);
