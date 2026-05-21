@@ -49,6 +49,7 @@ import {
   setCabinetCatalog,
   setPlacedCabinetStyle,
   switchAllCabinetsDrawerStyle,
+  clearTopPlacedDividersForCabinets,
 } from "@/entities/product/model/store/slice";
 
 import {
@@ -163,6 +164,13 @@ const mapConfigToDrawerValue = (config?: string): string | null => {
   if (config === "2D") return "2";
   if (config === "1DWID") return "1+inner";
   return null;
+};
+
+const readConfigDrawerValue = (config: unknown): string | null => {
+  if (!config || typeof config !== "object") return null;
+
+  const drawers = (config as Record<string, unknown>).Drawers;
+  return typeof drawers === "string" ? mapConfigToDrawerValue(drawers) : null;
 };
 
 export const CabinetBuilderPage = () => {
@@ -595,9 +603,36 @@ export const CabinetBuilderPage = () => {
 
     await saveSnapshot();
 
+    const configsBeforeDrawerChange =
+      drawerRawValue === "1" && cabinetIdsToUpdate.length > 0
+        ? await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)))
+        : [];
+    const topDividerClearCabinetIds =
+      drawerRawValue === "1"
+        ? cabinetIdsToUpdate.filter((productId, index) => {
+            const previousDrawerValue =
+              placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
+            return previousDrawerValue === "2";
+          })
+        : [];
+    const topDividerClearCabinetIdSet = new Set(topDividerClearCabinetIds);
+
     // 1. Apply Drawers to placed products (per-product IDs)
     if (cabinetIdsToUpdate.length > 0) {
-      await setConfigBatch(cabinetIdsToUpdate, { Drawers: mappedValue });
+      const cabinetIdsToKeepDividers = cabinetIdsToUpdate.filter(
+        (productId) => !topDividerClearCabinetIdSet.has(productId),
+      );
+
+      if (cabinetIdsToKeepDividers.length > 0) {
+        await setConfigBatch(cabinetIdsToKeepDividers, { Drawers: mappedValue });
+      }
+
+      if (topDividerClearCabinetIds.length > 0) {
+        await setConfigBatch(topDividerClearCabinetIds, {
+          Drawers: mappedValue,
+          TopDrawerDividers: { zones: {} },
+        });
+      }
     }
 
     // Height and Handle must use the broadcast form setConfigBatch({}) — same pattern as the sidebar
@@ -643,6 +678,9 @@ export const CabinetBuilderPage = () => {
     cabinetIdsToUpdate.forEach((productId) => {
       dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
     });
+    if (topDividerClearCabinetIds.length > 0) {
+      dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
+    }
     dispatch(
       switchAllCabinetsDrawerStyle({
         configValue: mappedValue,
