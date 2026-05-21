@@ -321,20 +321,53 @@ export const buildCountertopRuleState = ({
         return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
       }
 
-      const maxCompatibleWidthCm = integratedRules
+      // Reachable rules = those whose sink-base preconditions (minSbCm, integratedAllowedSizesOnly)
+      // are satisfied by the current setup. maxCompatibleWidthCm and width-eligibility
+      // must be computed on the same subset, otherwise an unreachable outlier with a
+      // higher max_integrated_cm inflates the displayed max and/or bypasses the guard.
+      const currentSinkBaseWidthValue = integratedWidthContext.sinkBaseWidth;
+      const isRuleSinkBaseReachable = (rule: CountertopMatrixRule): boolean => {
+        if (typeof currentSinkBaseWidthValue !== "number") return true;
+        if (rule.minSbCm !== null && currentSinkBaseWidthValue + STYLE_WIDTH_EPSILON < rule.minSbCm) return false;
+        if (
+          rule.integratedAllowedSizesOnly.length > 0 &&
+          !rule.integratedAllowedSizesOnly.some(
+            (value) => Math.abs(value - currentSinkBaseWidthValue) < STYLE_WIDTH_EPSILON,
+          )
+        ) {
+          return false;
+        }
+        return true;
+      };
+
+      const sinkBaseReachableIntegratedRules = integratedRules.filter(isRuleSinkBaseReachable);
+
+      const maxCompatibleWidthCm = (
+        sinkBaseReachableIntegratedRules.length > 0 ? sinkBaseReachableIntegratedRules : integratedRules
+      )
         .map((rule) => rule.maxIntegratedCm)
         .filter((value): value is number => value !== null)
         .reduce<number | null>((currentMax, value) => (currentMax === null || value > currentMax ? value : currentMax), null);
 
-      if (integratedRules.some((rule) => isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext))) {
+      // Global integrated-max invariant evaluated against the reachable subset only.
+      // Per-rule eligibility skips the max check when a rule omits max_integrated_cm,
+      // so without this guard a permissive reachable rule would mark Integrated available
+      // beyond the cap (e.g. user in Vessel at 260cm vs max_integrated_cm=251).
+      const exceedsKnownIntegratedMaxWidth =
+        typeof integratedWidthContext.totalWidth === "number" &&
+        maxCompatibleWidthCm !== null &&
+        integratedWidthContext.totalWidth > maxCompatibleWidthCm + STYLE_WIDTH_EPSILON;
+
+      if (
+        !exceedsKnownIntegratedMaxWidth &&
+        sinkBaseReachableIntegratedRules.some((rule) =>
+          isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext),
+        )
+      ) {
         return { isAvailable: true, maxCompatibleWidthCm };
       }
 
-      if (
-        typeof integratedWidthContext.totalWidth === "number" &&
-        maxCompatibleWidthCm !== null &&
-        integratedWidthContext.totalWidth > maxCompatibleWidthCm + STYLE_WIDTH_EPSILON
-      ) {
+      if (exceedsKnownIntegratedMaxWidth) {
         return {
           isAvailable: false,
           maxCompatibleWidthCm,
