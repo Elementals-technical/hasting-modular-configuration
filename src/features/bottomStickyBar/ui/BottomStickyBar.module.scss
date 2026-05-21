@@ -12,6 +12,29 @@
 
 .bottomBar > .nextStepWrapp {
   width: 45%;
+  gap: 10px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
+  padding: 0;
+
+  background: #fff;
+  border: 1px solid #282828;
+  border-radius: 50%;
+
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: #f4f6fa;
+  }
 }
 
 .bottomBar {
@@ -62,6 +85,12 @@
 
   .nextStepWrapp button {
     padding: 10px 9px !important;
+  }
+
+  .backButton {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
   }
 
   .showroom_link {
