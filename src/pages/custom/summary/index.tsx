@@ -200,6 +200,7 @@ type SummaryItem = {
     value: string;
     color: string;
     image?: string;
+    materialSku?: string | null;
   };
   price: string;
   priceLabel?: string;
@@ -776,6 +777,7 @@ export const CustomSummaryPage = () => {
           value: swatch.value,
           color: swatch.color,
           image: swatch.image,
+          materialSku: cabinetMaterialSku,
         },
         price: resolveItemPrice(sku),
         copyable: true,
@@ -874,6 +876,7 @@ export const CustomSummaryPage = () => {
               value: swatch.value,
               color: swatch.color,
               image: swatch.image,
+              materialSku: cabinetMaterialSku,
             },
             price: resolveItemPrice(sku),
             copyable: true,
@@ -944,6 +947,7 @@ export const CustomSummaryPage = () => {
             ...resolveSwatch(cabinetColor),
             label: "Cabinet",
             value: cabinetColor,
+            materialSku: cabinetMaterialSku,
           },
           price: resolveItemPrice(sku),
           copyable: true,
@@ -1365,6 +1369,7 @@ export const CustomSummaryPage = () => {
           value: displayCountertopColor,
           color: countertopSwatch.color,
           image: countertopSwatch.image,
+          materialSku: effectiveCountertopMaterialSku,
         },
         price: resolveItemPrice(countertopSkuLines[0]),
         copyable: true,
@@ -1537,12 +1542,6 @@ export const CustomSummaryPage = () => {
         },
       ]);
       const sidePanelCabinetSwatch = resolveSwatch(cabinetColor);
-      const sidePanelCabinetMaterialLabel = sidePanelCabinetMaterialSku
-        ? (materialSkuLabelMap[sidePanelCabinetMaterialSku] ?? sidePanelCabinetMaterialSku)
-        : null;
-      const sidePanelCabinetMaterialText = [sidePanelCabinetMaterialLabel, cabinetColor]
-        .filter(Boolean)
-        .join(" | ");
 
       const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
       if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
@@ -1555,12 +1554,13 @@ export const CustomSummaryPage = () => {
           title: label,
           subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
           sku: spSku,
-          swatch: sidePanelCabinetMaterialText
+          swatch: cabinetColor
             ? {
                 label: "Cabinet",
-                value: sidePanelCabinetMaterialText,
+                value: cabinetColor,
                 color: sidePanelCabinetSwatch.color,
                 image: sidePanelCabinetSwatch.image,
+                materialSku: sidePanelCabinetMaterialSku,
               }
             : undefined,
           price: resolveItemPrice(spSku),
@@ -1680,6 +1680,7 @@ export const CustomSummaryPage = () => {
                       value: vesselSwatch.value,
                       color: vesselSwatch.color,
                       image: vesselSwatch.image,
+                      materialSku: resolvedVesselMaterialSku,
                     }
                   : undefined,
                 price: resolveItemPrice(vesselSku),
@@ -2066,7 +2067,11 @@ export const CustomSummaryPage = () => {
                         />
                         <div>
                           <div className={s.swatchLabel}>{item.swatch.label}</div>
-                          <div className={s.swatchValue}>{item.swatch.value}</div>
+                          <div className={s.swatchValue}>
+                            {item.swatch.materialSku
+                              ? `${item.swatch.materialSku} | ${item.swatch.value}`
+                              : item.swatch.value}
+                          </div>
                         </div>
                       </div>
                     )}
