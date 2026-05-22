@@ -31,6 +31,24 @@ export const vesselMaterialSkuAliasMap: Record<string, string> = {
   SSOCR: "SS",
 };
 
+export type VesselDefaultFinishRule = {
+  materialTokens: string[];
+  colorCodes: string[];
+};
+
+/**
+ * PlayCanvas vessel type → preferred default finish.
+ *
+ * The selected value is still resolved from live configurator options; this map
+ * only declares which compatible option should win over raw API ordering.
+ */
+export const vesselDefaultFinishMap: Record<string, VesselDefaultFinishRule> = {
+  Vessel_UrbanModo: {
+    materialTokens: ["solidsurface", "ocritech", "ssocr", "sst1c"],
+    colorCodes: ["T1C"],
+  },
+};
+
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
 export const vesselHeightCmMap: Record<string, number> = {
   Vessel_UrbanModo: 14,

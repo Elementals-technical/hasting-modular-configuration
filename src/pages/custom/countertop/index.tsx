@@ -83,6 +83,7 @@ import {
   SYNTESI_SINGLE_CABINET_REASON,
   VESSEL_COLOR_UNAVAILABLE_REASON,
   isMaterialCompatibleWithVesselStyle,
+  isPreferredVesselFinish,
   isVisibleVesselSinkStyle,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -626,15 +627,28 @@ export const CustomCountertopPage = () => {
     [getSelectedVesselMaterialTokens, getVesselOptionMaterialTokens],
   );
 
+  const getVesselOptionColorCode = useCallback((option: ProductOptionData): string | null => {
+    return option.metadata?.codeColor ?? extractColorCode(option.metadata?.value ?? option.name ?? option.title);
+  }, []);
+
   const isVesselColorCompatibleWithSinkStyle = useCallback(
     (option: ProductOptionData, vesselStyle = activeBasinStyle) =>
       isMaterialCompatibleWithVesselStyle({
         vesselStyle,
         materialTokens: getVesselOptionMaterialTokens(option),
-        colorCode:
-          option.metadata?.codeColor ?? extractColorCode(option.metadata?.value ?? option.name ?? option.title),
+        colorCode: getVesselOptionColorCode(option),
       }),
-    [activeBasinStyle, getVesselOptionMaterialTokens],
+    [activeBasinStyle, getVesselOptionColorCode, getVesselOptionMaterialTokens],
+  );
+
+  const isPreferredVesselColorForSinkStyle = useCallback(
+    (option: ProductOptionData, vesselStyle: string) =>
+      isPreferredVesselFinish({
+        vesselStyle,
+        materialTokens: getVesselOptionMaterialTokens(option),
+        colorCode: getVesselOptionColorCode(option),
+      }),
+    [getVesselOptionColorCode, getVesselOptionMaterialTokens],
   );
 
   const getVesselColorDisabledReason = useCallback(
@@ -1342,6 +1356,14 @@ export const CustomCountertopPage = () => {
         return activeVesselColor;
       }
 
+      const preferredOption = vesselColorOptions.find((option) => {
+        if (!isVesselColorOption(option)) return false;
+        if (!isVesselColorCompatibleWithSinkStyle(option, vesselStyle)) return false;
+        return isPreferredVesselColorForSinkStyle(option, vesselStyle);
+      });
+
+      if (preferredOption) return getOptionConfigValue(preferredOption);
+
       const compatibleOption = vesselColorOptions.find((option) => {
         if (!isVesselColorOption(option)) return false;
         return isVesselColorCompatibleWithSinkStyle(option, vesselStyle);
@@ -1357,6 +1379,7 @@ export const CustomCountertopPage = () => {
       getOptionConfigValue,
       isVesselColorCompatibleWithSinkStyle,
       isVesselColorOption,
+      isPreferredVesselColorForSinkStyle,
       vesselColorOptions,
     ],
   );
