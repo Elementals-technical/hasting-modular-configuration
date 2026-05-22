@@ -9,7 +9,6 @@ import {
   addProductId,
   addProductPreset,
   clearPlacedDividers,
-  clearPlacedDividersForCabinet,
   removeProductId,
   resetCabinetBuilderBootstrap,
   resetProducts,
@@ -124,6 +123,7 @@ import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownIte
 import {
   canExecuteSetConfigSelectionAction,
   findVesselBasinSelectionInfo,
+  isVesselBasinSelectionInfo,
   VESSEL_PLACEHOLDER_SINK_TYPE,
 } from "./lib/vesselBasinSelection";
 
@@ -1040,20 +1040,31 @@ export const PlayCanvasIntegration = () => {
   //   tool?.setEnabled(true);
   // }, [playCanvasReady]);
 
+  const resetDividersForResize = useCallback(
+    async (ids: string[]) => {
+      if (!ids.length) return;
+
+      for (const productId of ids) {
+        await prepareCabinetDividersForResize(productId);
+      }
+      watchPlayCanvasMeshInstancesDuringRender();
+      await setConfigBatch(ids, buildResetDividersConfig());
+      dispatch(clearPlacedDividers());
+      watchPlayCanvasMeshInstancesDuringRender();
+      sanitizePlayCanvasMeshInstances();
+      await waitForNextAnimationFrame();
+      sanitizePlayCanvasMeshInstances();
+    },
+    [dispatch],
+  );
+
   const handleSetWidth = useCallback(
     async (width: number) => {
       if (!selectedSceneProduct) return;
 
       try {
         await saveSnapshot();
-        await prepareCabinetDividersForResize(selectedSceneProduct);
-        dispatch(clearPlacedDividersForCabinet(selectedSceneProduct));
-        watchPlayCanvasMeshInstancesDuringRender();
-        await setConfig(selectedSceneProduct, buildResetDividersConfig());
-        watchPlayCanvasMeshInstancesDuringRender();
-        sanitizePlayCanvasMeshInstances();
-        await waitForNextAnimationFrame();
-        sanitizePlayCanvasMeshInstances();
+        await resetDividersForResize(productIds.length ? productIds : [selectedSceneProduct]);
         await setConfig(selectedSceneProduct, { Width: width });
         sanitizePlayCanvasMeshInstances();
         await syncCountertopConfig();
@@ -1065,24 +1076,18 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot, dispatch, syncCountertopConfig],
+    [selectedSceneProduct, saveSnapshot, resetDividersForResize, productIds, syncCountertopConfig, dispatch],
   );
 
   const handleSetDepth = useCallback(
     async (depth: number) => {
-      if (!productIds) return;
+      if (!productIds.length) return;
       const isAllowedDepth = depthOptions.some((value) => Math.abs(Number(value) - depth) < 0.01);
       if (!isAllowedDepth) return;
 
       try {
         await saveSnapshot();
-        for (const productId of productIds) {
-          await prepareCabinetDividersForResize(productId);
-        }
-        watchPlayCanvasMeshInstancesDuringRender();
-        sanitizePlayCanvasMeshInstances();
-        await waitForNextAnimationFrame();
-        sanitizePlayCanvasMeshInstances();
+        await resetDividersForResize(productIds);
         await setConfigBatch({}, { Depth: depth });
         sanitizePlayCanvasMeshInstances();
 
@@ -1093,7 +1098,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, depthOptions, saveSnapshot, dispatch],
+    [productIds, depthOptions, saveSnapshot, resetDividersForResize, dispatch],
   );
 
   useEffect(() => {
@@ -2668,12 +2673,12 @@ export const PlayCanvasIntegration = () => {
   }, [isPrebuilt, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
-    dispatch(setCountertopStyle(VESSEL_PLACEHOLDER_SINK_TYPE));
+    dispatch(setCountertopStyle(isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated"));
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [dispatch, isPrebuilt, navigate]);
+  }, [dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
 
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");

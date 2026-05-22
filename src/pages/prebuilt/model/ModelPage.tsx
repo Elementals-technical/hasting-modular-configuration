@@ -16,9 +16,11 @@ import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
+  addProductId,
   addProductPreset,
   reset,
   resetCabinetBuilderBootstrap,
+  resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,
   setCountertopColorSku,
@@ -203,12 +205,22 @@ export const ModelPage = () => {
     return match?.id ?? productMockData[0]?.id ?? null;
   }, [productsPresets]);
 
+  const syncPresetProductIdsFromScene = useCallback(() => {
+    const orderedIds = getOrderedProductIds();
+
+    dispatch(resetProducts());
+    orderedIds.forEach((id) => dispatch(addProductId(id)));
+
+    return orderedIds;
+  }, [dispatch]);
+
   const handleAddPreset = useCallback(
     async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean }) => {
       try {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], transferableOverrides);
         const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
         await addPreset(effectivePresetProducts, globalConfig);
+        syncPresetProductIdsFromScene();
 
         if (effectivePresetProducts.length) {
           dispatch(addProductPreset(effectivePresetProducts));
@@ -243,7 +255,16 @@ export const ModelPage = () => {
         console.error("[ProductModelItem] Failed to apply preset", error);
       }
     },
-    [configuratorData, dispatch, searchParams, setSearchParams, transferableOverrides, updateSelectedDimensionsFromScene, spGroove],
+    [
+      configuratorData,
+      dispatch,
+      searchParams,
+      setSearchParams,
+      transferableOverrides,
+      updateSelectedDimensionsFromScene,
+      spGroove,
+      syncPresetProductIdsFromScene,
+    ],
   );
 
   const resetAccessoriesForCustomTransition = useCallback(async () => {
@@ -392,6 +413,7 @@ export const ModelPage = () => {
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));
+        syncPresetProductIdsFromScene();
         if (globalConfig.CountertopColor) {
           dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
           if (restoredCountertopColorSku) {
@@ -433,6 +455,7 @@ export const ModelPage = () => {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
         const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
         await addPreset(effectivePresetProducts, globalConfig);
+        syncPresetProductIdsFromScene();
 
         if (!productsPresets.length) {
           dispatch(addProductPreset(effectivePresetProducts));
@@ -467,6 +490,7 @@ export const ModelPage = () => {
     presetFromUrl,
     productsPresets,
     transferableOverrides,
+    syncPresetProductIdsFromScene,
     updateSelectedDimensionsFromScene,
   ]);
 

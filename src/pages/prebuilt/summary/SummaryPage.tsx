@@ -196,6 +196,7 @@ type SummaryItem = {
     value: string;
     color: string;
     image?: string;
+    materialSku?: string | null;
   };
   price: string;
   priceLabel?: string;
@@ -638,11 +639,6 @@ export const SummaryPage = () => {
       (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
     const sceneProductConfigsInSceneOrder = [...sceneProductConfigs].sort(sortBySceneOrder);
     const cabinetConfigs = sceneProductConfigs.filter((config) => config.category === "cabinets");
-    const cabinetCount = shouldUsePresets
-      ? productsPresets.length + cabinetConfigs.length
-      : cabinetConfigs.length > 0
-        ? cabinetConfigs.length
-        : 1;
     const resolveNameFromRaw = (v: string) => {
       const lastDash = v.lastIndexOf("-");
       if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
@@ -762,6 +758,7 @@ export const SummaryPage = () => {
               value: swatch.value,
               color: swatch.color,
               image: swatch.image,
+              materialSku: cabinetMaterialSku,
             },
             price: resolveItemPrice(sku),
             copyable: true,
@@ -871,6 +868,7 @@ export const SummaryPage = () => {
           value: swatch.value,
           color: swatch.color,
           image: swatch.image,
+          materialSku: cabinetMaterialSku,
         },
         price: resolveItemPrice(sku),
         copyable: true,
@@ -940,6 +938,7 @@ export const SummaryPage = () => {
             ...resolveSwatch(cabinetColor),
             label: "Cabinet",
             value: cabinetColor,
+            materialSku: cabinetMaterialSku,
           },
           price: resolveItemPrice(sku),
           copyable: true,
@@ -1354,6 +1353,7 @@ export const SummaryPage = () => {
           value: displayCountertopColor,
           color: countertopSwatch.color,
           image: countertopSwatch.image,
+          materialSku: effectiveCountertopMaterialSku,
         },
         price: resolveItemPrice(countertopSkuLines[0]),
         copyable: true,
@@ -1465,12 +1465,6 @@ export const SummaryPage = () => {
         },
       ]);
       const sidePanelCabinetSwatch = resolveSwatch(sidePanelCabinetColor);
-      const sidePanelCabinetMaterialLabel = sidePanelCabinetMaterialSku
-        ? (materialSkuLabelMap[sidePanelCabinetMaterialSku] ?? sidePanelCabinetMaterialSku)
-        : null;
-      const sidePanelCabinetMaterialText = [sidePanelCabinetMaterialLabel, sidePanelCabinetColor]
-        .filter(Boolean)
-        .join(" | ");
 
       const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
       if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
@@ -1483,12 +1477,13 @@ export const SummaryPage = () => {
           title: label,
           subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
           sku: spSku,
-          swatch: sidePanelCabinetMaterialText
+          swatch: sidePanelCabinetColor
             ? {
                 label: "Cabinet",
-                value: sidePanelCabinetMaterialText,
+                value: sidePanelCabinetColor,
                 color: sidePanelCabinetSwatch.color,
                 image: sidePanelCabinetSwatch.image,
+                materialSku: sidePanelCabinetMaterialSku,
               }
             : undefined,
           price: resolveItemPrice(spSku),
@@ -1524,16 +1519,6 @@ export const SummaryPage = () => {
       dividerDepthByCabinetId.set(productId, selectedDimensions.depth ?? preset.Depth ?? null);
     });
 
-    const resolveDividerDepthByIndex = (index: number): number | null => {
-      if (shouldUsePresets && index < productsPresets.length) {
-        return selectedDimensions.depth ?? productsPresets[index]?.Depth ?? null;
-      }
-
-      const configIndex = shouldUsePresets ? index - productsPresets.length : index;
-      const depth = cabinetConfigs[configIndex]?.Depth;
-      return typeof depth === "number" ? depth : selectedDimensions.depth;
-    };
-
     const dividerItems: SummaryItem[] = (() => {
       if (placedDividers.length > 0) {
         return placedDividers.map((divider, index) => {
@@ -1556,32 +1541,6 @@ export const SummaryPage = () => {
             description: { "Product Category": "Divider", "Divider Style": style },
           };
         });
-      }
-
-      // Fallback: style selected but no individual dividers placed — one per cabinet
-      if (dividersStyle && dividersStyle !== "None") {
-        const items: SummaryItem[] = [];
-
-        for (let index = 0; index < cabinetCount; index += 1) {
-          const sku = buildDividerSku({
-            dividerStyle: dividersStyle,
-            cabinetDepth: resolveDividerDepthByIndex(index),
-          });
-          if (!sku) continue;
-          const unitPrice = priceBySku[sku] ?? 0;
-          items.push({
-            id: `accessories-dividers-style-${index}`,
-            title: "Dividers",
-            subtitle: dividersStyle,
-            sku,
-            price: formatPrice(unitPrice),
-            copyable: true,
-            showInfo: true,
-            description: { "Product Category": "Divider", "Divider Style": dividersStyle },
-          });
-        }
-
-        return items;
       }
 
       return [];
@@ -1686,6 +1645,7 @@ export const SummaryPage = () => {
                       value: vesselSwatch.value,
                       color: vesselSwatch.color,
                       image: vesselSwatch.image,
+                      materialSku: resolvedVesselMaterialSku,
                     }
                   : undefined,
                 price: resolveItemPrice(vesselSku),
@@ -1758,7 +1718,6 @@ export const SummaryPage = () => {
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,
-    dividersStyle,
   ]);
 
   const fullSkuJson = useMemo(() => {
@@ -2072,7 +2031,11 @@ export const SummaryPage = () => {
                         />
                         <div>
                           <div className={s.swatchLabel}>{item.swatch.label}</div>
-                          <div className={s.swatchValue}>{item.swatch.value}</div>
+                          <div className={s.swatchValue}>
+                            {item.swatch.materialSku
+                              ? `${item.swatch.materialSku} | ${item.swatch.value}`
+                              : item.swatch.value}
+                          </div>
                         </div>
                       </div>
                     )}

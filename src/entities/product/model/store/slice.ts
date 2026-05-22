@@ -554,19 +554,19 @@ const productSlice = createSlice({
     setDividersStyle(state, action: PayloadAction<string>) {
       state.productOptions.DividersStyle = action.payload;
     },
-    addPlacedDivider(state, action: PayloadAction<PlacedDivider>) {
-      const idx = state.placedDividers.findIndex((d) => d.key === action.payload.key);
-      if (idx >= 0) {
-        state.placedDividers[idx] = action.payload;
-      } else {
-        state.placedDividers.push(action.payload);
-      }
-    },
-    removePlacedDivider(state, action: PayloadAction<string>) {
-      state.placedDividers = state.placedDividers.filter((d) => d.key !== action.payload);
-    },
-    clearPlacedDividersForCabinet(state, action: PayloadAction<string>) {
-      state.placedDividers = state.placedDividers.filter((d) => d.cabinetId !== action.payload);
+    replacePlacedDividersForDrawer(
+      state,
+      action: PayloadAction<{
+        cabinetId: string;
+        drawerType: PlacedDivider["drawerType"];
+        dividers: PlacedDivider[];
+      }>,
+    ) {
+      const { cabinetId, drawerType, dividers } = action.payload;
+      state.placedDividers = [
+        ...state.placedDividers.filter((divider) => divider.cabinetId !== cabinetId || divider.drawerType !== drawerType),
+        ...dividers,
+      ];
     },
     clearTopPlacedDividersForCabinets(state, action: PayloadAction<string[]>) {
       const cabinetIds = new Set(action.payload);
@@ -670,9 +670,7 @@ export const {
   setLedOption,
   setDividersOption,
   setDividersStyle,
-  addPlacedDivider,
-  removePlacedDivider,
-  clearPlacedDividersForCabinet,
+  replacePlacedDividersForDrawer,
   clearTopPlacedDividersForCabinets,
   clearPlacedDividers,
   setTowelBarOption,

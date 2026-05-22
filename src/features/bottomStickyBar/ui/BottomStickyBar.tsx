@@ -1,4 +1,5 @@
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
+import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 
 import s from "./BottomStickyBar.module.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -35,6 +36,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
+  const previousStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
 
   const copySkuJson = () => {
     const skuJson = getSummarySkuJson();
@@ -72,6 +74,12 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
     } else {
       copySkuJson();
     }
+  };
+
+  const handleNavigateBack = () => {
+    if (!previousStep) return;
+    closeDrawerInteraction();
+    navigate(previousStep.path);
   };
 
   return (
@@ -120,6 +128,16 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
         </span>
       </div>
       <div className={s.nextStepWrapp}>
+        {previousStep && (
+          <button
+            type="button"
+            className={s.backButton}
+            onClick={handleNavigateBack}
+            aria-label={`Back to ${previousStep.label}`}
+          >
+            <ArrowLeft fill="#1f2933" />
+          </button>
+        )}
         <BaseButton onClick={handleNavigate} fullWidth={true}>
           {nextStep ? `Next: ${nextStep.label}` : "How to buy"}
         </BaseButton>

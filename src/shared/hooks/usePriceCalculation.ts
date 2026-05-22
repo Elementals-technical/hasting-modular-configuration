@@ -27,7 +27,6 @@ import {
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
-  getDividersStyle,
   getCabinetCatalog,
   getPlacedDividers,
   getPlacedCabinetStyles,
@@ -156,7 +155,6 @@ export function usePriceCalculation() {
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const dividersStyle = useAppSelector(getDividersStyle);
   const placedDividers = useAppSelector(getPlacedDividers);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
 
@@ -190,7 +188,7 @@ export function usePriceCalculation() {
     // When presets exist the bootstrap phase calls addProductId for each preset product first.
     // Only products whose index is >= presetsCount are truly "extra" (added via sidebar).
     // Special cases:
-    //  - On the prebuilt page productIds is empty (no bootstrap yet) — keep preset path.
+    //  - On the prebuilt page productIds can be empty before PlayCanvas preset ids are synced — keep preset path.
     //  - In Custom Mode, once productIds has been populated by bootstrap and then drops
     //    below presetsCount (user deleted a preset product), fall back to fetching ALL
     //    productIds — the preset-based slicing assumption no longer holds.
@@ -766,11 +764,6 @@ export function usePriceCalculation() {
       sinkType: string | null;
     };
     let productDimsList: ProductDims[];
-    const cabinetCount = shouldUsePresets
-      ? productsPresets.length + sceneConfigs.length
-      : sceneConfigs.length > 0
-        ? sceneConfigs.length
-        : 1;
     let bookMatchingCabinets: BookMatchingCabinetInput[];
 
     if (shouldUsePresets) {
@@ -1000,7 +993,8 @@ export function usePriceCalculation() {
       }
     }
 
-    // Dividers — prefer per-slot placed types (A/B/C). Fallback to selected style per cabinet.
+    // Dividers are priced only from actual per-slot placements.
+    // DividersStyle is just the currently selected placement tool.
     const resolveDividerDepth = (cabinetId: string): number | null =>
       productDimsList.find((dims) => dims.productId === cabinetId)?.depth ?? null;
 
@@ -1020,17 +1014,6 @@ export function usePriceCalculation() {
         console.log(LOG_PREFIX, `Resolver 4 (Divider #${index + 1}):`, divSku, divider);
         skus.push(divSku);
       });
-    } else if (dividersStyle && dividersStyle !== "" && dividersStyle !== "None") {
-      for (let i = 0; i < cabinetCount; i++) {
-        const divSku = buildDividerSku({
-          dividerStyle: dividersStyle,
-          cabinetDepth: productDimsList[i]?.depth ?? null,
-        });
-        if (divSku) {
-          console.log(LOG_PREFIX, `Resolver 4 (Divider #${i + 1}):`, divSku);
-          skus.push(divSku);
-        }
-      }
     }
 
     // 5) Book matching SKU — pricing modifier (per drawer)
@@ -1089,7 +1072,6 @@ export function usePriceCalculation() {
     sidePanelsOption,
     sidePanelLeft,
     sidePanelRight,
-    dividersStyle,
     placedDividers,
     placedCabinetStyles,
     cabinetColorSkuByName,
