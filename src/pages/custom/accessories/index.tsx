@@ -18,9 +18,8 @@ import {
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import { getSidePanelLeftStatus, getSidePanelRightStatus } from "@/features/sidePanel";
 import {
-  addPlacedDivider,
   clearPlacedDividers,
-  removePlacedDivider,
+  replacePlacedDividersForDrawer,
   setDividersOption,
   setDividersStyle,
   setIsDrawerOpen,
@@ -37,6 +36,7 @@ import {
   getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
   getDividerTypeFromOptionTitle,
+  getPlacedDividersForDrawer,
   placeDividerToSlot,
   removeDividerFromSlot,
   setDividerSlotClickHandler,
@@ -260,6 +260,16 @@ export const CustomAccessoriesPage = () => {
       setDividerAvailability({ cabinetId, drawerType, types });
     },
     [activeCabinetId, activeDrawerType, dividerSelection, isPlayCanvasReady],
+  );
+
+  const syncPlacedDividersForDrawer = useCallback(
+    async (cabinetId: string, drawerType: DrawerType) => {
+      const dividers = await getPlacedDividersForDrawer(cabinetId, drawerType);
+      if (!dividers) return;
+
+      dispatch(replacePlacedDividersForDrawer({ cabinetId, drawerType, dividers }));
+    },
+    [dispatch],
   );
 
   useEffect(() => {
@@ -542,16 +552,7 @@ export const CustomAccessoriesPage = () => {
       });
       await placeDividerToSlot({ ...slotInfo, drawerType }, selectedType);
       console.log("[Dividers] placeDividerToSlot done");
-      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
-      dispatch(
-        addPlacedDivider({
-          key: compositeKey,
-          cabinetId: slotInfo.cabinetId,
-          drawerType,
-          zone: slotInfo.zone,
-          type: selectedType,
-        }),
-      );
+      await syncPlacedDividersForDrawer(slotInfo.cabinetId, drawerType);
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
       void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
       console.log("[Dividers] showIconDividerSlots after add");
@@ -579,9 +580,8 @@ export const CustomAccessoriesPage = () => {
       });
       await removeDividerFromSlot(slotInfo);
       console.log("[Dividers] removeDividerFromSlot done");
-      const compositeKey = `${slotInfo.cabinetId}::${drawerType}::${slotInfo.zone}::${slotInfo.key}`;
-      dispatch(removePlacedDivider(compositeKey));
       if (drawerType) {
+        await syncPlacedDividersForDrawer(slotInfo.cabinetId, drawerType);
         showIconDividerSlots(slotInfo.cabinetId, drawerType);
         void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
         console.log("[Dividers] showIconDividerSlots after remove");
@@ -595,8 +595,7 @@ export const CustomAccessoriesPage = () => {
         if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
           console.log("[Dividers] legacy occupied - remove");
           await removeDividerFromSlot(slotInfo);
-          const legacyRemoveKey = `${slotInfo.cabinetId}::${slotInfo.drawerType}::${slotInfo.zone}::${slotInfo.key}`;
-          dispatch(removePlacedDivider(legacyRemoveKey));
+          await syncPlacedDividersForDrawer(slotInfo.cabinetId, slotInfo.drawerType);
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
           void refreshDividerOptionsAvailability(slotInfo.cabinetId, slotInfo.drawerType);
           return;
@@ -645,16 +644,7 @@ export const CustomAccessoriesPage = () => {
         });
         await placeDividerToSlot({ ...normalizedAddSlotInfo, drawerType }, selectedType);
         console.log("[Dividers] legacy placeDividerToSlot done");
-        const legacyAddKey = `${normalizedAddSlotInfo.cabinetId}::${drawerType}::${normalizedAddSlotInfo.zone}::${normalizedAddSlotInfo.key}`;
-        dispatch(
-          addPlacedDivider({
-            key: legacyAddKey,
-            cabinetId: normalizedAddSlotInfo.cabinetId,
-            drawerType,
-            zone: normalizedAddSlotInfo.zone,
-            type: selectedType,
-          }),
-        );
+        await syncPlacedDividersForDrawer(normalizedAddSlotInfo.cabinetId, drawerType);
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
         void refreshDividerOptionsAvailability(normalizedAddSlotInfo.cabinetId, drawerType);
         console.log("[Dividers] legacy showIconDividerSlots after add");
@@ -669,6 +659,7 @@ export const CustomAccessoriesPage = () => {
     resolveDividerType,
     isPlayCanvasReady,
     refreshDividerOptionsAvailability,
+    syncPlacedDividersForDrawer,
   ]);
 
   useEffect(() => {

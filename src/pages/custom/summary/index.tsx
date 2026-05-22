@@ -643,11 +643,6 @@ export const CustomSummaryPage = () => {
       (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
     const sceneProductConfigsInSceneOrder = [...sceneProductConfigs].sort(sortBySceneOrder);
     const cabinetConfigs = sceneProductConfigs.filter((config) => config.category === "cabinets");
-    const cabinetCount = shouldUsePresets
-      ? productsPresets.length + cabinetConfigs.length
-      : cabinetConfigs.length > 0
-        ? cabinetConfigs.length
-        : 1;
     const resolveNameFromRaw = (v: string) => {
       const lastDash = v.lastIndexOf("-");
       if (lastDash > 0 && v.slice(lastDash + 1).length >= 6) return v.slice(0, lastDash);
@@ -1409,16 +1404,6 @@ export const CustomSummaryPage = () => {
       dividerDepthByCabinetId.set(productId, selectedDimensions.depth ?? preset.Depth ?? null);
     });
 
-    const resolveDividerDepthByIndex = (index: number): number | null => {
-      if (shouldUsePresets && index < productsPresets.length) {
-        return selectedDimensions.depth ?? productsPresets[index]?.Depth ?? null;
-      }
-
-      const configIndex = shouldUsePresets ? index - productsPresets.length : index;
-      const depth = cabinetConfigs[configIndex]?.Depth;
-      return typeof depth === "number" ? depth : selectedDimensions.depth;
-    };
-
     const dividerItems: SummaryItem[] = (() => {
       if (placedDividers.length > 0) {
         return placedDividers.map((divider, index) => {
@@ -1441,32 +1426,6 @@ export const CustomSummaryPage = () => {
             description: { "Product Category": "Divider", "Divider Style": style },
           };
         });
-      }
-
-      // Fallback: style selected but no individual dividers placed — one per cabinet
-      if (dividersStyle && dividersStyle !== "None") {
-        const items: SummaryItem[] = [];
-
-        for (let index = 0; index < cabinetCount; index += 1) {
-          const sku = buildDividerSku({
-            dividerStyle: dividersStyle,
-            cabinetDepth: resolveDividerDepthByIndex(index),
-          });
-          if (!sku) continue;
-          const unitPrice = priceBySku[sku] ?? 0;
-          items.push({
-            id: `accessories-dividers-style-${index}`,
-            title: "Dividers",
-            subtitle: dividersStyle,
-            sku,
-            price: formatPrice(unitPrice),
-            copyable: true,
-            showInfo: true,
-            description: { "Product Category": "Divider", "Divider Style": dividersStyle },
-          });
-        }
-
-        return items;
       }
 
       return [];
@@ -1753,7 +1712,6 @@ export const CustomSummaryPage = () => {
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,
-    dividersStyle,
   ]);
 
   const fullSkuJson = useMemo(() => {
