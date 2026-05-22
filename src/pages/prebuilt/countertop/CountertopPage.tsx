@@ -1312,7 +1312,12 @@ export const CountertopPage = () => {
     [getMaterialOptionDisabledReason, isMaterialOptionCompatibleBySceneSize, scopedCountertopOptions],
   );
   const sortedVesselColorOptions = useMemo(
-    () => [...filteredVesselColorOptions].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "")),
+    () =>
+      [...filteredVesselColorOptions].sort((a, b) => {
+        const availabilityDiff = Number(a.isAvailable === false) - Number(b.isAvailable === false);
+        if (availabilityDiff !== 0) return availabilityDiff;
+        return (a.title ?? "").localeCompare(b.title ?? "");
+      }),
     [filteredVesselColorOptions],
   );
 
