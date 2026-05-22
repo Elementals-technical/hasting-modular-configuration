@@ -12,6 +12,7 @@ import { InformationIcon } from "@/shared/assets/images/svg/InformationIcon";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { replacePlacedDividersForCabinet } from "@/entities/product/model/store/slice";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -112,6 +113,7 @@ import {
   type AutofillValueRequest,
 } from "@/features/swatchOrder";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
+import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 import { printQuote } from "@/features/quotePrint/lib/printQuote";
 import { captureQuotePreviewImage } from "@/features/quotePrint/lib/captureQuotePreviewImage";
@@ -490,6 +492,15 @@ export const SummaryPage = () => {
       const configs = await Promise.all(
         selectedProducts.map(async (id) => {
           const config = await getConfig(id);
+          if (config) {
+            dispatch(
+              replacePlacedDividersForCabinet({
+                cabinetId: id,
+                dividers: collectPlacedDividersFromConfig(id, config),
+              }),
+            );
+          }
+
           return config
             ? normalizeProductConfigSnapshot({
                 id,
@@ -508,7 +519,7 @@ export const SummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedDimensions, selectedProducts]);
+  }, [dispatch, selectedDimensions, selectedProducts]);
 
   useEffect(() => {
     let isMounted = true;
