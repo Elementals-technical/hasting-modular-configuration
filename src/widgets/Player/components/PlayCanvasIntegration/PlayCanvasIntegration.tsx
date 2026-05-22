@@ -372,7 +372,7 @@ export const PlayCanvasIntegration = () => {
       "";
     const normalizedDrawers = drawersRaw.trim().toUpperCase();
 
-    if (normalizedDrawers === "1D" || normalizedDrawers === "2D") {
+    if (normalizedDrawers === "1D" || normalizedDrawers === "2D" || normalizedDrawers === "1DWID" || normalizedDrawers === "1+INNER") {
       return true;
     }
 
