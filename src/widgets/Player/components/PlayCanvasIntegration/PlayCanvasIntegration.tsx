@@ -1058,6 +1058,19 @@ export const PlayCanvasIntegration = () => {
     [dispatch],
   );
 
+  const prepareDividersForDepthChange = useCallback(async (ids: string[]) => {
+    if (!ids.length) return;
+
+    for (const productId of ids) {
+      await prepareCabinetDividersForResize(productId);
+    }
+
+    watchPlayCanvasMeshInstancesDuringRender();
+    sanitizePlayCanvasMeshInstances();
+    await waitForNextAnimationFrame();
+    sanitizePlayCanvasMeshInstances();
+  }, []);
+
   const handleSetWidth = useCallback(
     async (width: number) => {
       if (!selectedSceneProduct) return;
@@ -1087,7 +1100,7 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
-        await resetDividersForResize(productIds);
+        await prepareDividersForDepthChange(productIds);
         await setConfigBatch({}, { Depth: depth });
         sanitizePlayCanvasMeshInstances();
 
@@ -1098,7 +1111,7 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, depthOptions, saveSnapshot, resetDividersForResize, dispatch],
+    [productIds, depthOptions, saveSnapshot, prepareDividersForDepthChange, dispatch],
   );
 
   useEffect(() => {
