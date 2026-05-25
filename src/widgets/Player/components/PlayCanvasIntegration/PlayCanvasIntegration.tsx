@@ -2791,10 +2791,11 @@ export const PlayCanvasIntegration = () => {
     vesselBasinSelectionInfo?.actions,
   ]);
 
+  const isCountertopBasinDropdown = Boolean(vesselBasinSelectionInfo && !isVesselBasinSelectionInfo(vesselBasinSelectionInfo));
   const activeDropdownItems = vesselBasinSelectionInfo
-    ? isVesselBasinSelectionInfo(vesselBasinSelectionInfo)
-      ? vesselBasinDropdownItems
-      : countertopPopoverItems
+    ? isCountertopBasinDropdown
+      ? countertopPopoverItems
+      : vesselBasinDropdownItems
     : dropdownItems;
 
   return (
@@ -2861,7 +2862,10 @@ export const PlayCanvasIntegration = () => {
           }}
         >
           <div style={{ pointerEvents: "auto" }}>
-            <NestedDropdown items={activeDropdownItems} />
+            <NestedDropdown
+              items={activeDropdownItems}
+              style={isCountertopBasinDropdown ? { width: "200px" } : undefined}
+            />
           </div>
           {!vesselBasinSelectionInfo && quickEditorNotification.isVisible && (
             <InSceneQuickEditorNotification onClose={handleDismissQuickEditorNotification} />
