@@ -41,6 +41,7 @@ import {
 } from "@/features/sidePanel";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
+  buildResetDividersConfig,
   getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
   getDividerTypeFromOptionTitle,
@@ -68,6 +69,9 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
+
+const DEFAULT_ACCORDION_ID = "side-panels";
+const DIVIDERS_ACCORDION_ID = "dividers";
 
 export const AccessoriesPage = () => {
   const dispatch = useAppDispatch();
@@ -112,6 +116,7 @@ export const AccessoriesPage = () => {
   );
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<DrawerType | null>(null);
+  const [activeAccordionId, setActiveAccordionId] = useState<string | null>(DEFAULT_ACCORDION_ID);
   const [dividerAvailability, setDividerAvailability] = useState<{
     cabinetId: string;
     drawerType: DrawerType;
@@ -176,6 +181,12 @@ export const AccessoriesPage = () => {
       isCurrent = false;
     };
   }, [activeDrawerType, dividerSelection, isPlayCanvasReady, selectedSceneProduct]);
+
+  useEffect(() => {
+    if (!isPlayCanvasReady) return;
+
+    setVisibleDrawerButtons(activeAccordionId === DIVIDERS_ACCORDION_ID && dividerSelection === "Customize");
+  }, [activeAccordionId, dividerSelection, isPlayCanvasReady]);
 
   const availableDividerTypes = useMemo(() => {
     if (!dividerAvailability || dividerSelection !== "Customize" || !selectedSceneProduct || !activeDrawerType) {
@@ -547,6 +558,7 @@ export const AccessoriesPage = () => {
         return;
       }
 
+      await saveSnapshot();
       await placeDividerToSlot({ ...slotInfo, drawerType }, selectedType);
       await syncPlacedDividersForDrawer(slotInfo.cabinetId, drawerType);
       showIconDividerSlots(slotInfo.cabinetId, drawerType);
@@ -555,6 +567,7 @@ export const AccessoriesPage = () => {
 
     const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
       const drawerType = slotInfo.drawerType ?? activeDrawerType;
+      await saveSnapshot();
       await removeDividerFromSlot(slotInfo);
       if (drawerType) {
         await syncPlacedDividersForDrawer(slotInfo.cabinetId, drawerType);
@@ -566,6 +579,7 @@ export const AccessoriesPage = () => {
     if (!onAddHandler && !onOccupiedHandler) {
       setDividerSlotClickHandler(async (slotInfo) => {
         if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
+          await saveSnapshot();
           await removeDividerFromSlot(slotInfo);
           await syncPlacedDividersForDrawer(slotInfo.cabinetId, slotInfo.drawerType);
           showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
@@ -603,6 +617,7 @@ export const AccessoriesPage = () => {
           return;
         }
 
+        await saveSnapshot();
         await placeDividerToSlot({ ...normalizedAddSlotInfo, drawerType }, selectedType);
         await syncPlacedDividersForDrawer(normalizedAddSlotInfo.cabinetId, drawerType);
         showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
@@ -616,6 +631,7 @@ export const AccessoriesPage = () => {
     dividerSelection,
     selectedDividerType,
     resolveDividerType,
+    saveSnapshot,
     isPlayCanvasReady,
     refreshDividerOptionsAvailability,
     syncPlacedDividersForDrawer,
@@ -637,8 +653,11 @@ export const AccessoriesPage = () => {
     await applyGroove(dispatch, value, resolvedSpSide, selectedProducts.length);
   };
 
-  const handleDividersChange = (value: string | null) => {
+  const handleDividersChange = async (value: string | null) => {
     if (!value) return;
+    if (value === dividerSelection) return;
+
+    await saveSnapshot();
 
     if (value === "None") {
       const exitTopView = wrapExitTopView({
@@ -651,10 +670,16 @@ export const AccessoriesPage = () => {
       });
 
       if (exitTopView) {
-        exitTopView();
+        await Promise.resolve(exitTopView());
       } else {
         console.warn("[Drawer] exitTopView not ready");
       }
+
+      if (selectedProducts.length > 0) {
+        await setConfigBatch(selectedProducts, buildResetDividersConfig());
+      }
+
+      setDividerAvailability(null);
     }
 
     if (value === "Customize") {
@@ -673,10 +698,12 @@ export const AccessoriesPage = () => {
     }
   };
 
-  const handleDividerStyleChange = (value: string) => {
+  const handleDividerStyleChange = async (value: string) => {
     if (!value) return;
+    if (value === dividerStyle) return;
     const dividerType = getDividerTypeFromOptionTitle(value);
     if (availableDividerTypes && dividerType && !availableDividerTypes.has(dividerType)) return;
+    await saveSnapshot();
     dispatch(setDividersStyle(value));
   };
 
@@ -729,9 +756,9 @@ export const AccessoriesPage = () => {
   };
 
   const handleAccordionChange = (value: string) => {
-    if (!value) return;
+    setActiveAccordionId(value || null);
 
-    if (value === "dividers") {
+    if (value === DIVIDERS_ACCORDION_ID) {
       setVisibleDrawerButtons(dividerSelection === "Customize");
       return;
     }
@@ -744,7 +771,7 @@ export const AccessoriesPage = () => {
 
   const ACCORDIONS: AccordionConfig[] = [
     {
-      id: "side-panels",
+      id: DEFAULT_ACCORDION_ID,
       title: "Side Panels",
       defaultOpen: true,
       content: (
@@ -766,7 +793,7 @@ export const AccessoriesPage = () => {
       ),
     },
     {
-      id: "dividers",
+      id: DIVIDERS_ACCORDION_ID,
       title: "Dividers",
       content: (
         <>
