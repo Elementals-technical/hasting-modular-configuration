@@ -19,7 +19,6 @@ import {
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import { sidePanelAvailabilityRule } from "@/features/configurator-rule-core/options";
 import {
-  clearPlacedDividers,
   replacePlacedDividersForDrawer,
   setDividersOption,
   setDividersStyle,
@@ -41,7 +40,6 @@ import {
 } from "@/features/sidePanel";
 import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
-  buildResetDividersConfig,
   getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
   getDividerTypeFromOptionTitle,
@@ -675,10 +673,6 @@ export const AccessoriesPage = () => {
         console.warn("[Drawer] exitTopView not ready");
       }
 
-      if (selectedProducts.length > 0) {
-        await setConfigBatch(selectedProducts, buildResetDividersConfig());
-      }
-
       setDividerAvailability(null);
     }
 
@@ -694,7 +688,6 @@ export const AccessoriesPage = () => {
     dispatch(setDividersOption(value));
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
-      dispatch(clearPlacedDividers());
     }
   };
 
