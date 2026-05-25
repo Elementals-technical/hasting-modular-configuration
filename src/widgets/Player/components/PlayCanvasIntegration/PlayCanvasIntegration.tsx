@@ -2791,7 +2791,11 @@ export const PlayCanvasIntegration = () => {
     vesselBasinSelectionInfo?.actions,
   ]);
 
-  const activeDropdownItems = vesselBasinSelectionInfo ? vesselBasinDropdownItems : dropdownItems;
+  const activeDropdownItems = vesselBasinSelectionInfo
+    ? isVesselBasinSelectionInfo(vesselBasinSelectionInfo)
+      ? vesselBasinDropdownItems
+      : countertopPopoverItems
+    : dropdownItems;
 
   return (
     <div style={{ position: "relative", height: "100%" }}>
