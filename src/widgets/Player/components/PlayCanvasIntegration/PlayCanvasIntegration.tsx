@@ -1508,21 +1508,29 @@ export const PlayCanvasIntegration = () => {
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-color");
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=thickness");
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-styles");
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=basin-style");
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
