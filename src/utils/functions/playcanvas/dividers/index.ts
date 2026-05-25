@@ -25,3 +25,4 @@ export { wrapShowTopView } from "./wrapShowTopView";
 export type { DrawerType } from "./wrapShowTopView";
 export { wrapExitTopView } from "./wrapExitTopView";
 export { closeDrawerInteraction } from "./closeDrawerInteraction";
+export { buildResetDividersConfig } from "./prepareDividersForResize";

@@ -273,6 +273,15 @@ const inferSummarySectionParentName = (sectionId: string): string | undefined =>
   return undefined;
 };
 
+const getSummarySwatchPreferredMaterialTokens = (
+  preferredParentName: string | undefined,
+  materialSku?: string | null,
+): string[] | undefined => {
+  if (preferredParentName !== "Countertop Color" && preferredParentName !== "Vessels") return undefined;
+  const tokens = getCountertopMaterialTokensBySku(materialSku);
+  return tokens.length ? tokens : undefined;
+};
+
 const normalizeSidePanelSummaryDepth = (value: number | null): number | null => {
   if (value === null) return null;
   const rounded = Math.round(value * 10) / 10;
@@ -1870,7 +1879,14 @@ export const CustomSummaryPage = () => {
       const preferredParentName = inferSummarySectionParentName(section.id);
       section.items.forEach((item) => {
         if (item.swatch?.value) {
-          requests.push({ value: item.swatch.value, preferredParentName });
+          requests.push({
+            value: item.swatch.value,
+            preferredParentName,
+            preferredMaterialTokens: getSummarySwatchPreferredMaterialTokens(
+              preferredParentName,
+              item.swatch.materialSku,
+            ),
+          });
         }
       });
     });
@@ -2111,7 +2127,7 @@ export const CustomSummaryPage = () => {
                     : swatch.label;
 
                   return (
-                    <div key={swatch.value} className={s.swatchTile}>
+                    <div key={swatch.identity} className={s.swatchTile}>
                       <span
                         className={s.tileColor}
                         style={{

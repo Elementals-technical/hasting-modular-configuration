@@ -1,29 +1,67 @@
 import { MAX_SLOTS } from "../model/constants";
 import type { AttributeValue } from "../model/types";
+import { getSwatchIdentity } from "./getSwatchIdentity";
 
 const toLookupValue = (item: AttributeValue): string => item.metadata?.value ?? item.value ?? item.label;
-
-const toIdentity = (item: AttributeValue): string =>
-  `${item.parentName}__${item.metadata?.label ?? item.label}`;
 
 export type AutofillValueRequest =
   | string
   | null
   | undefined
-  | { value: string | null | undefined; preferredParentName?: string };
+  | {
+      value: string | null | undefined;
+      preferredParentName?: string;
+      preferredMaterialTokens?: readonly string[];
+    };
 
-type NormalizedAutofillRequest = { value: string; preferredParentName?: string };
+type NormalizedAutofillRequest = {
+  value: string;
+  preferredParentName?: string;
+  preferredMaterialTokens: string[];
+};
+
+const normalizeMaterialToken = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+
+const normalizeMaterialTokens = (values: readonly string[] | undefined): string[] =>
+  values?.map(normalizeMaterialToken).filter(Boolean) ?? [];
 
 const normalizeAutofillRequest = (request: AutofillValueRequest): NormalizedAutofillRequest | null => {
   if (request === null || request === undefined) return null;
   if (typeof request === "string") {
     const trimmed = request.trim();
-    return trimmed ? { value: trimmed } : null;
+    return trimmed ? { value: trimmed, preferredMaterialTokens: [] } : null;
   }
   if (typeof request.value !== "string") return null;
   const trimmed = request.value.trim();
   if (!trimmed) return null;
-  return { value: trimmed, preferredParentName: request.preferredParentName };
+  return {
+    value: trimmed,
+    preferredParentName: request.preferredParentName,
+    preferredMaterialTokens: normalizeMaterialTokens(request.preferredMaterialTokens),
+  };
+};
+
+const getVariantMaterialTokens = (item: AttributeValue): string[] =>
+  [
+    item.metadata?.Material,
+    item.metadata?.Finish,
+    item.metadata?.sku,
+    item.optionName,
+  ]
+    .map((value) => (typeof value === "string" ? normalizeMaterialToken(value) : ""))
+    .filter(Boolean);
+
+const findByPreferredMaterial = (
+  variants: AttributeValue[],
+  preferredMaterialTokens: readonly string[],
+): AttributeValue | undefined => {
+  if (!preferredMaterialTokens.length) return undefined;
+  const preferred = new Set(preferredMaterialTokens);
+  return variants.find((item) => getVariantMaterialTokens(item).some((token) => preferred.has(token)));
 };
 
 // Picks the variant whose parentName matches the slot the user is autofilling
@@ -34,12 +72,17 @@ const normalizeAutofillRequest = (request: AutofillValueRequest): NormalizedAuto
 const selectVariantForRequest = (
   variants: AttributeValue[],
   preferredParentName?: string,
+  preferredMaterialTokens: readonly string[] = [],
 ): AttributeValue | undefined => {
   if (!variants.length) return undefined;
   if (preferredParentName) {
-    const preferred = variants.find((item) => item.parentName === preferredParentName);
-    if (preferred) return preferred;
+    const parentMatches = variants.filter((item) => item.parentName === preferredParentName);
+    const materialMatch = findByPreferredMaterial(parentMatches, preferredMaterialTokens);
+    if (materialMatch) return materialMatch;
+    if (parentMatches.length) return parentMatches[0];
   }
+  const materialMatch = findByPreferredMaterial(variants, preferredMaterialTokens);
+  if (materialMatch) return materialMatch;
   return variants[0];
 };
 
@@ -62,14 +105,14 @@ export const deriveAutofillMaterials = ({
   const seen = new Set<string>();
   const resolved: AttributeValue[] = [];
 
-  requests.forEach(({ value, preferredParentName }) => {
+  requests.forEach(({ value, preferredParentName, preferredMaterialTokens }) => {
     if (resolved.length >= limit) return;
 
     const matches = allMaterialValues.filter((item) => toLookupValue(item) === value);
-    const match = selectVariantForRequest(matches, preferredParentName);
+    const match = selectVariantForRequest(matches, preferredParentName, preferredMaterialTokens);
     if (!match) return;
 
-    const identity = toIdentity(match);
+    const identity = getSwatchIdentity(match);
     if (seen.has(identity)) return;
 
     seen.add(identity);
@@ -97,7 +140,7 @@ export const mergeAutofillWithSelectedMaterials = ({
   const push = (item: AttributeValue) => {
     if (merged.length >= limit) return;
 
-    const identity = toIdentity(item);
+    const identity = getSwatchIdentity(item);
     if (seen.has(identity)) return;
 
     seen.add(identity);
@@ -115,6 +158,6 @@ export const areSameMaterialLists = (left: AttributeValue[], right: AttributeVal
 
   return left.every((item, index) => {
     const other = right[index];
-    return Boolean(other) && toIdentity(item) === toIdentity(other);
+    return Boolean(other) && getSwatchIdentity(item) === getSwatchIdentity(other);
   });
 };

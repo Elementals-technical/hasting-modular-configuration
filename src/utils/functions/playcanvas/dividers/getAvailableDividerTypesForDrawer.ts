@@ -42,6 +42,13 @@ const getAddableDividerSlots = (zones: Record<string, unknown>): DividerSlot[] =
     });
   });
 
+const hasDividerSlots = (zones: Record<string, unknown>): boolean =>
+  Object.values(zones).some((zone) => {
+    if (!isRecord(zone)) return false;
+
+    return Array.isArray(zone.slots) && zone.slots.length > 0;
+  });
+
 export const collectAvailableDividerTypesForDrawer = (zones: Record<string, unknown>): Set<DividerType> => {
   const availableTypes = new Set<DividerType>();
 
@@ -72,6 +79,7 @@ export async function getAvailableDividerTypesForDrawer(
 
   const zones = drawerConfig.zones;
   if (!isRecord(zones)) return null;
+  if (!hasDividerSlots(zones)) return null;
 
   return collectAvailableDividerTypesForDrawer(zones);
 }

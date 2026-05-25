@@ -28,6 +28,7 @@ import {
   setFaucetHolesAmount,
   setCabinetColor,
   setHandleGrooveColor,
+  setPlacedCabinetStyle,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { getCabinetColor, getHandleGrooveColor, getProductsPresets } from "@/entities/product/model/store/selectors";
@@ -77,6 +78,13 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   }
 
   return globalConfig;
+};
+
+const mapPresetDrawerToRuleValue = (drawers?: string | null): string | null => {
+  if (drawers === "1D") return "1";
+  if (drawers === "2D") return "2";
+  if (drawers === "1DWID") return "1+inner";
+  return null;
 };
 
 export const ModelPage = () => {
@@ -205,11 +213,18 @@ export const ModelPage = () => {
     return match?.id ?? productMockData[0]?.id ?? null;
   }, [productsPresets]);
 
-  const syncPresetProductIdsFromScene = useCallback(() => {
+  const syncPresetProductIdsFromScene = useCallback((presetProducts?: PresetProduct[]) => {
     const orderedIds = getOrderedProductIds();
 
     dispatch(resetProducts());
-    orderedIds.forEach((id) => dispatch(addProductId(id)));
+    orderedIds.forEach((id, index) => {
+      dispatch(addProductId(id));
+
+      const drawerRawValue = mapPresetDrawerToRuleValue(presetProducts?.[index]?.Drawers);
+      if (drawerRawValue) {
+        dispatch(setPlacedCabinetStyle({ id, value: drawerRawValue }));
+      }
+    });
 
     return orderedIds;
   }, [dispatch]);
@@ -220,7 +235,7 @@ export const ModelPage = () => {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], transferableOverrides);
         const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
         await addPreset(effectivePresetProducts, globalConfig);
-        syncPresetProductIdsFromScene();
+        syncPresetProductIdsFromScene(effectivePresetProducts);
 
         if (effectivePresetProducts.length) {
           dispatch(addProductPreset(effectivePresetProducts));
@@ -413,7 +428,7 @@ export const ModelPage = () => {
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));
-        syncPresetProductIdsFromScene();
+        syncPresetProductIdsFromScene(effectivePresets);
         if (globalConfig.CountertopColor) {
           dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
           if (restoredCountertopColorSku) {
@@ -455,7 +470,7 @@ export const ModelPage = () => {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
         const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
         await addPreset(effectivePresetProducts, globalConfig);
-        syncPresetProductIdsFromScene();
+        syncPresetProductIdsFromScene(effectivePresetProducts);
 
         if (!productsPresets.length) {
           dispatch(addProductPreset(effectivePresetProducts));

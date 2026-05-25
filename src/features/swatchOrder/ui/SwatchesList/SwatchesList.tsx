@@ -6,6 +6,7 @@ import {
 import { removeItem, setAutofillEnabled } from "../../model/store/slice";
 import { MAX_SLOTS } from "../../model/constants";
 import { AttributeHelper } from "../../lib/AttributeHelper";
+import { getSwatchIdentity } from "../../lib/getSwatchIdentity";
 import { CheckMarkIconSVG } from "../icons/CheckMarkIconSVG";
 import { CloseIconSVG } from "../icons/CloseIconSVG";
 import s from "./SwatchesList.module.scss";
@@ -38,7 +39,7 @@ export const SwatchesList = () => {
           const label = AttributeHelper.getValueLabel(val);
           const materialLabel = AttributeHelper.getMaterialDisplayName(val);
           const tooltipLabel = materialLabel ? `${label} ${materialLabel}` : label;
-          const key = `${val.metadata?.label ?? index}/${val.parentName}`;
+          const key = getSwatchIdentity(val);
 
           return (
             <div key={key} className={s.tileWrap}>

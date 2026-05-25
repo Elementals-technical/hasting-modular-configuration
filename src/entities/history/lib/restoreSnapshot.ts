@@ -10,6 +10,7 @@ import {
   resolveRuntimeProductType,
   withRuntimeProductType,
 } from "@/entities/product/lib/resolveRuntimeProductType";
+import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 
 function mapConfigToDrawerValue(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -26,6 +27,8 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
   await removeAllProducts();
 
   const newProductIds: string[] = [];
+  const productIdMap: Record<string, string> = {};
+  const restoredPlacedDividers: NonNullable<SceneSnapshot["placedDividers"]> = [];
   const restoredPlacedCabinetStyles: Record<string, string> = {};
   let restoredSelectedProductConfig: Record<string, unknown> | null = snapshot.selectedProductConfig ?? null;
 
@@ -40,6 +43,8 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     if (newId) {
       await setConfig(newId, productConfig);
       newProductIds.push(newId);
+      productIdMap[oldId] = newId;
+      restoredPlacedDividers.push(...collectPlacedDividersFromConfig(newId, productConfig));
 
       if (!restoredSelectedProductConfig) {
         restoredSelectedProductConfig = { ...productConfig };
@@ -62,7 +67,13 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
       },
       activeCabinetType: snapshot.activeCabinetType,
       selectedDimensions: snapshot.selectedDimensions,
-      placedDividers: snapshot.placedDividers,
+      placedDividers:
+        restoredPlacedDividers.length > 0
+          ? restoredPlacedDividers
+          : snapshot.placedDividers?.flatMap((divider) => {
+              const cabinetId = productIdMap[divider.cabinetId];
+              return cabinetId ? [{ ...divider, cabinetId }] : [];
+            }),
       selectedProductConfig: restoredSelectedProductConfig,
       placedCabinetStyles:
         Object.keys(restoredPlacedCabinetStyles).length > 0

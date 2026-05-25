@@ -1,7 +1,9 @@
 import type { AttributeValue } from "../model/types";
 import { AttributeHelper } from "./AttributeHelper";
+import { getSwatchIdentity } from "./getSwatchIdentity";
 
 export interface SwatchPreview {
+  identity: string;
   value: string;
   label: string;
   materialLabel?: string;
@@ -12,6 +14,7 @@ export interface SwatchPreview {
 export const toSwatchPreview = (item: AttributeValue): SwatchPreview => {
   const value = item.metadata?.value ?? item.value ?? item.label;
   return {
+    identity: getSwatchIdentity(item),
     value,
     label: AttributeHelper.getValueLabel(item),
     materialLabel: AttributeHelper.getMaterialDisplayName(item),

@@ -1508,21 +1508,33 @@ export const PlayCanvasIntegration = () => {
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-color");
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=thickness");
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-styles");
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=basin-style");
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [navigate]);
 
@@ -1668,19 +1680,6 @@ export const PlayCanvasIntegration = () => {
     if (!productsPresets.length) return;
 
     const orderedIds = getOrderedProductIds();
-
-    if (action === "resize") {
-      for (const productId of orderedIds) {
-        await prepareCabinetDividersForResize(productId);
-      }
-      watchPlayCanvasMeshInstancesDuringRender();
-      await setConfigBatch(orderedIds, buildResetDividersConfig());
-      watchPlayCanvasMeshInstancesDuringRender();
-      sanitizePlayCanvasMeshInstances();
-      await waitForNextAnimationFrame();
-      sanitizePlayCanvasMeshInstances();
-      dispatch(clearPlacedDividers());
-    }
 
     const sceneConfigs = await Promise.all(orderedIds.map((productId) => getConfig(productId)));
 
@@ -2637,6 +2636,11 @@ export const PlayCanvasIntegration = () => {
 
       await setConfigBatch({}, { Thickness: thickness });
       dispatch(setActiveCountertopThickness(`${thickness}`));
+
+      getSelectTool()?.deselectAll();
+      setVesselBasinSelectionInfo(null);
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+      setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
     },
     [dispatch, saveSnapshot, selectedSceneProduct],
   );
@@ -2647,6 +2651,8 @@ export const PlayCanvasIntegration = () => {
         ? "/prebuilt/countertop?accordion=counter-top-color"
         : "/custom/countertop?accordion=counter-top-color",
     );
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
@@ -2655,12 +2661,16 @@ export const PlayCanvasIntegration = () => {
     navigate(
       isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style",
     );
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
 
   const handleOpenBasinStyle = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
@@ -2791,7 +2801,12 @@ export const PlayCanvasIntegration = () => {
     vesselBasinSelectionInfo?.actions,
   ]);
 
-  const activeDropdownItems = vesselBasinSelectionInfo ? vesselBasinDropdownItems : dropdownItems;
+  const isCountertopBasinDropdown = Boolean(vesselBasinSelectionInfo && !isVesselBasinSelectionInfo(vesselBasinSelectionInfo));
+  const activeDropdownItems = vesselBasinSelectionInfo
+    ? isCountertopBasinDropdown
+      ? countertopPopoverItems
+      : vesselBasinDropdownItems
+    : dropdownItems;
 
   return (
     <div style={{ position: "relative", height: "100%" }}>
@@ -2857,7 +2872,10 @@ export const PlayCanvasIntegration = () => {
           }}
         >
           <div style={{ pointerEvents: "auto" }}>
-            <NestedDropdown items={activeDropdownItems} />
+            <NestedDropdown
+              items={activeDropdownItems}
+              style={isCountertopBasinDropdown ? { width: "200px" } : undefined}
+            />
           </div>
           {!vesselBasinSelectionInfo && quickEditorNotification.isVisible && (
             <InSceneQuickEditorNotification onClose={handleDismissQuickEditorNotification} />
