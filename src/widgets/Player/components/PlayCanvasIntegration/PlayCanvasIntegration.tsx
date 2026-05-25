@@ -1508,6 +1508,7 @@ export const PlayCanvasIntegration = () => {
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-color");
+    getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -1515,6 +1516,7 @@ export const PlayCanvasIntegration = () => {
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=thickness");
+    getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -1522,6 +1524,7 @@ export const PlayCanvasIntegration = () => {
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-styles");
+    getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -1529,6 +1532,7 @@ export const PlayCanvasIntegration = () => {
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=basin-style");
+    getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -2645,6 +2649,11 @@ export const PlayCanvasIntegration = () => {
 
       await setConfigBatch({}, { Thickness: thickness });
       dispatch(setActiveCountertopThickness(`${thickness}`));
+
+      getSelectTool()?.deselectAll();
+      setVesselBasinSelectionInfo(null);
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+      setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
     },
     [dispatch, saveSnapshot, selectedSceneProduct],
   );
@@ -2655,6 +2664,8 @@ export const PlayCanvasIntegration = () => {
         ? "/prebuilt/countertop?accordion=counter-top-color"
         : "/custom/countertop?accordion=counter-top-color",
     );
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
@@ -2663,12 +2674,16 @@ export const PlayCanvasIntegration = () => {
     navigate(
       isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style",
     );
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
 
   const handleOpenBasinStyle = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [isPrebuilt, navigate]);
