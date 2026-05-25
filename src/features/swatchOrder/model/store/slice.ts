@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { getSwatchIdentity } from "../../lib/getSwatchIdentity";
 import { uniqueList } from "../../lib/uniqueList";
 import { MAX_SLOTS } from "../constants";
 import type {
@@ -26,14 +27,27 @@ const initialState = createInitialState();
 
 const sum = (arr: AttributeValue[]) => arr.reduce((s, i) => s + (i.count ?? 0), 0);
 
-const isSame = (a: AttributeValue, b: AttributeValue) =>
-  a.metadata?.label === b.metadata?.label && a.parentName === b.parentName;
+const isSame = (a: AttributeValue, b: AttributeValue) => getSwatchIdentity(a) === getSwatchIdentity(b);
 
 const isSameList = (a: AttributeValue[], b: AttributeValue[]) =>
   a.length === b.length && a.every((item, index) => {
     const other = b[index];
     return Boolean(other) && isSame(item, other);
   });
+
+const uniqueSwatches = (items: AttributeValue[]): AttributeValue[] => {
+  const seen = new Set<string>();
+  const result: AttributeValue[] = [];
+
+  items.forEach((item) => {
+    const identity = getSwatchIdentity(item);
+    if (seen.has(identity)) return;
+    seen.add(identity);
+    result.push(item);
+  });
+
+  return result;
+};
 
 const swatchOrderSlice = createSlice({
   name: "swatchOrder",
@@ -93,9 +107,10 @@ const swatchOrderSlice = createSlice({
       if (state.selectedMaterials.length === 0) state.hasSubmittedCart = false;
     },
     setCartMaterials(state, action: PayloadAction<AttributeValue[]>) {
-      if (isSameList(state.selectedMaterials, action.payload)) return;
-      state.selectedMaterials = action.payload;
-      if (action.payload.length === 0) state.hasSubmittedCart = false;
+      const nextMaterials = uniqueSwatches(action.payload);
+      if (isSameList(state.selectedMaterials, nextMaterials)) return;
+      state.selectedMaterials = nextMaterials;
+      if (nextMaterials.length === 0) state.hasSubmittedCart = false;
     },
     markCartSubmitted(state) {
       state.hasSubmittedCart = state.selectedMaterials.length > 0;
@@ -109,7 +124,7 @@ const swatchOrderSlice = createSlice({
         state.isEnabledInSummary = true;
       }
       if (!action.payload) {
-        state.selectedMaterials = state.manualSelectedMaterials.slice();
+        state.selectedMaterials = uniqueSwatches(state.manualSelectedMaterials);
         if (state.selectedMaterials.length === 0) state.hasSubmittedCart = false;
       }
     },
@@ -122,8 +137,8 @@ const swatchOrderSlice = createSlice({
         hasSubmittedCart: boolean;
       }>,
     ) {
-      state.selectedMaterials = action.payload.selectedMaterials;
-      state.manualSelectedMaterials = action.payload.manualSelectedMaterials;
+      state.selectedMaterials = uniqueSwatches(action.payload.selectedMaterials);
+      state.manualSelectedMaterials = uniqueSwatches(action.payload.manualSelectedMaterials);
       state.isAutofillEnabled = action.payload.isAutofillEnabled;
       state.hasSubmittedCart = action.payload.hasSubmittedCart;
     },

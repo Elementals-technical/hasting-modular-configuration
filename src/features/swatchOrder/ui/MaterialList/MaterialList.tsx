@@ -3,6 +3,7 @@ import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getAllMaterialValues, getMaterialSelectStateFilters, getSelectedMaterials } from "../../model/store/selectors";
 import { setSelectedMaterial } from "../../model/store/slice";
+import { getSwatchIdentity } from "../../lib/getSwatchIdentity";
 import { splitMetadataList } from "../../lib/SwatchesServices";
 import type { AttributeValue } from "../../model/types";
 import { MAX_SLOTS } from "../../model/constants";
@@ -16,8 +17,6 @@ const ROW_HEIGHT_MOBILE = 236;
 const DESKTOP_COLS = 3;
 const MOBILE_COLS = 2;
 const DESKTOP_QUERY = "(min-width: 640px)";
-
-const matchValue = (item: AttributeValue): string => item.metadata?.value ?? item.value ?? item.label;
 
 interface MaterialListProps {
   onSelectMaterial?: (item: AttributeValue) => void;
@@ -78,8 +77,8 @@ export const MaterialList = ({ onSelectMaterial }: MaterialListProps) => {
   });
 
   const handleSelect = (item: AttributeValue) => {
-    const itemValue = matchValue(item);
-    const isSelected = selectedMaterials.some((m) => matchValue(m) === itemValue && m.parentName === item.parentName);
+    const itemIdentity = getSwatchIdentity(item);
+    const isSelected = selectedMaterials.some((m) => getSwatchIdentity(m) === itemIdentity);
     if (!isSelected && cartCount + 1 > MAX_SLOTS) {
       setIsShowLimit(true);
       return;
@@ -113,11 +112,11 @@ export const MaterialList = ({ onSelectMaterial }: MaterialListProps) => {
               <div key={virtualRow.key} className={s.row} style={{ transform: `translateY(${virtualRow.start}px)` }}>
                 <div className={s.grid} style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
                   {rowItems.map((val) => {
-                    const value = matchValue(val);
+                    const identity = getSwatchIdentity(val);
                     const isSelected = selectedMaterials.some(
-                      (elem) => matchValue(elem) === value && elem.parentName === val.parentName,
+                      (elem) => getSwatchIdentity(elem) === identity,
                     );
-                    const key = `${val.parentName}__${val.optionName ?? ""}__${value}`;
+                    const key = `${val.parentName}__${val.optionName ?? ""}__${identity}`;
 
                     return <MaterialListItem key={key} val={val} isSelected={isSelected} onClick={handleSelect} />;
                   })}

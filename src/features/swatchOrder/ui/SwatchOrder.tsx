@@ -5,11 +5,13 @@ import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 import { useMount } from "@/shared/ui/Popups/hooks/useMount";
 import {
   getCabinetColor,
+  getCountertopColorSku,
   getHandleGrooveColor,
   getActiveCountertopColor,
   getTowelBarColor,
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
+import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { adaptThreekitConfig } from "../lib/adaptThreekitConfig";
 import {
   closeSwatchOrder,
@@ -80,6 +82,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const vesselColor = useAppSelector(getVesselColor);
   const [activeElements, setActiveElements] = useState<string[]>([]);
@@ -106,12 +109,24 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
         values: [
           { value: cabinetColor, preferredParentName: "Cabinet Color" },
           { value: handleGrooveColor, preferredParentName: "Handle Groove Color" },
-          { value: countertopColor, preferredParentName: COUNTERTOP_PRODUCT_ELEMENT },
+          {
+            value: countertopColor,
+            preferredParentName: COUNTERTOP_PRODUCT_ELEMENT,
+            preferredMaterialTokens: getCountertopMaterialTokensBySku(countertopColorSku),
+          },
           { value: towelBarColor, preferredParentName: "Towel Bar Color" },
           { value: vesselColor, preferredParentName: "Vessels" },
         ],
       }),
-    [mapped.allMaterialValues, cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor],
+    [
+      mapped.allMaterialValues,
+      cabinetColor,
+      handleGrooveColor,
+      countertopColor,
+      countertopColorSku,
+      towelBarColor,
+      vesselColor,
+    ],
   );
   const mergedAutofillMaterials = useMemo(
     () =>
