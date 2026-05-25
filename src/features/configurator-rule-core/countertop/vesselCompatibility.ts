@@ -1,6 +1,7 @@
 import {
   vesselAllowedMaterialColorCodesMap,
   vesselAllowedMaterialsMap,
+  vesselDefaultFinishMap,
   vesselUnavailableMaterialColorCodesMap,
 } from "@/shared/lib/sku";
 
@@ -11,6 +12,11 @@ export const VESSEL_COLOR_UNAVAILABLE_REASON = "Not available for selected vesse
 const HIDDEN_VESSEL_SINK_STYLES = new Set(["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"]);
 
 type VesselMaterialColorCodeRule = {
+  materialTokens: Set<string>;
+  colorCodes: Set<string>;
+};
+
+type VesselFinishPreference = {
   materialTokens: Set<string>;
   colorCodes: Set<string>;
 };
@@ -49,6 +55,25 @@ export const getAllowedVesselMaterialTokens = (vesselStyle?: string | null): Set
   );
 };
 
+const getDefaultVesselFinishPreference = (vesselStyle?: string | null): VesselFinishPreference | null => {
+  if (!isVesselSinkStyle(vesselStyle)) return null;
+
+  const rawPreference = resolveVesselStyleRule(vesselDefaultFinishMap, vesselStyle?.trim() ?? "");
+  if (!rawPreference) return null;
+
+  const materialTokens = new Set(
+    rawPreference.materialTokens
+      .flatMap((token) => getMaterialAliases(token))
+      .map((token) => normalizeMaterialToken(token))
+      .filter(Boolean),
+  );
+  const colorCodes = new Set(rawPreference.colorCodes.map((code) => normalizeMaterialToken(code)).filter(Boolean));
+
+  if (!materialTokens.size && !colorCodes.size) return null;
+
+  return { materialTokens, colorCodes };
+};
+
 const getMaterialColorCodeRules = (
   ruleMap: Record<string, Record<string, string[]>>,
   vesselStyle?: string | null,
@@ -77,6 +102,37 @@ const getAllowedMaterialColorCodeRules = (vesselStyle?: string | null): VesselMa
 
 const getUnavailableMaterialColorCodeRules = (vesselStyle?: string | null): VesselMaterialColorCodeRule[] =>
   getMaterialColorCodeRules(vesselUnavailableMaterialColorCodesMap, vesselStyle);
+
+export const isPreferredVesselFinish = ({
+  vesselStyle,
+  materialTokens,
+  colorCode,
+}: {
+  vesselStyle?: string | null;
+  materialTokens: readonly string[];
+  colorCode?: string | null;
+}): boolean => {
+  const preference = getDefaultVesselFinishPreference(vesselStyle);
+  if (!preference) return false;
+
+  const candidateMaterialTokens = new Set<string>();
+  materialTokens.forEach((token) => {
+    getMaterialAliases(token)
+      .map((alias) => normalizeMaterialToken(alias))
+      .filter(Boolean)
+      .forEach((alias) => candidateMaterialTokens.add(alias));
+  });
+
+  const normalizedColorCode = normalizeMaterialToken(colorCode ?? "");
+  const matchesMaterial =
+    preference.materialTokens.size === 0 ||
+    Array.from(candidateMaterialTokens).some((token) => preference.materialTokens.has(token));
+  const matchesColor =
+    preference.colorCodes.size === 0 ||
+    (normalizedColorCode.length > 0 && preference.colorCodes.has(normalizedColorCode));
+
+  return matchesMaterial && matchesColor;
+};
 
 export const isMaterialCompatibleWithVesselStyle = ({
   vesselStyle,

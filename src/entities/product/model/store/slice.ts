@@ -315,6 +315,7 @@ const productSlice = createSlice({
       }
 
       delete state.placedCabinetStyles[action.payload];
+      state.placedDividers = state.placedDividers.filter((divider) => divider.cabinetId !== action.payload);
       applyRulesToState(state);
     },
     swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
@@ -339,6 +340,7 @@ const productSlice = createSlice({
     resetProducts(state) {
       state.productIds = [];
       state.placedCabinetStyles = {};
+      state.placedDividers = [];
       applyRulesToState(state);
     },
     resetCabinetBuilderBootstrap(state) {
@@ -568,6 +570,13 @@ const productSlice = createSlice({
         ...dividers,
       ];
     },
+    replacePlacedDividersForCabinet(state, action: PayloadAction<{ cabinetId: string; dividers: PlacedDivider[] }>) {
+      const { cabinetId, dividers } = action.payload;
+      state.placedDividers = [
+        ...state.placedDividers.filter((divider) => divider.cabinetId !== cabinetId),
+        ...dividers,
+      ];
+    },
     clearTopPlacedDividersForCabinets(state, action: PayloadAction<string[]>) {
       const cabinetIds = new Set(action.payload);
       state.placedDividers = state.placedDividers.filter(
@@ -671,6 +680,7 @@ export const {
   setDividersOption,
   setDividersStyle,
   replacePlacedDividersForDrawer,
+  replacePlacedDividersForCabinet,
   clearTopPlacedDividersForCabinets,
   clearPlacedDividers,
   setTowelBarOption,

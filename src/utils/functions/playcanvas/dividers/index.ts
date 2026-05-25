@@ -15,6 +15,11 @@ export {
   getDividerTypeFromOptionTitle,
   type DividerType,
 } from "./getAvailableDividerTypesForDrawer";
+export {
+  collectPlacedDividersFromConfig,
+  collectPlacedDividersForDrawer,
+  type RuntimePlacedDivider,
+} from "./parsePlacedDividersConfig";
 export { getPlacedDividersForDrawer } from "./getPlacedDividersForDrawer";
 export { wrapShowTopView } from "./wrapShowTopView";
 export type { DrawerType } from "./wrapShowTopView";
