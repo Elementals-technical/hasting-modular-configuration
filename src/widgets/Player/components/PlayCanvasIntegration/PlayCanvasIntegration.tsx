@@ -1681,19 +1681,6 @@ export const PlayCanvasIntegration = () => {
 
     const orderedIds = getOrderedProductIds();
 
-    if (action === "resize") {
-      for (const productId of orderedIds) {
-        await prepareCabinetDividersForResize(productId);
-      }
-      watchPlayCanvasMeshInstancesDuringRender();
-      await setConfigBatch(orderedIds, buildResetDividersConfig());
-      watchPlayCanvasMeshInstancesDuringRender();
-      sanitizePlayCanvasMeshInstances();
-      await waitForNextAnimationFrame();
-      sanitizePlayCanvasMeshInstances();
-      dispatch(clearPlacedDividers());
-    }
-
     const sceneConfigs = await Promise.all(orderedIds.map((productId) => getConfig(productId)));
 
     const updatedPresets = productsPresets.map((preset, index) => {
