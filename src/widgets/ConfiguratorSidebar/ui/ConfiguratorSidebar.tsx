@@ -8,7 +8,7 @@ import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBa
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
-import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
+import { CUSTOM_STEPS, PREBUILT_STEPS, getStepHeaderLabel } from "@/shared/config/steps";
 import { setIsDrawerOpen } from "@/entities/product/model/store/slice";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 
@@ -29,12 +29,13 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
   const summaryStep = steps.find((step) => step.id === "summary");
   const currentStep = steps.find((step) => location.pathname.startsWith(step.path));
+  const currentStepHeader = currentStep ? getStepHeaderLabel(currentStep) : null;
   const previousStepPathRef = useRef<string | null>(null);
   const isSummaryPage = !!summaryStep && location.pathname.startsWith(summaryStep.path);
 
   useEffect(() => {
-    dispatch(setActiveStep(currentStep?.label ?? null));
-  }, [currentStep?.label, dispatch]);
+    dispatch(setActiveStep(currentStepHeader));
+  }, [currentStepHeader, dispatch]);
 
   useEffect(() => {
     const previousStepPath = previousStepPathRef.current;
