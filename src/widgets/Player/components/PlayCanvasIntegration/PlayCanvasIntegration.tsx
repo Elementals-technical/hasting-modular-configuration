@@ -75,6 +75,7 @@ import {
   buildResetDividersConfig,
   prepareCabinetDividersForResize,
 } from "@/utils/functions/playcanvas/dividers/prepareDividersForResize";
+import { applyDrawerTopViewDefaultZoomOut } from "@/utils/functions/playcanvas/dividers/drawerTopViewCamera";
 import {
   sanitizePlayCanvasMeshInstances,
   watchPlayCanvasMeshInstancesDuringRender,
@@ -1830,6 +1831,7 @@ export const PlayCanvasIntegration = () => {
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
           | {
               showTopView?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+              __wrappedShowTopView?: boolean;
               setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
               dividers?: {
                 showIconDividerSlots?: (
@@ -1863,10 +1865,19 @@ export const PlayCanvasIntegration = () => {
 
         // Preview-only mode: hide divider slot "+" controls.
         hideDividerSlots();
+        const canOpenTopView = typeof api?.showTopView === "function";
+        const shouldApplyDefaultZoomOut = canOpenTopView && !api.__wrappedShowTopView;
+        const applyDefaultZoomOut = () => {
+          if (shouldApplyDefaultZoomOut) {
+            applyDrawerTopViewDefaultZoomOut();
+          }
+        };
         const openResult = api?.showTopView?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
         const isThenable = !!openResult && typeof (openResult as Promise<unknown>).then === "function";
         if (isThenable) {
-          (openResult as Promise<unknown>).catch(() => null);
+          (openResult as Promise<unknown>).catch(() => null).then(applyDefaultZoomOut);
+        } else {
+          applyDefaultZoomOut();
         }
         window.setTimeout(hideDividerSlots, 0);
         window.setTimeout(hideDividerSlots, 250);

@@ -1,3 +1,5 @@
+import { applyDrawerTopViewDefaultZoomOut } from "./drawerTopViewCamera";
+
 export type DrawerType = "Top" | "TopFull" | "Bot";
 
 type ShowTopView = (cabinetId: string, drawerType: DrawerType) => unknown;
@@ -59,7 +61,26 @@ export function wrapShowTopView({ onSelect, onAfterSelect }: WrapShowTopViewOpti
 
     const runShowTopView = () => {
       const result = api.__originalShowTopView?.(cabinetId, drawerType);
-      api.__showTopViewOnAfterSelect?.(cabinetId, drawerType);
+
+      const finalizeShowTopView = () => {
+        applyDrawerTopViewDefaultZoomOut();
+        api.__showTopViewOnAfterSelect?.(cabinetId, drawerType);
+      };
+
+      if (isPromiseLike(result)) {
+        return result.then(
+          (value) => {
+            finalizeShowTopView();
+            return value;
+          },
+          (reason: unknown) => {
+            finalizeShowTopView();
+            return Promise.reject(reason);
+          },
+        );
+      }
+
+      finalizeShowTopView();
       return result;
     };
 
