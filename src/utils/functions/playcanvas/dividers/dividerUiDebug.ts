@@ -39,6 +39,8 @@ export type DividerConfiguratorWindow = Window & {
     dividers?: {
       getDebugSnapshot?: () => unknown;
       getDebugLogging?: () => boolean;
+      getDebugEvents?: (options?: { limit?: number; level?: string; stageIncludes?: string }) => unknown;
+      clearDebugEvents?: () => unknown;
       setDebugLogging?: (enabled: boolean, options?: { persist?: boolean }) => unknown;
       getAvailableDividerTypes?: (slot: unknown) => unknown;
       placeDividerToSlot?: (slotInfo: unknown, type: "A" | "B" | "C") => Promise<unknown> | unknown;
@@ -96,6 +98,7 @@ export function getDividerUiDebug() {
     error: (stage, message, data) => pushEvent(api, startedAt, "error", stage, message, data),
     clear: () => {
       api.events.splice(0, api.events.length);
+      tryClearPlayCanvasDebugEvents();
       api.log("Debug", "Divider UI debug buffer cleared");
     },
     dump: () => ({
@@ -199,12 +202,21 @@ function getPlayCanvasDebugSnapshot() {
     const dividersApi = getDividerConfiguratorWindow()?.ConfiguratorAPI?.dividers;
     return {
       playCanvasDebugLogging: dividersApi?.getDebugLogging?.(),
+      debugEvents: dividersApi?.getDebugEvents?.({ limit: 750 }),
       snapshot: dividersApi?.getDebugSnapshot?.(),
     };
   } catch (error) {
     return {
       error: sanitizeForDebug(error),
     };
+  }
+}
+
+function tryClearPlayCanvasDebugEvents() {
+  try {
+    getDividerConfiguratorWindow()?.ConfiguratorAPI?.dividers?.clearDebugEvents?.();
+  } catch (error) {
+    warnDividerUiDebug("Debug", "Failed to clear PlayCanvas divider debug events", { error });
   }
 }
 
