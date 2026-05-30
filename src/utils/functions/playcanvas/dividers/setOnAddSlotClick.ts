@@ -1,3 +1,10 @@
+import {
+  errorDividerUiDebug,
+  getDividerConfiguratorWindow,
+  recordDividerUiDebug,
+  warnDividerUiDebug,
+} from "./dividerUiDebug";
+
 export type DividerSlotInfo = {
   cabinetId: string;
   drawerType: "Top" | "TopFull" | "Bot";
@@ -12,24 +19,35 @@ export type DividerSlotInfo = {
   slot?: unknown;
 };
 
-export function setOnAddSlotClick(callback: (slotInfo: DividerSlotInfo) => void) {
-  // @ts-ignore
-  const containerRef = window.containerRef;
-  const canvasIframe = containerRef?.current?.contentWindow as any;
-
+export function setOnAddSlotClick(callback: (slotInfo: DividerSlotInfo) => void | Promise<void>) {
+  const canvasIframe = getDividerConfiguratorWindow();
   const apiMethod = canvasIframe?.ConfiguratorAPI?.dividers?.setOnAddSlotClick;
 
-  console.log("call setOnAddSlotClick", apiMethod);
+  recordDividerUiDebug("API.setOnAddSlotClick", "Register handler", {
+    hasApi: Boolean(apiMethod),
+    hasCallback: typeof callback === "function",
+  });
 
   if (!apiMethod) {
     console.warn("[PlayCanvas] ConfiguratorAPI.dividers.setOnAddSlotClick not ready");
+    warnDividerUiDebug("API.setOnAddSlotClick", "PlayCanvas API method is not ready");
     return null;
   }
 
   try {
-    return apiMethod(callback);
+    return apiMethod((slotInfo) => {
+      recordDividerUiDebug("Callback.onAddSlotClick", "Fired", { slotInfo });
+      try {
+        Promise.resolve(callback(slotInfo as DividerSlotInfo)).catch((error: unknown) => {
+          errorDividerUiDebug("Callback.onAddSlotClick", "Async callback failed", { slotInfo, error });
+        });
+      } catch (error) {
+        errorDividerUiDebug("Callback.onAddSlotClick", "Callback failed", { slotInfo, error });
+      }
+    });
   } catch (error) {
     console.error("[PlayCanvas] Failed to setOnAddSlotClick", error);
+    errorDividerUiDebug("API.setOnAddSlotClick", "Failed to register handler", { error });
     return null;
   }
 }

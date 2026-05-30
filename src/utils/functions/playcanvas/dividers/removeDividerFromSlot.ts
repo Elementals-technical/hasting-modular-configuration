@@ -1,21 +1,68 @@
 import { setConfigBatch } from "../setConfigBatch";
+import {
+  captureDividerPlayCanvasSnapshot,
+  errorDividerUiDebug,
+  getDividerConfiguratorWindow,
+  recordDividerUiDebug,
+  warnDividerUiDebug,
+} from "./dividerUiDebug";
 import type { OccupiedSlotInfo } from "./setOnOccupiedSlotClick";
 
+type RemoveDividerPayload = Pick<OccupiedSlotInfo, "cabinetId" | "drawerType" | "zone" | "key">;
+
 export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
-  console.log("call removeDividerFromSlot", slotInfo);
+  const startedAt = performance.now();
+  const canvasIframe = getDividerConfiguratorWindow();
+  const apiMethod = canvasIframe?.ConfiguratorAPI?.dividers?.removeDividerFromSlot;
+  const payload: RemoveDividerPayload = {
+    cabinetId: slotInfo.cabinetId,
+    drawerType: slotInfo.drawerType,
+    zone: slotInfo.zone,
+    key: slotInfo.key,
+  };
+
+  recordDividerUiDebug("API.removeDividerFromSlot", "Start", {
+    hasExplicitApi: Boolean(apiMethod),
+    slotInfo,
+    payload,
+  });
 
   try {
-    return await setConfigBatch(
-      {
-        cabinetId: slotInfo.cabinetId,
-        drawerType: slotInfo.drawerType,
-        zone: slotInfo.zone,
-        key: slotInfo.key,
-      } as any,
+    if (apiMethod) {
+      const result = await apiMethod(payload);
+      recordDividerUiDebug("API.removeDividerFromSlot", "Done via explicit API", {
+        durationMs: Math.round(performance.now() - startedAt),
+        payload,
+        result,
+        playCanvasSnapshot: captureDividerPlayCanvasSnapshot(),
+      });
+      return result;
+    }
+
+    warnDividerUiDebug("API.removeDividerFromSlot", "Explicit API missing; falling back to setConfigBatch", {
+      payload,
+    });
+
+    const result = await setConfigBatch(
+      payload as unknown as Parameters<typeof setConfigBatch>[0],
       { value: "empty" },
     );
+
+    recordDividerUiDebug("API.removeDividerFromSlot", "Done via fallback", {
+      durationMs: Math.round(performance.now() - startedAt),
+      payload,
+      result,
+      playCanvasSnapshot: captureDividerPlayCanvasSnapshot(),
+    });
+
+    return result;
   } catch (error) {
     console.error("[PlayCanvas] Failed to removeDividerFromSlot", error);
+    errorDividerUiDebug("API.removeDividerFromSlot", "Failed", {
+      durationMs: Math.round(performance.now() - startedAt),
+      payload,
+      error,
+    });
     return null;
   }
 }

@@ -29,6 +29,7 @@ export type ProductOptionData = {
   desc?: string;
   isAvailable?: boolean;
   disabledReason?: string;
+  disabledBadgeLabel?: string;
   disabledActionLabel?: string;
   onDisabledAction?: () => void | Promise<void>;
   isShortDesc: boolean;
@@ -119,6 +120,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         desc={groupByDesc ? undefined : i.desc}
         isAvailable={i.isAvailable}
         disabledReason={i.disabledReason}
+        disabledBadgeLabel={i.disabledBadgeLabel}
         disabledActionLabel={i.disabledActionLabel}
         onDisabledAction={i.onDisabledAction}
         isShortDesc={i.isShortDesc}

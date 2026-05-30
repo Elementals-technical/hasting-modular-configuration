@@ -26,3 +26,12 @@ export type { DrawerType } from "./wrapShowTopView";
 export { wrapExitTopView } from "./wrapExitTopView";
 export { closeDrawerInteraction } from "./closeDrawerInteraction";
 export { buildResetDividersConfig } from "./prepareDividersForResize";
+export {
+  errorDividerUiDebug,
+  getDividerConfiguratorWindow,
+  getDividerUiDebug,
+  recordDividerUiDebug,
+  warnDividerUiDebug,
+  type DividerUiDebugDump,
+  type DividerUiDebugEvent,
+} from "./dividerUiDebug";

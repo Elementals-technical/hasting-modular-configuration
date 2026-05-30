@@ -160,6 +160,25 @@
   color: #e5e6ea !important;
 }
 
+.disabledTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.disabledBadge {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid #d9dce2;
+  border-radius: 4px;
+  color: #8b919c;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 12px;
+  letter-spacing: 0;
+}
+
 .disabledOption {
   cursor: not-allowed;
 
