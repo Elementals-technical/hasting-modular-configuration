@@ -27,10 +27,12 @@ export { wrapExitTopView } from "./wrapExitTopView";
 export { closeDrawerInteraction } from "./closeDrawerInteraction";
 export { buildResetDividersConfig } from "./prepareDividersForResize";
 export {
+  createDividerUiTraceId,
   errorDividerUiDebug,
   getDividerConfiguratorWindow,
   getDividerUiDebug,
   recordDividerUiDebug,
+  summarizeDividerSlotInfo,
   warnDividerUiDebug,
   type DividerUiDebugDump,
   type DividerUiDebugEvent,

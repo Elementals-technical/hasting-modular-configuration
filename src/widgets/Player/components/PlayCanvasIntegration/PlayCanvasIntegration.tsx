@@ -1837,7 +1837,7 @@ export const PlayCanvasIntegration = () => {
                 showIconDividerSlots?: (
                   cabinetId: string,
                   drawerType: "Top" | "TopFull" | "Bot",
-                  show?: boolean,
+                  options?: boolean | { show?: boolean; selectedDividerType?: "A" | "B" | "C" | null; debugRequestId?: string },
                 ) => unknown;
               };
             }

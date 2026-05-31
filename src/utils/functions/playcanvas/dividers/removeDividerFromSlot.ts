@@ -1,29 +1,42 @@
 import { setConfigBatch } from "../setConfigBatch";
 import {
   captureDividerPlayCanvasSnapshot,
+  createDividerUiTraceId,
   errorDividerUiDebug,
   getDividerConfiguratorWindow,
   recordDividerUiDebug,
+  summarizeDividerSlotInfo,
   warnDividerUiDebug,
 } from "./dividerUiDebug";
 import type { OccupiedSlotInfo } from "./setOnOccupiedSlotClick";
 
-type RemoveDividerPayload = Pick<OccupiedSlotInfo, "cabinetId" | "drawerType" | "zone" | "key">;
+type RemoveDividerPayload = Pick<
+  OccupiedSlotInfo,
+  "cabinetId" | "drawerType" | "zone" | "key" | "zoneIndex" | "stateId" | "dividerType"
+> & {
+  debugRequestId: string;
+};
 
 export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
   const startedAt = performance.now();
   const canvasIframe = getDividerConfiguratorWindow();
   const apiMethod = canvasIframe?.ConfiguratorAPI?.dividers?.removeDividerFromSlot;
+  const debugRequestId = slotInfo.debugRequestId ?? createDividerUiTraceId("ui-remove");
   const payload: RemoveDividerPayload = {
     cabinetId: slotInfo.cabinetId,
     drawerType: slotInfo.drawerType,
     zone: slotInfo.zone,
     key: slotInfo.key,
+    zoneIndex: slotInfo.zoneIndex,
+    stateId: slotInfo.stateId,
+    dividerType: slotInfo.dividerType,
+    debugRequestId,
   };
 
   recordDividerUiDebug("API.removeDividerFromSlot", "Start", {
+    debugRequestId,
     hasExplicitApi: Boolean(apiMethod),
-    slotInfo,
+    slotInfo: summarizeDividerSlotInfo(slotInfo),
     payload,
   });
 
@@ -31,6 +44,7 @@ export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
     if (apiMethod) {
       const result = await apiMethod(payload);
       recordDividerUiDebug("API.removeDividerFromSlot", "Done via explicit API", {
+        debugRequestId,
         durationMs: Math.round(performance.now() - startedAt),
         payload,
         result,
@@ -40,6 +54,7 @@ export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
     }
 
     warnDividerUiDebug("API.removeDividerFromSlot", "Explicit API missing; falling back to setConfigBatch", {
+      debugRequestId,
       payload,
     });
 
@@ -49,6 +64,7 @@ export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
     );
 
     recordDividerUiDebug("API.removeDividerFromSlot", "Done via fallback", {
+      debugRequestId,
       durationMs: Math.round(performance.now() - startedAt),
       payload,
       result,
@@ -59,6 +75,7 @@ export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
   } catch (error) {
     console.error("[PlayCanvas] Failed to removeDividerFromSlot", error);
     errorDividerUiDebug("API.removeDividerFromSlot", "Failed", {
+      debugRequestId,
       durationMs: Math.round(performance.now() - startedAt),
       payload,
       error,

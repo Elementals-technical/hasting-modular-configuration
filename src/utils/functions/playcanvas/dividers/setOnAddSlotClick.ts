@@ -2,6 +2,7 @@ import {
   errorDividerUiDebug,
   getDividerConfiguratorWindow,
   recordDividerUiDebug,
+  summarizeDividerSlotInfo,
   warnDividerUiDebug,
 } from "./dividerUiDebug";
 
@@ -11,6 +12,11 @@ export type DividerSlotInfo = {
   zone: string;
   key: string;
   availableTypes: string[];
+  zoneIndex?: number;
+  placementType?: "A" | "B" | "C" | null;
+  canPlace?: boolean;
+  disabledReason?: "select-divider" | "does-not-fit" | "no-space" | null;
+  debugRequestId?: string;
   position?: {
     start: number;
     center: number;
@@ -36,13 +42,21 @@ export function setOnAddSlotClick(callback: (slotInfo: DividerSlotInfo) => void 
 
   try {
     return apiMethod((slotInfo) => {
-      recordDividerUiDebug("Callback.onAddSlotClick", "Fired", { slotInfo });
+      recordDividerUiDebug("Callback.onAddSlotClick", "Fired", {
+        slotInfo: summarizeDividerSlotInfo(slotInfo),
+      });
       try {
         Promise.resolve(callback(slotInfo as DividerSlotInfo)).catch((error: unknown) => {
-          errorDividerUiDebug("Callback.onAddSlotClick", "Async callback failed", { slotInfo, error });
+          errorDividerUiDebug("Callback.onAddSlotClick", "Async callback failed", {
+            slotInfo: summarizeDividerSlotInfo(slotInfo),
+            error,
+          });
         });
       } catch (error) {
-        errorDividerUiDebug("Callback.onAddSlotClick", "Callback failed", { slotInfo, error });
+        errorDividerUiDebug("Callback.onAddSlotClick", "Callback failed", {
+          slotInfo: summarizeDividerSlotInfo(slotInfo),
+          error,
+        });
       }
     });
   } catch (error) {

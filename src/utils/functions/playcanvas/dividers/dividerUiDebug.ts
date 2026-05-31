@@ -47,7 +47,11 @@ export type DividerConfiguratorWindow = Window & {
       removeDividerFromSlot?: (options: unknown) => Promise<unknown> | unknown;
       setOnAddSlotClick?: (callback: (slotInfo: unknown) => void) => unknown;
       setOnOccupiedSlotClick?: (callback: (slotInfo: unknown) => void) => unknown;
-      showIconDividerSlots?: (cabinetId: string, drawerType: "Top" | "TopFull" | "Bot") => unknown;
+      showIconDividerSlots?: (
+        cabinetId: string,
+        drawerType: "Top" | "TopFull" | "Bot",
+        options?: boolean | { show?: boolean; selectedDividerType?: "A" | "B" | "C" | null; debugRequestId?: string },
+      ) => unknown;
     };
   };
 };
@@ -69,6 +73,7 @@ const DEFAULT_ENABLED = true;
 const DEFAULT_MAX_EVENTS = 2000;
 
 let eventSequence = 0;
+let traceSequence = 0;
 
 declare global {
   interface Window {
@@ -160,7 +165,34 @@ export function errorDividerUiDebug(stage: string, message: string, data?: unkno
 }
 
 export function captureDividerPlayCanvasSnapshot() {
-  return getPlayCanvasDebugSnapshot();
+  return getPlayCanvasDebugSnapshot({ includeEvents: false });
+}
+
+export function createDividerUiTraceId(prefix = "ui-divider") {
+  traceSequence += 1;
+  return `${prefix}-${Date.now().toString(36)}-${traceSequence}`;
+}
+
+export function summarizeDividerSlotInfo(slotInfo: unknown) {
+  const info = slotInfo as Record<string, any> | null | undefined;
+  if (!info || typeof info !== "object") return info;
+
+  return {
+    cabinetId: info.cabinetId,
+    drawerType: info.drawerType,
+    zone: info.zone,
+    key: info.key,
+    zoneIndex: info.zoneIndex,
+    placementType: info.placementType,
+    canPlace: info.canPlace,
+    disabledReason: info.disabledReason,
+    availableTypes: info.availableTypes,
+    stateId: info.stateId,
+    dividerType: info.dividerType,
+    isOccupied: info.isOccupied,
+    position: summarizePosition(info.position),
+    slot: summarizeDividerSlot(info.slot),
+  };
 }
 
 function pushEvent(
@@ -197,12 +229,13 @@ function pushEvent(
   return event;
 }
 
-function getPlayCanvasDebugSnapshot() {
+function getPlayCanvasDebugSnapshot(options: { includeEvents?: boolean } = {}) {
+  const { includeEvents = true } = options;
   try {
     const dividersApi = getDividerConfiguratorWindow()?.ConfiguratorAPI?.dividers;
     return {
       playCanvasDebugLogging: dividersApi?.getDebugLogging?.(),
-      debugEvents: dividersApi?.getDebugEvents?.({ limit: 750 }),
+      ...(includeEvents ? { debugEvents: dividersApi?.getDebugEvents?.({ limit: 750 }) } : {}),
       snapshot: dividersApi?.getDebugSnapshot?.(),
     };
   } catch (error) {
@@ -210,6 +243,47 @@ function getPlayCanvasDebugSnapshot() {
       error: sanitizeForDebug(error),
     };
   }
+}
+
+function summarizeDividerSlot(slot: unknown) {
+  const item = slot as Record<string, any> | null | undefined;
+  if (!item || typeof item !== "object") return item;
+
+  return {
+    key: item.key,
+    value: item.value,
+    width: roundDebugNumber(item.width),
+    position: summarizePosition(item.position),
+    other: item.other
+      ? {
+          type: item.other.type,
+          zone: item.other.zone,
+          zoneIndex: item.other.zoneIndex,
+          placementType: item.other.placementType,
+          canPlace: item.other.canPlace,
+          disabledReason: item.other.disabledReason,
+          availableTypes: item.other.availableTypes,
+          stateId: item.other.stateId,
+          strategy: item.other.strategy,
+        }
+      : undefined,
+  };
+}
+
+function summarizePosition(position: unknown) {
+  const value = position as Record<string, any> | null | undefined;
+  if (!value || typeof value !== "object") return value;
+
+  return {
+    start: roundDebugNumber(value.start),
+    center: roundDebugNumber(value.center),
+    end: roundDebugNumber(value.end),
+  };
+}
+
+function roundDebugNumber(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return value;
+  return Math.round(value * 10000) / 10000;
 }
 
 function tryClearPlayCanvasDebugEvents() {

@@ -2,6 +2,7 @@ import {
   errorDividerUiDebug,
   getDividerConfiguratorWindow,
   recordDividerUiDebug,
+  summarizeDividerSlotInfo,
   warnDividerUiDebug,
 } from "./dividerUiDebug";
 
@@ -14,6 +15,7 @@ export type OccupiedSlotInfo = {
   stateId: string;
   dividerType: string;
   zoneIndex: number;
+  debugRequestId?: string;
   position?: {
     start: number;
     center: number;
@@ -39,13 +41,21 @@ export function setOnOccupiedSlotClick(callback: (slotInfo: OccupiedSlotInfo) =>
 
   try {
     return apiMethod((slotInfo) => {
-      recordDividerUiDebug("Callback.onOccupiedSlotClick", "Fired", { slotInfo });
+      recordDividerUiDebug("Callback.onOccupiedSlotClick", "Fired", {
+        slotInfo: summarizeDividerSlotInfo(slotInfo),
+      });
       try {
         Promise.resolve(callback(slotInfo as OccupiedSlotInfo)).catch((error: unknown) => {
-          errorDividerUiDebug("Callback.onOccupiedSlotClick", "Async callback failed", { slotInfo, error });
+          errorDividerUiDebug("Callback.onOccupiedSlotClick", "Async callback failed", {
+            slotInfo: summarizeDividerSlotInfo(slotInfo),
+            error,
+          });
         });
       } catch (error) {
-        errorDividerUiDebug("Callback.onOccupiedSlotClick", "Callback failed", { slotInfo, error });
+        errorDividerUiDebug("Callback.onOccupiedSlotClick", "Callback failed", {
+          slotInfo: summarizeDividerSlotInfo(slotInfo),
+          error,
+        });
       }
     });
   } catch (error) {
