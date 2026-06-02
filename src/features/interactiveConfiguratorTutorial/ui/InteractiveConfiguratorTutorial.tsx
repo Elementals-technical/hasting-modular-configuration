@@ -90,6 +90,14 @@ const mapTutorialStepToJoyrideStep = (step: InteractiveConfiguratorTutorialStep)
   title: step.title,
   content: step.description,
   spotlightPadding: step.spotlightPadding,
+  styles:
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet
+      ? {
+          floater: {
+            top: 105,
+          },
+        }
+      : undefined,
   data: {
     primaryLabel: step.primaryLabel,
     secondaryLabel: step.secondaryLabel,
@@ -221,9 +229,16 @@ const TutorialTooltip = ({
 }: TooltipRenderProps) => {
   const { primaryLabel, progressLabel, secondaryAction, secondaryLabel } = getStepData(step);
   const secondaryProps = secondaryAction === "back" ? backProps : skipProps;
+  const tooltipClassName = [
+    s.tooltip,
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails ? s.prebuiltDetailsTooltip : "",
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet ? s.customPlaceCabinetTooltip : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className={s.tooltip} {...tooltipProps}>
+    <div {...tooltipProps} className={tooltipClassName}>
       <div className={s.header}>
         <div className={s.title}>{step.title}</div>
         <button

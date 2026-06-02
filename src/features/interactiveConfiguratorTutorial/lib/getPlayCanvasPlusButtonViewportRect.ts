@@ -20,6 +20,15 @@ const isVisibleElement = (element: HTMLElement, contentWindow: Window): boolean 
   return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
 };
 
+const getRightmostElement = (elements: HTMLElement[]): HTMLElement | null =>
+  elements.reduce<HTMLElement | null>((rightmostElement, element) => {
+    if (!rightmostElement) return element;
+
+    return element.getBoundingClientRect().right > rightmostElement.getBoundingClientRect().right
+      ? element
+      : rightmostElement;
+  }, null);
+
 export const getPlayCanvasPlusButtonViewportRect = (): ViewportRect | null => {
   const containerRef = (window as WindowWithPlayCanvasContainer).containerRef;
   const iframe = containerRef?.current;
@@ -28,9 +37,10 @@ export const getPlayCanvasPlusButtonViewportRect = (): ViewportRect | null => {
 
   if (!iframe || !contentWindow || !document) return null;
 
-  const button = Array.from(document.querySelectorAll<HTMLElement>(PLAYCANVAS_PLUS_BUTTON_SELECTOR)).find((element) =>
-    isVisibleElement(element, contentWindow),
+  const visibleButtons = Array.from(document.querySelectorAll<HTMLElement>(PLAYCANVAS_PLUS_BUTTON_SELECTOR)).filter(
+    (element) => isVisibleElement(element, contentWindow),
   );
+  const button = getRightmostElement(visibleButtons);
 
   if (!button) return null;
 

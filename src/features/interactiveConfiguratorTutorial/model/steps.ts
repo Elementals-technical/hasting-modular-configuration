@@ -51,7 +51,7 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
   {
     id: INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
     target: INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.prebuiltNextButton,
-    placement: "top",
+    placement: "left-end",
     title: "Pre-Built Mode",
     description:
       "From here, personalize your solution details: select your cabinet colors, countertop details and accessorize your design until it's perfect.",
@@ -117,7 +117,7 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
   {
     id: INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
     target: INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.customPlaceCabinet,
-    placement: "left",
+    placement: "right",
     title: "Custom Mode",
     description: "Place Your Cabinet\nTap on a '+' to insert your selected cabinet",
     progressLabel: "4 of 4",

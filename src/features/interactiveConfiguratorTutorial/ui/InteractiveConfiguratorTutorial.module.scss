@@ -11,6 +11,19 @@
   right: -51px !important;
 }
 
+.prebuiltDetailsTooltip + :global(.react-joyride__arrow) {
+  top: auto !important;
+  right: -51px !important;
+  bottom: 18px !important;
+}
+
+.customPlaceCabinetTooltip + :global(.react-joyride__arrow) {
+  top: -5px !important;
+  right: auto !important;
+  left: -51px !important;
+  transform: rotate(180deg);
+}
+
 // :global(.react-joyride__floater) {
 //   left: -25px !important;
 // }
