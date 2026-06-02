@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
+import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features/interactiveConfiguratorTutorial";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
@@ -859,7 +860,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         </div>
       </PopupCenterContent>
 
-      <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
+      <div
+        ref={sidebarRef}
+        className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}
+        data-tutorial-target={INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.customSizingHandle}
+      >
         <div className={s.arrow} onClick={handleCloseSidebar}>
           <ArrowRight width="16" />
         </div>

@@ -19,9 +19,10 @@ const formatPrice = (value?: number | null) => {
 
 type BottomStickyBarProps = PropsWithChildren<{
   flow?: "prebuilt" | "custom";
+  nextButtonDataTarget?: string;
 }>;
 
-export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
+export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
@@ -127,7 +128,7 @@ export const BottomStickyBar = ({ flow }: BottomStickyBarProps) => {
           </Link>
         </span>
       </div>
-      <div className={s.nextStepWrapp}>
+      <div className={s.nextStepWrapp} data-tutorial-target={nextButtonDataTarget}>
         {previousStep && (
           <button
             type="button"

@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
 import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvasButtons";
+import { InteractiveConfiguratorTutorial } from "@/features/interactiveConfiguratorTutorial";
 import { IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT } from "@/features/inSceneQuickEditorNotification";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
 import {
@@ -70,6 +71,7 @@ export function Player() {
   const [shareValue, setShareValue] = useState("");
   const [howToStep, setHowToStep] = useState<number | null>(null);
   const [isCustomInstructionOpen, setIsCustomInstructionOpen] = useState(false);
+  const [isInteractiveTutorialOpen, setIsInteractiveTutorialOpen] = useState(false);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -277,6 +279,14 @@ export function Player() {
       id: "configurator-how-tos",
       label: "Configurator How-Tos",
       children: [
+        {
+          id: "interactive-configurator-tutorial",
+          label: "Interactive Configurator tutorial",
+          action: () => {
+            setIsInteractiveTutorialOpen(true);
+            closePopupWithoutBack();
+          },
+        },
         {
           id: "prebuilt-mode-tutorial",
           label: "Pre-Built Mode tutorial",
@@ -498,6 +508,10 @@ export function Player() {
 
       {howToStep !== null && <HowToStart handleClose={() => setHowToStep(null)} initialStep={howToStep} />}
       {isCustomInstructionOpen && <InstructionPopup handleClose={() => setIsCustomInstructionOpen(false)} />}
+      <InteractiveConfiguratorTutorial
+        isOpen={isInteractiveTutorialOpen}
+        onClose={() => setIsInteractiveTutorialOpen(false)}
+      />
     </div>
   );
 }

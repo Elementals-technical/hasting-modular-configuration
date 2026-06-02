@@ -4,9 +4,14 @@ import s from "./ModeSwitcher.module.scss";
 
 interface ModeSwitcherI {
   onClick: (tab: "prebuilt" | "custom") => void;
+  dataTargets?: {
+    root?: string;
+    prebuilt?: string;
+    custom?: string;
+  };
 }
 
-export const ModeSwitcher: React.FC<ModeSwitcherI> = ({ onClick }) => {
+export const ModeSwitcher: React.FC<ModeSwitcherI> = ({ onClick, dataTargets }) => {
   const [activeTab, setActiveTab] = useState<"prebuilt" | "custom">("prebuilt");
 
   const handleClickTab = (tab: "prebuilt" | "custom") => {
@@ -15,9 +20,10 @@ export const ModeSwitcher: React.FC<ModeSwitcherI> = ({ onClick }) => {
   };
 
   return (
-    <div className={s.modeSwitcher}>
+    <div className={s.modeSwitcher} data-tutorial-target={dataTargets?.root}>
       <div
         className={`${s.modeSwitcher_tabItem} ${activeTab === "prebuilt" ? s.active : ""}`}
+        data-tutorial-target={dataTargets?.prebuilt}
         onClick={() => handleClickTab("prebuilt")}
       >
         <div className={s.wrap}>
@@ -27,6 +33,7 @@ export const ModeSwitcher: React.FC<ModeSwitcherI> = ({ onClick }) => {
       </div>
       <div
         className={`${s.modeSwitcher_tabItem} ${activeTab === "custom" ? s.active : ""}`}
+        data-tutorial-target={dataTargets?.custom}
         onClick={() => handleClickTab("custom")}
       >
         <div className={s.wrap}>

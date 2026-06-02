@@ -13,6 +13,11 @@ import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
+import {
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
+  subscribeToInteractiveConfiguratorTutorialEvent,
+} from "@/features/interactiveConfiguratorTutorial";
 
 import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
@@ -114,6 +119,7 @@ type AccordionConfig = {
   title: string;
   content: ReactNode;
   defaultOpen?: boolean;
+  tutorialTarget?: string;
 };
 
 const CABINET_TYPE_ID = "cabinet-type";
@@ -464,28 +470,37 @@ export const CabinetBuilderPage = () => {
     [countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts],
   );
 
-  const handleOpenStyleSidebar = () => {
+  const handleOpenStyleSidebar = useCallback(() => {
     dispatch(setOpenStyleSidebar(true));
-  };
+  }, [dispatch]);
 
-  const handleSelectDrawerStyle = (id: number) => {
-    if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
-    autoAddSignatureRef.current = null;
-    if (!hasProducts) allowNextAutoAddRef.current = true;
-    setActiveStyleId(id);
+  const handleSelectDrawerStyle = useCallback(
+    (id: number) => {
+      if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
+      autoAddSignatureRef.current = null;
+      if (!hasProducts) allowNextAutoAddRef.current = true;
+      setActiveStyleId(id);
 
-    const option = cabinetStyleOptions.find((item) => item.id === id);
-    const mappedValue = mapDrawerValueToConfig(option?.value);
+      const option = cabinetStyleOptions.find((item) => item.id === id);
+      const mappedValue = mapDrawerValueToConfig(option?.value);
 
-    if (mappedValue) {
-      dispatch(
-        setSelectedProductConfig({
-          ...selectedProductConfig,
-          Drawers: mappedValue,
-        }),
-      );
-    }
-  };
+      if (mappedValue) {
+        dispatch(
+          setSelectedProductConfig({
+            ...selectedProductConfig,
+            Drawers: mappedValue,
+          }),
+        );
+      }
+    },
+    [
+      cabinetStyleOptions,
+      countertopCompositionConstraint.canAddCabinet,
+      dispatch,
+      hasProducts,
+      selectedProductConfig,
+    ],
+  );
 
   const handleResetToDefaultState = useCallback(() => {
     setAccordionValue(CABINET_TYPE_ID);
@@ -709,40 +724,85 @@ export const CabinetBuilderPage = () => {
     setPendingMixingStyle(null);
   }, []);
 
-  const setActiveCabinet = (id: string, name?: string) => {
-    console.log("name", name);
-
-    if (hasProducts && !canAddCabinetByLength) {
-      return;
-    }
-
-    if (hasProducts && remainingCountertopLength !== null) {
-      const targetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id);
-      const canFitThisType = (targetRule?.widths ?? []).some(
-        (width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01,
-      );
-      if (!canFitThisType) {
+  const setActiveCabinet = useCallback(
+    (id: string) => {
+      if (hasProducts && !canAddCabinetByLength) {
         return;
       }
-    }
 
-    if ((id === "Open-Shelf" || id === "Side-Shelf") && !hasBaseOrSideCabinetOnScene) {
-      return;
-    }
+      if (hasProducts && remainingCountertopLength !== null) {
+        const targetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id);
+        const canFitThisType = (targetRule?.widths ?? []).some(
+          (width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01,
+        );
+        if (!canFitThisType) {
+          return;
+        }
+      }
 
-    autoAddSignatureRef.current = null;
-    if (!hasProducts) {
-      allowNextAutoAddRef.current = true;
-      setActiveStyleId(null); // Reset stale style from previous session so auto-add waits for explicit style pick
-    }
-    dispatch(setActiveCabinetType(id));
-    setAccordionValue(CABINET_STYLE_ID);
+      if ((id === "Open-Shelf" || id === "Side-Shelf") && !hasBaseOrSideCabinetOnScene) {
+        return;
+      }
 
-    const isOpen = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id)?.isOpen;
-    if (isOpen) {
-      dispatch(setOpenStyleSidebar(true));
-    }
-  };
+      autoAddSignatureRef.current = null;
+      if (!hasProducts) {
+        allowNextAutoAddRef.current = true;
+        setActiveStyleId(null); // Reset stale style from previous session so auto-add waits for explicit style pick
+      }
+      dispatch(setActiveCabinetType(id));
+      setAccordionValue(CABINET_STYLE_ID);
+
+      const isOpen = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id)?.isOpen;
+      if (isOpen) {
+        dispatch(setOpenStyleSidebar(true));
+      }
+    },
+    [
+      cabinetCatalog.typeCabinetRules,
+      canAddCabinetByLength,
+      dispatch,
+      hasBaseOrSideCabinetOnScene,
+      hasProducts,
+      remainingCountertopLength,
+    ],
+  );
+
+  const handleSelectTutorialDefaultCabinetType = useCallback(() => {
+    const option = cabinetTypeOptions.find((item) => item.isAvailable ?? true);
+    const playcanvasValue = option?.name ?? option?.title ?? option?.desc;
+
+    if (!option || !playcanvasValue) return;
+
+    handleSelectCabinetConfig(String(playcanvasValue));
+    setActiveCabinet(String(playcanvasValue));
+  }, [cabinetTypeOptions, handleSelectCabinetConfig, setActiveCabinet]);
+
+  const handleSelectTutorialDefaultCabinetStyle = useCallback(() => {
+    const option = cabinetStyleOptions.find((item) => (item.isAvailable ?? true) && !item.isMixingRestricted);
+
+    if (!option) return;
+
+    handleSelectDrawerStyle(option.id);
+    handleOpenStyleSidebar();
+  }, [cabinetStyleOptions, handleOpenStyleSidebar, handleSelectDrawerStyle]);
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialEvent(
+        INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetType,
+        handleSelectTutorialDefaultCabinetType,
+      ),
+    [handleSelectTutorialDefaultCabinetType],
+  );
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialEvent(
+        INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetStyle,
+        handleSelectTutorialDefaultCabinetStyle,
+      ),
+    [handleSelectTutorialDefaultCabinetStyle],
+  );
 
   const resolveCabinetTypeId = useCallback(
     (productType?: string | null) => {
@@ -1026,7 +1086,7 @@ export const CabinetBuilderPage = () => {
         const createdIds = await addPreset(presetProducts);
         dispatch(addProductPreset(presetProducts));
 
-        // @ts-ignore
+        // @ts-expect-error addPreset can return created ids from the PlayCanvas bridge.
         const orderedIds = Array.isArray(createdIds) && createdIds.length ? createdIds : getOrderedProductIds();
         orderedIds.forEach((productId) => dispatch(addProductId(productId)));
 
@@ -1441,6 +1501,7 @@ export const CabinetBuilderPage = () => {
       id: CABINET_TYPE_ID,
       title: "Cabinet Type",
       defaultOpen: true,
+      tutorialTarget: INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.customCabinetType,
       content: (
         <ProductOptionsGrid
           handleAdd={handleSelectCabinetConfig}
@@ -1454,6 +1515,7 @@ export const CabinetBuilderPage = () => {
     {
       id: CABINET_STYLE_ID,
       title: "Cabinet Style",
+      tutorialTarget: INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.customCabinetStyle,
       content: (() => {
         const isOpenShelfCabinet = Boolean(activeCabinetRule?.isOpen);
 
@@ -1487,8 +1549,8 @@ export const CabinetBuilderPage = () => {
             value={accordionValue}
             onValueChange={setAccordionValue}
           >
-            {accordions.map(({ id, title, content }) => (
-              <ConfiguratorAccordionItem key={id} value={id} title={title}>
+            {accordions.map(({ id, title, content, tutorialTarget }) => (
+              <ConfiguratorAccordionItem key={id} value={id} title={title} dataTarget={tutorialTarget}>
                 {content}
               </ConfiguratorAccordionItem>
             ))}

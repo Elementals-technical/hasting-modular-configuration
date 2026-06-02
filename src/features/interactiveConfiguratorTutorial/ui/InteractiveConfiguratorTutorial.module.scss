@@ -1,0 +1,86 @@
+.tooltip {
+  width: min(420px, calc(100vw - 32px));
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: -2px -2px 10px 0 rgba(40, 40, 40, 0.1);
+  overflow: hidden;
+  font-family: Poppins;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e5e6ea;
+}
+
+.title {
+  color: #282828;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 26px;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: #e5e6ea;
+  border-radius: 50%;
+  padding: 5px;
+  color: #333;
+  cursor: pointer;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-bottom: 1px solid #e5e6ea;
+  color: #282828;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.progress {
+  color: #282828;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.proxyTarget {
+  z-index: 1;
+}
+
+@media (max-width: 430px) {
+  .tooltip {
+    width: calc(100vw - 24px);
+  }
+
+  .header,
+  .content,
+  .footer {
+    padding: 15px;
+  }
+}

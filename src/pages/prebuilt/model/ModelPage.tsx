@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Outlet, useMatch, useNavigate, useSearchParams } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
+import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features/interactiveConfiguratorTutorial";
 import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
 
 import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
@@ -551,55 +552,63 @@ export const ModelPage = () => {
     <div ref={rootRef}>
       {!isDetail && (
         <>
-          <ModeSwitcher onClick={handleNavigate} />
-
-          <FilterRow className={s.filterRow}>
-            <FilterItem
-              label="Size"
-              value={sizeFilter === "all" ? undefined : sizeFilter}
-              options={[
-                { label: "All", value: "all" },
-                { label: "24–29″", value: "24_29" },
-                { label: "30–39″", value: "30_39" },
-                { label: "40–49″", value: "40_49" },
-                { label: "50–59″", value: "50_59" },
-                { label: "60–69″", value: "60_69" },
-                { label: "70–79″", value: "70_79" },
-                { label: "80–89″", value: "80_89" },
-                { label: "90″+", value: "90_plus" },
-              ]}
-              onSelect={handleSizeFilter}
-            />
-
-            <FilterItem
-              label="Style"
-              value={styleFilter === "all" ? undefined : styleFilter}
-              options={[
-                { label: "All", value: "all" },
-                { label: "1 Drawer", value: "1_drawer" },
-                { label: "2 Drawer", value: "2_drawer" },
-                { label: "Single Basin", value: "single_basin" },
-                { label: "Double Basin", value: "double_basin" },
-                { label: "Asymmetrical", value: "asymmetrical" },
-                { label: "Open Shelving", value: "open_shelving" },
-              ]}
-              onSelect={handleStyleFilter}
-            />
-
-            {(sizeFilter !== "all" || styleFilter !== "all") && (
-              <BaseButton variant="filterBtn" onClick={clearAllFilters}>
-                Clear All
-              </BaseButton>
-            )}
-          </FilterRow>
-
-          <ProductModelsGrid
-            data={filteredData}
-            handleAddPreset={handleAddPreset}
-            handleCustomizePreset={handleCustomizePreset}
-            createModelBtn={<CreateModelBtn />}
-            activePresetId={activePresetId}
+          <ModeSwitcher
+            onClick={handleNavigate}
+            dataTargets={{
+              root: INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.modelModeSwitcher,
+              custom: INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.createYourOwnMode,
+            }}
           />
+
+          <div data-tutorial-target={INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.prebuiltModelsGrid}>
+            <FilterRow className={s.filterRow}>
+              <FilterItem
+                label="Size"
+                value={sizeFilter === "all" ? undefined : sizeFilter}
+                options={[
+                  { label: "All", value: "all" },
+                  { label: "24–29″", value: "24_29" },
+                  { label: "30–39″", value: "30_39" },
+                  { label: "40–49″", value: "40_49" },
+                  { label: "50–59″", value: "50_59" },
+                  { label: "60–69″", value: "60_69" },
+                  { label: "70–79″", value: "70_79" },
+                  { label: "80–89″", value: "80_89" },
+                  { label: "90″+", value: "90_plus" },
+                ]}
+                onSelect={handleSizeFilter}
+              />
+
+              <FilterItem
+                label="Style"
+                value={styleFilter === "all" ? undefined : styleFilter}
+                options={[
+                  { label: "All", value: "all" },
+                  { label: "1 Drawer", value: "1_drawer" },
+                  { label: "2 Drawer", value: "2_drawer" },
+                  { label: "Single Basin", value: "single_basin" },
+                  { label: "Double Basin", value: "double_basin" },
+                  { label: "Asymmetrical", value: "asymmetrical" },
+                  { label: "Open Shelving", value: "open_shelving" },
+                ]}
+                onSelect={handleStyleFilter}
+              />
+
+              {(sizeFilter !== "all" || styleFilter !== "all") && (
+                <BaseButton variant="filterBtn" onClick={clearAllFilters}>
+                  Clear All
+                </BaseButton>
+              )}
+            </FilterRow>
+
+            <ProductModelsGrid
+              data={filteredData}
+              handleAddPreset={handleAddPreset}
+              handleCustomizePreset={handleCustomizePreset}
+              createModelBtn={<CreateModelBtn />}
+              activePresetId={activePresetId}
+            />
+          </div>
         </>
       )}
 
