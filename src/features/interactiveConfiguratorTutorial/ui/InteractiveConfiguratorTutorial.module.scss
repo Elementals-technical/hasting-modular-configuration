@@ -75,7 +75,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 17px;
   padding: 12px 20px 20px;
   color: #282828;
   font-family: Poppins;
@@ -89,12 +89,6 @@
   }
 }
 
-.gettingStartedTooltip {
-  .content {
-    gap: 17px;
-  }
-}
-
 .proTip {
   color: #aaa;
   font-family: Poppins;
@@ -102,6 +96,21 @@
   font-style: italic;
   font-weight: 400;
   line-height: 18px;
+}
+
+.customCabinetTypeTooltip {
+  .content {
+    gap: 0;
+  }
+}
+
+.emphasizedLine {
+  color: #282828;
+  font-family: Poppins;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 .list {

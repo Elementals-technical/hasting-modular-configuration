@@ -68,7 +68,7 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
     placement: "left",
     title: "Custom Mode",
     description:
-      "Want even more design control? Then custom mode is for you!\nBuild your own custom, tailored solution with full design control: our easy-to-use cabinet builder allows you to add, remove, reposition cabinets and more.",
+      "Want even more design control? Then custom mode is for you!\nBuild your own custom, tailored solution with full design control; our easy-to-use cabinet builder allows you to: add, remove, reposition cabinets and more.",
     primaryLabel: "Next",
     secondaryLabel: "Back",
     secondaryAction: "back",

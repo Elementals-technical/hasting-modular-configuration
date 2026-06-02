@@ -89,6 +89,7 @@ const mapTutorialStepToJoyrideStep = (step: InteractiveConfiguratorTutorialStep)
   placement: step.placement,
   title: step.title,
   content: step.description,
+  skipScroll: step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
   spotlightPadding: step.spotlightPadding,
   styles:
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet
@@ -191,6 +192,13 @@ const renderListItem = (item: string) => {
   );
 };
 
+const getDescriptionLineClassName = (line: string) => {
+  if (line === "Cabinet Type") return s.emphasizedLine;
+  if (line.startsWith("Pro Tip:")) return s.proTip;
+
+  return undefined;
+};
+
 const renderDescription = (content: TooltipRenderProps["step"]["content"]) => {
   if (typeof content !== "string") return content;
 
@@ -216,7 +224,7 @@ const renderDescription = (content: TooltipRenderProps["step"]["content"]) => {
 
     if (line) {
       renderedContent.push(
-        <p key={`line-${index}`} className={line.startsWith("Pro Tip:") ? s.proTip : undefined}>
+        <p key={`line-${index}`} className={getDescriptionLineClassName(line)}>
           {line}
         </p>,
       );
@@ -249,6 +257,7 @@ const TutorialTooltip = ({
   const tooltipClassName = [
     s.tooltip,
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted ? s.gettingStartedTooltip : "",
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType ? s.customCabinetTypeTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails ? s.prebuiltDetailsTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet ? s.customPlaceCabinetTooltip : "",
   ]
