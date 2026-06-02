@@ -2,19 +2,18 @@
   width: min(420px, calc(100vw - 32px));
   background-color: #fff;
   border-radius: 10px;
-  box-shadow: -2px -2px 10px 0 rgba(40, 40, 40, 0.1);
   overflow: hidden;
   font-family: Poppins;
 }
 
 .tooltip + :global(.react-joyride__arrow) {
-  top: 5px !important;
-  right: -32px !important;
+  top: -5px !important;
+  right: -51px !important;
 }
 
-:global(.react-joyride__floater) {
-  left: -25px !important;
-}
+// :global(.react-joyride__floater) {
+//   left: -25px !important;
+// }
 
 .header {
   display: flex;

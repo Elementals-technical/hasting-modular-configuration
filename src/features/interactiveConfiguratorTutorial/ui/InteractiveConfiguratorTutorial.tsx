@@ -12,6 +12,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { BaseButton } from "@/shared";
+import { ArrowInteractive } from "@/shared/assets/images/svg/ArrowInteractive";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
@@ -48,6 +49,8 @@ type ViewportRect = {
 
 const JOYRIDE_Z_INDEX = 240;
 const JOYRIDE_TOOLTIP_WIDTH = 420;
+const JOYRIDE_ARROW_WIDTH = 48;
+const JOYRIDE_ARROW_HEIGHT = 52;
 const JOYRIDE_SPOTLIGHT_RADIUS = 4;
 const JOYRIDE_SPOTLIGHT_PADDING = 0;
 const STEP_PREPARATION_DELAY_MS = 250;
@@ -64,6 +67,8 @@ const CUSTOM_CABINET_STYLE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
 ]);
 
 const JOYRIDE_OPTIONS = {
+  arrowBase: JOYRIDE_ARROW_HEIGHT,
+  arrowSize: JOYRIDE_ARROW_WIDTH,
   closeButtonAction: "skip",
   dismissKeyAction: false,
   overlayClickAction: false,
@@ -357,6 +362,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
         run={isOpen}
         steps={joyrideSteps}
         styles={JOYRIDE_STYLES}
+        arrowComponent={ArrowInteractive}
         tooltipComponent={TutorialTooltip}
         onEvent={handleJoyrideEvent}
       />
