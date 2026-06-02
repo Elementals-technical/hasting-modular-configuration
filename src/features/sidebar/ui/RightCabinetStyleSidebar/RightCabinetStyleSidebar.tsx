@@ -70,6 +70,8 @@ interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
 }
 
+const JOYRIDE_FLOATER_SELECTOR = ".react-joyride__floater";
+
 interface PendingHandleChange {
   next: string;
   previous: string | undefined;
@@ -621,6 +623,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       const target = event.target as Element | null;
       if (target?.closest?.('[data-filter-menu="true"]')) return;
+      if (target?.closest?.(JOYRIDE_FLOATER_SELECTOR)) return;
 
       if (sidebarRef.current.contains(event.target as Node)) return;
 
