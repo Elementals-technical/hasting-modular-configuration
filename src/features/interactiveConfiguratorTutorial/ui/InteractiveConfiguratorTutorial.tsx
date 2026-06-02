@@ -178,6 +178,19 @@ const getStepData = (step: TooltipRenderProps["step"]) => {
   };
 };
 
+const renderListItem = (item: string) => {
+  const delimiterIndex = item.indexOf(":");
+
+  if (delimiterIndex === -1) return item;
+
+  return (
+    <>
+      <strong>{item.slice(0, delimiterIndex + 1)}</strong>
+      {item.slice(delimiterIndex + 1)}
+    </>
+  );
+};
+
 const renderDescription = (content: TooltipRenderProps["step"]["content"]) => {
   if (typeof content !== "string") return content;
 
@@ -194,7 +207,7 @@ const renderDescription = (content: TooltipRenderProps["step"]["content"]) => {
       renderedContent.push(
         <ul key={`list-${index}`} className={s.list}>
           {listItems.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item}>{renderListItem(item)}</li>
           ))}
         </ul>,
       );
@@ -202,7 +215,11 @@ const renderDescription = (content: TooltipRenderProps["step"]["content"]) => {
     }
 
     if (line) {
-      renderedContent.push(<p key={`line-${index}`}>{line}</p>);
+      renderedContent.push(
+        <p key={`line-${index}`} className={line.startsWith("Pro Tip:") ? s.proTip : undefined}>
+          {line}
+        </p>,
+      );
     }
   });
 
@@ -210,7 +227,7 @@ const renderDescription = (content: TooltipRenderProps["step"]["content"]) => {
     renderedContent.push(
       <ul key="list-last" className={s.list}>
         {listItems.map((item) => (
-          <li key={item}>{item}</li>
+          <li key={item}>{renderListItem(item)}</li>
         ))}
       </ul>,
     );
@@ -231,6 +248,7 @@ const TutorialTooltip = ({
   const secondaryProps = secondaryAction === "back" ? backProps : skipProps;
   const tooltipClassName = [
     s.tooltip,
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted ? s.gettingStartedTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails ? s.prebuiltDetailsTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet ? s.customPlaceCabinetTooltip : "",
   ]
@@ -261,7 +279,7 @@ const TutorialTooltip = ({
         {secondaryLabel ? (
           <BaseButton
             variant="ghost"
-            fullWidth={true}
+            className={s.secondaryButton}
             aria-label={secondaryProps["aria-label"]}
             onClick={(event) => secondaryProps.onClick(event)}
           >
@@ -272,7 +290,7 @@ const TutorialTooltip = ({
         )}
 
         <BaseButton
-          fullWidth={true}
+          className={s.primaryButton}
           aria-label={primaryProps["aria-label"]}
           onClick={(event) => primaryProps.onClick(event)}
         >

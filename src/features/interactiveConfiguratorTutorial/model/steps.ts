@@ -40,7 +40,7 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
     placement: "left",
     title: "Pre-Built Mode",
     description:
-      "- Scroll our selection of pre-made models\n- Sort by size and style\nPro Tip: Click 'customize' on any model to import a pre-built design into custom mode for full cabinet design control",
+      "- Scroll our selection of pre-made models\n- Sort by size and style\nPro Tip: Click 'Customize' on any model to import a pre-built design into custom mode for full cabinet design control",
     progressLabel: "2 of 3",
     primaryLabel: "Next",
     secondaryLabel: "Back",
