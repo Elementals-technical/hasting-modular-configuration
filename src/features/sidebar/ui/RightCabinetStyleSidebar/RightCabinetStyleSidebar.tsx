@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
+import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features/interactiveConfiguratorTutorial";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
@@ -68,6 +69,8 @@ import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
 }
+
+const JOYRIDE_FLOATER_SELECTOR = ".react-joyride__floater";
 
 interface PendingHandleChange {
   next: string;
@@ -620,6 +623,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       const target = event.target as Element | null;
       if (target?.closest?.('[data-filter-menu="true"]')) return;
+      if (target?.closest?.(JOYRIDE_FLOATER_SELECTOR)) return;
 
       if (sidebarRef.current.contains(event.target as Node)) return;
 
@@ -859,7 +863,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         </div>
       </PopupCenterContent>
 
-      <div ref={sidebarRef} className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}>
+      <div
+        ref={sidebarRef}
+        className={`${s.cabinetStyleSidebar} ${isOpenedStyleSidebar ? s.active : ""}`}
+        data-tutorial-target={INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.customSizingHandle}
+      >
         <div className={s.arrow} onClick={handleCloseSidebar}>
           <ArrowRight width="16" />
         </div>

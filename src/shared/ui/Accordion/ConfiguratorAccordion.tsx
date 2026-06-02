@@ -5,6 +5,7 @@ type ConfiguratorAccordionItemProps = {
   title: string;
   children: ReactNode;
   value: string;
+  dataTarget?: string;
 };
 
 type ConfiguratorAccordionGroupProps = {
@@ -26,8 +27,8 @@ export const ConfiguratorAccordionGroup = ({
   </Accordion.Root>
 );
 
-export const ConfiguratorAccordionItem = ({ title, children, value }: ConfiguratorAccordionItemProps) => (
-  <Accordion.Item value={value}>
+export const ConfiguratorAccordionItem = ({ title, children, value, dataTarget }: ConfiguratorAccordionItemProps) => (
+  <Accordion.Item value={value} data-tutorial-target={dataTarget}>
     <Accordion.Trigger>{title}</Accordion.Trigger>
     <Accordion.Content>{children}</Accordion.Content>
   </Accordion.Item>

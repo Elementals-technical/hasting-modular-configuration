@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { BaseButton } from "@/shared";
-import { DimentionsIcon } from "@/shared/assets/images/svg/DimentionsIcon";
 import { ZoomInIcon } from "@/shared/assets/images/svg/ZoomInIcon";
 import { ZoomOutIcon } from "@/shared/assets/images/svg/ZoomOutIcon";
 import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
@@ -10,8 +9,6 @@ import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { UndoIcon } from "@/shared/assets/images/svg/UndoIcon";
 import { RedoIcon } from "@/shared/assets/images/svg/RedoIcon";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-
-import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -71,7 +68,7 @@ import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon"
 import { FullDimentionsIcon } from "@/shared/assets/images/svg/FullDimentionsIcon";
 
 export const BottomCanvasButtons = () => {
-  const [isDimensionsEnabled, setIsDimensionsEnabled] = useState(false);
+  const [_, setIsDimensionsEnabled] = useState(false);
   const [isFullDimensionsEnabled, setIsFullDimensionsEnabled] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
@@ -457,7 +454,6 @@ export const BottomCanvasButtons = () => {
   return (
     <>
       <div className={s.bottomCanvasButtons}>
-     
         <BaseButton
           variant="ghost"
           className={`${s.tooltip}${isFullDimensionsEnabled ? ` ${s.activeButton}` : ""}`}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { BottomStickyBar } from "@/features";
+import { BottomStickyBar, INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features";
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 import { setActiveStep } from "@/features/sidebar/model/store/slice";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
@@ -64,7 +64,12 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
         {children}
       </div>
 
-      <BottomStickyBar flow={flow} />
+      <BottomStickyBar
+        flow={flow}
+        nextButtonDataTarget={
+          flow === "prebuilt" ? INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.prebuiltNextButton : undefined
+        }
+      />
     </div>
   );
 };
