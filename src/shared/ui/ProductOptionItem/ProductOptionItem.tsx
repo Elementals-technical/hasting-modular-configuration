@@ -27,6 +27,7 @@ interface ProductOptionItemI {
   desc?: string | undefined;
   isAvailable?: boolean;
   disabledReason?: string;
+  disabledBadgeLabel?: string;
   disabledActionLabel?: string;
   onDisabledAction?: () => void | Promise<void>;
   isMaterial?: boolean;
@@ -47,6 +48,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   desc,
   isAvailable,
   disabledReason,
+  disabledBadgeLabel,
   disabledActionLabel,
   onDisabledAction,
   isShortDesc,
@@ -122,7 +124,10 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
         </div>
       ) : (
         <>
-          <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+          <div className={s.disabledTitleRow}>
+            <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+            {disabledBadgeLabel && <span className={s.disabledBadge}>{disabledBadgeLabel}</span>}
+          </div>
           {disabledActionLabel && onDisabledAction && (
             <button
               type="button"
