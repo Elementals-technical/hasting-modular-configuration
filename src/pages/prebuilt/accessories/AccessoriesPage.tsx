@@ -10,6 +10,7 @@ import {
   getDividersOption,
   getDividersStyle,
   getProductsPresets,
+  getSelectedDimensions,
   getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
@@ -46,6 +47,7 @@ import {
   getPlacedDividersForDrawer,
   placeDividerToSlot,
   createDividerUiTraceId,
+  getDividerConfiguratorWindow,
   recordDividerUiDebug,
   removeDividerFromSlot,
   setDividerSlotClickHandler,
@@ -61,6 +63,7 @@ import {
   wrapShowTopView,
 } from "@/utils/functions/playcanvas/dividers";
 import { exportCameraState, importCameraState, setAutoFraming } from "@/utils/functions/playcanvas/camera";
+import { useDividerResizeOverlayRestore } from "@/utils/functions/playcanvas/dividers/useDividerResizeOverlayRestore";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -85,6 +88,15 @@ const DIVIDER_PLACEMENT_WARNING_STYLE = {
   fontFamily: "Poppins",
   fontSize: 12,
   fontWeight: 600,
+  lineHeight: "16px",
+};
+
+const DIVIDER_SELECT_TYPE_HINT_STYLE = {
+  margin: "10px 0 12px",
+  color: "#4a5568",
+  fontFamily: "Poppins",
+  fontSize: 12,
+  fontWeight: 500,
   lineHeight: "16px",
 };
 
@@ -122,6 +134,7 @@ export const AccessoriesPage = () => {
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const productsPresets = useAppSelector(getProductsPresets);
   const lengthGuard = useCountertopLengthGuard(selectedProducts);
@@ -229,6 +242,75 @@ export const AccessoriesPage = () => {
     [activeDrawerType, dividerSelection, isPlayCanvasReady, selectedDividerType, selectedSceneProduct],
   );
 
+  useDividerResizeOverlayRestore({
+    stagePrefix: "Prebuilt",
+    isPlayCanvasReady,
+    dividerSelection,
+    activeCabinetId: selectedSceneProduct,
+    selectedDividerType,
+    setActiveDrawerType,
+    refreshDividerOverlay,
+    refreshDividerOptionsAvailability,
+  });
+
+  useEffect(() => {
+    if (!isPlayCanvasReady || dividerSelection !== "Customize") return;
+
+    const api = getDividerConfiguratorWindow()?.ConfiguratorAPI as
+      | {
+          __activeDrawerCabinetId?: string;
+          __activeDrawerType?: DrawerType;
+        }
+      | undefined;
+    const cabinetId = api?.__activeDrawerCabinetId ?? selectedSceneProduct;
+    const drawerType = api?.__activeDrawerType ?? activeDrawerType;
+
+    recordDividerUiDebug("Prebuilt.DividerResizeRefresh", "Evaluate divider overlay refresh after dimension change", {
+      selectedSceneProduct,
+      activeDrawerType,
+      runtimeCabinetId: api?.__activeDrawerCabinetId,
+      runtimeDrawerType: api?.__activeDrawerType,
+      selectedDividerType,
+      selectedDimensions,
+    });
+
+    if (!cabinetId || !drawerType) {
+      warnDividerUiDebug("Prebuilt.DividerResizeRefresh", "Skip refresh because active drawer is not resolved", {
+        selectedSceneProduct,
+        activeDrawerType,
+        runtimeCabinetId: api?.__activeDrawerCabinetId,
+        runtimeDrawerType: api?.__activeDrawerType,
+      });
+      return;
+    }
+
+    if (drawerType !== activeDrawerType) {
+      setActiveDrawerType(drawerType);
+    }
+
+    const refresh = () => {
+      setVisibleDividerSlotButtons(true);
+      refreshDividerOverlay(cabinetId, drawerType);
+      void refreshDividerOptionsAvailability(cabinetId, drawerType);
+    };
+
+    const timeoutId = window.setTimeout(refresh, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    activeDrawerType,
+    dividerSelection,
+    isPlayCanvasReady,
+    refreshDividerOptionsAvailability,
+    refreshDividerOverlay,
+    selectedDimensions.depth,
+    selectedDimensions.width,
+    selectedDividerType,
+    selectedSceneProduct,
+  ]);
+
   useEffect(() => {
     if (!isPlayCanvasReady || dividerSelection !== "Customize" || !selectedSceneProduct || !activeDrawerType) return;
 
@@ -279,7 +361,6 @@ export const AccessoriesPage = () => {
         ...option,
         isAvailable,
         disabledReason: isAvailable ? undefined : disabledReason,
-        disabledBadgeLabel: isAvailable ? undefined : "N/A",
       };
     });
   }, [availableDividerTypes]);
@@ -1072,6 +1153,9 @@ export const AccessoriesPage = () => {
           />
           {dividerSelection === "Customize" && (
             <>
+              {!selectedDividerType && (
+                <p style={DIVIDER_SELECT_TYPE_HINT_STYLE}>Select a Divider type first to show placement points.</p>
+              )}
               {dividerPlacementWarning && (
                 <p role="alert" style={DIVIDER_PLACEMENT_WARNING_STYLE}>
                   {dividerPlacementWarning}

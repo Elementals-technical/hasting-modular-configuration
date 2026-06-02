@@ -8,8 +8,8 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
   addProductPreset,
-  clearPlacedDividers,
   removeProductId,
+  replacePlacedDividersForCabinet,
   resetCabinetBuilderBootstrap,
   resetProducts,
   setActiveBasinStyle,
@@ -60,6 +60,7 @@ import {
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   getHandleGrooveColor,
+  getPlacedDividers,
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
@@ -73,7 +74,9 @@ import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import {
   buildResetDividersConfig,
+  DIVIDER_RESIZE_RESTORE_EVENT,
   prepareCabinetDividersForResize,
+  type DividerResizeRestoreTarget,
 } from "@/utils/functions/playcanvas/dividers/prepareDividersForResize";
 import { applyDrawerTopViewDefaultZoomOut } from "@/utils/functions/playcanvas/dividers/drawerTopViewCamera";
 import {
@@ -101,8 +104,9 @@ import {
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { ROUTES } from "@/shared";
+import { BaseButton, ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
+import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
@@ -219,6 +223,8 @@ export const PlayCanvasIntegration = () => {
     | "countertop-thickness"
     | "countertop-style"
     | "basin-style";
+  type DividerResizeAction = { dimension: "width" | "depth"; value: number; targetIds: string[] };
+  type PendingDividerResizeAction = DividerResizeAction | null;
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
@@ -247,6 +253,7 @@ export const PlayCanvasIntegration = () => {
   const [isCustomizeModePromptOpen, setIsCustomizeModePromptOpen] = useState(false);
   const [customizeModePromptAction, setCustomizeModePromptAction] = useState<CustomizeModePromptAction>("default");
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
+  const [pendingDividerResizeAction, setPendingDividerResizeAction] = useState<PendingDividerResizeAction>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [mobilePreviewImage, setMobilePreviewImage] = useState<string | null>(null);
   const openDrawerButtonsTargetRef = useRef<string | null>(null);
@@ -264,6 +271,7 @@ export const PlayCanvasIntegration = () => {
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
   const isCustomPage = location.pathname.startsWith("/custom");
   const isCabinetBuilderPage = location.pathname.includes("/custom/cabinet-builder");
+  const isAccessoriesPage = location.pathname.endsWith("/accessories");
   const isSummaryPage = location.pathname.includes("/summary");
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
@@ -278,6 +286,7 @@ export const PlayCanvasIntegration = () => {
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const placedDividers = useAppSelector(getPlacedDividers);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
@@ -1041,79 +1050,158 @@ export const PlayCanvasIntegration = () => {
   //   tool?.setEnabled(true);
   // }, [playCanvasReady]);
 
+  const dispatchDividerResizeRestore = useCallback(
+    (targets: DividerResizeRestoreTarget[], dimension: DividerResizeAction["dimension"]) => {
+      if (!targets.length) return;
+
+      window.dispatchEvent(
+        new CustomEvent(DIVIDER_RESIZE_RESTORE_EVENT, {
+          detail: {
+            targets,
+            dimension,
+          },
+        }),
+      );
+    },
+    [],
+  );
+
   const resetDividersForResize = useCallback(
     async (ids: string[]) => {
-      if (!ids.length) return;
+      const restoreTargets: DividerResizeRestoreTarget[] = [];
+      if (!ids.length) return restoreTargets;
 
       for (const productId of ids) {
-        await prepareCabinetDividersForResize(productId);
+        const restoreTarget = await prepareCabinetDividersForResize(productId);
+        if (restoreTarget) {
+          restoreTargets.push(restoreTarget);
+        }
       }
       watchPlayCanvasMeshInstancesDuringRender();
       await setConfigBatch(ids, buildResetDividersConfig());
-      dispatch(clearPlacedDividers());
+      ids.forEach((cabinetId) => {
+        dispatch(replacePlacedDividersForCabinet({ cabinetId, dividers: [] }));
+      });
       watchPlayCanvasMeshInstancesDuringRender();
       sanitizePlayCanvasMeshInstances();
       await waitForNextAnimationFrame();
       sanitizePlayCanvasMeshInstances();
+
+      return restoreTargets;
     },
     [dispatch],
   );
 
-  const prepareDividersForDepthChange = useCallback(async (ids: string[]) => {
-    if (!ids.length) return;
-
-    for (const productId of ids) {
-      await prepareCabinetDividersForResize(productId);
-    }
-
-    watchPlayCanvasMeshInstancesDuringRender();
-    sanitizePlayCanvasMeshInstances();
-    await waitForNextAnimationFrame();
-    sanitizePlayCanvasMeshInstances();
-  }, []);
-
-  const handleSetWidth = useCallback(
-    async (width: number) => {
-      if (!selectedSceneProduct) return;
+  const applySetWidth = useCallback(
+    async (width: number, cabinetId = selectedSceneProduct) => {
+      if (!cabinetId) return;
 
       try {
         await saveSnapshot();
-        await resetDividersForResize(productIds.length ? productIds : [selectedSceneProduct]);
-        await setConfig(selectedSceneProduct, { Width: width });
+        const restoreTargets = await resetDividersForResize([cabinetId]);
+        await setConfig(cabinetId, { Width: width });
         sanitizePlayCanvasMeshInstances();
         await syncCountertopConfig();
 
         dispatch(setSelectedDimensions({ width }));
+        await waitForNextAnimationFrame();
+        dispatchDividerResizeRestore(restoreTargets, "width");
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set width", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot, resetDividersForResize, productIds, syncCountertopConfig, dispatch],
+    [selectedSceneProduct, saveSnapshot, resetDividersForResize, syncCountertopConfig, dispatch, dispatchDividerResizeRestore],
   );
 
-  const handleSetDepth = useCallback(
-    async (depth: number) => {
-      if (!productIds.length) return;
+  const applySetDepth = useCallback(
+    async (depth: number, targetIds = productIds) => {
+      if (!targetIds.length) return;
       const isAllowedDepth = depthOptions.some((value) => Math.abs(Number(value) - depth) < 0.01);
       if (!isAllowedDepth) return;
 
       try {
         await saveSnapshot();
-        await prepareDividersForDepthChange(productIds);
+        const restoreTargets = await resetDividersForResize(targetIds);
         await setConfigBatch({}, { Depth: depth });
         sanitizePlayCanvasMeshInstances();
 
         dispatch(setSelectedDimensions({ depth }));
+        await waitForNextAnimationFrame();
+        dispatchDividerResizeRestore(restoreTargets, "depth");
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set depth", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, depthOptions, saveSnapshot, prepareDividersForDepthChange, dispatch],
+    [productIds, depthOptions, saveSnapshot, resetDividersForResize, dispatch, dispatchDividerResizeRestore],
   );
+
+  const requestDividerResize = useCallback(
+    (resizeAction: DividerResizeAction) => {
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+
+      const targetIds = new Set(resizeAction.targetIds);
+      const hasTargetDividers = placedDividers.some((divider) => targetIds.has(divider.cabinetId));
+      if (hasTargetDividers) {
+        setPendingDividerResizeAction(resizeAction);
+        return;
+      }
+
+      if (resizeAction.dimension === "width") {
+        void applySetWidth(resizeAction.value, resizeAction.targetIds[0]);
+      } else {
+        void applySetDepth(resizeAction.value, resizeAction.targetIds);
+      }
+    },
+    [applySetDepth, applySetWidth, placedDividers],
+  );
+
+  const handleSetWidth = useCallback(
+    (width: number) => {
+      if (!selectedSceneProduct) return;
+      if (typeof selectedDimensions.width === "number" && Math.abs(selectedDimensions.width - width) < 0.01) {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      requestDividerResize({ dimension: "width", value: width, targetIds: [selectedSceneProduct] });
+    },
+    [requestDividerResize, selectedDimensions.width, selectedSceneProduct],
+  );
+
+  const handleSetDepth = useCallback(
+    (depth: number) => {
+      if (!productIds.length) return;
+      const isAllowedDepth = depthOptions.some((value) => Math.abs(Number(value) - depth) < 0.01);
+      if (!isAllowedDepth) return;
+      if (typeof selectedDimensions.depth === "number" && Math.abs(selectedDimensions.depth - depth) < 0.01) {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      requestDividerResize({ dimension: "depth", value: depth, targetIds: productIds });
+    },
+    [depthOptions, productIds, requestDividerResize, selectedDimensions.depth],
+  );
+
+  const handleCancelDividerResize = useCallback(() => {
+    setPendingDividerResizeAction(null);
+  }, []);
+
+  const handleConfirmDividerResize = useCallback(() => {
+    const resizeAction = pendingDividerResizeAction;
+    if (!resizeAction) return;
+
+    setPendingDividerResizeAction(null);
+    if (resizeAction.dimension === "width") {
+      void applySetWidth(resizeAction.value, resizeAction.targetIds[0]);
+    } else {
+      void applySetDepth(resizeAction.value, resizeAction.targetIds);
+    }
+  }, [applySetDepth, applySetWidth, pendingDividerResizeAction]);
 
   useEffect(() => {
     if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
@@ -1863,8 +1951,13 @@ export const PlayCanvasIntegration = () => {
           });
         };
 
+        const shouldHideDividerSlotsForPreview = !isAccessoriesPage;
+
         // Preview-only mode: hide divider slot "+" controls.
-        hideDividerSlots();
+        // On accessories pages the divider UI owns the overlay, including after resize restore.
+        if (shouldHideDividerSlotsForPreview) {
+          hideDividerSlots();
+        }
         const canOpenTopView = typeof api?.showTopView === "function";
         const shouldApplyDefaultZoomOut = canOpenTopView && !api.__wrappedShowTopView;
         const applyDefaultZoomOut = () => {
@@ -1879,8 +1972,10 @@ export const PlayCanvasIntegration = () => {
         } else {
           applyDefaultZoomOut();
         }
-        window.setTimeout(hideDividerSlots, 0);
-        window.setTimeout(hideDividerSlots, 250);
+        if (shouldHideDividerSlotsForPreview) {
+          window.setTimeout(hideDividerSlots, 0);
+          window.setTimeout(hideDividerSlots, 250);
+        }
 
         // After closing top view, auto-hide preview buttons and restore outline on the selected product.
         const watchTopViewClose = () => {
@@ -1953,7 +2048,7 @@ export const PlayCanvasIntegration = () => {
     setVisibleDrawerButtons(true);
     openDrawerButtonsTargetRef.current = selectedSceneProduct;
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [selectedSceneProduct]);
+  }, [isAccessoriesPage, selectedSceneProduct]);
 
   const isCountertopEntity = useCallback((entityName: string | null, config?: Record<string, unknown>) => {
     if (!entityName) return false;
@@ -2929,6 +3024,54 @@ export const PlayCanvasIntegration = () => {
           onConfirm={handleCustomizeFromPrompt}
         />
       )}
+
+      <PopupCenterContent isOpening={pendingDividerResizeAction !== null} onClose={handleCancelDividerResize}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="divider-resize-warning-title"
+          style={{
+            width: "min(420px, calc(100vw - 32px))",
+            borderRadius: "8px",
+            background: "#fff",
+            color: "#333",
+            boxShadow: "0 16px 48px rgba(0, 0, 0, 0.18)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              padding: "20px 24px 8px",
+              borderBottom: "1px solid #eee",
+            }}
+          >
+            <div id="divider-resize-warning-title" style={{ fontSize: "20px", fontWeight: 600 }}>
+              Divider settings will be cleared
+            </div>
+          </div>
+
+          <div style={{ padding: "16px 24px", fontSize: "15px", lineHeight: 1.5 }}>
+            Changing the cabinet {pendingDividerResizeAction?.dimension ?? "size"} clears configured drawer dividers.
+            You will need to set them up again for the new size.
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+              padding: "0 24px 24px",
+            }}
+          >
+            <BaseButton variant="ghost" onClick={handleCancelDividerResize} fullWidth={true}>
+              Cancel
+            </BaseButton>
+            <BaseButton onClick={handleConfirmDividerResize} fullWidth={true}>
+              Continue
+            </BaseButton>
+          </div>
+        </div>
+      </PopupCenterContent>
 
       {!isDrawerOpen && isMobileMenu && dropdownState.visible && !isSummaryPage && (
         <div
