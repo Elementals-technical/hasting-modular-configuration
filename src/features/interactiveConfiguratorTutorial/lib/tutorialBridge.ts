@@ -1,6 +1,8 @@
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS = {
   selectDefaultCabinetType: "interactiveConfiguratorTutorial:selectDefaultCabinetType",
   selectDefaultCabinetStyle: "interactiveConfiguratorTutorial:selectDefaultCabinetStyle",
+  ensureSelectedCabinetOnScene: "interactiveConfiguratorTutorial:ensureSelectedCabinetOnScene",
+  cancelPendingActions: "interactiveConfiguratorTutorial:cancelPendingActions",
 } as const;
 
 type InteractiveConfiguratorTutorialEventName =

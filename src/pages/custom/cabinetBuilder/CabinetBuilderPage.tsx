@@ -134,6 +134,11 @@ const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
+type AddSelectedCabinetToSceneOptions = {
+  keepStyleSidebarOpen?: boolean;
+  resetAccordionAfterAdd?: boolean;
+};
+
 const stripRuntimeSuffix = (value: string) => {
   const trimmed = value.trim();
   const lastDash = trimmed.lastIndexOf("-");
@@ -187,10 +192,14 @@ export const CabinetBuilderPage = () => {
     null,
   );
   const [isPtoSwitchPromptOpen, setIsPtoSwitchPromptOpen] = useState(false);
+  const [pendingTutorialDefaultCabinetType, setPendingTutorialDefaultCabinetType] = useState(false);
+  const [pendingTutorialDefaultCabinetStyle, setPendingTutorialDefaultCabinetStyle] = useState(false);
+  const [pendingTutorialSceneCabinet, setPendingTutorialSceneCabinet] = useState(false);
 
   const bootstrappedRef = useRef(false);
   const autoAddSignatureRef = useRef<string | null>(null);
   const handledPendingDeleteIdRef = useRef<string | null>(null);
+  const isAddingTutorialSceneCabinetRef = useRef(false);
   // Set to true by explicit user selection after deletion, allowing auto-add to fire once more
   const allowNextAutoAddRef = useRef(false);
 
@@ -767,24 +776,60 @@ export const CabinetBuilderPage = () => {
     ],
   );
 
-  const handleSelectTutorialDefaultCabinetType = useCallback(() => {
+  const selectTutorialDefaultCabinetType = useCallback(() => {
     const option = cabinetTypeOptions.find((item) => item.isAvailable ?? true);
     const playcanvasValue = option?.name ?? option?.title ?? option?.desc;
 
-    if (!option || !playcanvasValue) return;
+    if (!option || !playcanvasValue) return false;
 
     handleSelectCabinetConfig(String(playcanvasValue));
     setActiveCabinet(String(playcanvasValue));
+    return true;
   }, [cabinetTypeOptions, handleSelectCabinetConfig, setActiveCabinet]);
 
-  const handleSelectTutorialDefaultCabinetStyle = useCallback(() => {
+  const selectTutorialDefaultCabinetStyle = useCallback(() => {
     const option = cabinetStyleOptions.find((item) => (item.isAvailable ?? true) && !item.isMixingRestricted);
 
-    if (!option) return;
+    if (!option) return false;
 
     handleSelectDrawerStyle(option.id);
     handleOpenStyleSidebar();
+    return true;
   }, [cabinetStyleOptions, handleOpenStyleSidebar, handleSelectDrawerStyle]);
+
+  const handleSelectTutorialDefaultCabinetType = useCallback(() => {
+    if (selectTutorialDefaultCabinetType()) return;
+    setPendingTutorialDefaultCabinetType(true);
+  }, [selectTutorialDefaultCabinetType]);
+
+  const handleSelectTutorialDefaultCabinetStyle = useCallback(() => {
+    if (selectTutorialDefaultCabinetStyle()) return;
+    setPendingTutorialDefaultCabinetStyle(true);
+  }, [selectTutorialDefaultCabinetStyle]);
+
+  const handleEnsureTutorialSceneCabinet = useCallback(() => {
+    setPendingTutorialSceneCabinet(true);
+  }, []);
+
+  const handleCancelPendingTutorialActions = useCallback(() => {
+    setPendingTutorialDefaultCabinetType(false);
+    setPendingTutorialDefaultCabinetStyle(false);
+    setPendingTutorialSceneCabinet(false);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingTutorialDefaultCabinetType) return;
+    if (selectTutorialDefaultCabinetType()) {
+      setPendingTutorialDefaultCabinetType(false);
+    }
+  }, [pendingTutorialDefaultCabinetType, selectTutorialDefaultCabinetType]);
+
+  useEffect(() => {
+    if (!pendingTutorialDefaultCabinetStyle) return;
+    if (selectTutorialDefaultCabinetStyle()) {
+      setPendingTutorialDefaultCabinetStyle(false);
+    }
+  }, [pendingTutorialDefaultCabinetStyle, selectTutorialDefaultCabinetStyle]);
 
   useEffect(
     () =>
@@ -802,6 +847,24 @@ export const CabinetBuilderPage = () => {
         handleSelectTutorialDefaultCabinetStyle,
       ),
     [handleSelectTutorialDefaultCabinetStyle],
+  );
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialEvent(
+        INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.ensureSelectedCabinetOnScene,
+        handleEnsureTutorialSceneCabinet,
+      ),
+    [handleEnsureTutorialSceneCabinet],
+  );
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialEvent(
+        INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.cancelPendingActions,
+        handleCancelPendingTutorialActions,
+      ),
+    [handleCancelPendingTutorialActions],
   );
 
   const resolveCabinetTypeId = useCallback(
@@ -1331,52 +1394,46 @@ export const CabinetBuilderPage = () => {
     handleRestoreConfiguration(configId);
   }, [canvasReady, configId, dispatch, handleRestoreConfiguration]);
 
-  // Auto-add product when cabinet type and style are selected and scene is empty
-  useEffect(() => {
-    if (!ENABLE_AUTO_ADD_FIRST_PRODUCT) return;
-    if (!pathname.includes("/custom/cabinet-builder")) return;
-    // Don't proceed if already bootstrapped (unless user explicitly re-selected after deletion), canvas is not ready, or scene already has products
-    if ((hasBootstrappedCabinetBuilder && !allowNextAutoAddRef.current) || !canvasReady || hasProducts) return;
-    // Need at least a cabinet type selected
-    if (!activeCabinetType) return;
+  const addSelectedCabinetToScene = useCallback(
+    async ({
+      keepStyleSidebarOpen = false,
+      resetAccordionAfterAdd = true,
+    }: AddSelectedCabinetToSceneOptions = {}) => {
+      if (!pathname.includes("/custom/cabinet-builder")) return false;
+      if (!canvasReady || hasProducts || !activeCabinetType) return false;
 
-    const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCabinetType);
-    if (!selectedCabinetRule) return;
+      const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCabinetType);
+      if (!selectedCabinetRule) return false;
+      if (!selectedCabinetRule.isOpen && !activeStyleId) return false;
 
-    // For Open-Shelf and Side-Shelf, add product immediately when cabinet type is selected
-    // For other types, wait for drawer style to be selected
-    if (!selectedCabinetRule.isOpen && !activeStyleId) return;
+      if (
+        selectedDimensions.height === null ||
+        selectedDimensions.depth === null ||
+        selectedDimensions.width === null
+      ) {
+        return false;
+      }
 
-    const signature = `${activeCabinetType ?? ""}|${activeStyleId ?? ""}`;
-    if (autoAddSignatureRef.current === signature) return;
-    autoAddSignatureRef.current = signature;
+      const signature = `${activeCabinetType ?? ""}|${activeStyleId ?? ""}`;
+      if (autoAddSignatureRef.current === signature) return false;
+      autoAddSignatureRef.current = signature;
 
-    // Capture values for async function
-    const productName = selectedCabinetRule.code || "Sink-Base";
-    const cabinetConfig: Partial<addProductConfigI> = {};
-    const currentSelectedConfig = selectedProductConfig ?? {};
+      const productName = selectedCabinetRule.code;
+      const currentSelectedConfig = selectedProductConfig ?? {};
+      const currentDrawers =
+        typeof currentSelectedConfig.Drawers === "string" ? currentSelectedConfig.Drawers : undefined;
+      const currentHandle =
+        typeof currentSelectedConfig.Handle === "string" ? currentSelectedConfig.Handle : undefined;
 
-    async function addProductToScene() {
       try {
-        if (
-          selectedDimensions.height === null ||
-          selectedDimensions.depth === null ||
-          selectedDimensions.width === null
-        ) {
-          return;
-        }
-
-        // Run rules with no placed products to get handle-forced height/handle for this new product.
-        // Using selectedProductIds:[] ensures supportsHeightForAllProducts always returns true,
-        // so the handle-driven height (e.g. 72cm for 1DW) is always applied on first placement.
         const newProductRules = applyConfiguratorRules(
           {
             cabinetType: productName,
             width: selectedDimensions.width,
             depth: selectedDimensions.depth,
             height: selectedDimensions.height,
-            drawers: mapConfigToDrawerValue(currentSelectedConfig.Drawers as string),
-            handle: currentSelectedConfig.Handle as string,
+            drawers: mapConfigToDrawerValue(currentDrawers),
+            handle: currentHandle,
           },
           undefined,
           { selectedProductIds: [] },
@@ -1386,19 +1443,16 @@ export const CabinetBuilderPage = () => {
         const resolvedHeight = newProductRules.nextSelection.height ?? selectedDimensions.height;
         const resolvedHandle = (() => {
           const handles = newProductRules.availableOptions.handles;
-          const currentHandle = currentSelectedConfig.Handle || null;
           if (currentHandle && handles.length > 0) {
-            const opt = handles.find((h) => h.value === currentHandle);
-            if (opt && !opt.enabled) {
-              return handles.find((h) => h.enabled)?.value?.toString() ?? "handle_urban_topcut";
+            const option = handles.find((handle) => handle.value === currentHandle);
+            if (option && !option.enabled) {
+              return handles.find((handle) => handle.enabled)?.value?.toString() ?? "handle_urban_topcut";
             }
           }
-          return currentHandle || "handle_urban_topcut";
+          return currentHandle ?? "handle_urban_topcut";
         })();
 
-        // Build product config: start with cabinet option config, then override with selected config and current values
         const productConfig: addProductConfigI = {
-          ...cabinetConfig,
           Height: resolvedHeight,
           Depth: selectedDimensions.depth,
           Width: selectedDimensions.width,
@@ -1406,13 +1460,12 @@ export const CabinetBuilderPage = () => {
           CountertopColor: countertopColor,
           HandleGrooveColor: handleGrooveColor,
           Handle: resolvedHandle,
-          Drawers: currentSelectedConfig.Drawers,
+          Drawers: currentDrawers,
           Thickness: countertopThickness || undefined,
           CountertopStyle: countertopStyle || undefined,
         };
 
-        // Add sinkType and VesselColor if it's a Sink-Base
-        if (selectedCabinetRule?.hasSink && sinkType) {
+        if (selectedCabinetRule.hasSink && sinkType) {
           productConfig.sinkType = sinkType;
           if (vesselColor) {
             productConfig.VesselColor = vesselColor;
@@ -1423,71 +1476,102 @@ export const CabinetBuilderPage = () => {
         if (productName === "Side-Shelf") {
           await autoRemoveSide(dispatch, "right", selectedProducts.length);
         }
+
         const productId = await addProduct(productName, productConfig);
 
-        if (productId) {
-          dispatch(addProductId(productId));
-          handleSelectCabinetConfig(productName, productConfig);
+        if (!productId) {
+          autoAddSignatureRef.current = null;
+          return false;
+        }
 
-          // Track the drawer style of this placed cabinet for mixing restriction logic
-          const drawerRawValue = mapConfigToDrawerValue(productConfig.Drawers as string | undefined);
-          if (drawerRawValue) {
-            dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
-          }
+        dispatch(addProductId(productId));
+        handleSelectCabinetConfig(productName, productConfig);
 
-          // Update dimensions if they were set from the cabinet option
-          if (cabinetConfig.Width || cabinetConfig.Height || cabinetConfig.Depth) {
-            const nextDimensions: Partial<typeof selectedDimensions> = {};
-            if (cabinetConfig.Width) nextDimensions.width = cabinetConfig.Width;
-            if (cabinetConfig.Height) nextDimensions.height = cabinetConfig.Height;
-            if (cabinetConfig.Depth) nextDimensions.depth = cabinetConfig.Depth;
+        const drawerRawValue = mapConfigToDrawerValue(currentDrawers);
+        if (drawerRawValue) {
+          dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+        }
 
-            if (Object.keys(nextDimensions).length) {
-              dispatch(setSelectedDimensions(nextDimensions));
-            }
-          }
+        allowNextAutoAddRef.current = false;
+        dispatch(setHasBootstrappedCabinetBuilder(true));
 
-          allowNextAutoAddRef.current = false;
-          // Mark as bootstrapped to save configuration when navigating back
-          dispatch(setHasBootstrappedCabinetBuilder(true));
-
-          // Keep last active cabinet type for downstream UI rules (e.g., side panels).
-
-          // Close sidebar and reset accordion to default state
+        if (resetAccordionAfterAdd) {
           handleResetToDefaultState();
+        }
+
+        if (!keepStyleSidebarOpen) {
           dispatch(setOpenStyleSidebar(false));
         }
+
+        return true;
       } catch (error) {
         autoAddSignatureRef.current = null;
         allowNextAutoAddRef.current = false;
         console.error("Failed to add product to scene:", error);
+        return false;
       }
-    }
+    },
+    [
+      activeCabinetType,
+      activeStyleId,
+      cabinetCatalog,
+      cabinetColor,
+      canvasReady,
+      countertopColor,
+      countertopStyle,
+      countertopThickness,
+      dispatch,
+      handleGrooveColor,
+      handleResetToDefaultState,
+      handleSelectCabinetConfig,
+      hasProducts,
+      pathname,
+      saveSnapshot,
+      selectedDimensions.depth,
+      selectedDimensions.height,
+      selectedDimensions.width,
+      selectedProductConfig,
+      selectedProducts.length,
+      sinkType,
+      vesselColor,
+    ],
+  );
 
-    addProductToScene();
+  useEffect(() => {
+    if (!pendingTutorialSceneCabinet) return;
+    if (isAddingTutorialSceneCabinetRef.current) return;
+
+    isAddingTutorialSceneCabinetRef.current = true;
+
+    const run = async () => {
+      try {
+        const isAdded = await addSelectedCabinetToScene({
+          keepStyleSidebarOpen: true,
+          resetAccordionAfterAdd: false,
+        });
+
+        if (isAdded) {
+          setPendingTutorialSceneCabinet(false);
+        }
+      } finally {
+        isAddingTutorialSceneCabinetRef.current = false;
+      }
+    };
+
+    void run();
+  }, [addSelectedCabinetToScene, pendingTutorialSceneCabinet]);
+
+  // Auto-add product when cabinet type and style are selected and scene is empty
+  useEffect(() => {
+    if (!ENABLE_AUTO_ADD_FIRST_PRODUCT) return;
+    if ((hasBootstrappedCabinetBuilder && !allowNextAutoAddRef.current) || !canvasReady || hasProducts) return;
+
+    void addSelectedCabinetToScene();
   }, [
-    pathname,
+    addSelectedCabinetToScene,
     canvasReady,
     hasProducts,
     hasBootstrappedCabinetBuilder,
-    activeCabinetType,
-    activeStyleId,
-    selectedDimensions,
-    cabinetColor,
-    countertopColor,
-    handleGrooveColor,
-    sinkType,
-    selectedProductConfig,
-    cabinetCatalog.typeCabinetRules,
-    handleSelectCabinetConfig,
-    dispatch,
-    handleResetToDefaultState,
-    saveSnapshot,
-    cabinetCatalog,
-    countertopStyle,
-    countertopThickness,
-    selectedProducts.length,
-    vesselColor,
   ]);
 
   useEffect(() => {

@@ -66,6 +66,11 @@ const CUSTOM_CABINET_STYLE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
 ]);
 
+const CUSTOM_SCENE_CABINET_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
+]);
+
 const JOYRIDE_OPTIONS = {
   arrowBase: JOYRIDE_ARROW_HEIGHT,
   arrowSize: JOYRIDE_ARROW_WIDTH,
@@ -348,6 +353,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
   const [prebuiltModelsGridTargetRect, setPrebuiltModelsGridTargetRect] = useState<ViewportRect | null>(null);
 
   const closeTutorial = useCallback(() => {
+    dispatchInteractiveConfiguratorTutorialEvent(INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.cancelPendingActions);
     setPlayCanvasTargetRect(null);
     setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
@@ -387,6 +393,13 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
       if (CUSTOM_CABINET_STYLE_SELECTION_STEP_IDS.has(step.id)) {
         dispatchInteractiveConfiguratorTutorialEvent(
           INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetStyle,
+        );
+        await waitForStepPreparation();
+      }
+
+      if (CUSTOM_SCENE_CABINET_STEP_IDS.has(step.id)) {
+        dispatchInteractiveConfiguratorTutorialEvent(
+          INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.ensureSelectedCabinetOnScene,
         );
         await waitForStepPreparation();
       }
