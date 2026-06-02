@@ -30,6 +30,7 @@ import {
   getCabinetCatalog,
   getPlacedDividers,
   getPlacedCabinetStyles,
+  getDividersOption,
 } from "@/entities/product/model/store/selectors";
 import {
   buildProductSku,
@@ -157,6 +158,11 @@ export function usePriceCalculation() {
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const placedDividers = useAppSelector(getPlacedDividers);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const dividersOption = useAppSelector(getDividersOption);
+  const activePlacedDividers = useMemo(
+    () => (dividersOption === "None" ? [] : placedDividers),
+    [dividersOption, placedDividers],
+  );
 
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
@@ -998,14 +1004,14 @@ export function usePriceCalculation() {
     const resolveDividerDepth = (cabinetId: string): number | null =>
       productDimsList.find((dims) => dims.productId === cabinetId)?.depth ?? null;
 
-    if (placedDividers.length > 0) {
+    if (activePlacedDividers.length > 0) {
       const typeToStyle: Record<"A" | "B" | "C", "Option A" | "Option B" | "Option C"> = {
         A: "Option A",
         B: "Option B",
         C: "Option C",
       };
 
-      placedDividers.forEach((divider, index) => {
+      activePlacedDividers.forEach((divider, index) => {
         const style = typeToStyle[divider.type];
         const divSku = style
           ? buildDividerSku({ dividerStyle: style, cabinetDepth: resolveDividerDepth(divider.cabinetId) })
@@ -1072,7 +1078,7 @@ export function usePriceCalculation() {
     sidePanelsOption,
     sidePanelLeft,
     sidePanelRight,
-    placedDividers,
+    activePlacedDividers,
     placedCabinetStyles,
     cabinetColorSkuByName,
     handleGrooveColorSkuByName,

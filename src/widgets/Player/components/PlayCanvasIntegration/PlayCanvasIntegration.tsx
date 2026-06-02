@@ -1904,16 +1904,35 @@ export const PlayCanvasIntegration = () => {
 
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = "Open Drawer";
+      const label = document.createElement("span");
+      label.textContent = "Open Drawer";
+      const plus = document.createElement("span");
+      plus.textContent = "+";
+      plus.setAttribute("aria-hidden", "true");
+      plus.style.width = "14px";
+      plus.style.height = "14px";
+      plus.style.borderRadius = "999px";
+      plus.style.background = "rgba(255,255,255,0.22)";
+      plus.style.display = "inline-flex";
+      plus.style.alignItems = "center";
+      plus.style.justifyContent = "center";
+      plus.style.fontSize = "11px";
+      plus.style.fontWeight = "700";
+      plus.style.lineHeight = "1";
       button.style.background = "#A05535";
       button.style.color = "#fff";
       button.style.border = "none";
       button.style.borderRadius = "999px";
-      button.style.padding = "5px 12px";
+      button.style.padding = "5px 8px 5px 12px";
       button.style.cursor = "pointer";
+      button.style.display = "inline-flex";
+      button.style.alignItems = "center";
+      button.style.justifyContent = "center";
+      button.style.gap = "5px";
       button.style.fontSize = "11px";
       button.style.lineHeight = "1.1";
       button.style.fontFamily = "Poppins, sans-serif";
+      button.append(label, plus);
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as

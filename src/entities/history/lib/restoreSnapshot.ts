@@ -57,23 +57,30 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     }
   }
 
+  const placedDividers =
+    restoredPlacedDividers.length > 0
+      ? restoredPlacedDividers
+      : snapshot.placedDividers?.flatMap((divider) => {
+          const cabinetId = productIdMap[divider.cabinetId];
+          return cabinetId ? [{ ...divider, cabinetId }] : [];
+        });
+  const productOptions = {
+    ...snapshot.productOptions,
+    VesselColor: snapshot.productOptions?.VesselColor ?? "",
+  };
+
+  if (placedDividers?.length && productOptions.DividersOption === "None") {
+    productOptions.DividersOption = "Customize";
+  }
+
   dispatch(
     restoreProductState({
       productIds: newProductIds,
       productsPresets: snapshot.productsPresets?.map((preset) => ({ ...preset })),
-      productOptions: {
-        ...snapshot.productOptions,
-        VesselColor: snapshot.productOptions?.VesselColor ?? "",
-      },
+      productOptions,
       activeCabinetType: snapshot.activeCabinetType,
       selectedDimensions: snapshot.selectedDimensions,
-      placedDividers:
-        restoredPlacedDividers.length > 0
-          ? restoredPlacedDividers
-          : snapshot.placedDividers?.flatMap((divider) => {
-              const cabinetId = productIdMap[divider.cabinetId];
-              return cabinetId ? [{ ...divider, cabinetId }] : [];
-            }),
+      placedDividers,
       selectedProductConfig: restoredSelectedProductConfig,
       placedCabinetStyles:
         Object.keys(restoredPlacedCabinetStyles).length > 0

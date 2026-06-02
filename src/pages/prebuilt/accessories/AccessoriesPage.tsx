@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -20,6 +21,7 @@ import {
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import { sidePanelAvailabilityRule } from "@/features/configurator-rule-core/options";
 import {
+  clearPlacedDividers,
   replacePlacedDividersForDrawer,
   setDividersOption,
   setDividersStyle,
@@ -43,6 +45,7 @@ import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
+  clearPlacedDividersInScene,
   getDividerTypeFromOptionTitle,
   getPlacedDividersForDrawer,
   placeDividerToSlot,
@@ -91,12 +94,43 @@ const DIVIDER_PLACEMENT_WARNING_STYLE = {
   lineHeight: "16px",
 };
 
+const DIVIDER_CUSTOMIZE_SECTION_STYLE: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+  marginTop: 10,
+};
+
+const DIVIDER_TYPE_HEADER_STYLE: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+};
+
+const DIVIDER_TYPE_LABEL_STYLE = {
+  margin: 0,
+  color: "#282828",
+  fontFamily: "Poppins",
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: "16px",
+};
+
 const DIVIDER_SELECT_TYPE_HINT_STYLE = {
-  margin: "10px 0 12px",
+  margin: 0,
   color: "#4a5568",
   fontFamily: "Poppins",
   fontSize: 12,
   fontWeight: 500,
+  lineHeight: "16px",
+};
+
+const DIVIDER_OPEN_DRAWER_HINT_STYLE = {
+  margin: "2px 0 0", 
+  color: "#8b3f24",
+  fontFamily: "Poppins",
+  fontSize: 12,
+  fontWeight: 600,
   lineHeight: "16px",
 };
 
@@ -575,16 +609,35 @@ export const AccessoriesPage = () => {
 
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = "Open Drawer";
+      const label = document.createElement("span");
+      label.textContent = "Open Drawer";
+      const plus = document.createElement("span");
+      plus.textContent = "+";
+      plus.setAttribute("aria-hidden", "true");
+      plus.style.width = "14px";
+      plus.style.height = "14px";
+      plus.style.borderRadius = "999px";
+      plus.style.background = "rgba(255,255,255,0.22)";
+      plus.style.display = "inline-flex";
+      plus.style.alignItems = "center";
+      plus.style.justifyContent = "center";
+      plus.style.fontSize = "11px";
+      plus.style.fontWeight = "700";
+      plus.style.lineHeight = "1";
       button.style.background = "#A05535";
       button.style.color = "#fff";
       button.style.border = "none";
       button.style.borderRadius = "999px";
-      button.style.padding = "5px 12px";
+      button.style.padding = "5px 8px 5px 12px";
       button.style.cursor = "pointer";
+      button.style.display = "inline-flex";
+      button.style.alignItems = "center";
+      button.style.justifyContent = "center";
+      button.style.gap = "5px";
       button.style.fontSize = "11px";
       button.style.lineHeight = "1.1";
       button.style.fontFamily = "Poppins, sans-serif";
+      button.append(label, plus);
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         const containerRef = window.containerRef;
@@ -973,15 +1026,22 @@ export const AccessoriesPage = () => {
       selectedSceneProduct,
     });
     if (!value) return;
-    if (value === dividerSelection) {
+    if (value === dividerSelection && value !== "None") {
       recordDividerUiDebug("Prebuilt.DividerSelection", "Skip unchanged divider option", { value });
       return;
+    }
+    if (value === dividerSelection) {
+      recordDividerUiDebug("Prebuilt.DividerSelection", "Re-apply None to clear scene dividers", { value });
     }
 
     setDividerPlacementWarning(null);
     await saveSnapshot();
 
     if (value === "None") {
+      const clearResult = await clearPlacedDividersInScene(selectedProducts);
+      recordDividerUiDebug("Prebuilt.DividerSelection", "Scene dividers cleared for None option", clearResult);
+      dispatch(clearPlacedDividers());
+
       const exitTopView = wrapExitTopView({
         onExit: () => {
           restoreDrawerCameraMode(false);
@@ -1152,10 +1212,13 @@ export const AccessoriesPage = () => {
             selectedValue={dividerSelection}
           />
           {dividerSelection === "Customize" && (
-            <>
-              {!selectedDividerType && (
-                <p style={DIVIDER_SELECT_TYPE_HINT_STYLE}>Select a Divider type first to show placement points.</p>
-              )}
+            <div style={DIVIDER_CUSTOMIZE_SECTION_STYLE}>
+              <div style={DIVIDER_TYPE_HEADER_STYLE}>
+                <p style={DIVIDER_TYPE_LABEL_STYLE}>Divider type</p>
+                {!selectedDividerType && (
+                  <p style={DIVIDER_SELECT_TYPE_HINT_STYLE}>Select a Divider type first to show placement points.</p>
+                )}
+              </div>
               {dividerPlacementWarning && (
                 <p role="alert" style={DIVIDER_PLACEMENT_WARNING_STYLE}>
                   {dividerPlacementWarning}
@@ -1166,7 +1229,8 @@ export const AccessoriesPage = () => {
                 handleAdd={handleDividerStyleChange}
                 activeValue={dividerStyle}
               />
-            </>
+              <p style={DIVIDER_OPEN_DRAWER_HINT_STYLE}>Click 'Open Drawer' in your design to add dividers.</p>
+            </div>
           )}
         </>
       ),
