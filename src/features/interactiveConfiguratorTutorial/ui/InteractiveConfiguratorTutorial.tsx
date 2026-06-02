@@ -140,6 +140,28 @@ const getFallbackTargetRect = (step: InteractiveConfiguratorTutorialStep): Viewp
   };
 };
 
+const getPrebuiltModelsGridViewportRect = (): ViewportRect | null => {
+  const target = document.querySelector(
+    getInteractiveConfiguratorTutorialTargetSelector(INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.prebuiltModelsGrid),
+  );
+
+  if (!(target instanceof HTMLElement)) return null;
+
+  const scrollContainer = target.closest('[data-scroll-container="step-content"]');
+  const targetRect = target.getBoundingClientRect();
+  const containerRect =
+    scrollContainer instanceof HTMLElement ? scrollContainer.getBoundingClientRect() : targetRect;
+  const top = Math.max(targetRect.top, containerRect.top);
+  const bottom = Math.max(top, containerRect.bottom);
+
+  return {
+    top,
+    left: targetRect.left,
+    width: targetRect.width,
+    height: bottom - top,
+  };
+};
+
 const getProxyTargetStyle = ({ height, left, top, width }: ViewportRect): CSSProperties => ({
   position: "fixed",
   top,
@@ -323,9 +345,11 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [playCanvasTargetRect, setPlayCanvasTargetRect] = useState<ViewportRect | null>(null);
+  const [prebuiltModelsGridTargetRect, setPrebuiltModelsGridTargetRect] = useState<ViewportRect | null>(null);
 
   const closeTutorial = useCallback(() => {
     setPlayCanvasTargetRect(null);
+    setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
     dispatch(setOpenStyleSidebar(false));
     onClose();
@@ -343,8 +367,15 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
 
       setVisibleButtons(step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet);
       setPlayCanvasTargetRect(null);
+      setPrebuiltModelsGridTargetRect(null);
 
       await waitForStepPreparation();
+
+      if (step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode) {
+        setPrebuiltModelsGridTargetRect(getPrebuiltModelsGridViewportRect() ?? getFallbackTargetRect(step));
+        await waitForStepPreparation();
+        return;
+      }
 
       if (CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS.has(step.id)) {
         dispatchInteractiveConfiguratorTutorialEvent(
@@ -395,6 +426,14 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
 
   return (
     <>
+      {prebuiltModelsGridTargetRect && (
+        <div
+          className={s.proxyTarget}
+          data-tutorial-target={INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.prebuiltModelsGrid}
+          style={getProxyTargetStyle(prebuiltModelsGridTargetRect)}
+        />
+      )}
+
       {playCanvasTargetRect && (
         <div
           className={s.proxyTarget}
