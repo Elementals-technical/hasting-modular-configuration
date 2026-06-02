@@ -457,25 +457,7 @@ export const BottomCanvasButtons = () => {
   return (
     <>
       <div className={s.bottomCanvasButtons}>
-        <BaseButton
-          variant="ghost"
-          className={`${s.tooltip}${isDimensionsEnabled ? ` ${s.activeButton}` : ""}`}
-          data-tooltip="Dimensions"
-          onClick={() => {
-            const next = !isDimensionsEnabled;
-            if (next && isFullDimensionsEnabled) {
-              hideDimensions();
-              setIsFullDimensionsEnabled(false);
-            }
-
-            const tool = getDimensionTool();
-            tool?.setEnabled(next);
-            setIsDimensionsEnabled(next);
-          }}
-        >
-          <DimentionsIcon />
-        </BaseButton>
-
+     
         <BaseButton
           variant="ghost"
           className={`${s.tooltip}${isFullDimensionsEnabled ? ` ${s.activeButton}` : ""}`}
