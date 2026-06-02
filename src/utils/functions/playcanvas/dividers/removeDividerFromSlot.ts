@@ -15,6 +15,7 @@ type RemoveDividerPayload = Pick<
   "cabinetId" | "drawerType" | "zone" | "key" | "zoneIndex" | "stateId" | "dividerType"
 > & {
   debugRequestId: string;
+  start?: number;
 };
 
 export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
@@ -31,6 +32,7 @@ export async function removeDividerFromSlot(slotInfo: OccupiedSlotInfo) {
     stateId: slotInfo.stateId,
     dividerType: slotInfo.dividerType,
     debugRequestId,
+    start: slotInfo.position?.start,
   };
 
   recordDividerUiDebug("API.removeDividerFromSlot", "Start", {

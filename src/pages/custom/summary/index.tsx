@@ -340,6 +340,10 @@ export const CustomSummaryPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const dividersStyle = useAppSelector(getDividersStyle);
   const dividersOption = useAppSelector(getDividersOption);
+  const activePlacedDividers = useMemo(
+    () => (dividersOption === "None" ? [] : placedDividers),
+    [dividersOption, placedDividers],
+  );
   const ledOption = useAppSelector(getLedOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
@@ -506,10 +510,11 @@ export const CustomSummaryPage = () => {
         selectedProducts.map(async (id) => {
           const config = await getConfig(id);
           if (config) {
+            const dividers = dividersOption === "None" ? [] : collectPlacedDividersFromConfig(id, config);
             dispatch(
               replacePlacedDividersForCabinet({
                 cabinetId: id,
-                dividers: collectPlacedDividersFromConfig(id, config),
+                dividers,
               }),
             );
           }
@@ -532,7 +537,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, selectedDimensions, selectedProducts]);
+  }, [dispatch, dividersOption, selectedDimensions, selectedProducts]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1425,8 +1430,8 @@ export const CustomSummaryPage = () => {
     });
 
     const dividerItems: SummaryItem[] = (() => {
-      if (placedDividers.length > 0) {
-        return placedDividers.map((divider, index) => {
+      if (activePlacedDividers.length > 0) {
+        return activePlacedDividers.map((divider, index) => {
           const style = typeToStyleMap[divider.type];
           const sku = style
             ? buildDividerSku({
@@ -1726,7 +1731,7 @@ export const CustomSummaryPage = () => {
     sinkType,
     towelBarColor,
     towelBarOption,
-    placedDividers,
+    activePlacedDividers,
     placedCabinetStyles,
     priceBySku,
     resolveSwatch,

@@ -19,6 +19,7 @@ import {
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import { getSidePanelLeftStatus, getSidePanelRightStatus } from "@/features/sidePanel";
 import {
+  clearPlacedDividers,
   replacePlacedDividersForDrawer,
   setDividersOption,
   setDividersStyle,
@@ -35,6 +36,7 @@ import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
+  clearPlacedDividersInScene,
   getDividerTypeFromOptionTitle,
   getPlacedDividersForDrawer,
   placeDividerToSlot,
@@ -965,15 +967,22 @@ export const CustomAccessoriesPage = () => {
       activeCabinetId,
     });
     if (!value) return;
-    if (value === dividerSelection) {
+    if (value === dividerSelection && value !== "None") {
       recordDividerUiDebug("Custom.DividerSelection", "Skip unchanged divider option", { value });
       return;
+    }
+    if (value === dividerSelection) {
+      recordDividerUiDebug("Custom.DividerSelection", "Re-apply None to clear scene dividers", { value });
     }
 
     setDividerPlacementWarning(null);
     await saveSnapshot();
 
     if (value === "None") {
+      const clearResult = await clearPlacedDividersInScene(selectedProducts);
+      recordDividerUiDebug("Custom.DividerSelection", "Scene dividers cleared for None option", clearResult);
+      dispatch(clearPlacedDividers());
+
       const exitTopView = wrapExitTopView({
         onExit: () => {
           restoreDrawerCameraMode(false);
