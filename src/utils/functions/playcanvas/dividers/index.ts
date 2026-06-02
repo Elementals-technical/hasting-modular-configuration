@@ -8,6 +8,7 @@ export type { DividerSlotClickInfo } from "./setDividerSlotClickHandler";
 export { placeDividerToSlot } from "./placeDividerToSlot";
 export { setVisibleDividerSlotButtons } from "./setVisibleDividerSlotButtons";
 export { removeDividerFromSlot } from "./removeDividerFromSlot";
+export { clearPlacedDividersInScene, getOccupiedDividerSlotsInScene } from "./clearPlacedDividersInScene";
 export { getAvailableDividerTypes } from "./getAvailableDividerTypes";
 export type { DividerSlotKey } from "./getAvailableDividerTypes";
 export {
