@@ -33,7 +33,7 @@
 }
 
 :global(#react-joyride-step-8.react-joyride__floater) {
-  top: 105px !important;
+  top: 77px !important;
 }
 
 // :global(.react-joyride__floater) {
@@ -98,7 +98,10 @@
   line-height: 18px;
 }
 
-.customCabinetTypeTooltip {
+.customCabinetTypeTooltip,
+.customCabinetStyleTooltip,
+.customSizingHandleTooltip,
+.customPlaceCabinetTooltip {
   .content {
     gap: 0;
   }

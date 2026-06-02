@@ -194,6 +194,9 @@ const renderListItem = (item: string) => {
 
 const getDescriptionLineClassName = (line: string) => {
   if (line === "Cabinet Type") return s.emphasizedLine;
+  if (line === "Cabinet Style") return s.emphasizedLine;
+  if (line === "Sizing & Handle") return s.emphasizedLine;
+  if (line === "Place Your Cabinet") return s.emphasizedLine;
   if (line.startsWith("Pro Tip:")) return s.proTip;
 
   return undefined;
@@ -258,6 +261,8 @@ const TutorialTooltip = ({
     s.tooltip,
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted ? s.gettingStartedTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType ? s.customCabinetTypeTooltip : "",
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle ? s.customCabinetStyleTooltip : "",
+    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle ? s.customSizingHandleTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails ? s.prebuiltDetailsTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet ? s.customPlaceCabinetTooltip : "",
   ]
