@@ -10,6 +10,7 @@ import {
   getDividersOption,
   getDividersStyle,
   getProductsPresets,
+  getSelectedDimensions,
   getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
@@ -45,18 +46,24 @@ import {
   getDividerTypeFromOptionTitle,
   getPlacedDividersForDrawer,
   placeDividerToSlot,
+  createDividerUiTraceId,
+  getDividerConfiguratorWindow,
+  recordDividerUiDebug,
   removeDividerFromSlot,
   setDividerSlotClickHandler,
   setOnAddSlotClick,
   setOnOccupiedSlotClick,
   setVisibleDividerSlotButtons,
   showIconDividerSlots,
+  summarizeDividerSlotInfo,
   type DividerType,
   type DrawerType,
+  warnDividerUiDebug,
   wrapExitTopView,
   wrapShowTopView,
 } from "@/utils/functions/playcanvas/dividers";
 import { exportCameraState, importCameraState, setAutoFraming } from "@/utils/functions/playcanvas/camera";
+import { useDividerResizeOverlayRestore } from "@/utils/functions/playcanvas/dividers/useDividerResizeOverlayRestore";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -71,6 +78,53 @@ import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functio
 const DEFAULT_ACCORDION_ID = "side-panels";
 const DIVIDERS_ACCORDION_ID = "dividers";
 
+const DIVIDER_PLACEMENT_WARNING_STYLE = {
+  margin: "10px 0 12px",
+  padding: "10px 12px",
+  border: "1px solid #e2b8a6",
+  borderRadius: 6,
+  background: "#fff6f2",
+  color: "#8b3f24",
+  fontFamily: "Poppins",
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: "16px",
+};
+
+const DIVIDER_SELECT_TYPE_HINT_STYLE = {
+  margin: "10px 0 12px",
+  color: "#4a5568",
+  fontFamily: "Poppins",
+  fontSize: 12,
+  fontWeight: 500,
+  lineHeight: "16px",
+};
+
+const getDividerOptionLabel = (type: string) => `Option ${type}`;
+
+const formatDividerOptionsList = (available: readonly string[]) =>
+  available.map(getDividerOptionLabel).join(", ");
+
+const buildUnavailableDividerWarning = (dividerType: string, available: readonly string[]) => {
+  if (available.length > 0) {
+    return `${getDividerOptionLabel(dividerType)} does not fit here. Choose one of: ${formatDividerOptionsList(available)}.`;
+  }
+
+  return `${getDividerOptionLabel(dividerType)} does not fit here. No Divider option is available for this slot.`;
+};
+
+const buildDividerPlacementWarning = (selectedDividerType: DividerType | null, available: readonly string[]) => {
+  if (!selectedDividerType) return "Select a Divider option before placing it.";
+  if (!available.includes(selectedDividerType)) return buildUnavailableDividerWarning(selectedDividerType, available);
+
+  return null;
+};
+
+const isDividerType = (value: unknown): value is DividerType => value === "A" || value === "B" || value === "C";
+
+const normalizeDividerTypes = (value: unknown): DividerType[] =>
+  Array.isArray(value) ? value.filter(isDividerType) : [];
+
 export const AccessoriesPage = () => {
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
@@ -80,6 +134,7 @@ export const AccessoriesPage = () => {
   const activeSidePanels = useAppSelector(getSidePanelsOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const productsPresets = useAppSelector(getProductsPresets);
   const lengthGuard = useCountertopLengthGuard(selectedProducts);
@@ -120,10 +175,11 @@ export const AccessoriesPage = () => {
     drawerType: DrawerType;
     types: Set<DividerType> | null;
   } | null>(null);
+  const [dividerPlacementWarning, setDividerPlacementWarning] = useState<string | null>(null);
   const drawerCameraStateRef = useRef<Record<string, unknown> | null>(null);
   const isDrawerCameraManagedRef = useRef(false);
 
-  const selectedDividerType =
+  const selectedDividerType: DividerType | null =
     dividerStyle?.trim() === "Option B"
       ? "B"
       : dividerStyle?.trim() === "Option C"
@@ -138,7 +194,7 @@ export const AccessoriesPage = () => {
         return available.includes(selectedDividerType) ? selectedDividerType : null;
       }
 
-      return available.find((type): type is DividerType => type === "A" || type === "B" || type === "C") ?? null;
+      return null;
     },
     [selectedDividerType],
   );
@@ -162,6 +218,98 @@ export const AccessoriesPage = () => {
     },
     [dispatch],
   );
+
+  const refreshDividerOverlay = useCallback(
+    (cabinetId = selectedSceneProduct, drawerType = activeDrawerType, dividerType = selectedDividerType) => {
+      if (!isPlayCanvasReady || dividerSelection !== "Customize" || !cabinetId || !drawerType) return null;
+
+      const options = {
+        show: true,
+        selectedDividerType: dividerType,
+        debugRequestId: createDividerUiTraceId("prebuilt-overlay"),
+      };
+
+      recordDividerUiDebug("Prebuilt.DividerEffect", "Refresh divider overlay with selected type", {
+        cabinetId,
+        drawerType,
+        selectedDividerType: dividerType,
+        debugRequestId: options.debugRequestId,
+        options,
+      });
+
+      return showIconDividerSlots(cabinetId, drawerType, options);
+    },
+    [activeDrawerType, dividerSelection, isPlayCanvasReady, selectedDividerType, selectedSceneProduct],
+  );
+
+  useDividerResizeOverlayRestore({
+    stagePrefix: "Prebuilt",
+    isPlayCanvasReady,
+    dividerSelection,
+    activeCabinetId: selectedSceneProduct,
+    selectedDividerType,
+    setActiveDrawerType,
+    refreshDividerOverlay,
+    refreshDividerOptionsAvailability,
+  });
+
+  useEffect(() => {
+    if (!isPlayCanvasReady || dividerSelection !== "Customize") return;
+
+    const api = getDividerConfiguratorWindow()?.ConfiguratorAPI as
+      | {
+          __activeDrawerCabinetId?: string;
+          __activeDrawerType?: DrawerType;
+        }
+      | undefined;
+    const cabinetId = api?.__activeDrawerCabinetId ?? selectedSceneProduct;
+    const drawerType = api?.__activeDrawerType ?? activeDrawerType;
+
+    recordDividerUiDebug("Prebuilt.DividerResizeRefresh", "Evaluate divider overlay refresh after dimension change", {
+      selectedSceneProduct,
+      activeDrawerType,
+      runtimeCabinetId: api?.__activeDrawerCabinetId,
+      runtimeDrawerType: api?.__activeDrawerType,
+      selectedDividerType,
+      selectedDimensions,
+    });
+
+    if (!cabinetId || !drawerType) {
+      warnDividerUiDebug("Prebuilt.DividerResizeRefresh", "Skip refresh because active drawer is not resolved", {
+        selectedSceneProduct,
+        activeDrawerType,
+        runtimeCabinetId: api?.__activeDrawerCabinetId,
+        runtimeDrawerType: api?.__activeDrawerType,
+      });
+      return;
+    }
+
+    if (drawerType !== activeDrawerType) {
+      setActiveDrawerType(drawerType);
+    }
+
+    const refresh = () => {
+      setVisibleDividerSlotButtons(true);
+      refreshDividerOverlay(cabinetId, drawerType);
+      void refreshDividerOptionsAvailability(cabinetId, drawerType);
+    };
+
+    const timeoutId = window.setTimeout(refresh, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    activeDrawerType,
+    dividerSelection,
+    isPlayCanvasReady,
+    refreshDividerOptionsAvailability,
+    refreshDividerOverlay,
+    selectedDimensions.depth,
+    selectedDimensions.width,
+    selectedDividerType,
+    selectedSceneProduct,
+  ]);
 
   useEffect(() => {
     if (!isPlayCanvasReady || dividerSelection !== "Customize" || !selectedSceneProduct || !activeDrawerType) return;
@@ -200,16 +348,19 @@ export const AccessoriesPage = () => {
   const dividerOptions = useMemo(() => {
     if (!availableDividerTypes) return dividersMockData;
 
+    const availableTypes = Array.from(availableDividerTypes);
+
     return dividersMockData.map((option) => {
       const dividerType = getDividerTypeFromOptionTitle(option.title);
       const isAvailable = dividerType ? availableDividerTypes.has(dividerType) : true;
+      const disabledReason = dividerType
+        ? buildUnavailableDividerWarning(dividerType, availableTypes)
+        : "This divider option does not fit in the selected drawer space.";
 
       return {
         ...option,
         isAvailable,
-        disabledReason: isAvailable
-          ? undefined
-          : "This divider option does not fit in the selected drawer space.",
+        disabledReason: isAvailable ? undefined : disabledReason,
       };
     });
   }, [availableDividerTypes]);
@@ -485,7 +636,7 @@ export const AccessoriesPage = () => {
       onAfterSelect: (cabinetId, drawerType) => {
         if (dividerSelection === "Customize") {
           setVisibleDividerSlotButtons(true);
-          showIconDividerSlots(cabinetId, drawerType);
+          refreshDividerOverlay(cabinetId, drawerType);
         }
       },
     });
@@ -493,7 +644,7 @@ export const AccessoriesPage = () => {
     if (!wrapped) {
       console.log("[Drawer] showTopView not ready or already wrapped");
     }
-  }, [dispatch, isPlayCanvasReady, dividerSelection, applyOpenDrawerCameraMode]);
+  }, [dispatch, isPlayCanvasReady, dividerSelection, applyOpenDrawerCameraMode, refreshDividerOverlay]);
 
   useEffect(() => {
     const exitTopView = wrapExitTopView({
@@ -517,23 +668,47 @@ export const AccessoriesPage = () => {
   }, [restoreDrawerCameraMode]);
 
   useEffect(() => {
-    if (!isPlayCanvasReady) return;
+    recordDividerUiDebug("Prebuilt.DividerEffect", "Evaluate divider overlay effect", {
+      isPlayCanvasReady,
+      dividerSelection,
+      selectedSceneProduct,
+      activeDrawerType,
+      selectedDividerType,
+    });
+
+    if (!isPlayCanvasReady) {
+      recordDividerUiDebug("Prebuilt.DividerEffect", "Skip because PlayCanvas is not ready");
+      return;
+    }
 
     if (dividerSelection !== "Customize") {
+      recordDividerUiDebug("Prebuilt.DividerEffect", "Disable divider slot buttons because Customize is not selected", {
+        dividerSelection,
+      });
       setVisibleDividerSlotButtons(false);
       return;
     }
 
     setVisibleDividerSlotButtons(true);
 
-    if (!selectedSceneProduct) return;
+    if (!selectedSceneProduct) {
+      warnDividerUiDebug("Prebuilt.DividerEffect", "Skip because selectedSceneProduct is empty", {
+        activeDrawerType,
+      });
+      return;
+    }
 
     if (activeDrawerType) {
-      showIconDividerSlots(selectedSceneProduct, activeDrawerType);
+      recordDividerUiDebug("Prebuilt.DividerEffect", "Show divider slots for active drawer", {
+        selectedSceneProduct,
+        activeDrawerType,
+        selectedDividerType,
+      });
+      refreshDividerOverlay(selectedSceneProduct, activeDrawerType);
     }
 
     const onAddHandler = setOnAddSlotClick(async (slotInfo) => {
-      const available =
+      const available = normalizeDividerTypes(
         slotInfo.availableTypes?.length > 0
           ? slotInfo.availableTypes
           : getAvailableDividerTypes({
@@ -541,47 +716,126 @@ export const AccessoriesPage = () => {
               drawerType: slotInfo.drawerType,
               zone: slotInfo.zone,
               key: slotInfo.key,
-            }) || [];
+            }),
+      );
 
+      const placementWarning = buildDividerPlacementWarning(selectedDividerType, available);
       const selectedType = resolveDividerType(available);
       const drawerType = slotInfo.drawerType ?? activeDrawerType;
 
-      if (!selectedType) {
+      recordDividerUiDebug("Prebuilt.AddSlot", "Resolved add slot decision", {
+        slotInfo: summarizeDividerSlotInfo(slotInfo),
+        available,
+        selectedDividerType,
+        selectedType,
+        drawerType,
+        zoneIndex: slotInfo.zoneIndex,
+        placementType: slotInfo.placementType,
+        canPlace: slotInfo.canPlace,
+        disabledReason: slotInfo.disabledReason,
+      });
+
+      if (slotInfo.canPlace === false || placementWarning || !selectedType) {
+        const userMessage =
+          placementWarning ?? "Selected Divider does not fit here. Choose another available option.";
+        setDividerPlacementWarning(userMessage);
         console.warn("[Dividers] selected divider type is not available for add slot");
+        warnDividerUiDebug(
+          "Prebuilt.AddSlot",
+          selectedDividerType ? "Selected divider type is not available" : "Divider type is not selected",
+          {
+            slotInfo: summarizeDividerSlotInfo(slotInfo),
+            available,
+            selectedDividerType,
+            zoneIndex: slotInfo.zoneIndex,
+            placementType: slotInfo.placementType,
+            canPlace: slotInfo.canPlace,
+            disabledReason: slotInfo.disabledReason,
+            userMessage,
+          },
+        );
         return;
       }
 
       if (!drawerType) {
         console.warn("[Dividers] drawerType not resolved for add slot");
+        warnDividerUiDebug("Prebuilt.AddSlot", "Drawer type not resolved", {
+          slotInfo: summarizeDividerSlotInfo(slotInfo),
+          activeDrawerType,
+        });
         return;
       }
 
+      setDividerPlacementWarning(null);
       await saveSnapshot();
+      recordDividerUiDebug("Prebuilt.AddSlot", "Place divider request prepared", {
+        cabinetId: slotInfo.cabinetId,
+        drawerType,
+        zone: slotInfo.zone,
+        key: slotInfo.key,
+        zoneIndex: slotInfo.zoneIndex,
+        placementType: slotInfo.placementType,
+        selectedType,
+      });
       await placeDividerToSlot({ ...slotInfo, drawerType }, selectedType);
       await syncPlacedDividersForDrawer(slotInfo.cabinetId, drawerType);
-      showIconDividerSlots(slotInfo.cabinetId, drawerType);
+      refreshDividerOverlay(slotInfo.cabinetId, drawerType);
       void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
+      recordDividerUiDebug("Prebuilt.AddSlot", "Add slot flow completed", {
+        cabinetId: slotInfo.cabinetId,
+        drawerType,
+        zone: slotInfo.zone,
+        key: slotInfo.key,
+        zoneIndex: slotInfo.zoneIndex,
+        placementType: slotInfo.placementType,
+        selectedType,
+      });
     });
 
     const onOccupiedHandler = setOnOccupiedSlotClick(async (slotInfo) => {
       const drawerType = slotInfo.drawerType ?? activeDrawerType;
+      recordDividerUiDebug("Prebuilt.OccupiedSlot", "Remove occupied divider requested", {
+        slotInfo: summarizeDividerSlotInfo(slotInfo),
+        drawerType,
+      });
       await saveSnapshot();
       await removeDividerFromSlot(slotInfo);
       if (drawerType) {
         await syncPlacedDividersForDrawer(slotInfo.cabinetId, drawerType);
-        showIconDividerSlots(slotInfo.cabinetId, drawerType);
+        refreshDividerOverlay(slotInfo.cabinetId, drawerType);
         void refreshDividerOptionsAvailability(slotInfo.cabinetId, drawerType);
+        recordDividerUiDebug("Prebuilt.OccupiedSlot", "Remove occupied divider completed", {
+          cabinetId: slotInfo.cabinetId,
+          drawerType,
+          zone: slotInfo.zone,
+          key: slotInfo.key,
+          zoneIndex: slotInfo.zoneIndex,
+          dividerType: slotInfo.dividerType,
+          stateId: slotInfo.stateId,
+        });
+      } else {
+        warnDividerUiDebug("Prebuilt.OccupiedSlot", "Drawer type missing after remove request", {
+          slotInfo: summarizeDividerSlotInfo(slotInfo),
+          activeDrawerType,
+        });
       }
     });
 
     if (!onAddHandler && !onOccupiedHandler) {
+      warnDividerUiDebug("Prebuilt.DividerEffect", "Falling back to legacy divider slot click handler");
       setDividerSlotClickHandler(async (slotInfo) => {
         if ("isOccupied" in slotInfo && slotInfo.isOccupied) {
+          recordDividerUiDebug("Prebuilt.LegacySlot", "Legacy occupied slot remove requested", {
+            slotInfo: summarizeDividerSlotInfo(slotInfo),
+          });
           await saveSnapshot();
           await removeDividerFromSlot(slotInfo);
           await syncPlacedDividersForDrawer(slotInfo.cabinetId, slotInfo.drawerType);
-          showIconDividerSlots(slotInfo.cabinetId, slotInfo.drawerType);
+          refreshDividerOverlay(slotInfo.cabinetId, slotInfo.drawerType);
           void refreshDividerOptionsAvailability(slotInfo.cabinetId, slotInfo.drawerType);
+          recordDividerUiDebug("Prebuilt.LegacySlot", "Legacy occupied slot remove completed", {
+            slotInfo: summarizeDividerSlotInfo(slotInfo),
+          });
           return;
         }
 
@@ -591,35 +845,94 @@ export const AccessoriesPage = () => {
           zone: string;
           key: string;
           availableTypes?: string[];
+          zoneIndex?: number;
+          placementType?: DividerType | null;
+          canPlace?: boolean;
+          disabledReason?: "select-divider" | "does-not-fit" | "no-space" | null;
         };
 
-        const available = addSlotInfo.availableTypes?.length
-          ? addSlotInfo.availableTypes
-          : getAvailableDividerTypes(addSlotInfo) || [];
+        const available = normalizeDividerTypes(
+          addSlotInfo.availableTypes?.length ? addSlotInfo.availableTypes : getAvailableDividerTypes(addSlotInfo),
+        );
 
         const normalizedAddSlotInfo = {
           ...addSlotInfo,
-          availableTypes: addSlotInfo.availableTypes ?? [],
+          availableTypes: available,
         };
 
+        const placementWarning = buildDividerPlacementWarning(selectedDividerType, available);
         const selectedType = resolveDividerType(available);
         const drawerType = normalizedAddSlotInfo.drawerType ?? activeDrawerType;
 
-        if (!selectedType) {
+        recordDividerUiDebug("Prebuilt.LegacySlot", "Resolved legacy add slot decision", {
+          slotInfo: summarizeDividerSlotInfo(normalizedAddSlotInfo),
+          available,
+          selectedDividerType,
+          selectedType,
+          drawerType,
+          zoneIndex: normalizedAddSlotInfo.zoneIndex,
+          placementType: normalizedAddSlotInfo.placementType,
+          canPlace: normalizedAddSlotInfo.canPlace,
+          disabledReason: normalizedAddSlotInfo.disabledReason,
+        });
+
+        if (normalizedAddSlotInfo.canPlace === false || placementWarning || !selectedType) {
+          const userMessage =
+            placementWarning ?? "Selected Divider does not fit here. Choose another available option.";
+          setDividerPlacementWarning(userMessage);
           console.warn("[Dividers] selected divider type is not available for legacy add slot");
+          warnDividerUiDebug(
+            "Prebuilt.LegacySlot",
+            selectedDividerType
+              ? "Selected divider type is not available for legacy add slot"
+              : "Divider type is not selected for legacy add slot",
+            {
+              slotInfo: summarizeDividerSlotInfo(normalizedAddSlotInfo),
+              available,
+              selectedDividerType,
+              zoneIndex: normalizedAddSlotInfo.zoneIndex,
+              placementType: normalizedAddSlotInfo.placementType,
+              canPlace: normalizedAddSlotInfo.canPlace,
+              disabledReason: normalizedAddSlotInfo.disabledReason,
+              userMessage,
+            },
+          );
           return;
         }
 
         if (!drawerType) {
           console.warn("[Dividers] drawerType not resolved for legacy add slot");
+          warnDividerUiDebug("Prebuilt.LegacySlot", "Drawer type not resolved for legacy add slot", {
+            slotInfo: summarizeDividerSlotInfo(normalizedAddSlotInfo),
+            activeDrawerType,
+          });
           return;
         }
 
+        setDividerPlacementWarning(null);
         await saveSnapshot();
+        recordDividerUiDebug("Prebuilt.LegacySlot", "Legacy place divider request prepared", {
+          cabinetId: normalizedAddSlotInfo.cabinetId,
+          drawerType,
+          zone: normalizedAddSlotInfo.zone,
+          key: normalizedAddSlotInfo.key,
+          zoneIndex: normalizedAddSlotInfo.zoneIndex,
+          placementType: normalizedAddSlotInfo.placementType,
+          selectedType,
+        });
         await placeDividerToSlot({ ...normalizedAddSlotInfo, drawerType }, selectedType);
         await syncPlacedDividersForDrawer(normalizedAddSlotInfo.cabinetId, drawerType);
-        showIconDividerSlots(normalizedAddSlotInfo.cabinetId, drawerType);
+        refreshDividerOverlay(normalizedAddSlotInfo.cabinetId, drawerType);
         void refreshDividerOptionsAvailability(normalizedAddSlotInfo.cabinetId, drawerType);
+        recordDividerUiDebug("Prebuilt.LegacySlot", "Legacy add slot completed", {
+          cabinetId: normalizedAddSlotInfo.cabinetId,
+          drawerType,
+          zone: normalizedAddSlotInfo.zone,
+          key: normalizedAddSlotInfo.key,
+          zoneIndex: normalizedAddSlotInfo.zoneIndex,
+          placementType: normalizedAddSlotInfo.placementType,
+          selectedType,
+        });
       });
     }
   }, [
@@ -631,6 +944,7 @@ export const AccessoriesPage = () => {
     resolveDividerType,
     saveSnapshot,
     isPlayCanvasReady,
+    refreshDividerOverlay,
     refreshDividerOptionsAvailability,
     syncPlacedDividersForDrawer,
   ]);
@@ -652,9 +966,19 @@ export const AccessoriesPage = () => {
   };
 
   const handleDividersChange = async (value: string | null) => {
+    recordDividerUiDebug("Prebuilt.DividerSelection", "Divider option change requested", {
+      value,
+      previous: dividerSelection,
+      activeDrawerType,
+      selectedSceneProduct,
+    });
     if (!value) return;
-    if (value === dividerSelection) return;
+    if (value === dividerSelection) {
+      recordDividerUiDebug("Prebuilt.DividerSelection", "Skip unchanged divider option", { value });
+      return;
+    }
 
+    setDividerPlacementWarning(null);
     await saveSnapshot();
 
     if (value === "None") {
@@ -671,6 +995,7 @@ export const AccessoriesPage = () => {
         await Promise.resolve(exitTopView());
       } else {
         console.warn("[Drawer] exitTopView not ready");
+        warnDividerUiDebug("Prebuilt.DividerSelection", "exitTopView not ready while switching to None");
       }
 
       setDividerAvailability(null);
@@ -689,15 +1014,46 @@ export const AccessoriesPage = () => {
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
     }
+    recordDividerUiDebug("Prebuilt.DividerSelection", "Divider option change applied", {
+      value,
+    });
   };
 
   const handleDividerStyleChange = async (value: string) => {
+    recordDividerUiDebug("Prebuilt.DividerStyle", "Divider style change requested", {
+      value,
+      previous: dividerStyle,
+      availableDividerTypes: availableDividerTypes ? Array.from(availableDividerTypes) : null,
+    });
     if (!value) return;
-    if (value === dividerStyle) return;
+    if (value === dividerStyle) {
+      recordDividerUiDebug("Prebuilt.DividerStyle", "Skip unchanged divider style", { value });
+      return;
+    }
     const dividerType = getDividerTypeFromOptionTitle(value);
-    if (availableDividerTypes && dividerType && !availableDividerTypes.has(dividerType)) return;
+    if (availableDividerTypes && dividerType && !availableDividerTypes.has(dividerType)) {
+      const availableTypes = Array.from(availableDividerTypes);
+      const userMessage = buildUnavailableDividerWarning(dividerType, availableTypes);
+      setDividerPlacementWarning(userMessage);
+      warnDividerUiDebug("Prebuilt.DividerStyle", "Blocked unavailable divider style", {
+        value,
+        dividerType,
+        availableDividerTypes: availableTypes,
+        userMessage,
+      });
+      return;
+    }
+    setDividerPlacementWarning(null);
     await saveSnapshot();
     dispatch(setDividersStyle(value));
+    recordDividerUiDebug("Prebuilt.DividerStyle", "Divider style change applied", {
+      value,
+      dividerType,
+    });
+
+    if (dividerType && selectedSceneProduct && activeDrawerType && dividerSelection === "Customize") {
+      refreshDividerOverlay(selectedSceneProduct, activeDrawerType, dividerType);
+    }
   };
 
   const handleTowelBarChange = async (value: string | null) => {
@@ -796,11 +1152,21 @@ export const AccessoriesPage = () => {
             selectedValue={dividerSelection}
           />
           {dividerSelection === "Customize" && (
-            <ProductOptionsGrid
-              data={dividerOptions}
-              handleAdd={handleDividerStyleChange}
-              activeValue={dividerStyle}
-            />
+            <>
+              {!selectedDividerType && (
+                <p style={DIVIDER_SELECT_TYPE_HINT_STYLE}>Select a Divider type first to show placement points.</p>
+              )}
+              {dividerPlacementWarning && (
+                <p role="alert" style={DIVIDER_PLACEMENT_WARNING_STYLE}>
+                  {dividerPlacementWarning}
+                </p>
+              )}
+              <ProductOptionsGrid
+                data={dividerOptions}
+                handleAdd={handleDividerStyleChange}
+                activeValue={dividerStyle}
+              />
+            </>
           )}
         </>
       ),

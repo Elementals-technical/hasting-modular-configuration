@@ -14,6 +14,18 @@ export type ResetDividersConfig = {
   BotDrawerDividers: EmptyDividerZones;
 };
 
+export type DividerResizeRestoreTarget = {
+  cabinetId: string;
+  drawerType: DrawerType;
+};
+
+export type DividerResizeRestoreEventDetail = {
+  targets: DividerResizeRestoreTarget[];
+  dimension: "width" | "depth";
+};
+
+export const DIVIDER_RESIZE_RESTORE_EVENT = "hasting:divider-resize-restore";
+
 type ConfiguratorApi = {
   closeDrawer?: (cabinetId: string, drawerType: DrawerType) => unknown;
   exitTopView?: () => unknown;
@@ -61,13 +73,14 @@ export const buildResetDividersConfig = (): ResetDividersConfig => ({
   BotDrawerDividers: { zones: {} },
 });
 
-export const prepareCabinetDividersForResize = async (cabinetId: string): Promise<void> => {
+export const prepareCabinetDividersForResize = async (cabinetId: string): Promise<DividerResizeRestoreTarget | null> => {
   const api = getConfiguratorApi();
-  if (!api) return;
+  if (!api) return null;
 
   watchPlayCanvasMeshInstancesDuringRender();
 
   const activeDrawerType = api.__activeDrawerCabinetId === cabinetId ? api.__activeDrawerType : undefined;
+  const restoreTarget = activeDrawerType ? { cabinetId, drawerType: activeDrawerType } : null;
 
   await Promise.resolve(api.setVisibleDividerSlotButtons?.(false));
   await Promise.resolve(api.setVisibleDrawerButtons?.(false));
@@ -89,4 +102,6 @@ export const prepareCabinetDividersForResize = async (cabinetId: string): Promis
 
   await waitForRenderSettlement();
   sanitizePlayCanvasMeshInstances();
+
+  return restoreTarget;
 };

@@ -1,24 +1,61 @@
+import {
+  captureDividerPlayCanvasSnapshot,
+  createDividerUiTraceId,
+  errorDividerUiDebug,
+  getDividerConfiguratorWindow,
+  recordDividerUiDebug,
+  summarizeDividerSlotInfo,
+  warnDividerUiDebug,
+} from "./dividerUiDebug";
 import type { DividerSlotInfo } from "./setOnAddSlotClick";
 
 export async function placeDividerToSlot(slotInfo: DividerSlotInfo, type: "A" | "B" | "C") {
-  // @ts-ignore
-  const containerRef = window.containerRef;
-  const canvasIframe = containerRef?.current?.contentWindow as any;
-
+  const startedAt = performance.now();
+  const canvasIframe = getDividerConfiguratorWindow();
   const apiMethod = canvasIframe?.ConfiguratorAPI?.dividers?.placeDividerToSlot;
+  const debugRequestId = slotInfo.debugRequestId ?? createDividerUiTraceId("ui-place");
+  const payload = {
+    ...slotInfo,
+    debugRequestId,
+  };
 
-  console.log("call placeDividerToSlot", apiMethod);
-  console.log("slotInfo", slotInfo, "type", type);
+  recordDividerUiDebug("API.placeDividerToSlot", "Start", {
+    debugRequestId,
+    hasApi: Boolean(apiMethod),
+    slotInfo: summarizeDividerSlotInfo(payload),
+    type,
+  });
 
   if (!apiMethod) {
     console.warn("[PlayCanvas] ConfiguratorAPI.dividers.placeDividerToSlot not ready");
+    warnDividerUiDebug("API.placeDividerToSlot", "PlayCanvas API method is not ready", {
+      debugRequestId,
+      slotInfo: summarizeDividerSlotInfo(payload),
+      type,
+    });
     return null;
   }
 
   try {
-    return await apiMethod(slotInfo, type);
+    const result = await apiMethod(payload, type);
+    recordDividerUiDebug("API.placeDividerToSlot", "Done", {
+      debugRequestId,
+      durationMs: Math.round(performance.now() - startedAt),
+      slotInfo: summarizeDividerSlotInfo(payload),
+      type,
+      result,
+      playCanvasSnapshot: captureDividerPlayCanvasSnapshot(),
+    });
+    return result;
   } catch (error) {
     console.error("[PlayCanvas] Failed to placeDividerToSlot", error);
+    errorDividerUiDebug("API.placeDividerToSlot", "Failed", {
+      debugRequestId,
+      durationMs: Math.round(performance.now() - startedAt),
+      slotInfo: summarizeDividerSlotInfo(payload),
+      type,
+      error,
+    });
     return null;
   }
 }
