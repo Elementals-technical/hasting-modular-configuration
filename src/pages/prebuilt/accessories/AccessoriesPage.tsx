@@ -282,6 +282,7 @@ export const AccessoriesPage = () => {
     dividerSelection,
     activeCabinetId: selectedSceneProduct,
     selectedDividerType,
+    shouldRestoreDrawerButtons: activeAccordionId === DIVIDERS_ACCORDION_ID,
     setActiveDrawerType,
     refreshDividerOverlay,
     refreshDividerOptionsAvailability,

@@ -6,6 +6,7 @@ import {
   type DividerResizeRestoreEventDetail,
 } from "./prepareDividersForResize";
 import { setVisibleDividerSlotButtons } from "./setVisibleDividerSlotButtons";
+import { setVisibleDrawerButtons } from "../setVisibleDrawerButtons";
 import type { DividerType, DrawerType } from "./showIconDividerSlots";
 
 type DividerResizeOverlayRestoreOptions = {
@@ -14,6 +15,7 @@ type DividerResizeOverlayRestoreOptions = {
   dividerSelection: string;
   activeCabinetId: string | null | undefined;
   selectedDividerType: DividerType | null;
+  shouldRestoreDrawerButtons?: boolean;
   setActiveDrawerType: (drawerType: DrawerType) => void;
   refreshDividerOverlay: (cabinetId: string, drawerType: DrawerType, dividerType?: DividerType | null) => unknown;
   refreshDividerOptionsAvailability: (cabinetId: string, drawerType: DrawerType) => unknown;
@@ -31,10 +33,24 @@ export function useDividerResizeOverlayRestore({
   dividerSelection,
   activeCabinetId,
   selectedDividerType,
+  shouldRestoreDrawerButtons = false,
   setActiveDrawerType,
   refreshDividerOverlay,
   refreshDividerOptionsAvailability,
 }: DividerResizeOverlayRestoreOptions) {
+  const restoreDrawerButtonsAfterResize = useCallback(
+    (dimension: DividerResizeRestoreEventDetail["dimension"]) => {
+      if (!isPlayCanvasReady || dividerSelection !== "Customize" || !shouldRestoreDrawerButtons) return;
+
+      recordDividerUiDebug(`${stagePrefix}.DividerResizeRestore`, "Restore drawer CTA after resize", {
+        dimension,
+      });
+
+      setVisibleDrawerButtons(true);
+    },
+    [dividerSelection, isPlayCanvasReady, shouldRestoreDrawerButtons, stagePrefix],
+  );
+
   const restoreDividerOverlayAfterResize = useCallback(
     (cabinetId: string, drawerType: DrawerType, dimension: DividerResizeRestoreEventDetail["dimension"]) => {
       if (!isPlayCanvasReady || dividerSelection !== "Customize") return;
@@ -99,10 +115,13 @@ export function useDividerResizeOverlayRestore({
   useEffect(() => {
     const handleDividerResizeRestore = (event: Event) => {
       const detail = (event as CustomEvent<DividerResizeRestoreEventDetail>).detail;
-      if (!activeCabinetId) return;
+      if (!detail) return;
 
-      const target = detail?.targets?.find((item) => item.cabinetId === activeCabinetId);
-      if (!target) return;
+      const target = activeCabinetId ? detail.targets.find((item) => item.cabinetId === activeCabinetId) : undefined;
+      if (!target) {
+        restoreDrawerButtonsAfterResize(detail.dimension);
+        return;
+      }
 
       restoreDividerOverlayAfterResize(target.cabinetId, target.drawerType, detail.dimension);
     };
@@ -112,5 +131,5 @@ export function useDividerResizeOverlayRestore({
     return () => {
       window.removeEventListener(DIVIDER_RESIZE_RESTORE_EVENT, handleDividerResizeRestore);
     };
-  }, [activeCabinetId, restoreDividerOverlayAfterResize]);
+  }, [activeCabinetId, restoreDividerOverlayAfterResize, restoreDrawerButtonsAfterResize]);
 }

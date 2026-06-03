@@ -394,6 +394,7 @@ export const CustomAccessoriesPage = () => {
     dividerSelection,
     activeCabinetId,
     selectedDividerType,
+    shouldRestoreDrawerButtons: activeAccordionId === DIVIDERS_ACCORDION_ID,
     setActiveDrawerType,
     refreshDividerOverlay,
     refreshDividerOptionsAvailability,

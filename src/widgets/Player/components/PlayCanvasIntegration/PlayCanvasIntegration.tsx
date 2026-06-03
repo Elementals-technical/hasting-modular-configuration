@@ -1059,8 +1059,6 @@ export const PlayCanvasIntegration = () => {
 
   const dispatchDividerResizeRestore = useCallback(
     (targets: DividerResizeRestoreTarget[], dimension: DividerResizeAction["dimension"]) => {
-      if (!targets.length) return;
-
       window.dispatchEvent(
         new CustomEvent(DIVIDER_RESIZE_RESTORE_EVENT, {
           detail: {
