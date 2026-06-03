@@ -891,6 +891,13 @@ export const PlayCanvasIntegration = () => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  const closeInPlayerActionSurface = useCallback(() => {
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, []);
+
   // Track pointer position so we know where the user clicked inside the iframe.
   // We listen on both: postMessage from the iframe (preferred) and mousemove on
   // the parent window (fallback — gives the last known position before the
@@ -1526,6 +1533,7 @@ export const PlayCanvasIntegration = () => {
         if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
 
         updateDimensionDataForProduct(productId, mergedConfig);
+        closeInPlayerActionSurface();
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
       } finally {
@@ -1540,6 +1548,7 @@ export const PlayCanvasIntegration = () => {
       setVisibleButtons(false);
     };
   }, [
+    closeInPlayerActionSurface,
     dispatch,
     duplicateSourceId,
     maxCountertopLength,
@@ -1556,19 +1565,17 @@ export const PlayCanvasIntegration = () => {
     if (!canAddAnotherCabinet) return;
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
 
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [canAddAnotherCabinet, navigate]);
+    closeInPlayerActionSurface();
+  }, [canAddAnotherCabinet, closeInPlayerActionSurface, navigate]);
 
   const handleOpenCustomizeModePrompt = useCallback(
     (action: CustomizeModePromptAction, deleteTarget: string | null = null) => {
       setCustomizeModePromptAction(action);
       setCustomizeModePromptDeleteTarget(deleteTarget);
       setIsCustomizeModePromptOpen(true);
-      setDropdownState((prev) => ({ ...prev, visible: false }));
-      setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+      closeInPlayerActionSurface();
     },
-    [],
+    [closeInPlayerActionSurface],
   );
 
   const handleCustomizeModePromptOpenChange = useCallback((isOpening: boolean) => {
@@ -1673,9 +1680,9 @@ export const PlayCanvasIntegration = () => {
       }
 
       await handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
-      setDropdownState((prev) => ({ ...prev, visible: false }));
+      closeInPlayerActionSurface();
     },
-    [handleSwapProducts, productIds, selectedSceneProduct],
+    [closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct],
   );
 
   useEffect(() => {
@@ -1836,8 +1843,8 @@ export const PlayCanvasIntegration = () => {
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+    closeInPlayerActionSurface();
+  }, [closeInPlayerActionSurface, navigate]);
 
   const handleOpenCabinetColor = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/color" : "/custom/cabinet-colors?accordion=cabinet-color");
