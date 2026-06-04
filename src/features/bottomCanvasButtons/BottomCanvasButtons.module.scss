@@ -21,6 +21,11 @@
       width: 28px;
       height: 28px;
     }
+
+    .unitOption {
+      width: 100%;
+      height: auto;
+    }
   }
 }
 
@@ -48,6 +53,53 @@
   &:hover::after {
     opacity: 1;
   }
+}
+
+.dimensionButtonWrap {
+  position: relative;
+}
+
+.unitMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+
+  display: flex;
+  flex-direction: column;
+  min-width: 112px;
+  padding: 4px;
+  gap: 2px;
+
+  background: #fff;
+  border: 1px solid var(--border-main-color);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.unitOption {
+  width: 100%;
+  height: auto;
+  padding: 7px 10px;
+
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-color-base);
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: left;
+
+  &:hover {
+    background: rgba(172, 83, 49, 0.12);
+  }
+}
+
+.activeUnitOption {
+  background: rgba(172, 83, 49, 0.16);
+  color: #8d3f22;
 }
 
 .disabledButton {
