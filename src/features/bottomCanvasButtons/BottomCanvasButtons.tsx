@@ -13,7 +13,10 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refreshFullDimensions";
+import {
+  computeAndShowFullDimensions,
+  type FullDimensionsUnit,
+} from "@/utils/functions/playcanvas/refreshFullDimensions";
 import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
@@ -67,9 +70,17 @@ import s from "./BottomCanvasButtons.module.scss";
 import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon";
 import { FullDimentionsIcon } from "@/shared/assets/images/svg/FullDimentionsIcon";
 
+const FULL_DIMENSION_UNIT_OPTIONS: ReadonlyArray<{ unit: FullDimensionsUnit; label: string }> = [
+  { unit: "in", label: "Inches" },
+  { unit: "cm", label: "Metric" },
+];
+
 export const BottomCanvasButtons = () => {
   const [_, setIsDimensionsEnabled] = useState(false);
   const [isFullDimensionsEnabled, setIsFullDimensionsEnabled] = useState(false);
+  const [fullDimensionsUnit, setFullDimensionsUnit] = useState<FullDimensionsUnit>("in");
+  const [activeFullDimensionsUnit, setActiveFullDimensionsUnit] = useState<FullDimensionsUnit | null>(null);
+  const [isFullDimensionsMenuOpen, setIsFullDimensionsMenuOpen] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
   const [isArGenerating, setIsArGenerating] = useState(false);
@@ -113,25 +124,38 @@ export const BottomCanvasButtons = () => {
   // const saveSnapshot = useHistorySnapshot();
   const [isRestoring, setIsRestoring] = useState(false);
 
-  useFullDimensionsRefresh(isFullDimensionsEnabled, () => {
+  useFullDimensionsRefresh(isFullDimensionsEnabled, fullDimensionsUnit, () => {
     hideDimensions();
     setIsFullDimensionsEnabled(false);
+    setIsFullDimensionsMenuOpen(false);
   });
 
-  const handleToggleFullDimensions = async () => {
-    const next = !isFullDimensionsEnabled;
+  const handleHideFullDimensions = () => {
+    hideDimensions();
+    setIsFullDimensionsEnabled(false);
+    setIsFullDimensionsMenuOpen(false);
+  };
 
-    if (!next) {
-      hideDimensions();
-      setIsFullDimensionsEnabled(false);
+  const handleSelectFullDimensionsUnit = async (unit: FullDimensionsUnit) => {
+    if (isFullDimensionsEnabled && activeFullDimensionsUnit === unit) {
+      handleHideFullDimensions();
+      setActiveFullDimensionsUnit(null);
       return;
     }
 
-    const didShow = await computeAndShowFullDimensions({ countertopThickness });
+    setFullDimensionsUnit(unit);
+    setActiveFullDimensionsUnit(unit);
+    setIsFullDimensionsMenuOpen(false);
+
+    const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
     if (!didShow) return;
 
     setIsDimensionsEnabled(false);
     setIsFullDimensionsEnabled(true);
+  };
+
+  const handleToggleFullDimensions = () => {
+    setIsFullDimensionsMenuOpen((prev) => !prev);
   };
 
   const handleUndo = async () => {
@@ -454,14 +478,37 @@ export const BottomCanvasButtons = () => {
   return (
     <>
       <div className={s.bottomCanvasButtons}>
-        <BaseButton
-          variant="ghost"
-          className={`${s.tooltip}${isFullDimensionsEnabled ? ` ${s.activeButton}` : ""}`}
-          data-tooltip="Full Dimensions"
-          onClick={handleToggleFullDimensions}
-        >
-          <FullDimentionsIcon />
-        </BaseButton>
+        <div className={s.dimensionButtonWrap}>
+          <BaseButton
+            variant="ghost"
+            className={`${s.tooltip}${isFullDimensionsEnabled ? ` ${s.activeButton}` : ""}`}
+            data-tooltip="Full Dimensions"
+            aria-haspopup="menu"
+            aria-expanded={isFullDimensionsMenuOpen}
+            onClick={handleToggleFullDimensions}
+          >
+            <FullDimentionsIcon />
+          </BaseButton>
+
+          {isFullDimensionsMenuOpen && (
+            <div className={s.unitMenu} role="menu" aria-label="Full dimensions units">
+              {FULL_DIMENSION_UNIT_OPTIONS.map((option) => (
+                <button
+                  key={option.unit}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={activeFullDimensionsUnit === option.unit}
+                  className={`${s.unitOption}${activeFullDimensionsUnit === option.unit ? ` ${s.activeUnitOption}` : ""}`}
+                  onClick={() => {
+                    void handleSelectFullDimensionsUnit(option.unit);
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {!isSummaryPage && (
           <>

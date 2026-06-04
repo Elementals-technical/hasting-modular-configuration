@@ -8,57 +8,91 @@ import { getRememberedSidePanels } from "./sidePanels";
 
 type FullDimensionsOptions = {
   countertopThickness?: string | number | null;
+  unit?: FullDimensionsUnit;
+};
+
+export type FullDimensionsUnit = "in" | "cm";
+
+const DEFAULT_FULL_DIMENSIONS_UNIT: FullDimensionsUnit = "in";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const parseFiniteNumber = (value: unknown) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value.trim().replace(/"$/, "").replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  if (isRecord(value)) {
+    const firstKey = Object.keys(value)[0];
+    if (!firstKey) return undefined;
+
+    return parseFiniteNumber(firstKey);
+  }
+
+  return undefined;
 };
 
 const readNumericConfigValue = (config: unknown, key: "Width" | "Height" | "Depth") => {
-  if (!config || typeof config !== "object") return undefined;
+  if (!isRecord(config)) return undefined;
 
-  const rawValue = (config as Record<string, unknown>)[key];
-
-  if (typeof rawValue !== "number" || Number.isNaN(rawValue)) return undefined;
-
-  return rawValue;
-};
-
-const parseFiniteNumber = (value: string | number | null | undefined) => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
-  if (typeof value !== "string") return undefined;
-
-  const parsed = Number.parseFloat(value.trim().replace(/"$/, "").replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : undefined;
+  return parseFiniteNumber(config[key]);
 };
 
 const readCountertopThicknessInches = (config: unknown) => {
-  if (!config || typeof config !== "object") return undefined;
+  if (!isRecord(config)) return undefined;
 
-  const rawValue = (config as Record<string, unknown>).Thickness;
-  return typeof rawValue === "string" || typeof rawValue === "number" ? parseFiniteNumber(rawValue) : undefined;
+  return parseFiniteNumber(config.Thickness);
 };
 
-const formatInchesLabel = (value?: number) => {
-  if (typeof value !== "number") return "";
-
+const formatNumber = (value: number) => {
   const normalized = Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.?0+$/, "");
+  return normalized;
+};
 
-  return `${normalized} "`;
+const formatDimensionLabel = (valueCm: number | undefined, unit: FullDimensionsUnit) => {
+  if (typeof valueCm !== "number") return "";
+
+  if (unit === "cm") {
+    return `${formatNumber(valueCm)} cm`;
+  }
+
+  return `${formatNumber(cmToInch(valueCm))} "`;
+};
+
+const formatThicknessLabel = (valueInches?: number, unit: FullDimensionsUnit = DEFAULT_FULL_DIMENSIONS_UNIT) => {
+  if (typeof valueInches !== "number") return "";
+
+  if (unit === "cm") {
+    return `${formatNumber(inchToCm(valueInches))} cm`;
+  }
+
+  return `${formatNumber(valueInches)} "`;
 };
 
 const buildHeightSegments = (
   cabinetHeightCm: number,
   countertopThicknessInches: number,
+  unit: FullDimensionsUnit,
 ): HeightSegmentsPayload | undefined => {
   const segmentDefinitions = [
-    { key: "cabinet", valueInches: cmToInch(cabinetHeightCm) },
-    { key: "countertop", valueInches: countertopThicknessInches },
-  ].filter(({ valueInches }) => valueInches > 0);
+    { key: "cabinet", label: formatDimensionLabel(cabinetHeightCm, unit), valueCm: cabinetHeightCm },
+    {
+      key: "countertop",
+      label: formatThicknessLabel(countertopThicknessInches, unit),
+      valueCm: inchToCm(countertopThicknessInches),
+    },
+  ].filter(({ valueCm }) => valueCm > 0);
 
   if (segmentDefinitions.length < 2) return undefined;
 
   return Object.fromEntries(
-    segmentDefinitions.map(({ key, valueInches }) => [
+    segmentDefinitions.map(({ key, label }) => [
       key,
       {
-        label: formatInchesLabel(valueInches),
+        label,
       },
     ]),
   );
@@ -69,6 +103,7 @@ const buildHeightSegments = (
  * Returns true if dimensions were shown, false otherwise.
  */
 export async function computeAndShowFullDimensions(options: FullDimensionsOptions = {}): Promise<boolean> {
+  const unit = options.unit ?? DEFAULT_FULL_DIMENSIONS_UNIT;
   const ids = getOrderedProductIds();
   if (!ids.length) {
     hideDimensions();
@@ -98,7 +133,7 @@ export async function computeAndShowFullDimensions(options: FullDimensionsOption
     return Math.max(max, value ?? 0);
   }, fallbackThicknessInches ?? 0);
   const totalHeight = maxHeight + inchToCm(maxCountertopThicknessInches);
-  const heightSegments = buildHeightSegments(maxHeight, maxCountertopThicknessInches);
+  const heightSegments = buildHeightSegments(maxHeight, maxCountertopThicknessInches, unit);
 
   const maxDepth = configs.reduce((max, config) => {
     const value = readNumericConfigValue(config, "Depth");
@@ -108,22 +143,22 @@ export async function computeAndShowFullDimensions(options: FullDimensionsOption
   const didShow = showDimensions({
     box: {
       nodes: ids,
-      width: { label: formatInchesLabel(cmToInch(totalWidth)), offset: 0.05 },
-      depth: { label: formatInchesLabel(cmToInch(maxDepth)) },
+      width: { label: formatDimensionLabel(totalWidth, unit), offset: 0.05 },
+      depth: { label: formatDimensionLabel(maxDepth, unit) },
       ...(heightSegments
         ? { heightSegments }
-        : { height: { label: formatInchesLabel(cmToInch(totalHeight)) } }),
+        : { height: { label: formatDimensionLabel(totalHeight, unit) } }),
     },
     lines: widthByNode.map(({ node, width }) => ({
       node,
       axis: "x",
-      label: formatInchesLabel(width != null ? cmToInch(width) : undefined),
+      label: formatDimensionLabel(width, unit),
     })),
     labelSettings: {
       offset: 0.05,
       labelGap: "auto",
       labelPosition: "center",
-      units: "in",
+      units: unit,
       decimals: 2,
     },
   });

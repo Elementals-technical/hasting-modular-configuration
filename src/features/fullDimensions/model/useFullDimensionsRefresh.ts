@@ -10,11 +10,18 @@ import {
   getActiveCountertopThickness,
 } from "@/entities/product/model/store/selectors";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
-import { computeAndShowFullDimensions } from "@/utils/functions/playcanvas/refreshFullDimensions";
+import {
+  computeAndShowFullDimensions,
+  type FullDimensionsUnit,
+} from "@/utils/functions/playcanvas/refreshFullDimensions";
 
 const DEBOUNCE_MS = 400;
 
-export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () => void) {
+export function useFullDimensionsRefresh(
+  isEnabled: boolean,
+  unit: FullDimensionsUnit,
+  onEmptyScene?: () => void,
+) {
   const productIds = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const isRestoring = useAppSelector(getIsHistoryRestoring);
@@ -37,7 +44,7 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
     const timer = setTimeout(async () => {
       const gen = ++generationRef.current;
 
-      const didShow = await computeAndShowFullDimensions({ countertopThickness });
+      const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
 
       if (gen !== generationRef.current) return;
 
@@ -58,5 +65,6 @@ export function useFullDimensionsRefresh(isEnabled: boolean, onEmptyScene?: () =
     sidePanelLeft,
     sidePanelRight,
     countertopThickness,
+    unit,
   ]);
 }
