@@ -76,7 +76,6 @@ const FULL_DIMENSION_UNIT_OPTIONS: ReadonlyArray<{ unit: FullDimensionsUnit; lab
 ];
 
 export const BottomCanvasButtons = () => {
-  const [_, setIsDimensionsEnabled] = useState(false);
   const [isFullDimensionsEnabled, setIsFullDimensionsEnabled] = useState(false);
   const [fullDimensionsUnit, setFullDimensionsUnit] = useState<FullDimensionsUnit>("in");
   const [activeFullDimensionsUnit, setActiveFullDimensionsUnit] = useState<FullDimensionsUnit | null>(null);
@@ -124,37 +123,40 @@ export const BottomCanvasButtons = () => {
   // const saveSnapshot = useHistorySnapshot();
   const [isRestoring, setIsRestoring] = useState(false);
 
-  useFullDimensionsRefresh(isFullDimensionsEnabled, fullDimensionsUnit, () => {
+  const deactivateFullDimensions = () => {
     hideDimensions();
     setIsFullDimensionsEnabled(false);
-    setIsFullDimensionsMenuOpen(false);
-  });
-
-  const handleHideFullDimensions = () => {
-    hideDimensions();
-    setIsFullDimensionsEnabled(false);
+    setActiveFullDimensionsUnit(null);
     setIsFullDimensionsMenuOpen(false);
   };
 
+  useFullDimensionsRefresh(isFullDimensionsEnabled, fullDimensionsUnit, deactivateFullDimensions);
+
   const handleSelectFullDimensionsUnit = async (unit: FullDimensionsUnit) => {
     if (isFullDimensionsEnabled && activeFullDimensionsUnit === unit) {
-      handleHideFullDimensions();
-      setActiveFullDimensionsUnit(null);
+      deactivateFullDimensions();
+      return;
+    }
+
+    setIsFullDimensionsMenuOpen(false);
+
+    const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
+    if (!didShow) {
+      deactivateFullDimensions();
       return;
     }
 
     setFullDimensionsUnit(unit);
     setActiveFullDimensionsUnit(unit);
-    setIsFullDimensionsMenuOpen(false);
-
-    const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
-    if (!didShow) return;
-
-    setIsDimensionsEnabled(false);
     setIsFullDimensionsEnabled(true);
   };
 
   const handleToggleFullDimensions = () => {
+    if (isFullDimensionsEnabled) {
+      deactivateFullDimensions();
+      return;
+    }
+
     setIsFullDimensionsMenuOpen((prev) => !prev);
   };
 

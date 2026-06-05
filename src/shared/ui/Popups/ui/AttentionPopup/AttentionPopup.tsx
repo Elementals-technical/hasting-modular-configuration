@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 
@@ -10,9 +12,22 @@ interface AttentionPopupI {
   setIsOpening: (isOpening: boolean) => void;
   onConfirm?: () => void;
   onCancel?: () => void;
+  title?: string;
+  content?: ReactNode;
+  cancelLabel?: string;
+  confirmLabel?: string;
 }
 
-export const AttentionPopup: React.FC<AttentionPopupI> = ({ isOpening, setIsOpening, onConfirm, onCancel }) => {
+export const AttentionPopup: React.FC<AttentionPopupI> = ({
+  isOpening,
+  setIsOpening,
+  onConfirm,
+  onCancel,
+  title = "Attention!",
+  content,
+  cancelLabel = "Cancel",
+  confirmLabel = "Accept",
+}) => {
   const handleCancel = () => {
     setIsOpening(false);
     onCancel?.();
@@ -32,7 +47,7 @@ export const AttentionPopup: React.FC<AttentionPopupI> = ({ isOpening, setIsOpen
     >
       <div className={s.instrPopup}>
         <div className={s.header}>
-          <div className={s.title}>Attention!</div>
+          <div className={s.title}>{title}</div>
           <div
             className={s.button}
             onClick={() => {
@@ -44,20 +59,24 @@ export const AttentionPopup: React.FC<AttentionPopupI> = ({ isOpening, setIsOpen
         </div>
 
         <div className={s.content}>
-          <p>If you leave your configuration now, your customizations will be removed.</p>
-          <p>Are you sure you want to proceed?</p>
+          {content ?? (
+            <>
+              <p>If you leave your configuration now, your customizations will be removed.</p>
+              <p>Are you sure you want to proceed?</p>
+            </>
+          )}
         </div>
 
         <div className={s.footer}>
           <div>
             <BaseButton variant="ghost" onClick={handleCancel} fullWidth={true}>
-              Cancel
+              {cancelLabel}
             </BaseButton>
           </div>
 
           <div>
             <BaseButton onClick={handleConfirm} fullWidth={true}>
-              Accept
+              {confirmLabel}
             </BaseButton>
           </div>
         </div>

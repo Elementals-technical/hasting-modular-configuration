@@ -7,7 +7,11 @@ import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModel
 
 import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
 import { mergePrebuiltModelTransferableOverrides } from "@/entities/product/lib/mergePrebuiltModelTransferableOverrides";
-import { resolvePrebuiltModelTransferableOverrides } from "@/entities/product/lib/prebuiltModelTransferableFields";
+import {
+  PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS,
+  PREBUILT_MODEL_COUNTERTOP_TRANSFERABLE_FIELDS,
+  resolvePrebuiltModelTransferableOverrides,
+} from "@/entities/product/lib/prebuiltModelTransferableFields";
 import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
@@ -24,6 +28,7 @@ import {
   resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setActiveCountertopThickness,
   setCountertopColorSku,
   setCountertopStyle,
   setFaucetHolesAmount,
@@ -31,9 +36,22 @@ import {
   setHandleGrooveColor,
   setPlacedCabinetStyle,
   setSelectedDimensions,
+  setVesselColor,
 } from "@/entities/product/model/store/slice";
-import { getCabinetColor, getHandleGrooveColor, getProductsPresets } from "@/entities/product/model/store/selectors";
-import { findCountertopSkuByColorName } from "@/features/configurator-rule-core/countertop";
+import {
+  getActiveCountertopColor,
+  getCabinetColor,
+  getCountertopColorSku,
+  getCountertopStyle,
+  getHandleGrooveColor,
+  getProductsPresets,
+  getSinkType,
+} from "@/entities/product/model/store/selectors";
+import {
+  findCountertopSkuByColorName,
+  resolvePrebuiltModelCountertopCompatibility,
+  useCountertopRules,
+} from "@/features/configurator-rule-core/countertop";
 import { useGetConfiguratorQuery } from "@/entities";
 import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
@@ -48,6 +66,11 @@ import { reapplySidePanelsForPreset } from "@/features/sidePanel";
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
+import {
+  buildCountertopColorSkuCandidates,
+  getCountertopMaterialTokensFromBasinType,
+  resolveCountertopMaterialTokensFromCandidates,
+} from "@/shared/lib/sku";
 
 import s from "./ModelPage.module.scss";
 
@@ -61,6 +84,13 @@ type PresetSceneDefaults = {
   CountertopColor?: string;
   sinkType?: string;
   CountertopStyle?: "Vessel" | "Integrated";
+};
+
+type PendingModelSelection = {
+  presetProducts: PresetProduct[];
+  presetId?: number;
+  modelTitle: string;
+  reason?: string;
 };
 
 const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSceneDefaults => {
@@ -98,9 +128,15 @@ export const ModelPage = () => {
   const productsPresets = useAppSelector(getProductsPresets);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const activeBasinStyle = useAppSelector(getSinkType);
   const spGroove = useAppSelector(getSidePanelsOption);
   const { data: configuratorData } = useGetConfiguratorQuery({ id: 4, view: "full", serialize: true });
+  const countertopRules = useCountertopRules();
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
+  const [pendingModelSelection, setPendingModelSelection] = useState<PendingModelSelection | null>(null);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
   const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
   const modelScrollPositionKey = "prebuilt:model:scrollTop";
@@ -130,7 +166,11 @@ export const ModelPage = () => {
   }, [searchParams]);
   const configIdFromUrl = useMemo(() => searchParams.get("configId"), [searchParams]);
   const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
-  const transferableOverrides = useMemo(
+  const selectedCountertopSinkType = useMemo(() => {
+    if (activeBasinStyle) return activeBasinStyle;
+    return countertopStyle.trim().toLowerCase() === "vessel" ? "Vessel" : undefined;
+  }, [activeBasinStyle, countertopStyle]);
+  const colorTransferableOverrides = useMemo(
     () =>
       resolvePrebuiltModelTransferableOverrides({
         presetProducts: productsPresets,
@@ -138,8 +178,42 @@ export const ModelPage = () => {
           CabinetColor: cabinetColor,
           HandleGrooveColor: handleGrooveColor,
         },
+        fields: PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS,
       }),
     [cabinetColor, handleGrooveColor, productsPresets],
+  );
+  const countertopTransferableOverrides = useMemo(
+    () =>
+      resolvePrebuiltModelTransferableOverrides({
+        presetProducts: productsPresets,
+        selectedOptions: {
+          CountertopColor: countertopColor,
+          sinkType: selectedCountertopSinkType,
+        },
+        fields: PREBUILT_MODEL_COUNTERTOP_TRANSFERABLE_FIELDS,
+      }),
+    [countertopColor, productsPresets, selectedCountertopSinkType],
+  );
+  const transferableOverrides = useMemo(
+    () => ({
+      ...colorTransferableOverrides,
+      ...countertopTransferableOverrides,
+    }),
+    [colorTransferableOverrides, countertopTransferableOverrides],
+  );
+  const countertopColorSkuCandidatesByValue = useMemo(
+    () => buildCountertopColorSkuCandidates(configuratorData?.availableOptions),
+    [configuratorData?.availableOptions],
+  );
+  const activeCountertopMaterialTokens = useMemo(
+    () =>
+      resolveCountertopMaterialTokensFromCandidates({
+        value: countertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredSku: countertopColorSku,
+        preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(selectedCountertopSinkType),
+      }),
+    [countertopColor, countertopColorSku, countertopColorSkuCandidatesByValue, selectedCountertopSinkType],
   );
 
   const presetFromUrl = useMemo(() => {
@@ -230,11 +304,41 @@ export const ModelPage = () => {
     return orderedIds;
   }, [dispatch]);
 
-  const handleAddPreset = useCallback(
-    async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean }) => {
+  const resolveCountertopSceneOverrides = useCallback((): PresetSceneDefaults => {
+    const overrides: PresetSceneDefaults = {};
+    if (countertopColor) overrides.CountertopColor = countertopColor;
+    if (selectedCountertopSinkType) {
+      overrides.sinkType = selectedCountertopSinkType;
+      overrides.CountertopStyle = inferCountertopStyleFromSinkType(selectedCountertopSinkType);
+    }
+    if (countertopStyle) {
+      const normalizedStyle = countertopStyle.trim().toLowerCase();
+      if (normalizedStyle === "vessel") overrides.CountertopStyle = "Vessel";
+      if (normalizedStyle === "integrated") overrides.CountertopStyle = "Integrated";
+    }
+    return overrides;
+  }, [countertopColor, countertopStyle, selectedCountertopSinkType]);
+
+  const resetRestrictedCountertopSelections = useCallback(() => {
+    dispatch(setActiveCountertopThickness(""));
+    dispatch(setVesselColor(""));
+    dispatch(setFaucetHolesAmount("0"));
+  }, [dispatch]);
+
+  const applyPresetSelection = useCallback(
+    async (
+      presetProducts?: PresetProduct[],
+      presetId?: number,
+      options?: { syncUrl?: boolean; preserveCountertopSelections?: boolean },
+    ) => {
       try {
-        const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], transferableOverrides);
-        const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
+        const preserveCountertopSelections = options?.preserveCountertopSelections !== false;
+        const overrides = preserveCountertopSelections ? transferableOverrides : colorTransferableOverrides;
+        const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
+        const globalConfig = {
+          ...resolvePresetSceneDefaults(effectivePresetProducts),
+          ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
+        };
         await addPreset(effectivePresetProducts, globalConfig);
         syncPresetProductIdsFromScene(effectivePresetProducts);
 
@@ -247,6 +351,9 @@ export const ModelPage = () => {
           }
           if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
           if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
+        }
+        if (!preserveCountertopSelections) {
+          resetRestrictedCountertopSelections();
         }
         await updateSelectedDimensionsFromScene(effectivePresetProducts);
 
@@ -272,14 +379,62 @@ export const ModelPage = () => {
       }
     },
     [
+      colorTransferableOverrides,
       configuratorData,
       dispatch,
+      resetRestrictedCountertopSelections,
+      resolveCountertopSceneOverrides,
       searchParams,
       setSearchParams,
       transferableOverrides,
       updateSelectedDimensionsFromScene,
       spGroove,
       syncPresetProductIdsFromScene,
+    ],
+  );
+
+  const handleAddPreset = useCallback(
+    async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean; skipCompatibilityPrompt?: boolean }) => {
+      if (!presetProducts?.length) {
+        await applyPresetSelection(presetProducts, presetId, options);
+        return;
+      }
+
+      const isSameModel = arePrebuiltModelPresetsEqual(productsPresets, presetProducts);
+      if (!options?.skipCompatibilityPrompt && !isSameModel) {
+        const compatibility = resolvePrebuiltModelCountertopCompatibility({
+          rules: countertopRules,
+          presetProducts,
+          activeMaterialTokens: activeCountertopMaterialTokens,
+          activeCountertopStyle: countertopStyle,
+          activeBasinStyle: selectedCountertopSinkType ?? null,
+          activeThickness: null,
+        });
+
+        if (!compatibility.isCompatible) {
+          const modelTitle = productMockData.find((item) => item.id === presetId)?.title ?? "Selected model";
+          setPendingModelSelection({
+            presetProducts,
+            presetId,
+            modelTitle,
+            reason: compatibility.reason,
+          });
+          return;
+        }
+      }
+
+      await applyPresetSelection(presetProducts, presetId, {
+        ...options,
+        preserveCountertopSelections: true,
+      });
+    },
+    [
+      activeCountertopMaterialTokens,
+      applyPresetSelection,
+      countertopRules,
+      countertopStyle,
+      productsPresets,
+      selectedCountertopSinkType,
     ],
   );
 
@@ -357,6 +512,22 @@ export const ModelPage = () => {
     }
     navigate(ROUTES.CUSTOM);
   };
+
+  const setModelRestrictionPopupOpen = useCallback((isOpening: boolean) => {
+    if (!isOpening) {
+      setPendingModelSelection(null);
+    }
+  }, []);
+
+  const handleConfirmModelRestriction = useCallback(() => {
+    if (!pendingModelSelection) return;
+
+    const selection = pendingModelSelection;
+    setPendingModelSelection(null);
+    void applyPresetSelection(selection.presetProducts, selection.presetId, {
+      preserveCountertopSelections: false,
+    });
+  }, [applyPresetSelection, pendingModelSelection]);
 
   const canvasReady = usePlayCanvasReady();
 
@@ -452,7 +623,15 @@ export const ModelPage = () => {
     };
 
     run();
-  }, [canvasReady, configIdFromUrl, configuratorData, dispatch, restoreConfiguration, updateSelectedDimensionsFromScene]);
+  }, [
+    canvasReady,
+    configIdFromUrl,
+    configuratorData,
+    dispatch,
+    restoreConfiguration,
+    syncPresetProductIdsFromScene,
+    updateSelectedDimensionsFromScene,
+  ]);
 
   useEffect(() => {
     const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";
@@ -517,7 +696,10 @@ export const ModelPage = () => {
     if (arePrebuiltModelPresetsEqual(productsPresets, presetFromUrl.presetProducts)) return;
 
     const run = async () => {
-      await handleAddPreset(presetFromUrl.presetProducts, presetFromUrl.id, { syncUrl: false });
+      await handleAddPreset(presetFromUrl.presetProducts, presetFromUrl.id, {
+        syncUrl: false,
+        skipCompatibilityPrompt: true,
+      });
     };
 
     run();
@@ -618,6 +800,21 @@ export const ModelPage = () => {
         isOpening={isAttentionPopupOpen}
         setIsOpening={setIsAttentionPopupOpen}
         onConfirm={handleConfirmLeave}
+      />
+
+      <AttentionPopup
+        isOpening={pendingModelSelection !== null}
+        setIsOpening={setModelRestrictionPopupOpen}
+        onConfirm={handleConfirmModelRestriction}
+        title="Model Compatibility Restriction"
+        content={
+          <p>
+            Model "{pendingModelSelection?.modelTitle ?? "Selected model"}" is not compatible with your current
+            countertop selections. Selecting this model will clear those selections.
+            {pendingModelSelection?.reason ? ` ${pendingModelSelection.reason}` : ""}
+          </p>
+        }
+        confirmLabel="Confirm"
       />
     </div>
   );
