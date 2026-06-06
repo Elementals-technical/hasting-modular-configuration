@@ -39,6 +39,7 @@ import {
   setVesselColor,
 } from "@/entities/product/model/store/slice";
 import {
+  getActiveCountertopThickness,
   getActiveCountertopColor,
   getCabinetColor,
   getCountertopColorSku,
@@ -46,6 +47,7 @@ import {
   getHandleGrooveColor,
   getProductsPresets,
   getSinkType,
+  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
   findCountertopSkuByColorName,
@@ -81,9 +83,13 @@ const inferCountertopStyleFromSinkType = (sinkType: string): "Vessel" | "Integra
 };
 
 type PresetSceneDefaults = {
+  CabinetColor?: string;
+  HandleGrooveColor?: string;
   CountertopColor?: string;
   sinkType?: string;
   CountertopStyle?: "Vessel" | "Integrated";
+  VesselColor?: string;
+  Thickness?: string;
 };
 
 type PendingModelSelection = {
@@ -130,8 +136,10 @@ export const ModelPage = () => {
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
+  const vesselColor = useAppSelector(getVesselColor);
   const spGroove = useAppSelector(getSidePanelsOption);
   const { data: configuratorData } = useGetConfiguratorQuery({ id: 4, view: "full", serialize: true });
   const countertopRules = useCountertopRules();
@@ -307,6 +315,8 @@ export const ModelPage = () => {
   const resolveCountertopSceneOverrides = useCallback((): PresetSceneDefaults => {
     const overrides: PresetSceneDefaults = {};
     if (countertopColor) overrides.CountertopColor = countertopColor;
+    if (vesselColor) overrides.VesselColor = vesselColor;
+    if (countertopThickness) overrides.Thickness = countertopThickness;
     if (selectedCountertopSinkType) {
       overrides.sinkType = selectedCountertopSinkType;
       overrides.CountertopStyle = inferCountertopStyleFromSinkType(selectedCountertopSinkType);
@@ -317,7 +327,14 @@ export const ModelPage = () => {
       if (normalizedStyle === "integrated") overrides.CountertopStyle = "Integrated";
     }
     return overrides;
-  }, [countertopColor, countertopStyle, selectedCountertopSinkType]);
+  }, [countertopColor, countertopStyle, countertopThickness, selectedCountertopSinkType, vesselColor]);
+
+  const resolveColorSceneOverrides = useCallback((): PresetSceneDefaults => {
+    const overrides: PresetSceneDefaults = {};
+    if (cabinetColor) overrides.CabinetColor = cabinetColor;
+    if (handleGrooveColor) overrides.HandleGrooveColor = handleGrooveColor;
+    return overrides;
+  }, [cabinetColor, handleGrooveColor]);
 
   const resetRestrictedCountertopSelections = useCallback(() => {
     dispatch(setActiveCountertopThickness(""));
@@ -337,6 +354,7 @@ export const ModelPage = () => {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
         const globalConfig = {
           ...resolvePresetSceneDefaults(effectivePresetProducts),
+          ...resolveColorSceneOverrides(),
           ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
         };
         await addPreset(effectivePresetProducts, globalConfig);
@@ -383,6 +401,7 @@ export const ModelPage = () => {
       configuratorData,
       dispatch,
       resetRestrictedCountertopSelections,
+      resolveColorSceneOverrides,
       resolveCountertopSceneOverrides,
       searchParams,
       setSearchParams,
@@ -408,7 +427,7 @@ export const ModelPage = () => {
           activeMaterialTokens: activeCountertopMaterialTokens,
           activeCountertopStyle: countertopStyle,
           activeBasinStyle: selectedCountertopSinkType ?? null,
-          activeThickness: null,
+          activeThickness: countertopThickness,
         });
 
         if (!compatibility.isCompatible) {
@@ -432,6 +451,7 @@ export const ModelPage = () => {
       activeCountertopMaterialTokens,
       applyPresetSelection,
       countertopRules,
+      countertopThickness,
       countertopStyle,
       productsPresets,
       selectedCountertopSinkType,
@@ -648,7 +668,11 @@ export const ModelPage = () => {
     const run = async () => {
       try {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
-        const globalConfig = resolvePresetSceneDefaults(effectivePresetProducts);
+        const globalConfig = {
+          ...resolvePresetSceneDefaults(effectivePresetProducts),
+          ...resolveColorSceneOverrides(),
+          ...resolveCountertopSceneOverrides(),
+        };
         await addPreset(effectivePresetProducts, globalConfig);
         syncPresetProductIdsFromScene(effectivePresetProducts);
 
@@ -684,6 +708,8 @@ export const ModelPage = () => {
     dispatch,
     presetFromUrl,
     productsPresets,
+    resolveColorSceneOverrides,
+    resolveCountertopSceneOverrides,
     transferableOverrides,
     syncPresetProductIdsFromScene,
     updateSelectedDimensionsFromScene,
@@ -698,7 +724,6 @@ export const ModelPage = () => {
     const run = async () => {
       await handleAddPreset(presetFromUrl.presetProducts, presetFromUrl.id, {
         syncUrl: false,
-        skipCompatibilityPrompt: true,
       });
     };
 
