@@ -3,15 +3,17 @@ import type { CSSProperties } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { cmToInches } from "@/shared/lib/sku";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import {
+  getCompositionVersion,
   getDividersOption,
   getDividersStyle,
+  getPlacedCabinetStyles,
   getProductsPresets,
   getSelectedDimensions,
+  getSelectedProductConfig,
   getSelectedProducts,
   getSelectedSceneProduct,
   getSidePanelsOption,
@@ -37,11 +39,26 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import {
   applyGroove,
   autoRemoveBoth,
+  buildSidePanelEdgeState,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   isGrooveType,
+  resolveSidePanelAvailabilityForEdges,
+  resolveSidePanelTargetSide,
+  resolveSidePanelBlock,
+  resolveSidePanelNotice,
+  resolveSidePanelGridActiveValue,
+  resolveSidePanelSyncPrompt,
+  isSidePanelGrooveAvailableForSide,
+  isSidePanelLengthBlocked,
+  SidePanelNoticeBox,
+  SidePanelSyncConfirmModal,
+  type SidePanelReasonCtx,
+  type SidePanelSyncPrompt,
+  type SidePanelApplySide,
+  type GrooveType,
 } from "@/features/sidePanel";
-import { getEdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
+import { getEdgeCabinets, type EdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
@@ -72,7 +89,6 @@ import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwa
 import { useGetConfiguratorQuery } from "@/entities";
 import {
   formatSidePanelsExceedMaxReason,
-  SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
@@ -80,6 +96,9 @@ import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functio
 
 const DEFAULT_ACCORDION_ID = "side-panels";
 const DIVIDERS_ACCORDION_ID = "dividers";
+
+const EMPTY_EDGE_CABINETS: EdgeCabinets = { leftCabinetId: null, rightCabinetId: null };
+const SIDE_PANEL_MESSAGE_STYLE: CSSProperties = { margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" };
 
 const DIVIDER_PLACEMENT_WARNING_STYLE = {
   margin: "10px 0 12px",
@@ -169,31 +188,65 @@ export const AccessoriesPage = () => {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const selectedProductOrderKey = selectedProducts.join("|");
+  const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const productsPresets = useAppSelector(getProductsPresets);
   const lengthGuard = useCountertopLengthGuard(selectedProducts);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const sidePanelsBlockedByLength340 =
-    lengthGuard.currentCabinetOnly !== null && Math.abs(lengthGuard.currentCabinetOnly - 340) < 0.01;
-  const sidePanelsLengthReason = `Side panels are not available when total vanity length is exactly 340 cm (${cmToInches(340)}").`;
+  const sidePanelsBlockedByLength340 = isSidePanelLengthBlocked(lengthGuard.currentCabinetOnly);
+  const isPlayCanvasReady = usePlayCanvasReady();
 
-  // Resolve the side(s) the SP toggle would affect — mirrors handleSidePanelsChange.
-  const resolvedSpSide = useMemo<"left" | "right" | "both">(() => {
-    const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
-    const isEdge = selectedSceneProduct === leftCabinetId || selectedSceneProduct === rightCabinetId;
-    if (!selectedSceneProduct || !isEdge) return "both";
-    if (selectedProducts.length === 1 || (leftCabinetId && leftCabinetId === rightCabinetId)) return "both";
-    if (selectedSceneProduct === leftCabinetId) return "left";
-    if (selectedSceneProduct === rightCabinetId) return "right";
-    return "both";
-  }, [selectedSceneProduct, selectedProducts.length]);
+  // Edge cabinets are read imperatively from PlayCanvas, whose composition order
+  // settles asynchronously after add/remove/swap. Re-read AFTER the scene settles,
+  // keyed on compositionVersion, to avoid stale edge state.
+  const compositionVersion = useAppSelector(getCompositionVersion);
+  const [edgeCabinets, setEdgeCabinets] = useState<EdgeCabinets>(EMPTY_EDGE_CABINETS);
+
+  useEffect(() => {
+    const applyEdges = () => {
+      const next =
+        !isPlayCanvasReady || selectedProductOrderKey.length === 0 ? EMPTY_EDGE_CABINETS : getEdgeCabinets();
+      setEdgeCabinets((prev) =>
+        prev.leftCabinetId === next.leftCabinetId && prev.rightCabinetId === next.rightCabinetId ? prev : next,
+      );
+    };
+
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(applyEdges);
+    });
+    const settleTimer = window.setTimeout(applyEdges, 250);
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      clearTimeout(settleTimer);
+    };
+  }, [isPlayCanvasReady, selectedProductOrderKey, compositionVersion]);
+
+  const sidePanelEdgeState = useMemo(
+    () => buildSidePanelEdgeState(edgeCabinets, selectedSceneProduct),
+    [edgeCabinets, selectedSceneProduct],
+  );
+
+  const resolvedSpSide = useMemo(
+    () =>
+      resolveSidePanelTargetSide({
+        edgeState: sidePanelEdgeState,
+        selectedCabinetId: selectedSceneProduct,
+        cabinetCount: selectedProducts.length,
+      }),
+    [selectedSceneProduct, selectedProducts.length, sidePanelEdgeState],
+  );
 
   /** Projected total countertop width after applying the given groove value. */
   const computeTotalAfterSpChange = useCallback(
     (value: string): number | null => {
       if (lengthGuard.currentCabinetOnly === null) return null;
-      if (value === "None") return lengthGuard.currentCabinetOnly;
+      if (value === "None" || resolvedSpSide === null) return lengthGuard.currentCabinetOnly;
       const leftAfter = resolvedSpSide !== "right" || sidePanelLeft === "active";
       const rightAfter = resolvedSpSide !== "left" || sidePanelRight === "active";
       const plannedSpCm = (leftAfter ? 1 : 0) + (rightAfter ? 1 : 0);
@@ -201,9 +254,9 @@ export const AccessoriesPage = () => {
     },
     [lengthGuard.currentCabinetOnly, resolvedSpSide, sidePanelLeft, sidePanelRight],
   );
-  const isPlayCanvasReady = usePlayCanvasReady();
   const [activeDrawerType, setActiveDrawerType] = useState<DrawerType | null>(null);
   const [activeAccordionId, setActiveAccordionId] = useState<string | null>(DEFAULT_ACCORDION_ID);
+  const [pendingSidePanelSyncChange, setPendingSidePanelSyncChange] = useState<SidePanelSyncPrompt | null>(null);
   const [dividerAvailability, setDividerAvailability] = useState<{
     cabinetId: string;
     drawerType: DrawerType;
@@ -439,39 +492,130 @@ export const AccessoriesPage = () => {
   });
 
   const selectorAvailability = useAppSelector(selectSidePanelAvailability);
+  const sidePanelFallbackEdgeDrawers = sidePanelEdgeState.eligibleFallbackEdgeId
+    ? placedCabinetStyles[sidePanelEdgeState.eligibleFallbackEdgeId]
+    : null;
+  const selectedConfigDrawers =
+    typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
+  const selectedConfigHeight =
+    typeof selectedProductConfig?.Height === "number" ? selectedProductConfig.Height : null;
 
   const sidePanelAvailability = useMemo(() => {
-    if (selectorAvailability.allowed.size > 0) return selectorAvailability;
-    if (selectorAvailability.reason) return selectorAvailability;
+    const selectedAvailability = (() => {
+      if (selectorAvailability.allowed.size > 0) return selectorAvailability;
+      if (selectorAvailability.reason) return selectorAvailability;
 
-    // Only fall back to presets when no cabinet has been clicked yet
-    if (selectedSceneProduct) return selectorAvailability;
+      // Only fall back to presets when no cabinet has been clicked yet
+      if (selectedSceneProduct) return selectorAvailability;
 
-    const firstPreset = productsPresets[0];
-    if (!firstPreset) return selectorAvailability;
+      const firstPreset = productsPresets[0];
+      if (!firstPreset) return selectorAvailability;
 
-    const name = firstPreset.name ?? null;
-    const cabinetType =
-      name === "Side-Shelf" || name === "OSS"
-        ? "OSS"
-        : name === "Open-Shelf" || name === "OS"
-          ? "OS"
-          : name === "Sink-Base" || name === "Sink-Cabinet" || name === "Side-Cabinet" || name === "SB" || name === "SC"
-            ? "SBSC"
+      const name = firstPreset.name ?? null;
+      const cabinetType =
+        name === "Side-Shelf" || name === "OSS"
+          ? "OSS"
+          : name === "Open-Shelf" || name === "OS"
+            ? "OS"
+            : name === "Sink-Base" || name === "Sink-Cabinet" || name === "Side-Cabinet" || name === "SB" || name === "SC"
+              ? "SBSC"
+              : null;
+
+      const drawers = firstPreset.Drawers ?? null;
+      const handleType =
+        drawers === "1D" || drawers === "1DWID" || drawers === "1" || drawers === "1+inner"
+          ? "1D"
+          : drawers === "2D" || drawers === "2"
+            ? "2D"
             : null;
 
-    const drawers = firstPreset.Drawers ?? null;
-    const handleType =
-      drawers === "1D" || drawers === "1DWID" || drawers === "1" || drawers === "1+inner"
-        ? "1D"
-        : drawers === "2D" || drawers === "2"
-          ? "2D"
-          : null;
+      const height = firstPreset.Height ?? null;
 
-    const height = firstPreset.Height ?? null;
+      return sidePanelAvailabilityRule({ height, handleType, cabinetType });
+    })();
 
-    return sidePanelAvailabilityRule({ height, handleType, cabinetType });
-  }, [selectorAvailability, productsPresets, selectedSceneProduct]);
+    return resolveSidePanelAvailabilityForEdges({
+      selectedAvailability,
+      edgeState: sidePanelEdgeState,
+      height: selectedDimensions.height ?? selectedConfigHeight,
+      edgeDrawers: sidePanelFallbackEdgeDrawers ?? selectedConfigDrawers,
+    });
+  }, [
+    selectorAvailability,
+    productsPresets,
+    selectedSceneProduct,
+    selectedDimensions.height,
+    selectedConfigHeight,
+    selectedConfigDrawers,
+    sidePanelEdgeState,
+    sidePanelFallbackEdgeDrawers,
+  ]);
+
+  // Data-driven Side Panel messaging: panel-level block (hides grid) + non-blocking notice.
+  const sidePanelReasonCtx = useMemo<SidePanelReasonCtx>(
+    () => ({
+      cabinetCount: selectedProducts.length,
+      hasSelectedCabinet: !!selectedSceneProduct,
+      isEdgeCabinet: sidePanelEdgeState.isSelectedEdge,
+      cabinetOnlyLength: lengthGuard.currentCabinetOnly,
+      availability: sidePanelAvailability,
+    }),
+    [
+      selectedProducts.length,
+      selectedSceneProduct,
+      sidePanelEdgeState.isSelectedEdge,
+      lengthGuard.currentCabinetOnly,
+      sidePanelAvailability,
+    ],
+  );
+  const sidePanelBlock = resolveSidePanelBlock(sidePanelReasonCtx);
+  const sidePanelNotice = useMemo(
+    () =>
+      resolveSidePanelNotice({
+        cabinetCount: selectedProducts.length,
+        selectedCabinetId: selectedSceneProduct,
+        edgeState: sidePanelEdgeState,
+        targetSide: resolvedSpSide,
+      }),
+    [resolvedSpSide, selectedProducts.length, selectedSceneProduct, sidePanelEdgeState],
+  );
+
+  const sidePanelGridActiveValue = useMemo(
+    () =>
+      resolveSidePanelGridActiveValue({
+        targetSide: resolvedSpSide,
+        groove: activeSidePanels,
+        leftStatus: sidePanelLeft,
+        rightStatus: sidePanelRight,
+      }),
+    [activeSidePanels, resolvedSpSide, sidePanelLeft, sidePanelRight],
+  );
+
+  const getSidePanelEdgeDrawers = useCallback(
+    (side: "left" | "right") => {
+      const edgeId = side === "left" ? sidePanelEdgeState.leftCabinetId : sidePanelEdgeState.rightCabinetId;
+      return edgeId ? (placedCabinetStyles[edgeId] ?? null) : null;
+    },
+    [placedCabinetStyles, sidePanelEdgeState.leftCabinetId, sidePanelEdgeState.rightCabinetId],
+  );
+
+  const canSidePanelSideAcceptGroove = useCallback(
+    (side: "left" | "right", groove: GrooveType) =>
+      isSidePanelGrooveAvailableForSide({
+        edgeState: sidePanelEdgeState,
+        side,
+        groove,
+        height: selectedDimensions.height ?? selectedConfigHeight,
+        edgeDrawers: getSidePanelEdgeDrawers(side) ?? selectedConfigDrawers,
+      }),
+    [
+      getSidePanelEdgeDrawers,
+      selectedConfigDrawers,
+      selectedConfigHeight,
+      selectedDimensions.height,
+      sidePanelEdgeState,
+    ],
+  );
 
   const sidePanelOptions = useMemo(() => {
     if (sidePanelsBlockedByLength340) {
@@ -479,8 +623,7 @@ export const AccessoriesPage = () => {
     }
 
     const isSyntesiBlocked =
-      sidePanelAvailability.allowed.size === 0 &&
-      sidePanelAvailability.reason === SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON;
+      sidePanelAvailability.allowed.size === 0 && sidePanelAvailability.reasonCode === "syntesi-countertop";
 
     const allowed = new Set<string>(["None"]);
     sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
@@ -1005,9 +1148,30 @@ export const AccessoriesPage = () => {
 
   // Side panel invalidation is handled by global listener middleware.
 
+  const applySidePanelGrooveChange = useCallback(
+    async (value: GrooveType, side: SidePanelApplySide) => {
+      await saveSnapshot();
+      await applyGroove(dispatch, value, side, selectedProducts.length, {
+        currentLeftStatus: sidePanelLeft,
+        currentRightStatus: sidePanelRight,
+      });
+    },
+    [dispatch, saveSnapshot, selectedProducts.length, sidePanelLeft, sidePanelRight],
+  );
+
+  const handleSidePanelSyncConfirm = useCallback(async () => {
+    const pendingChange = pendingSidePanelSyncChange;
+    if (!pendingChange) return;
+
+    setPendingSidePanelSyncChange(null);
+    await applySidePanelGrooveChange(pendingChange.requestedGroove, "both");
+  }, [applySidePanelGrooveChange, pendingSidePanelSyncChange]);
+
   const handleSidePanelsChange = async (value: string) => {
     if (!value) return;
     if (!isGrooveType(value)) return;
+    const targetSide = resolvedSpSide;
+    if (targetSide === null) return;
     if (sidePanelsBlockedByLength340 && value !== "None") return;
     if (value !== "None" && !sidePanelAvailability.allowed.has(value)) return;
     if (value !== "None") {
@@ -1015,8 +1179,22 @@ export const AccessoriesPage = () => {
       if (totalAfter !== null && !lengthGuard.canAccommodateTotal(totalAfter)) return;
     }
 
-    await saveSnapshot();
-    await applyGroove(dispatch, value, resolvedSpSide, selectedProducts.length);
+    const syncPrompt = resolveSidePanelSyncPrompt({
+      targetSide,
+      requestedGroove: value,
+      currentGroove: activeSidePanels,
+      leftStatus: sidePanelLeft,
+      rightStatus: sidePanelRight,
+      leftCanAcceptGroove: canSidePanelSideAcceptGroove("left", value),
+      rightCanAcceptGroove: canSidePanelSideAcceptGroove("right", value),
+    });
+
+    if (syncPrompt) {
+      setPendingSidePanelSyncChange(syncPrompt);
+      return;
+    }
+
+    await applySidePanelGrooveChange(value, targetSide);
   };
 
   const handleDividersChange = async (value: string | null) => {
@@ -1186,18 +1364,17 @@ export const AccessoriesPage = () => {
       defaultOpen: true,
       content: (
         <>
-          {sidePanelsBlockedByLength340 ? (
-            <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>{sidePanelsLengthReason}</p>
-          ) : sidePanelAvailability.reason ? (
-            <p style={{ margin: 0, padding: "12px 0", fontSize: 14, color: "#4a5568" }}>
-              {sidePanelAvailability.reason}
-            </p>
+          {sidePanelBlock ? (
+            <p style={SIDE_PANEL_MESSAGE_STYLE}>{sidePanelBlock.message(sidePanelReasonCtx)}</p>
           ) : (
-            <ProductOptionsGrid
-              data={sidePanelOptions}
-              handleAdd={handleSidePanelsChange}
-              activeValue={activeSidePanels}
-            />
+            <>
+              {sidePanelNotice && <SidePanelNoticeBox notice={sidePanelNotice} />}
+              <ProductOptionsGrid
+                data={sidePanelOptions}
+                handleAdd={handleSidePanelsChange}
+                activeValue={sidePanelGridActiveValue}
+              />
+            </>
           )}
         </>
       ),
@@ -1271,6 +1448,11 @@ export const AccessoriesPage = () => {
           </ConfiguratorAccordionItem>
         ))}
       </ConfiguratorAccordionGroup>
+      <SidePanelSyncConfirmModal
+        pendingChange={pendingSidePanelSyncChange}
+        onCancel={() => setPendingSidePanelSyncChange(null)}
+        onConfirm={handleSidePanelSyncConfirm}
+      />
     </div>
   );
 };

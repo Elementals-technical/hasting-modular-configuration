@@ -14,11 +14,12 @@ export async function enforceSidePanelEligibility(
   groove: string,
   leftStatus: string,
   rightStatus: string,
+  cabinetCount?: number,
 ) {
   const { leftCabinetId, rightCabinetId } = getEdgeCabinets();
   const remembered = getRememberedSidePanels();
   const isSingle = leftCabinetId != null && leftCabinetId === rightCabinetId;
-  const cabinetCount = isSingle ? 1 : 2;
+  const effectiveCabinetCount = cabinetCount ?? (isSingle ? 1 : 2);
 
   const targets: Array<{ side: "left" | "right"; cabinetId: string | null }> = [
     { side: "left", cabinetId: leftCabinetId },
@@ -47,11 +48,11 @@ export async function enforceSidePanelEligibility(
 
     if (!sideEligibility[target.side]) {
       if (hasPhysicalSP) {
-        await autoRemoveSide(dispatch, target.side, cabinetCount);
+        await autoRemoveSide(dispatch, target.side, effectiveCabinetCount);
       }
     } else {
       if (reduxStatus === "auto-removed" && groove && !hasPhysicalSP) {
-        await autoRestoreSide(dispatch, target.side, groove as GrooveType, cabinetCount);
+        await autoRestoreSide(dispatch, target.side, groove as GrooveType, effectiveCabinetCount);
       }
     }
   }

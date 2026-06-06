@@ -1307,7 +1307,7 @@ export const CabinetBuilderPage = () => {
             dispatch(
               setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }),
             );
-            await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus);
+            await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length);
           }
         }
 

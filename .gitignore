@@ -96,4 +96,7 @@ tmp/
 temp/
 
 
-docs
+docs/*
+!docs/
+!docs/side-panel-logic.md
+!docs/side-panel-reasons-refactor.md

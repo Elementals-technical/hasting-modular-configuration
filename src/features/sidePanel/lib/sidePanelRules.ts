@@ -11,6 +11,42 @@ import type {
 } from "@/features/configurator-rule-core/options/types";
 import { SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON } from "@/features/configurator-rule-core/countertop";
 
+export const SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON = "Side panels are not available for Side-Shelf cabinets.";
+export const SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON =
+  "Side panels are not available for use with Open Shelf cabinets.";
+
+type SidePanelAvailabilityRow = (typeof SIDE_PANEL_AVAILABILITY)[number];
+type SidePanelHeightToken = SidePanelAvailabilityRow["height"];
+type SidePanelAllowedFlag = keyof SidePanelAvailabilityRow["allowed"];
+type SidePanelGroove = SidePanelAvailabilityResult["allowed"] extends Set<infer Groove> ? Groove : never;
+type SidePanelCabinetType = NonNullable<SidePanelAvailabilityInput["cabinetType"]>;
+
+const HEIGHT_TOKEN_BY_CM: Partial<Record<number, SidePanelHeightToken>> = {
+  50: "50H",
+  53: "53H",
+  56: "56H",
+};
+
+const CABINET_TYPE_AVAILABILITY_BLOCKERS: Partial<
+  Record<SidePanelCabinetType, Pick<SidePanelAvailabilityResult, "reason" | "reasonCode">>
+> = {
+  OSS: {
+    reason: SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON,
+    reasonCode: "side-shelf",
+  },
+  OS: {
+    reason: SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON,
+    reasonCode: "open-shelf",
+  },
+};
+
+const GROOVE_BY_ALLOWED_FLAG: readonly [SidePanelAllowedFlag, SidePanelGroove][] = [
+  ["noGroove", "NoG"],
+  ["upperGroove", "UpperG"],
+  ["centerGroove", "CenterG"],
+  ["doubleGroove", "DoubleG"],
+];
+
 const isSidePanelsEnabled = (value?: string | null) => {
   if (!value) return false;
   return value.trim() !== "" && value.trim() !== SIDE_PANELS_NONE;
@@ -64,11 +100,20 @@ export const syntesiSidePanelRule = ({
 
 const mapHeightToken = (height?: number | null) => {
   if (typeof height !== "number") return null;
-  if (height === 50) return "50H";
-  if (height === 53) return "53H";
-  if (height === 56) return "56H";
-  return null;
+  return HEIGHT_TOKEN_BY_CM[height] ?? null;
 };
+
+const matchesSidePanelAvailabilityRow = ({
+  row,
+  heightToken,
+  handleType,
+  cabinetType,
+}: {
+  row: SidePanelAvailabilityRow;
+  heightToken: SidePanelHeightToken;
+  handleType: SidePanelAvailabilityInput["handleType"];
+  cabinetType: SidePanelAvailabilityInput["cabinetType"];
+}) => row.height === heightToken && row.cabinetType === cabinetType && (!handleType || row.handleType === handleType);
 
 export const sidePanelAvailabilityRule = ({
   height,
@@ -77,12 +122,9 @@ export const sidePanelAvailabilityRule = ({
 }: SidePanelAvailabilityInput): SidePanelAvailabilityResult => {
   const allowed = new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">();
 
-  if (cabinetType === "OSS") {
-    return { allowed, reason: "Side panels are not available for Side-Shelf cabinets." };
-  }
-
-  if (cabinetType === "OS") {
-    return { allowed, reason: "Side panels are not available for use with Open Shelf cabinets." };
+  const blocker = cabinetType ? CABINET_TYPE_AVAILABILITY_BLOCKERS[cabinetType] : undefined;
+  if (blocker) {
+    return { allowed, ...blocker };
   }
 
   const heightToken = mapHeightToken(height);
@@ -90,21 +132,15 @@ export const sidePanelAvailabilityRule = ({
     return { allowed };
   }
 
-  // OS cabinets don't have drawers, so handleType may be null — match by height+cabinetType only
-  const match = handleType
-    ? SIDE_PANEL_AVAILABILITY.find(
-        (row) => row.height === heightToken && row.handleType === handleType && row.cabinetType === cabinetType,
-      )
-    : SIDE_PANEL_AVAILABILITY.find((row) => row.height === heightToken && row.cabinetType === cabinetType);
+  const match = SIDE_PANEL_AVAILABILITY.find((row) =>
+    matchesSidePanelAvailabilityRow({ row, heightToken, handleType, cabinetType }),
+  );
 
   if (!match) {
     return { allowed };
   }
 
-  if (match.allowed.noGroove) allowed.add("NoG");
-  if (match.allowed.upperGroove) allowed.add("UpperG");
-  if (match.allowed.centerGroove) allowed.add("CenterG");
-  if (match.allowed.doubleGroove) allowed.add("DoubleG");
+  GROOVE_BY_ALLOWED_FLAG.filter(([flag]) => match.allowed[flag]).forEach(([, groove]) => allowed.add(groove));
 
   return { allowed };
 };
