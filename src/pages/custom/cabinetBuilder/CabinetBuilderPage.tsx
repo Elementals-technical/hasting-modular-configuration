@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
+import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -179,6 +180,12 @@ const mapConfigToDrawerValue = (config?: string): string | null => {
   return null;
 };
 
+const inferCountertopStyleFromSinkType = (sinkType: string): "Vessel" | "Integrated" => {
+  const trimmed = sinkType.trim();
+  if (trimmed === "Vessel" || trimmed.startsWith("Vessel_")) return "Vessel";
+  return "Integrated";
+};
+
 const readConfigDrawerValue = (config: unknown): string | null => {
   if (!config || typeof config !== "object") return null;
 
@@ -199,6 +206,7 @@ export const CabinetBuilderPage = () => {
   const [pendingTutorialSceneCabinet, setPendingTutorialSceneCabinet] = useState(false);
 
   const bootstrappedRef = useRef(false);
+  const customPresetInitializedRef = useRef<string | null>(null);
   const autoAddSignatureRef = useRef<string | null>(null);
   const handledPendingDeleteIdRef = useRef<string | null>(null);
   const isAddingTutorialSceneCabinetRef = useRef(false);
@@ -212,6 +220,20 @@ export const CabinetBuilderPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
+  const presetIdFromUrl = useMemo(() => {
+    const rawPresetId = searchParams.get("preset");
+    if (!rawPresetId) return null;
+
+    const parsedPresetId = Number(rawPresetId);
+    if (!Number.isFinite(parsedPresetId)) return null;
+
+    return parsedPresetId;
+  }, [searchParams]);
+  const presetFromUrl = useMemo(() => {
+    if (presetIdFromUrl === null) return null;
+    return productMockData.find((item) => item.id === presetIdFromUrl) ?? null;
+  }, [presetIdFromUrl]);
+  const customPresetBootstrapKey = presetFromUrl ? String(presetFromUrl.id) : null;
   const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
@@ -899,6 +921,7 @@ export const CabinetBuilderPage = () => {
 
   useEffect(() => {
     if (!pathname.includes("/custom/cabinet-builder")) return;
+    if (presetFromUrl) return;
     if (productsPresets.length) return;
     if (hasBootstrappedCabinetBuilder) return;
 
@@ -922,9 +945,62 @@ export const CabinetBuilderPage = () => {
     hasBootstrappedCabinetBuilder,
     pathname,
     productsPresets.length,
+    presetFromUrl,
     cabinetColor,
     countertopColor,
     sinkType,
+  ]);
+
+  useEffect(() => {
+    if (!pathname.includes("/custom/cabinet-builder")) return;
+    if (configId) return;
+    if (!canvasReady) return;
+    if (!presetFromUrl?.presetProducts.length || !customPresetBootstrapKey) return;
+    if (customPresetInitializedRef.current === customPresetBootstrapKey) return;
+
+    let cancelled = false;
+    customPresetInitializedRef.current = customPresetBootstrapKey;
+
+    const run = async () => {
+      try {
+        bootstrappedRef.current = false;
+        dispatch(reset());
+        dispatch(resetCabinetBuilderBootstrap());
+        await removeAllProducts();
+
+        if (cancelled) return;
+
+        const presetProducts = presetFromUrl.presetProducts;
+        const [firstPreset] = presetProducts;
+        const presetCabinetColor = firstPreset?.CabinetColor ?? CUSTOM_DEFAULT_CABINET_COLOR;
+        const presetCountertopColor = firstPreset?.CountertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
+        const presetSinkType = firstPreset?.sinkType ?? CUSTOM_DEFAULT_SINK_TYPE;
+        const presetHandleGrooveColor = firstPreset?.HandleGrooveColor ?? presetCabinetColor;
+
+        dispatch(addProductPreset(presetProducts));
+        dispatch(setCabinetColor(presetCabinetColor));
+        dispatch(setActiveCountertopColor(presetCountertopColor));
+        dispatch(setActiveBasinStyle(presetSinkType));
+        dispatch(setCountertopStyle(inferCountertopStyleFromSinkType(presetSinkType)));
+        dispatch(setHandleGrooveColor(presetHandleGrooveColor));
+      } catch (error) {
+        customPresetInitializedRef.current = null;
+        console.error("[Custom] Failed to initialize preset entry", error);
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    canvasReady,
+    configId,
+    customPresetBootstrapKey,
+    dispatch,
+    pathname,
+    presetFromUrl,
   ]);
 
   useEffect(() => {
