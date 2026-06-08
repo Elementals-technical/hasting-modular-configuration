@@ -58,7 +58,6 @@ import {
   resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
-import { DEFAULT_COUNTERTOP_COLOR, DEFAULT_SINK_TYPE } from "@/entities/collection/defaults";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
@@ -111,6 +110,8 @@ const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
 
 const DEBOUNCE_MS = 300;
 const LOG_PREFIX = "[SKU/Price]";
+const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
 export function usePriceCalculation() {

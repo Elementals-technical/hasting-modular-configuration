@@ -7,8 +7,6 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test": "vitest run",
-    "test:watch": "vitest",
     "start": "vite preview --host 0.0.0.0 --port ${PORT:-4173}",
     "preview": "vite preview"
   },
@@ -45,7 +43,6 @@
     "sass-embedded": "^1.93.3",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4",
-    "vitest": "^3.2.4"
+    "vite": "^7.2.4"
   }
 }

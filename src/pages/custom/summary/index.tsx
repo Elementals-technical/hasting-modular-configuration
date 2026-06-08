@@ -135,11 +135,11 @@ import {
 import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
-import { DEFAULT_COUNTERTOP_COLOR, DEFAULT_SINK_TYPE } from "@/entities/collection/defaults";
-
 import s from "./SummaryPage.module.scss";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
+const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
+const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
 const buildImageSrc = (imagePath?: string) => {
