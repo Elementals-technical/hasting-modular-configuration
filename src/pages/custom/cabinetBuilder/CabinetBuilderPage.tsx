@@ -113,6 +113,12 @@ import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/stor
 import { store, type RootState } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
+import {
+  MATRIX_CABINET_DATATABLE_ID,
+  DEFAULT_CABINET_COLOR as CUSTOM_DEFAULT_CABINET_COLOR,
+  DEFAULT_COUNTERTOP_COLOR as CUSTOM_DEFAULT_COUNTERTOP_COLOR,
+  DEFAULT_SINK_TYPE as CUSTOM_DEFAULT_SINK_TYPE,
+} from "@/entities/collection/defaults";
 
 type AccordionConfig = {
   id: string;
@@ -125,10 +131,6 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
-const MATRIX_CABINET_DATATABLE_ID = 439;
-const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
-const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
-const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 
 const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
