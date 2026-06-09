@@ -119,7 +119,7 @@ const stripKnownBasinMarkers = (value: string, stripDigits: boolean): string => 
   const compactWithoutDigits = stripDigits ? compact.replace(/[0-9]+/g, "") : compact;
 
   const withoutPrefix = BASIN_PREFIX_MARKERS.reduce((result, marker) => {
-    return result.startsWith(marker) ? result.slice(marker.length) : result;
+    return result.startsWith(marker) && result.length > marker.length ? result.slice(marker.length) : result;
   }, compactWithoutDigits);
 
   const withoutSuffix = BASIN_SUFFIX_MARKERS.reduce((result, marker) => {
