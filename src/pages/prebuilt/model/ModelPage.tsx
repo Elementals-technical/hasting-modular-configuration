@@ -51,6 +51,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import {
   findCountertopSkuByColorName,
+  resolveIntegratedCountertopBasinFallback,
   resolvePrebuiltModelCountertopCompatibility,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -72,8 +73,10 @@ import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 import {
   buildCountertopColorSkuCandidates,
   getCountertopMaterialTokensFromBasinType,
+  resolveDefaultBasinForCountertopSelection,
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
+import { optionsMockData3 } from "../countertop/constants";
 
 import s from "./ModelPage.module.scss";
 
@@ -116,6 +119,24 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   }
 
   return globalConfig;
+};
+
+const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
+  const totalWidthValues = presetProducts.map((preset) =>
+    typeof preset.Width === "number" && Number.isFinite(preset.Width) ? preset.Width : null,
+  );
+  const totalWidth = totalWidthValues.some((value) => value !== null)
+    ? totalWidthValues.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+    : null;
+  const sinkBasePreset = presetProducts.find((preset) => preset.name === "Sink-Base");
+
+  return {
+    sinkBaseWidth:
+      typeof sinkBasePreset?.Width === "number" && Number.isFinite(sinkBasePreset.Width) ? sinkBasePreset.Width : null,
+    totalWidth,
+    depth:
+      typeof sinkBasePreset?.Depth === "number" && Number.isFinite(sinkBasePreset.Depth) ? sinkBasePreset.Depth : null,
+  };
 };
 
 const mapPresetDrawerToRuleValue = (drawers?: string | null): string | null => {
@@ -346,6 +367,39 @@ export const ModelPage = () => {
     dispatch(setFaucetHolesAmount("0"));
   }, [dispatch]);
 
+  const resolveCompatibleCountertopSceneConfig = useCallback(
+    (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]): PresetSceneDefaults => {
+      if (globalConfig.CountertopStyle !== "Integrated" || !globalConfig.sinkType) return globalConfig;
+
+      const materialTokens = activeCountertopMaterialTokens.length
+        ? activeCountertopMaterialTokens
+        : getCountertopMaterialTokensFromBasinType(globalConfig.sinkType);
+      if (!materialTokens.length) return globalConfig;
+
+      const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
+        basinOptions: optionsMockData3,
+        rules: countertopRules,
+        activeMaterialTokens: materialTokens,
+        activeThickness: globalConfig.Thickness ?? countertopThickness,
+        activeBasinStyle: globalConfig.sinkType,
+        preferredBasinStyle: resolveDefaultBasinForCountertopSelection({
+          countertopColor: globalConfig.CountertopColor,
+          materialTokens,
+        }),
+        dimensions: resolvePrebuiltPresetCountertopDimensions(presetProducts),
+      });
+
+      if (!fallbackBasinStyle || fallbackBasinStyle === globalConfig.sinkType) return globalConfig;
+
+      return {
+        ...globalConfig,
+        sinkType: fallbackBasinStyle,
+        CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
+      };
+    },
+    [activeCountertopMaterialTokens, countertopRules, countertopThickness],
+  );
+
   const syncCountertopSceneConfigAfterPreset = useCallback(
     async (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]) => {
       const sinkBaseConfig: Record<string, unknown> = {};
@@ -384,11 +438,14 @@ export const ModelPage = () => {
         const preserveCountertopSelections = options?.preserveCountertopSelections !== false;
         const overrides = preserveCountertopSelections ? transferableOverrides : colorTransferableOverrides;
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
-        const globalConfig = {
-          ...resolvePresetSceneDefaults(effectivePresetProducts),
-          ...resolveColorSceneOverrides(),
-          ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
-        };
+        const globalConfig = resolveCompatibleCountertopSceneConfig(
+          {
+            ...resolvePresetSceneDefaults(effectivePresetProducts),
+            ...resolveColorSceneOverrides(),
+            ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
+          },
+          effectivePresetProducts,
+        );
         await addPreset(effectivePresetProducts, globalConfig);
         await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
         syncPresetProductIdsFromScene(effectivePresetProducts);
@@ -434,6 +491,7 @@ export const ModelPage = () => {
       configuratorData,
       dispatch,
       resetRestrictedCountertopSelections,
+      resolveCompatibleCountertopSceneConfig,
       resolveColorSceneOverrides,
       resolveCountertopSceneOverrides,
       searchParams,
@@ -639,11 +697,14 @@ export const ModelPage = () => {
         const restoredFaucetHolesAmount =
           (typeof uiStateValues?.FaucetHolesAmount === "string" && uiStateValues.FaucetHolesAmount) || undefined;
         const restoredSinkType = (typeof uiStateValues?.sinkType === "string" && uiStateValues.sinkType) || undefined;
-        const globalConfig = {
-          ...resolvePresetSceneDefaults(presetProducts),
-          ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
-          ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
-        };
+        const globalConfig = resolveCompatibleCountertopSceneConfig(
+          {
+            ...resolvePresetSceneDefaults(presetProducts),
+            ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
+            ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
+          },
+          presetProducts,
+        );
 
         await addPreset(presetProducts, globalConfig);
         await syncCountertopSceneConfigAfterPreset(globalConfig, presetProducts);
@@ -690,6 +751,7 @@ export const ModelPage = () => {
     configuratorData,
     dispatch,
     restoreConfiguration,
+    resolveCompatibleCountertopSceneConfig,
     syncCountertopSceneConfigAfterPreset,
     syncPresetProductIdsFromScene,
     updateSelectedDimensionsFromScene,
@@ -710,11 +772,14 @@ export const ModelPage = () => {
     const run = async () => {
       try {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
-        const globalConfig = {
-          ...resolvePresetSceneDefaults(effectivePresetProducts),
-          ...resolveColorSceneOverrides(),
-          ...resolveCountertopSceneOverrides(),
-        };
+        const globalConfig = resolveCompatibleCountertopSceneConfig(
+          {
+            ...resolvePresetSceneDefaults(effectivePresetProducts),
+            ...resolveColorSceneOverrides(),
+            ...resolveCountertopSceneOverrides(),
+          },
+          effectivePresetProducts,
+        );
         await addPreset(effectivePresetProducts, globalConfig);
         await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
         syncPresetProductIdsFromScene(effectivePresetProducts);
@@ -751,6 +816,7 @@ export const ModelPage = () => {
     dispatch,
     presetFromUrl,
     productsPresets,
+    resolveCompatibleCountertopSceneConfig,
     resolveColorSceneOverrides,
     resolveCountertopSceneOverrides,
     syncCountertopSceneConfigAfterPreset,

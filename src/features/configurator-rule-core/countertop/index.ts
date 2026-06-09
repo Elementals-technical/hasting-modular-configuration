@@ -6,6 +6,7 @@ export * from "./lengthLimits";
 export * from "./compositionConstraints";
 export * from "./findCountertopSkuByColorName";
 export * from "./prebuiltModelCompatibility";
+export * from "./basinSelection";
 export * from "./syntesiOptions";
 export * from "./vesselCompatibility";
 export * from "./hooks";
