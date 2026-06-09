@@ -48,6 +48,8 @@ export const getSelectedSceneProduct = (state: RootState) => state.rootStateUI.p
 
 export const getIsDrawerOpen = (state: RootState) => state.rootStateUI.product.isDrawerOpen;
 
+export const getCompositionVersion = (state: RootState) => state.rootStateUI.product.compositionVersion;
+
 export const getActiveCountertopColor = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColor;
 
 export const getCountertopColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CountertopColorSku;

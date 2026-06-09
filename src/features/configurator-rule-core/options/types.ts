@@ -76,7 +76,25 @@ export type SidePanelAvailabilityInput = {
   cabinetType?: "SBSC" | "OS" | "OSS" | null;
 };
 
+/**
+ * Stable, structured identifiers for Side Panel unavailability reasons.
+ * Use these for control flow; `reason` (the string) is presentation only.
+ */
+export type SidePanelReasonCode =
+  | "length-340"
+  | "syntesi-countertop"
+  | "open-shelf"
+  | "side-shelf"
+  | "both-open-shelf"
+  | "both-side-shelf"
+  | "mixed-open-side-shelf"
+  | "select-edge-cabinet"
+  | "exceeds-max-length"
+  | "unsupported-groove";
+
 export type SidePanelAvailabilityResult = {
   allowed: Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">;
   reason?: string;
+  /** Structured counterpart of `reason` for non-fragile comparisons. */
+  reasonCode?: SidePanelReasonCode;
 };

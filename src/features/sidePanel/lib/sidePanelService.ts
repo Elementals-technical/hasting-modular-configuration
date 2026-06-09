@@ -16,6 +16,11 @@ export type SidePanelStatus = "active" | "none" | "auto-removed";
 export type GrooveType = "NoG" | "UpperG" | "CenterG" | "DoubleG" | "None";
 const GROOVE_VALUES = ["NoG", "UpperG", "CenterG", "DoubleG", "None"] as const;
 
+export type ApplyGrooveOptions = {
+  currentLeftStatus?: SidePanelStatus;
+  currentRightStatus?: SidePanelStatus;
+};
+
 export function isGrooveType(value: string): value is GrooveType {
   return (GROOVE_VALUES as readonly string[]).includes(value);
 }
@@ -78,10 +83,21 @@ export async function applyGroove(
   groove: GrooveType,
   side: "left" | "right" | "both",
   cabinetCount?: number,
+  options?: ApplyGrooveOptions,
 ) {
   await setSidePanel(groove, side, cabinetCount);
-  dispatch(setSidePanelsOption(groove));
   dispatchSideStatus(dispatch, side, groove === "None" ? "none" : "active");
+
+  const changedSideStatus = groove === "None" ? "none" : "active";
+  const nextLeftStatus =
+    side === "both" || side === "left" ? changedSideStatus : options?.currentLeftStatus;
+  const nextRightStatus =
+    side === "both" || side === "right" ? changedSideStatus : options?.currentRightStatus;
+  const hasActiveSideAfterChange = nextLeftStatus === "active" || nextRightStatus === "active";
+
+  if (groove !== "None" || !options || !hasActiveSideAfterChange) {
+    dispatch(setSidePanelsOption(groove));
+  }
 }
 
 /**

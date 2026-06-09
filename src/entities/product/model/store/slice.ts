@@ -78,6 +78,13 @@ type ProductState = {
   productsPresets: PresetProduct[];
   selectedSceneProduct: string;
   isDrawerOpen: boolean;
+  /**
+   * Monotonic counter bumped whenever the cabinet composition order changes
+   * (add / remove / swap / insert / restore). Consumers that read PlayCanvas
+   * edge state imperatively depend on this to re-read AFTER the scene settles,
+   * instead of relying on render-time reads that can be stale.
+   */
+  compositionVersion: number;
 };
 
 type ProductDimensions = {
@@ -269,6 +276,7 @@ const createInitialState = (): ProductState => {
     productsPresets: [],
     selectedSceneProduct: "",
     isDrawerOpen: false,
+    compositionVersion: 0,
   };
 
   applyRulesToState(baseState);
@@ -287,6 +295,7 @@ const productSlice = createSlice({
       if (!id) return;
       const next = [...state.productIds.filter((pid) => pid !== id), id];
       state.productIds = next;
+      state.compositionVersion += 1;
       applyRulesToState(state);
     },
     insertProductIdRelative(state, action: PayloadAction<{ id: string; prevId: string; side: "left" | "right" }>) {
@@ -299,12 +308,14 @@ const productSlice = createSlice({
       if (prevIndex === -1) {
         next.push(id);
         state.productIds = next;
+        state.compositionVersion += 1;
         return;
       }
 
       const insertIndex = side === "left" ? prevIndex : prevIndex + 1;
       next.splice(insertIndex, 0, id);
       state.productIds = next;
+      state.compositionVersion += 1;
       applyRulesToState(state);
     },
     removeProductId(state, action: PayloadAction<string>) {
@@ -316,6 +327,7 @@ const productSlice = createSlice({
 
       delete state.placedCabinetStyles[action.payload];
       state.placedDividers = state.placedDividers.filter((divider) => divider.cabinetId !== action.payload);
+      state.compositionVersion += 1;
       applyRulesToState(state);
     },
     swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
@@ -329,6 +341,7 @@ const productSlice = createSlice({
       next[indexA] = idB;
       next[indexB] = idA;
       state.productIds = next;
+      state.compositionVersion += 1;
       applyRulesToState(state);
     },
     reset(state) {
@@ -341,6 +354,7 @@ const productSlice = createSlice({
       state.productIds = [];
       state.placedCabinetStyles = {};
       state.placedDividers = [];
+      state.compositionVersion += 1;
       applyRulesToState(state);
     },
     resetCabinetBuilderBootstrap(state) {
@@ -641,6 +655,7 @@ const productSlice = createSlice({
       if (productsPresets !== undefined) {
         state.productsPresets = productsPresets.map((preset) => ({ ...preset }));
       }
+      state.compositionVersion += 1;
       applyRulesToState(state);
     },
   },

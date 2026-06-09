@@ -60,6 +60,7 @@ export const selectSidePanelAvailability = createSelector(
       return {
         allowed: new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">(),
         reason: SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON,
+        reasonCode: "syntesi-countertop" as const,
       };
     }
 

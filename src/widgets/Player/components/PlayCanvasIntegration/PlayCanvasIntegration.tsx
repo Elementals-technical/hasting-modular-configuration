@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
   addProductPreset,
+  insertProductIdRelative,
   removeProductId,
   replacePlacedDividersForCabinet,
   resetCabinetBuilderBootstrap,
@@ -1524,7 +1525,7 @@ export const PlayCanvasIntegration = () => {
         ) {
           await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColorRef.current });
         }
-        dispatch(addProductId(productId));
+        dispatch(insertProductIdRelative({ id: productId, prevId: entityId, side }));
 
         const drawers = mergedConfig.Drawers as string | undefined;
         const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
@@ -2199,7 +2200,7 @@ export const PlayCanvasIntegration = () => {
         if (openDrawerButtonsTargetRef.current) {
           hideOpenDrawerButtons();
         }
-        // dispatch(setSelectedSceneProduct(""));
+        dispatch(setSelectedSceneProduct(""));
         setVesselBasinSelectionInfo(null);
         setDropdownState((prev) => ({ ...prev, visible: false }));
         setCountertopPopoverState((prev) => ({ ...prev, visible: false }));

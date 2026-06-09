@@ -28,8 +28,9 @@ export function useSidePanelEnforce(productIdsLength: number) {
       spGrooveRef.current || "",
       spLeftRef.current || "none",
       spRightRef.current || "none",
+      productIdsLength,
     );
-  }, [dispatch]);
+  }, [dispatch, productIdsLength]);
 
   const lengthRef = useRef(productIdsLength);
   useEffect(() => {
