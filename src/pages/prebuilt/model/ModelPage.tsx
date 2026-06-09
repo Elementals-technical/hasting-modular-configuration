@@ -51,6 +51,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import {
   findCountertopSkuByColorName,
+  resolveIntegratedCountertopBasinFallback,
   resolvePrebuiltModelCountertopCompatibility,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -60,6 +61,7 @@ import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPo
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
 import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
@@ -71,8 +73,10 @@ import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 import {
   buildCountertopColorSkuCandidates,
   getCountertopMaterialTokensFromBasinType,
+  resolveDefaultBasinForCountertopSelection,
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
+import { optionsMockData3 } from "../countertop/constants";
 
 import s from "./ModelPage.module.scss";
 
@@ -115,6 +119,24 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   }
 
   return globalConfig;
+};
+
+const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
+  const totalWidthValues = presetProducts.map((preset) =>
+    typeof preset.Width === "number" && Number.isFinite(preset.Width) ? preset.Width : null,
+  );
+  const totalWidth = totalWidthValues.some((value) => value !== null)
+    ? totalWidthValues.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+    : null;
+  const sinkBasePreset = presetProducts.find((preset) => preset.name === "Sink-Base");
+
+  return {
+    sinkBaseWidth:
+      typeof sinkBasePreset?.Width === "number" && Number.isFinite(sinkBasePreset.Width) ? sinkBasePreset.Width : null,
+    totalWidth,
+    depth:
+      typeof sinkBasePreset?.Depth === "number" && Number.isFinite(sinkBasePreset.Depth) ? sinkBasePreset.Depth : null,
+  };
 };
 
 const mapPresetDrawerToRuleValue = (drawers?: string | null): string | null => {
@@ -296,21 +318,24 @@ export const ModelPage = () => {
     return match?.id ?? productMockData[0]?.id ?? null;
   }, [productsPresets]);
 
-  const syncPresetProductIdsFromScene = useCallback((presetProducts?: PresetProduct[]) => {
-    const orderedIds = getOrderedProductIds();
+  const syncPresetProductIdsFromScene = useCallback(
+    (presetProducts?: PresetProduct[]) => {
+      const orderedIds = getOrderedProductIds();
 
-    dispatch(resetProducts());
-    orderedIds.forEach((id, index) => {
-      dispatch(addProductId(id));
+      dispatch(resetProducts());
+      orderedIds.forEach((id, index) => {
+        dispatch(addProductId(id));
 
-      const drawerRawValue = mapPresetDrawerToRuleValue(presetProducts?.[index]?.Drawers);
-      if (drawerRawValue) {
-        dispatch(setPlacedCabinetStyle({ id, value: drawerRawValue }));
-      }
-    });
+        const drawerRawValue = mapPresetDrawerToRuleValue(presetProducts?.[index]?.Drawers);
+        if (drawerRawValue) {
+          dispatch(setPlacedCabinetStyle({ id, value: drawerRawValue }));
+        }
+      });
 
-    return orderedIds;
-  }, [dispatch]);
+      return orderedIds;
+    },
+    [dispatch],
+  );
 
   const resolveCountertopSceneOverrides = useCallback((): PresetSceneDefaults => {
     const overrides: PresetSceneDefaults = {};
@@ -342,6 +367,67 @@ export const ModelPage = () => {
     dispatch(setFaucetHolesAmount("0"));
   }, [dispatch]);
 
+  const resolveCompatibleCountertopSceneConfig = useCallback(
+    (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]): PresetSceneDefaults => {
+      if (globalConfig.CountertopStyle !== "Integrated" || !globalConfig.sinkType) return globalConfig;
+
+      const materialTokens = activeCountertopMaterialTokens.length
+        ? activeCountertopMaterialTokens
+        : getCountertopMaterialTokensFromBasinType(globalConfig.sinkType);
+      if (!materialTokens.length) return globalConfig;
+
+      const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
+        basinOptions: optionsMockData3,
+        rules: countertopRules,
+        activeMaterialTokens: materialTokens,
+        activeThickness: globalConfig.Thickness ?? countertopThickness,
+        activeBasinStyle: globalConfig.sinkType,
+        preferredBasinStyle: resolveDefaultBasinForCountertopSelection({
+          countertopColor: globalConfig.CountertopColor,
+          materialTokens,
+        }),
+        dimensions: resolvePrebuiltPresetCountertopDimensions(presetProducts),
+      });
+
+      if (!fallbackBasinStyle || fallbackBasinStyle === globalConfig.sinkType) return globalConfig;
+
+      return {
+        ...globalConfig,
+        sinkType: fallbackBasinStyle,
+        CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
+      };
+    },
+    [activeCountertopMaterialTokens, countertopRules, countertopThickness],
+  );
+
+  const syncCountertopSceneConfigAfterPreset = useCallback(
+    async (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]) => {
+      const sinkBaseConfig: Record<string, unknown> = {};
+      if (globalConfig.sinkType) sinkBaseConfig.sinkType = globalConfig.sinkType;
+      if (globalConfig.CountertopStyle) sinkBaseConfig.CountertopStyle = globalConfig.CountertopStyle;
+
+      if (Object.keys(sinkBaseConfig).length) {
+        await setConfigBatch({}, sinkBaseConfig);
+      }
+
+      const countertopConfig: Record<string, unknown> = {};
+      if (globalConfig.CountertopColor) countertopConfig.CountertopColor = globalConfig.CountertopColor;
+      if (globalConfig.Thickness) countertopConfig.Thickness = globalConfig.Thickness;
+
+      if (!Object.keys(countertopConfig).length) return;
+
+      const productTypes = Array.from(
+        new Set(presetProducts.map((preset) => preset.name).filter((name): name is string => Boolean(name))),
+      );
+
+      await Promise.all([
+        ...productTypes.map(() => setConfigBatch({}, countertopConfig)),
+        setConfigBatch(getCountertopProductBatchSelector(), countertopConfig),
+      ]);
+    },
+    [],
+  );
+
   const applyPresetSelection = useCallback(
     async (
       presetProducts?: PresetProduct[],
@@ -352,12 +438,16 @@ export const ModelPage = () => {
         const preserveCountertopSelections = options?.preserveCountertopSelections !== false;
         const overrides = preserveCountertopSelections ? transferableOverrides : colorTransferableOverrides;
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
-        const globalConfig = {
-          ...resolvePresetSceneDefaults(effectivePresetProducts),
-          ...resolveColorSceneOverrides(),
-          ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
-        };
+        const globalConfig = resolveCompatibleCountertopSceneConfig(
+          {
+            ...resolvePresetSceneDefaults(effectivePresetProducts),
+            ...resolveColorSceneOverrides(),
+            ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
+          },
+          effectivePresetProducts,
+        );
         await addPreset(effectivePresetProducts, globalConfig);
+        await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
         syncPresetProductIdsFromScene(effectivePresetProducts);
 
         if (effectivePresetProducts.length) {
@@ -401,6 +491,7 @@ export const ModelPage = () => {
       configuratorData,
       dispatch,
       resetRestrictedCountertopSelections,
+      resolveCompatibleCountertopSceneConfig,
       resolveColorSceneOverrides,
       resolveCountertopSceneOverrides,
       searchParams,
@@ -408,12 +499,17 @@ export const ModelPage = () => {
       transferableOverrides,
       updateSelectedDimensionsFromScene,
       spGroove,
+      syncCountertopSceneConfigAfterPreset,
       syncPresetProductIdsFromScene,
     ],
   );
 
   const handleAddPreset = useCallback(
-    async (presetProducts?: PresetProduct[], presetId?: number, options?: { syncUrl?: boolean; skipCompatibilityPrompt?: boolean }) => {
+    async (
+      presetProducts?: PresetProduct[],
+      presetId?: number,
+      options?: { syncUrl?: boolean; skipCompatibilityPrompt?: boolean },
+    ) => {
       if (!presetProducts?.length) {
         await applyPresetSelection(presetProducts, presetId, options);
         return;
@@ -464,7 +560,9 @@ export const ModelPage = () => {
   }, []);
 
   const rehydrateCountertopFromPresets = (presetProducts: PresetProduct[]) => {
-    const color = presetProducts.find((p) => typeof p.CountertopColor === "string" && p.CountertopColor)?.CountertopColor;
+    const color = presetProducts.find(
+      (p) => typeof p.CountertopColor === "string" && p.CountertopColor,
+    )?.CountertopColor;
     const sinkType = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType)?.sinkType;
 
     if (color) {
@@ -599,13 +697,17 @@ export const ModelPage = () => {
         const restoredFaucetHolesAmount =
           (typeof uiStateValues?.FaucetHolesAmount === "string" && uiStateValues.FaucetHolesAmount) || undefined;
         const restoredSinkType = (typeof uiStateValues?.sinkType === "string" && uiStateValues.sinkType) || undefined;
-        const globalConfig = {
-          ...resolvePresetSceneDefaults(presetProducts),
-          ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
-          ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
-        };
+        const globalConfig = resolveCompatibleCountertopSceneConfig(
+          {
+            ...resolvePresetSceneDefaults(presetProducts),
+            ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
+            ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
+          },
+          presetProducts,
+        );
 
         await addPreset(presetProducts, globalConfig);
+        await syncCountertopSceneConfigAfterPreset(globalConfig, presetProducts);
 
         // Rebuild presets from real scene configs to keep SKU-driving fields
         // (name/drawers/handle/dimensions) consistent after restore.
@@ -649,6 +751,8 @@ export const ModelPage = () => {
     configuratorData,
     dispatch,
     restoreConfiguration,
+    resolveCompatibleCountertopSceneConfig,
+    syncCountertopSceneConfigAfterPreset,
     syncPresetProductIdsFromScene,
     updateSelectedDimensionsFromScene,
   ]);
@@ -668,12 +772,16 @@ export const ModelPage = () => {
     const run = async () => {
       try {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
-        const globalConfig = {
-          ...resolvePresetSceneDefaults(effectivePresetProducts),
-          ...resolveColorSceneOverrides(),
-          ...resolveCountertopSceneOverrides(),
-        };
+        const globalConfig = resolveCompatibleCountertopSceneConfig(
+          {
+            ...resolvePresetSceneDefaults(effectivePresetProducts),
+            ...resolveColorSceneOverrides(),
+            ...resolveCountertopSceneOverrides(),
+          },
+          effectivePresetProducts,
+        );
         await addPreset(effectivePresetProducts, globalConfig);
+        await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
         syncPresetProductIdsFromScene(effectivePresetProducts);
 
         if (!productsPresets.length) {
@@ -708,8 +816,10 @@ export const ModelPage = () => {
     dispatch,
     presetFromUrl,
     productsPresets,
+    resolveCompatibleCountertopSceneConfig,
     resolveColorSceneOverrides,
     resolveCountertopSceneOverrides,
+    syncCountertopSceneConfigAfterPreset,
     transferableOverrides,
     syncPresetProductIdsFromScene,
     updateSelectedDimensionsFromScene,

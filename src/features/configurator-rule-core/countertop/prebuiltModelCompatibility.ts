@@ -1,7 +1,14 @@
 import type { PresetProduct } from "@/entities/product/types";
 
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
-import { materialMatchesRule, matchesDepthForStyle, normalizeMaterialToken } from "./parse";
+import {
+  materialMatchesRule,
+  matchesDepthForStyle,
+  normalizeBasinKey,
+  normalizeBasinToken,
+  normalizeMaterialToken,
+  parseThicknessValue,
+} from "./parse";
 import { buildCountertopRuleState } from "./rules";
 import { isCountertopRuleWidthAllowed, resolveCountertopWidthRuleStyle } from "./sizeFilters";
 import type { CountertopMatrixRule } from "./types";
@@ -69,17 +76,78 @@ const resolveStyleKey = (value?: string | null): "integrated" | "vessel" | "unde
   return null;
 };
 
+const matchesThickness = (rule: CountertopMatrixRule, activeThickness?: string | null): boolean => {
+  if (!activeThickness) return true;
+
+  const activeThicknessValue = parseThicknessValue(activeThickness);
+  if (activeThicknessValue === null) return true;
+
+  return rule.topThicknesses
+    .map((value) => parseThicknessValue(value))
+    .filter((value): value is number => value !== null)
+    .some((value) => Math.abs(value - activeThicknessValue) < 0.001);
+};
+
+const getBasinScopedRules = ({
+  rules,
+  activeBasinStyle,
+  widthRuleStyle,
+}: {
+  rules: CountertopMatrixRule[];
+  activeBasinStyle?: string | null;
+  widthRuleStyle: ReturnType<typeof resolveCountertopWidthRuleStyle>;
+}): CountertopMatrixRule[] => {
+  if (widthRuleStyle !== "integrated" || !activeBasinStyle) return rules;
+
+  const activeBasinKey = normalizeBasinKey(activeBasinStyle);
+  if (activeBasinKey) {
+    const keyMatched = rules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
+    if (keyMatched.length > 0) return keyMatched;
+  }
+
+  const activeBasinToken = normalizeBasinToken(activeBasinStyle);
+  if (!activeBasinToken) return [];
+
+  return rules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
+};
+
+const scopeRulesBySelection = ({
+  rules,
+  activeBasinStyle,
+  activeThickness,
+  widthRuleStyle,
+}: {
+  rules: CountertopMatrixRule[];
+  activeBasinStyle?: string | null;
+  activeThickness?: string | null;
+  widthRuleStyle: ReturnType<typeof resolveCountertopWidthRuleStyle>;
+}): CountertopMatrixRule[] => {
+  const basinScopedRules = getBasinScopedRules({
+    rules,
+    activeBasinStyle,
+    widthRuleStyle,
+  });
+  const thicknessScopedRules = basinScopedRules.filter((rule) => matchesThickness(rule, activeThickness));
+
+  const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+  if (activeThicknessValue !== null) return thicknessScopedRules;
+
+  return thicknessScopedRules.length > 0 ? thicknessScopedRules : basinScopedRules;
+};
+
 const isMaterialCompatible = ({
   rules,
   activeMaterialTokens,
   activeCountertopStyle,
   activeBasinStyle,
+  activeThickness,
   dimensions,
 }: {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
   activeCountertopStyle?: string | null;
   activeBasinStyle?: string | null;
+  activeThickness?: string | null;
   dimensions: PrebuiltPresetDimensions;
 }): boolean => {
   if (!activeMaterialTokens.length) return true;
@@ -106,8 +174,17 @@ const isMaterialCompatible = ({
     return materialMatchingRules.length === 0 && activeMaterialTokens.some((token) => normalizeMaterialToken(token) === "ceramic");
   }
 
+  const selectionScopedRules = scopeRulesBySelection({
+    rules: applicableRules,
+    activeBasinStyle,
+    activeThickness,
+    widthRuleStyle,
+  });
+
+  if (!selectionScopedRules.length) return false;
+
   const matchesWidth = (width: number, context: "total" | "sb") =>
-    applicableRules.some((rule) =>
+    selectionScopedRules.some((rule) =>
       isCountertopRuleWidthAllowed({
         rule,
         width,
@@ -140,6 +217,7 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
     activeMaterialTokens,
     activeCountertopStyle,
     activeBasinStyle,
+    activeThickness,
     dimensions,
   });
   if (!materialCompatible) {

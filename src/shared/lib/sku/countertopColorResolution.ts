@@ -1,5 +1,5 @@
 import { extractColorCode } from "./extractColorCode";
-import { resolveCountertopMaterialSkuFromColorCode } from "./countertopSkuMaps";
+import { resolveCountertopMaterialSkuFromBasinType, resolveCountertopMaterialSkuFromColorCode } from "./countertopSkuMaps";
 import { resolveDefaultBasinByCountertopColor } from "./resolveDefaultBasinByCountertopColor";
 
 type ConfiguratorVariantMetadataLike = {
@@ -124,6 +124,10 @@ export const getCountertopMaterialTokensBySku = (sku?: string | null): string[] 
 export const getCountertopMaterialTokensFromBasinType = (basinType?: string | null): string[] => {
   const basin = basinType?.trim() ?? "";
   if (!basin) return [];
+
+  const materialSku = resolveCountertopMaterialSkuFromBasinType(basin);
+  const skuMaterialTokens = getCountertopMaterialTokensBySku(materialSku);
+  if (skuMaterialTokens.length > 0) return skuMaterialTokens;
 
   if (basin.startsWith("Top_Glass_")) return ["glass"];
   if (basin.startsWith("Top_Tekorlux_")) return ["tekorlux", "sstkr"];
