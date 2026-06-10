@@ -53,6 +53,7 @@ const JOYRIDE_SPOTLIGHT_RADIUS = 4;
 const JOYRIDE_SPOTLIGHT_PADDING = 0;
 const STEP_PREPARATION_DELAY_MS = 250;
 const STEP_CONTENT_SCROLL_CONTAINER_SELECTOR = '[data-scroll-container="step-content"]';
+const DEFAULT_START_ROUTE = `${ROUTES.PREBUILT}/model`;
 
 const CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
@@ -376,7 +377,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
     dispatch(setOpenStyleSidebar(false));
-    navigate(ROUTES.HOME, { replace: true });
+    navigate(DEFAULT_START_ROUTE, { replace: true });
     onClose();
   }, [dispatch, navigate, onClose]);
 

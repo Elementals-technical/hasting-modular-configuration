@@ -6,11 +6,19 @@ import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "./targets";
 
 const INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID = 1;
 const getPrebuiltModelRoute = (presetId: number) => `/prebuilt/model?preset=${presetId}`;
+const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style", presetId: number) =>
+  `/custom/cabinet-builder?accordion=${accordion}&preset=${presetId}`;
 
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES = {
   prebuiltModel: getPrebuiltModelRoute(INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID),
-  customCabinetType: "/custom/cabinet-builder?accordion=cabinet-type",
-  customCabinetStyle: "/custom/cabinet-builder?accordion=cabinet-style",
+  customCabinetType: getCustomCabinetBuilderRoute(
+    "cabinet-type",
+    INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID,
+  ),
+  customCabinetStyle: getCustomCabinetBuilderRoute(
+    "cabinet-style",
+    INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID,
+  ),
 } as const;
 
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
