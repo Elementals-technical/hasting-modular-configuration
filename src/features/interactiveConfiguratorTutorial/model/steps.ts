@@ -47,6 +47,7 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
     secondaryAction: "back",
     route: INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES.prebuiltModel,
     spotlightPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+    allowTargetScroll: true,
   },
   {
     id: INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,

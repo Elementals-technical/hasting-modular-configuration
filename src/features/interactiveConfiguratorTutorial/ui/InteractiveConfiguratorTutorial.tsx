@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useCallback, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ACTIONS,
   Joyride,
@@ -54,6 +54,7 @@ const JOYRIDE_ARROW_HEIGHT = 52;
 const JOYRIDE_SPOTLIGHT_RADIUS = 4;
 const JOYRIDE_SPOTLIGHT_PADDING = 0;
 const STEP_PREPARATION_DELAY_MS = 250;
+const STEP_CONTENT_SCROLL_CONTAINER_SELECTOR = '[data-scroll-container="step-content"]';
 
 const CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
@@ -94,6 +95,7 @@ const mapTutorialStepToJoyrideStep = (step: InteractiveConfiguratorTutorialStep)
   placement: step.placement,
   title: step.title,
   content: step.description,
+  blockTargetInteraction: !step.allowTargetScroll,
   skipScroll: step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
   spotlightPadding: step.spotlightPadding,
   styles:
@@ -152,7 +154,7 @@ const getPrebuiltModelsGridViewportRect = (): ViewportRect | null => {
 
   if (!(target instanceof HTMLElement)) return null;
 
-  const scrollContainer = target.closest('[data-scroll-container="step-content"]');
+  const scrollContainer = target.closest(STEP_CONTENT_SCROLL_CONTAINER_SELECTOR);
   const targetRect = target.getBoundingClientRect();
   const containerRect =
     scrollContainer instanceof HTMLElement ? scrollContainer.getBoundingClientRect() : targetRect;
@@ -345,15 +347,34 @@ const TutorialTooltip = ({
 const isTerminalJoyrideEvent = ({ action, status }: EventData): boolean =>
   action === ACTIONS.CLOSE || status === STATUS.FINISHED || status === STATUS.SKIPPED;
 
+const getTutorialTargetElements = (step: InteractiveConfiguratorTutorialStep): HTMLElement[] => {
+  const selector = getInteractiveConfiguratorTutorialTargetSelector(step.target);
+
+  return Array.from(document.querySelectorAll<HTMLElement>(selector));
+};
+
+const shouldBlockTargetEvent = (step: InteractiveConfiguratorTutorialStep, eventTarget: EventTarget | null): boolean => {
+  if (!(eventTarget instanceof Node)) return false;
+
+  return getTutorialTargetElements(step).some((target) => target.contains(eventTarget));
+};
+
 export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: InteractiveConfiguratorTutorialProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [playCanvasTargetRect, setPlayCanvasTargetRect] = useState<ViewportRect | null>(null);
   const [prebuiltModelsGridTargetRect, setPrebuiltModelsGridTargetRect] = useState<ViewportRect | null>(null);
+  const [activeStepId, setActiveStepId] = useState<InteractiveConfiguratorTutorialStep["id"] | null>(null);
+
+  const activeStep = useMemo<InteractiveConfiguratorTutorialStep | undefined>(
+    () => INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS.find((step) => step.id === activeStepId),
+    [activeStepId],
+  );
 
   const closeTutorial = useCallback(() => {
     dispatchInteractiveConfiguratorTutorialEvent(INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.cancelPendingActions);
+    setActiveStepId(null);
     setPlayCanvasTargetRect(null);
     setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
@@ -363,6 +384,8 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
 
   const prepareTutorialStep = useCallback(
     async (step: InteractiveConfiguratorTutorialStep) => {
+      setActiveStepId(step.id);
+
       if (step.route && `${location.pathname}${location.search}` !== step.route) {
         navigate(step.route);
       }
@@ -436,6 +459,27 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     },
     [closeTutorial],
   );
+
+  useEffect(() => {
+    if (!isOpen || !activeStep?.allowTargetScroll) return;
+
+    const blockTargetClick = (event: MouseEvent) => {
+      if (!shouldBlockTargetEvent(activeStep, event.target)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    document.addEventListener("click", blockTargetClick, true);
+    document.addEventListener("dblclick", blockTargetClick, true);
+    document.addEventListener("auxclick", blockTargetClick, true);
+
+    return () => {
+      document.removeEventListener("click", blockTargetClick, true);
+      document.removeEventListener("dblclick", blockTargetClick, true);
+      document.removeEventListener("auxclick", blockTargetClick, true);
+    };
+  }, [activeStep, isOpen]);
 
   return (
     <>
