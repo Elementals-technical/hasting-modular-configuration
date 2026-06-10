@@ -29,4 +29,5 @@ export type InteractiveConfiguratorTutorialStep = {
   secondaryAction?: "back" | "skip";
   route?: string;
   spotlightPadding?: JoyrideStep["spotlightPadding"];
+  allowTargetScroll?: boolean;
 };

@@ -4,10 +4,33 @@ import {
 } from "./types";
 import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "./targets";
 
+const INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID = 1;
+export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY = {
+  name: "interactiveTutorial",
+  value: "1",
+} as const;
+
+const getPrebuiltModelRoute = (presetId: number) => `/prebuilt/model?preset=${presetId}`;
+const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style", presetId: number) => {
+  const searchParams = new URLSearchParams({
+    accordion,
+    preset: String(presetId),
+    [INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.name]: INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.value,
+  });
+
+  return `/custom/cabinet-builder?${searchParams.toString()}`;
+};
+
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES = {
-  prebuiltModel: "/prebuilt/model",
-  customCabinetType: "/custom/cabinet-builder?accordion=cabinet-type",
-  customCabinetStyle: "/custom/cabinet-builder?accordion=cabinet-style",
+  prebuiltModel: getPrebuiltModelRoute(INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID),
+  customCabinetType: getCustomCabinetBuilderRoute(
+    "cabinet-type",
+    INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID,
+  ),
+  customCabinetStyle: getCustomCabinetBuilderRoute(
+    "cabinet-style",
+    INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID,
+  ),
 } as const;
 
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
@@ -47,6 +70,7 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
     secondaryAction: "back",
     route: INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES.prebuiltModel,
     spotlightPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+    allowTargetScroll: true,
   },
   {
     id: INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,

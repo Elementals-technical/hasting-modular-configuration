@@ -1,6 +1,7 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
+import { resolveQuoteConfigurationIdFromUrl } from "@/features/quotePrint/lib/quoteConfiguration";
 
 import s from "./QuotePrintDocument.module.scss";
 
@@ -31,6 +32,7 @@ type QuotePrintDocumentProps = {
   modelName: string;
   generatedDate: string;
   configurationLink: string;
+  configurationId?: string | null;
 };
 
 const EMPTY_PREVIEW_IMAGE =
@@ -92,7 +94,9 @@ const resolveMaterialText = (item: PrintItem) => {
     if (category === "Towel Bar") {
       return joinValues([material, colorCode], " | ");
     }
-    return joinValues([`${category}:`, material, colorCode], " | ");
+
+    const valueText = joinValues([material, colorCode], " | ");
+    return valueText ? `${category}: ${valueText}` : `${category}:`;
   }
 
   if (item.swatch?.value) return `${item.swatch.label}: ${item.swatch.value}`;
@@ -547,8 +551,10 @@ export const QuotePrintDocument = ({
   modelName,
   generatedDate,
   configurationLink,
+  configurationId,
 }: QuotePrintDocumentProps) => {
   const previewImageSrc = previewImage || EMPTY_PREVIEW_IMAGE;
+  const displayConfigurationId = configurationId || resolveQuoteConfigurationIdFromUrl(configurationLink);
   const totalPrice = summarySections.reduce((acc, section) => {
     const sectionSum = section.items.reduce((sum, item) => sum + parsePriceValue(item.price), 0);
     return acc + sectionSum;
@@ -601,6 +607,12 @@ export const QuotePrintDocument = ({
                         <span className={s.metaLabel}>Date Generated:</span>
                         <span className={s.metaValue}>{generatedDate}</span>
                       </div>
+                      {displayConfigurationId ? (
+                        <div className={s.metaRow}>
+                          <span className={s.metaLabel}>Configuration ID:</span>
+                          <span className={s.metaValue}>{displayConfigurationId}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 

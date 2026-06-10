@@ -119,6 +119,10 @@ import { printQuote } from "@/features/quotePrint/lib/printQuote";
 import { captureQuotePreviewImage } from "@/features/quotePrint/lib/captureQuotePreviewImage";
 import { formatQuoteGeneratedDate } from "@/features/quotePrint/lib/formatQuoteGeneratedDate";
 import {
+  resolveQuoteConfigurationId,
+  type QuoteConfigurationLinkStatus,
+} from "@/features/quotePrint/lib/quoteConfiguration";
+import {
   convertSkuToInchesForSummary,
   formatCabinetSubtitleForSummary,
   formatCabinetTitleForSummary,
@@ -352,7 +356,13 @@ export const SummaryPage = () => {
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
+  const [configurationLinkStatus, setConfigurationLinkStatus] =
+    useState<QuoteConfigurationLinkStatus>("idle");
   const [saveConfiguration] = useSaveConfigurationMutation();
+  const quoteConfigurationId = useMemo(
+    () => resolveQuoteConfigurationId(location.search, generatedConfigId),
+    [generatedConfigId, location.search],
+  );
 
   const handleCopy = (text: string, id: string) => {
     if (!navigator.clipboard) {
@@ -551,6 +561,7 @@ export const SummaryPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("print") !== "1") return;
+    if (!quoteConfigurationId && configurationLinkStatus !== "settled") return;
     let isCancelled = false;
 
     const timer = window.setTimeout(() => {
@@ -577,7 +588,7 @@ export const SummaryPage = () => {
       isCancelled = true;
       window.clearTimeout(timer);
     };
-  }, [location.search, location.pathname, navigate]);
+  }, [configurationLinkStatus, location.search, location.pathname, navigate, quoteConfigurationId]);
 
   const buildCabinetDescription = useCallback(
     (opts: {
@@ -1783,14 +1794,23 @@ export const SummaryPage = () => {
   );
 
   useEffect(() => {
-    const configIdFromUrl = new URLSearchParams(location.search).get("configId");
-    if (configIdFromUrl) return;
+    const configIdFromUrl = resolveQuoteConfigurationId(location.search, null);
+    if (configIdFromUrl) {
+      setConfigurationLinkStatus("settled");
+      return;
+    }
 
     let isCancelled = false;
 
     const run = async () => {
+      setConfigurationLinkStatus("pending");
       const ids = getOrderedProductIds();
-      if (!ids.length) return;
+      if (!ids.length) {
+        if (!isCancelled) {
+          setConfigurationLinkStatus("settled");
+        }
+        return;
+      }
 
       try {
         const configs = await Promise.all(ids.map((id) => getConfig(id)));
@@ -1842,6 +1862,10 @@ export const SummaryPage = () => {
         }
       } catch (error) {
         console.error("[Summary Share] Failed to generate configuration link", error);
+      } finally {
+        if (!isCancelled) {
+          setConfigurationLinkStatus("settled");
+        }
       }
     };
 
@@ -1967,12 +1991,11 @@ export const SummaryPage = () => {
 
   const quoteGeneratedDate = useMemo(() => formatQuoteGeneratedDate(), []);
   const configurationLink = useMemo(() => {
-    const configId = new URLSearchParams(location.search).get("configId") || generatedConfigId;
-    if (configId) {
-      return `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(configId)}`;
+    if (quoteConfigurationId) {
+      return `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(quoteConfigurationId)}`;
     }
     return `${window.location.origin}${location.pathname}${location.search}`;
-  }, [generatedConfigId, location.pathname, location.search]);
+  }, [location.pathname, location.search, quoteConfigurationId]);
 
   // Prices are fetched reactively by usePriceCalculation hook in ConfiguratorSidebar.
   // This page only reads from the store.
@@ -2174,6 +2197,7 @@ export const SummaryPage = () => {
         modelName={quoteModelName}
         generatedDate={quoteGeneratedDate}
         configurationLink={configurationLink}
+        configurationId={quoteConfigurationId}
       />
     </>
   );

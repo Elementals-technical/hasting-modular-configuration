@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
-import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features/interactiveConfiguratorTutorial";
+import {
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
+  subscribeToInteractiveConfiguratorTutorialActiveStepChange,
+} from "@/features/interactiveConfiguratorTutorial";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
@@ -71,6 +75,10 @@ interface RightCabinetStyleSidebarProps {
 }
 
 const JOYRIDE_FLOATER_SELECTOR = ".react-joyride__floater";
+const STYLE_SIDEBAR_LOCKED_TUTORIAL_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
+]);
 
 interface PendingHandleChange {
   next: string;
@@ -137,6 +145,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
+  const [isStyleSidebarTutorialStepActive, setIsStyleSidebarTutorialStepActive] = useState(false);
   const hasModalOpen =
     pendingHandleChange !== null ||
     pendingOssHandleChange !== null ||
@@ -164,6 +173,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (value === "handle_pto") return ptoHandleImage;
     return image;
   }, [selectedProductConfig?.Handle]);
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialActiveStepChange(({ stepId }) => {
+        setIsStyleSidebarTutorialStepActive(
+          stepId !== null && STYLE_SIDEBAR_LOCKED_TUTORIAL_STEP_IDS.has(stepId),
+        );
+      }),
+    [],
+  );
 
   const normalizeMaterialLabel = (value: string) => {
     const parts = value
@@ -366,6 +385,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   ]);
 
   const handleCloseSidebar = () => {
+    if (isStyleSidebarTutorialStepActive) return;
+
     dispatch(setOpenStyleSidebar(false));
   };
 
@@ -617,6 +638,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   useEffect(() => {
     if (!isOpenedStyleSidebar) return;
     if (hasModalOpen) return;
+    if (isStyleSidebarTutorialStepActive) return;
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!sidebarRef.current) return;
@@ -632,7 +654,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [dispatch, hasModalOpen, isOpenedStyleSidebar]);
+  }, [dispatch, hasModalOpen, isOpenedStyleSidebar, isStyleSidebarTutorialStepActive]);
 
   // Set the product to the desired side (left/right).
   useEffect(() => {
