@@ -74,6 +74,7 @@ import {
   buildCountertopColorSkuCandidates,
   getCountertopMaterialTokensFromBasinType,
   resolveDefaultBasinForCountertopSelection,
+  resolveCountertopColorSkuFromCandidates,
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 import { optionsMockData3 } from "../countertop/constants";
@@ -245,6 +246,64 @@ export const ModelPage = () => {
       }),
     [countertopColor, countertopColorSku, countertopColorSkuCandidatesByValue, selectedCountertopSinkType],
   );
+  const resolveCountertopSkuForSelection = useCallback(
+    (color?: string | null, sinkType?: string | null): string => {
+      if (!color) return "";
+
+      return (
+        resolveCountertopColorSkuFromCandidates({
+          value: color,
+          candidatesByValue: countertopColorSkuCandidatesByValue,
+          preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(sinkType),
+        }) ??
+        findCountertopSkuByColorName(configuratorData, color) ??
+        ""
+      );
+    },
+    [configuratorData, countertopColorSkuCandidatesByValue],
+  );
+  const syncCountertopSelectionFromSceneConfig = useCallback(
+    (globalConfig: PresetSceneDefaults, options?: { clearMissing?: boolean }) => {
+      const clearMissing = options?.clearMissing === true;
+
+      if (globalConfig.CountertopColor) {
+        dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
+        dispatch(
+          setCountertopColorSku(resolveCountertopSkuForSelection(globalConfig.CountertopColor, globalConfig.sinkType)),
+        );
+      } else if (clearMissing) {
+        dispatch(setActiveCountertopColor(""));
+        dispatch(setCountertopColorSku(""));
+      }
+
+      if (globalConfig.sinkType) {
+        dispatch(setActiveBasinStyle(globalConfig.sinkType));
+      } else if (clearMissing) {
+        dispatch(setActiveBasinStyle(""));
+      }
+
+      if (globalConfig.CountertopStyle) {
+        dispatch(setCountertopStyle(globalConfig.CountertopStyle));
+      } else if (clearMissing) {
+        dispatch(setCountertopStyle(""));
+      }
+    },
+    [dispatch, resolveCountertopSkuForSelection],
+  );
+  const resolveCountertopMaterialTokensForSceneConfig = useCallback(
+    (globalConfig: PresetSceneDefaults): string[] => {
+      const preferredMaterialTokens = getCountertopMaterialTokensFromBasinType(globalConfig.sinkType);
+      const resolvedTokens = resolveCountertopMaterialTokensFromCandidates({
+        value: globalConfig.CountertopColor,
+        candidatesByValue: countertopColorSkuCandidatesByValue,
+        preferredSku: resolveCountertopSkuForSelection(globalConfig.CountertopColor, globalConfig.sinkType),
+        preferredMaterialTokens,
+      });
+
+      return resolvedTokens.length ? resolvedTokens : preferredMaterialTokens;
+    },
+    [countertopColorSkuCandidatesByValue, resolveCountertopSkuForSelection],
+  );
 
   const presetFromUrl = useMemo(() => {
     if (presetIdFromUrl === null) return null;
@@ -371,9 +430,7 @@ export const ModelPage = () => {
     (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]): PresetSceneDefaults => {
       if (globalConfig.CountertopStyle !== "Integrated" || !globalConfig.sinkType) return globalConfig;
 
-      const materialTokens = activeCountertopMaterialTokens.length
-        ? activeCountertopMaterialTokens
-        : getCountertopMaterialTokensFromBasinType(globalConfig.sinkType);
+      const materialTokens = resolveCountertopMaterialTokensForSceneConfig(globalConfig);
       if (!materialTokens.length) return globalConfig;
 
       const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
@@ -397,7 +454,7 @@ export const ModelPage = () => {
         CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
       };
     },
-    [activeCountertopMaterialTokens, countertopRules, countertopThickness],
+    [countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
   );
 
   const syncCountertopSceneConfigAfterPreset = useCallback(
@@ -452,13 +509,7 @@ export const ModelPage = () => {
 
         if (effectivePresetProducts.length) {
           dispatch(addProductPreset(effectivePresetProducts));
-          if (globalConfig.CountertopColor) {
-            dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
-            const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor);
-            if (sku) dispatch(setCountertopColorSku(sku));
-          }
-          if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
-          if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
+          syncCountertopSelectionFromSceneConfig(globalConfig, { clearMissing: !preserveCountertopSelections });
         }
         if (!preserveCountertopSelections) {
           resetRestrictedCountertopSelections();
@@ -488,7 +539,6 @@ export const ModelPage = () => {
     },
     [
       colorTransferableOverrides,
-      configuratorData,
       dispatch,
       resetRestrictedCountertopSelections,
       resolveCompatibleCountertopSceneConfig,
@@ -496,6 +546,7 @@ export const ModelPage = () => {
       resolveCountertopSceneOverrides,
       searchParams,
       setSearchParams,
+      syncCountertopSelectionFromSceneConfig,
       transferableOverrides,
       updateSelectedDimensionsFromScene,
       spGroove,
@@ -567,8 +618,7 @@ export const ModelPage = () => {
 
     if (color) {
       dispatch(setActiveCountertopColor(color));
-      const sku = findCountertopSkuByColorName(configuratorData, color);
-      if (sku) dispatch(setCountertopColorSku(sku));
+      dispatch(setCountertopColorSku(resolveCountertopSkuForSelection(color, sinkType)));
     }
     if (sinkType) {
       dispatch(setActiveBasinStyle(sinkType));
@@ -786,13 +836,7 @@ export const ModelPage = () => {
 
         if (!productsPresets.length) {
           dispatch(addProductPreset(effectivePresetProducts));
-          if (globalConfig.CountertopColor) {
-            dispatch(setActiveCountertopColor(globalConfig.CountertopColor));
-            const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor);
-            if (sku) dispatch(setCountertopColorSku(sku));
-          }
-          if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType));
-          if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle));
+          syncCountertopSelectionFromSceneConfig(globalConfig);
         }
 
         await updateSelectedDimensionsFromScene(effectivePresetProducts);
@@ -819,6 +863,7 @@ export const ModelPage = () => {
     resolveCompatibleCountertopSceneConfig,
     resolveColorSceneOverrides,
     resolveCountertopSceneOverrides,
+    syncCountertopSelectionFromSceneConfig,
     syncCountertopSceneConfigAfterPreset,
     transferableOverrides,
     syncPresetProductIdsFromScene,
