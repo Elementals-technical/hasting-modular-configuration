@@ -94,7 +94,9 @@ const resolveMaterialText = (item: PrintItem) => {
     if (category === "Towel Bar") {
       return joinValues([material, colorCode], " | ");
     }
-    return joinValues([`${category}:`, material, colorCode], " | ");
+
+    const valueText = joinValues([material, colorCode], " | ");
+    return valueText ? `${category}: ${valueText}` : `${category}:`;
   }
 
   if (item.swatch?.value) return `${item.swatch.label}: ${item.swatch.value}`;
