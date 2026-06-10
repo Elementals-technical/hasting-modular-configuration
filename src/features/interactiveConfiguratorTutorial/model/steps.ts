@@ -4,8 +4,11 @@ import {
 } from "./types";
 import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "./targets";
 
+const INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID = 1;
+const getPrebuiltModelRoute = (presetId: number) => `/prebuilt/model?preset=${presetId}`;
+
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES = {
-  prebuiltModel: "/prebuilt/model",
+  prebuiltModel: getPrebuiltModelRoute(INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID),
   customCabinetType: "/custom/cabinet-builder?accordion=cabinet-type",
   customCabinetStyle: "/custom/cabinet-builder?accordion=cabinet-style",
 } as const;
