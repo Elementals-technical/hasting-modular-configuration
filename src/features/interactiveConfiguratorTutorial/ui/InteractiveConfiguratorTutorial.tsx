@@ -11,7 +11,7 @@ import {
 } from "react-joyride";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { BaseButton } from "@/shared";
+import { BaseButton, ROUTES } from "@/shared";
 import { ArrowInteractive } from "@/shared/assets/images/svg/ArrowInteractive";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
@@ -376,8 +376,9 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
     dispatch(setOpenStyleSidebar(false));
+    navigate(ROUTES.HOME, { replace: true });
     onClose();
-  }, [dispatch, onClose]);
+  }, [dispatch, navigate, onClose]);
 
   const prepareTutorialStep = useCallback(
     async (step: InteractiveConfiguratorTutorialStep) => {
