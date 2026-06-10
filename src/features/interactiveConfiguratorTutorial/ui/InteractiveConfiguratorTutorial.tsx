@@ -19,10 +19,7 @@ import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButton
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 import { INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS } from "../model/steps";
-import {
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS,
-  type InteractiveConfiguratorTutorialStep,
-} from "../model/types";
+import { INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS, type InteractiveConfiguratorTutorialStep } from "../model/types";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
   getInteractiveConfiguratorTutorialTargetSelector,
@@ -30,6 +27,7 @@ import {
 import { getPlayCanvasPlusButtonViewportRect } from "../lib/getPlayCanvasPlusButtonViewportRect";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
+  dispatchInteractiveConfiguratorTutorialActiveStepChange,
   dispatchInteractiveConfiguratorTutorialEvent,
 } from "../lib/tutorialBridge";
 
@@ -47,7 +45,7 @@ type ViewportRect = {
   height: number;
 };
 
-const JOYRIDE_Z_INDEX = 240;
+const JOYRIDE_Z_INDEX = 2000;
 const JOYRIDE_TOOLTIP_WIDTH = 420;
 const JOYRIDE_ARROW_WIDTH = 48;
 const JOYRIDE_ARROW_HEIGHT = 52;
@@ -156,8 +154,7 @@ const getPrebuiltModelsGridViewportRect = (): ViewportRect | null => {
 
   const scrollContainer = target.closest(STEP_CONTENT_SCROLL_CONTAINER_SELECTOR);
   const targetRect = target.getBoundingClientRect();
-  const containerRect =
-    scrollContainer instanceof HTMLElement ? scrollContainer.getBoundingClientRect() : targetRect;
+  const containerRect = scrollContainer instanceof HTMLElement ? scrollContainer.getBoundingClientRect() : targetRect;
   const top = Math.max(targetRect.top, containerRect.top);
   const bottom = Math.max(top, containerRect.bottom);
 
@@ -182,9 +179,7 @@ type StepButtonLabelData = Partial<
   Pick<InteractiveConfiguratorTutorialStep, "primaryLabel" | "secondaryLabel" | "secondaryAction" | "progressLabel">
 >;
 
-const isStepButtonLabelData = (
-  value: unknown,
-): value is StepButtonLabelData => {
+const isStepButtonLabelData = (value: unknown): value is StepButtonLabelData => {
   if (!value || typeof value !== "object") return false;
 
   const data = value as Record<string, unknown>;
@@ -312,9 +307,7 @@ const TutorialTooltip = ({
         </button>
       </div>
 
-      <div className={s.content}>
-        {renderDescription(step.content)}
-      </div>
+      <div className={s.content}>{renderDescription(step.content)}</div>
 
       <div className={s.footer}>
         <div className={s.progress}>{progressLabel}</div>
@@ -353,7 +346,10 @@ const getTutorialTargetElements = (step: InteractiveConfiguratorTutorialStep): H
   return Array.from(document.querySelectorAll<HTMLElement>(selector));
 };
 
-const shouldBlockTargetEvent = (step: InteractiveConfiguratorTutorialStep, eventTarget: EventTarget | null): boolean => {
+const shouldBlockTargetEvent = (
+  step: InteractiveConfiguratorTutorialStep,
+  eventTarget: EventTarget | null,
+): boolean => {
   if (!(eventTarget instanceof Node)) return false;
 
   return getTutorialTargetElements(step).some((target) => target.contains(eventTarget));
@@ -374,6 +370,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
 
   const closeTutorial = useCallback(() => {
     dispatchInteractiveConfiguratorTutorialEvent(INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.cancelPendingActions);
+    dispatchInteractiveConfiguratorTutorialActiveStepChange(null);
     setActiveStepId(null);
     setPlayCanvasTargetRect(null);
     setPrebuiltModelsGridTargetRect(null);
@@ -384,6 +381,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
 
   const prepareTutorialStep = useCallback(
     async (step: InteractiveConfiguratorTutorialStep) => {
+      dispatchInteractiveConfiguratorTutorialActiveStepChange(step.id);
       setActiveStepId(step.id);
 
       if (step.route && `${location.pathname}${location.search}` !== step.route) {
@@ -407,9 +405,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
       }
 
       if (CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS.has(step.id)) {
-        dispatchInteractiveConfiguratorTutorialEvent(
-          INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetType,
-        );
+        dispatchInteractiveConfiguratorTutorialEvent(INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetType);
         await waitForStepPreparation();
       }
 
@@ -459,6 +455,12 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     },
     [closeTutorial],
   );
+
+  useEffect(() => {
+    if (isOpen) return;
+
+    dispatchInteractiveConfiguratorTutorialActiveStepChange(null);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || !activeStep?.allowTargetScroll) return;

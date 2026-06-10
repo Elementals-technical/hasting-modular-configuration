@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
-import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features/interactiveConfiguratorTutorial";
+import {
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
+  subscribeToInteractiveConfiguratorTutorialActiveStepChange,
+} from "@/features/interactiveConfiguratorTutorial";
 
 import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
@@ -137,6 +141,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
+  const [isSizingHandleTutorialStepActive, setIsSizingHandleTutorialStepActive] = useState(false);
   const hasModalOpen =
     pendingHandleChange !== null ||
     pendingOssHandleChange !== null ||
@@ -164,6 +169,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (value === "handle_pto") return ptoHandleImage;
     return image;
   }, [selectedProductConfig?.Handle]);
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialActiveStepChange(({ stepId }) => {
+        setIsSizingHandleTutorialStepActive(
+          stepId === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle,
+        );
+      }),
+    [],
+  );
 
   const normalizeMaterialLabel = (value: string) => {
     const parts = value
@@ -366,6 +381,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   ]);
 
   const handleCloseSidebar = () => {
+    if (isSizingHandleTutorialStepActive) return;
+
     dispatch(setOpenStyleSidebar(false));
   };
 
@@ -617,6 +634,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   useEffect(() => {
     if (!isOpenedStyleSidebar) return;
     if (hasModalOpen) return;
+    if (isSizingHandleTutorialStepActive) return;
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!sidebarRef.current) return;
@@ -632,7 +650,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [dispatch, hasModalOpen, isOpenedStyleSidebar]);
+  }, [dispatch, hasModalOpen, isOpenedStyleSidebar, isSizingHandleTutorialStepActive]);
 
   // Set the product to the desired side (left/right).
   useEffect(() => {
