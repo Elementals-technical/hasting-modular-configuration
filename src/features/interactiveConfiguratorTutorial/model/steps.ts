@@ -5,9 +5,21 @@ import {
 import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "./targets";
 
 const INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID = 1;
+export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY = {
+  name: "interactiveTutorial",
+  value: "1",
+} as const;
+
 const getPrebuiltModelRoute = (presetId: number) => `/prebuilt/model?preset=${presetId}`;
-const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style", presetId: number) =>
-  `/custom/cabinet-builder?accordion=${accordion}&preset=${presetId}`;
+const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style", presetId: number) => {
+  const searchParams = new URLSearchParams({
+    accordion,
+    preset: String(presetId),
+    [INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.name]: INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.value,
+  });
+
+  return `/custom/cabinet-builder?${searchParams.toString()}`;
+};
 
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES = {
   prebuiltModel: getPrebuiltModelRoute(INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID),

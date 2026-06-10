@@ -11,3 +11,4 @@ export {
   subscribeToInteractiveConfiguratorTutorialEvent,
 } from "./lib/tutorialBridge";
 export { INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS } from "./model/types";
+export { INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY } from "./model/steps";

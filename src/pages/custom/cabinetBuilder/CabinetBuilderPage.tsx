@@ -16,7 +16,9 @@ import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyl
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
+  subscribeToInteractiveConfiguratorTutorialActiveStepChange,
   subscribeToInteractiveConfiguratorTutorialEvent,
 } from "@/features/interactiveConfiguratorTutorial";
 
@@ -202,6 +204,7 @@ export const CabinetBuilderPage = () => {
   const [pendingTutorialDefaultCabinetType, setPendingTutorialDefaultCabinetType] = useState(false);
   const [pendingTutorialDefaultCabinetStyle, setPendingTutorialDefaultCabinetStyle] = useState(false);
   const [pendingTutorialSceneCabinet, setPendingTutorialSceneCabinet] = useState(false);
+  const [isInteractiveTutorialActive, setIsInteractiveTutorialActive] = useState(false);
 
   const bootstrappedRef = useRef(false);
   const customPresetInitializedRef = useRef<string | null>(null);
@@ -218,6 +221,9 @@ export const CabinetBuilderPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
+  const isInteractiveTutorialRoute =
+    searchParams.get(INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.name) ===
+    INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.value;
   const presetIdFromUrl = useMemo(() => {
     const rawPresetId = searchParams.get("preset");
     if (!rawPresetId) return null;
@@ -852,6 +858,14 @@ export const CabinetBuilderPage = () => {
       setPendingTutorialDefaultCabinetStyle(false);
     }
   }, [pendingTutorialDefaultCabinetStyle, selectTutorialDefaultCabinetStyle]);
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialActiveStepChange(({ stepId }) => {
+        setIsInteractiveTutorialActive(stepId !== null);
+      }),
+    [],
+  );
 
   useEffect(
     () =>
@@ -1697,11 +1711,13 @@ export const CabinetBuilderPage = () => {
       })(),
     },
   ];
+  const shouldShowBuildInfoPopup =
+    isOpenedBuildInfo && !isInteractiveTutorialActive && !isInteractiveTutorialRoute;
 
   return (
     <>
       <div className={s.cabinetBuilder}>
-        {isOpenedBuildInfo && <InstructionPopup handleClose={handleClose} />}
+        {shouldShowBuildInfoPopup && <InstructionPopup handleClose={handleClose} />}
 
         {
           <ConfiguratorAccordionGroup
