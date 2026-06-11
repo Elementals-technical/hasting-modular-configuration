@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useStore } from "react-redux";
 
-import { store } from "@/app/store";
+import type { RootState } from "@/app/store";
 import { replacePlacedDividersForDrawer } from "@/entities/product/model/store/slice";
 import { getSelectedDividerType } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -114,6 +115,9 @@ export function useDividerController<T extends DividerOptionBase>(
 
   const dispatch = useAppDispatch();
   const selectedType = useAppSelector(getSelectedDividerType);
+  // Store handle from the Provider (not a module import) — the dispatcher reads the
+  // freshest selectedType at click time, and tests can supply a minimal store.
+  const reduxStore = useStore();
 
   const [state, setState] = useState<DividerControllerState>({
     status: "idle",
@@ -146,8 +150,8 @@ export function useDividerController<T extends DividerOptionBase>(
   };
 
   const readSelectedType = useCallback(
-    (): DividerType | null => getSelectedDividerType(store.getState()),
-    [],
+    (): DividerType | null => getSelectedDividerType(reduxStore.getState() as RootState),
+    [reduxStore],
   );
 
   const showWarning = useCallback((message: string) => {
