@@ -2,7 +2,7 @@ import { baseApi } from "@/shared";
 
 import { routes } from "./routes";
 
-import type { CountertopDatatable } from "./types";
+import type { CountertopDatatable, CountertopSkuPriceResponse } from "./types";
 
 export const countertopApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -11,7 +11,17 @@ export const countertopApi = baseApi.injectEndpoints({
         url: routes.datatableById(id),
       }),
     }),
+    getCountertopTopPriceBySku: builder.query<CountertopSkuPriceResponse, { sku: string; widthCm: number }>({
+      query: ({ sku, widthCm }) => ({
+        url: routes.priceByCountertopTopSku(sku, widthCm),
+      }),
+    }),
   }),
 });
 
-export const { useGetCountertopDatatableQuery, useLazyGetCountertopDatatableQuery } = countertopApi;
+export const {
+  useGetCountertopDatatableQuery,
+  useLazyGetCountertopDatatableQuery,
+  useGetCountertopTopPriceBySkuQuery,
+  useLazyGetCountertopTopPriceBySkuQuery,
+} = countertopApi;

@@ -59,7 +59,11 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery } from "@/entities";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
-import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, isCountertopTopDynamicCandidate } from "@/entities/countertop";
+import {
+  useLazyGetCountertopTopPriceBySkuQuery,
+  type CountertopSkuPriceResponse,
+} from "@/entities/countertop/api";
 import {
   getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
@@ -118,6 +122,7 @@ export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
   const [triggerPriceBySkuV2Resolve] = useLazyGetProductPriceBySkuV2ResolveQuery();
+  const [triggerCountertopTopPriceBySku] = useLazyGetCountertopTopPriceBySkuQuery();
   const countertopWidthCmRef = useRef<number | null>(null);
 
   // ── Read all relevant state ───────────────────────────
@@ -1127,16 +1132,17 @@ export function usePriceCalculation() {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
-                const isCountertopSku = /^CT-UR[^-]+-(?:INTG|VES)(?:-|$)/.test(sku);
+                const countertopWidthCm = countertopWidthCmRef.current;
+                const isDynamicCountertopTopSku = isCountertopTopDynamicCandidate(sku, countertopWidthCm);
                 const isVesselSku = sku.startsWith("VES-");
                 const isBookMatchingSku = sku.startsWith("VAN-URBMG-");
 
-                let data: ProductSkuPriceResponse;
+                let data: ProductSkuPriceResponse | CountertopSkuPriceResponse;
 
-                if (isCountertopSku) {
-                  data = await triggerPriceBySkuV2Resolve({
+                if (isDynamicCountertopTopSku && countertopWidthCm != null) {
+                  data = await triggerCountertopTopPriceBySku({
                     sku,
-                    widthCm: countertopWidthCmRef.current ?? undefined,
+                    widthCm: countertopWidthCm,
                   }).unwrap();
                 } else if (isVesselSku || isBookMatchingSku) {
                   data = await triggerPriceBySkuV2Resolve({ sku }).unwrap();
@@ -1172,7 +1178,7 @@ export function usePriceCalculation() {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skuKey, canCalculate, dispatch, triggerPriceBySku, triggerPriceBySkuV2Resolve]);
+  }, [skuKey, canCalculate, dispatch, triggerPriceBySku, triggerPriceBySkuV2Resolve, triggerCountertopTopPriceBySku]);
 
   // ── Re-fetch scene configs when product options change ─
   // (user changed color, handle, etc. → configs on PlayCanvas are updated)
