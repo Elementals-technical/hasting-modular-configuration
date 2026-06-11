@@ -59,12 +59,8 @@ export const collectAvailableDividerTypesForDrawer = (zones: Record<string, unkn
   return availableTypes;
 };
 
-export const getDividerTypeFromOptionTitle = (title: string): DividerType | null => {
-  if (title.trim() === "Option A") return "A";
-  if (title.trim() === "Option B") return "B";
-  if (title.trim() === "Option C") return "C";
-  return null;
-};
+// Moved to the pure domain model; re-exported here for backwards compatibility.
+export { getDividerTypeFromOptionTitle } from "@/features/dividers/model/normalize";
 
 export async function getAvailableDividerTypesForDrawer(
   cabinetId: string,

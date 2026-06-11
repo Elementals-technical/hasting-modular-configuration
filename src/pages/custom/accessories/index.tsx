@@ -12,6 +12,7 @@ import {
   getDividersStyle,
   getPlacedCabinetStyles,
   getSelectedDimensions,
+  getSelectedDividerType,
   getSelectedProductConfig,
   getSelectedProducts,
   getSelectedSceneProduct,
@@ -62,7 +63,6 @@ import {
   getPlacedDividersForDrawer,
   placeDividerToSlot,
   createDividerUiTraceId,
-  getDividerConfiguratorWindow,
   recordDividerUiDebug,
   removeDividerFromSlot,
   setDividerSlotClickHandler,
@@ -83,6 +83,15 @@ import {
   setAutoFraming,
 } from "@/utils/functions/playcanvas/camera";
 import { useDividerResizeOverlayRestore } from "@/utils/functions/playcanvas/dividers/useDividerResizeOverlayRestore";
+import {
+  buildDividerPlacementWarning,
+  buildUnavailableDividerWarning,
+  deriveDividerOptions,
+  dividerTypeSetsEqual,
+  normalizeDividerType,
+  normalizeDividerTypes,
+} from "@/features/dividers/model";
+import { getActiveDrawerRuntimeContext } from "@/features/dividers/adapter";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -151,45 +160,6 @@ const DIVIDER_OPEN_DRAWER_HINT_STYLE = {
   fontSize: 12,
   fontWeight: 600,
   lineHeight: "16px",
-};
-
-const getDividerOptionLabel = (type: string) => `Option ${type}`;
-
-const formatDividerOptionsList = (available: readonly string[]) =>
-  available.map(getDividerOptionLabel).join(", ");
-
-const buildUnavailableDividerWarning = (dividerType: string, available: readonly string[]) => {
-  if (available.length > 0) {
-    return `${getDividerOptionLabel(dividerType)} does not fit here. Choose one of: ${formatDividerOptionsList(available)}.`;
-  }
-
-  return `${getDividerOptionLabel(dividerType)} does not fit here. No Divider option is available for this slot.`;
-};
-
-const buildDividerPlacementWarning = (selectedDividerType: DividerType | null, available: readonly string[]) => {
-  if (!selectedDividerType) return "Select a Divider option before placing it.";
-  if (!available.includes(selectedDividerType)) return buildUnavailableDividerWarning(selectedDividerType, available);
-
-  return null;
-};
-
-const isDividerType = (value: unknown): value is DividerType => value === "A" || value === "B" || value === "C";
-
-const normalizeDividerType = (value: unknown): DividerType | null => (isDividerType(value) ? value : null);
-
-const normalizeDividerTypes = (value: unknown): DividerType[] =>
-  Array.isArray(value) ? value.filter(isDividerType) : [];
-
-const areDividerTypeSetsEqual = (left: Set<DividerType> | null, right: Set<DividerType> | null) => {
-  if (left === right) return true;
-  if (!left || !right) return left === right;
-  if (left.size !== right.size) return false;
-
-  for (const type of left) {
-    if (!right.has(type)) return false;
-  }
-
-  return true;
 };
 
 export const CustomAccessoriesPage = () => {
@@ -480,14 +450,8 @@ export const CustomAccessoriesPage = () => {
     );
   }, [configuratorData]);
 
-  const selectedDividerType: DividerType | null =
-    dividerStyle?.trim() === "Option B"
-      ? "B"
-      : dividerStyle?.trim() === "Option C"
-        ? "C"
-        : dividerStyle?.trim() === "Option A"
-          ? "A"
-          : null;
+  const selectedDividerType = useAppSelector(getSelectedDividerType);
+  // Bridge only — kept in sync from the redux SSOT; removed by the controller migration (T4).
   const selectedDividerTypeRef = useRef<DividerType | null>(selectedDividerType);
   selectedDividerTypeRef.current = selectedDividerType;
 
@@ -503,20 +467,13 @@ export const CustomAccessoriesPage = () => {
   );
 
   const getResolvedActiveDividerContext = useCallback(() => {
-    const api = getDividerConfiguratorWindow()?.ConfiguratorAPI as
-      | {
-          __activeDrawerCabinetId?: string;
-          __activeDrawerType?: DrawerType;
-        }
-      | undefined;
-    const runtimeCabinetId = api?.__activeDrawerCabinetId || null;
-    const runtimeDrawerType = api?.__activeDrawerType || null;
+    const runtime = getActiveDrawerRuntimeContext();
 
     return {
-      cabinetId: runtimeCabinetId || activeCabinetId || null,
-      drawerType: runtimeDrawerType || activeDrawerType || null,
-      runtimeCabinetId,
-      runtimeDrawerType,
+      cabinetId: runtime.cabinetId || activeCabinetId || null,
+      drawerType: runtime.drawerType || activeDrawerType || null,
+      runtimeCabinetId: runtime.cabinetId,
+      runtimeDrawerType: runtime.drawerType,
       stateCabinetId: activeCabinetId || null,
       stateDrawerType: activeDrawerType,
     };
@@ -554,7 +511,7 @@ export const CustomAccessoriesPage = () => {
           current &&
           current.cabinetId === cabinetId &&
           current.drawerType === drawerType &&
-          areDividerTypeSetsEqual(current.types, types)
+          dividerTypeSetsEqual(current.types, types)
         ) {
           return current;
         }
@@ -739,25 +696,7 @@ export const CustomAccessoriesPage = () => {
     getResolvedActiveDividerContext,
   ]);
 
-  const dividerOptions = useMemo(() => {
-    if (!availableDividerTypes) return dividersMockData;
-
-    const availableTypes = Array.from(availableDividerTypes);
-
-    return dividersMockData.map((option) => {
-      const dividerType = getDividerTypeFromOptionTitle(option.title);
-      const isAvailable = dividerType ? availableDividerTypes.has(dividerType) : true;
-      const disabledReason = dividerType
-        ? buildUnavailableDividerWarning(dividerType, availableTypes)
-        : "This divider option does not fit in the selected drawer space.";
-
-      return {
-        ...option,
-        isAvailable,
-        disabledReason: isAvailable ? undefined : disabledReason,
-      };
-    });
-  }, [availableDividerTypes]);
+  const dividerOptions = useMemo(() => deriveDividerOptions(dividersMockData, availableDividerTypes), [availableDividerTypes]);
 
   useEffect(() => {
     if (dividerSelection !== "Customize" || !selectedDividerType) return;
