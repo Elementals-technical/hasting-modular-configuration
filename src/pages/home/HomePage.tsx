@@ -21,8 +21,16 @@ import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopu
 
 import s from "./HomePage.module.scss";
 
+const DESKTOP_EXPERIENCE_MEDIA_QUERY = "(min-width: 1025px)";
+
+const getInitialBuildInfoMode = (): "interactiveTutorial" | "howToStart" | null => {
+  if (sessionStorage.getItem("howToBuildSeen")) return null;
+
+  return window.matchMedia(DESKTOP_EXPERIENCE_MEDIA_QUERY).matches ? "interactiveTutorial" : "howToStart";
+};
+
 export const HomePage = () => {
-  const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("howToBuildSeen"));
+  const [initialBuildInfoMode, setInitialBuildInfoMode] = useState(getInitialBuildInfoMode);
 
   const { pathname } = useLocation();
   const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
@@ -96,10 +104,11 @@ export const HomePage = () => {
 
   const handleClose = () => {
     sessionStorage.setItem("howToBuildSeen", "1");
-    setIsOpenedBuildInfo(false);
+    setInitialBuildInfoMode(null);
   };
 
   const isSummary = pathname.endsWith("/summary");
+  const shouldOpenInitialInteractiveTutorial = initialBuildInfoMode === "interactiveTutorial" && flow !== "custom";
 
   return (
     <div className={s.homePageWrap}>
@@ -108,13 +117,16 @@ export const HomePage = () => {
           <SideNavigation flow={flow} />
         </div>
 
-        <Player />
+        <Player
+          initialInteractiveTutorialOpen={shouldOpenInitialInteractiveTutorial}
+          onInteractiveTutorialClose={shouldOpenInitialInteractiveTutorial ? handleClose : undefined}
+        />
 
         <ConfiguratorSidebar flow={flow}>
           <Outlet />
         </ConfiguratorSidebar>
 
-        {isOpenedBuildInfo && flow !== "custom" && <HowToStart handleClose={handleClose} />}
+        {initialBuildInfoMode === "howToStart" && flow !== "custom" && <HowToStart handleClose={handleClose} />}
       </div>
 
       <SwatchOrder />

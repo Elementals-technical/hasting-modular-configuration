@@ -58,7 +58,12 @@ import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 import s from "./Player.module.scss";
 import { QuoteIcon } from "@/shared/assets/images/svg/QuoteIcon";
 
-export function Player() {
+type PlayerProps = {
+  initialInteractiveTutorialOpen?: boolean;
+  onInteractiveTutorialClose?: () => void;
+};
+
+export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTutorialClose }: PlayerProps = {}) {
   const location = useLocation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -71,7 +76,7 @@ export function Player() {
   const [shareValue, setShareValue] = useState("");
   const [howToStep, setHowToStep] = useState<number | null>(null);
   const [isCustomInstructionOpen, setIsCustomInstructionOpen] = useState(false);
-  const [isInteractiveTutorialOpen, setIsInteractiveTutorialOpen] = useState(false);
+  const [isInteractiveTutorialOpen, setIsInteractiveTutorialOpen] = useState(initialInteractiveTutorialOpen);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -510,7 +515,10 @@ export function Player() {
       {isCustomInstructionOpen && <InstructionPopup handleClose={() => setIsCustomInstructionOpen(false)} />}
       <InteractiveConfiguratorTutorial
         isOpen={isInteractiveTutorialOpen}
-        onClose={() => setIsInteractiveTutorialOpen(false)}
+        onClose={() => {
+          setIsInteractiveTutorialOpen(false);
+          onInteractiveTutorialClose?.();
+        }}
       />
     </div>
   );
