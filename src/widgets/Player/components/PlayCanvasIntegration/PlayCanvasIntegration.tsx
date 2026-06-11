@@ -1961,12 +1961,19 @@ export const PlayCanvasIntegration = () => {
           api?.setVisibleDividerSlotButtons?.(false);
           api?.dividers?.showIconDividerSlots?.(drawerInfo.cabinetId, drawerType, false);
 
-          // Fallback: force-hide divider slot DOM overlays inside iframe (both + and occupied/check states).
+          // Fallback: force-hide divider slot BUTTONS inside the iframe (both + and
+          // occupied/check states). IMPORTANT: never touch the persistent layer
+          // container (#divider-slot-overlay-layer) — its display is owned by the
+          // runtime's OverlaySystem.setEnabled() and inline visibility/pointer-events
+          // overrides on it survive navigation, breaking the dividers UI later
+          // (invisible "+" slots) or swallowing clicks on other overlays. The buttons
+          // are safe to touch: the runtime removes and recreates them on every
+          // renderSlots pass, so these overrides never outlive the preview.
           const iframeDocument = containerRef.current?.contentWindow?.document;
           if (!iframeDocument) return;
 
           const nodes = iframeDocument.querySelectorAll(
-            "#divider-slot-overlay-layer, .divider-slot-btn, .divider-slot-add, .divider-slot-occupied",
+            ".divider-slot-btn, .divider-slot-add, .divider-slot-occupied",
           );
           nodes.forEach((node) => {
             const el = node as HTMLElement;

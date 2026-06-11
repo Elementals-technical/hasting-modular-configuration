@@ -102,47 +102,14 @@ type TopViewRestoreApi = {
 const isDividersApiReady = (): boolean =>
   Boolean(getDividerConfiguratorWindow()?.ConfiguratorAPI?.dividers);
 
-/**
- * The preview-mode drawer widget (PlayCanvasIntegration, non-accessories pages)
- * force-hides the divider overlay with INLINE styles on the persistent iframe layer
- * container (#divider-slot-overlay-layer): display:none + visibility:hidden +
- * pointer-events:none. The styles survive navigation, so the runtime later renders
- * new "+" widgets inside an invisible container.
- *
- * CONTRACT WITH THE RUNTIME — what we may and may NOT touch:
- * - `display` on the container is OWNED BY THE RUNTIME: its OverlaySystem.setEnabled()
- *   toggles exactly `container.style.display = visible ? "block" : "none"`. Removing it
- *   un-hides a layer the runtime intentionally disabled and the stale full-screen layer
- *   then covers the drawer-overlay-layer ("Open Drawer" buttons become unclickable).
- *   setVisibleDividerSlotButtons(true) restores display itself — we never touch it.
- * - `visibility` / `pointer-events` are NEVER managed by the runtime — only the preview
- *   widget sets them. These are the two we clear here.
- * - Slot buttons need no cleanup: the runtime removes and recreates the widget elements
- *   on every renderSlots pass, so preview-hidden buttons never survive a re-render.
- */
-const clearPreviewForceHiddenOverlayStyles = (): number => {
-  const iframeDocument = getDividerConfiguratorWindow()?.document;
-  if (!iframeDocument) return 0;
-
-  let cleared = 0;
-  iframeDocument.querySelectorAll("#divider-slot-overlay-layer").forEach((node) => {
-    const el = node as HTMLElement;
-    if (el.style.visibility === "hidden" || el.style.pointerEvents === "none") {
-      el.style.removeProperty("visibility");
-      el.style.removeProperty("pointer-events");
-      cleared += 1;
-    }
-  });
-
-  if (cleared > 0) {
-    recordDividerUiDebug("Adapter.overlay", "Cleared preview force-hidden overlay styles", {
-      clearedNodeCount: cleared,
-      clearedProperties: ["visibility", "pointer-events"],
-    });
-  }
-
-  return cleared;
-};
+// NOTE: no DOM manipulation of the runtime's overlay layers belongs in this adapter.
+// The iframe overlay containers are fully owned by the runtime's OverlaySystem
+// (visibility via container.style.display in setEnabled(), pointer-events:none on the
+// full-screen layer with interactive children). A previous attempt to "clean up"
+// preview-mode inline styles from here broke Open Drawer / Close interactions.
+// The preview drawer widget (PlayCanvasIntegration) is the one that force-hides slot
+// elements — and it must only touch the recreated-per-render BUTTONS, never the
+// persistent layer container. See hideDividerSlots in PlayCanvasIntegration.tsx.
 
 /** Flat, JSON-safe command summary for the debug timeline. */
 const summarizeCommand = (command: DividerCommand): Record<string, unknown> => {
@@ -275,10 +242,6 @@ const executeRemove = async (command: DividerRemoveCommand): Promise<boolean> =>
 };
 
 const executeShowSlots = (command: DividerShowSlotsCommand): boolean => {
-  // Undo any preview-mode force-hide BEFORE rendering, otherwise the runtime
-  // creates the widgets inside a display:none container.
-  clearPreviewForceHiddenOverlayStyles();
-
   const result = showIconDividerSlots(command.context.cabinetId, command.context.drawerType, {
     show: true,
     selectedDividerType: command.selectedType,
@@ -415,7 +378,8 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
           ok = executeShowSlots(command);
           break;
         case "hideSlots":
-          ok = setVisibleDividerSlotButtons(false) !== null;
+          setVisibleDividerSlotButtons(false);
+          ok = true;
           break;
       }
 
@@ -474,7 +438,6 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
     },
 
     setSlotButtonsVisible(visible) {
-      if (visible) clearPreviewForceHiddenOverlayStyles();
       setVisibleDividerSlotButtons(visible);
     },
 
