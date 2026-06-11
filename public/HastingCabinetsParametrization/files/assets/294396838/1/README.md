@@ -27,6 +27,12 @@ await ConfiguratorAPI.camera.captureHQSnapshot('page');
 await ConfiguratorAPI.camera.hqSnapshot.capture('hero');
 ```
 
+Для client-facing image download / perspective shots використовуйте download API. Він за замовчуванням бере current-view ракурс:
+
+```javascript
+await ConfiguratorAPI.camera.downloadHQSnapshot('page', 'perspective.jpg');
+```
+
 Якщо на camera entity вже підключений PlayCanvas script `hqSnapshot`, сервіс делегує виклик у нього. Якщо script не підключений, працює fallback через `HQSnapshotService`.
 
 ## Пресети
@@ -91,13 +97,69 @@ const preview = shot.dataUrl;
 
 ### downloadHQSnapshot(presetOrOptions, filename)
 
-Створює snapshot і одразу завантажує файл у браузері.
+Створює current-view HQ snapshot і одразу завантажує файл у браузері.
+
+Це основний API для client-facing `Image Download`: він зберігає поточний кут користувача, як старий `takeSnapshot()`, але використовує новий HQ render pipeline.
 
 ```javascript
-await ConfiguratorAPI.camera.downloadHQSnapshot('hero', 'render.png');
+await ConfiguratorAPI.camera.downloadHQSnapshot('page', 'perspective.jpg');
 ```
 
+Якщо потрібен fixed product render, передайте `mode: 'framed'` або використайте `downloadFramedHQSnapshot()`.
+
 **Повертає:** `Promise<boolean>`
+
+### captureCurrentViewHQSnapshot(presetOrOptions)
+
+Створює HQ snapshot з поточного ракурсу користувача. Це заміна старої поведінки `takeSnapshot()` для perspective image export, але з покращеною роздільністю.
+
+```javascript
+const shot = await ConfiguratorAPI.camera.captureCurrentViewHQSnapshot('page');
+```
+
+Або через namespace:
+
+```javascript
+const shot = await ConfiguratorAPI.camera.hqSnapshot.captureCurrentView('page');
+```
+
+У цьому режимі сервіс:
+
+- бере поточні `position/rotation` камери;
+- не застосовує fixed `azimuth/elevation`;
+- за замовчуванням зберігає aspect ratio поточного canvas;
+- захоплює видимі 3D dimension lines, якщо вони вже увімкнені в сцені.
+
+### downloadCurrentViewHQSnapshot(presetOrOptions, filename)
+
+Явний alias для current-view download.
+
+```javascript
+await ConfiguratorAPI.camera.downloadCurrentViewHQSnapshot('page', 'perspective.jpg');
+```
+
+Через namespace:
+
+```javascript
+await ConfiguratorAPI.camera.hqSnapshot.downloadCurrentView('page', 'perspective.jpg');
+```
+
+### downloadFramedHQSnapshot(presetOrOptions, filename)
+
+Створює fixed-angle product render і одразу завантажує файл. Використовуйте це для технічних/quote exports, коли не треба повторювати поточний кут користувача.
+
+```javascript
+await ConfiguratorAPI.camera.downloadFramedHQSnapshot('hero', 'render.png');
+```
+
+Або:
+
+```javascript
+await ConfiguratorAPI.camera.downloadHQSnapshot({
+  preset: 'hero',
+  mode: 'framed'
+}, 'render.png');
+```
 
 ### getHQSnapshotPresets()
 
@@ -127,7 +189,7 @@ img.style.cssText = 'position:fixed;right:20px;top:20px;width:320px;z-index:9999
 document.body.appendChild(img);
 ```
 
-### Завантажити 4K PNG
+### Завантажити current-view 4K PNG
 
 ```javascript
 await ConfiguratorAPI.camera.downloadHQSnapshot({
@@ -135,6 +197,43 @@ await ConfiguratorAPI.camera.downloadHQSnapshot({
   format: 'image/png',
   bg: '#ffffff'
 }, 'hastings-render.png');
+```
+
+### Завантажити fixed-angle 4K PNG
+
+```javascript
+await ConfiguratorAPI.camera.downloadFramedHQSnapshot({
+  preset: 'hero',
+  out: 4096,
+  format: 'image/png',
+  bg: '#ffffff'
+}, 'hastings-render.png');
+```
+
+### Завантажити поточний perspective shot
+
+```javascript
+await ConfiguratorAPI.camera.downloadCurrentViewHQSnapshot({
+  preset: 'page',
+  out: 2048,
+  format: 'image/jpeg',
+  quality: 0.92
+}, 'current-perspective.jpg');
+```
+
+### Зберегти поточний ракурс із dimensions
+
+```javascript
+ConfiguratorAPI.showDimensions({
+  box: {
+    nodes: ['Cabinet_1'],
+    width: '120 cm',
+    height: '53 cm',
+    depth: '46 cm'
+  }
+});
+
+const shot = await ConfiguratorAPI.camera.captureCurrentViewHQSnapshot('page');
 ```
 
 ### Upload у вебшоп/backend
@@ -187,6 +286,8 @@ await ConfiguratorAPI.camera.captureHQSnapshot({
   ssao: true,
   ssaoSamples: 32,
   bloom: 0,
+  mode: 'current',
+  preserveCanvasAspect: true,
   superSample: 0,
   ss: null,
   aabbExclude: ['Floor', 'Room']
@@ -209,6 +310,8 @@ await ConfiguratorAPI.camera.captureHQSnapshot({
 | `ssao` | `boolean` | залежить від пресета | Увімкнути SSAO через CameraFrame |
 | `ssaoSamples` | `number` | `32` | Кількість samples для SSAO |
 | `bloom` | `number` | `0` | Bloom intensity |
+| `mode` / `view` / `cameraMode` | `string` | `framed` | `framed` = fixed product render, `current` = поточний ракурс користувача |
+| `preserveCanvasAspect` | `boolean` | `true` для `current` | Зберігає aspect ratio поточного canvas, якщо не задані одночасно `width` і `height` |
 | `superSample` | `number` | `0` | `0` означає auto |
 | `ss` | `number|null` | auto | Явний supersampling multiplier |
 | `aabbExclude` | `string[]` | `[]` | Імена entity, які не входять у framing AABB |
@@ -223,11 +326,12 @@ await ConfiguratorAPI.camera.captureHQSnapshot({
 3. Якщо script немає, сервіс створює clone камери.
 4. На clone вимикаються scripts, щоб orbit camera не перезаписувала позицію.
 5. Створюється `RenderTarget` з `samples: 1`.
-6. Сервіс рахує AABB тільки по enabled render/model components.
-7. Камера фреймиться по `azimuth/elevation/margin`.
-8. Сцена рендериться offscreen у supersampled resolution.
-9. Пікселі читаються через texture readback, перевертаються по Y і downscale-яться у фінальний canvas.
-10. Результат повертається як `Blob` плюс lazy `dataUrl`.
+6. У `framed` mode сервіс рахує AABB тільки по enabled render/model components.
+7. У `framed` mode камера фреймиться по `azimuth/elevation/margin`.
+8. У `current` mode сервіс копіює поточну позицію/поворот камери й не змінює ракурс користувача.
+9. Сцена рендериться offscreen у supersampled resolution.
+10. Пікселі читаються через texture readback, перевертаються по Y і downscale-яться у фінальний canvas.
+11. Результат повертається як `Blob` плюс lazy `dataUrl`.
 
 ## Інваріанти
 
@@ -270,8 +374,11 @@ const shot = await ConfiguratorAPI.camera.captureHQSnapshot('hero');
 | API | Коли використовувати |
 |---|---|
 | `ConfiguratorAPI.camera.takeSnapshot()` | Швидкий screenshot поточного canvas, debug, lightweight preview |
-| `ConfiguratorAPI.camera.captureHQSnapshot()` | PDF, quote, вебшоп, backend upload, фінальний клієнтський render |
-| `ConfiguratorAPI.camera.downloadHQSnapshot()` | Ручна перевірка або експорт файлу з консолі |
+| `ConfiguratorAPI.camera.captureHQSnapshot()` | PDF, quote, fixed product render із контрольованим ракурсом |
+| `ConfiguratorAPI.camera.downloadHQSnapshot()` | Client-facing Image Download з поточного кута користувача |
+| `ConfiguratorAPI.camera.captureCurrentViewHQSnapshot()` | Perspective shots з поточного кута користувача |
+| `ConfiguratorAPI.camera.downloadCurrentViewHQSnapshot()` | Явний alias для current-view image download |
+| `ConfiguratorAPI.camera.downloadFramedHQSnapshot()` | Fixed product render download |
 
 ## Типові проблеми
 

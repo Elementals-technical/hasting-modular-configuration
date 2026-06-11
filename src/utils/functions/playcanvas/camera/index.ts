@@ -1,3 +1,4 @@
+export { captureCurrentViewHQSnapshot } from "./captureCurrentViewHQSnapshot";
 export { captureHQSnapshot } from "./captureHQSnapshot";
 export { exportCameraState } from "./exportCameraState";
 export { focusCamera } from "./focusCamera";

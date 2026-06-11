@@ -1,5 +1,5 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
-import { captureHQSnapshot, type CameraHQSnapshotOptions, type CameraHQSnapshotResult } from "./camera";
+import { captureCurrentViewHQSnapshot, type CameraHQSnapshotOptions, type CameraHQSnapshotResult } from "./camera";
 
 const BRAND_COLOR = "#231F20";
 const BRAND_BACKGROUND = "#FFFFFF";
@@ -11,12 +11,15 @@ const FOOTER_MIN_FONT_SIZE = 12;
 const FOOTER_MAX_CONTENT_WIDTH = 1444;
 const MAX_TRANSPARENT_CONTENT_PADDING_RATIO = 0.45;
 const HQ_SNAPSHOT_TIMEOUT_MS = 20_000;
-const HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
+const CURRENT_VIEW_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
+  preset: "page",
   out: 2048,
   format: "image/png",
   bg: "#ffffff",
   cameraFrame: false,
-  margin: 1.6,
+};
+const DOWNLOAD_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
+  out: 4096,
 };
 const FOOTER_SEGMENTS = [
   "Hastings Bath Collection",
@@ -414,7 +417,7 @@ const captureSharedHQSnapshot = (options: CameraHQSnapshotOptions) => {
   const activePromise = activeHQSnapshotPromises.get(key);
   if (activePromise) return activePromise;
 
-  const snapshotPromise = captureHQSnapshot(options).finally(() => {
+  const snapshotPromise = captureCurrentViewHQSnapshot(options).finally(() => {
     activeHQSnapshotPromises.delete(key);
   });
 
@@ -424,11 +427,11 @@ const captureSharedHQSnapshot = (options: CameraHQSnapshotOptions) => {
 };
 
 const resolveHQSnapshotOptions = (overrides?: CameraHQSnapshotOptions): CameraHQSnapshotOptions => ({
-  ...HQ_SNAPSHOT_OPTIONS,
+  ...CURRENT_VIEW_HQ_SNAPSHOT_OPTIONS,
   ...overrides,
 });
 
-const captureHQSnapshotImageSource = async (
+const captureCurrentViewHQSnapshotImageSource = async (
   options?: CameraHQSnapshotOptions,
 ): Promise<CapturedImageSource | null> => {
   const shot = await withTimeout(
@@ -494,7 +497,7 @@ const captureScreenshotCanvasWithOptions = async (
   let snapshotImageSource: CapturedImageSource | null = null;
 
   try {
-    snapshotImageSource = await captureHQSnapshotImageSource(hqSnapshotOptions);
+    snapshotImageSource = await captureCurrentViewHQSnapshotImageSource(hqSnapshotOptions);
     const snapshot = snapshotImageSource?.src ?? null;
     const snapshotCanvas = snapshot ? await createCanvasFromImageSource(snapshot) : null;
     const sourceCanvas = snapshotCanvas ?? visibleCanvas;
@@ -559,7 +562,10 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
 }
 
 const downloadSceneImageOnce = async (filename: string) => {
-  const canvas = await captureScreenshotCanvasWithOptions({ includeLogo: true });
+  const canvas = await captureScreenshotCanvasWithOptions({
+    includeLogo: true,
+    hqSnapshotOptions: DOWNLOAD_HQ_SNAPSHOT_OPTIONS,
+  });
   if (!canvas) return;
 
   const blob = await canvasToBlob(canvas, "image/png");
