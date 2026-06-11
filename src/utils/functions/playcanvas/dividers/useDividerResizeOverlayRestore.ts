@@ -27,6 +27,11 @@ type ConfiguratorApiWithTopView = {
   __activeDrawerType?: DrawerType;
 };
 
+/**
+ * @deprecated Absorbed by `useDividerController` (src/features/dividers/controller) —
+ * the controller listens to DIVIDER_RESIZE_RESTORE_EVENT through the runtime adapter.
+ * Still used by the prebuilt accessories page; will be removed in migration step T5.
+ */
 export function useDividerResizeOverlayRestore({
   stagePrefix,
   isPlayCanvasReady,

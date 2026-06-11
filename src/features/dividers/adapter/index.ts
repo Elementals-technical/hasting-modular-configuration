@@ -1,6 +1,7 @@
-export { createDividerRuntimeAdapter } from "./DividerRuntimeAdapter";
+export { createDividerRuntimeAdapter, getSharedDividerRuntimeAdapter } from "./DividerRuntimeAdapter";
 export type {
-  DividerActiveContextListener,
+  DividerContextChangeEvent,
+  DividerContextChangeListener,
   DividerRuntimeAdapter,
   DividerSlotClickListener,
 } from "./DividerRuntimeAdapter";

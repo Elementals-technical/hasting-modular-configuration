@@ -4,8 +4,15 @@
  * `ConfiguratorAPI.dividers.*` and the private `__activeDrawerCabinetId` /
  * `__activeDrawerType` fields. Everything above this layer speaks the pure
  * domain language from src/features/dividers/model.
+ *
+ * NOTE on wrapShowTopView/wrapExitTopView: those transport wrappers hold a
+ * SINGLE global callback slot. The adapter therefore owns that slot and fans
+ * events out to any number of subscribers (controller + page-level camera
+ * logic). Callbacks are re-claimed on every new subscription because legacy
+ * page effects (prebuilt until T5) may still overwrite them.
  */
 import {
+  getAvailableDividerTypes,
   getAvailableDividerTypesForDrawer,
   getPlacedDividersForDrawer,
   placeDividerToSlot,
@@ -31,7 +38,7 @@ import {
   type DividerResizeRestoreEventDetail,
 } from "@/utils/functions/playcanvas/dividers/prepareDividersForResize";
 
-import { normalizeSlotInfo, sortDividerTypes } from "../model/normalize";
+import { normalizeDividerTypes, normalizeSlotInfo, sortDividerTypes } from "../model/normalize";
 import type {
   DividerAvailability,
   DividerCommand,
@@ -40,12 +47,27 @@ import type {
   DividerRemoveCommand,
   DividerShowSlotsCommand,
   DividerSlot,
+  DividerType,
+  DrawerType,
 } from "../model/types";
 import { resolveActiveContext } from "./resolveActiveContext";
 
 export type DividerSlotClickListener = (slot: DividerSlot) => void;
 
-export type DividerActiveContextListener = (context: DividerContext | null) => void;
+/**
+ * Active-context lifecycle events, fanned out to all subscribers:
+ * - "select"          — top view entered (fires BEFORE the drawer opens; camera hooks live here)
+ * - "after-select"    — top view fully entered (drawer opened, zoom applied; overlay refresh here)
+ * - "exit"            — top view exited
+ * - "resize-restore"  — width/depth resize finished; targets describe drawers to restore
+ */
+export type DividerContextChangeEvent =
+  | { phase: "select"; context: DividerContext }
+  | { phase: "after-select"; context: DividerContext }
+  | { phase: "exit" }
+  | { phase: "resize-restore"; targets: readonly DividerContext[]; dimension: "width" | "depth" };
+
+export type DividerContextChangeListener = (event: DividerContextChangeEvent) => void;
 
 export type DividerRuntimeAdapter = {
   /** Whether `ConfiguratorAPI.dividers` is reachable. */
@@ -56,13 +78,25 @@ export type DividerRuntimeAdapter = {
   execute(command: DividerCommand): Promise<boolean>;
   fetchAvailability(context: DividerContext): Promise<DividerAvailability | null>;
   fetchPlaced(context: DividerContext): Promise<RuntimePlacedDivider[] | null>;
+  /** Per-slot availability via the synchronous runtime API (legacy payloads without availableTypes). */
+  fetchSlotTypes(slot: DividerSlot): readonly DividerType[];
+  /** Mirrors ConfiguratorAPI.setVisibleDividerSlotButtons. */
+  setSlotButtonsVisible(visible: boolean): void;
+  /** Re-enters top view for the given drawer (used by the resize-restore flow). */
+  restoreTopView(context: DividerContext): Promise<boolean>;
   /**
    * Registers ONE shared PlayCanvas bridge (add + occupied + legacy fallback) and fans
    * normalized slots out to listeners. Returns an unsubscribe function.
    */
   onSlotClick(listener: DividerSlotClickListener): () => void;
-  /** Fires when the active drawer context changes (top view enter/exit, resize restore). */
-  onActiveContextChange(listener: DividerActiveContextListener): () => void;
+  /** Subscribes to active-context lifecycle events. Returns an unsubscribe function. */
+  onActiveContextChange(listener: DividerContextChangeListener): () => void;
+};
+
+type TopViewRestoreApi = {
+  showTopView?: (cabinetId: string, drawerType: DrawerType) => unknown;
+  __activeDrawerCabinetId?: string;
+  __activeDrawerType?: DrawerType;
 };
 
 const isDividersApiReady = (): boolean =>
@@ -154,9 +188,9 @@ const executeShowSlots = (command: DividerShowSlotsCommand): boolean => {
 
 export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
   const slotListeners = new Set<DividerSlotClickListener>();
-  const contextListeners = new Set<DividerActiveContextListener>();
-  let slotBridgeRegistered = false;
-  let contextBridgeRegistered = false;
+  const contextListeners = new Set<DividerContextChangeListener>();
+  let slotBridgeViaLegacy = false;
+  let resizeListenerRegistered = false;
 
   const dispatchSlot = (rawSlotInfo: unknown) => {
     const slot = normalizeSlotInfo(rawSlotInfo);
@@ -181,25 +215,30 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
     slotListeners.forEach((listener) => listener(slot));
   };
 
-  const dispatchContext = (context: DividerContext | null) => {
-    contextListeners.forEach((listener) => listener(context));
+  const dispatchContextEvent = (event: DividerContextChangeEvent) => {
+    contextListeners.forEach((listener) => listener(event));
   };
 
+  /**
+   * (Re-)claims the runtime slot callbacks. Idempotent and safe to call on every
+   * subscription: the runtime stores a single callback, so re-claiming protects
+   * against legacy page effects that overwrite it.
+   */
   const registerSlotBridge = () => {
-    if (slotBridgeRegistered) return;
-
     const addHandle = setOnAddSlotClick(dispatchSlot);
     const occupiedHandle = setOnOccupiedSlotClick(dispatchSlot);
 
     if (!addHandle && !occupiedHandle) {
       warnDividerUiDebug("Adapter.onSlotClick", "Falling back to legacy divider slot click handler");
       const legacyHandle = setDividerSlotClickHandler(dispatchSlot);
-      if (!legacyHandle) return; // PlayCanvas not ready — retry on next subscribe
+      slotBridgeViaLegacy = Boolean(legacyHandle);
+      return;
     }
 
-    slotBridgeRegistered = true;
+    slotBridgeViaLegacy = false;
     recordDividerUiDebug("Adapter.onSlotClick", "Slot bridge registered", {
-      viaExplicitCallbacks: Boolean(addHandle || occupiedHandle),
+      viaExplicitCallbacks: true,
+      legacyFallbackActive: slotBridgeViaLegacy,
     });
   };
 
@@ -207,31 +246,41 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
     const detail = (event as CustomEvent<DividerResizeRestoreEventDetail>).detail;
     if (!detail) return;
 
-    detail.targets.forEach((target) => {
-      dispatchContext({ cabinetId: target.cabinetId, drawerType: target.drawerType });
+    dispatchContextEvent({
+      phase: "resize-restore",
+      targets: detail.targets.map((target) => ({
+        cabinetId: target.cabinetId,
+        drawerType: target.drawerType,
+      })),
+      dimension: detail.dimension,
     });
   };
 
+  /** (Re-)claims the single-slot top-view wrapper callbacks. Idempotent. */
   const registerContextBridge = () => {
-    if (contextBridgeRegistered) return;
-
     const wrappedShow = wrapShowTopView({
       onSelect: (cabinetId, drawerType) => {
-        dispatchContext({ cabinetId, drawerType });
+        dispatchContextEvent({ phase: "select", context: { cabinetId, drawerType } });
+      },
+      onAfterSelect: (cabinetId, drawerType) => {
+        dispatchContextEvent({ phase: "after-select", context: { cabinetId, drawerType } });
       },
     });
     const wrappedExit = wrapExitTopView({
       onExit: () => {
-        dispatchContext(null);
+        dispatchContextEvent({ phase: "exit" });
       },
     });
 
-    window.addEventListener(DIVIDER_RESIZE_RESTORE_EVENT, handleResizeRestore);
+    if (!resizeListenerRegistered) {
+      window.addEventListener(DIVIDER_RESIZE_RESTORE_EVENT, handleResizeRestore);
+      resizeListenerRegistered = true;
+    }
 
-    contextBridgeRegistered = true;
-    recordDividerUiDebug("Adapter.onActiveContextChange", "Context bridge registered", {
+    recordDividerUiDebug("Adapter.onActiveContextChange", "Context bridge (re)registered", {
       wrappedShow: Boolean(wrappedShow),
       wrappedExit: Boolean(wrappedExit),
+      listenerCount: contextListeners.size,
     });
   };
 
@@ -268,6 +317,44 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
       return getPlacedDividersForDrawer(context.cabinetId, context.drawerType);
     },
 
+    fetchSlotTypes(slot) {
+      const raw = getAvailableDividerTypes({
+        cabinetId: slot.context.cabinetId,
+        drawerType: slot.context.drawerType,
+        zone: slot.zone,
+        key: slot.key,
+      });
+
+      return normalizeDividerTypes(raw);
+    },
+
+    setSlotButtonsVisible(visible) {
+      setVisibleDividerSlotButtons(visible);
+    },
+
+    async restoreTopView(context) {
+      const api = getDividerConfiguratorWindow()?.ConfiguratorAPI as TopViewRestoreApi | undefined;
+
+      if (!api?.showTopView) {
+        warnDividerUiDebug("Adapter.restoreTopView", "showTopView is not available", {
+          cabinetId: context.cabinetId,
+          drawerType: context.drawerType,
+        });
+        return false;
+      }
+
+      api.__activeDrawerCabinetId = context.cabinetId;
+      api.__activeDrawerType = context.drawerType;
+
+      recordDividerUiDebug("Adapter.restoreTopView", "Reopen drawer top view", {
+        cabinetId: context.cabinetId,
+        drawerType: context.drawerType,
+      });
+
+      await Promise.resolve(api.showTopView(context.cabinetId, context.drawerType));
+      return true;
+    },
+
     onSlotClick(listener) {
       slotListeners.add(listener);
       registerSlotBridge();
@@ -283,13 +370,21 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
 
       return () => {
         contextListeners.delete(listener);
-        if (contextListeners.size === 0 && contextBridgeRegistered) {
-          window.removeEventListener(DIVIDER_RESIZE_RESTORE_EVENT, handleResizeRestore);
-          contextBridgeRegistered = false;
-        }
       };
     },
   };
+};
+
+let sharedAdapter: DividerRuntimeAdapter | null = null;
+
+/**
+ * Module-level singleton. The single-slot transport wrappers (wrapShowTopView etc.)
+ * tolerate only one owner, so the controller AND page-level subscribers must share
+ * one adapter instance.
+ */
+export const getSharedDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
+  sharedAdapter ??= createDividerRuntimeAdapter();
+  return sharedAdapter;
 };
 
 export { getActiveDrawerRuntimeContext, resolveActiveContext } from "./resolveActiveContext";
