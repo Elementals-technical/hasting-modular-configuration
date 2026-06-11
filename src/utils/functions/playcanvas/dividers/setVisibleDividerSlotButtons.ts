@@ -1,22 +1,21 @@
+import { getDividerConfiguratorWindow } from "./dividerUiDebug";
+
 export function setVisibleDividerSlotButtons(visible: boolean) {
-  // @ts-ignore
-  const containerRef = window.containerRef;
-  const canvasIframe = containerRef?.current?.contentWindow as any;
-
-  const apiMethod = canvasIframe?.ConfiguratorAPI?.setVisibleDividerSlotButtons;
-
-  console.log("call setVisibleDividerSlotButtons", apiMethod);
-  console.log("visible", visible);
+  const canvasIframe = getDividerConfiguratorWindow();
+  const api = canvasIframe?.ConfiguratorAPI as
+    | {
+        setVisibleDividerSlotButtons?: (visible: boolean) => unknown;
+      }
+    | undefined;
+  const apiMethod = api?.setVisibleDividerSlotButtons;
 
   if (!apiMethod) {
-    console.warn("[PlayCanvas] ConfiguratorAPI.setVisibleDividerSlotButtons not ready");
     return null;
   }
 
   try {
     return apiMethod(visible);
-  } catch (error) {
-    console.error("[PlayCanvas] Failed to setVisibleDividerSlotButtons", error);
+  } catch {
     return null;
   }
 }

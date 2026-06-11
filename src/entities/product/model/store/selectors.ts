@@ -73,6 +73,9 @@ export const getDividersOption = (state: RootState) => state.rootStateUI.product
 
 export const getDividersStyle = (state: RootState) => state.rootStateUI.product.productOptions.DividersStyle;
 
+/** Normalized selected divider type ("A" | "B" | "C" | null) — SSOT, derived in the product slice. */
+export const getSelectedDividerType = (state: RootState) => state.rootStateUI.product.selectedDividerType;
+
 export const getPlacedDividers = (state: RootState) => state.rootStateUI.product.placedDividers;
 
 export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;

@@ -6,6 +6,8 @@ import {
   type Selection,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveForcedHeightForHandle } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleForcedHeight";
+import { getDividerTypeFromOptionTitle } from "@/features/dividers/model/normalize";
+import type { DividerType } from "@/features/dividers/model/types";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
@@ -44,6 +46,13 @@ type ProductState = {
   dimensionOptions: DimensionOptionGroup;
   cabinetCatalog: ConfiguratorCatalog;
   placedDividers: PlacedDivider[];
+  /**
+   * SSOT for the currently selected divider type. Derived from
+   * `productOptions.DividersStyle` ("Option A|B|C") in the reducers that write
+   * that label — consumers must read this field (or its selector) instead of
+   * re-parsing the UI label.
+   */
+  selectedDividerType: DividerType | null;
   /** Maps productId → raw drawer value ("1", "2", "1+inner"). Only set for non-open cabinets. */
   placedCabinetStyles: Record<string, string>;
   productOptions: {
@@ -243,6 +252,7 @@ const createInitialState = (): ProductState => {
     },
     cabinetCatalog: { typeCabinetRules: [] },
     placedDividers: [],
+    selectedDividerType: null,
     placedCabinetStyles: {},
     productOptions: {
       CabinetColor: "Pulpis Chiaro TKH",
@@ -569,6 +579,8 @@ const productSlice = createSlice({
     },
     setDividersStyle(state, action: PayloadAction<string>) {
       state.productOptions.DividersStyle = action.payload;
+      // Single place where the "Option X" label is parsed into the domain type.
+      state.selectedDividerType = getDividerTypeFromOptionTitle(action.payload);
     },
     replacePlacedDividersForDrawer(
       state,
@@ -647,6 +659,9 @@ const productSlice = createSlice({
       } = action.payload;
       state.productIds = productIds;
       state.productOptions = productOptions;
+      // History snapshots only persist the DividersStyle label — re-derive the
+      // domain type so undo/redo never desynchronizes the label/type pair.
+      state.selectedDividerType = getDividerTypeFromOptionTitle(productOptions.DividersStyle ?? "");
       state.activeCabinetType = activeCabinetType;
       state.selectedDimensions = selectedDimensions;
       state.placedDividers = placedDividers ?? [];

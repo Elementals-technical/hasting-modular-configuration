@@ -16,6 +16,10 @@ export type DividerSlotInfo = {
   placementType?: "A" | "B" | "C" | null;
   canPlace?: boolean;
   disabledReason?: "select-divider" | "does-not-fit" | "no-space" | null;
+  /** Zone-local start offset in cm — REQUIRED by the runtime to accept a placement. */
+  start?: number;
+  /** Zone packing anchor of the candidate. */
+  anchor?: "left" | "right";
   debugRequestId?: string;
   position?: {
     start: number;
