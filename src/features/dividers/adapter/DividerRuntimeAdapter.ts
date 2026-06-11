@@ -102,6 +102,48 @@ type TopViewRestoreApi = {
 const isDividersApiReady = (): boolean =>
   Boolean(getDividerConfiguratorWindow()?.ConfiguratorAPI?.dividers);
 
+/**
+ * The preview-mode drawer widget (PlayCanvasIntegration, non-accessories pages)
+ * force-hides the divider overlay with INLINE styles on persistent iframe DOM nodes
+ * (display:none / visibility:hidden / pointer-events:none on
+ * #divider-slot-overlay-layer and slot buttons). Those styles survive navigation:
+ * the runtime then happily renders new "+" widgets INSIDE the hidden container and
+ * everything reports success while the user sees nothing.
+ *
+ * Showing slots from the dividers UI must therefore clear that force-hide first —
+ * the exact mirror of the preview widget's hideDividerSlots().
+ */
+const FORCE_HIDDEN_OVERLAY_SELECTOR =
+  "#divider-slot-overlay-layer, .divider-slot-btn, .divider-slot-add, .divider-slot-occupied";
+
+const clearPreviewForceHiddenOverlayStyles = (): number => {
+  const iframeDocument = getDividerConfiguratorWindow()?.document;
+  if (!iframeDocument) return 0;
+
+  let cleared = 0;
+  iframeDocument.querySelectorAll(FORCE_HIDDEN_OVERLAY_SELECTOR).forEach((node) => {
+    const el = node as HTMLElement;
+    if (
+      el.style.display === "none" ||
+      el.style.visibility === "hidden" ||
+      el.style.pointerEvents === "none"
+    ) {
+      el.style.removeProperty("display");
+      el.style.removeProperty("visibility");
+      el.style.removeProperty("pointer-events");
+      cleared += 1;
+    }
+  });
+
+  if (cleared > 0) {
+    recordDividerUiDebug("Adapter.overlay", "Cleared preview force-hidden overlay styles", {
+      clearedNodeCount: cleared,
+    });
+  }
+
+  return cleared;
+};
+
 /** Flat, JSON-safe command summary for the debug timeline. */
 const summarizeCommand = (command: DividerCommand): Record<string, unknown> => {
   switch (command.kind) {
@@ -233,6 +275,10 @@ const executeRemove = async (command: DividerRemoveCommand): Promise<boolean> =>
 };
 
 const executeShowSlots = (command: DividerShowSlotsCommand): boolean => {
+  // Undo any preview-mode force-hide BEFORE rendering, otherwise the runtime
+  // creates the widgets inside a display:none container.
+  clearPreviewForceHiddenOverlayStyles();
+
   const result = showIconDividerSlots(command.context.cabinetId, command.context.drawerType, {
     show: true,
     selectedDividerType: command.selectedType,
@@ -428,6 +474,7 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
     },
 
     setSlotButtonsVisible(visible) {
+      if (visible) clearPreviewForceHiddenOverlayStyles();
       setVisibleDividerSlotButtons(visible);
     },
 
