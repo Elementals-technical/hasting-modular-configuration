@@ -104,31 +104,30 @@ const isDividersApiReady = (): boolean =>
 
 /**
  * The preview-mode drawer widget (PlayCanvasIntegration, non-accessories pages)
- * force-hides the divider overlay with INLINE styles on persistent iframe DOM nodes
- * (display:none / visibility:hidden / pointer-events:none on
- * #divider-slot-overlay-layer and slot buttons). Those styles survive navigation:
- * the runtime then happily renders new "+" widgets INSIDE the hidden container and
- * everything reports success while the user sees nothing.
+ * force-hides the divider overlay with INLINE styles on the persistent iframe layer
+ * container (#divider-slot-overlay-layer): display:none + visibility:hidden +
+ * pointer-events:none. The styles survive navigation, so the runtime later renders
+ * new "+" widgets inside an invisible container.
  *
- * Showing slots from the dividers UI must therefore clear that force-hide first —
- * the exact mirror of the preview widget's hideDividerSlots().
+ * CONTRACT WITH THE RUNTIME — what we may and may NOT touch:
+ * - `display` on the container is OWNED BY THE RUNTIME: its OverlaySystem.setEnabled()
+ *   toggles exactly `container.style.display = visible ? "block" : "none"`. Removing it
+ *   un-hides a layer the runtime intentionally disabled and the stale full-screen layer
+ *   then covers the drawer-overlay-layer ("Open Drawer" buttons become unclickable).
+ *   setVisibleDividerSlotButtons(true) restores display itself — we never touch it.
+ * - `visibility` / `pointer-events` are NEVER managed by the runtime — only the preview
+ *   widget sets them. These are the two we clear here.
+ * - Slot buttons need no cleanup: the runtime removes and recreates the widget elements
+ *   on every renderSlots pass, so preview-hidden buttons never survive a re-render.
  */
-const FORCE_HIDDEN_OVERLAY_SELECTOR =
-  "#divider-slot-overlay-layer, .divider-slot-btn, .divider-slot-add, .divider-slot-occupied";
-
 const clearPreviewForceHiddenOverlayStyles = (): number => {
   const iframeDocument = getDividerConfiguratorWindow()?.document;
   if (!iframeDocument) return 0;
 
   let cleared = 0;
-  iframeDocument.querySelectorAll(FORCE_HIDDEN_OVERLAY_SELECTOR).forEach((node) => {
+  iframeDocument.querySelectorAll("#divider-slot-overlay-layer").forEach((node) => {
     const el = node as HTMLElement;
-    if (
-      el.style.display === "none" ||
-      el.style.visibility === "hidden" ||
-      el.style.pointerEvents === "none"
-    ) {
-      el.style.removeProperty("display");
+    if (el.style.visibility === "hidden" || el.style.pointerEvents === "none") {
       el.style.removeProperty("visibility");
       el.style.removeProperty("pointer-events");
       cleared += 1;
@@ -138,6 +137,7 @@ const clearPreviewForceHiddenOverlayStyles = (): number => {
   if (cleared > 0) {
     recordDividerUiDebug("Adapter.overlay", "Cleared preview force-hidden overlay styles", {
       clearedNodeCount: cleared,
+      clearedProperties: ["visibility", "pointer-events"],
     });
   }
 
