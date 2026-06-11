@@ -1,7 +1,12 @@
-const baseUrl = "https://renderadmin.vivid3d.tech";
+import { buildRenderAdminUrl, encodeSkuQueryValue } from "@/shared";
 
-const normalizeBaseUrl = (url: string) => url.replace(/\/$/, "");
+const COUNTERTOP_TOP_PRICE_PATH = "/pricing-v2-test/resolve";
 
 export const routes = {
-  datatableById: (id: string | number) => `${normalizeBaseUrl(baseUrl)}/datatables/${id}`,
+  datatableById: (id: string | number) => buildRenderAdminUrl(`/datatables/${id}`),
+  priceByCountertopTopSku: (sku: string, widthCm: number) =>
+    buildRenderAdminUrl(COUNTERTOP_TOP_PRICE_PATH, [
+      { key: "sku", value: sku, encodeValue: encodeSkuQueryValue },
+      { key: "widthCm", value: widthCm },
+    ]),
 };

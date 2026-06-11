@@ -15,3 +15,11 @@ export type CountertopDatatable = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CountertopSkuPriceResponse = {
+  price: number;
+  resolver: string;
+  error: string | null;
+  metadata: Record<string, unknown>;
+  parsed: Record<string, unknown>;
+};

@@ -54,6 +54,7 @@ const JOYRIDE_SPOTLIGHT_PADDING = 0;
 const STEP_PREPARATION_DELAY_MS = 250;
 const STEP_CONTENT_SCROLL_CONTAINER_SELECTOR = '[data-scroll-container="step-content"]';
 const DEFAULT_START_ROUTE = `${ROUTES.PREBUILT}/model`;
+const COMPACT_TUTORIAL_MEDIA_QUERY = "(max-width: 1024px)";
 
 const CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
@@ -88,17 +89,43 @@ const JOYRIDE_OPTIONS = {
   zIndex: JOYRIDE_Z_INDEX,
 } satisfies Partial<Options>;
 
-const mapTutorialStepToJoyrideStep = (step: InteractiveConfiguratorTutorialStep): JoyrideStep => ({
+const COMPACT_STEP_PLACEMENTS: Partial<
+  Record<InteractiveConfiguratorTutorialStep["id"], JoyrideStep["placement"]>
+> = {
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted]: "bottom",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode]: "top",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails]: "top",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customMode]: "bottom",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType]: "bottom",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle]: "bottom",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle]: "left",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet]: "top",
+};
+
+const getIsCompactTutorialLayout = () => window.matchMedia(COMPACT_TUTORIAL_MEDIA_QUERY).matches;
+
+const mapTutorialStepToJoyrideStep = (
+  step: InteractiveConfiguratorTutorialStep,
+  isCompactLayout: boolean,
+): JoyrideStep => ({
   id: step.id,
   target: getInteractiveConfiguratorTutorialTargetSelector(step.target),
-  placement: step.placement,
+  placement: isCompactLayout ? (COMPACT_STEP_PLACEMENTS[step.id] ?? step.placement) : step.placement,
   title: step.title,
   content: step.description,
   blockTargetInteraction: !step.allowTargetScroll,
   skipScroll: step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
   spotlightPadding: step.spotlightPadding,
-  styles:
-    step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet
+  styles: isCompactLayout
+    ? {
+        floater: {
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        },
+      }
+    : step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet
       ? {
           floater: {
             top: 105,
@@ -110,6 +137,7 @@ const mapTutorialStepToJoyrideStep = (step: InteractiveConfiguratorTutorialStep)
     secondaryLabel: step.secondaryLabel,
     secondaryAction: step.secondaryAction,
     progressLabel: step.progressLabel,
+    isCompactLayout,
   },
   skipBeacon: true,
 });
@@ -167,6 +195,39 @@ const getPrebuiltModelsGridViewportRect = (): ViewportRect | null => {
   };
 };
 
+const getVisibleTargetViewportRect = (targetName: InteractiveConfiguratorTutorialStep["target"]): ViewportRect | null => {
+  const target = document.querySelector(getInteractiveConfiguratorTutorialTargetSelector(targetName));
+
+  if (!(target instanceof HTMLElement)) return null;
+
+  target.scrollIntoView({ block: "nearest", inline: "nearest" });
+
+  const scrollContainer = target.closest(STEP_CONTENT_SCROLL_CONTAINER_SELECTOR);
+  const targetRect = target.getBoundingClientRect();
+  const containerRect =
+    scrollContainer instanceof HTMLElement
+      ? scrollContainer.getBoundingClientRect()
+      : {
+          top: 0,
+          left: 0,
+          right: document.documentElement.clientWidth,
+          bottom: document.documentElement.clientHeight,
+        };
+  const top = Math.max(targetRect.top, containerRect.top, 0);
+  const left = Math.max(targetRect.left, containerRect.left, 0);
+  const right = Math.min(targetRect.right, containerRect.right, document.documentElement.clientWidth);
+  const bottom = Math.min(targetRect.bottom, containerRect.bottom, document.documentElement.clientHeight);
+
+  if (right <= left || bottom <= top) return null;
+
+  return {
+    top,
+    left,
+    width: right - left,
+    height: bottom - top,
+  };
+};
+
 const getProxyTargetStyle = ({ height, left, top, width }: ViewportRect): CSSProperties => ({
   position: "fixed",
   top,
@@ -178,7 +239,9 @@ const getProxyTargetStyle = ({ height, left, top, width }: ViewportRect): CSSPro
 
 type StepButtonLabelData = Partial<
   Pick<InteractiveConfiguratorTutorialStep, "primaryLabel" | "secondaryLabel" | "secondaryAction" | "progressLabel">
->;
+> & {
+  isCompactLayout?: boolean;
+};
 
 const isStepButtonLabelData = (value: unknown): value is StepButtonLabelData => {
   if (!value || typeof value !== "object") return false;
@@ -189,7 +252,8 @@ const isStepButtonLabelData = (value: unknown): value is StepButtonLabelData => 
     (data.primaryLabel === undefined || typeof data.primaryLabel === "string") &&
     (data.secondaryLabel === undefined || typeof data.secondaryLabel === "string") &&
     (data.secondaryAction === undefined || data.secondaryAction === "back" || data.secondaryAction === "skip") &&
-    (data.progressLabel === undefined || typeof data.progressLabel === "string")
+    (data.progressLabel === undefined || typeof data.progressLabel === "string") &&
+    (data.isCompactLayout === undefined || typeof data.isCompactLayout === "boolean")
   );
 };
 
@@ -201,6 +265,7 @@ const getStepData = (step: TooltipRenderProps["step"]) => {
     secondaryLabel: isStepButtonLabelData(data) ? data.secondaryLabel : undefined,
     secondaryAction: isStepButtonLabelData(data) ? data.secondaryAction : undefined,
     progressLabel: isStepButtonLabelData(data) ? data.progressLabel : undefined,
+    isCompactLayout: isStepButtonLabelData(data) ? data.isCompactLayout === true : false,
   };
 };
 
@@ -280,10 +345,11 @@ const TutorialTooltip = ({
   step,
   tooltipProps,
 }: TooltipRenderProps) => {
-  const { primaryLabel, progressLabel, secondaryAction, secondaryLabel } = getStepData(step);
+  const { isCompactLayout, primaryLabel, progressLabel, secondaryAction, secondaryLabel } = getStepData(step);
   const secondaryProps = secondaryAction === "back" ? backProps : skipProps;
   const tooltipClassName = [
     s.tooltip,
+    isCompactLayout ? s.compactTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted ? s.gettingStartedTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType ? s.customCabinetTypeTooltip : "",
     step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle ? s.customCabinetStyleTooltip : "",
@@ -360,6 +426,9 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const [isCompactLayout, setIsCompactLayout] = useState(getIsCompactTutorialLayout);
+  const [createYourOwnTargetRect, setCreateYourOwnTargetRect] = useState<ViewportRect | null>(null);
+  const [modeSwitcherTargetRect, setModeSwitcherTargetRect] = useState<ViewportRect | null>(null);
   const [playCanvasTargetRect, setPlayCanvasTargetRect] = useState<ViewportRect | null>(null);
   const [prebuiltModelsGridTargetRect, setPrebuiltModelsGridTargetRect] = useState<ViewportRect | null>(null);
   const [activeStepId, setActiveStepId] = useState<InteractiveConfiguratorTutorialStep["id"] | null>(null);
@@ -369,10 +438,23 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     [activeStepId],
   );
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(COMPACT_TUTORIAL_MEDIA_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => setIsCompactLayout(event.matches);
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
+
   const closeTutorial = useCallback(() => {
     dispatchInteractiveConfiguratorTutorialEvent(INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.cancelPendingActions);
     dispatchInteractiveConfiguratorTutorialActiveStepChange(null);
     setActiveStepId(null);
+    setCreateYourOwnTargetRect(null);
+    setModeSwitcherTargetRect(null);
     setPlayCanvasTargetRect(null);
     setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
@@ -395,13 +477,33 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
         step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet;
 
       setVisibleButtons(step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet);
+      setCreateYourOwnTargetRect(null);
+      setModeSwitcherTargetRect(null);
       setPlayCanvasTargetRect(null);
       setPrebuiltModelsGridTargetRect(null);
 
       await waitForStepPreparation();
 
+      if (isCompactLayout && step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted) {
+        setModeSwitcherTargetRect(
+          getVisibleTargetViewportRect(INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.modelModeSwitcher),
+        );
+        await waitForStepPreparation();
+        return;
+      }
+
+      if (isCompactLayout && step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customMode) {
+        setCreateYourOwnTargetRect(getFallbackTargetRect(step));
+        await waitForStepPreparation();
+        return;
+      }
+
       if (step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode) {
-        setPrebuiltModelsGridTargetRect(getPrebuiltModelsGridViewportRect() ?? getFallbackTargetRect(step));
+        setPrebuiltModelsGridTargetRect(
+          isCompactLayout
+            ? getFallbackTargetRect(step)
+            : getPrebuiltModelsGridViewportRect() ?? getFallbackTargetRect(step),
+        );
         await waitForStepPreparation();
         return;
       }
@@ -437,16 +539,16 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
         return;
       }
     },
-    [dispatch, location.pathname, location.search, navigate],
+    [dispatch, isCompactLayout, location.pathname, location.search, navigate],
   );
 
   const joyrideSteps = useMemo(
     () =>
       INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS.map((step) => ({
-        ...mapTutorialStepToJoyrideStep(step),
+        ...mapTutorialStepToJoyrideStep(step, isCompactLayout),
         before: () => prepareTutorialStep(step),
       })),
-    [prepareTutorialStep],
+    [isCompactLayout, prepareTutorialStep],
   );
 
   const handleJoyrideEvent = useCallback(
@@ -487,6 +589,22 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
 
   return (
     <>
+      {createYourOwnTargetRect && (
+        <div
+          className={s.proxyTarget}
+          data-tutorial-target={INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.createYourOwnMode}
+          style={getProxyTargetStyle(createYourOwnTargetRect)}
+        />
+      )}
+
+      {modeSwitcherTargetRect && (
+        <div
+          className={s.proxyTarget}
+          data-tutorial-target={INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.modelModeSwitcher}
+          style={getProxyTargetStyle(modeSwitcherTargetRect)}
+        />
+      )}
+
       {prebuiltModelsGridTargetRect && (
         <div
           className={s.proxyTarget}

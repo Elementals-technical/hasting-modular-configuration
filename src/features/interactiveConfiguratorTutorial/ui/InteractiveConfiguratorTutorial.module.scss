@@ -10,6 +10,11 @@
   font-style: normal;
 }
 
+.compactTooltip {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 96px);
+}
+
 .tooltip + :global(.react-joyride__arrow) {
   top: -5px !important;
   right: -51px !important;
@@ -28,17 +33,19 @@
   transform: rotate(180deg);
 }
 
-:global(#react-joyride-step-7.react-joyride__floater) {
-  top: -28% !important;
+.compactTooltip + :global(.react-joyride__arrow) {
+  display: none !important;
 }
 
-:global(#react-joyride-step-8.react-joyride__floater) {
-  top: 77px !important;
-}
+@media (min-width: 1025px) {
+  :global(#react-joyride-step-7.react-joyride__floater) {
+    top: -28% !important;
+  }
 
-// :global(.react-joyride__floater) {
-//   left: -25px !important;
-// }
+  :global(#react-joyride-step-8.react-joyride__floater) {
+    top: 77px !important;
+  }
+}
 
 .header {
   display: flex;
@@ -176,6 +183,10 @@
 
 @media (max-width: 430px) {
   .tooltip {
+    width: calc(100vw - 24px);
+  }
+
+  .compactTooltip {
     width: calc(100vw - 24px);
   }
 
