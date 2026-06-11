@@ -622,10 +622,17 @@ export const AccessoriesPage = () => {
 
     return dividerRuntimeAdapter.onActiveContextChange((event) => {
       if (event.phase === "select") {
+        recordDividerUiDebug("PrebuiltPage.Drawer", "Top view select — apply drawer camera, isDrawerOpen=true", {
+          cabinetId: event.context.cabinetId,
+          drawerType: event.context.drawerType,
+        });
+
         applyOpenDrawerCameraMode();
         dispatch(setIsDrawerOpen(true));
       } else if (event.phase === "exit") {
         restoreDrawerCameraMode(false);
+
+        recordDividerUiDebug("PrebuiltPage.Drawer", "Top view exit — restore camera, isDrawerOpen=false", {});
 
         dispatch(setIsDrawerOpen(false));
       }

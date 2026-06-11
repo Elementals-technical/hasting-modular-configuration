@@ -149,6 +149,43 @@ export function useDividerController<T extends DividerOptionBase>(
     shouldRestoreDrawerButtons,
   };
 
+  // ── Diagnostic timeline: log every COMMITTED state transition and input change.
+  // These effects fire only when the value actually changed (React dep equality),
+  // so the debug buffer shows the exact state evolution interleaved with commands.
+  useEffect(() => {
+    recordDividerUiDebug("Controller.State", "status →", { status: state.status });
+  }, [state.status]);
+
+  useEffect(() => {
+    recordDividerUiDebug("Controller.State", "activeContext →", { activeContext: state.activeContext });
+  }, [state.activeContext]);
+
+  useEffect(() => {
+    recordDividerUiDebug("Controller.State", "availability →", {
+      availability: state.availability
+        ? {
+            cabinetId: state.availability.context.cabinetId,
+            drawerType: state.availability.context.drawerType,
+            types: state.availability.types,
+            fetchedAt: state.availability.fetchedAt,
+          }
+        : null,
+    });
+  }, [state.availability]);
+
+  useEffect(() => {
+    recordDividerUiDebug("Controller.State", "warning →", { warning: state.warning });
+  }, [state.warning]);
+
+  useEffect(() => {
+    recordDividerUiDebug("Controller.Inputs", "Controller inputs changed", {
+      isPlayCanvasReady,
+      dividerSelection,
+      fallbackCabinetId,
+      shouldRestoreDrawerButtons,
+    });
+  }, [isPlayCanvasReady, dividerSelection, fallbackCabinetId, shouldRestoreDrawerButtons]);
+
   const readSelectedType = useCallback(
     (): DividerType | null => getSelectedDividerType(reduxStore.getState() as RootState),
     [reduxStore],
@@ -385,8 +422,19 @@ export function useDividerController<T extends DividerOptionBase>(
       }
 
       if (event.phase === "after-select") {
+        recordDividerUiDebug("Controller.ContextChange", "Top view after-select", {
+          cabinetId: event.context.cabinetId,
+          drawerType: event.context.drawerType,
+          dividerSelection: latest.dividerSelection,
+          selectedDividerType: readSelectedType(),
+        });
         setActiveContext(event.context);
-        if (latest.dividerSelection !== "Customize") return;
+        if (latest.dividerSelection !== "Customize") {
+          recordDividerUiDebug("Controller.ContextChange", "Skip overlay refresh: Customize is not selected", {
+            dividerSelection: latest.dividerSelection,
+          });
+          return;
+        }
 
         const traceId = createDividerUiTraceId("controller-after-select");
         adapter.setSlotButtonsVisible(true);
@@ -469,6 +517,7 @@ export function useDividerController<T extends DividerOptionBase>(
     setStatus("ready");
 
     return () => {
+      recordDividerUiDebug("Controller.Register", "Unregister PlayCanvas callbacks", {});
       unsubscribeSlots();
       unsubscribeContext();
     };
@@ -527,9 +576,22 @@ export function useDividerController<T extends DividerOptionBase>(
     const context = state.activeContext;
     if (!context) return;
 
+    recordDividerUiDebug("Controller.Availability", "Fetch availability for active context", {
+      cabinetId: context.cabinetId,
+      drawerType: context.drawerType,
+    });
+
     let isCurrent = true;
     void adapter.fetchAvailability(context).then((availability) => {
-      if (isCurrent) applyAvailability(availability);
+      if (!isCurrent) {
+        recordDividerUiDebug("Controller.Availability", "Discard stale availability response", {
+          cabinetId: context.cabinetId,
+          drawerType: context.drawerType,
+          types: availability?.types ?? null,
+        });
+        return;
+      }
+      applyAvailability(availability);
     });
 
     return () => {
@@ -551,12 +613,34 @@ export function useDividerController<T extends DividerOptionBase>(
   const prevSelectedTypeRef = useRef<DividerType | null>(selectedType);
   useEffect(() => {
     const typeChanged = prevSelectedTypeRef.current !== selectedType;
+    const previousType = prevSelectedTypeRef.current;
     prevSelectedTypeRef.current = selectedType;
 
-    if (!isPlayCanvasReady || dividerSelection !== "Customize" || !selectedType) return;
+    if (!isPlayCanvasReady || dividerSelection !== "Customize" || !selectedType) {
+      recordDividerUiDebug("Controller.SelectedType", "Skip", {
+        selectedType,
+        previousType,
+        typeChanged,
+        reason: !isPlayCanvasReady
+          ? "playcanvas-not-ready"
+          : dividerSelection !== "Customize"
+            ? "not-customize"
+            : "no-selection",
+        dividerSelection,
+      });
+      return;
+    }
 
     const context = state.activeContext ?? adapter.resolveActiveContext();
-    if (!context) return;
+    if (!context) {
+      recordDividerUiDebug("Controller.SelectedType", "Skip: no active drawer context", {
+        selectedType,
+        previousType,
+        typeChanged,
+        fallbackCabinetId: latestRef.current.fallbackCabinetId,
+      });
+      return;
+    }
 
     const traceId = createDividerUiTraceId("controller-selected-type");
 
@@ -573,7 +657,16 @@ export function useDividerController<T extends DividerOptionBase>(
       return;
     }
 
-    if (!typeChanged) return;
+    if (!typeChanged) {
+      recordDividerUiDebug("Controller.SelectedType", "Skip re-show: type unchanged (availability refetch)", {
+        traceId,
+        selectedType,
+        cabinetId: context.cabinetId,
+        drawerType: context.drawerType,
+        availabilityTypes: matchedAvailability?.types ?? null,
+      });
+      return;
+    }
 
     recordDividerUiDebug("Controller.SelectedType", "Refresh overlay for newly selected type", {
       traceId,

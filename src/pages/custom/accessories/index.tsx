@@ -583,6 +583,10 @@ export const CustomAccessoriesPage = () => {
           cabinetId: event.context.cabinetId,
           drawerType: event.context.drawerType,
         });
+        recordDividerUiDebug("CustomPage.Drawer", "Top view select — apply drawer camera, isDrawerOpen=true", {
+          cabinetId: event.context.cabinetId,
+          drawerType: event.context.drawerType,
+        });
 
         applyOpenDrawerCameraMode();
         dispatch(setIsDrawerOpen(true));
@@ -590,6 +594,7 @@ export const CustomAccessoriesPage = () => {
         restoreDrawerCameraMode(false);
 
         console.log("[Drawer] exitTopView triggered by Close");
+        recordDividerUiDebug("CustomPage.Drawer", "Top view exit — restore camera, isDrawerOpen=false", {});
 
         dispatch(setIsDrawerOpen(false));
       }

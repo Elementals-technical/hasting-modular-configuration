@@ -38,13 +38,33 @@ export async function settle(context: DividerContext, deps: SettleDeps): Promise
   const placed = await adapter.fetchPlaced(context);
   if (placed) {
     deps.syncPlaced(context, placed);
+    recordDividerUiDebug("Controller.Settle", "Step 1/3: placed dividers synced to redux", {
+      traceId,
+      count: placed.length,
+      placed,
+    });
+  } else {
+    recordDividerUiDebug("Controller.Settle", "Step 1/3: fetchPlaced returned null — redux sync skipped", {
+      traceId,
+    });
   }
 
   const selectedType = deps.getSelectedType();
-  await adapter.execute({ kind: "showSlots", context, selectedType, traceId });
+  recordDividerUiDebug("Controller.Settle", "Step 2/3: showSlots with CURRENT selected type from store", {
+    traceId,
+    selectedType,
+    cabinetId: context.cabinetId,
+    drawerType: context.drawerType,
+  });
+  const shown = await adapter.execute({ kind: "showSlots", context, selectedType, traceId });
 
   const availability = await adapter.fetchAvailability(context);
   deps.applyAvailability(availability);
+  recordDividerUiDebug("Controller.Settle", "Step 3/3: availability refreshed", {
+    traceId,
+    showSlotsOk: shown,
+    availabilityTypes: availability?.types ?? null,
+  });
 
   recordDividerUiDebug("Controller.Settle", "Settle completed", {
     traceId,

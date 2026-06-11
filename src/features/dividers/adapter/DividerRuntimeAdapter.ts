@@ -102,6 +102,49 @@ type TopViewRestoreApi = {
 const isDividersApiReady = (): boolean =>
   Boolean(getDividerConfiguratorWindow()?.ConfiguratorAPI?.dividers);
 
+/** Flat, JSON-safe command summary for the debug timeline. */
+const summarizeCommand = (command: DividerCommand): Record<string, unknown> => {
+  switch (command.kind) {
+    case "place":
+      return {
+        kind: command.kind,
+        traceId: command.traceId,
+        type: command.type,
+        cabinetId: command.slot.context.cabinetId,
+        drawerType: command.slot.context.drawerType,
+        zone: command.slot.zone,
+        key: command.slot.key,
+        zoneIndex: command.slot.zoneIndex,
+        placementType: command.slot.placementType,
+        availableTypes: command.slot.availableTypes,
+        canPlace: command.slot.canPlace,
+        disabledReason: command.slot.disabledReason,
+      };
+    case "remove":
+      return {
+        kind: command.kind,
+        traceId: command.traceId,
+        cabinetId: command.slot.context.cabinetId,
+        drawerType: command.slot.context.drawerType,
+        zone: command.slot.zone,
+        key: command.slot.key,
+        zoneIndex: command.slot.zoneIndex,
+        stateId: command.slot.stateId,
+        occupiedType: command.slot.occupiedType,
+      };
+    case "showSlots":
+      return {
+        kind: command.kind,
+        traceId: command.traceId,
+        cabinetId: command.context.cabinetId,
+        drawerType: command.context.drawerType,
+        selectedType: command.selectedType,
+      };
+    case "hideSlots":
+      return { kind: command.kind, traceId: command.traceId };
+  }
+};
+
 const buildPlacePayload = (command: DividerPlaceCommand): DividerSlotInfo => {
   const { slot } = command;
 
@@ -216,6 +259,13 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
   };
 
   const dispatchContextEvent = (event: DividerContextChangeEvent) => {
+    recordDividerUiDebug("Adapter.contextEvent", `Dispatch ${event.phase}`, {
+      phase: event.phase,
+      context: "context" in event ? event.context : null,
+      targets: event.phase === "resize-restore" ? event.targets : undefined,
+      dimension: event.phase === "resize-restore" ? event.dimension : undefined,
+      listenerCount: contextListeners.size,
+    });
     contextListeners.forEach((listener) => listener(event));
   };
 
@@ -290,31 +340,67 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
     resolveActiveContext,
 
     async execute(command) {
+      const summary = summarizeCommand(command);
+      const startedAt = performance.now();
+      recordDividerUiDebug("Adapter.execute", `Command ${command.kind} started`, summary);
+
+      let ok: boolean;
       switch (command.kind) {
         case "place":
-          return executePlace(command);
+          ok = await executePlace(command);
+          break;
         case "remove":
-          return executeRemove(command);
+          ok = await executeRemove(command);
+          break;
         case "showSlots":
-          return executeShowSlots(command);
+          ok = executeShowSlots(command);
+          break;
         case "hideSlots":
-          return setVisibleDividerSlotButtons(false) !== null;
+          ok = setVisibleDividerSlotButtons(false) !== null;
+          break;
       }
+
+      const result = { ...summary, ok, durationMs: Math.round(performance.now() - startedAt) };
+      if (ok) {
+        recordDividerUiDebug("Adapter.execute", `Command ${command.kind} done`, result);
+      } else {
+        warnDividerUiDebug("Adapter.execute", `Command ${command.kind} BLOCKED or FAILED`, result);
+      }
+
+      return ok;
     },
 
     async fetchAvailability(context) {
+      const startedAt = performance.now();
       const types = await getAvailableDividerTypesForDrawer(context.cabinetId, context.drawerType);
-      if (!types) return null;
+      const availability = types
+        ? { context, types: sortDividerTypes(types), fetchedAt: Date.now() }
+        : null;
 
-      return {
-        context,
-        types: sortDividerTypes(types),
-        fetchedAt: Date.now(),
-      };
+      recordDividerUiDebug("Adapter.fetchAvailability", "Availability fetched", {
+        cabinetId: context.cabinetId,
+        drawerType: context.drawerType,
+        rawTypes: types ? [...types] : null,
+        types: availability?.types ?? null,
+        durationMs: Math.round(performance.now() - startedAt),
+      });
+
+      return availability;
     },
 
-    fetchPlaced(context) {
-      return getPlacedDividersForDrawer(context.cabinetId, context.drawerType);
+    async fetchPlaced(context) {
+      const startedAt = performance.now();
+      const placed = await getPlacedDividersForDrawer(context.cabinetId, context.drawerType);
+
+      recordDividerUiDebug("Adapter.fetchPlaced", "Placed dividers fetched", {
+        cabinetId: context.cabinetId,
+        drawerType: context.drawerType,
+        count: placed?.length ?? null,
+        placed,
+        durationMs: Math.round(performance.now() - startedAt),
+      });
+
+      return placed;
     },
 
     fetchSlotTypes(slot) {
@@ -357,19 +443,31 @@ export const createDividerRuntimeAdapter = (): DividerRuntimeAdapter => {
 
     onSlotClick(listener) {
       slotListeners.add(listener);
+      recordDividerUiDebug("Adapter.onSlotClick", "Listener subscribed", {
+        listenerCount: slotListeners.size,
+      });
       registerSlotBridge();
 
       return () => {
         slotListeners.delete(listener);
+        recordDividerUiDebug("Adapter.onSlotClick", "Listener unsubscribed", {
+          listenerCount: slotListeners.size,
+        });
       };
     },
 
     onActiveContextChange(listener) {
       contextListeners.add(listener);
+      recordDividerUiDebug("Adapter.onActiveContextChange", "Listener subscribed", {
+        listenerCount: contextListeners.size,
+      });
       registerContextBridge();
 
       return () => {
         contextListeners.delete(listener);
+        recordDividerUiDebug("Adapter.onActiveContextChange", "Listener unsubscribed", {
+          listenerCount: contextListeners.size,
+        });
       };
     },
   };
