@@ -82,6 +82,8 @@ const summarizeSlot = (slot: DividerSlot) => ({
   availableTypes: slot.availableTypes,
   canPlace: slot.canPlace,
   disabledReason: slot.disabledReason,
+  start: slot.start,
+  anchor: slot.anchor,
 });
 
 /**
@@ -329,10 +331,11 @@ export function useDividerController<T extends DividerOptionBase>(
         setStatus("busy");
         try {
           await latest.saveSnapshot();
-          await adapter.execute({ kind: "remove", slot, traceId });
+          const removed = await adapter.execute({ kind: "remove", slot, traceId });
           await runSettle(context, traceId);
           recordDividerUiDebug("Controller.OccupiedSlot", "Remove occupied divider completed", {
             traceId,
+            removed,
             slot: summarizeSlot(slot),
           });
         } finally {
@@ -389,10 +392,18 @@ export function useDividerController<T extends DividerOptionBase>(
           placementType: enrichedSlot.placementType,
           selectedType: decision.command.type,
         });
-        await adapter.execute(decision.command);
+        const placed = await adapter.execute(decision.command);
+        if (!placed) {
+          warnDividerUiDebug("Controller.AddSlot", "Runtime rejected the placement", {
+            traceId,
+            slot: summarizeSlot(enrichedSlot),
+            selectedType: decision.command.type,
+          });
+        }
         await runSettle(context, traceId);
         recordDividerUiDebug("Controller.AddSlot", "Add slot flow completed", {
           traceId,
+          placed,
           cabinetId: context.cabinetId,
           drawerType: context.drawerType,
           zone: enrichedSlot.zone,

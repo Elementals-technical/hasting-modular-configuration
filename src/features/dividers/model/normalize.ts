@@ -125,6 +125,25 @@ export const normalizeSlotInfo = (raw: unknown): DividerSlot | null => {
   const zoneIndex = typeof raw.zoneIndex === "number" ? raw.zoneIndex : null;
   const context = { cabinetId, drawerType };
 
+  // The runtime nests the raw SlotEngine slot under `slot` (object or single-element
+  // array). Zone-local `start`/`anchor` usually live ONLY there — they are required
+  // by the runtime to accept a placement, so dig them out.
+  const nestedSlotRaw = Array.isArray(raw.slot) ? raw.slot[0] : raw.slot;
+  const nestedSlot = isRecord(nestedSlotRaw) ? nestedSlotRaw : null;
+
+  const start =
+    typeof raw.start === "number"
+      ? raw.start
+      : typeof nestedSlot?.start === "number"
+        ? nestedSlot.start
+        : null;
+  const anchor =
+    raw.anchor === "left" || raw.anchor === "right"
+      ? raw.anchor
+      : nestedSlot?.anchor === "left" || nestedSlot?.anchor === "right"
+        ? nestedSlot.anchor
+        : null;
+
   if (isOccupied) {
     return {
       context,
@@ -139,6 +158,8 @@ export const normalizeSlotInfo = (raw: unknown): DividerSlot | null => {
       disabledReason: null,
       position,
       zoneIndex,
+      start,
+      anchor,
     };
   }
 
@@ -155,5 +176,7 @@ export const normalizeSlotInfo = (raw: unknown): DividerSlot | null => {
     disabledReason: normalizeDisabledReason(raw.disabledReason),
     position,
     zoneIndex,
+    start,
+    anchor,
   };
 };

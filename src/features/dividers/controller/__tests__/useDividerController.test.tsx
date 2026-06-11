@@ -146,6 +146,8 @@ const candidateSlot = (placementType: DividerType, overrides: Partial<DividerSlo
   disabledReason: null,
   position: { start: 0, center: 6.75, end: 13.5 },
   zoneIndex: 0,
+  start: 0,
+  anchor: "left",
   ...overrides,
 });
 
@@ -162,6 +164,8 @@ const occupiedSlot = (occupiedType: DividerType): DividerSlot => ({
   disabledReason: null,
   position: { start: 0, center: 6.75, end: 13.5 },
   zoneIndex: 1,
+  start: 0,
+  anchor: "left",
 });
 
 // ── Harness ─────────────────────────────────────────────────────────────────────

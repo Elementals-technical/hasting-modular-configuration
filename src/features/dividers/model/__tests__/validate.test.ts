@@ -24,6 +24,8 @@ const buildCandidateSlot = (overrides: Partial<DividerSlot> = {}): DividerSlot =
   disabledReason: null,
   position: { start: 0, center: 6.75, end: 13.5 },
   zoneIndex: 0,
+  start: 0,
+  anchor: "left",
   ...overrides,
 });
 

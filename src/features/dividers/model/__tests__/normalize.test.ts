@@ -101,7 +101,63 @@ describe("normalizeSlotInfo", () => {
       disabledReason: null,
       position: { start: 0, center: 6.75, end: 13.5 },
       zoneIndex: 0,
+      start: null,
+      anchor: null,
     });
+  });
+
+  it("extracts zone-local start/anchor from the top level when present", () => {
+    const slot = normalizeSlotInfo({
+      cabinetId: "cab",
+      drawerType: "Top",
+      zone: "siphon_right",
+      key: "candidate:Top:siphon_right:right:9.01:A",
+      availableTypes: ["A"],
+      start: 9.01,
+      anchor: "right",
+    });
+
+    expect(slot).toMatchObject({ start: 9.01, anchor: "right" });
+  });
+
+  it("extracts zone-local start/anchor from the nested raw slot (runtime payload shape)", () => {
+    // Regression: the runtime keeps start/anchor ONLY inside the nested `slot`;
+    // dropping them made Facade.updateSlot reject the add ("no start position in options").
+    const slot = normalizeSlotInfo({
+      cabinetId: "Sink-Base-no2uwpyjf",
+      drawerType: "Top",
+      zone: "siphon_right",
+      key: "candidate:Top:siphon_right:right:9.01:A",
+      placementType: "A",
+      canPlace: true,
+      disabledReason: null,
+      availableTypes: ["A", "B", "C"],
+      position: { start: 0.1666, center: 0.2341, end: 0.3016 },
+      slot: {
+        key: "candidate:Top:siphon_right:right:9.01:A",
+        value: "empty",
+        anchor: "right",
+        start: 9.01,
+        width: 13.5,
+        position: { start: 0.1666, center: 0.2341, end: 0.3016 },
+        other: { type: "candidate", zone: "siphon_right" },
+      },
+    });
+
+    expect(slot).toMatchObject({ kind: "candidate", start: 9.01, anchor: "right" });
+  });
+
+  it("extracts start/anchor from a nested slot wrapped in an array", () => {
+    const slot = normalizeSlotInfo({
+      cabinetId: "cab",
+      drawerType: "Top",
+      zone: "siphon_left",
+      key: "candidate:Top:siphon_left:left:0:C",
+      availableTypes: ["C"],
+      slot: [{ key: "candidate:Top:siphon_left:left:0:C", anchor: "left", start: 0 }],
+    });
+
+    expect(slot).toMatchObject({ start: 0, anchor: "left" });
   });
 
   it("normalizes an occupied-slot payload (OccupiedSlotInfo shape)", () => {

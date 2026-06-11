@@ -119,6 +119,8 @@ const summarizeCommand = (command: DividerCommand): Record<string, unknown> => {
         availableTypes: command.slot.availableTypes,
         canPlace: command.slot.canPlace,
         disabledReason: command.slot.disabledReason,
+        start: command.slot.start,
+        anchor: command.slot.anchor,
       };
     case "remove":
       return {
@@ -163,9 +165,20 @@ const buildPlacePayload = (command: DividerPlaceCommand): DividerSlotInfo => {
 
   if (slot.zoneIndex !== null) payload.zoneIndex = slot.zoneIndex;
   if (slot.position) payload.position = { ...slot.position };
+  // Zone-local placement coordinates — the runtime's Facade.updateSlot rejects the
+  // add with "no start position in options" when `start` is missing.
+  if (slot.start !== null) payload.start = slot.start;
+  if (slot.anchor !== null) payload.anchor = slot.anchor;
 
   return payload;
 };
+
+/**
+ * The runtime resolves with an explicit `false` when it REJECTS a command
+ * (e.g. missing start position, occupied overlap). Treat that as failure —
+ * `result !== null` alone masks runtime rejections as successes.
+ */
+const isRuntimeResultOk = (result: unknown): boolean => result !== null && result !== false;
 
 const executePlace = async (command: DividerPlaceCommand): Promise<boolean> => {
   const { slot, type, traceId } = command;
@@ -184,7 +197,7 @@ const executePlace = async (command: DividerPlaceCommand): Promise<boolean> => {
   }
 
   const result = await placeDividerToSlot(buildPlacePayload(command), type);
-  return result !== null;
+  return isRuntimeResultOk(result);
 };
 
 const executeRemove = async (command: DividerRemoveCommand): Promise<boolean> => {
@@ -216,7 +229,7 @@ const executeRemove = async (command: DividerRemoveCommand): Promise<boolean> =>
   if (slot.position) payload.position = { ...slot.position };
 
   const result = await removeDividerFromSlot(payload);
-  return result !== null;
+  return isRuntimeResultOk(result);
 };
 
 const executeShowSlots = (command: DividerShowSlotsCommand): boolean => {

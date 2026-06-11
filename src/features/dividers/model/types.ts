@@ -40,8 +40,18 @@ export type DividerSlot = {
   availableTypes: readonly DividerType[];
   canPlace: boolean;
   disabledReason: DividerSlotDisabledReason;
+  /** World-space coordinates (meters) used for overlay rendering. */
   position: DividerSlotPosition | null;
   zoneIndex: number | null;
+  /**
+   * Zone-local start offset in cm (e.g. 9.01 from "candidate:Top:siphon_right:right:9.01:A").
+   * REQUIRED by the runtime's Facade.updateSlot for add — without it the placement is
+   * rejected with "no start position in options". Comes from the raw payload's top level
+   * or its nested `slot` object.
+   */
+  start: number | null;
+  /** Zone packing anchor of the candidate ("left" | "right"). */
+  anchor: "left" | "right" | null;
 };
 
 export type DividerAvailability = {
