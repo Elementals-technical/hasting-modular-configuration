@@ -11,7 +11,8 @@ const QUOTE_PREVIEW_DISPLAY_SIZE = {
   height: 446,
 } as const;
 
-const QUOTE_PREVIEW_SCALE = 2;
+const QUOTE_PREVIEW_SCALE = 4;
+const QUOTE_PREVIEW_HQ_SOURCE_SIZE = 4096;
 const QUOTE_PREVIEW_CONTENT_PADDING_RATIO = 0.04;
 
 const QUOTE_PREVIEW_SIZE = {
@@ -35,6 +36,9 @@ export const captureQuotePreviewImage = async () => {
 
     return await captureScreenshotWithOptions({
       includeLogo: false,
+      hqSnapshotOptions: {
+        out: QUOTE_PREVIEW_HQ_SOURCE_SIZE,
+      },
       outputSize: QUOTE_PREVIEW_SIZE,
       renderSourceAtOutputSize: true,
       transparentBackground: true,

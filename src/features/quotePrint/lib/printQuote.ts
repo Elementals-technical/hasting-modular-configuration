@@ -9,9 +9,16 @@ type PrintQuoteOptions = {
   fileName?: string;
 };
 
-const PDF_PAGE_WIDTH = 1684;
-const PDF_PAGE_HEIGHT = 1190;
-const CANVAS_SCALE = 2;
+const PDF_SOURCE_PAGE_WIDTH = 1684;
+const PDF_SOURCE_PAGE_HEIGHT = 1190;
+const PDF_A4_WIDTH_MM = 297;
+const PDF_A4_HEIGHT_MM = 210;
+const PDF_A4_RASTER_WIDTH = PDF_SOURCE_PAGE_WIDTH * 2;
+const CANVAS_SCALE = PDF_A4_RASTER_WIDTH / PDF_SOURCE_PAGE_WIDTH;
+const PDF_IMAGE_FORMAT = "JPEG";
+const PDF_IMAGE_QUALITY = 0.98;
+
+let activePrintQuotePromise: Promise<void> | null = null;
 
 const applyQuotePreviewImage = (root: HTMLElement, previewImage?: string | null) => {
   if (!previewImage) return;
@@ -86,19 +93,22 @@ const addAnchorAnnotations = (pdf: jsPDF, pageElement: HTMLElement) => {
     const rect = anchor.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    const x = rect.left - pageRect.left;
-    const y = rect.top - pageRect.top;
+    const scaleX = PDF_A4_WIDTH_MM / pageRect.width;
+    const scaleY = PDF_A4_HEIGHT_MM / pageRect.height;
+    const x = (rect.left - pageRect.left) * scaleX;
+    const y = (rect.top - pageRect.top) * scaleY;
 
-    pdf.link(x, y, rect.width, rect.height, { url: href });
+    pdf.link(x, y, rect.width * scaleX, rect.height * scaleY, { url: href });
   });
 };
 
-export const printQuote = async (options: PrintQuoteOptions = {}) => {
+const generateQuotePdf = async (options: PrintQuoteOptions = {}) => {
   const content = document.getElementById("quote-print-root") ?? document.getElementById("summary-content");
   if (!content) return;
 
+  const previewImage = options.previewImage === undefined ? await captureQuotePreviewImage() : options.previewImage;
   const clone = content.cloneNode(true) as HTMLElement;
-  applyQuotePreviewImage(clone, options.previewImage);
+  applyQuotePreviewImage(clone, previewImage);
   clone.removeAttribute("id");
   clone.style.display = "block";
 
@@ -107,7 +117,7 @@ export const printQuote = async (options: PrintQuoteOptions = {}) => {
   host.style.position = "fixed";
   host.style.top = "0";
   host.style.left = "-100000px";
-  host.style.width = `${PDF_PAGE_WIDTH}px`;
+  host.style.width = `${PDF_SOURCE_PAGE_WIDTH}px`;
   host.style.pointerEvents = "none";
   host.style.zIndex = "-1";
 
@@ -124,27 +134,26 @@ export const printQuote = async (options: PrintQuoteOptions = {}) => {
 
     const pdf = new jsPDF({
       orientation: "landscape",
-      unit: "px",
-      format: [PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT],
-      hotfixes: ["px_scaling"],
+      unit: "mm",
+      format: "a4",
     });
 
     for (let index = 0; index < pageElements.length; index += 1) {
       const pageElement = pageElements[index];
       const canvas = await html2canvas(pageElement, {
-        width: PDF_PAGE_WIDTH,
-        height: PDF_PAGE_HEIGHT,
+        width: PDF_SOURCE_PAGE_WIDTH,
+        height: PDF_SOURCE_PAGE_HEIGHT,
         scale: CANVAS_SCALE,
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
       });
 
-      const imageData = canvas.toDataURL("image/png");
+      const imageData = canvas.toDataURL("image/jpeg", PDF_IMAGE_QUALITY);
       if (index > 0) {
-        pdf.addPage([PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT], "landscape");
+        pdf.addPage("a4", "landscape");
       }
-      pdf.addImage(imageData, "PNG", 0, 0, PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT);
+      pdf.addImage(imageData, PDF_IMAGE_FORMAT, 0, 0, PDF_A4_WIDTH_MM, PDF_A4_HEIGHT_MM);
       addAnchorAnnotations(pdf, pageElement);
     }
 
@@ -156,7 +165,20 @@ export const printQuote = async (options: PrintQuoteOptions = {}) => {
   }
 };
 
+export const printQuote = async (options: PrintQuoteOptions = {}) => {
+  if (activePrintQuotePromise) return activePrintQuotePromise;
+
+  activePrintQuotePromise = generateQuotePdf(options)
+    .catch((error) => {
+      console.error("[QuotePrint] Failed to generate PDF", error);
+    })
+    .finally(() => {
+      activePrintQuotePromise = null;
+    });
+
+  return activePrintQuotePromise;
+};
+
 export const printQuoteWithCurrentPreview = async () => {
-  const previewImage = await captureQuotePreviewImage();
-  await printQuote({ previewImage });
+  await printQuote();
 };

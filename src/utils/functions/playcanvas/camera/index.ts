@@ -1,3 +1,4 @@
+export { captureHQSnapshot } from "./captureHQSnapshot";
 export { exportCameraState } from "./exportCameraState";
 export { focusCamera } from "./focusCamera";
 export { getCameraInfo } from "./getCameraInfo";
@@ -14,7 +15,13 @@ export { setFramingDebug } from "./setFramingDebug";
 export { setZoom } from "./setZoom";
 export { setZoomLimits } from "./setZoomLimits";
 export { setZoomStep } from "./setZoomStep";
-export { takeSnapshot } from "./takeSnapshot";
-export type { CameraFramingConfig, CameraInfo, CameraPivotPoint, CameraSnapshotOptions, CameraState } from "./types";
+export type {
+  CameraFramingConfig,
+  CameraHQSnapshotOptions,
+  CameraHQSnapshotResult,
+  CameraInfo,
+  CameraPivotPoint,
+  CameraState,
+} from "./types";
 export { zoomIn } from "./zoomIn";
 export { zoomOut } from "./zoomOut";

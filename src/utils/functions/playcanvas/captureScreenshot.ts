@@ -1,5 +1,5 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
-import { takeSnapshot } from "./camera";
+import { captureHQSnapshot, type CameraHQSnapshotOptions, type CameraHQSnapshotResult } from "./camera";
 
 const BRAND_COLOR = "#231F20";
 const BRAND_BACKGROUND = "#FFFFFF";
@@ -10,6 +10,14 @@ const FOOTER_LINE_HEIGHT = 32;
 const FOOTER_MIN_FONT_SIZE = 12;
 const FOOTER_MAX_CONTENT_WIDTH = 1444;
 const MAX_TRANSPARENT_CONTENT_PADDING_RATIO = 0.45;
+const HQ_SNAPSHOT_TIMEOUT_MS = 20_000;
+const HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
+  out: 2048,
+  format: "image/png",
+  bg: "#ffffff",
+  cameraFrame: false,
+  margin: 1.6,
+};
 const FOOTER_SEGMENTS = [
   "Hastings Bath Collection",
   "|",
@@ -119,6 +127,8 @@ const drawBrandedCapture = async (
 
   ctx.fillStyle = BRAND_BACKGROUND;
   ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.drawImage(sourceCanvas, 0, screenshotTop);
   ctx.drawImage(
@@ -141,6 +151,7 @@ type CaptureScreenshotOptions = {
   transparentBackground?: boolean;
   transparentContentPaddingRatio?: number;
   renderSourceAtOutputSize?: boolean;
+  hqSnapshotOptions?: CameraHQSnapshotOptions;
   outputSize?: {
     width: number;
     height: number;
@@ -160,6 +171,14 @@ type RgbaColor = {
   blue: number;
   alpha: number;
 };
+
+type CapturedImageSource = {
+  src: string;
+  revoke?: () => void;
+};
+
+const activeHQSnapshotPromises = new Map<string, Promise<CameraHQSnapshotResult | null>>();
+let activeDownloadPromise: Promise<void> | null = null;
 
 const EDGE_BACKGROUND_COLOR_TOLERANCE = 24;
 const EDGE_SAMPLE_STEPS = 16;
@@ -315,6 +334,8 @@ const drawContainedImage = (
   const targetX = (outputWidth - targetWidth) / 2;
   const targetY = (outputHeight - targetHeight) / 2;
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(sourceCanvas, targetX, targetY, targetWidth, targetHeight);
 };
 
@@ -336,6 +357,8 @@ const drawContainedCrop = (
   const targetX = (outputWidth - targetWidth) / 2;
   const targetY = (outputHeight - targetHeight) / 2;
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(
     sourceCanvas,
     sourceBounds.x,
@@ -362,11 +385,101 @@ const createCanvasFromImageSource = async (src: string): Promise<HTMLCanvasEleme
   return canvas;
 };
 
-export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, warningMessage: string): Promise<T | null> =>
+  new Promise((resolve) => {
+    let isSettled = false;
+
+    const settle = (value: T | null) => {
+      if (isSettled) return;
+      isSettled = true;
+      window.clearTimeout(timeout);
+      resolve(value);
+    };
+
+    const timeout = window.setTimeout(() => {
+      console.warn(warningMessage);
+      settle(null);
+    }, timeoutMs);
+
+    promise.then(settle).catch((error) => {
+      console.error("[PlayCanvas] HQ snapshot failed", error);
+      settle(null);
+    });
+  });
+
+const getHQSnapshotOptionsKey = (options: CameraHQSnapshotOptions) => JSON.stringify(options);
+
+const captureSharedHQSnapshot = (options: CameraHQSnapshotOptions) => {
+  const key = getHQSnapshotOptionsKey(options);
+  const activePromise = activeHQSnapshotPromises.get(key);
+  if (activePromise) return activePromise;
+
+  const snapshotPromise = captureHQSnapshot(options).finally(() => {
+    activeHQSnapshotPromises.delete(key);
+  });
+
+  activeHQSnapshotPromises.set(key, snapshotPromise);
+
+  return snapshotPromise;
+};
+
+const resolveHQSnapshotOptions = (overrides?: CameraHQSnapshotOptions): CameraHQSnapshotOptions => ({
+  ...HQ_SNAPSHOT_OPTIONS,
+  ...overrides,
+});
+
+const captureHQSnapshotImageSource = async (
+  options?: CameraHQSnapshotOptions,
+): Promise<CapturedImageSource | null> => {
+  const shot = await withTimeout(
+    captureSharedHQSnapshot(resolveHQSnapshotOptions(options)),
+    HQ_SNAPSHOT_TIMEOUT_MS,
+    "[PlayCanvas] HQ snapshot timed out; using visible canvas fallback",
+  );
+  if (!shot) return null;
+
+  if (shot.blob) {
+    const objectUrl = URL.createObjectURL(shot.blob);
+    return {
+      src: objectUrl,
+      revoke: () => URL.revokeObjectURL(objectUrl),
+    };
+  }
+
+  return typeof shot.dataUrl === "string" && shot.dataUrl ? { src: shot.dataUrl } : null;
+};
+
+const canvasToBlob = (canvas: HTMLCanvasElement, format = "image/png", quality?: number): Promise<Blob | null> =>
+  new Promise((resolve) => {
+    if (!canvas.toBlob) {
+      resolve(null);
+      return;
+    }
+
+    canvas.toBlob((blob) => resolve(blob), format, quality);
+  });
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = objectUrl;
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+};
+
+const captureScreenshotCanvasWithOptions = async (
+  options: CaptureScreenshotOptions = {},
+): Promise<HTMLCanvasElement | null> => {
   const {
     includeLogo = true,
+    hqSnapshotOptions,
     outputSize,
-    renderSourceAtOutputSize = false,
     transparentBackground = false,
     transparentContentPaddingRatio = 0,
   } = options;
@@ -378,16 +491,11 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
     return null;
   }
 
+  let snapshotImageSource: CapturedImageSource | null = null;
+
   try {
-    const snapshot =
-      renderSourceAtOutputSize && outputSize
-        ? await takeSnapshot({
-            width: outputSize.width,
-            height: outputSize.height,
-            rerender: true,
-            format: "image/png",
-          })
-        : null;
+    snapshotImageSource = await captureHQSnapshotImageSource(hqSnapshotOptions);
+    const snapshot = snapshotImageSource?.src ?? null;
     const snapshotCanvas = snapshot ? await createCanvasFromImageSource(snapshot) : null;
     const sourceCanvas = snapshotCanvas ?? visibleCanvas;
 
@@ -396,7 +504,7 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
     outputCanvas.height = outputSize?.height ?? sourceCanvas.height;
 
     const ctx = outputCanvas.getContext("2d");
-    if (!ctx) return sourceCanvas.toDataURL("image/png");
+    if (!ctx) return sourceCanvas;
 
     if (includeLogo) {
       await drawBrandedCapture(sourceCanvas, ctx, outputCanvas);
@@ -407,7 +515,7 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
         croppedCanvas.height = sourceCanvas.height;
 
         const croppedCtx = croppedCanvas.getContext("2d");
-        if (!croppedCtx) return sourceCanvas.toDataURL("image/png");
+        if (!croppedCtx) return sourceCanvas;
 
         croppedCtx.drawImage(sourceCanvas, 0, 0);
         makeEdgeBackgroundTransparent(croppedCtx, croppedCanvas.width, croppedCanvas.height);
@@ -436,20 +544,44 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
       }
     }
 
-    return outputCanvas.toDataURL("image/png");
+    return outputCanvas;
   } catch (e) {
     console.error("[PlayCanvas] Screenshot failed", e);
     return null;
+  } finally {
+    snapshotImageSource?.revoke?.();
   }
+};
+
+export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
+  const canvas = await captureScreenshotCanvasWithOptions(options);
+  return canvas?.toDataURL("image/png") ?? null;
 }
 
-export function downloadSceneImage(filename = "configuration.png") {
-  captureScreenshotWithOptions({ includeLogo: true }).then((dataUrl) => {
-    if (!dataUrl) return;
+const downloadSceneImageOnce = async (filename: string) => {
+  const canvas = await captureScreenshotCanvasWithOptions({ includeLogo: true });
+  if (!canvas) return;
 
-    const link = document.createElement("a");
-    link.download = filename;
-    link.href = dataUrl;
-    link.click();
-  });
+  const blob = await canvasToBlob(canvas, "image/png");
+  if (blob) {
+    downloadBlob(blob, filename);
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
+
+export function downloadSceneImage(filename = "configuration.png") {
+  if (activeDownloadPromise) return;
+
+  activeDownloadPromise = downloadSceneImageOnce(filename)
+    .catch((error) => {
+      console.error("[PlayCanvas] Scene image download failed", error);
+    })
+    .finally(() => {
+      activeDownloadPromise = null;
+    });
 }

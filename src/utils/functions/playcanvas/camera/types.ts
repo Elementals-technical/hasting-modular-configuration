@@ -22,13 +22,36 @@ export type CameraFramingConfig = {
   [key: string]: unknown;
 };
 
-export type CameraSnapshotOptions = {
+export type CameraHQSnapshotOptions = {
+  preset?: string;
+  out?: number;
+  size?: number;
   width?: number;
   height?: number;
-  rerender?: boolean;
-  format?: "image/png" | "image/jpeg" | (string & {});
+  format?: "image/png" | "image/jpeg" | "image/webp" | (string & {});
   quality?: number;
+  bg?: string | null;
+  azimuth?: number;
+  elevation?: number;
+  margin?: number;
+  cameraFrame?: boolean;
+  ssao?: boolean;
+  ssaoSamples?: number;
+  bloom?: number;
+  superSample?: number;
+  ss?: number | null;
+  aabbExclude?: string[];
   [key: string]: unknown;
+};
+
+export type CameraHQSnapshotResult = {
+  blob: Blob;
+  width: number;
+  height: number;
+  format: string;
+  quality?: number;
+  source?: string;
+  dataUrl?: string;
 };
 
 export type CameraState = Record<string, unknown>;
