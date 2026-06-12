@@ -21,6 +21,7 @@ import {
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
+  syncSelectedDimensionsFromScene as syncSelectedDimensionsFromSceneAction,
   swapProductIds,
   setTowelBarOption,
   setTowelBarColor,
@@ -2424,7 +2425,7 @@ export const PlayCanvasIntegration = () => {
       if (typeof config.Depth === "number") nextDimensions.depth = config.Depth;
 
       if (Object.keys(nextDimensions).length) {
-        dispatch(setSelectedDimensions(nextDimensions));
+        dispatch(syncSelectedDimensionsFromSceneAction(nextDimensions));
       }
     };
 
@@ -2464,7 +2465,7 @@ export const PlayCanvasIntegration = () => {
       }
 
       if (Object.keys(nextDimensions).length) {
-        dispatch(setSelectedDimensions(nextDimensions));
+        dispatch(syncSelectedDimensionsFromSceneAction(nextDimensions));
       }
     };
 

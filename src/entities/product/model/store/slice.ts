@@ -473,6 +473,9 @@ const productSlice = createSlice({
         applyRulesToState(state);
       }
     },
+    syncSelectedDimensionsFromScene(state, action: PayloadAction<Partial<ProductDimensions>>) {
+      state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
+    },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
 
@@ -686,6 +689,7 @@ export const {
   reset,
   setActiveCabinetType,
   setSelectedDimensions,
+  syncSelectedDimensionsFromScene,
   setDrawerProduct,
   setSelectedProductConfig,
   setCabinetColor,
