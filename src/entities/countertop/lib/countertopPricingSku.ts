@@ -41,9 +41,9 @@ const hasNumericSizeToken = (token: string, unit: "W" | "H" | "D") => {
 };
 
 export const isCountertopTopDynamicCandidate = (sku: string, widthCm: number | null | undefined) => {
-  if (widthCm == null || widthCm <= 0) return false;
+  if (widthCm == null || !Number.isFinite(widthCm) || widthCm <= 0) return false;
 
-  const [category, product, style, widthToken, heightToken, depthToken] = sku.trim().split("-");
+  const [category, product, style, widthToken, heightToken, depthToken, tailMaterialToken, colorToken] = sku.trim().split("-");
   if (category !== COUNTERTOP_CATEGORY) return false;
   if (!product?.startsWith(COUNTERTOP_PRODUCT_PREFIX)) return false;
 
@@ -52,6 +52,7 @@ export const isCountertopTopDynamicCandidate = (sku: string, widthCm: number | n
   if (!COUNTERTOP_TOP_STYLE_TOKENS.has(style)) return false;
   if (!hasNumericSizeToken(widthToken ?? "", "W")) return false;
   if (!hasNumericSizeToken(depthToken ?? "", "D")) return false;
+  if (!tailMaterialToken || !colorToken) return false;
 
   const height = stripSizeUnit(heightToken ?? "", "H");
   if (height == null) return false;

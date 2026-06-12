@@ -27,6 +27,10 @@ export type CountertopSkuInput = {
 const FALLBACK = "X";
 const CATEGORY = "CT";
 const LOG_PREFIX = "[SKU/CT]";
+const INVALID_COUNTERTOP_STYLE_ERROR = "Cannot build countertop SKU with unknown countertop style";
+const MISSING_COUNTERTOP_MATERIAL_ERROR = "Cannot build countertop SKU without countertop material or color code";
+const MISSING_COUNTERTOP_COLOR_ERROR = "Cannot build countertop SKU without countertop color code";
+const MISSING_COUNTERTOP_DIMENSIONS_ERROR = "Cannot build countertop SKU without width, depth, and thickness";
 const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
 const formatThicknessToken = (value: number): string => {
   const fixed = value.toFixed(1);
@@ -37,6 +41,17 @@ const formatThicknessToken = (value: number): string => {
 const formatTopMaterialBlock = (materialSku: string | null, colorCode: string | null): string => {
   if (!materialSku) return "";
   return `-${materialSku}${colorCode ? `-${colorCode}` : ""}`;
+};
+
+const isPositiveFiniteNumber = (value: number | null): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value > 0;
+
+const parseThicknessValue = (value: string | null): number | null => {
+  const raw = value?.trim();
+  if (!raw) return null;
+
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
 const resolve = (
@@ -65,6 +80,40 @@ const resolve = (
   return FALLBACK;
 };
 
+const hasKnownCountertopStyle = (value: string) => {
+  const normalizedValue = value.toLowerCase();
+  return (
+    Object.keys(countertopStyleSkuMap).some((key) => key.toLowerCase() === normalizedValue) ||
+    Object.values(countertopStyleSkuMap).some((mappedValue) => mappedValue.toLowerCase() === normalizedValue)
+  );
+};
+
+const resolveCountertopSkuMaterial = (input: CountertopSkuInput): string | null => {
+  const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
+    caseInsensitiveKey: true,
+    allowMappedValue: true,
+  });
+  const inferredMaterial = resolveCountertopMaterialSkuFromBasinType(input.basinType);
+  const colorMaterial = resolveCountertopMaterialSkuFromColorCode(input.countertopColorCode);
+
+  return colorMaterial ?? inferredMaterial ?? (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
+};
+
+export const canBuildCountertopSku = (input: CountertopSkuInput): boolean => {
+  const styleValue = input.style?.trim() || "plain";
+  const color = input.countertopColorCode?.trim() || null;
+  const parsedThickness = parseThicknessValue(input.thickness);
+
+  return (
+    hasKnownCountertopStyle(styleValue) &&
+    resolveCountertopSkuMaterial(input) != null &&
+    color != null &&
+    isPositiveFiniteNumber(input.width) &&
+    isPositiveFiniteNumber(input.depth) &&
+    parsedThickness != null
+  );
+};
+
 /**
  * Returns an array of SKU lines for the countertop:
  *  [0] Top        — always present  CT-{SERIES}-{STYLE}-{W}W-{THICKNESS}H-{D}D-{MatSKU}-{Color}
@@ -77,7 +126,11 @@ const resolve = (
 export function buildCountertopSku(input: CountertopSkuInput): string[] {
   console.log(LOG_PREFIX, "buildCountertopSku input", input);
   const styleValue = input.style?.trim() || "plain";
-  const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true });
+  if (!hasKnownCountertopStyle(styleValue)) {
+    throw new Error(INVALID_COUNTERTOP_STYLE_ERROR);
+  }
+
+  const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true, allowMappedValue: true });
 
   const isVessel = styleValue.toLowerCase() === "vessel";
 
@@ -94,20 +147,29 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     colorMaterial ??
     inferredMaterial ??
     (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
-  const vesselMaterial = isVessel ? mat ?? "FX" : mat;
   const color = input.countertopColorCode?.trim() || null;
+  if (!mat && !color) {
+    throw new Error(MISSING_COUNTERTOP_MATERIAL_ERROR);
+  }
+  if (!color) {
+    throw new Error(MISSING_COUNTERTOP_COLOR_ERROR);
+  }
+  if (!mat) {
+    throw new Error(MISSING_COUNTERTOP_MATERIAL_ERROR);
+  }
+
+  const vesselMaterial = isVessel ? mat ?? "FX" : mat;
 
   // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
-  const w =
-    input.width != null
-      ? `${cmToInches(input.width)}W`
-      : `${FALLBACK}W`;
-  const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
-  const rawT = input.thickness?.trim();
-  const parsedT = rawT ? parseFloat(rawT) : null;
-  const thicknessForSku = parsedT != null && !isNaN(parsedT) ? mapThicknessToSkuValue(parsedT) : null;
+  const parsedT = parseThicknessValue(input.thickness);
+  const thicknessForSku = parsedT != null ? mapThicknessToSkuValue(parsedT) : null;
+  if (!isPositiveFiniteNumber(input.width) || !isPositiveFiniteNumber(input.depth) || thicknessForSku == null) {
+    throw new Error(MISSING_COUNTERTOP_DIMENSIONS_ERROR);
+  }
 
-  const t = thicknessForSku != null ? `${formatThicknessToken(thicknessForSku)}H` : FALLBACK;
+  const w = `${cmToInches(input.width)}W`;
+  const d = `${cmToInches(input.depth)}D`;
+  const t = `${formatThicknessToken(thicknessForSku)}H`;
   const matBlock = formatTopMaterialBlock(vesselMaterial, color);
 
   // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
@@ -153,3 +215,6 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   console.log(LOG_PREFIX, "buildCountertopSku output", lines);
   return lines;
 }
+
+export const buildCountertopSkuIfComplete = (input: CountertopSkuInput): string[] =>
+  canBuildCountertopSku(input) ? buildCountertopSku(input) : [];

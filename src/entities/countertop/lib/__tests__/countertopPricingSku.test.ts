@@ -68,11 +68,15 @@ describe("isCountertopTopDynamicCandidate", () => {
     ["faucet-hole matrix SKU", "CT-URSSTKR-FAHO/2"],
     ["hole-cut matrix SKU", "CT-URSSTKR-HCUT"],
     ["basin/matrix SKU without top style dimension block", "CT-URSSTKR-RECT-.5H-SSTKR-FF"],
+    ["top SKU without tail material and color", "CT-URSSTKR-INTG-75.2W-.5H-19.9D"],
+    ["lowercase category", "ct-URSSTKR-INTG-75.2W-.5H-19.9D-SSTKR-FF"],
+    ["lowercase style", buildTopSku({ style: "intg" })],
+    ["lowercase material", buildTopSku({ material: "sstkr" })],
   ])("rejects %s", (_caseName, sku) => {
     expect(isCountertopTopDynamicCandidate(sku, widthCm)).toBe(false);
   });
 
-  it.each([null, undefined, 0, -1])("rejects widthCm %s", (candidateWidthCm) => {
+  it.each([null, undefined, 0, -1, Number.NaN, Number.POSITIVE_INFINITY])("rejects widthCm %s", (candidateWidthCm) => {
     expect(isCountertopTopDynamicCandidate(buildTopSku(), candidateWidthCm)).toBe(false);
   });
 });

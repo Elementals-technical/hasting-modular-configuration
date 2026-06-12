@@ -57,7 +57,7 @@ import {
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
   buildProductSku,
-  buildCountertopSku,
+  buildCountertopSkuIfComplete,
   buildVesselSku,
   resolveVesselDimensionTokens,
   formatVesselDimensionLabel,
@@ -1280,7 +1280,7 @@ export const SummaryPage = () => {
           : (selectedDimensions.width ?? 0);
     const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
-    const countertopSkuLines = buildCountertopSku({
+    const countertopSkuLines = buildCountertopSkuIfComplete({
       style: countertopStyle || null,
       width: totalCountertopWidth,
       depth: selectedDimensions.depth,
@@ -1331,7 +1331,7 @@ export const SummaryPage = () => {
       if (isIntegratedBasinLine && sinkBaseEntries.length > 0) {
         return sinkBaseEntries.map((entry, index) => {
           const basinLine =
-            buildCountertopSku({
+            buildCountertopSkuIfComplete({
               style: countertopStyle || null,
               width: totalCountertopWidth,
               depth: selectedDimensions.depth,
