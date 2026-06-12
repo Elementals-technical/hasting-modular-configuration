@@ -34,7 +34,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import {
   buildProductSku,
-  buildCountertopSku,
+  buildCountertopSkuIfComplete,
   buildVesselSku,
   vesselHeightCmMap,
   buildTowelBarSku,
@@ -60,10 +60,7 @@ import {
 import { useGetConfiguratorQuery } from "@/entities";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { calcTotalCountertopWidthCm, isCountertopTopDynamicCandidate } from "@/entities/countertop";
-import {
-  useLazyGetCountertopTopPriceBySkuQuery,
-  type CountertopSkuPriceResponse,
-} from "@/entities/countertop/api";
+import { useLazyGetCountertopTopPriceBySkuQuery, type CountertopSkuPriceResponse } from "@/entities/countertop/api";
 import {
   getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
@@ -379,10 +376,7 @@ export function usePriceCalculation() {
     const vesselPreferredMaterialTokens =
       allowedVesselMaterialTokens.length > 0
         ? allowedVesselMaterialTokens
-        : [
-            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-            ...preferredCountertopMaterialTokens,
-          ];
+        : [...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku), ...preferredCountertopMaterialTokens];
     const resolvedVesselColorCode = resolvedVesselColor
       ? resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
@@ -391,12 +385,12 @@ export function usePriceCalculation() {
         })
       : null;
     const resolvedVesselMaterialSku = resolvedVesselColor
-      ? resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
+      ? (resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
         resolveCountertopColorSkuFromCandidates({
           value: resolvedVesselColor,
           candidatesByValue: countertopColorSkuCandidatesByValue,
           preferredMaterialTokens: vesselPreferredMaterialTokens,
-        })
+        }))
       : null;
     const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const effectiveCountertopMaterialSku =
@@ -525,7 +519,9 @@ export function usePriceCalculation() {
       cfg.Drawers ?? getPlacedDrawerStyle(cfg.id) ?? getPlacedDrawerStyle(cfg._productId) ?? selectedProductDrawerStyle;
     const orderedProductIds = getOrderedProductIds(productIds);
     const orderedCabinetProductIds = orderedProductIds.filter((id) => productIds.includes(id));
-    const productOrder = new Map((orderedProductIds.length ? orderedProductIds : productIds).map((id, index) => [id, index]));
+    const productOrder = new Map(
+      (orderedProductIds.length ? orderedProductIds : productIds).map((id, index) => [id, index]),
+    );
     const sortBySceneOrder = (left: NormalizedProductConfigSnapshot, right: NormalizedProductConfigSnapshot) =>
       (productOrder.get(left.id) ?? productOrder.get(left._productId) ?? Number.MAX_SAFE_INTEGER) -
       (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
@@ -590,7 +586,11 @@ export function usePriceCalculation() {
           height: selectedDimensions.height ?? preset.Height ?? null,
           depth: selectedDimensions.depth ?? preset.Depth ?? null,
           cab: cabMaterialSku
-            ? { materialSku: cabMaterialSku, colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku), grainDirection: grainSku }
+            ? {
+                materialSku: cabMaterialSku,
+                colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku),
+                grainDirection: grainSku,
+              }
             : null,
           hdl: hdlMaterialSku
             ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
@@ -657,7 +657,11 @@ export function usePriceCalculation() {
           height: cfg.Height,
           depth: cfg.Depth,
           cab: cabMaterialSku
-            ? { materialSku: cabMaterialSku, colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku), grainDirection: grainSku }
+            ? {
+                materialSku: cabMaterialSku,
+                colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku),
+                grainDirection: grainSku,
+              }
             : null,
           hdl: hdlMaterialSku
             ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
@@ -723,7 +727,11 @@ export function usePriceCalculation() {
           height: cfg.Height,
           depth: cfg.Depth,
           cab: cabMaterialSku
-            ? { materialSku: cabMaterialSku, colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku), grainDirection: grainSku }
+            ? {
+                materialSku: cabMaterialSku,
+                colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku),
+                grainDirection: grainSku,
+              }
             : null,
           hdl: hdlMaterialSku
             ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
@@ -853,8 +861,8 @@ export function usePriceCalculation() {
     // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
     const cabinetWidthSum = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0);
     const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
-    countertopWidthCmRef.current = totalCountertopWidth;
-    const aggregateCountertopLines = buildCountertopSku({
+
+    const aggregateCountertopInput = {
       style: countertopStyle || null,
       width: totalCountertopWidth,
       depth: selectedDimensions.depth,
@@ -863,7 +871,9 @@ export function usePriceCalculation() {
       faucetHolesAmount: faucetHolesAmount || null,
       countertopMaterialSku: effectiveCountertopMaterialSku,
       countertopColorCode: effectiveCountertopColorCode,
-    });
+    };
+    const aggregateCountertopLines = buildCountertopSkuIfComplete(aggregateCountertopInput);
+    countertopWidthCmRef.current = aggregateCountertopLines.length > 0 ? totalCountertopWidth : null;
     const aggregateCountertopSkuSet = new Set(aggregateCountertopLines);
     aggregateCountertopLines.forEach((line, index) => {
       const isIntegratedBasinSkuLine = index === 1 && !isVesselCountertop;
@@ -872,7 +882,7 @@ export function usePriceCalculation() {
       if (isIntegratedBasinSkuLine && sinkBaseEntriesForPricing.length > 0) {
         sinkBaseEntriesForPricing.forEach((entry) => {
           const basinLine =
-            buildCountertopSku({
+            buildCountertopSkuIfComplete({
               style: countertopStyle || null,
               width: totalCountertopWidth,
               depth: selectedDimensions.depth,
