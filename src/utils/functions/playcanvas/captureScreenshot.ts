@@ -1,6 +1,45 @@
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
 import { captureCurrentViewHQSnapshot, type CameraHQSnapshotOptions, type CameraHQSnapshotResult } from "./camera";
 
+type OutputSize = {
+  width?: number;
+  height?: number;
+};
+
+type CaptureScreenshotOptions = {
+  includeLogo?: boolean;
+  transparentBackground?: boolean;
+  transparentContentPaddingRatio?: number;
+  renderSourceAtOutputSize?: boolean;
+  hqSnapshotOptions?: CameraHQSnapshotOptions;
+  outputSize?: OutputSize;
+};
+
+type ImageBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type RgbaColor = {
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+};
+
+type CapturedImageSource = {
+  src: string;
+  revoke?: () => void;
+};
+
+type WindowWithContainerRef = Window & {
+  containerRef?: {
+    current?: HTMLIFrameElement | null;
+  };
+};
+
 const BRAND_COLOR = "#231F20";
 const BRAND_BACKGROUND = "#FFFFFF";
 const FOOTER_FONT_FAMILY = "Poppins";
@@ -9,6 +48,7 @@ const FOOTER_FONT_SIZE = 18;
 const FOOTER_LINE_HEIGHT = 32;
 const FOOTER_MIN_FONT_SIZE = 12;
 const FOOTER_MAX_CONTENT_WIDTH = 1444;
+const BRANDING_REFERENCE_WIDTH = 2048;
 const MAX_TRANSPARENT_CONTENT_PADDING_RATIO = 0.45;
 const HQ_SNAPSHOT_TIMEOUT_MS = 20_000;
 const CURRENT_VIEW_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
@@ -21,6 +61,9 @@ const CURRENT_VIEW_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
 const DOWNLOAD_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
   out: 4096,
 };
+const DOWNLOAD_OUTPUT_SIZE = {
+  width: BRANDING_REFERENCE_WIDTH,
+} as const;
 const FOOTER_SEGMENTS = [
   "Hastings Bath Collection",
   "|",
@@ -30,6 +73,13 @@ const FOOTER_SEGMENTS = [
   "|",
   "Support: cs@hastingsbath.com",
 ] as const;
+
+const activeHQSnapshotPromises = new Map<string, Promise<CameraHQSnapshotResult | null>>();
+let activeDownloadPromise: Promise<void> | null = null;
+
+const EDGE_BACKGROUND_COLOR_TOLERANCE = 24;
+const EDGE_SAMPLE_STEPS = 16;
+const NEAR_WHITE_THRESHOLD = 245;
 
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -50,10 +100,11 @@ const loadCanvasFont = async (fontSize: number) => {
 const measureFooterContentWidth = (ctx: CanvasRenderingContext2D) =>
   FOOTER_SEGMENTS.reduce((total, segment) => total + ctx.measureText(segment).width, 0);
 
-const fitFooterFont = (ctx: CanvasRenderingContext2D, availableWidth: number) => {
-  let fontSize = FOOTER_FONT_SIZE;
+const fitFooterFont = (ctx: CanvasRenderingContext2D, availableWidth: number, scale: number) => {
+  let fontSize = Math.round(FOOTER_FONT_SIZE * scale);
+  const minFontSize = Math.round(FOOTER_MIN_FONT_SIZE * scale);
 
-  while (fontSize > FOOTER_MIN_FONT_SIZE) {
+  while (fontSize > minFontSize) {
     ctx.font = `${FOOTER_FONT_WEIGHT} ${fontSize}px "${FOOTER_FONT_FAMILY}"`;
 
     if (measureFooterContentWidth(ctx) <= availableWidth) {
@@ -71,18 +122,24 @@ const fitFooterFont = (ctx: CanvasRenderingContext2D, availableWidth: number) =>
   };
 };
 
+const getBrandingScale = (outputWidth: number) => Math.max(1, outputWidth / BRANDING_REFERENCE_WIDTH);
+
 const drawFooter = (
   ctx: CanvasRenderingContext2D,
   outputWidth: number,
   footerTop: number,
   footerHeight: number,
+  scale: number,
 ) => {
-  const footerHorizontalPadding = Math.max(32, Math.round(outputWidth * 0.04));
-  const footerWidth = Math.min(FOOTER_MAX_CONTENT_WIDTH, outputWidth - footerHorizontalPadding * 2);
+  const footerHorizontalPadding = Math.max(Math.round(32 * scale), Math.round(outputWidth * 0.04));
+  const footerWidth = Math.min(
+    Math.round(FOOTER_MAX_CONTENT_WIDTH * scale),
+    outputWidth - footerHorizontalPadding * 2,
+  );
   const footerLeft = Math.round((outputWidth - footerWidth) / 2);
   const footerCenterY = footerTop + footerHeight / 2;
 
-  const { fontSize, contentWidth } = fitFooterFont(ctx, footerWidth);
+  const { fontSize, contentWidth } = fitFooterFont(ctx, footerWidth, scale);
   const gapCount = Math.max(FOOTER_SEGMENTS.length - 1, 1);
   const gap = Math.max((footerWidth - contentWidth) / gapCount, 0);
 
@@ -105,87 +162,65 @@ const drawFooter = (
   ctx.restore();
 };
 
-const drawBrandedCapture = async (
+const createCanvasContext = (width: number, height: number) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  return { canvas, ctx };
+};
+
+const createBrandedCaptureCanvas = async (
   sourceCanvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D,
-  outputCanvas: HTMLCanvasElement,
+  contentSize: Required<OutputSize>,
 ) => {
   const logoImage = await loadImage(hastingsLogoUrl);
+  const brandingScale = getBrandingScale(contentSize.width);
+  const footerFontSize = Math.round(FOOTER_FONT_SIZE * brandingScale);
 
-  await loadCanvasFont(FOOTER_FONT_SIZE);
+  await loadCanvasFont(footerFontSize);
 
-  const logoTargetWidth = Math.min(Math.round(sourceCanvas.width * 0.18), 260);
+  const logoTargetWidth = Math.min(Math.round(contentSize.width * 0.18), Math.round(260 * brandingScale));
   const logoScale = logoTargetWidth / logoImage.naturalWidth;
   const logoTargetHeight = Math.round(logoImage.naturalHeight * logoScale);
-  const headerTopPadding = Math.max(28, Math.round(sourceCanvas.width * 0.02));
-  const headerBottomPadding = Math.max(24, Math.round(sourceCanvas.width * 0.018));
+  const headerTopPadding = Math.max(Math.round(28 * brandingScale), Math.round(contentSize.width * 0.02));
+  const headerBottomPadding = Math.max(Math.round(24 * brandingScale), Math.round(contentSize.width * 0.018));
   const headerHeight = headerTopPadding + logoTargetHeight + headerBottomPadding;
-  const footerVerticalPadding = Math.max(28, Math.round(sourceCanvas.width * 0.02));
-  const footerHeight = footerVerticalPadding * 2 + FOOTER_LINE_HEIGHT;
+  const footerVerticalPadding = Math.max(Math.round(28 * brandingScale), Math.round(contentSize.width * 0.02));
+  const footerHeight = footerVerticalPadding * 2 + Math.round(FOOTER_LINE_HEIGHT * brandingScale);
   const screenshotTop = headerHeight;
-  const footerTop = screenshotTop + sourceCanvas.height;
+  const footerTop = screenshotTop + contentSize.height;
+  const outputCanvas = createCanvasContext(contentSize.width, contentSize.height + headerHeight + footerHeight);
 
-  outputCanvas.width = sourceCanvas.width;
-  outputCanvas.height = sourceCanvas.height + headerHeight + footerHeight;
+  if (!outputCanvas) return null;
+
+  const { canvas, ctx } = outputCanvas;
 
   ctx.fillStyle = BRAND_BACKGROUND;
-  ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  ctx.drawImage(sourceCanvas, 0, screenshotTop);
+  ctx.drawImage(sourceCanvas, 0, screenshotTop, contentSize.width, contentSize.height);
   ctx.drawImage(
     logoImage,
-    Math.round((outputCanvas.width - logoTargetWidth) / 2),
+    Math.round((canvas.width - logoTargetWidth) / 2),
     headerTopPadding,
     logoTargetWidth,
     logoTargetHeight,
   );
 
-  drawFooter(ctx, outputCanvas.width, footerTop, footerHeight);
+  drawFooter(ctx, canvas.width, footerTop, footerHeight, brandingScale);
+
+  return canvas;
 };
 
 export async function captureScreenshot(): Promise<string | null> {
   return captureScreenshotWithOptions();
 }
-
-type CaptureScreenshotOptions = {
-  includeLogo?: boolean;
-  transparentBackground?: boolean;
-  transparentContentPaddingRatio?: number;
-  renderSourceAtOutputSize?: boolean;
-  hqSnapshotOptions?: CameraHQSnapshotOptions;
-  outputSize?: {
-    width: number;
-    height: number;
-  };
-};
-
-type ImageBounds = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-type RgbaColor = {
-  red: number;
-  green: number;
-  blue: number;
-  alpha: number;
-};
-
-type CapturedImageSource = {
-  src: string;
-  revoke?: () => void;
-};
-
-const activeHQSnapshotPromises = new Map<string, Promise<CameraHQSnapshotResult | null>>();
-let activeDownloadPromise: Promise<void> | null = null;
-
-const EDGE_BACKGROUND_COLOR_TOLERANCE = 24;
-const EDGE_SAMPLE_STEPS = 16;
-const NEAR_WHITE_THRESHOLD = 245;
 
 const readColor = (data: Uint8ClampedArray, pixelIndex: number): RgbaColor => ({
   red: data[pixelIndex],
@@ -324,6 +359,100 @@ const normalizeContentPaddingRatio = (value: number) => {
   return Math.min(Math.max(value, 0), MAX_TRANSPARENT_CONTENT_PADDING_RATIO);
 };
 
+const normalizeOutputSize = (sourceCanvas: HTMLCanvasElement, outputSize?: OutputSize): Required<OutputSize> => {
+  const sourceRatio = sourceCanvas.width > 0 && sourceCanvas.height > 0 ? sourceCanvas.width / sourceCanvas.height : 1;
+  const width = Number(outputSize?.width);
+  const height = Number(outputSize?.height);
+  const hasWidth = Number.isFinite(width) && width > 0;
+  const hasHeight = Number.isFinite(height) && height > 0;
+
+  if (hasWidth && hasHeight) {
+    return {
+      width: Math.round(width),
+      height: Math.round(height),
+    };
+  }
+
+  if (hasWidth) {
+    const roundedWidth = Math.round(width);
+
+    return {
+      width: roundedWidth,
+      height: Math.max(1, Math.round(roundedWidth / sourceRatio)),
+    };
+  }
+
+  if (hasHeight) {
+    const roundedHeight = Math.round(height);
+
+    return {
+      width: Math.max(1, Math.round(roundedHeight * sourceRatio)),
+      height: roundedHeight,
+    };
+  }
+
+  return {
+    width: sourceCanvas.width,
+    height: sourceCanvas.height,
+  };
+};
+
+const isSecurityError = (error: unknown) => error instanceof DOMException && error.name === "SecurityError";
+
+const logScreenshotError = (error: unknown) => {
+  if (isSecurityError(error)) {
+    console.error(
+      "[PlayCanvas] Screenshot failed: image capture requires a same-origin PlayCanvas iframe/canvas.",
+      error,
+    );
+    return;
+  }
+
+  console.error("[PlayCanvas] Screenshot failed", error);
+};
+
+const getVisiblePlayCanvasCanvas = (): HTMLCanvasElement | null => {
+  const iframeEl = (window as WindowWithContainerRef).containerRef?.current ?? null;
+
+  if (!iframeEl) {
+    console.warn("[PlayCanvas] Iframe not found for screenshot capture");
+    return null;
+  }
+
+  try {
+    const visibleCanvas = iframeEl.contentDocument?.querySelector("canvas") ?? null;
+
+    if (!visibleCanvas) {
+      console.warn("[PlayCanvas] Canvas not found in iframe");
+    }
+
+    return visibleCanvas;
+  } catch (error) {
+    if (isSecurityError(error)) {
+      console.error(
+        "[PlayCanvas] Cannot access iframe canvas. Screenshot capture expects the PlayCanvas iframe to be same-origin.",
+        error,
+      );
+      return null;
+    }
+
+    throw error;
+  }
+};
+
+const getSourceSnapshotOptions = (
+  hqSnapshotOptions: CameraHQSnapshotOptions | undefined,
+  renderSourceSize: Required<OutputSize> | null,
+): CameraHQSnapshotOptions | undefined => {
+  if (!renderSourceSize) return hqSnapshotOptions;
+
+  return {
+    ...hqSnapshotOptions,
+    width: renderSourceSize.width,
+    height: renderSourceSize.height,
+  };
+};
+
 const drawContainedImage = (
   ctx: CanvasRenderingContext2D,
   sourceCanvas: HTMLCanvasElement,
@@ -373,6 +502,69 @@ const drawContainedCrop = (
     targetWidth,
     targetHeight,
   );
+};
+
+const createTransparentOutputCanvas = (
+  sourceCanvas: HTMLCanvasElement,
+  outputCanvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  transparentContentPaddingRatio: number,
+) => {
+  const croppedCanvas = createCanvasContext(sourceCanvas.width, sourceCanvas.height);
+  if (!croppedCanvas) return null;
+
+  croppedCanvas.ctx.drawImage(sourceCanvas, 0, 0);
+  makeEdgeBackgroundTransparent(croppedCanvas.ctx, croppedCanvas.canvas.width, croppedCanvas.canvas.height);
+
+  const sourceBounds = getOpaqueBounds(croppedCanvas.ctx, croppedCanvas.canvas.width, croppedCanvas.canvas.height);
+  if (sourceBounds) {
+    drawContainedCrop(
+      ctx,
+      croppedCanvas.canvas,
+      sourceBounds,
+      outputCanvas.width,
+      outputCanvas.height,
+      transparentContentPaddingRatio,
+    );
+  } else {
+    drawContainedImage(ctx, croppedCanvas.canvas, outputCanvas.width, outputCanvas.height);
+  }
+
+  return outputCanvas;
+};
+
+const createUnbrandedCaptureCanvas = (
+  sourceCanvas: HTMLCanvasElement,
+  contentSize: Required<OutputSize>,
+  options: Pick<CaptureScreenshotOptions, "outputSize" | "transparentBackground" | "transparentContentPaddingRatio">,
+) => {
+  const outputCanvas = createCanvasContext(contentSize.width, contentSize.height);
+  if (!outputCanvas) return null;
+
+  const { canvas, ctx } = outputCanvas;
+  const hasOutputSize = Boolean(options.outputSize);
+
+  if (hasOutputSize && options.transparentBackground) {
+    return createTransparentOutputCanvas(
+      sourceCanvas,
+      canvas,
+      ctx,
+      options.transparentContentPaddingRatio ?? 0,
+    );
+  }
+
+  if (hasOutputSize) {
+    drawContainedImage(ctx, sourceCanvas, canvas.width, canvas.height);
+    return canvas;
+  }
+
+  ctx.drawImage(sourceCanvas, 0, 0);
+
+  if (options.transparentBackground) {
+    makeEdgeBackgroundTransparent(ctx, canvas.width, canvas.height);
+  }
+
+  return canvas;
 };
 
 const createCanvasFromImageSource = async (src: string): Promise<HTMLCanvasElement | null> => {
@@ -459,8 +651,22 @@ const canvasToBlob = (canvas: HTMLCanvasElement, format = "image/png", quality?:
       return;
     }
 
-    canvas.toBlob((blob) => resolve(blob), format, quality);
+    try {
+      canvas.toBlob((blob) => resolve(blob), format, quality);
+    } catch (error) {
+      logScreenshotError(error);
+      resolve(null);
+    }
   });
+
+const canvasToDataUrl = (canvas: HTMLCanvasElement, format = "image/png", quality?: number) => {
+  try {
+    return canvas.toDataURL(format, quality);
+  } catch (error) {
+    logScreenshotError(error);
+    return null;
+  }
+};
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const objectUrl = URL.createObjectURL(blob);
@@ -483,73 +689,40 @@ const captureScreenshotCanvasWithOptions = async (
     includeLogo = true,
     hqSnapshotOptions,
     outputSize,
+    renderSourceAtOutputSize = false,
     transparentBackground = false,
     transparentContentPaddingRatio = 0,
   } = options;
-  const iframeEl = (window as any).containerRef?.current as HTMLIFrameElement | null;
-  const visibleCanvas = iframeEl?.contentDocument?.querySelector("canvas");
+  const visibleCanvas = getVisiblePlayCanvasCanvas();
 
-  if (!visibleCanvas) {
-    console.warn("[PlayCanvas] Canvas not found in iframe");
-    return null;
-  }
+  if (!visibleCanvas) return null;
 
   let snapshotImageSource: CapturedImageSource | null = null;
+  const renderSourceSize =
+    renderSourceAtOutputSize && outputSize ? normalizeOutputSize(visibleCanvas, outputSize) : null;
 
   try {
-    snapshotImageSource = await captureCurrentViewHQSnapshotImageSource(hqSnapshotOptions);
+    snapshotImageSource = await captureCurrentViewHQSnapshotImageSource(
+      getSourceSnapshotOptions(hqSnapshotOptions, renderSourceSize),
+    );
     const snapshot = snapshotImageSource?.src ?? null;
     const snapshotCanvas = snapshot ? await createCanvasFromImageSource(snapshot) : null;
     const sourceCanvas = snapshotCanvas ?? visibleCanvas;
-
-    const outputCanvas = document.createElement("canvas");
-    outputCanvas.width = outputSize?.width ?? sourceCanvas.width;
-    outputCanvas.height = outputSize?.height ?? sourceCanvas.height;
-
-    const ctx = outputCanvas.getContext("2d");
-    if (!ctx) return sourceCanvas;
+    const normalizedOutputSize = renderSourceSize ?? normalizeOutputSize(sourceCanvas, outputSize);
 
     if (includeLogo) {
-      await drawBrandedCapture(sourceCanvas, ctx, outputCanvas);
-    } else {
-      if (outputSize && transparentBackground) {
-        const croppedCanvas = document.createElement("canvas");
-        croppedCanvas.width = sourceCanvas.width;
-        croppedCanvas.height = sourceCanvas.height;
-
-        const croppedCtx = croppedCanvas.getContext("2d");
-        if (!croppedCtx) return sourceCanvas;
-
-        croppedCtx.drawImage(sourceCanvas, 0, 0);
-        makeEdgeBackgroundTransparent(croppedCtx, croppedCanvas.width, croppedCanvas.height);
-
-        const sourceBounds = getOpaqueBounds(croppedCtx, croppedCanvas.width, croppedCanvas.height);
-        if (sourceBounds) {
-          drawContainedCrop(
-            ctx,
-            croppedCanvas,
-            sourceBounds,
-            outputCanvas.width,
-            outputCanvas.height,
-            transparentContentPaddingRatio,
-          );
-        } else {
-          drawContainedImage(ctx, croppedCanvas, outputCanvas.width, outputCanvas.height);
-        }
-      } else if (outputSize) {
-        drawContainedImage(ctx, sourceCanvas, outputCanvas.width, outputCanvas.height);
-      } else {
-        ctx.drawImage(sourceCanvas, 0, 0);
-
-        if (transparentBackground) {
-          makeEdgeBackgroundTransparent(ctx, outputCanvas.width, outputCanvas.height);
-        }
-      }
+      return (await createBrandedCaptureCanvas(sourceCanvas, normalizedOutputSize)) ?? sourceCanvas;
     }
 
-    return outputCanvas;
+    return (
+      createUnbrandedCaptureCanvas(sourceCanvas, normalizedOutputSize, {
+        outputSize,
+        transparentBackground,
+        transparentContentPaddingRatio,
+      }) ?? sourceCanvas
+    );
   } catch (e) {
-    console.error("[PlayCanvas] Screenshot failed", e);
+    logScreenshotError(e);
     return null;
   } finally {
     snapshotImageSource?.revoke?.();
@@ -558,13 +731,14 @@ const captureScreenshotCanvasWithOptions = async (
 
 export async function captureScreenshotWithOptions(options: CaptureScreenshotOptions = {}): Promise<string | null> {
   const canvas = await captureScreenshotCanvasWithOptions(options);
-  return canvas?.toDataURL("image/png") ?? null;
+  return canvas ? canvasToDataUrl(canvas, "image/png") : null;
 }
 
 const downloadSceneImageOnce = async (filename: string) => {
   const canvas = await captureScreenshotCanvasWithOptions({
     includeLogo: true,
     hqSnapshotOptions: DOWNLOAD_HQ_SNAPSHOT_OPTIONS,
+    outputSize: DOWNLOAD_OUTPUT_SIZE,
   });
   if (!canvas) return;
 
@@ -576,7 +750,10 @@ const downloadSceneImageOnce = async (filename: string) => {
 
   const link = document.createElement("a");
   link.download = filename;
-  link.href = canvas.toDataURL("image/png");
+  const dataUrl = canvasToDataUrl(canvas, "image/png");
+  if (!dataUrl) return;
+
+  link.href = dataUrl;
   link.click();
 };
 
