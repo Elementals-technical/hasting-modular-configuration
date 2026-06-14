@@ -44,11 +44,13 @@ const BRAND_COLOR = "#231F20";
 const BRAND_BACKGROUND = "#FFFFFF";
 const FOOTER_FONT_FAMILY = "Poppins";
 const FOOTER_FONT_WEIGHT = 400;
-const FOOTER_FONT_SIZE = 18;
-const FOOTER_LINE_HEIGHT = 32;
-const FOOTER_MIN_FONT_SIZE = 12;
-const FOOTER_MAX_CONTENT_WIDTH = 1444;
+const FOOTER_FONT_SIZE = 24;
+const FOOTER_LINE_HEIGHT = 42;
+const FOOTER_MIN_FONT_SIZE = 16;
+const FOOTER_MAX_CONTENT_WIDTH = 1680;
 const BRANDING_REFERENCE_WIDTH = 2048;
+const LOGO_WIDTH_RATIO = 0.2;
+const LOGO_MAX_WIDTH = 420;
 const MAX_TRANSPARENT_CONTENT_PADDING_RATIO = 0.45;
 const HQ_SNAPSHOT_TIMEOUT_MS = 20_000;
 const CURRENT_VIEW_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
@@ -183,7 +185,10 @@ const createBrandedCaptureCanvas = async (
 
   await loadCanvasFont(footerFontSize);
 
-  const logoTargetWidth = Math.min(Math.round(contentSize.width * 0.18), Math.round(260 * brandingScale));
+  const logoTargetWidth = Math.min(
+    Math.round(contentSize.width * LOGO_WIDTH_RATIO),
+    Math.round(LOGO_MAX_WIDTH * brandingScale),
+  );
   const logoScale = logoTargetWidth / logoImage.naturalWidth;
   const logoTargetHeight = Math.round(logoImage.naturalHeight * logoScale);
   const headerTopPadding = Math.max(Math.round(28 * brandingScale), Math.round(contentSize.width * 0.02));
