@@ -88,6 +88,7 @@ import {
   watchPlayCanvasMeshInstancesDuringRender,
 } from "@/utils/functions/playcanvas/sanitizeMeshInstances";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
+import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
@@ -2038,52 +2039,40 @@ export const PlayCanvasIntegration = () => {
     });
 
     onDrawerCloseWidgetRender((_, parentEl) => {
-      parentEl.innerHTML = "";
-      parentEl.style.pointerEvents = "auto";
+      renderDrawerCloseWidget(parentEl, {
+        onClick: (event) => {
+          event.stopPropagation();
 
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = "Close";
-      button.style.background = "#282828";
-      button.style.color = "#fff";
-      button.style.border = "none";
-      button.style.borderRadius = "12px";
-      button.style.padding = "4px 10px";
-      button.style.cursor = "pointer";
-      button.style.fontSize = "11px";
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
+          const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
+            | {
+                exitTopView?: () => unknown;
+              }
+            | undefined;
 
-        const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
-          | {
-              exitTopView?: () => unknown;
-            }
-          | undefined;
+          const finishClose = () => {
+            const exitResult = api?.exitTopView?.() as Promise<unknown> | unknown;
+            const isExitThenable = !!exitResult && typeof (exitResult as Promise<unknown>).then === "function";
 
-        const finishClose = () => {
-          const exitResult = api?.exitTopView?.() as Promise<unknown> | unknown;
-          const isExitThenable = !!exitResult && typeof (exitResult as Promise<unknown>).then === "function";
+            const finalizeClose = () => {
+              setVisibleDrawerButtons(true);
+              setDropdownState((prev) => ({ ...prev, visible: false }));
+              setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+              if (selectedSceneProduct) {
+                suppressNextDropdownOpenRef.current = true;
+                getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+              }
+            };
 
-          const finalizeClose = () => {
-            setVisibleDrawerButtons(true);
-            setDropdownState((prev) => ({ ...prev, visible: false }));
-            setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-            if (selectedSceneProduct) {
-              suppressNextDropdownOpenRef.current = true;
-              getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+            if (isExitThenable) {
+              (exitResult as Promise<unknown>).catch(() => null).then(finalizeClose);
+            } else {
+              finalizeClose();
             }
           };
 
-          if (isExitThenable) {
-            (exitResult as Promise<unknown>).catch(() => null).then(finalizeClose);
-          } else {
-            finalizeClose();
-          }
-        };
-
-        finishClose();
+          finishClose();
+        },
       });
-      parentEl.appendChild(button);
     });
 
     setVisibleDrawerButtons(true);

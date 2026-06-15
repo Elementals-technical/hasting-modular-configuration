@@ -82,6 +82,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
+import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 import { applyGroove, autoRemoveBoth, isGrooveType } from "@/features/sidePanel";
 
 const DEFAULT_ACCORDION_ID = "side-panels";
@@ -544,26 +545,14 @@ export const CustomAccessoriesPage = () => {
     });
 
     onDrawerCloseWidgetRender((_, parentEl) => {
-      parentEl.innerHTML = "";
-      parentEl.style.pointerEvents = "auto";
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = "Close";
-      button.style.background = "#282828";
-      button.style.color = "#fff";
-      button.style.border = "none";
-      button.style.borderRadius = "12px";
-      button.style.padding = "4px 10px";
-      button.style.cursor = "pointer";
-      button.style.fontSize = "11px";
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
-        const containerRef = window.containerRef;
-        const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
-        api?.exitTopView?.();
+      renderDrawerCloseWidget(parentEl, {
+        onClick: (event) => {
+          event.stopPropagation();
+          const containerRef = window.containerRef;
+          const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
+          api?.exitTopView?.();
+        },
       });
-      parentEl.appendChild(button);
     });
 
     return () => {
