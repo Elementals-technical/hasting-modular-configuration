@@ -78,6 +78,8 @@ import {
   buildResetDividersConfig,
   DIVIDER_RESIZE_RESTORE_EVENT,
   prepareCabinetDividersForResize,
+  preserveCabinetDividerConfigs,
+  restoreCabinetDividerConfigs,
   type DividerResizeRestoreTarget,
 } from "@/utils/functions/playcanvas/dividers/prepareDividersForResize";
 import { applyDrawerTopViewDefaultZoomOut } from "@/utils/functions/playcanvas/dividers/drawerTopViewCamera";
@@ -86,6 +88,7 @@ import {
   watchPlayCanvasMeshInstancesDuringRender,
 } from "@/utils/functions/playcanvas/sanitizeMeshInstances";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
+import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
@@ -226,8 +229,10 @@ export const PlayCanvasIntegration = () => {
     | "countertop-thickness"
     | "countertop-style"
     | "basin-style";
-  type DividerResizeAction = { dimension: "width" | "depth"; value: number; targetIds: string[] };
-  type PendingDividerResizeAction = DividerResizeAction | null;
+  type DividerWidthResizeAction = { dimension: "width"; value: number; targetIds: string[] };
+  type DividerDepthResizeAction = { dimension: "depth"; value: number };
+  type DividerResizeAction = DividerWidthResizeAction | DividerDepthResizeAction;
+  type PendingDividerResizeAction = DividerWidthResizeAction | null;
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const pendingHandleSyncRef = useRef(false);
@@ -1080,7 +1085,7 @@ export const PlayCanvasIntegration = () => {
     [],
   );
 
-  const resetDividersForResize = useCallback(
+  const clearDividersForWidthResize = useCallback(
     async (ids: string[]) => {
       const restoreTargets: DividerResizeRestoreTarget[] = [];
       if (!ids.length) return restoreTargets;
@@ -1112,7 +1117,7 @@ export const PlayCanvasIntegration = () => {
 
       try {
         await saveSnapshot();
-        const restoreTargets = await resetDividersForResize([cabinetId]);
+        const restoreTargets = await clearDividersForWidthResize([cabinetId]);
         await setConfig(cabinetId, { Width: width });
         sanitizePlayCanvasMeshInstances();
         await syncCountertopConfig();
@@ -1126,36 +1131,41 @@ export const PlayCanvasIntegration = () => {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot, resetDividersForResize, syncCountertopConfig, dispatch, dispatchDividerResizeRestore],
+    [selectedSceneProduct, saveSnapshot, clearDividersForWidthResize, syncCountertopConfig, dispatch, dispatchDividerResizeRestore],
   );
 
   const applySetDepth = useCallback(
-    async (depth: number, targetIds = productIds) => {
-      if (!targetIds.length) return;
+    async (depth: number) => {
+      if (!productIds.length) return;
       const isAllowedDepth = depthOptions.some((value) => Math.abs(Number(value) - depth) < 0.01);
       if (!isAllowedDepth) return;
 
       try {
         await saveSnapshot();
-        const restoreTargets = await resetDividersForResize(targetIds);
+        const preservedDividerConfigs = await preserveCabinetDividerConfigs(productIds);
         await setConfigBatch({}, { Depth: depth });
+        await restoreCabinetDividerConfigs(preservedDividerConfigs);
         sanitizePlayCanvasMeshInstances();
 
         dispatch(setSelectedDimensions({ depth }));
         await waitForNextAnimationFrame();
-        dispatchDividerResizeRestore(restoreTargets, "depth");
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set depth", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, depthOptions, saveSnapshot, resetDividersForResize, dispatch, dispatchDividerResizeRestore],
+    [productIds, depthOptions, saveSnapshot, dispatch],
   );
 
   const requestDividerResize = useCallback(
     (resizeAction: DividerResizeAction) => {
       setDropdownState((prev) => ({ ...prev, visible: false }));
+
+      if (resizeAction.dimension === "depth") {
+        void applySetDepth(resizeAction.value);
+        return;
+      }
 
       const targetIds = new Set(resizeAction.targetIds);
       const hasTargetDividers = placedDividers.some((divider) => targetIds.has(divider.cabinetId));
@@ -1164,11 +1174,7 @@ export const PlayCanvasIntegration = () => {
         return;
       }
 
-      if (resizeAction.dimension === "width") {
-        void applySetWidth(resizeAction.value, resizeAction.targetIds[0]);
-      } else {
-        void applySetDepth(resizeAction.value, resizeAction.targetIds);
-      }
+      void applySetWidth(resizeAction.value, resizeAction.targetIds[0]);
     },
     [applySetDepth, applySetWidth, placedDividers],
   );
@@ -1196,7 +1202,7 @@ export const PlayCanvasIntegration = () => {
         return;
       }
 
-      requestDividerResize({ dimension: "depth", value: depth, targetIds: productIds });
+      requestDividerResize({ dimension: "depth", value: depth });
     },
     [depthOptions, productIds, requestDividerResize, selectedDimensions.depth],
   );
@@ -1210,12 +1216,8 @@ export const PlayCanvasIntegration = () => {
     if (!resizeAction) return;
 
     setPendingDividerResizeAction(null);
-    if (resizeAction.dimension === "width") {
-      void applySetWidth(resizeAction.value, resizeAction.targetIds[0]);
-    } else {
-      void applySetDepth(resizeAction.value, resizeAction.targetIds);
-    }
-  }, [applySetDepth, applySetWidth, pendingDividerResizeAction]);
+    void applySetWidth(resizeAction.value, resizeAction.targetIds[0]);
+  }, [applySetWidth, pendingDividerResizeAction]);
 
   useEffect(() => {
     if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
@@ -2037,52 +2039,40 @@ export const PlayCanvasIntegration = () => {
     });
 
     onDrawerCloseWidgetRender((_, parentEl) => {
-      parentEl.innerHTML = "";
-      parentEl.style.pointerEvents = "auto";
+      renderDrawerCloseWidget(parentEl, {
+        onClick: (event) => {
+          event.stopPropagation();
 
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = "Close";
-      button.style.background = "#282828";
-      button.style.color = "#fff";
-      button.style.border = "none";
-      button.style.borderRadius = "12px";
-      button.style.padding = "4px 10px";
-      button.style.cursor = "pointer";
-      button.style.fontSize = "11px";
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
+          const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
+            | {
+                exitTopView?: () => unknown;
+              }
+            | undefined;
 
-        const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
-          | {
-              exitTopView?: () => unknown;
-            }
-          | undefined;
+          const finishClose = () => {
+            const exitResult = api?.exitTopView?.() as Promise<unknown> | unknown;
+            const isExitThenable = !!exitResult && typeof (exitResult as Promise<unknown>).then === "function";
 
-        const finishClose = () => {
-          const exitResult = api?.exitTopView?.() as Promise<unknown> | unknown;
-          const isExitThenable = !!exitResult && typeof (exitResult as Promise<unknown>).then === "function";
+            const finalizeClose = () => {
+              setVisibleDrawerButtons(true);
+              setDropdownState((prev) => ({ ...prev, visible: false }));
+              setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+              if (selectedSceneProduct) {
+                suppressNextDropdownOpenRef.current = true;
+                getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+              }
+            };
 
-          const finalizeClose = () => {
-            setVisibleDrawerButtons(true);
-            setDropdownState((prev) => ({ ...prev, visible: false }));
-            setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-            if (selectedSceneProduct) {
-              suppressNextDropdownOpenRef.current = true;
-              getSelectTool()?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
+            if (isExitThenable) {
+              (exitResult as Promise<unknown>).catch(() => null).then(finalizeClose);
+            } else {
+              finalizeClose();
             }
           };
 
-          if (isExitThenable) {
-            (exitResult as Promise<unknown>).catch(() => null).then(finalizeClose);
-          } else {
-            finalizeClose();
-          }
-        };
-
-        finishClose();
+          finishClose();
+        },
       });
-      parentEl.appendChild(button);
     });
 
     setVisibleDrawerButtons(true);
@@ -3091,8 +3081,8 @@ export const PlayCanvasIntegration = () => {
           </div>
 
           <div style={{ padding: "16px 24px", fontSize: "15px", lineHeight: 1.5 }}>
-            Changing the cabinet {pendingDividerResizeAction?.dimension ?? "size"} clears configured drawer dividers.
-            You will need to set them up again for the new size.
+            Changing the cabinet width clears configured drawer dividers. You will need to set them up again for the
+            new size.
           </div>
 
           <div

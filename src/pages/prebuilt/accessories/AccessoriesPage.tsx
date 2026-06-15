@@ -71,6 +71,7 @@ import { exportCameraState, importCameraState, setAutoFraming } from "@/utils/fu
 import {
   buildUnavailableDividerWarning,
   getSharedDividerRuntimeAdapter,
+  shouldClearDividersOnOptionChange,
   useDividerController,
 } from "@/features/dividers";
 
@@ -82,6 +83,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons.ts";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
+import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 
 const DEFAULT_ACCORDION_ID = "side-panels";
 const DIVIDERS_ACCORDION_ID = "dividers";
@@ -586,26 +588,14 @@ export const AccessoriesPage = () => {
     });
 
     onDrawerCloseWidgetRender((_, parentEl) => {
-      parentEl.innerHTML = "";
-      parentEl.style.pointerEvents = "auto";
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = "Close";
-      button.style.background = "#282828";
-      button.style.color = "#fff";
-      button.style.border = "none";
-      button.style.borderRadius = "12px";
-      button.style.padding = "4px 10px";
-      button.style.cursor = "pointer";
-      button.style.fontSize = "11px";
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
-        const containerRef = window.containerRef;
-        const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
-        api?.exitTopView?.();
+      renderDrawerCloseWidget(parentEl, {
+        onClick: (event) => {
+          event.stopPropagation();
+          const containerRef = window.containerRef;
+          const api = containerRef?.current?.contentWindow?.ConfiguratorAPI;
+          api?.exitTopView?.();
+        },
       });
-      parentEl.appendChild(button);
     });
 
     return () => {
@@ -719,7 +709,7 @@ export const AccessoriesPage = () => {
     divider.clearWarning();
     await saveSnapshot();
 
-    if (value === "None") {
+    if (shouldClearDividersOnOptionChange(value, dividerSelection)) {
       const clearResult = await clearPlacedDividersInScene(selectedProducts);
       recordDividerUiDebug("Prebuilt.DividerSelection", "Scene dividers cleared for None option", {
         clearResult,

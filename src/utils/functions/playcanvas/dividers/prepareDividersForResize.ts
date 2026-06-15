@@ -2,8 +2,11 @@ import {
   sanitizePlayCanvasMeshInstances,
   watchPlayCanvasMeshInstancesDuringRender,
 } from "@/utils/functions/playcanvas/sanitizeMeshInstances";
+import { getConfig } from "../getConfig";
+import { setConfig } from "../setConfig";
 
 type DrawerType = "Top" | "TopFull" | "Bot";
+type DividerConfigKey = "TopDrawerDividers" | "BotDrawerDividers";
 
 type EmptyDividerZones = {
   zones: Record<string, never>;
@@ -48,6 +51,12 @@ type PlayCanvasWindow = Window & {
   ConfiguratorAPI?: ConfiguratorApi;
 };
 
+export type PreservedCabinetDividerConfig = {
+  cabinetId: string;
+  config: Partial<Record<DividerConfigKey, Record<string, unknown>>>;
+};
+
+const DIVIDER_CONFIG_KEYS: readonly DividerConfigKey[] = ["TopDrawerDividers", "BotDrawerDividers"];
 const DRAWER_TYPES: DrawerType[] = ["Top", "TopFull", "Bot"];
 const RENDER_SETTLE_FRAME_COUNT = 2;
 
@@ -72,6 +81,55 @@ export const buildResetDividersConfig = (): ResetDividersConfig => ({
   TopDrawerDividers: { zones: {} },
   BotDrawerDividers: { zones: {} },
 });
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const cloneRecord = (value: Record<string, unknown>): Record<string, unknown> => {
+  try {
+    const cloned: unknown = structuredClone(value);
+    return isRecord(cloned) ? cloned : { ...value };
+  } catch {
+    return { ...value };
+  }
+};
+
+export const preserveCabinetDividerConfigs = async (
+  cabinetIds: readonly string[],
+): Promise<PreservedCabinetDividerConfig[]> => {
+  const uniqueCabinetIds = Array.from(new Set(cabinetIds.filter(Boolean)));
+  const preservedConfigs: PreservedCabinetDividerConfig[] = [];
+
+  for (const cabinetId of uniqueCabinetIds) {
+    const config = await getConfig(cabinetId);
+    if (!isRecord(config)) continue;
+
+    const dividerConfig: PreservedCabinetDividerConfig["config"] = {};
+
+    DIVIDER_CONFIG_KEYS.forEach((key) => {
+      const value = config[key];
+      if (isRecord(value)) {
+        dividerConfig[key] = cloneRecord(value);
+      }
+    });
+
+    if (Object.keys(dividerConfig).length > 0) {
+      preservedConfigs.push({ cabinetId, config: dividerConfig });
+    }
+  }
+
+  return preservedConfigs;
+};
+
+export const restoreCabinetDividerConfigs = async (
+  preservedConfigs: readonly PreservedCabinetDividerConfig[],
+): Promise<void> => {
+  for (const { cabinetId, config } of preservedConfigs) {
+    if (Object.keys(config).length === 0) continue;
+
+    await setConfig(cabinetId, config);
+  }
+};
 
 export const prepareCabinetDividersForResize = async (cabinetId: string): Promise<DividerResizeRestoreTarget | null> => {
   const api = getConfiguratorApi();
