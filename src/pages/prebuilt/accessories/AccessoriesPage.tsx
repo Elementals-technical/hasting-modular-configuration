@@ -71,6 +71,7 @@ import { exportCameraState, importCameraState, setAutoFraming } from "@/utils/fu
 import {
   buildUnavailableDividerWarning,
   getSharedDividerRuntimeAdapter,
+  shouldClearDividersOnOptionChange,
   useDividerController,
 } from "@/features/dividers";
 
@@ -719,7 +720,7 @@ export const AccessoriesPage = () => {
     divider.clearWarning();
     await saveSnapshot();
 
-    if (value === "None") {
+    if (shouldClearDividersOnOptionChange(value, dividerSelection)) {
       const clearResult = await clearPlacedDividersInScene(selectedProducts);
       recordDividerUiDebug("Prebuilt.DividerSelection", "Scene dividers cleared for None option", {
         clearResult,

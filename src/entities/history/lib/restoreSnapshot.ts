@@ -69,10 +69,6 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     VesselColor: snapshot.productOptions?.VesselColor ?? "",
   };
 
-  if (placedDividers?.length && productOptions.DividersOption === "None") {
-    productOptions.DividersOption = "Customize";
-  }
-
   dispatch(
     restoreProductState({
       productIds: newProductIds,

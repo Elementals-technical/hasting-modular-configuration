@@ -30,7 +30,6 @@ import {
   getCabinetCatalog,
   getPlacedDividers,
   getPlacedCabinetStyles,
-  getDividersOption,
 } from "@/entities/product/model/store/selectors";
 import {
   buildProductSku,
@@ -160,11 +159,7 @@ export function usePriceCalculation() {
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const placedDividers = useAppSelector(getPlacedDividers);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
-  const dividersOption = useAppSelector(getDividersOption);
-  const activePlacedDividers = useMemo(
-    () => (dividersOption === "None" ? [] : placedDividers),
-    [dividersOption, placedDividers],
-  );
+  const activePlacedDividers = placedDividers;
 
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
 

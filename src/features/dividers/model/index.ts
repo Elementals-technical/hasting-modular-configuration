@@ -39,3 +39,5 @@ export {
 
 export { deriveDividerOptions } from "./deriveOptions";
 export type { DerivedDividerOption, DividerAvailabilityInput, DividerOptionBase } from "./deriveOptions";
+
+export { shouldClearDividersOnOptionChange } from "./selection";

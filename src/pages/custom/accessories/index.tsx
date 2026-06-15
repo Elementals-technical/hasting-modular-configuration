@@ -70,6 +70,7 @@ import {
 import {
   buildUnavailableDividerWarning,
   getSharedDividerRuntimeAdapter,
+  shouldClearDividersOnOptionChange,
   useDividerController,
 } from "@/features/dividers";
 
@@ -693,7 +694,7 @@ export const CustomAccessoriesPage = () => {
     divider.clearWarning();
     await saveSnapshot();
 
-    if (value === "None") {
+    if (shouldClearDividersOnOptionChange(value, dividerSelection)) {
       const clearResult = await clearPlacedDividersInScene(selectedProducts);
       recordDividerUiDebug("Custom.DividerSelection", "Scene dividers cleared for None option", {
         clearResult,

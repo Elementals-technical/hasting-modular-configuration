@@ -344,10 +344,7 @@ export const CustomSummaryPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const dividersStyle = useAppSelector(getDividersStyle);
   const dividersOption = useAppSelector(getDividersOption);
-  const activePlacedDividers = useMemo(
-    () => (dividersOption === "None" ? [] : placedDividers),
-    [dividersOption, placedDividers],
-  );
+  const activePlacedDividers = placedDividers;
   const ledOption = useAppSelector(getLedOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
@@ -520,7 +517,7 @@ export const CustomSummaryPage = () => {
         selectedProducts.map(async (id) => {
           const config = await getConfig(id);
           if (config) {
-            const dividers = dividersOption === "None" ? [] : collectPlacedDividersFromConfig(id, config);
+            const dividers = collectPlacedDividersFromConfig(id, config);
             dispatch(
               replacePlacedDividersForCabinet({
                 cabinetId: id,
@@ -547,7 +544,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, dividersOption, selectedDimensions, selectedProducts]);
+  }, [dispatch, selectedDimensions, selectedProducts]);
 
   useEffect(() => {
     let isMounted = true;
