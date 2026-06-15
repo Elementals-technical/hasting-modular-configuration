@@ -14,6 +14,21 @@ export const formatCompositionLengthReachedReason = (maxCm: number): string =>
 export const formatSidePanelsExceedMaxReason = (withPanelsCm: number, maxCm: number): string =>
   `Enabling side panels would exceed max countertop length (with panels: ${withPanelsCm} cm / ${cmToInches(withPanelsCm)}", max ${maxCm} cm / ${cmToInches(maxCm)}").`;
 
+export const resolveMaxResizableCabinetWidthCm = ({
+  maxCm,
+  currentTotalCm,
+  currentCabinetWidthCm,
+}: {
+  maxCm: number | null;
+  currentTotalCm: number | null;
+  currentCabinetWidthCm: number | null;
+}): number | null => {
+  if (maxCm === null || currentTotalCm === null || currentCabinetWidthCm === null) return null;
+  if (!Number.isFinite(maxCm) || !Number.isFinite(currentTotalCm) || !Number.isFinite(currentCabinetWidthCm)) return null;
+
+  return maxCm - (currentTotalCm - currentCabinetWidthCm);
+};
+
 type CountertopStyle = "integrated" | "vessel" | "undermount" | "plain";
 
 type ResolveCountertopMaxLengthInput = {

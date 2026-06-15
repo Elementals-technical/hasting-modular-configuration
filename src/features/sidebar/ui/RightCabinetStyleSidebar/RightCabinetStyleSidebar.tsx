@@ -65,6 +65,7 @@ import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimePro
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
+  resolveMaxResizableCabinetWidthCm,
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -299,16 +300,19 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       activeBasinStyle: sinkType ?? null,
       activeThickness: countertopThickness ?? null,
     });
-    const remainingForAdd =
-      maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
+    const maxResizableWidth = resolveMaxResizableCabinetWidthCm({
+      maxCm: maxCountertopLength,
+      currentTotalCm: sceneTotalWidth,
+      currentCabinetWidthCm: selectedDimensions.width,
+    });
 
     return dimensionOptions.width.filter((option) => {
       if (option.disabled) return false;
       if (!filteredValues.includes(option.value)) return false;
-      if (remainingForAdd === null) return true;
+      if (maxResizableWidth === null) return true;
       const numericWidth = Number(option.value);
       if (!Number.isFinite(numericWidth)) return false;
-      return numericWidth <= remainingForAdd + 0.01;
+      return numericWidth <= maxResizableWidth + 0.01;
     });
   }, [
     activeCabinetRule?.code,
@@ -319,6 +323,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     maxCountertopLength,
     sceneTotalWidth,
     selectedDimensions.depth,
+    selectedDimensions.width,
     activeCabinetRule?.isOpen,
     countertopStyle,
     sinkType,
