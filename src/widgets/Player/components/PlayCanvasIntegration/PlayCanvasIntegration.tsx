@@ -102,6 +102,7 @@ import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
+  resolveMaxResizableCabinetWidthCm,
   resolveDefaultThicknessFromRules,
   useCountertopLengthGuard,
   useCountertopRules,
@@ -804,7 +805,13 @@ export const PlayCanvasIntegration = () => {
       return filteredByRules;
     }
 
-    const maxSelectableWidth = maxCountertopLength - (sceneTotalWidth - selectedDimensions.width);
+    const maxSelectableWidth = resolveMaxResizableCabinetWidthCm({
+      maxCm: maxCountertopLength,
+      currentTotalCm: sceneTotalWidth,
+      currentCabinetWidthCm: selectedDimensions.width,
+    });
+    if (maxSelectableWidth === null) return filteredByRules;
+
     return filteredByRules.filter((value) => {
       const numericWidth = Number(value);
       return Number.isFinite(numericWidth) && numericWidth <= maxSelectableWidth + 0.01;
