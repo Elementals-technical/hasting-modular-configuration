@@ -168,8 +168,16 @@ export async function applyGrooveToActiveSides(
   rightStatus: SidePanelStatus,
   cabinetCount?: number,
 ) {
-  if (leftStatus === "active") await setSidePanel(groove, "left", cabinetCount);
-  if (rightStatus === "active") await setSidePanel(groove, "right", cabinetCount);
+  const nextStatus: SidePanelStatus = groove === "None" ? "auto-removed" : "active";
+
+  if (leftStatus === "active") {
+    await setSidePanel(groove, "left", cabinetCount);
+    dispatch(setSidePanelSideStatus({ side: "left", status: nextStatus }));
+  }
+  if (rightStatus === "active") {
+    await setSidePanel(groove, "right", cabinetCount);
+    dispatch(setSidePanelSideStatus({ side: "right", status: nextStatus }));
+  }
   dispatch(setSidePanelsOption(groove));
 }
 
