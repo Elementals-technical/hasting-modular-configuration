@@ -36,6 +36,7 @@ import {
   setActiveCountertopColor,
   setCountertopColorSku,
   setActiveCountertopThickness,
+  setBookMatching,
   setCabinetColor,
   setCountertopStyle,
   setDividersOption,
@@ -52,6 +53,7 @@ import {
   setSelectedSceneProduct,
   setTowelBarColor,
   setTowelBarOption,
+  setVesselColor,
   setDrawerProduct,
   addProductPreset,
   setCabinetCatalog,
@@ -1332,6 +1334,8 @@ export const CabinetBuilderPage = () => {
           typeof uiStateValues?.CountertopColorSku === "string"
             ? (uiStateValues.CountertopColorSku as string)
             : undefined;
+        const uiVesselColor =
+          typeof uiStateValues?.VesselColor === "string" ? (uiStateValues.VesselColor as string) : undefined;
         const uiCountertopThickness =
           (typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined) ??
           topConfigThickness;
@@ -1341,6 +1345,8 @@ export const CabinetBuilderPage = () => {
             : undefined;
         const uiGrainDirection =
           typeof uiStateValues?.GrainDirection === "string" ? (uiStateValues.GrainDirection as string) : undefined;
+        const uiBookMatching =
+          typeof uiStateValues?.BookMatching === "string" ? (uiStateValues.BookMatching as string) : undefined;
         const uiCountertopStyle =
           typeof uiStateValues?.CountertopStyle === "string" ? (uiStateValues.CountertopStyle as string) : undefined;
         const uiSidePanels =
@@ -1382,6 +1388,10 @@ export const CabinetBuilderPage = () => {
 
         if (uiCountertopThickness) {
           await setConfigBatch({}, { Thickness: uiCountertopThickness });
+        }
+
+        if (uiVesselColor !== undefined) {
+          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: uiVesselColor });
         }
 
         if (uiSidePanels || sidePanelValue) {
@@ -1431,15 +1441,17 @@ export const CabinetBuilderPage = () => {
         if (uiSinkType) dispatch(setActiveBasinStyle(uiSinkType));
         if (uiCountertopColor) dispatch(setActiveCountertopColor(uiCountertopColor));
         if (uiCountertopColorSku) dispatch(setCountertopColorSku(uiCountertopColorSku));
+        if (uiVesselColor !== undefined) dispatch(setVesselColor(uiVesselColor));
         if (uiCountertopThickness) dispatch(setActiveCountertopThickness(uiCountertopThickness));
         if (uiDrawerPanelFluting) dispatch(setDrawerPanelFluting(uiDrawerPanelFluting));
         if (uiGrainDirection) dispatch(setGrainDirection(uiGrainDirection));
+        if (uiBookMatching !== undefined) dispatch(setBookMatching(uiBookMatching));
         if (uiCountertopStyle) dispatch(setCountertopStyle(uiCountertopStyle));
         if (uiLedOption) dispatch(setLedOption(uiLedOption));
         if (uiDividersOption) dispatch(setDividersOption(uiDividersOption));
         if (uiDividersStyle) dispatch(setDividersStyle(uiDividersStyle));
         if (uiFaucetHolesAmount) dispatch(setFaucetHolesAmount(uiFaucetHolesAmount));
-        if (uiFaucetHolesSpacing) dispatch(setFaucetHolesSpacing(uiFaucetHolesSpacing));
+        if (uiFaucetHolesSpacing !== undefined) dispatch(setFaucetHolesSpacing(uiFaucetHolesSpacing));
 
         const [firstPreset] = presetProducts;
         if (firstPreset?.name) {

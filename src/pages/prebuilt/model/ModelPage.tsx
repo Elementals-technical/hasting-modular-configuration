@@ -29,9 +29,11 @@ import {
   setActiveBasinStyle,
   setActiveCountertopColor,
   setActiveCountertopThickness,
+  setBookMatching,
   setCountertopColorSku,
   setCountertopStyle,
   setFaucetHolesAmount,
+  setFaucetHolesSpacing,
   setCabinetColor,
   setHandleGrooveColor,
   setPlacedCabinetStyle,
@@ -746,12 +748,21 @@ export const ModelPage = () => {
           (typeof uiStateValues?.CountertopColorSku === "string" && uiStateValues.CountertopColorSku) || undefined;
         const restoredFaucetHolesAmount =
           (typeof uiStateValues?.FaucetHolesAmount === "string" && uiStateValues.FaucetHolesAmount) || undefined;
+        const restoredFaucetHolesSpacing =
+          typeof uiStateValues?.FaucetHolesSpacing === "string"
+            ? (uiStateValues.FaucetHolesSpacing as string)
+            : undefined;
         const restoredSinkType = (typeof uiStateValues?.sinkType === "string" && uiStateValues.sinkType) || undefined;
+        const restoredVesselColor =
+          typeof uiStateValues?.VesselColor === "string" ? (uiStateValues.VesselColor as string) : undefined;
+        const restoredBookMatching =
+          typeof uiStateValues?.BookMatching === "string" ? (uiStateValues.BookMatching as string) : undefined;
         const globalConfig = resolveCompatibleCountertopSceneConfig(
           {
             ...resolvePresetSceneDefaults(presetProducts),
             ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
             ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
+            ...(restoredVesselColor ? { VesselColor: restoredVesselColor } : {}),
           },
           presetProducts,
         );
@@ -785,6 +796,12 @@ export const ModelPage = () => {
           dispatch(setCountertopColorSku(restoredCountertopColorSku));
         }
         if (restoredFaucetHolesAmount) dispatch(setFaucetHolesAmount(restoredFaucetHolesAmount));
+        if (restoredFaucetHolesSpacing !== undefined) dispatch(setFaucetHolesSpacing(restoredFaucetHolesSpacing));
+        if (restoredVesselColor !== undefined) {
+          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: restoredVesselColor });
+          dispatch(setVesselColor(restoredVesselColor));
+        }
+        if (restoredBookMatching !== undefined) dispatch(setBookMatching(restoredBookMatching));
         if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
         if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle as string));
         await updateSelectedDimensionsFromScene(effectivePresets);
