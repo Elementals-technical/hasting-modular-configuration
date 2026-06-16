@@ -275,9 +275,11 @@ export async function restoreSidePanelState(
 ) {
   const left = spLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
   const right = spRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
+  const isSingleCabinet = cabinetCount === 1;
+
   if (!spGroove || spGroove === "None") {
     await setSidePanel("None", "both", cabinetCount);
-  } else if (left === "active" && right === "active") {
+  } else if (isSingleCabinet && left === "active" && right === "active") {
     await setSidePanel(spGroove, "both", cabinetCount);
   } else {
     await setSidePanel("None", "both", cabinetCount);
