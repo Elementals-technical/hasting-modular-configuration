@@ -1,14 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const sidePanelMocks = vi.hoisted(() => ({
-  setSidePanel: vi.fn<
-    (
-      type: string,
-      side: "left" | "right" | "both",
-      cabinetCount?: number,
-      options?: { productIds?: string[] },
-    ) => Promise<void>
-  >(),
+  setSidePanel: vi.fn<(type: string, side: "left" | "right" | "both", cabinetCount?: number) => Promise<void>>(),
 }));
 
 vi.mock("@/utils/functions/playcanvas/sidePanels", () => ({
@@ -115,12 +108,8 @@ describe("sidePanelService", () => {
     );
 
     expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3, {
-      productIds: ["open-shelf-left", "sink-cabinet-center", "sink-base-right"],
-    });
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "right", 3, {
-      productIds: ["sink-base-right"],
-    });
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "right", 3);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("DoubleG");
@@ -146,12 +135,8 @@ describe("sidePanelService", () => {
     );
 
     expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3, {
-      productIds: ["sink-base-left", "sink-cabinet-center", "open-shelf-right"],
-    });
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "left", 3, {
-      productIds: ["sink-base-left"],
-    });
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "left", 3);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("DoubleG");
@@ -177,9 +162,7 @@ describe("sidePanelService", () => {
     );
 
     expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("None", "both", 3, {
-      productIds: ["open-shelf-left", "sink-base-center", "side-shelf-right"],
-    });
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("None", "both", 3);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("UpperG");
