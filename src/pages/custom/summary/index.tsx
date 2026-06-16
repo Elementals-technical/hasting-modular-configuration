@@ -89,7 +89,7 @@ import {
   calcTotalCountertopWidthCm,
   formatCountertopThicknessLabel,
 } from "@/entities/countertop";
-import { buildConfigurationMetadata } from "@/features/saveConfiguration";
+import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import {
   SYNTESI_MATERIAL,
   findSyntesiCountertopUiValue,
@@ -1991,7 +1991,7 @@ export const CustomSummaryPage = () => {
   const quoteGeneratedDate = useMemo(() => formatQuoteGeneratedDate(), []);
   const configurationLink = useMemo(() => {
     if (quoteConfigurationId) {
-      return `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(quoteConfigurationId)}`;
+      return buildConfigurationShareUrl(quoteConfigurationId, location.pathname);
     }
     return `${window.location.origin}${location.pathname}${location.search}`;
   }, [location.pathname, location.search, quoteConfigurationId]);

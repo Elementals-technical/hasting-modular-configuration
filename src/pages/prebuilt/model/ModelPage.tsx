@@ -38,6 +38,8 @@ import {
   setHandleGrooveColor,
   setPlacedCabinetStyle,
   setSelectedDimensions,
+  setSidePanelsOption,
+  setSidePanelSideStatus,
   setVesselColor,
 } from "@/entities/product/model/store/slice";
 import {
@@ -68,7 +70,8 @@ import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
-import { reapplySidePanelsForPreset } from "@/features/sidePanel";
+import { isGrooveType, reapplySidePanelsForPreset, restoreSidePanelState } from "@/features/sidePanel";
+import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
@@ -805,6 +808,51 @@ export const ModelPage = () => {
         if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
         if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle as string));
         await updateSelectedDimensionsFromScene(effectivePresets);
+
+        // Options not carried by the rebuilt presets — summary and the sidebar read
+        // these from the store, so dispatch them from the saved ui state.
+        const restoredCabinetColor =
+          typeof uiStateValues?.CabinetColor === "string" ? (uiStateValues.CabinetColor as string) : undefined;
+        const restoredHandleGrooveColor =
+          typeof uiStateValues?.HandleGrooveColor === "string"
+            ? (uiStateValues.HandleGrooveColor as string)
+            : undefined;
+        const restoredThickness =
+          typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+        if (restoredCabinetColor) dispatch(setCabinetColor(restoredCabinetColor));
+        if (restoredHandleGrooveColor) dispatch(setHandleGrooveColor(restoredHandleGrooveColor));
+        if (restoredThickness) dispatch(setActiveCountertopThickness(restoredThickness));
+
+        // Presets carry no side-panel data; restore the saved groove AND per-side state
+        // so a single-side selection isn't expanded to both sides (reapplySidePanelsForPreset
+        // is a both-edges "fresh start"). Mirrors CabinetBuilderPage.
+        const restoredSidePanels =
+          typeof uiStateValues?.SidePanels === "string" ? (uiStateValues.SidePanels as string) : undefined;
+        const restoredSidePanelLeft =
+          typeof uiStateValues?.SidePanelLeft === "string" ? (uiStateValues.SidePanelLeft as string) : undefined;
+        const restoredSidePanelRight =
+          typeof uiStateValues?.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
+        if (restoredSidePanels && isGrooveType(restoredSidePanels) && effectivePresets.length) {
+          await restoreSidePanelState(
+            restoredSidePanels,
+            restoredSidePanelLeft,
+            restoredSidePanelRight,
+            effectivePresets.length,
+          );
+          dispatch(setSidePanelsOption(restoredSidePanels));
+          const leftStatus = restoredSidePanelLeft ?? "active";
+          const rightStatus = restoredSidePanelRight ?? "active";
+          dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus as "active" | "none" | "auto-removed" }));
+          dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }));
+          await enforceSidePanelEligibility(
+            dispatch,
+            restoredSidePanels,
+            leftStatus,
+            rightStatus,
+            effectivePresets.length,
+          );
+        }
+
         sessionStorage.setItem("prebuiltModelInitialized", "1");
       } catch (error) {
         console.error("[Prebuilt] Failed to restore configuration", error);
