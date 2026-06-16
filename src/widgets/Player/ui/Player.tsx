@@ -28,7 +28,7 @@ import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useSaveConfigurationMutation } from "@/entities";
-import { buildConfigurationMetadata } from "@/features/saveConfiguration";
+import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -166,7 +166,7 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
       const configId = result?.id;
 
       if (configId !== undefined && configId !== null) {
-        const url = `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(String(configId))}`;
+        const url = buildConfigurationShareUrl(configId, pathname);
         setShareValue(url);
         setIsShareOpening(true);
       }

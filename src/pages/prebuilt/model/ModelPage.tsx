@@ -805,6 +805,29 @@ export const ModelPage = () => {
         if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
         if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle as string));
         await updateSelectedDimensionsFromScene(effectivePresets);
+
+        // Options not carried by the rebuilt presets — summary and the sidebar read
+        // these from the store, so dispatch them from the saved ui state.
+        const restoredCabinetColor =
+          typeof uiStateValues?.CabinetColor === "string" ? (uiStateValues.CabinetColor as string) : undefined;
+        const restoredHandleGrooveColor =
+          typeof uiStateValues?.HandleGrooveColor === "string"
+            ? (uiStateValues.HandleGrooveColor as string)
+            : undefined;
+        const restoredThickness =
+          typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+        if (restoredCabinetColor) dispatch(setCabinetColor(restoredCabinetColor));
+        if (restoredHandleGrooveColor) dispatch(setHandleGrooveColor(restoredHandleGrooveColor));
+        if (restoredThickness) dispatch(setActiveCountertopThickness(restoredThickness));
+
+        // Presets carry no side-panel data, so re-apply the saved groove after the
+        // scene is rebuilt — mirrors applyPresetSelection.
+        const restoredSidePanels =
+          typeof uiStateValues?.SidePanels === "string" ? (uiStateValues.SidePanels as string) : undefined;
+        if (restoredSidePanels && restoredSidePanels !== "None" && effectivePresets.length) {
+          await reapplySidePanelsForPreset(dispatch, restoredSidePanels, effectivePresets, effectivePresets.length);
+        }
+
         sessionStorage.setItem("prebuiltModelInitialized", "1");
       } catch (error) {
         console.error("[Prebuilt] Failed to restore configuration", error);

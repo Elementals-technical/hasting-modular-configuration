@@ -26,7 +26,7 @@ import {
   getManualSelectedMaterials,
   getSelectedMaterials,
 } from "@/features/swatchOrder";
-import { buildConfigurationMetadata } from "@/features/saveConfiguration";
+import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -328,7 +328,7 @@ export const BottomCanvasButtons = () => {
       const configId = result?.id;
 
       if (configId !== undefined && configId !== null) {
-        const url = `${window.location.origin}/custom/cabinet-builder?configId=${encodeURIComponent(String(configId))}`;
+        const url = buildConfigurationShareUrl(configId, pathname);
 
         setShareValue(url);
         setIsShareOpening(true);
