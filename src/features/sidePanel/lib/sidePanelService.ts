@@ -9,6 +9,8 @@
 import type { AppDispatch } from "@/app/store";
 import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import { mapCabinetTypeToGroup } from "../model/selectors";
+import { mapSidePanelDrawersToHandleType } from "./sidePanelEdgeCompatibility";
 import { sidePanelAvailabilityRule } from "./sidePanelRules";
 
 export type SidePanelSide = "left" | "right";
@@ -19,6 +21,19 @@ const GROOVE_VALUES = ["NoG", "UpperG", "CenterG", "DoubleG", "None"] as const;
 export type ApplyGrooveOptions = {
   currentLeftStatus?: SidePanelStatus;
   currentRightStatus?: SidePanelStatus;
+};
+
+type PresetSidePanelProduct = {
+  name?: string;
+  Handle?: string;
+  Height?: number;
+  Drawers?: string;
+};
+
+type PresetEdge = {
+  side: SidePanelSide;
+  product: PresetSidePanelProduct | undefined;
+  productId: string | undefined;
 };
 
 export function isGrooveType(value: string): value is GrooveType {
@@ -69,6 +84,31 @@ function dispatchSideStatus(
     dispatch(setSidePanelSideStatus({ side, status }));
   }
 }
+
+const getPresetEdges = (presetProducts: PresetSidePanelProduct[], productIds?: string[]): PresetEdge[] => [
+  { side: "left", product: presetProducts[0], productId: productIds?.[0] },
+  {
+    side: "right",
+    product: presetProducts[presetProducts.length - 1],
+    productId: productIds?.[presetProducts.length - 1],
+  },
+];
+
+const isSidePanelEligiblePresetEdge = (product: PresetSidePanelProduct | undefined) =>
+  mapCabinetTypeToGroup(product?.name ?? null) === "SBSC";
+
+const dispatchPresetEdgeStatuses = (
+  dispatch: AppDispatch,
+  edges: PresetEdge[],
+  activeSides: ReadonlySet<SidePanelSide>,
+) => {
+  edges.forEach(({ side }) => {
+    dispatch(setSidePanelSideStatus({ side, status: activeSides.has(side) ? "active" : "auto-removed" }));
+  });
+};
+
+const normalizeProductIds = (productIds?: string[]) =>
+  productIds?.filter((productId) => productId.trim().length > 0);
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -205,31 +245,33 @@ export async function autoRemoveBoth(dispatch: AppDispatch, cabinetCount?: numbe
 export async function reapplySidePanelsForPreset(
   dispatch: AppDispatch,
   currentGroove: string,
-  presetProducts: Array<{ name?: string; Handle?: string; Height?: number; Drawers?: string }>,
+  presetProducts: PresetSidePanelProduct[],
   cabinetCount?: number,
+  productIds?: string[],
 ) {
-  if (!currentGroove || currentGroove === "None") return;
+  if (!currentGroove || currentGroove === "None" || !isGrooveType(currentGroove)) return;
   if (!presetProducts.length) return;
 
-  const { mapCabinetTypeToGroup } = await import("../model/selectors");
+  const count = cabinetCount ?? presetProducts.length;
+  const scopedProductIds = normalizeProductIds(productIds);
+  const scopeOptions = scopedProductIds?.length ? { productIds: scopedProductIds } : undefined;
+  const edges = getPresetEdges(presetProducts, scopedProductIds);
+  const eligibleEdges = edges.filter(({ product }) => isSidePanelEligiblePresetEdge(product));
+  const eligible = eligibleEdges[0]?.product;
 
-  // Find first SP-eligible cabinet (SB/SC) for groove resolution
-  const eligible = presetProducts.find((p) => {
-    const group = mapCabinetTypeToGroup(p.name ?? null);
-    return group === "SBSC";
-  });
-  if (!eligible) return;
+  // Always clear stale physical panels before mapping the saved groove onto the
+  // new preset edges. A preset with shelf ends may have no side that can receive SP.
+  await setSidePanel("None", "both", count, scopeOptions);
 
-  const mapDrawers = (d?: string | null) => {
-    if (!d) return null;
-    if (d === "1D" || d === "1DWID" || d === "1" || d === "1+inner") return "1D" as const;
-    if (d === "2D" || d === "2") return "2D" as const;
-    return null;
-  };
+  if (!eligible) {
+    dispatchPresetEdgeStatuses(dispatch, edges, new Set());
+    dispatch(setSidePanelsOption(currentGroove));
+    return;
+  }
 
   const availability = sidePanelAvailabilityRule({
     height: eligible.Height ?? null,
-    handleType: mapDrawers(eligible.Drawers),
+    handleType: mapSidePanelDrawersToHandleType(eligible.Drawers),
     cabinetType: "SBSC",
   });
 
@@ -239,31 +281,22 @@ export async function reapplySidePanelsForPreset(
     eligible.Handle ?? null,
   );
 
-  if (groove === "None") return;
-
-  // Check edge cabinets — OS/OSS on edge → no SP on that side
-  const leftGroup = mapCabinetTypeToGroup(presetProducts[0].name ?? null);
-  const rightGroup = mapCabinetTypeToGroup(presetProducts[presetProducts.length - 1].name ?? null);
-  const leftEligible = leftGroup !== "OS" && leftGroup !== "OSS";
-  const rightEligible = rightGroup !== "OS" && rightGroup !== "OSS";
-
-  const count = cabinetCount ?? presetProducts.length;
-  await setSidePanel("None", "both", count);
-
-  if (leftEligible) {
-    await setSidePanel(groove, "left", count);
-    dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
-  } else {
-    dispatch(setSidePanelSideStatus({ side: "left", status: "none" }));
+  if (groove === "None") {
+    dispatchPresetEdgeStatuses(dispatch, edges, new Set());
+    dispatch(setSidePanelsOption(currentGroove));
+    return;
   }
 
-  if (rightEligible) {
-    await setSidePanel(groove, "right", count);
-    dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
-  } else {
-    dispatch(setSidePanelSideStatus({ side: "right", status: "none" }));
+  const activeSides = new Set<SidePanelSide>();
+
+  for (const { side, productId } of eligibleEdges) {
+    if (activeSides.has(side)) continue;
+    const edgeScopeOptions = productId ? { productIds: [productId] } : undefined;
+    await setSidePanel(groove, side, count, edgeScopeOptions);
+    activeSides.add(side);
   }
 
+  dispatchPresetEdgeStatuses(dispatch, edges, activeSides);
   dispatch(setSidePanelsOption(groove));
 }
 

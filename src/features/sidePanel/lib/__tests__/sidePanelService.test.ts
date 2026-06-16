@@ -1,7 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const sidePanelMocks = vi.hoisted(() => ({
-  setSidePanel: vi.fn<(type: string, side: "left" | "right" | "both", cabinetCount?: number) => Promise<void>>(),
+  setSidePanel: vi.fn<
+    (
+      type: string,
+      side: "left" | "right" | "both",
+      cabinetCount?: number,
+      options?: { productIds?: string[] },
+    ) => Promise<void>
+  >(),
 }));
 
 vi.mock("@/utils/functions/playcanvas/sidePanels", () => ({
@@ -16,7 +23,7 @@ import {
   getSidePanelsOption,
 } from "@/features/sidePanel/model/selectors";
 
-import { applyGrooveToActiveSides, restoreSidePanelState } from "../sidePanelService";
+import { applyGrooveToActiveSides, reapplySidePanelsForPreset, restoreSidePanelState } from "../sidePanelService";
 
 describe("sidePanelService", () => {
   beforeEach(() => {
@@ -88,5 +95,95 @@ describe("sidePanelService", () => {
 
     expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
     expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("DoubleG", "both", 1);
+  });
+
+  it("marks a preset edge Open Shelf side as auto-removed while keeping the eligible side active", async () => {
+    store.dispatch(setSidePanelsOption("UpperG"));
+    store.dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
+    store.dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
+
+    await reapplySidePanelsForPreset(
+      store.dispatch,
+      "UpperG",
+      [
+        { name: "Open-Shelf", Height: 56 },
+        { name: "Sink-Cabinet", Height: 56, Drawers: "2D", Handle: "handle_urban_topcut" },
+        { name: "Sink-Base", Height: 56, Drawers: "2D", Handle: "handle_urban_topcut" },
+      ],
+      3,
+      ["open-shelf-left", "sink-cabinet-center", "sink-base-right"],
+    );
+
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3, {
+      productIds: ["open-shelf-left", "sink-cabinet-center", "sink-base-right"],
+    });
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "right", 3, {
+      productIds: ["sink-base-right"],
+    });
+
+    const state = store.getState();
+    expect(getSidePanelsOption(state)).toBe("DoubleG");
+    expect(getSidePanelLeftStatus(state)).toBe("auto-removed");
+    expect(getSidePanelRightStatus(state)).toBe("active");
+  });
+
+  it("marks a right edge Open Shelf as auto-removed while keeping the left side active", async () => {
+    store.dispatch(setSidePanelsOption("UpperG"));
+    store.dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
+    store.dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
+
+    await reapplySidePanelsForPreset(
+      store.dispatch,
+      "UpperG",
+      [
+        { name: "Sink-Base", Height: 56, Drawers: "2D", Handle: "handle_urban_topcut" },
+        { name: "Sink-Cabinet", Height: 56, Drawers: "2D", Handle: "handle_urban_topcut" },
+        { name: "Open-Shelf", Height: 56 },
+      ],
+      3,
+      ["sink-base-left", "sink-cabinet-center", "open-shelf-right"],
+    );
+
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3, {
+      productIds: ["sink-base-left", "sink-cabinet-center", "open-shelf-right"],
+    });
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "left", 3, {
+      productIds: ["sink-base-left"],
+    });
+
+    const state = store.getState();
+    expect(getSidePanelsOption(state)).toBe("DoubleG");
+    expect(getSidePanelLeftStatus(state)).toBe("active");
+    expect(getSidePanelRightStatus(state)).toBe("auto-removed");
+  });
+
+  it("clears stale physical panels when no preset edge can receive side panels", async () => {
+    store.dispatch(setSidePanelsOption("UpperG"));
+    store.dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
+    store.dispatch(setSidePanelSideStatus({ side: "right", status: "active" }));
+
+    await reapplySidePanelsForPreset(
+      store.dispatch,
+      "UpperG",
+      [
+        { name: "Open-Shelf", Height: 56 },
+        { name: "Sink-Base", Height: 56, Drawers: "2D", Handle: "handle_urban_topcut" },
+        { name: "Side-Shelf", Height: 56 },
+      ],
+      3,
+      ["open-shelf-left", "sink-base-center", "side-shelf-right"],
+    );
+
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("None", "both", 3, {
+      productIds: ["open-shelf-left", "sink-base-center", "side-shelf-right"],
+    });
+
+    const state = store.getState();
+    expect(getSidePanelsOption(state)).toBe("UpperG");
+    expect(getSidePanelLeftStatus(state)).toBe("auto-removed");
+    expect(getSidePanelRightStatus(state)).toBe("auto-removed");
   });
 });

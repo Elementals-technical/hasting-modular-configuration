@@ -109,6 +109,14 @@ type PendingModelSelection = {
   reason?: string;
 };
 
+type ApplyPresetSelectionOptions = {
+  syncUrl?: boolean;
+  preserveCountertopSelections?: boolean;
+};
+
+const normalizeCreatedProductIds = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((productId): productId is string => typeof productId === "string") : [];
+
 const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSceneDefaults => {
   if (!presetProducts?.length) return {};
 
@@ -159,6 +167,8 @@ export const ModelPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const isDetail = !!useMatch("/prebuilt/model/:modelId");
   const isDefinedProductsRef = useRef(false);
+  const presetSelectionQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const presetSelectionRequestIdRef = useRef(0);
   const productsPresets = useAppSelector(getProductsPresets);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -383,8 +393,8 @@ export const ModelPage = () => {
   }, [productsPresets]);
 
   const syncPresetProductIdsFromScene = useCallback(
-    (presetProducts?: PresetProduct[]) => {
-      const orderedIds = getOrderedProductIds();
+    (presetProducts?: PresetProduct[], preferredProductIds?: string[]) => {
+      const orderedIds = preferredProductIds?.length ? preferredProductIds : getOrderedProductIds();
 
       dispatch(resetProducts());
       orderedIds.forEach((id, index) => {
@@ -494,9 +504,14 @@ export const ModelPage = () => {
     async (
       presetProducts?: PresetProduct[],
       presetId?: number,
-      options?: { syncUrl?: boolean; preserveCountertopSelections?: boolean },
+      options?: ApplyPresetSelectionOptions,
     ) => {
-      try {
+      const requestId = presetSelectionRequestIdRef.current + 1;
+      presetSelectionRequestIdRef.current = requestId;
+
+      const runSelection = async () => {
+        if (requestId !== presetSelectionRequestIdRef.current) return;
+
         const preserveCountertopSelections = options?.preserveCountertopSelections !== false;
         const overrides = preserveCountertopSelections ? transferableOverrides : colorTransferableOverrides;
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
@@ -508,9 +523,14 @@ export const ModelPage = () => {
           },
           effectivePresetProducts,
         );
-        await addPreset(effectivePresetProducts, globalConfig);
+        await resetSidePanels();
+        await removeAllProducts();
+        const createdIds: unknown = await addPreset(effectivePresetProducts, globalConfig);
         await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
-        syncPresetProductIdsFromScene(effectivePresetProducts);
+        const createdProductIds = normalizeCreatedProductIds(createdIds);
+        const preferredProductIds =
+          createdProductIds.length === effectivePresetProducts.length ? createdProductIds : undefined;
+        const sceneProductIds = syncPresetProductIdsFromScene(effectivePresetProducts, preferredProductIds);
 
         if (effectivePresetProducts.length) {
           dispatch(addProductPreset(effectivePresetProducts));
@@ -523,7 +543,13 @@ export const ModelPage = () => {
 
         // Re-apply side panels to match the new preset's handle/height/drawers
         if (spGroove && spGroove !== "None" && effectivePresetProducts.length) {
-          await reapplySidePanelsForPreset(dispatch, spGroove, effectivePresetProducts, effectivePresetProducts.length);
+          await reapplySidePanelsForPreset(
+            dispatch,
+            spGroove,
+            effectivePresetProducts,
+            effectivePresetProducts.length,
+            sceneProductIds,
+          );
         }
 
         const presetCabinetColor = effectivePresetProducts.find(
@@ -538,6 +564,16 @@ export const ModelPage = () => {
           nextSearchParams.set("preset", String(presetId));
           setSearchParams(nextSearchParams);
         }
+      };
+
+      const queuedSelection = presetSelectionQueueRef.current.then(runSelection, runSelection);
+      presetSelectionQueueRef.current = queuedSelection.then(
+        () => undefined,
+        () => undefined,
+      );
+
+      try {
+        await queuedSelection;
       } catch (error) {
         console.error("[ProductModelItem] Failed to apply preset", error);
       }
