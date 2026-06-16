@@ -56,14 +56,10 @@ const GROOVE_FALLBACK = ["UpperG", "CenterG", "DoubleG", "NoG"] as const;
  * 2) Pick preferred by handle priority
  * 3) Fallback to first available (NoG last)
  */
-export function resolveGroove(
-  allowed: Set<string>,
-  currentGroove: string | null,
-  handle: string | null,
-): GrooveType {
+export function resolveGroove(allowed: Set<string>, currentGroove: string | null, handle: string | null): GrooveType {
   if (currentGroove && allowed.has(currentGroove) && isGrooveType(currentGroove)) return currentGroove;
 
-  const priorities = handle ? HANDLE_GROOVE_PRIORITY[handle] ?? [] : [];
+  const priorities = handle ? (HANDLE_GROOVE_PRIORITY[handle] ?? []) : [];
   const preferred = priorities.find((g) => allowed.has(g));
   if (preferred && isGrooveType(preferred)) return preferred;
 
@@ -72,11 +68,7 @@ export function resolveGroove(
 
 // ── Internal helper ─────────────────────────────────────────────────────
 
-function dispatchSideStatus(
-  dispatch: AppDispatch,
-  side: "left" | "right" | "both",
-  status: SidePanelStatus,
-) {
+function dispatchSideStatus(dispatch: AppDispatch, side: "left" | "right" | "both", status: SidePanelStatus) {
   if (side === "both") {
     dispatch(setSidePanelSideStatus({ side: "left", status }));
     dispatch(setSidePanelSideStatus({ side: "right", status }));
@@ -107,8 +99,7 @@ const dispatchPresetEdgeStatuses = (
   });
 };
 
-const normalizeProductIds = (productIds?: string[]) =>
-  productIds?.filter((productId) => productId.trim().length > 0);
+const normalizeProductIds = (productIds?: string[]) => productIds?.filter((productId) => productId.trim().length > 0);
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -129,10 +120,8 @@ export async function applyGroove(
   dispatchSideStatus(dispatch, side, groove === "None" ? "none" : "active");
 
   const changedSideStatus = groove === "None" ? "none" : "active";
-  const nextLeftStatus =
-    side === "both" || side === "left" ? changedSideStatus : options?.currentLeftStatus;
-  const nextRightStatus =
-    side === "both" || side === "right" ? changedSideStatus : options?.currentRightStatus;
+  const nextLeftStatus = side === "both" || side === "left" ? changedSideStatus : options?.currentLeftStatus;
+  const nextRightStatus = side === "both" || side === "right" ? changedSideStatus : options?.currentRightStatus;
   const hasActiveSideAfterChange = nextLeftStatus === "active" || nextRightStatus === "active";
 
   if (groove !== "None" || !options || !hasActiveSideAfterChange) {
@@ -165,11 +154,7 @@ export async function deleteSide(
  * System auto-removes SP when OS/OSS cabinet appears at edge.
  * Will auto-restore when edge becomes eligible again (SB/SC).
  */
-export async function autoRemoveSide(
-  dispatch: AppDispatch,
-  side: SidePanelSide,
-  cabinetCount?: number,
-) {
+export async function autoRemoveSide(dispatch: AppDispatch, side: SidePanelSide, cabinetCount?: number) {
   await setSidePanel("None", side, cabinetCount);
   dispatch(setSidePanelSideStatus({ side, status: "auto-removed" }));
 }
@@ -192,11 +177,7 @@ export async function autoRestoreSide(
  * Initial SP setup from preset or cabinet builder boot.
  * Sets groove + both sides active.
  */
-export async function bootBothSides(
-  dispatch: AppDispatch,
-  groove: GrooveType,
-  cabinetCount?: number,
-) {
+export async function bootBothSides(dispatch: AppDispatch, groove: GrooveType, cabinetCount?: number) {
   await setSidePanel(groove, "both", cabinetCount);
   dispatch(setSidePanelsOption(groove));
   dispatchSideStatus(dispatch, "both", "active");
@@ -254,14 +235,13 @@ export async function reapplySidePanelsForPreset(
 
   const count = cabinetCount ?? presetProducts.length;
   const scopedProductIds = normalizeProductIds(productIds);
-  const scopeOptions = scopedProductIds?.length ? { productIds: scopedProductIds } : undefined;
   const edges = getPresetEdges(presetProducts, scopedProductIds);
   const eligibleEdges = edges.filter(({ product }) => isSidePanelEligiblePresetEdge(product));
   const eligible = eligibleEdges[0]?.product;
 
   // Always clear stale physical panels before mapping the saved groove onto the
   // new preset edges. A preset with shelf ends may have no side that can receive SP.
-  await setSidePanel("None", "both", count, scopeOptions);
+  await setSidePanel("None", "both", count);
 
   if (!eligible) {
     dispatchPresetEdgeStatuses(dispatch, edges, new Set());
@@ -275,11 +255,7 @@ export async function reapplySidePanelsForPreset(
     cabinetType: "SBSC",
   });
 
-  const groove = resolveGroove(
-    availability.allowed as Set<string>,
-    currentGroove,
-    eligible.Handle ?? null,
-  );
+  const groove = resolveGroove(availability.allowed as Set<string>, currentGroove, eligible.Handle ?? null);
 
   if (groove === "None") {
     dispatchPresetEdgeStatuses(dispatch, edges, new Set());
@@ -289,10 +265,9 @@ export async function reapplySidePanelsForPreset(
 
   const activeSides = new Set<SidePanelSide>();
 
-  for (const { side, productId } of eligibleEdges) {
+  for (const { side } of eligibleEdges) {
     if (activeSides.has(side)) continue;
-    const edgeScopeOptions = productId ? { productIds: [productId] } : undefined;
-    await setSidePanel(groove, side, count, edgeScopeOptions);
+    await setSidePanel(groove, side, count);
     activeSides.add(side);
   }
 

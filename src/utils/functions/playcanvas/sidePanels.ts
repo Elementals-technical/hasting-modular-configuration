@@ -31,30 +31,24 @@ export const rememberSidePanelSelection = (type: string, side: SidePanelSide = "
 
 export const getRememberedSidePanels = (): SidePanelState => ({ ...state });
 
-const resolveBatchIds = (options?: SetSidePanelOptions) =>
-  options?.productIds?.length ? options.productIds : {};
+// const resolveBatchIds = (options?: SetSidePanelOptions) => (options?.productIds?.length ? options.productIds : {});
 
-async function setSidePanelMulti(type: string, side: SidePanelSide, options?: SetSidePanelOptions) {
-  const batchIds = resolveBatchIds(options);
+async function setSidePanelMulti(type: string, side: SidePanelSide) {
+  // const batchIds = resolveBatchIds(options);
 
   if (type === "None" && side === "both") {
-    await setConfigBatch(batchIds, { SidePanel: "None", SidePanelSide: "left" });
-    await setConfigBatch(batchIds, { SidePanel: "None", SidePanelSide: "right" });
+    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "left" });
+    await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "right" });
   } else {
-    await setConfigBatch(batchIds, { SidePanel: type, SidePanelSide: side });
+    await setConfigBatch({}, { SidePanel: type, SidePanelSide: side });
   }
 }
 
-export const setSidePanel = async (
-  type: string,
-  side: SidePanelSide = "both",
-  cabinetCount?: number,
-  options?: SetSidePanelOptions,
-) => {
+export const setSidePanel = async (type: string, side: SidePanelSide = "both", cabinetCount?: number) => {
   // Always use the explicit SidePanelSide API — never the legacy no-side `{ SidePanel }`
   // call, which makes PlayCanvas fall back through `cabinetId` and silently resolve a
   // non-edge cabinet to "both". A single cabinet is both edges, so force "both".
   const effectiveSide: SidePanelSide = cabinetCount === 1 ? "both" : side;
-  await setSidePanelMulti(type, effectiveSide, options);
+  await setSidePanelMulti(type, effectiveSide);
   applyState(type, effectiveSide);
 };
