@@ -1,6 +1,9 @@
 import { setConfigBatch } from "./setConfigBatch";
 
 export type SidePanelSide = "left" | "right" | "both";
+export type SetSidePanelOptions = {
+  productIds?: string[];
+};
 
 type SidePanelState = {
   left: string;
@@ -28,7 +31,11 @@ export const rememberSidePanelSelection = (type: string, side: SidePanelSide = "
 
 export const getRememberedSidePanels = (): SidePanelState => ({ ...state });
 
+// const resolveBatchIds = (options?: SetSidePanelOptions) => (options?.productIds?.length ? options.productIds : {});
+
 async function setSidePanelMulti(type: string, side: SidePanelSide) {
+  // const batchIds = resolveBatchIds(options);
+
   if (type === "None" && side === "both") {
     await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "left" });
     await setConfigBatch({}, { SidePanel: "None", SidePanelSide: "right" });
