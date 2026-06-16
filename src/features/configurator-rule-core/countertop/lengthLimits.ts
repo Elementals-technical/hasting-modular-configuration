@@ -29,6 +29,19 @@ export const resolveMaxResizableCabinetWidthCm = ({
   return maxCm - (currentTotalCm - currentCabinetWidthCm);
 };
 
+export const resolveMaxAddableCabinetWidthCm = ({
+  maxCm,
+  currentTotalCm,
+}: {
+  maxCm: number | null;
+  currentTotalCm: number | null;
+}): number | null => {
+  if (maxCm === null || currentTotalCm === null) return null;
+  if (!Number.isFinite(maxCm) || !Number.isFinite(currentTotalCm)) return null;
+
+  return Math.max(0, maxCm - currentTotalCm);
+};
+
 type CountertopStyle = "integrated" | "vessel" | "undermount" | "plain";
 
 type ResolveCountertopMaxLengthInput = {

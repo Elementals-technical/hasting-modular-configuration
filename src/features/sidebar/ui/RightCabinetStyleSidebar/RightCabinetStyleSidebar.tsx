@@ -65,7 +65,7 @@ import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimePro
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
-  resolveMaxResizableCabinetWidthCm,
+  resolveMaxAddableCabinetWidthCm,
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -286,6 +286,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   }, [countertopColor, countertopColorSku, countertopOptionsFromApi]);
 
   const countertopRules = useCountertopRules();
+  const maxAddableCabinetWidth = useMemo(
+    () =>
+      resolveMaxAddableCabinetWidthCm({
+        maxCm: maxCountertopLength,
+        currentTotalCm: sceneTotalWidth,
+      }),
+    [maxCountertopLength, sceneTotalWidth],
+  );
+
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({
@@ -300,19 +309,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       activeBasinStyle: sinkType ?? null,
       activeThickness: countertopThickness ?? null,
     });
-    const maxResizableWidth = resolveMaxResizableCabinetWidthCm({
-      maxCm: maxCountertopLength,
-      currentTotalCm: sceneTotalWidth,
-      currentCabinetWidthCm: selectedDimensions.width,
-    });
+    const maxAddableWidth = selectedProducts.length ? maxAddableCabinetWidth : null;
 
     return dimensionOptions.width.filter((option) => {
       if (option.disabled) return false;
       if (!filteredValues.includes(option.value)) return false;
-      if (maxResizableWidth === null) return true;
+      if (maxAddableWidth === null) return true;
       const numericWidth = Number(option.value);
       if (!Number.isFinite(numericWidth)) return false;
-      return numericWidth <= maxResizableWidth + 0.01;
+      return numericWidth <= maxAddableWidth + 0.01;
     });
   }, [
     activeCabinetRule?.code,
@@ -320,14 +325,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
-    maxCountertopLength,
-    sceneTotalWidth,
+    maxAddableCabinetWidth,
     selectedDimensions.depth,
-    selectedDimensions.width,
     activeCabinetRule?.isOpen,
     countertopStyle,
     sinkType,
     countertopThickness,
+    selectedProducts.length,
   ]);
 
   const depthOptions = useMemo(() => {
@@ -684,12 +688,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         .map((value) => Number(value))
         .filter((value) => Number.isFinite(value) && value > 0);
 
-      const remainingForAdd =
-        maxCountertopLength !== null && sceneTotalWidth !== null ? maxCountertopLength - sceneTotalWidth : null;
       const fittingAddWidths =
-        remainingForAdd === null
+        maxAddableCabinetWidth === null
           ? availableAddWidths
-          : availableAddWidths.filter((width) => width <= remainingForAdd + 0.01);
+          : availableAddWidths.filter((width) => width <= maxAddableCabinetWidth + 0.01);
 
       if (
         maxCountertopLength !== null &&
@@ -710,7 +712,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const selectedWidthIsFitting =
         typeof selectedDimensions.width === "number" &&
         Number.isFinite(selectedDimensions.width) &&
-        (remainingForAdd === null || selectedDimensions.width <= remainingForAdd + 0.01);
+        (maxAddableCabinetWidth === null || selectedDimensions.width <= maxAddableCabinetWidth + 0.01);
       const fallbackWidth =
         fittingAddWidths.length > 0
           ? fittingAddWidths.reduce((max, width) => (width > max ? width : max), fittingAddWidths[0])
@@ -775,6 +777,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     isPlayCanvasReady,
     activeDrawerProduct,
     maxCountertopLength,
+    maxAddableCabinetWidth,
     onProductAdded,
     productConfig,
     saveSnapshot,
