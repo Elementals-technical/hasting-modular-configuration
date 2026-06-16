@@ -29,7 +29,7 @@ export async function addPreset(presetProducts: PresetProduct[] = [], globalConf
   }
 
   try {
-    await addPreset(runtimePresetProducts, globalConfig);
+    return await addPreset(runtimePresetProducts, globalConfig);
   } catch (error) {
     console.error("[PlayCanvas] Failed to set width", error);
     return null;

@@ -110,7 +110,7 @@ import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import { autoRemoveSide, isGrooveType, restoreSidePanelState } from "@/features/sidePanel";
+import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
@@ -138,6 +138,12 @@ const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
+
+const isSidePanelStatus = (value: string | undefined): value is SidePanelStatus =>
+  value === "active" || value === "none" || value === "auto-removed";
+
+const resolveSidePanelStatus = (value: string | undefined, fallback: SidePanelStatus): SidePanelStatus =>
+  isSidePanelStatus(value) ? value : fallback;
 
 type AddSelectedCabinetToSceneOptions = {
   keepStyleSidebarOpen?: boolean;
@@ -1201,9 +1207,7 @@ export const CabinetBuilderPage = () => {
         const result = await restoreConfiguration(id).unwrap();
 
         const path = result?.metadata?.path;
-        if (typeof path === "string" && path.startsWith("/")) {
-          navigate(path);
-        }
+        const restorePath = typeof path === "string" && path.startsWith("/") ? path : null;
 
         applySwatchOrderFromMetadata(result?.metadata as Record<string, unknown> | undefined, dispatch);
 
@@ -1241,8 +1245,10 @@ export const CabinetBuilderPage = () => {
         const createdIds = await addPreset(presetProducts);
         dispatch(addProductPreset(presetProducts));
 
-        // @ts-expect-error addPreset can return created ids from the PlayCanvas bridge.
-        const orderedIds = Array.isArray(createdIds) && createdIds.length ? createdIds : getOrderedProductIds();
+        const createdProductIds = Array.isArray(createdIds)
+          ? createdIds.filter((productId): productId is string => typeof productId === "string")
+          : [];
+        const orderedIds = getOrderedProductIds(createdProductIds);
         orderedIds.forEach((productId) => dispatch(addProductId(productId)));
 
         const configIds = productConfigIds;
@@ -1394,23 +1400,6 @@ export const CabinetBuilderPage = () => {
           await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: uiVesselColor });
         }
 
-        if (uiSidePanels || sidePanelValue) {
-          const sidePanel = uiSidePanels || sidePanelValue;
-          if (sidePanel && isGrooveType(sidePanel)) {
-            await restoreSidePanelState(sidePanel, uiSidePanelLeft, uiSidePanelRight, orderedIds.length);
-            dispatch(setSidePanelsOption(sidePanel));
-            const leftStatus = uiSidePanelLeft ?? "active";
-            const rightStatus = uiSidePanelRight ?? "active";
-            dispatch(
-              setSidePanelSideStatus({ side: "left", status: leftStatus as "active" | "none" | "auto-removed" }),
-            );
-            dispatch(
-              setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }),
-            );
-            await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length);
-          }
-        }
-
         const towelBarOption = uiTowelBarOption || towelBarValue;
         const towelBarSide = uiTowelBarSide || towelBarSideValue;
         if (typeof towelBarOption === "string") {
@@ -1460,8 +1449,6 @@ export const CabinetBuilderPage = () => {
 
         dispatch(setSelectedProductConfig(firstPreset ?? null));
 
-        console.log("config firstPreset", firstPreset);
-
         const nextDimensions: Partial<typeof selectedDimensions> = {};
         if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
         if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
@@ -1476,9 +1463,24 @@ export const CabinetBuilderPage = () => {
           dispatch(setActiveCabinetType(cabinetTypeId));
         }
 
+        const sidePanel = uiSidePanels || sidePanelValue;
+        if (sidePanel && isGrooveType(sidePanel)) {
+          const leftStatus = resolveSidePanelStatus(uiSidePanelLeft, "active");
+          const rightStatus = resolveSidePanelStatus(uiSidePanelRight, "active");
+          await restoreSidePanelState(sidePanel, leftStatus, rightStatus, orderedIds.length);
+          dispatch(setSidePanelsOption(sidePanel));
+          dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus }));
+          dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus }));
+          await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length);
+        }
+
         const snapshot = await captureSnapshot(() => store.getState() as RootState);
         dispatch(setHistoryRestoring(false));
         dispatch(pushSnapshot(snapshot));
+
+        if (restorePath) {
+          navigate(restorePath);
+        }
       } catch (error) {
         dispatch(setHistoryRestoring(false));
         console.error("[Configurations] Restore failed", error);

@@ -16,7 +16,7 @@ import {
   getSidePanelsOption,
 } from "@/features/sidePanel/model/selectors";
 
-import { applyGrooveToActiveSides } from "../sidePanelService";
+import { applyGrooveToActiveSides, restoreSidePanelState } from "../sidePanelService";
 
 describe("sidePanelService", () => {
   beforeEach(() => {
@@ -72,5 +72,21 @@ describe("sidePanelService", () => {
     expect(getSidePanelsOption(state)).toBe("CenterG");
     expect(getSidePanelLeftStatus(state)).toBe("active");
     expect(getSidePanelRightStatus(state)).toBe("auto-removed");
+  });
+
+  it("restores both active side panels explicitly for multi-cabinet scenes", async () => {
+    await restoreSidePanelState("DoubleG", "active", "active", 3);
+
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(3);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "left", 3);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(3, "DoubleG", "right", 3);
+  });
+
+  it("restores both active side panels with a single both-side call for single-cabinet scenes", async () => {
+    await restoreSidePanelState("DoubleG", "active", "active", 1);
+
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
+    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("DoubleG", "both", 1);
   });
 });
