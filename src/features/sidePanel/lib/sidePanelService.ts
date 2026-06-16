@@ -103,16 +103,22 @@ export async function applyGroove(
 /**
  * User deletes SP entity via context menu in 3D player.
  * Clears PlayCanvas SP on that side, marks as user-removed (won't auto-restore).
- * Resets groove to "None" so UI shows no selection.
+ *
+ * The `SidePanels` option encodes the groove type used by active sides (it is read on
+ * save/restore). Keep it while the other side still has a panel; only reset it to "None"
+ * when no side remains active. Pass `remainingSideStatus` to preserve the groove.
  */
 export async function deleteSide(
   dispatch: AppDispatch,
   side: SidePanelSide,
   cabinetCount?: number,
+  remainingSideStatus?: SidePanelStatus,
 ) {
   await setSidePanel("None", side, cabinetCount);
   dispatch(setSidePanelSideStatus({ side, status: "none" }));
-  dispatch(setSidePanelsOption("None"));
+  if (remainingSideStatus !== "active") {
+    dispatch(setSidePanelsOption("None"));
+  }
 }
 
 /**

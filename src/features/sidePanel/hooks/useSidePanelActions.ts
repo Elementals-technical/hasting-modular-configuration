@@ -8,6 +8,7 @@ import {
   bootBothSides,
   autoRemoveBoth,
   type SidePanelSide,
+  type SidePanelStatus,
   type GrooveType,
 } from "../lib/sidePanelService";
 
@@ -25,7 +26,8 @@ export function useSidePanelActions() {
     ),
 
     deleteSide: useCallback(
-      (side: SidePanelSide, cabinetCount?: number) => deleteSide(dispatch, side, cabinetCount),
+      (side: SidePanelSide, cabinetCount?: number, remainingSideStatus?: SidePanelStatus) =>
+        deleteSide(dispatch, side, cabinetCount, remainingSideStatus),
       [dispatch],
     ),
 

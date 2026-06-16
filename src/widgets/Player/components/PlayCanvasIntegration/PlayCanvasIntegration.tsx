@@ -1418,7 +1418,10 @@ export const PlayCanvasIntegration = () => {
           await spDeleteSide(dispatch, "left");
           await spDeleteSide(dispatch, "right");
         } else {
-          await spDeleteSide(dispatch, deletedSide);
+          // Preserve the groove option when the other side keeps its panel, so a
+          // single-side deletion doesn't wipe the remaining panel on save/restore.
+          const remainingSideStatus = deletedSide === "left" ? sidePanelRight : sidePanelLeft;
+          await spDeleteSide(dispatch, deletedSide, undefined, remainingSideStatus);
         }
         dispatch(setSelectedSceneProduct(""));
         setDropdownState((prev) => ({ ...prev, visible: false }));
@@ -1433,7 +1436,16 @@ export const PlayCanvasIntegration = () => {
     } finally {
       setDropdownState((prev) => ({ ...prev, visible: false }));
     }
-  }, [dispatch, isTowelBarEntity, selectedSceneProduct, towelBarOption, saveSnapshot, productIds.length]);
+  }, [
+    dispatch,
+    isTowelBarEntity,
+    selectedSceneProduct,
+    towelBarOption,
+    saveSnapshot,
+    productIds.length,
+    sidePanelLeft,
+    sidePanelRight,
+  ]);
 
   const handleExecuteVesselBasinAction = useCallback(
     async (action: SelectionAction) => {
