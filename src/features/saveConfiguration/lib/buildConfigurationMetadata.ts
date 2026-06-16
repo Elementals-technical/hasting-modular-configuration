@@ -6,9 +6,11 @@ export interface ConfigurationUiState {
   sinkType: string;
   CountertopColor: string;
   CountertopColorSku: string;
+  VesselColor: string;
   Thickness: string;
   DrawerPanelFluting: string;
   GrainDirection: string;
+  BookMatching: string;
   CountertopStyle: string;
   SidePanels: string;
   SidePanelLeft: string;
@@ -19,6 +21,7 @@ export interface ConfigurationUiState {
   TowelBarOption: string;
   TowelBarColor: string;
   FaucetHolesAmount: string;
+  FaucetHolesSpacing: string;
 }
 
 export interface ConfigurationSwatchOrder {

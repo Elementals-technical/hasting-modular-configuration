@@ -35,12 +35,14 @@ import {
   getActiveCountertopColor,
   getCountertopColorSku,
   getActiveCountertopThickness,
+  getBookMatching,
   getCabinetColor,
   getCountertopStyle,
   getDividersOption,
   getDividersStyle,
   getDrawerPanelFluting,
   getFaucetHolesAmount,
+  getFaucetHolesSpacing,
   getGrainDirection,
   getHandleGrooveColor,
   getLedOption,
@@ -50,6 +52,7 @@ import {
   getSinkType,
   getTowelBarColor,
   getTowelBarOption,
+  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 
@@ -83,9 +86,11 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
   const sinkType = useAppSelector(getSinkType);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const vesselColor = useAppSelector(getVesselColor);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const grainDirection = useAppSelector(getGrainDirection);
+  const bookMatching = useAppSelector(getBookMatching);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
@@ -96,6 +101,7 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
   const towelBarOption = useAppSelector(getTowelBarOption);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
+  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
 
   const selectedMaterials = useAppSelector(getSelectedMaterials);
   const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
@@ -130,9 +136,11 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
         sinkType,
         CountertopColor: countertopColor,
         CountertopColorSku: countertopColorSku,
+        VesselColor: vesselColor,
         Thickness: countertopThickness,
         DrawerPanelFluting: drawerPanelFluting,
         GrainDirection: grainDirection,
+        BookMatching: bookMatching,
         CountertopStyle: countertopStyle,
         SidePanels: sidePanelsOption,
         SidePanelLeft: sidePanelLeft,
@@ -143,6 +151,7 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
         TowelBarOption: towelBarOption,
         TowelBarColor: towelBarColor,
         FaucetHolesAmount: faucetHolesAmount,
+        FaucetHolesSpacing: faucetHolesSpacing,
       },
       swatchOrder: {
         selectedMaterials,
