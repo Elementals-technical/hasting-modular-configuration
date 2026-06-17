@@ -58,6 +58,7 @@ import {
   addProductPreset,
   setCabinetCatalog,
   setPlacedCabinetStyle,
+  replacePlacedDividersForCabinet,
   switchAllCabinetsDrawerStyle,
   clearTopPlacedDividersForCabinets,
 } from "@/entities/product/model/store/slice";
@@ -106,6 +107,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useGetProductDatatableQuery } from "@/entities/product/api";
@@ -1292,6 +1294,12 @@ export const CabinetBuilderPage = () => {
             }
 
             await setConfig(orderedIds[i], configValue);
+            dispatch(
+              replacePlacedDividersForCabinet({
+                cabinetId: orderedIds[i],
+                dividers: collectPlacedDividersFromConfig(orderedIds[i], configValue),
+              }),
+            );
           }
         }
 

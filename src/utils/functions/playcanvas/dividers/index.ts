@@ -21,6 +21,7 @@ export {
   collectPlacedDividersForDrawer,
   type RuntimePlacedDivider,
 } from "./parsePlacedDividersConfig";
+export { pickDividerConfigPatch } from "./restorePlacedDividers";
 export { getPlacedDividersForDrawer } from "./getPlacedDividersForDrawer";
 export { wrapShowTopView } from "./wrapShowTopView";
 export type { DrawerType } from "./wrapShowTopView";
