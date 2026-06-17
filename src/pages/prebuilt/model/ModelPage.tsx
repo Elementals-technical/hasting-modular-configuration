@@ -37,6 +37,7 @@ import {
   setCabinetColor,
   setHandleGrooveColor,
   setPlacedCabinetStyle,
+  replacePlacedDividersForCabinet,
   setSelectedDimensions,
   setSidePanelsOption,
   setSidePanelSideStatus,
@@ -64,6 +65,7 @@ import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
 import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
@@ -75,6 +77,7 @@ import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelE
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
+import { collectPlacedDividersFromConfig, pickDividerConfigPatch } from "@/utils/functions/playcanvas/dividers";
 import {
   buildCountertopColorSkuCandidates,
   getCountertopMaterialTokensFromBasinType,
@@ -812,6 +815,22 @@ export const ModelPage = () => {
         // Rebuild presets from real scene configs to keep SKU-driving fields
         // (name/drawers/handle/dimensions) consistent after restore.
         const sceneIds = getOrderedProductIds();
+        const restoredDividersByCabinet = await Promise.all(
+          sceneIds.map(async (sceneId, index) => {
+            const sourceId = productConfigIds[index];
+            const sourceConfig = sourceId ? configuration[sourceId] : null;
+            const dividerConfigPatch = pickDividerConfigPatch(sourceConfig);
+
+            if (Object.keys(dividerConfigPatch).length > 0) {
+              await setConfig(sceneId, dividerConfigPatch);
+            }
+
+            return {
+              cabinetId: sceneId,
+              dividers: collectPlacedDividersFromConfig(sceneId, sourceConfig),
+            };
+          }),
+        );
         const sceneConfigs = await Promise.all(sceneIds.map((id) => getConfig(id)));
         const sceneConfiguration = sceneIds.reduce<Record<string, unknown>>((acc, id, index) => {
           acc[id] = sceneConfigs[index];
@@ -823,6 +842,9 @@ export const ModelPage = () => {
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));
         syncPresetProductIdsFromScene(effectivePresets);
+        restoredDividersByCabinet.forEach(({ cabinetId, dividers }) => {
+          dispatch(replacePlacedDividersForCabinet({ cabinetId, dividers }));
+        });
         if (globalConfig.CountertopColor) {
           dispatch(setActiveCountertopColor(globalConfig.CountertopColor as string));
           if (restoredCountertopColorSku) {
