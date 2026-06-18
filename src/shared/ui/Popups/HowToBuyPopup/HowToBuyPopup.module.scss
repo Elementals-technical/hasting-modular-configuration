@@ -1,0 +1,460 @@
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.dialogContent {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 301;
+  width: 90vw;
+  max-width: 1174px;
+  max-height: 95vh;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #e5e6ea;
+  color: #282828;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #d8d9dd;
+  }
+}
+
+.popup {
+  --popup-h: min(620px, 85dvh);
+  display: flex;
+  height: var(--popup-h);
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* Left column — static, does not scroll */
+.leftCol {
+  width: 47%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 40px 32px 40px 40px;
+  overflow: hidden;
+}
+
+.leftHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.heading {
+  font-size: 32px;
+  font-weight: 700;
+  color: #282828;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #333;
+  line-height: normal;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Crossfading image + testimonials stack */
+.imageArea {
+  flex: 1;
+  position: relative;
+  border-radius: 16px;
+  min-height: 0;
+}
+
+.stepImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+
+  &.active {
+    opacity: 1;
+  }
+}
+
+/* Testimonials overlay in left col — fades in on slide 4, desktop only */
+.testimonialsOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+/* Right column — scrollable, each child is a full-height slide */
+.rightColWrapper {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rightCol {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: #c8b8b0 #f0ebe8;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f0ebe8;
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c8b8b0;
+    border-radius: 999px;
+  }
+}
+
+.scrollArrow {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+
+  &.scrollArrowHidden {
+    opacity: 0;
+  }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+/* Each step fills the visible viewport so content reads as a slide */
+.stepItem {
+  min-height: var(--popup-h, 720px);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 40px 40px 32px;
+  gap: 16px;
+}
+
+.stepBadge {
+  display: inline-flex;
+  border: 1px solid #b65633;
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: #b65633;
+  font-size: 18px;
+  font-weight: 500;
+  width: fit-content;
+  flex-shrink: 0;
+}
+
+.stepHeaderRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepHeading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #282828;
+  margin: 0;
+}
+
+.stepBody {
+  font-size: 16px;
+  font-weight: 400;
+
+  color: #333;
+  line-height: normal;
+  margin: 0;
+}
+
+.bulletList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bulletItem {
+  display: flex;
+  gap: 10px;
+  font-size: 16px;
+  color: #333;
+  line-height: normal;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.bulletText {
+  display: inline-block;
+}
+
+/* Form section — same slide treatment as step items */
+.formSection {
+  min-height: var(--popup-h, 720px);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 40px 40px 32px;
+  gap: 20px;
+}
+
+/* Testimonials shown below form on mobile only */
+.mobileTestimonials {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.testimonialCard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #d9d9d9;
+}
+
+.testimonialHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.testimonialMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.testimonialNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.testimonialAuthor {
+  font-size: 14px;
+  font-weight: 700;
+  color: #282828;
+  line-height: 1.3;
+}
+
+.testimonialRole {
+  font-size: 14px;
+  font-weight: 400;
+
+  color: #333338;
+}
+
+.testimonialLocation {
+  font-size: 12px;
+  font-weight: 400;
+
+  color: #555;
+}
+
+.stars {
+  display: flex;
+}
+
+.testimonialText {
+  font-size: 14px;
+  font-weight: 400;
+
+  color: #444;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.formRight {
+  background: #efefec;
+  border-radius: 16px;
+  padding: 20px;
+  height: max-content;
+}
+
+@media (max-width: 767px) {
+  .dialogContent {
+    width: 95vw;
+    max-height: 90svh;
+  }
+
+  .closeButton {
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .popup {
+    flex-direction: column;
+    height: auto;
+    max-height: 90svh;
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .leftCol {
+    width: 100%;
+    padding: 20px 16px 8px;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+    will-change: transform;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .leftHeader {
+    overflow: hidden;
+    max-height: 100px;
+    transition:
+      max-height 0.35s ease,
+      opacity 0.3s ease,
+      margin-bottom 0.35s ease;
+  }
+
+  .leftHeaderHidden {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: -12px;
+  }
+
+  .imageArea {
+    height: 200px;
+    max-height: 200px;
+    flex: none;
+    overflow: hidden;
+    transition:
+      max-height 0.35s ease,
+      opacity 0.3s ease,
+      margin-top 0.35s ease;
+  }
+
+  .imageHidden {
+    max-height: 0;
+    opacity: 0;
+    margin-top: -12px;
+  }
+
+  .rightColWrapper {
+    overflow: visible;
+  }
+
+  .rightCol {
+    height: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .stepItem {
+    min-height: unset;
+    padding: 80px 16px 16px;
+    justify-content: flex-start;
+  }
+
+  .formSection {
+    min-height: unset;
+    padding: 16px;
+    justify-content: flex-start;
+  }
+
+  .heading {
+    font-size: 22px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .formRight {
+    padding: 12px;
+  }
+
+  .stepHeaderRow {
+    align-items: flex-start;
+  }
+}

@@ -8,8 +8,9 @@ import { type PropsWithChildren, useState, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
-import { getSummarySkuJson, getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
+import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
+import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -21,6 +22,9 @@ type BottomStickyBarProps = PropsWithChildren<{
   flow?: "prebuilt" | "custom";
   nextButtonDataTarget?: string;
 }>;
+
+const HOW_TO_BUY_HUBSPOT_PORTAL_ID = "21569224";
+const HOW_TO_BUY_HUBSPOT_FORM_ID = "3aa44e9a-e76f-4667-9837-c05fbb5c85c8";
 
 export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
@@ -34,18 +38,11 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
   const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
+  const [isHowToBuyOpen, setIsHowToBuyOpen] = useState(false);
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
   const previousStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
-
-  const copySkuJson = () => {
-    const skuJson = getSummarySkuJson();
-
-    if (skuJson.length && navigator.clipboard) {
-      navigator.clipboard.writeText(JSON.stringify(skuJson, null, 2));
-    }
-  };
 
   const handleQuoteClick = async () => {
     if (isGeneratingQuote) return;
@@ -73,7 +70,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
 
       navigate(nextStep?.path);
     } else {
-      copySkuJson();
+      setIsHowToBuyOpen(true);
     }
   };
 
@@ -84,65 +81,75 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   };
 
   return (
-    <div className={s.bottomBar}>
-      <div className={s.total}>
-        <span className={s.total_text}>Total List Price</span>
-        <span>
-          {!activeSkus.length ? (
-            "$0.00"
-          ) : isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number") ? (
-            <span className={s.priceSpinner} />
-          ) : (
-            formatPrice(displayedTotal)
+    <>
+      <div className={s.bottomBar}>
+        <div className={s.total}>
+          <span className={s.total_text}>Total List Price</span>
+          <span>
+            {!activeSkus.length ? (
+              "$0.00"
+            ) : isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number") ? (
+              <span className={s.priceSpinner} />
+            ) : (
+              formatPrice(displayedTotal)
+            )}
+          </span>
+          <span className={s.showroom_link}>
+            <Link
+              to="#"
+              aria-disabled={isGeneratingQuote}
+              onClick={(e) => {
+                e.preventDefault();
+                if (isGeneratingQuote) return;
+                void handleQuoteClick();
+              }}
+            >
+              <span>{isGeneratingQuote ? "Generating..." : "Quote"}</span>
+              <span className={s.icon}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  className="lucide lucide-download-icon lucide-download"
+                >
+                  <path d="M12 15V3" />
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <path d="m7 10 5 5 5-5" />
+                </svg>
+              </span>
+            </Link>
+          </span>
+        </div>
+        <div className={s.nextStepWrapp} data-tutorial-target={nextButtonDataTarget}>
+          {previousStep && (
+            <button
+              type="button"
+              className={s.backButton}
+              onClick={handleNavigateBack}
+              aria-label={`Back to ${previousStep.label}`}
+            >
+              <ArrowLeft fill="#1f2933" />
+            </button>
           )}
-        </span>
-        <span className={s.showroom_link}>
-          <Link
-            to="#"
-            aria-disabled={isGeneratingQuote}
-            onClick={(e) => {
-              e.preventDefault();
-              if (isGeneratingQuote) return;
-              void handleQuoteClick();
-            }}
-          >
-            <span>{isGeneratingQuote ? "Generating..." : "Quote"}</span>
-            <span className={s.icon}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                className="lucide lucide-download-icon lucide-download"
-              >
-                <path d="M12 15V3" />
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <path d="m7 10 5 5 5-5" />
-              </svg>
-            </span>
-          </Link>
-        </span>
+          <BaseButton onClick={handleNavigate} fullWidth={true}>
+            {nextStep ? `Next: ${nextStep.label}` : "How to buy"}
+          </BaseButton>
+        </div>
       </div>
-      <div className={s.nextStepWrapp} data-tutorial-target={nextButtonDataTarget}>
-        {previousStep && (
-          <button
-            type="button"
-            className={s.backButton}
-            onClick={handleNavigateBack}
-            aria-label={`Back to ${previousStep.label}`}
-          >
-            <ArrowLeft fill="#1f2933" />
-          </button>
-        )}
-        <BaseButton onClick={handleNavigate} fullWidth={true}>
-          {nextStep ? `Next: ${nextStep.label}` : "How to buy"}
-        </BaseButton>
-      </div>
-    </div>
+
+      <HowToBuyPopup
+        open={isHowToBuyOpen}
+        onOpenChange={setIsHowToBuyOpen}
+        hubspotPortalId={HOW_TO_BUY_HUBSPOT_PORTAL_ID}
+        hubspotFormId={HOW_TO_BUY_HUBSPOT_FORM_ID}
+        onFormSubmitted={() => setIsHowToBuyOpen(false)}
+      />
+    </>
   );
 };
