@@ -138,7 +138,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
             </button>
           )}
           <BaseButton onClick={handleNavigate} fullWidth={true}>
-            {nextStep ? `Next: ${nextStep.label}` : "How to buy"}
+            {nextStep ? `Next: ${nextStep.label}` : "How to Buy"}
           </BaseButton>
         </div>
       </div>
