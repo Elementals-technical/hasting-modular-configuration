@@ -994,21 +994,6 @@ export const ModelPage = () => {
   ]);
 
   useEffect(() => {
-    if (!canvasReady || !presetFromUrl) return;
-    if (configIdFromUrl) return;
-    if (!productsPresets.length) return;
-    if (arePrebuiltModelPresetsEqual(productsPresets, presetFromUrl.presetProducts)) return;
-
-    const run = async () => {
-      await handleAddPreset(presetFromUrl.presetProducts, presetFromUrl.id, {
-        syncUrl: false,
-      });
-    };
-
-    run();
-  }, [canvasReady, configIdFromUrl, handleAddPreset, presetFromUrl, productsPresets]);
-
-  useEffect(() => {
     if (isDetail) return;
 
     const container = getStepContentContainer();
