@@ -15,6 +15,11 @@ import {
   getActiveQuotePreviewCaptureCount,
   QUOTE_PREVIEW_CAMERA_RESTORED_EVENT,
 } from "@/features/quotePrint/lib/captureQuotePreviewImage";
+import {
+  clearPersistedHostUrl,
+  persistHostUrlFromSearch,
+  readHostUrlFromSearch,
+} from "@/features/saveConfiguration";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
@@ -32,7 +37,7 @@ const getInitialBuildInfoMode = (): "interactiveTutorial" | "howToStart" | null 
 export const HomePage = () => {
   const [initialBuildInfoMode, setInitialBuildInfoMode] = useState(getInitialBuildInfoMode);
 
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
 
   const dispatch = useAppDispatch();
@@ -43,6 +48,7 @@ export const HomePage = () => {
   const summaryEntryCameraStateRef = useRef<OrbitCameraState | null>(null);
   const summaryExitRestoreCleanupRef = useRef<(() => void) | null>(null);
   const wasSummaryRef = useRef(pathname.endsWith("/summary"));
+  const hostUrlInitializedRef = useRef(false);
 
   useLayoutEffect(() => {
     summaryExitRestoreCleanupRef.current?.();
@@ -101,6 +107,16 @@ export const HomePage = () => {
     },
     [],
   );
+
+  useEffect(() => {
+    if (readHostUrlFromSearch(search)) {
+      persistHostUrlFromSearch(search);
+    } else if (!hostUrlInitializedRef.current) {
+      clearPersistedHostUrl();
+    }
+
+    hostUrlInitializedRef.current = true;
+  }, [search]);
 
   const handleClose = () => {
     sessionStorage.setItem("howToBuildSeen", "1");

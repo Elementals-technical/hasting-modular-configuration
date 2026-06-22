@@ -5,3 +5,13 @@ export {
   type ConfigurationSwatchOrder,
 } from "./lib/buildConfigurationMetadata";
 export { buildConfigurationShareUrl } from "./lib/buildConfigurationShareUrl";
+export {
+  CONFIGURATION_ID_QUERY_PARAM,
+  HOST_URL_QUERY_PARAM,
+  buildPublicConfigurationShareUrl,
+  clearPersistedHostUrl,
+  persistHostUrlFromSearch,
+  readHostUrlFromSearch,
+  resolveConfigurationIdFromSearch,
+  resolveHostUrl,
+} from "./lib/configurationUrlParams";

@@ -1,4 +1,9 @@
 import { ROUTES } from "@/shared";
+import {
+  buildPublicConfigurationShareUrl,
+  CONFIGURATION_ID_QUERY_PARAM,
+  resolveHostUrl,
+} from "./configurationUrlParams";
 
 const RESTORE_PATH = {
   prebuilt: `${ROUTES.PREBUILT}/model`,
@@ -12,6 +17,11 @@ const RESTORE_PATH = {
  * built in prebuilt opens its own restore page instead of being handed off.
  */
 export const buildConfigurationShareUrl = (configId: string | number, sourcePath: string): string => {
+  const publicShareUrl = buildPublicConfigurationShareUrl(resolveHostUrl(), configId);
+  if (publicShareUrl) return publicShareUrl;
+
   const restorePath = sourcePath.startsWith(ROUTES.PREBUILT) ? RESTORE_PATH.prebuilt : RESTORE_PATH.custom;
-  return `${window.location.origin}${restorePath}?configId=${encodeURIComponent(String(configId))}`;
+  return `${window.location.origin}${restorePath}?${CONFIGURATION_ID_QUERY_PARAM}=${encodeURIComponent(
+    String(configId),
+  )}`;
 };
