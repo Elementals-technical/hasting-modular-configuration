@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { BaseButton } from "@/shared";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
@@ -28,7 +30,7 @@ export interface HelpCenterNode {
     steps?: Array<{
       number: string;
       title: string;
-      text: string;
+      text: ReactNode;
       bullets?: Array<{
         title: string;
         text: string;

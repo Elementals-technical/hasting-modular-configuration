@@ -28,7 +28,8 @@
       font-size: 14px;
       font-style: normal;
       font-weight: 500;
-      line-height: 20px; /* 142.857% */
+      line-height: 20px;
+      /* 142.857% */
 
       max-width: 175px;
     }
@@ -49,8 +50,7 @@
     border-bottom: 1px solid #e5e6ea;
   }
 
-  .footer {
-  }
+  .footer {}
 }
 
 .header,
@@ -230,6 +230,12 @@
   margin: 0;
   font-size: 12px;
   line-height: 18px;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }
 
 .contentStepBullets {

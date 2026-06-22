@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
@@ -212,6 +212,7 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
 
   const isOpening = searchParams.get("help") === "1";
   const hasHelpState = Boolean((location.state as { helpModal?: boolean } | null)?.helpModal);
+  const summaryViewPath = pathname.includes("/custom") ? "/custom/summary" : "/prebuilt/summary";
   const helpPath = (searchParams.get("helpPath") ?? "")
     .split(".")
     .map((item) => item.trim())
@@ -367,7 +368,13 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
           {
             number: "01",
             title: "Configure & Submit Your Design",
-            text: "Share your design configuration through the form. Our team receives your design and reaches out within 24 hours to get the ball rolling.",
+            text: (
+              <>
+                Share your design configuration through the <em>How to Buy</em> form on the{" "}
+                <Link to={summaryViewPath}>Summary View page</Link>. Our team receives your design and reaches out
+                within 24 hours to get the ball rolling.
+              </>
+            ),
           },
           {
             number: "02",
