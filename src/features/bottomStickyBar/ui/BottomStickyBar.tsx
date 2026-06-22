@@ -24,7 +24,7 @@ type BottomStickyBarProps = PropsWithChildren<{
 }>;
 
 const HOW_TO_BUY_HUBSPOT_PORTAL_ID = "21569224";
-const HOW_TO_BUY_HUBSPOT_FORM_ID = "e60928fc-0270-438a-9779-241e93105342";
+const HOW_TO_BUY_HUBSPOT_FORM_ID = "e12e000d-b948-4749-b10c-f31f364299b9";
 
 export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
