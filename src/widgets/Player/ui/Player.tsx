@@ -166,7 +166,7 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
       const configId = result?.id;
 
       if (configId !== undefined && configId !== null) {
-        const url = buildConfigurationShareUrl(configId, pathname);
+        const url = buildConfigurationShareUrl(configId);
         setShareValue(url);
         setIsShareOpening(true);
       }

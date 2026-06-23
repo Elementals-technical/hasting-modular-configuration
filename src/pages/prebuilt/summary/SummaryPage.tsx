@@ -1997,7 +1997,7 @@ export const SummaryPage = () => {
   const quoteGeneratedDate = useMemo(() => formatQuoteGeneratedDate(), []);
   const configurationLink = useMemo(() => {
     if (quoteConfigurationId) {
-      return buildConfigurationShareUrl(quoteConfigurationId, location.pathname);
+      return buildConfigurationShareUrl(quoteConfigurationId);
     }
     return `${window.location.origin}${location.pathname}${location.search}`;
   }, [location.pathname, location.search, quoteConfigurationId]);
