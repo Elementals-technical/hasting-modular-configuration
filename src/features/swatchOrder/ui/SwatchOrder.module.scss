@@ -115,6 +115,21 @@
   font-size: 14px;
 }
 
+.formStep {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+
+  :global(.hubspot-form-wrapper) {
+    margin-top: 0;
+  }
+
+  :global(.hubspot-form-skeleton-large) {
+    height: 420px;
+  }
+}
+
 .footer {
   padding: 16px 20px;
   border-top: 1px solid #ece8e1;
@@ -141,5 +156,24 @@
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+}
+
+.editBtn {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid #cfc9bf;
+  border-radius: 999px;
+  background: #fff;
+  color: #2d2b28;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: var(--swatch-accent, #df6f4a);
+    color: var(--swatch-accent, #df6f4a);
   }
 }
