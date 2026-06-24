@@ -32,6 +32,7 @@ import type { AttributeValue, IProductElementOption, IThreekitConfiguration } fr
 import { Filters } from "./Filters/Filters";
 import { MaterialList } from "./MaterialList/MaterialList";
 import { SwatchesList } from "./SwatchesList/SwatchesList";
+import { SwatchLimitModal } from "./SwatchLimitModal/SwatchLimitModal";
 import { CloseIconSVG } from "./icons/CloseIconSVG";
 import { MultiSelect } from "./MultiSelect/MultiSelect";
 import HubspotForm from "@/shared/ui/Popups/HowToBuyPopup/HubspotForm/HubspotForm";
@@ -239,6 +240,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const vesselColor = useAppSelector(getVesselColor);
   const [activeElements, setActiveElements] = useState<string[] | null>(null);
   const [isFormStep, setIsFormStep] = useState(false);
+  const [isThankYouOpen, setIsThankYouOpen] = useState(false);
   const trackedFormStepRef = useRef(false);
   const { mounted } = useMount({ opened: isOpen, animationDurationMs: ANIMATION_MS });
   const countertopRules = useCountertopRules({ skip: !isOpen });
@@ -309,6 +311,10 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
     syncSwatchesDataField();
     trackSwatchEvent("hastings_swatch_order_form_submit");
   }, [syncSwatchesDataField, trackSwatchEvent]);
+  const handleSwatchesFormSubmitted = useCallback(() => {
+    syncSwatchesDataField();
+    setIsThankYouOpen(true);
+  }, [syncSwatchesDataField]);
 
   useEffect(() => {
     if (!mapped.productElementOptions.length) return;
@@ -359,6 +365,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const resetPanelState = useCallback(() => {
     setActiveElements(null);
     setIsFormStep(false);
+    setIsThankYouOpen(false);
     trackedFormStepRef.current = false;
   }, []);
 
@@ -366,6 +373,10 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
     resetPanelState();
     dispatch(closeSwatchOrder());
   }, [dispatch, resetPanelState]);
+
+  const handleThankYouClose = useCallback(() => {
+    handleClose();
+  }, [handleClose]);
 
   useEffect(() => {
     if (isOpen) return;
@@ -467,7 +478,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
                   region="na1"
                   onFormReady={handleSwatchesFormReady}
                   onFormSubmit={handleSwatchesFormSubmit}
-                  onFormSubmitted={handleClose}
+                  onFormSubmitted={handleSwatchesFormSubmitted}
                   customStyle={true}
                 />
               </div>
@@ -518,6 +529,13 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
             )}
           </footer>
         </aside>
+
+        <SwatchLimitModal
+          header="Thank you!"
+          body="Your swatch sample request has been received and is being processed."
+          isOpen={isThankYouOpen}
+          onClose={handleThankYouClose}
+        />
       </div>
     </PortalBody>
   );
