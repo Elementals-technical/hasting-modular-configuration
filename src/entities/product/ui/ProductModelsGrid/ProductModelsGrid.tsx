@@ -13,7 +13,7 @@ import img_34_2d from "@/shared/assets/images/png/hastings/Urban Standard · 34_
 import img_36_1d from "@/shared/assets/images/png/hastings/Urban Standard · 36_ 1-Drawer 2.png";
 import img_36_2d from "@/shared/assets/images/png/hastings/Urban Standard · 36_ 2-Drawer 2.png";
 import img_42_1d from "@/shared/assets/images/png/hastings/Urban Standard · 42_ 1-Drawer 2.png";
-import img_42_1d_v2 from "@/shared/assets/images/png/hastings/Urban Standard · 42_ 1-Drawer_2 2.png";
+import img_42_2d_v2 from "@/shared/assets/images/png/hastings/Urban Standard · 42_ 2-Drawer_2 2.png";
 import img_46_2d from "@/shared/assets/images/png/hastings/Urban Standard · 46_ 2-Drawer 2.png";
 import img_48_1d_v3 from "@/shared/assets/images/png/hastings/b97fb93d-b791-4acd-8baf-bd88a19b7eb0.png";
 import img_48_1d_v4 from "@/shared/assets/images/png/hastings/b7e97e9d-1b51-4664-8f7a-507cc38099a6.png";
@@ -369,9 +369,9 @@ export const productMockData: ProductModel[] = (
     },
     {
       id: 12,
-      img: img_42_1d_v2,
-      title: 'Urban Standard · 42" 1-Drawer',
-      // desc: "Sink Base 70 + Side Cabinet 35 · 105W × 51D × 53H cm",
+      img: img_42_2d_v2,
+      title: 'Urban Standard · 42" 2-Drawer',
+      // desc: "Sink Base 70 + Side Cabinet 35 · 105W × 51D × 56H cm",
       isProductModel: true,
       // price: "Price on request",
       presetProducts: [
@@ -382,8 +382,8 @@ export const productMockData: ProductModel[] = (
           Handle: "handle_urban_topcut",
           Width: 70,
           Depth: 50.5,
-          Height: 53,
-          Drawers: "1D",
+          Height: 56,
+          Drawers: "2D",
           sinkType: "Top_Tekorlux_Rectangular",
         },
         {
@@ -393,8 +393,8 @@ export const productMockData: ProductModel[] = (
           Handle: "handle_urban_topcut",
           Width: 35,
           Depth: 50.5,
-          Height: 53,
-          Drawers: "1D",
+          Height: 56,
+          Drawers: "2D",
         },
       ],
     },
