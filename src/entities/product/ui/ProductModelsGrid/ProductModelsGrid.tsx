@@ -21,8 +21,14 @@ import img_46_2d from "@/shared/assets/images/png/hastings/Urban Standard · 46_
 import img_48_1d from "@/shared/assets/images/png/hastings/Urban Standard · 48_ 1-Drawer 2.png";
 import img_48_2d from "@/shared/assets/images/png/hastings/Urban Standard · 48_ 2-Drawer 2.png";
 import img_48_1d_v2 from "@/shared/assets/images/png/hastings/Urban Standard · 48_ 1-Drawer_2 2.png";
+import img_48_1d_v3 from "@/shared/assets/images/png/hastings/b97fb93d-b791-4acd-8baf-bd88a19b7eb0.png";
+import img_48_1d_v4 from "@/shared/assets/images/png/hastings/b7e97e9d-1b51-4664-8f7a-507cc38099a6.png";
 import img_48_2d_v2 from "@/shared/assets/images/png/hastings/Urban Standard · 48_ 2-Drawer_2 2.png";
+import img_48_2d_v3 from "@/shared/assets/images/png/hastings/dbb363e6-8df5-46b3-9f05-a46f327c202d.png";
+import img_51_2d from "@/shared/assets/images/png/hastings/f38fcc55-1e1d-4b55-b6fc-bbd57ce41005.png";
+import img_55_1d from "@/shared/assets/images/png/hastings/c781ff9e-aec0-4919-ba2d-bacc9d3f6f60.png";
 import img_55_2d from "@/shared/assets/images/png/hastings/Urban Standard · 55_ 2-Drawer 2.png";
+import img_55_2d_double from "@/shared/assets/images/png/hastings/e8d8dab8-03e4-4218-86c3-a05a7ff67339.png";
 import img_57_2d from "@/shared/assets/images/png/hastings/Urban Standard · 57_ 2-Drawer 2.png";
 import img_59_1d from "@/shared/assets/images/png/hastings/Urban Standard · 59_ 1-Drawer 2.png";
 import img_59_2d from "@/shared/assets/images/png/hastings/Urban Standard · 59_ 2-Drawer 2.png";
@@ -639,6 +645,149 @@ export const productMockData: ProductModel[] = (
       ],
     },
     {
+      id: 55,
+      img: img_48_2d_v3,
+      title: 'Urban Standard · 48" 2-Drawer',
+      // desc: "Sink Base 120 (2-Drawer) · 120W × 50.5D × 56H cm",
+      isProductModel: true,
+      // price: "Price on request",
+      presetProducts: [
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 120,
+          Depth: 50.5,
+          Height: 56,
+          Drawers: "2D",
+          sinkType: "Top_Tekorlux_Rectangular",
+        },
+      ],
+    },
+    {
+      id: 56,
+      img: img_48_1d_v3,
+      title: 'Urban Standard · 48" 1-Drawer',
+      // desc: "Sink Base 60 (1-Drawer) + Sink Cabinet 60 (1-Drawer) · 120W × 50.5D × 53H cm",
+      isProductModel: true,
+      // price: "Price on request",
+      presetProducts: [
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 60,
+          Depth: 50.5,
+          Height: 53,
+          Drawers: "1D",
+          sinkType: "Top_Tekorlux_Rectangular",
+        },
+        {
+          name: "Sink-Cabinet",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 60,
+          Depth: 50.5,
+          Height: 53,
+          Drawers: "1D",
+        },
+      ],
+    },
+    {
+      id: 60,
+      img: img_48_1d_v4,
+      title: 'Urban Standard · 48" 1-Drawer',
+      // desc: "Sink Base 70 (1-Drawer) + Sink Cabinet 50 (1-Drawer) · 120W × 50.5D × 53H cm",
+      isProductModel: true,
+      // price: "Price on request",
+      presetProducts: [
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 70,
+          Depth: 50.5,
+          Height: 53,
+          Drawers: "1D",
+          sinkType: "Top_Tekorlux_Rectangular",
+        },
+        {
+          name: "Sink-Cabinet",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 50,
+          Depth: 50.5,
+          Height: 53,
+          Drawers: "1D",
+        },
+      ],
+    },
+    {
+      id: 57,
+      img: img_51_2d,
+      title: 'Urban Standard · 51" 2-Drawer',
+      // desc: "Open Shelf 50 + Sink Base 80 (2-Drawer) · 130W × 50.5D × 56H cm",
+      isProductModel: true,
+      // price: "Price on request",
+      presetProducts: [
+        {
+          name: "Open-Shelf",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Width: 50,
+          Depth: 50.5,
+          Height: 56,
+        },
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 80,
+          Depth: 50.5,
+          Height: 56,
+          Drawers: "2D",
+          sinkType: "Top_Tekorlux_Rectangular",
+        },
+      ],
+    },
+    {
+      id: 58,
+      img: img_55_1d,
+      title: 'Urban Standard · 55" 1-Drawer',
+      // desc: "Sink Base 105 (1-Drawer) + Sink Cabinet 35 (1-Drawer) · 140W × 50.5D × 53H cm",
+      isProductModel: true,
+      // price: "Price on request",
+      presetProducts: [
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 105,
+          Depth: 50.5,
+          Height: 53,
+          Drawers: "1D",
+          sinkType: "Top_Tekorlux_Rectangular",
+        },
+        {
+          name: "Sink-Cabinet",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 35,
+          Depth: 50.5,
+          Height: 53,
+          Drawers: "1D",
+        },
+      ],
+    },
+    {
       id: 21,
       img: img_55_2d,
       title: 'Urban Standard · 55" 2-Drawer',
@@ -674,6 +823,38 @@ export const productMockData: ProductModel[] = (
           Depth: 50.5,
           Height: 56,
           Drawers: "2D",
+        },
+      ],
+    },
+    {
+      id: 59,
+      img: img_55_2d_double,
+      title: 'Urban Standard · 55" 2-Drawer Double',
+      // desc: "Sink Base 70 (2-Drawer) + Sink Base 70 (2-Drawer) · 140W × 50.5D × 56H cm",
+      isProductModel: true,
+      // price: "Price on request",
+      presetProducts: [
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 70,
+          Depth: 50.5,
+          Height: 56,
+          Drawers: "2D",
+          sinkType: "Top_Tekorlux_Rectangular",
+        },
+        {
+          name: "Sink-Base",
+          CabinetColor: "Pulpis Chiaro TKH",
+          CountertopColor: "Cacao Orinoco FF MT",
+          Handle: "handle_urban_topcut",
+          Width: 70,
+          Depth: 50.5,
+          Height: 56,
+          Drawers: "2D",
+          sinkType: "Top_Tekorlux_Rectangular",
         },
       ],
     },
