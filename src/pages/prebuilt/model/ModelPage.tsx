@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Outlet, useMatch, useNavigate, useSearchParams } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
-import { INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/features/interactiveConfiguratorTutorial";
+import {
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
+  subscribeToInteractiveConfiguratorTutorialEnterCustomMode,
+} from "@/features/interactiveConfiguratorTutorial";
 import { CreateModelBtn } from "@/entities/product/ui/createModelBtn/CreateModelBtn";
 
 import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
@@ -683,9 +686,7 @@ export const ModelPage = () => {
     navigate(ROUTES.CUSTOM);
   };
 
-  const handleNavigate = async (tab: "prebuilt" | "custom") => {
-    if (tab !== "custom") return;
-
+  const enterCustomMode = useCallback(async (targetRoute: string = ROUTES.CUSTOM) => {
     // Sync HandleGrooveColor from the scene to slice before navigating. In
     // prebuilt the groove color may exist only on the PlayCanvas products and
     // not in productOptions; the cabinet-builder bootstrap then falls back to
@@ -707,8 +708,25 @@ export const ModelPage = () => {
     // dimensions and activeCabinetType — so products become deletable and newly
     // added cabinets inherit current colors — without wiping scene extras
     // (side panels, towel bar).
-    navigate(ROUTES.CUSTOM);
-  };
+    navigate(targetRoute);
+  }, [dispatch, navigate]);
+
+  const handleNavigate = useCallback(
+    (tab: "prebuilt" | "custom") => {
+      if (tab !== "custom") return;
+
+      void enterCustomMode();
+    },
+    [enterCustomMode],
+  );
+
+  useEffect(
+    () =>
+      subscribeToInteractiveConfiguratorTutorialEnterCustomMode(({ route }) => {
+        void enterCustomMode(route);
+      }),
+    [enterCustomMode],
+  );
 
   const handleConfirmLeave = async () => {
     const currentPresets = productsPresets;

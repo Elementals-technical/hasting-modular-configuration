@@ -18,8 +18,10 @@ import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
+  dispatchInteractiveConfiguratorTutorialSceneCabinetReady,
   subscribeToInteractiveConfiguratorTutorialActiveStepChange,
   subscribeToInteractiveConfiguratorTutorialEvent,
+  subscribeToInteractiveConfiguratorTutorialSceneCabinetRequest,
 } from "@/features/interactiveConfiguratorTutorial";
 
 import { addProduct, type addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
@@ -213,7 +215,7 @@ export const CabinetBuilderPage = () => {
   const [isPtoSwitchPromptOpen, setIsPtoSwitchPromptOpen] = useState(false);
   const [pendingTutorialDefaultCabinetType, setPendingTutorialDefaultCabinetType] = useState(false);
   const [pendingTutorialDefaultCabinetStyle, setPendingTutorialDefaultCabinetStyle] = useState(false);
-  const [pendingTutorialSceneCabinet, setPendingTutorialSceneCabinet] = useState(false);
+  const [pendingTutorialSceneCabinetRequestId, setPendingTutorialSceneCabinetRequestId] = useState<string | null>(null);
   const [isInteractiveTutorialActive, setIsInteractiveTutorialActive] = useState(false);
 
   const bootstrappedRef = useRef(false);
@@ -845,14 +847,14 @@ export const CabinetBuilderPage = () => {
     setPendingTutorialDefaultCabinetStyle(true);
   }, [selectTutorialDefaultCabinetStyle]);
 
-  const handleEnsureTutorialSceneCabinet = useCallback(() => {
-    setPendingTutorialSceneCabinet(true);
+  const handleEnsureTutorialSceneCabinet = useCallback(({ requestId }: { requestId: string }) => {
+    setPendingTutorialSceneCabinetRequestId(requestId);
   }, []);
 
   const handleCancelPendingTutorialActions = useCallback(() => {
     setPendingTutorialDefaultCabinetType(false);
     setPendingTutorialDefaultCabinetStyle(false);
-    setPendingTutorialSceneCabinet(false);
+    setPendingTutorialSceneCabinetRequestId(null);
   }, []);
 
   useEffect(() => {
@@ -897,10 +899,7 @@ export const CabinetBuilderPage = () => {
 
   useEffect(
     () =>
-      subscribeToInteractiveConfiguratorTutorialEvent(
-        INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.ensureSelectedCabinetOnScene,
-        handleEnsureTutorialSceneCabinet,
-      ),
+      subscribeToInteractiveConfiguratorTutorialSceneCabinetRequest(handleEnsureTutorialSceneCabinet),
     [handleEnsureTutorialSceneCabinet],
   );
 
@@ -1650,28 +1649,57 @@ export const CabinetBuilderPage = () => {
   );
 
   useEffect(() => {
-    if (!pendingTutorialSceneCabinet) return;
-    if (isAddingTutorialSceneCabinetRef.current) return;
+    if (!pendingTutorialSceneCabinetRequestId) return;
 
-    isAddingTutorialSceneCabinetRef.current = true;
+    const requestId = pendingTutorialSceneCabinetRequestId;
+    let isCancelled = false;
 
-    const run = async () => {
+    const completeRequest = () => {
+      if (isCancelled) return;
+
+      dispatchInteractiveConfiguratorTutorialSceneCabinetReady(requestId);
+      setPendingTutorialSceneCabinetRequestId((currentRequestId) =>
+        currentRequestId === requestId ? null : currentRequestId,
+      );
+    };
+
+    const hasRuntimeSceneCabinet = () => getOrderedProductIds().length > 0;
+
+    async function run() {
+      if (isCancelled) return;
+
+      if (hasRuntimeSceneCabinet()) {
+        completeRequest();
+        return;
+      }
+
+      if (isAddingTutorialSceneCabinetRef.current) {
+        return;
+      }
+
+      isAddingTutorialSceneCabinetRef.current = true;
+
       try {
         const isAdded = await addSelectedCabinetToScene({
           keepStyleSidebarOpen: true,
           resetAccordionAfterAdd: false,
         });
 
-        if (isAdded) {
-          setPendingTutorialSceneCabinet(false);
+        if (isAdded || hasRuntimeSceneCabinet()) {
+          completeRequest();
+          return;
         }
       } finally {
         isAddingTutorialSceneCabinetRef.current = false;
       }
-    };
+    }
 
     void run();
-  }, [addSelectedCabinetToScene, pendingTutorialSceneCabinet]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [addSelectedCabinetToScene, pendingTutorialSceneCabinetRequestId]);
 
   // Auto-add product when cabinet type and style are selected and scene is empty
   useEffect(() => {

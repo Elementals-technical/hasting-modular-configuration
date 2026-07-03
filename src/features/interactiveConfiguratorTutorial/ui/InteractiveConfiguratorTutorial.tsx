@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ACTIONS,
   Joyride,
@@ -27,8 +27,13 @@ import {
 import { getPlayCanvasPlusButtonViewportRect } from "../lib/getPlayCanvasPlusButtonViewportRect";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
+  clearInteractiveConfiguratorTutorialSceneCabinetRequest,
   dispatchInteractiveConfiguratorTutorialActiveStepChange,
+  dispatchInteractiveConfiguratorTutorialEnterCustomMode,
   dispatchInteractiveConfiguratorTutorialEvent,
+  dispatchInteractiveConfiguratorTutorialSceneCabinetRequest,
+  subscribeToInteractiveConfiguratorTutorialEvent,
+  subscribeToInteractiveConfiguratorTutorialSceneCabinetReady,
 } from "../lib/tutorialBridge";
 
 import s from "./InteractiveConfiguratorTutorial.module.scss";
@@ -56,20 +61,9 @@ const STEP_CONTENT_SCROLL_CONTAINER_SELECTOR = '[data-scroll-container="step-con
 const DEFAULT_START_ROUTE = `${ROUTES.PREBUILT}/model`;
 const COMPACT_TUTORIAL_MEDIA_QUERY = "(max-width: 1024px)";
 
-const CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle,
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
-]);
-
-const CUSTOM_CABINET_STYLE_SELECTION_STEP_IDS: ReadonlySet<string> = new Set([
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle,
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
-]);
-
 const CUSTOM_SCENE_CABINET_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle,
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
 ]);
 
 const JOYRIDE_OPTIONS = {
@@ -132,6 +126,7 @@ const mapTutorialStepToJoyrideStep = (
           },
         }
       : undefined,
+  ...(CUSTOM_SCENE_CABINET_STEP_IDS.has(step.id) ? { beforeTimeout: 0 } : {}),
   data: {
     primaryLabel: step.primaryLabel,
     secondaryLabel: step.secondaryLabel,
@@ -432,6 +427,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
   const [playCanvasTargetRect, setPlayCanvasTargetRect] = useState<ViewportRect | null>(null);
   const [prebuiltModelsGridTargetRect, setPrebuiltModelsGridTargetRect] = useState<ViewportRect | null>(null);
   const [activeStepId, setActiveStepId] = useState<InteractiveConfiguratorTutorialStep["id"] | null>(null);
+  const sceneCabinetRequestCounterRef = useRef(0);
 
   const activeStep = useMemo<InteractiveConfiguratorTutorialStep | undefined>(
     () => INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS.find((step) => step.id === activeStepId),
@@ -463,18 +459,65 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     onClose();
   }, [dispatch, navigate, onClose]);
 
+  const ensureTutorialSceneCabinet = useCallback(() => {
+    sceneCabinetRequestCounterRef.current += 1;
+    const requestId = String(sceneCabinetRequestCounterRef.current);
+
+    return new Promise<void>((resolve) => {
+      let isSettled = false;
+      let cleanupSceneCabinetReady = () => {};
+      let cleanupCancel = () => {};
+
+      const settle = () => {
+        if (isSettled) return;
+
+        isSettled = true;
+        cleanupSceneCabinetReady();
+        cleanupCancel();
+        resolve();
+      };
+
+      cleanupSceneCabinetReady = subscribeToInteractiveConfiguratorTutorialSceneCabinetReady((detail) => {
+        if (detail.requestId !== requestId) return;
+
+        settle();
+      });
+
+      cleanupCancel = subscribeToInteractiveConfiguratorTutorialEvent(
+        INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.cancelPendingActions,
+        () => {
+          clearInteractiveConfiguratorTutorialSceneCabinetRequest(requestId);
+          settle();
+        },
+      );
+
+      dispatchInteractiveConfiguratorTutorialSceneCabinetRequest(requestId);
+    });
+  }, []);
+
   const prepareTutorialStep = useCallback(
     async (step: InteractiveConfiguratorTutorialStep) => {
       dispatchInteractiveConfiguratorTutorialActiveStepChange(step.id);
       setActiveStepId(step.id);
 
       if (step.route && `${location.pathname}${location.search}` !== step.route) {
-        navigate(step.route);
+        if (
+          step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType &&
+          !location.pathname.startsWith(ROUTES.CUSTOM)
+        ) {
+          dispatchInteractiveConfiguratorTutorialEnterCustomMode(step.route);
+        } else {
+          navigate(step.route);
+        }
       }
 
       const shouldOpenStyleSidebar =
         step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle ||
         step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet;
+
+      if (!shouldOpenStyleSidebar) {
+        dispatch(setOpenStyleSidebar(false));
+      }
 
       setVisibleButtons(step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet);
       setCreateYourOwnTargetRect(null);
@@ -508,12 +551,12 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
         return;
       }
 
-      if (CUSTOM_CABINET_TYPE_SELECTION_STEP_IDS.has(step.id)) {
+      if (step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle) {
         dispatchInteractiveConfiguratorTutorialEvent(INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetType);
         await waitForStepPreparation();
       }
 
-      if (CUSTOM_CABINET_STYLE_SELECTION_STEP_IDS.has(step.id)) {
+      if (step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle) {
         dispatchInteractiveConfiguratorTutorialEvent(
           INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.selectDefaultCabinetStyle,
         );
@@ -521,10 +564,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
       }
 
       if (CUSTOM_SCENE_CABINET_STEP_IDS.has(step.id)) {
-        dispatchInteractiveConfiguratorTutorialEvent(
-          INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS.ensureSelectedCabinetOnScene,
-        );
-        await waitForStepPreparation();
+        await ensureTutorialSceneCabinet();
       }
 
       dispatch(setOpenStyleSidebar(shouldOpenStyleSidebar));
@@ -539,7 +579,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
         return;
       }
     },
-    [dispatch, isCompactLayout, location.pathname, location.search, navigate],
+    [dispatch, ensureTutorialSceneCabinet, isCompactLayout, location.pathname, location.search, navigate],
   );
 
   const joyrideSteps = useMemo(
