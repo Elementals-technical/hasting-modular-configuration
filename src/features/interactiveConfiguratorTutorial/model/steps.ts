@@ -11,10 +11,9 @@ export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY = {
 } as const;
 
 const getPrebuiltModelRoute = (presetId: number) => `/prebuilt/model?preset=${presetId}`;
-const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style", presetId: number) => {
+const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style") => {
   const searchParams = new URLSearchParams({
     accordion,
-    preset: String(presetId),
     [INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.name]: INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY.value,
   });
 
@@ -23,14 +22,8 @@ const getCustomCabinetBuilderRoute = (accordion: "cabinet-type" | "cabinet-style
 
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTES = {
   prebuiltModel: getPrebuiltModelRoute(INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID),
-  customCabinetType: getCustomCabinetBuilderRoute(
-    "cabinet-type",
-    INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID,
-  ),
-  customCabinetStyle: getCustomCabinetBuilderRoute(
-    "cabinet-style",
-    INTERACTIVE_CONFIGURATOR_TUTORIAL_DEFAULT_PREBUILT_MODEL_PRESET_ID,
-  ),
+  customCabinetType: getCustomCabinetBuilderRoute("cabinet-type"),
+  customCabinetStyle: getCustomCabinetBuilderRoute("cabinet-style"),
 } as const;
 
 export const INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS = [
