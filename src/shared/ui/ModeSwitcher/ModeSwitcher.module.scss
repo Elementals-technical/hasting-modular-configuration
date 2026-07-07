@@ -2,11 +2,15 @@
 .modeSwitcher {
   display: flex;
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .modeSwitcher_tabItem {
   padding: 20px;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   background-color: #fff;
   border-bottom: 1px solid #e5e6ea;
@@ -38,6 +42,8 @@
   .wrap {
     display: flex;
     width: 160px;
+    max-width: 100%;
+    min-width: 0;
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
@@ -49,5 +55,33 @@
 
   &:hover {
     background-color: #dadad9e3;
+  }
+}
+
+@media (max-width: 768px) {
+  .modeSwitcher_tabItem {
+    padding: 14px 12px;
+
+    .title {
+      font-size: 12px;
+      line-height: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    .description {
+      font-size: 10px;
+      line-height: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .wrap {
+      width: auto;
+    }
+  }
+}
+
+@media (max-width: 430px) {
+  .modeSwitcher_tabItem {
+    padding: 12px 8px;
   }
 }
