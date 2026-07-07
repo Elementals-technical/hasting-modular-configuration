@@ -4,13 +4,14 @@ import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import s from "./BottomStickyBar.module.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
-import { type PropsWithChildren, useState, useSyncExternalStore } from "react";
+import { type PropsWithChildren, useEffect, useState, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
+import { QouteMobileIcon } from "@/shared/assets/images/svg/QouteMobileIcon";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -38,14 +39,23 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
   const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
+  const [isNavigatingToQuote, setIsNavigatingToQuote] = useState(false);
   const [isHowToBuyOpen, setIsHowToBuyOpen] = useState(false);
+  const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
+  const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
   const previousStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
 
+  useEffect(() => {
+    if (!isQuotePrintRequested) {
+      setIsNavigatingToQuote(false);
+    }
+  }, [isQuotePrintRequested, location.pathname]);
+
   const handleQuoteClick = async () => {
-    if (isGeneratingQuote) return;
+    if (isQuotePending) return;
 
     if (isSummaryPage) {
       setIsGeneratingQuote(true);
@@ -59,6 +69,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
 
     const summaryStep = steps[steps.length - 1];
     if (summaryStep) {
+      setIsNavigatingToQuote(true);
       closeDrawerInteraction();
       navigate(`${summaryStep.path}?print=1`);
     }
@@ -97,36 +108,45 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
           <span className={s.showroom_link}>
             <Link
               to="#"
-              aria-disabled={isGeneratingQuote}
+              aria-disabled={isQuotePending}
               onClick={(e) => {
                 e.preventDefault();
-                if (isGeneratingQuote) return;
+                if (isQuotePending) return;
                 void handleQuoteClick();
               }}
+              aria-label={isQuotePending ? "Generating quote" : "Quote"}
             >
-              <span>{isGeneratingQuote ? "Generating..." : "Quote"}</span>
-              <span className={s.icon}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  className="lucide lucide-download-icon lucide-download"
-                >
-                  <path d="M12 15V3" />
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <path d="m7 10 5 5 5-5" />
-                </svg>
+              <span className={s.quoteDesktopContent}>
+                <span>{isQuotePending ? "Generating..." : "Quote"}</span>
+                <span className={s.icon}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-download-icon lucide-download"
+                  >
+                    <path d="M12 15V3" />
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="m7 10 5 5 5-5" />
+                  </svg>
+                </span>
+              </span>
+              <span className={s.quoteMobileIcon} aria-hidden="true">
+                {isQuotePending ? <span className={s.quoteSpinner} /> : <QouteMobileIcon />}
               </span>
             </Link>
           </span>
         </div>
-        <div className={s.nextStepWrapp} data-tutorial-target={nextButtonDataTarget}>
+        <div
+          className={`${s.nextStepWrapp} ${!previousStep ? s.nextStepWrappNoBack : ""}`}
+          data-tutorial-target={nextButtonDataTarget}
+        >
           {previousStep && (
             <button
               type="button"
@@ -137,9 +157,17 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
               <ArrowLeft fill="#1f2933" />
             </button>
           )}
-          <BaseButton onClick={handleNavigate} fullWidth={true}>
+          <BaseButton className={s.desktopNextButton} onClick={handleNavigate} fullWidth={true}>
             {nextStep ? `Next: ${nextStep.label}` : "How to Buy"}
           </BaseButton>
+          <button
+            type="button"
+            className={`${s.backButton} ${s.mobileNextButton}`}
+            onClick={handleNavigate}
+            aria-label={nextStep ? `Next to ${nextStep.label}` : "How to Buy"}
+          >
+            <ArrowLeft fill="#1f2933" />
+          </button>
         </div>
       </div>
 
