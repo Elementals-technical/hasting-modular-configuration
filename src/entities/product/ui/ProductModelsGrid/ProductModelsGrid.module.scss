@@ -1,6 +1,6 @@
 .optionsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-column-gap: 20px;
   grid-row-gap: 20px;
 
@@ -30,18 +30,35 @@
 
 @media (max-width: 1400px) {
   .optionsGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 1024px) and (min-width: 768px) {
+@media (max-width: 1024px) {
+  .optionsGridWrapper {
+    padding: 0;
+  }
+
   .optionsGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-column-gap: 12px;
+    grid-row-gap: 12px;
+    padding: 0 10px;
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .optionsGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: auto;
+    grid-column-gap: 8px;
+    grid-row-gap: 12px;
+    margin-top: 12px;
+    max-height: none;
+  }
+}
+
+@media (max-width: 410px) {
+  .optionsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

@@ -1,7 +1,10 @@
 .instrPopup {
   width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
   background-color: #fff;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 
   border-radius: 10px;
 
@@ -33,6 +36,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .contentBlock {
@@ -45,6 +50,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
   }
 }
 
@@ -74,7 +80,22 @@
 
 @media (max-width: 430px) {
   .instrPopup {
-    width: 349px;
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .header,
+  .content {
+    padding: 16px;
+  }
+
+  .footerInner {
+    padding: 16px;
+
+    button {
+      font-size: 12px;
+      line-height: 16px;
+    }
   }
 }
 
@@ -84,6 +105,7 @@
   input {
     padding: 16px 20px;
     width: 100%;
+    box-sizing: border-box;
 
     border-radius: 5px;
     border: 1px solid #ac5331;

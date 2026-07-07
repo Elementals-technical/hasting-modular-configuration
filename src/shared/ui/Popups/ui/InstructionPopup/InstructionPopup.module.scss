@@ -90,6 +90,19 @@
   }
 }
 
+@media (max-width: 768px) and (min-width: 431px) {
+  .instrPopup {
+    width: min(420px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+  }
+
+  .header,
+  .content,
+  .footer {
+    padding: 16px;
+  }
+}
+
 .contentBlock_title {
   margin-bottom: 22px;
 }
