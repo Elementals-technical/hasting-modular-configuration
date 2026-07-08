@@ -8,3 +8,10 @@
 
   border-bottom: 1px solid #e5e6ea;
 }
+
+@media (max-width: 767px) {
+  .filterRow {
+    gap: 8px;
+    padding: 12px 10px;
+  }
+}

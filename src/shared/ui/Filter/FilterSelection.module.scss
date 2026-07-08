@@ -1,6 +1,7 @@
 .wrapper {
   position: relative;
   display: inline-flex;
+  min-width: 0;
 }
 
 .filterSelection {
@@ -57,6 +58,8 @@
   position: fixed;
   display: grid;
   gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 
   padding: 8px;
   border: 1px solid #e5e6ea;
@@ -227,4 +230,62 @@
 .childItem {
   padding-left: 20px;
   font-size: 12px;
+}
+
+@media (max-width: 767px) {
+  .wrapper {
+    flex: 1 1 calc(50% - 4px);
+    max-width: calc(50% - 4px);
+  }
+
+  .filterSelection {
+    width: 100%;
+    min-width: 0;
+    height: 32px;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .menu {
+    min-width: 132px;
+    padding: 6px;
+    gap: 1px;
+    border-radius: 10px;
+  }
+
+  .menuItem {
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .childItem {
+    padding-left: 14px;
+    font-size: 11px;
+  }
+
+  .childrenGroup {
+    gap: 1px;
+    padding-left: 8px;
+  }
+
+  .optionDescription,
+  .optionReason {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .categoryCaretBtn {
+    padding: 6px;
+  }
 }

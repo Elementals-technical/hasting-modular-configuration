@@ -108,24 +108,36 @@ export const FilterSelection = ({
     if (!buttonEl) return;
 
     const rect = buttonEl.getBoundingClientRect();
-    const minMenuWidth = 164;
+    const gap = 6;
+    const viewportPadding = 12;
+    const minMenuWidth = window.innerWidth <= 767 ? 132 : 164;
     const menuWidth = Math.max(rect.width, minMenuWidth);
     const overflows = rect.left + menuWidth > window.innerWidth;
+    const menuTop = rect.bottom + gap;
+    const availableBelow = window.innerHeight - menuTop - viewportPadding;
+    const availableAbove = rect.top - gap - viewportPadding;
+    const shouldOpenUp = availableBelow < 180 && availableAbove > availableBelow;
+    const maxHeight = Math.max(120, Math.min(320, shouldOpenUp ? availableAbove : availableBelow));
+    const verticalStyle = shouldOpenUp
+      ? { bottom: window.innerHeight - rect.top + gap }
+      : { top: menuTop };
 
     if (overflows) {
       setMenuStyle({
         position: "fixed",
-        top: rect.bottom + 6,
+        ...verticalStyle,
         right: window.innerWidth - rect.right,
         width: rect.width,
+        maxHeight,
         zIndex: 1000,
       });
     } else {
       setMenuStyle({
         position: "fixed",
-        top: rect.bottom + 6,
+        ...verticalStyle,
         left: rect.left,
         width: rect.width,
+        maxHeight,
         zIndex: 1000,
       });
     }
