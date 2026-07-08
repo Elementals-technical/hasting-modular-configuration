@@ -701,7 +701,10 @@ export const CabinetPage = () => {
 
   return (
     <div className={s.cabinetPage}>
-      <ConfiguratorAccordionGroup defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}>
+      <ConfiguratorAccordionGroup
+        defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}
+        collapseDefaultOnCompact
+      >
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>
             {content}

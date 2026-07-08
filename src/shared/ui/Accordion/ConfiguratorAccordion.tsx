@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import { Accordion } from "./Accordion";
+import { useShouldCollapseAccordionByDefault } from "./useCompactAccordionViewport";
 
 type ConfiguratorAccordionItemProps = {
   title: string;
@@ -13,6 +14,7 @@ type ConfiguratorAccordionGroupProps = {
   defaultValue?: string;
   value?: string;
   onValueChange?: (value: string) => void;
+  collapseDefaultOnCompact?: boolean;
 };
 
 // Group wrapper lets multiple accordion items share the same root (single open).
@@ -21,11 +23,25 @@ export const ConfiguratorAccordionGroup = ({
   defaultValue,
   value,
   onValueChange,
-}: ConfiguratorAccordionGroupProps) => (
-  <Accordion.Root type="single" collapsible defaultValue={defaultValue} value={value} onValueChange={onValueChange}>
-    {children}
-  </Accordion.Root>
-);
+  collapseDefaultOnCompact = false,
+}: ConfiguratorAccordionGroupProps) => {
+  const shouldCollapseByDefault = useShouldCollapseAccordionByDefault(
+    Children.count(children),
+    collapseDefaultOnCompact && value === undefined,
+  );
+
+  return (
+    <Accordion.Root
+      type="single"
+      collapsible
+      defaultValue={shouldCollapseByDefault ? undefined : defaultValue}
+      value={value}
+      onValueChange={onValueChange}
+    >
+      {children}
+    </Accordion.Root>
+  );
+};
 
 export const ConfiguratorAccordionItem = ({ title, children, value, dataTarget }: ConfiguratorAccordionItemProps) => (
   <Accordion.Item value={value} data-tutorial-target={dataTarget}>

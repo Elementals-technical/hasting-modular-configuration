@@ -905,6 +905,7 @@ export const CustomAccessoriesPage = () => {
       <ConfiguratorAccordionGroup
         defaultValue={ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString()}
         onValueChange={handleAccordionChange}
+        collapseDefaultOnCompact
       >
         {ACCORDIONS.map(({ id, title, content }) => (
           <ConfiguratorAccordionItem key={id} value={id.toString()} title={title}>

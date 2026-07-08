@@ -6,6 +6,8 @@ import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
+import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
@@ -717,12 +719,15 @@ export const CustomCabinetColorsPage = () => {
   const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id;
 
   const [searchParams] = useSearchParams();
-  const [accordionValue, setAccordionValue] = useState(defaultValue);
-
-  useEffect(() => {
-    const target = searchParams.get("accordion");
-    if (target) setAccordionValue(target);
-  }, [searchParams, locationKey]);
+  const accordionValues = ACCORDIONS.map((accordion) => accordion.id);
+  const isCompactAccordionViewport = useCompactAccordionViewport();
+  const { value: accordionValue, onValueChange: setAccordionValue } = useSyncedAccordionValue({
+    values: accordionValues,
+    defaultValue,
+    requestedValue: searchParams.get("accordion"),
+    requestKey: locationKey,
+    collapseByDefault: isCompactAccordionViewport && ACCORDIONS.length > 1,
+  });
 
   return (
     <div className={s.cabinetPage}>
