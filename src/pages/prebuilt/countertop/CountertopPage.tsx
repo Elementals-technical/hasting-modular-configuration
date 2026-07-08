@@ -31,6 +31,7 @@ import {
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import type { AccordionConfig } from "@/shared/constants/types";
@@ -1888,11 +1889,13 @@ export const CountertopPage = () => {
 
   const defaultValue = ACCORDIONS.find((accordion) => accordion.defaultOpen)?.id.toString();
   const accordionValues = ACCORDIONS.map((accordion) => accordion.id);
+  const isCompactAccordionViewport = useCompactAccordionViewport();
   const { value: accordionValue, onValueChange: setAccordionValue } = useSyncedAccordionValue({
     values: accordionValues,
     defaultValue,
     requestedValue: searchParams.get("accordion"),
     requestKey: locationKey,
+    collapseByDefault: isCompactAccordionViewport && ACCORDIONS.length > 1,
   });
 
   return (

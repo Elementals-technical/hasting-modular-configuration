@@ -8,3 +8,20 @@
 
   border-bottom: 1px solid #e5e6ea;
 }
+
+@media (max-width: 767px) {
+  .filterRow {
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding: 12px 10px;
+
+    > button {
+      flex: 0 0 auto;
+      min-width: 0;
+      padding: 0 2px;
+      font-size: 11px;
+      line-height: 14px;
+      white-space: nowrap;
+    }
+  }
+}

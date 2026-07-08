@@ -7,6 +7,7 @@ type UseSyncedAccordionValueParams = {
   defaultValue?: string;
   requestedValue?: string | null;
   requestKey?: string;
+  collapseByDefault?: boolean;
 };
 
 type UserAccordionSelection = {
@@ -33,9 +34,14 @@ const resolveInitialValue = ({
   values,
   defaultValue,
   requestedValue,
+  collapseByDefault,
 }: UseSyncedAccordionValueParams): SyncedAccordionValue => {
   if (isAvailableValue(requestedValue ?? undefined, values)) {
     return requestedValue ?? undefined;
+  }
+
+  if (collapseByDefault && values.length > 1) {
+    return COLLAPSED_ACCORDION_VALUE;
   }
 
   return resolveFallbackValue(defaultValue, values);
@@ -46,6 +52,7 @@ export const useSyncedAccordionValue = ({
   defaultValue,
   requestedValue,
   requestKey,
+  collapseByDefault = false,
 }: UseSyncedAccordionValueParams) => {
   const [userSelection, setUserSelection] = useState<UserAccordionSelection | null>(null);
 
@@ -67,8 +74,8 @@ export const useSyncedAccordionValue = ({
       }
     }
 
-    return resolveInitialValue({ values: availableValues, defaultValue, requestedValue });
-  }, [availableValues, defaultValue, requestedValue, requestKey, userSelection]);
+    return resolveInitialValue({ values: availableValues, defaultValue, requestedValue, collapseByDefault });
+  }, [availableValues, defaultValue, requestedValue, requestKey, userSelection, collapseByDefault]);
 
   const handleValueChange = useCallback((nextValue: string) => {
     setUserSelection({ value: nextValue, requestedValue, requestKey });
