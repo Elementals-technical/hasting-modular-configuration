@@ -138,6 +138,12 @@
   }
 
   .cabinetTypeItem {
+    .withVisual {
+      img {
+        object-fit: contain;
+      }
+    }
+
     .title {
       margin-top: 8px;
       margin-bottom: 2px;
@@ -155,8 +161,17 @@
 
     .withVisual {
       img {
-        transform: scale(1.12);
         transform-origin: center;
+      }
+    }
+  }
+
+  .sinkBaseCabinetTypeItem,
+  .sideCabinetTypeItem {
+    .withVisual {
+      img {
+        width: 92%;
+        height: 92%;
       }
     }
   }
