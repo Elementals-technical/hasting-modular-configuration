@@ -77,6 +77,24 @@
     max-height: calc(100vh - 24px);
   }
 
+  .content {
+    gap: 8px;
+    overflow-y: visible;
+  }
+
+  .contentBlock {
+    .contentBlock_img {
+      width: min(100%, 210px);
+
+      img {
+        width: auto;
+        max-width: 100%;
+        max-height: min(15vh, 92px);
+        object-fit: contain;
+      }
+    }
+  }
+
   .contentBlock_img {
     img {
       max-width: 100%;
@@ -86,7 +104,12 @@
   .header,
   .content,
   .footer {
-    padding: 15px;
+    padding: 10px 12px;
+  }
+
+  .title {
+    font-size: 14px;
+    line-height: 20px;
   }
 }
 
@@ -101,10 +124,41 @@
   .footer {
     padding: 16px;
   }
+
+  .content {
+    gap: 10px;
+  }
+
+  .contentBlock {
+    .contentBlock_img {
+      width: min(100%, 230px);
+
+      img {
+        width: auto;
+        max-width: 100%;
+        max-height: min(16vh, 110px);
+        object-fit: contain;
+      }
+    }
+  }
 }
 
 .contentBlock_title {
   margin-bottom: 22px;
+}
+
+@media (max-width: 768px) {
+  .contentBlock_title {
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .footer {
+    button {
+      min-height: 34px;
+    }
+  }
 }
 
 .plusButtonIcon {
@@ -121,4 +175,13 @@
   font-size: 14px;
   margin-right: 3px;
   margin-left: 3px;
+}
+
+@media (max-width: 768px) {
+  .plusButtonIcon {
+    width: 17px;
+    height: 17px;
+    padding: 3px;
+    font-size: 11px;
+  }
 }
