@@ -89,6 +89,7 @@ import {
 } from "@/utils/functions/playcanvas/sanitizeMeshInstances";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
+import type { CameraFramingConfig } from "@/utils/functions/playcanvas/camera/types";
 import { OpenMenuIcon } from "@/shared/assets/images/svg/OpenMenuIcon";
 import { DeleteMenuIcon } from "@/shared/assets/images/svg/DeleteMenuIcon";
 import { DuplicateIcon } from "@/shared/assets/images/svg/DuplicateIcon";
@@ -144,7 +145,31 @@ const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVA
 
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
+const MOBILE_CAMERA_PADDING_WIDE = 1.35;
+const MOBILE_CAMERA_PADDING_TALL = 1.75;
+const MOBILE_CAMERA_FRAMING_QUERY = "(max-width: 767px)";
 const SIDE_SHELF_WIDTH_CM = 15;
+
+type PlayCanvasCameraApi = {
+  setFramingConfig?: (config: CameraFramingConfig) => void;
+  focusCamera?: () => void;
+};
+
+type PlayCanvasConfiguratorApi = {
+  addProduct?: (...args: unknown[]) => unknown;
+  camera?: PlayCanvasCameraApi;
+};
+
+type PlayCanvasContentWindow = Window & {
+  ConfiguratorAPI?: PlayCanvasConfiguratorApi;
+  addProduct?: (...args: unknown[]) => unknown;
+};
+
+const getCameraFramingConfig = (isMobileViewport: boolean): CameraFramingConfig => ({
+  paddingWide: isMobileViewport ? MOBILE_CAMERA_PADDING_WIDE : GLOBAL_CAMERA_PADDING_WIDE,
+  paddingTall: isMobileViewport ? MOBILE_CAMERA_PADDING_TALL : GLOBAL_CAMERA_PADDING_TALL,
+  autoFramingEnabled: false,
+});
 
 const waitForNextAnimationFrame = (): Promise<void> =>
   new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
@@ -986,13 +1011,20 @@ export const PlayCanvasIntegration = () => {
     if (!iframeEl) return;
 
     let pollId: number | null = null;
+    const cameraFramingMediaQuery = window.matchMedia(MOBILE_CAMERA_FRAMING_QUERY);
+
+    const applyCameraFramingConfig = (cameraApi?: PlayCanvasCameraApi) => {
+      if (!cameraApi) return;
+
+      cameraApi.setFramingConfig?.(getCameraFramingConfig(cameraFramingMediaQuery.matches));
+    };
 
     const markReady = () => {
       (window as any).playCanvasReady = true;
       window.dispatchEvent(new Event("playcanvas-ready"));
     };
 
-    const tryBridgeApi = (cw: any) => {
+    const tryBridgeApi = (cw: PlayCanvasContentWindow) => {
       const api = cw?.ConfiguratorAPI;
       const addProduct = api?.addProduct || cw?.addProduct;
       if (typeof addProduct === "function") {
@@ -1001,11 +1033,7 @@ export const PlayCanvasIntegration = () => {
         const cameraApi = api?.camera;
         if (cameraApi) {
           try {
-            cameraApi.setFramingConfig?.({
-              paddingWide: GLOBAL_CAMERA_PADDING_WIDE,
-              paddingTall: GLOBAL_CAMERA_PADDING_TALL,
-              autoFramingEnabled: false,
-            });
+            applyCameraFramingConfig(cameraApi);
             if (!hasFocusedOnceRef.current) {
               cameraApi.focusCamera?.();
               hasFocusedOnceRef.current = true;
@@ -1021,8 +1049,17 @@ export const PlayCanvasIntegration = () => {
       return false;
     };
 
+    const handleCameraFramingViewportChange = () => {
+      try {
+        const cw = iframeEl.contentWindow as PlayCanvasContentWindow | null;
+        applyCameraFramingConfig(cw?.ConfiguratorAPI?.camera);
+      } catch {
+        // Access can fail while the iframe is reloading.
+      }
+    };
+
     const handleLoad = () => {
-      const cw = iframeEl.contentWindow as any;
+      const cw = iframeEl.contentWindow as PlayCanvasContentWindow | null;
       if (!cw) return;
 
       if (tryBridgeApi(cw)) return;
@@ -1047,6 +1084,7 @@ export const PlayCanvasIntegration = () => {
     };
 
     iframeEl.addEventListener("load", handleLoad);
+    cameraFramingMediaQuery.addEventListener("change", handleCameraFramingViewportChange);
 
     // Handle StrictMode re-mount: if the iframe already loaded (load event
     // already fired before this effect ran), start polling immediately.
@@ -1060,6 +1098,7 @@ export const PlayCanvasIntegration = () => {
 
     return () => {
       iframeEl.removeEventListener("load", handleLoad);
+      cameraFramingMediaQuery.removeEventListener("change", handleCameraFramingViewportChange);
       if (pollId !== null) clearInterval(pollId);
     };
   }, []);
