@@ -81,6 +81,29 @@
   }
 }
 
+@media (max-width: 767px) {
+  .Trigger {
+    height: 38px;
+    padding: 0 12px;
+    font-size: 13px;
+    line-height: 16px;
+  }
+
+  .Content {
+    font-size: 13px;
+  }
+
+  .ContentText {
+    padding: 10px 12px;
+
+    > div {
+      &:nth-child(2) {
+        margin-top: 12px;
+      }
+    }
+  }
+}
+
 .Chevron {
   color: var(--violet-10);
   transition: transform 300ms cubic-bezier(0.87, 0, 0.13, 1);

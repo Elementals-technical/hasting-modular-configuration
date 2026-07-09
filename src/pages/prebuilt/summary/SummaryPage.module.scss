@@ -602,21 +602,147 @@
 
 @media (max-width: 640px) {
   .summaryPage {
-    padding: 14px 14px 24px;
-  }
-
-  .itemRow {
-    grid-template-columns: 1fr;
+    padding: 12px 12px 22px;
     gap: 8px;
   }
 
+  .section {
+    padding: 8px 0 10px;
+  }
+
+  .sectionHeader {
+    gap: 8px;
+  }
+
+  .sectionTitle {
+    font-size: 13px;
+  }
+
+  .itemRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 4px 8px;
+    padding: 3px 0;
+  }
+
+  .noSwatch {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .itemInfo {
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .bullet {
+    display: none;
+  }
+
+  .itemTexts {
+    flex: 1 1 auto;
+    max-width: none;
+    gap: 1px;
+  }
+
+  .itemTitle {
+    gap: 3px;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .infoIcon svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .itemSubtitle {
+    font-size: 10px;
+    line-height: 1.15;
+  }
+
+  .copyButton {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .copyIcon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .copyIcon::before,
+  .copyIcon::after {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+  }
+
+  .swatch {
+    grid-column: 1 / -1;
+    gap: 4px;
+    padding: 0;
+  }
+
+  .swatchLabel,
+  .swatchValue {
+    display: inline;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+
+  .swatchValue {
+    font-weight: 400;
+  }
+
   .price {
-    justify-self: start;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    padding-top: 1px;
+    font-size: 10px;
+    line-height: 1.2;
   }
 
   .swatchesListRow {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .swatchesList {
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .swatchesListHeader {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .sectionHint {
+    margin: 4px 0 12px;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .tileColor {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+
+  .swatchTile {
+    flex: 0 0 auto;
+  }
+
+  .orderSwatchesButton {
+    flex-shrink: 0;
+    font-size: 11px;
   }
 }
 

@@ -487,16 +487,19 @@ export const CustomAccessoriesPage = () => {
       parentEl.style.alignItems = "center";
       parentEl.style.gap = "6px";
       parentEl.style.pointerEvents = "auto";
+      const widgetWindow = parentEl.ownerDocument.defaultView;
+      const isMobileWidget = widgetWindow?.matchMedia("(max-width: 767px)").matches ?? false;
+      parentEl.style.gap = isMobileWidget ? "3px" : "6px";
 
       if (drawerInfo.hasOccupiedDividers) {
         const indicator = document.createElement("div");
-        indicator.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        const indicatorIconSize = isMobileWidget ? 12 : 16;
+        indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${indicatorIconSize}" height="${indicatorIconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         indicator.style.background = "#262b31";
         indicator.style.color = "#fff";
         indicator.style.borderRadius = "999px";
-        indicator.style.width = "42px";
-        indicator.style.height = "42px";
+        indicator.style.width = isMobileWidget ? "24px" : "42px";
+        indicator.style.height = isMobileWidget ? "24px" : "42px";
         indicator.style.display = "flex";
         indicator.style.alignItems = "center";
         indicator.style.justifyContent = "center";
@@ -511,29 +514,30 @@ export const CustomAccessoriesPage = () => {
       const plus = document.createElement("span");
       plus.textContent = "+";
       plus.setAttribute("aria-hidden", "true");
-      plus.style.width = "14px";
-      plus.style.height = "14px";
+      plus.style.width = isMobileWidget ? "10px" : "14px";
+      plus.style.height = isMobileWidget ? "10px" : "14px";
       plus.style.borderRadius = "999px";
       plus.style.background = "rgba(255,255,255,0.22)";
       plus.style.display = "inline-flex";
       plus.style.alignItems = "center";
       plus.style.justifyContent = "center";
-      plus.style.fontSize = "11px";
+      plus.style.fontSize = isMobileWidget ? "8px" : "11px";
       plus.style.fontWeight = "700";
       plus.style.lineHeight = "1";
       button.style.background = "#A05535";
       button.style.color = "#fff";
       button.style.border = "none";
       button.style.borderRadius = "999px";
-      button.style.padding = "5px 8px 5px 12px";
+      button.style.padding = isMobileWidget ? "3px 5px 3px 7px" : "5px 8px 5px 12px";
       button.style.cursor = "pointer";
       button.style.display = "inline-flex";
       button.style.alignItems = "center";
       button.style.justifyContent = "center";
-      button.style.gap = "5px";
-      button.style.fontSize = "11px";
+      button.style.gap = isMobileWidget ? "3px" : "5px";
+      button.style.fontSize = isMobileWidget ? "8px" : "11px";
       button.style.lineHeight = "1.1";
       button.style.fontFamily = "Poppins, sans-serif";
+      button.style.whiteSpace = "nowrap";
       button.append(label, plus);
       button.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -837,6 +841,7 @@ export const CustomAccessoriesPage = () => {
                 data={sidePanelOptions}
                 handleAdd={handleSidePanelsChange}
                 activeValue={sidePanelGridActiveValue}
+                variant="accessory"
               />
             </>
           )}
@@ -870,6 +875,7 @@ export const CustomAccessoriesPage = () => {
                 data={divider.options}
                 handleAdd={handleDividerStyleChange}
                 activeValue={dividerStyle}
+                variant="accessory"
               />
               <p style={DIVIDER_OPEN_DRAWER_HINT_STYLE}>Click 'Open Drawer' in your design to add dividers.</p>
             </div>

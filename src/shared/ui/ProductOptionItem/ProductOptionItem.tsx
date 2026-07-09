@@ -39,7 +39,7 @@ interface ProductOptionItemI {
   setActive?: (id: number | string) => void;
   metadata?: ProductOptionMetadata;
   onPreview?: (title: string, metadata?: ProductOptionMetadata) => void;
-  variant?: "cabinetType";
+  variant?: "cabinetType" | "accessory";
 }
 
 export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
@@ -70,10 +70,15 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const isLightHex = hasHexColor && /^#?(f{3}|f{6})$/i.test(metadata!.hex!.trim());
   const needsLightBorder = isLightHex || metadata?.lightBorder === true;
   const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
+  const isCabinetTypeVariant = variant === "cabinetType";
+  const isAccessoryVariant = variant === "accessory";
+  const isSinkBaseCabinetType = isCabinetTypeVariant && productName === "Sink-Base";
+  const isSideCabinetType =
+    isCabinetTypeVariant && (productName === "Sink-Cabinet" || productName === "Side-Cabinet");
 
   const optionContent = (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${variant === "cabinetType" ? s.cabinetTypeItem : ""} ${!available ? s.disabledOption : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${isCabinetTypeVariant ? s.cabinetTypeItem : ""} ${isAccessoryVariant ? s.accessoryItem : ""} ${isSinkBaseCabinetType ? s.sinkBaseCabinetTypeItem : ""} ${isSideCabinetType ? s.sideCabinetTypeItem : ""} ${!available ? s.disabledOption : ""}`}
       onClick={() => {
         if (!available) return;
         onClick?.(productName, config, metadata);

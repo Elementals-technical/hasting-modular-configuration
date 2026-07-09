@@ -285,6 +285,8 @@ export const CabinetBuilderPage = () => {
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
+  const hasPendingCabinetBuilderSelection =
+    activeCabinetType !== null || drawerProduct.trim().length > 0 || selectedProductConfig !== null;
   const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
   const maxCountertopLength = lengthGuard.max;
   const remainingCountertopLength = lengthGuard.remaining;
@@ -945,6 +947,7 @@ export const CabinetBuilderPage = () => {
     if (presetFromUrl) return;
     if (productsPresets.length) return;
     if (hasBootstrappedCabinetBuilder) return;
+    if (hasPendingCabinetBuilderSelection) return;
 
     const preservedCabinetColor = cabinetColor?.trim() ? cabinetColor : CUSTOM_DEFAULT_CABINET_COLOR;
     const preservedCountertopColor = countertopColor?.trim() ? countertopColor : CUSTOM_DEFAULT_COUNTERTOP_COLOR;
@@ -963,6 +966,7 @@ export const CabinetBuilderPage = () => {
   }, [
     canvasReady,
     dispatch,
+    hasPendingCabinetBuilderSelection,
     hasBootstrappedCabinetBuilder,
     pathname,
     productsPresets.length,

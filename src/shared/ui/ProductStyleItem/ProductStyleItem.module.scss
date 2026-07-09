@@ -115,3 +115,28 @@
     align-items: center;
   }
 }
+
+@media (max-width: 767px) {
+  .productStyleItem {
+    .title {
+      margin-top: 6px;
+      margin-bottom: 3px;
+      font-size: 11px;
+      line-height: 13px;
+    }
+
+    .image {
+      border-radius: 7px;
+
+      img {
+        border-radius: 7px;
+      }
+    }
+  }
+
+  .link {
+    gap: 3px;
+    font-size: 10px;
+    line-height: 12px;
+  }
+}

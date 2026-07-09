@@ -23,6 +23,8 @@
   }
 
   @media (max-width: 1024px) {
+    --mobile-player-height: 530px;
+
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
     height: calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px));
@@ -134,36 +136,25 @@
   }
 
   .content > :nth-child(2) {
-    min-height: 530px;
-    height: 530px;
-    max-height: 530px;
+    min-height: var(--mobile-player-height);
+    height: var(--mobile-player-height);
+    max-height: var(--mobile-player-height);
     border-bottom: 1px solid #e5e6ea;
   }
 
   .content > :nth-child(3) {
-    min-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
-    height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
-    max-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
-    min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
-    height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
-    max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 530px));
+    min-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    max-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
     overflow: hidden;
   }
 }
 
 @media (max-width: 767px) {
-  .content > :nth-child(2) {
-    min-height: 415px;
-    height: 415px;
-    max-height: 415px;
-  }
-
-  .content > :nth-child(3) {
-    min-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
-    height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
-    max-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
-    min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
-    height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
-    max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - 286px));
+  .content {
+    --mobile-player-height: clamp(210px, 34svh, 260px);
   }
 }

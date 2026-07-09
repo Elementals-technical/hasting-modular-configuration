@@ -108,6 +108,11 @@
 
   .rotateBlock {
     bottom: 26%;
+
+    svg {
+      width: 58px;
+      height: auto;
+    }
   }
 
   .hintIcon {
@@ -130,5 +135,36 @@
     height: 286px;
     min-height: 286px;
     max-height: 286px;
+  }
+
+  .rotateBlock {
+    svg {
+      width: 46px;
+    }
+  }
+
+  .generateBtn,
+  .shareIcon {
+    bottom: 10px;
+    gap: 4px;
+    min-height: 30px;
+    padding: 6px 10px;
+    font-size: 10px;
+    line-height: 1.05;
+
+    svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+  }
+
+  .generateBtn {
+    max-width: 108px;
+    text-align: center;
+  }
+
+  .shareIcon {
+    right: 8px;
   }
 }
