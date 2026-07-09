@@ -45,7 +45,7 @@ interface ProductOptionsGridI {
   activeValue?: string | number | null;
   activeValueSecondary?: string | number | null;
   isLoading?: boolean;
-  variant?: "cabinetType";
+  variant?: "cabinetType" | "accessory";
   groupByDesc?: boolean;
 }
 

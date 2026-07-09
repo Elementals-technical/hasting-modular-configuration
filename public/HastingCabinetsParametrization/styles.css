@@ -44,19 +44,64 @@ canvas:focus {
 
 @media (max-width: 767px) {
   .ap-plus-btn {
-    width: 25px !important;
-    height: 25px !important;
-    line-height: 25px !important;
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 18px !important;
   }
 
   .ap-plus-btn--empty {
-    width: 25px !important;
-    height: 25px !important;
-    line-height: 25px !important;
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 18px !important;
   }
 
   .ap-plus-btn svg {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
+  }
+
+  #divider-slot-overlay-layer .divider-slot-btn,
+  .divider-slot-control .divider-slot-btn {
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    padding: 0 !important;
+    font-size: 9px !important;
+    line-height: 16px !important;
+    transform: translate(-50%, -50%) scale(0.9) !important;
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.12),
+      0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  #divider-slot-overlay-layer .divider-slot-add,
+  #divider-slot-overlay-layer .divider-slot-disabled,
+  #divider-slot-overlay-layer .divider-slot-occupied,
+  .divider-slot-control .divider-slot-add,
+  .divider-slot-control .divider-slot-disabled,
+  .divider-slot-control .divider-slot-occupied {
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    font-size: 9px !important;
+    line-height: 16px !important;
+  }
+
+  #divider-slot-overlay-layer .divider-slot-add:hover,
+  #divider-slot-overlay-layer .divider-slot-occupied:hover,
+  .divider-slot-control .divider-slot-add:hover,
+  .divider-slot-control .divider-slot-occupied:hover {
+    transform: translate(-50%, -50%) scale(1) !important;
+  }
+
+  #divider-slot-overlay-layer .divider-slot-occupied,
+  .divider-slot-control .divider-slot-occupied {
+    font-size: 8px !important;
   }
 }
