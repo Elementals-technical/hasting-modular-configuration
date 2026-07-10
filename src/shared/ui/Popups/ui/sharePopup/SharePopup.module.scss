@@ -1,5 +1,5 @@
 .instrPopup {
-  width: min(520px, calc(100vw - 32px));
+  width: min(380px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   background-color: #fff;
   box-sizing: border-box;
@@ -103,7 +103,7 @@
   width: 100%;
 
   input {
-    padding: 16px 20px;
+    padding: 12px 14px;
     width: 100%;
     box-sizing: border-box;
 
