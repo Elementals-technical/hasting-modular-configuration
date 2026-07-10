@@ -101,9 +101,9 @@
   }
 
   .player {
-    height: 530px;
-    min-height: 530px;
-    max-height: 530px;
+    height: 500px;
+    min-height: 500px;
+    max-height: 500px;
   }
 
   .rotateBlock {
@@ -132,9 +132,9 @@
 
 @media (max-width: 767px) {
   .player {
-    height: 286px;
-    min-height: 286px;
-    max-height: 286px;
+    height: 258px;
+    min-height: 258px;
+    max-height: 258px;
   }
 
   .rotateBlock {
@@ -166,5 +166,25 @@
 
   .shareIcon {
     right: 8px;
+  }
+
+  .hintIcon {
+    right: 8px;
+    bottom: 8px;
+
+    .hintIconInner {
+      width: 36px;
+      height: 36px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      > div {
+        font-size: 8px;
+        line-height: 14px;
+      }
+    }
   }
 }

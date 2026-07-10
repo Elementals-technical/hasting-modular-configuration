@@ -21,6 +21,19 @@ export function onFirstOrbitRotation(
 
   let lastYaw: number | null = null;
   const threshold = options.threshold ?? 0.1;
+  let completed = false;
+  let detachPointerListeners: (() => void) | null = null;
+
+  const complete = () => {
+    if (completed) return;
+    completed = true;
+    if (sessionKey) {
+      sessionStorage.setItem(sessionKey, "1");
+    }
+    onRotate();
+    handle.app.off("update", onUpdate);
+    detachPointerListeners?.();
+  };
 
   const onUpdate = () => {
     const yaw = handle.cameraEntity.getEulerAngles().y as number;
@@ -34,14 +47,29 @@ export function onFirstOrbitRotation(
     lastYaw = yaw;
 
     if (normalizedDiff > threshold) {
-      if (sessionKey) {
-        sessionStorage.setItem(sessionKey, "1");
-      }
-      onRotate();
-      handle.app.off("update", onUpdate);
+      complete();
     }
   };
 
+  const attachPointerListeners = () => {
+    // @ts-ignore PlayCanvas iframe ref is exposed by the integration bridge.
+    const iframeDocument = window.containerRef?.current?.contentDocument as Document | undefined;
+    if (!iframeDocument) return;
+
+    const onPointerMove = () => complete();
+    iframeDocument.addEventListener("pointermove", onPointerMove, { once: true });
+    iframeDocument.addEventListener("touchmove", onPointerMove, { once: true });
+    detachPointerListeners = () => {
+      iframeDocument.removeEventListener("pointermove", onPointerMove);
+      iframeDocument.removeEventListener("touchmove", onPointerMove);
+    };
+  };
+
   handle.app.on("update", onUpdate);
-  return () => handle.app.off("update", onUpdate);
+  attachPointerListeners();
+
+  return () => {
+    handle.app.off("update", onUpdate);
+    detachPointerListeners?.();
+  };
 }

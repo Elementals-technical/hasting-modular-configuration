@@ -32,6 +32,7 @@ import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import { hideDimensions } from "@/utils/functions/playcanvas/showDimensions";
+import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import {
   getCanUndo,
   getCanRedo,
@@ -131,6 +132,7 @@ export const BottomCanvasButtons = () => {
 
   const deactivateFullDimensions = () => {
     hideDimensions();
+    getDimensionTool()?.setEnabled(true);
     setIsFullDimensionsEnabled(false);
     setActiveFullDimensionsUnit(null);
     setIsFullDimensionsMenuOpen(false);
