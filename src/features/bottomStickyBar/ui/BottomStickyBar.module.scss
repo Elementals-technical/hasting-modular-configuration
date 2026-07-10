@@ -42,6 +42,10 @@
   transform: rotate(180deg);
 }
 
+.nextButtonMobileLabel {
+  display: none;
+}
+
 .bottomBar {
   position: absolute;
   bottom: 0;
@@ -133,16 +137,17 @@
 
 @media (max-width: 767px) {
   .bottomBar > .total {
-    width: 60%;
-    gap: 13px;
+    width: 45%;
+    gap: 8px;
   }
 
   .bottomBar > .nextStepWrapp {
-    width: 40%;
+    width: 55%;
   }
 
   .nextStepWrapp {
     justify-content: space-between;
+    gap: 8px;
   }
 
   .nextStepWrappNoBack {
@@ -158,6 +163,15 @@
     }
   }
 
+  .bottomBar > div {
+    padding: 10px;
+    height: 54px;
+  }
+
+  .backButton {
+    width: 34px;
+    height: 34px;
+  }
 }
 
 .showroom_link {
@@ -235,10 +249,33 @@
   }
 
   .desktopNextButton {
-    display: none;
+    display: inline-flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 128px;
+    min-height: 34px;
+    padding: 8px 10px;
+    border-radius: 30px;
+    font-size: 10px;
+    line-height: 14px;
+    white-space: nowrap;
+
+    span {
+      min-width: 0;
+    }
   }
 
   .mobileNextButton {
+    display: none;
+  }
+
+  .nextButtonDesktopLabel {
+    display: none;
+  }
+
+  .nextButtonMobileLabel {
     display: inline-flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

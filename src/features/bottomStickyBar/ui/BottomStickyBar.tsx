@@ -158,7 +158,8 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
             </button>
           )}
           <BaseButton className={s.desktopNextButton} onClick={handleNavigate} fullWidth={true}>
-            {nextStep ? `Next: ${nextStep.label}` : "How to Buy"}
+            <span className={s.nextButtonDesktopLabel}>{nextStep ? `Next: ${nextStep.label}` : "How to Buy"}</span>
+            <span className={s.nextButtonMobileLabel}>{nextStep ? nextStep.label : "How to Buy"}</span>
           </BaseButton>
           <button
             type="button"
