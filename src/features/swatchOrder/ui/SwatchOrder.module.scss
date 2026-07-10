@@ -177,3 +177,36 @@
     color: var(--swatch-accent, #df6f4a);
   }
 }
+
+@media (max-width: 767px) {
+  .header {
+    padding: 14px 18px;
+  }
+
+  .title {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .sectionSelect {
+    padding: 12px 16px;
+  }
+
+  .sectionLabel {
+    font-size: 13px;
+  }
+
+  .loading {
+    font-size: 13px;
+  }
+
+  .footer {
+    padding: 14px 18px;
+  }
+
+  .addBtn,
+  .editBtn {
+    padding: 14px 18px;
+    font-size: 12px;
+  }
+}

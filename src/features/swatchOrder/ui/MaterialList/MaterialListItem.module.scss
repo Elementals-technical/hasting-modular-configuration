@@ -76,3 +76,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (max-width: 767px) {
+  .title {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .desc {
+    font-size: 10px;
+    line-height: 13px;
+  }
+}

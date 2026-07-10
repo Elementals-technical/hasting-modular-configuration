@@ -229,3 +229,32 @@
   transition: opacity 0.15s ease, transform 0.15s ease;
   z-index: 5;
 }
+
+@media (max-width: 767px) {
+  .root {
+    padding: 14px 16px 16px;
+  }
+
+  .title,
+  .count {
+    font-size: 10px;
+  }
+
+  .free {
+    font-size: 7px;
+  }
+
+  .autofillLabel {
+    font-size: 12px;
+  }
+
+  .tileTooltip,
+  .autofillTooltip {
+    font-size: 11px;
+    line-height: 14px;
+  }
+
+  .tileTooltipAcronym {
+    font-size: 10px;
+  }
+}

@@ -203,3 +203,39 @@
   color: #59524a;
   font-size: 12px;
 }
+
+@media (max-width: 767px) {
+  .trigger {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  .counter {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+
+  .selectedMulti {
+    gap: 6px;
+  }
+
+  .chevron {
+    width: 14px;
+    height: 14px;
+  }
+
+  .clearAllBtn {
+    font-size: 12px;
+  }
+
+  .itemLabel {
+    font-size: 13px;
+  }
+
+  .itemCount {
+    font-size: 11px;
+  }
+}
