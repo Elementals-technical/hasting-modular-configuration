@@ -93,10 +93,61 @@ const COMPACT_STEP_PLACEMENTS: Partial<
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType]: "bottom",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle]: "bottom",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle]: "left",
-  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet]: "top",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet]: "bottom",
 };
 
+const COMPACT_TOP_SHEET_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
+]);
+
+const COMPACT_ABOVE_BOTTOM_BAR_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
+]);
+
+const COMPACT_CENTERED_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.intro,
+]);
+
+const COMPACT_TARGET_ANCHORED_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customMode,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
+]);
+
 const getIsCompactTutorialLayout = () => window.matchMedia(COMPACT_TUTORIAL_MEDIA_QUERY).matches;
+
+const getCompactFloaterStyle = (step: InteractiveConfiguratorTutorialStep): CSSProperties => {
+  if (COMPACT_CENTERED_STEP_IDS.has(step.id)) {
+    return {
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      right: "auto",
+      bottom: "auto",
+      width: "min(420px, calc(100vw - 24px))",
+      transform: "translate(-50%, -50%)",
+    };
+  }
+
+  const isTopSheet = COMPACT_TOP_SHEET_STEP_IDS.has(step.id);
+  const isAboveBottomBar = COMPACT_ABOVE_BOTTOM_BAR_STEP_IDS.has(step.id);
+
+  return {
+    position: "fixed",
+    top: isTopSheet ? "max(12px, env(safe-area-inset-top))" : "auto",
+    left: "50%",
+    right: "auto",
+    bottom: isTopSheet
+      ? "auto"
+      : isAboveBottomBar
+        ? "calc(max(12px, env(safe-area-inset-bottom)) + 66px)"
+        : "max(12px, env(safe-area-inset-bottom))",
+    width: "min(420px, calc(100vw - 24px))",
+    transform: "translateX(-50%)",
+  };
+};
 
 const mapTutorialStepToJoyrideStep = (
   step: InteractiveConfiguratorTutorialStep,
@@ -111,14 +162,11 @@ const mapTutorialStepToJoyrideStep = (
   skipScroll: step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
   spotlightPadding: step.spotlightPadding,
   styles: isCompactLayout
-    ? {
-        floater: {
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-        },
-      }
+    ? COMPACT_TARGET_ANCHORED_STEP_IDS.has(step.id)
+      ? undefined
+      : {
+          floater: getCompactFloaterStyle(step),
+        }
     : step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet
       ? {
           floater: {
@@ -384,7 +432,7 @@ const TutorialTooltip = ({
             {secondaryLabel}
           </BaseButton>
         ) : (
-          <span />
+          <span className={s.secondaryButtonPlaceholder} aria-hidden="true" />
         )}
 
         <BaseButton

@@ -1,6 +1,9 @@
 .tooltip {
   width: 420px;
   max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
   border-top: 1px solid #e5e6ea;
   border-radius: 10px;
@@ -12,7 +15,28 @@
 
 .compactTooltip {
   width: min(420px, calc(100vw - 32px));
-  max-height: calc(100vh - 96px);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100svh - 24px);
+
+  .content {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c5c7ce transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #c5c7ce;
+      border-radius: 8px;
+    }
+  }
 }
 
 .tooltip + :global(.react-joyride__arrow) {
@@ -47,15 +71,57 @@
   }
 }
 
+@media (max-width: 1024px) {
+  :global(#react-joyride-step-0.react-joyride__floater),
+  :global(#react-joyride-step-2.react-joyride__floater),
+  :global(#react-joyride-step-3.react-joyride__floater),
+  :global(#react-joyride-step-5.react-joyride__floater),
+  :global(#react-joyride-step-6.react-joyride__floater),
+  :global(#react-joyride-step-7.react-joyride__floater) {
+    position: fixed !important;
+    right: auto !important;
+    left: 50% !important;
+    width: min(420px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    transform: translateX(-50%) !important;
+  }
+
+  :global(#react-joyride-step-0.react-joyride__floater) {
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  :global(#react-joyride-step-2.react-joyride__floater),
+  :global(#react-joyride-step-5.react-joyride__floater),
+  :global(#react-joyride-step-6.react-joyride__floater) {
+    top: max(12px, env(safe-area-inset-top)) !important;
+    bottom: auto !important;
+  }
+
+  :global(#react-joyride-step-3.react-joyride__floater) {
+    top: auto !important;
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 66px) !important;
+  }
+
+  :global(#react-joyride-step-7.react-joyride__floater) {
+    top: auto !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
 .header {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 20px;
   border-bottom: 1px solid #e5e6ea;
 }
 
 .title {
+  min-width: 0;
   color: #282828;
   font-family: Poppins;
   font-size: 16px;
@@ -80,6 +146,7 @@
 }
 
 .content {
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 17px;
@@ -138,11 +205,16 @@
 }
 
 .footer {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 146px 146px;
   align-items: center;
   gap: 12px;
   padding: 0 20px 20px;
+}
+
+.secondaryButtonPlaceholder {
+  display: block;
 }
 
 .secondaryButton,
@@ -184,24 +256,97 @@
 @media (max-width: 430px) {
   .tooltip {
     width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100svh - 24px);
   }
 
   .compactTooltip {
     width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100svh - 24px);
   }
 
   .header,
   .content,
   .footer {
-    padding: 15px;
+    padding: 14px;
+  }
+
+  .title {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .content {
+    gap: 12px;
+    font-size: 13px;
+    line-height: 19px;
   }
 
   .footer {
-    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 146px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .progress {
+    grid-column: 1 / -1;
   }
 
   .secondaryButton,
   .primaryButton {
     width: 100%;
+    min-height: 36px;
+    padding: 8px 12px;
+  }
+
+  .secondaryButtonPlaceholder {
+    display: none;
+  }
+
+  .secondaryButtonPlaceholder + .primaryButton {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 360px), (max-height: 620px) {
+  .header,
+  .content,
+  .footer {
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .content {
+    gap: 10px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .list {
+    padding-left: 16px;
+
+    strong {
+      font-size: 12px;
+      line-height: 18px;
+    }
+  }
+
+  .emphasizedLine {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .proTip {
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  .footer {
+    gap: 8px;
   }
 }
