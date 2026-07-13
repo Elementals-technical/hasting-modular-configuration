@@ -114,7 +114,6 @@ import {
 import { BaseButton, ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
-import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
@@ -288,7 +287,6 @@ export const PlayCanvasIntegration = () => {
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
   const [pendingDividerResizeAction, setPendingDividerResizeAction] = useState<PendingDividerResizeAction>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
-  const [mobilePreviewImage, setMobilePreviewImage] = useState<string | null>(null);
   const openDrawerButtonsTargetRef = useRef<string | null>(null);
   const suppressNextDropdownOpenRef = useRef(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -2402,33 +2400,6 @@ export const PlayCanvasIntegration = () => {
   }, []);
 
   useEffect(() => {
-    if (!isMobileMenu) {
-      setMobilePreviewImage(null);
-      return;
-    }
-
-    if (!dropdownState.visible && !countertopPopoverState.visible) {
-      setMobilePreviewImage(null);
-      return;
-    }
-
-    let isCancelled = false;
-
-    const loadPreview = async () => {
-      const image = await captureScreenshot();
-      if (!isCancelled) {
-        setMobilePreviewImage(image);
-      }
-    };
-
-    void loadPreview();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [countertopPopoverState.visible, dropdownState.visible, isMobileMenu, selectedSceneProduct]);
-
-  useEffect(() => {
     const entityName = countertopPopoverState.entityName;
     if (!countertopPopoverState.visible || !entityName) return;
 
@@ -3162,6 +3133,12 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1100,
           }}
         >
+          {/*
+            Keep model selection free of screenshot work. This menu does not render previewImage,
+            but the previous selection effect still called captureScreenshot(), which performs a
+            2048px HQ PlayCanvas rerender. On iPhone that hidden capture overlapped outline rendering,
+            added roughly 0.9 GB to WebContent, and crossed the iOS Jetsam limit.
+          */}
           <MobileNestedMenu
             key={`mobile-dropdown-${vesselBasinSelectionInfo?.entityName ?? selectedSceneProduct ?? "unknown"}`}
             items={activeDropdownItems}
@@ -3170,7 +3147,6 @@ export const PlayCanvasIntegration = () => {
               setDropdownState((prev) => ({ ...prev, visible: false }));
             }}
             previewLabel={vesselBasinSelectionInfo?.displayName ?? selectedSceneProduct}
-            previewImage={mobilePreviewImage}
             selectedDimensions={selectedDimensions}
           />
         </div>
@@ -3184,13 +3160,13 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1100,
           }}
         >
+          {/* See the selection-menu note above: never start an HQ snapshot from this interaction path. */}
           <MobileNestedMenu
             key={`mobile-countertop-${countertopPopoverState.entityName ?? "unknown"}`}
             items={countertopPopoverItems}
             onClose={closeCountertopPopover}
             title="Select Countertop Configuration"
             previewLabel={countertopPopoverState.entityName}
-            previewImage={mobilePreviewImage}
             selectedDimensions={selectedDimensions}
           />
         </div>
