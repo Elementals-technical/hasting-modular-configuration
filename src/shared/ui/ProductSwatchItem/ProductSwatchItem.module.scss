@@ -23,8 +23,20 @@
     align-items: center;
   }
 
-  &:hover,
   &.active {
     border-color: #bc7358;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: #bc7358;
+    }
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .swatchItem {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 }
