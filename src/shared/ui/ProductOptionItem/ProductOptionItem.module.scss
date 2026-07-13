@@ -56,16 +56,21 @@
     border-color: #f4eeec;
   }
 
-  &.activeItem,
-  &:not(.disabledOption):hover {
+  &.activeItem {
     .image {
       border: 1px solid #ac5331;
     }
   }
 
-  &:not(.disabledOption):hover {
-    .expandBtn {
-      opacity: 1;
+  @media (hover: hover) and (pointer: fine) {
+    &:not(.disabledOption):hover {
+      .image {
+        border: 1px solid #ac5331;
+      }
+
+      .expandBtn {
+        opacity: 1;
+      }
     }
   }
 }
@@ -109,8 +114,21 @@
   z-index: 1;
   padding: 0;
 
-  &:hover {
-    background: #fff;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #fff;
+    }
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .productOption {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .expandBtn {
+    opacity: 1;
   }
 }
 

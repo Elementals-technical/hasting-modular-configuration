@@ -23,7 +23,7 @@
   }
 
   @media (max-width: 1024px) {
-    --mobile-player-height: 530px;
+    --mobile-player-height: clamp(420px, 48svh, 560px);
 
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
@@ -155,6 +155,18 @@
 
 @media (max-width: 767px) {
   .content {
-    --mobile-player-height: clamp(210px, 34svh, 260px);
+    --mobile-player-height: clamp(280px, 40svh, 340px);
+  }
+}
+
+@media (max-width: 430px) {
+  .content {
+    --mobile-player-height: clamp(290px, 42svh, 360px);
+  }
+}
+
+@media (max-width: 360px), (max-height: 620px) {
+  .content {
+    --mobile-player-height: clamp(260px, 38svh, 320px);
   }
 }

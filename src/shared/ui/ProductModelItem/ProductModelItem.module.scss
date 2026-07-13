@@ -64,14 +64,16 @@
     line-height: 20px; /* 142.857% */
   }
 
-  &:hover {
-    .optionImage {
-      border: 1px solid #ac5331;
-    }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      .optionImage {
+        border: 1px solid #ac5331;
+      }
 
-    .innerButton {
-      opacity: 1;
-      visibility: visible;
+      .innerButton {
+        opacity: 1;
+        visibility: visible;
+      }
     }
   }
 }
@@ -123,8 +125,10 @@
 
     font-size: 11px;
 
-    &:hover {
-      background-color: #ac5431dd;
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background-color: #ac5431dd;
+      }
     }
   }
 
@@ -135,6 +139,21 @@
     height: 100%;
     object-fit: contain;
     z-index: 1;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .productModelItem {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .optionImage {
+    touch-action: manipulation;
+
+    .innerButton {
+      opacity: 1;
+      visibility: visible;
+    }
   }
 }
 

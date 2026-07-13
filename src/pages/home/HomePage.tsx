@@ -22,20 +22,13 @@ import {
 } from "@/features/saveConfiguration";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 
 import s from "./HomePage.module.scss";
 
-const DESKTOP_EXPERIENCE_MEDIA_QUERY = "(min-width: 1025px)";
-
-const getInitialBuildInfoMode = (): "interactiveTutorial" | "howToStart" | null => {
-  if (sessionStorage.getItem("howToBuildSeen")) return null;
-
-  return window.matchMedia(DESKTOP_EXPERIENCE_MEDIA_QUERY).matches ? "interactiveTutorial" : "howToStart";
-};
+const shouldOpenInitialBuildInfo = () => !sessionStorage.getItem("howToBuildSeen");
 
 export const HomePage = () => {
-  const [initialBuildInfoMode, setInitialBuildInfoMode] = useState(getInitialBuildInfoMode);
+  const [shouldShowInitialBuildInfo, setShouldShowInitialBuildInfo] = useState(shouldOpenInitialBuildInfo);
 
   const { pathname, search } = useLocation();
   const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
@@ -120,11 +113,11 @@ export const HomePage = () => {
 
   const handleClose = () => {
     sessionStorage.setItem("howToBuildSeen", "1");
-    setInitialBuildInfoMode(null);
+    setShouldShowInitialBuildInfo(false);
   };
 
   const isSummary = pathname.endsWith("/summary");
-  const shouldOpenInitialInteractiveTutorial = initialBuildInfoMode === "interactiveTutorial" && flow !== "custom";
+  const shouldOpenInitialInteractiveTutorial = shouldShowInitialBuildInfo && flow !== "custom";
 
   return (
     <div className={s.homePageWrap}>
@@ -141,8 +134,6 @@ export const HomePage = () => {
         <ConfiguratorSidebar flow={flow}>
           <Outlet />
         </ConfiguratorSidebar>
-
-        {initialBuildInfoMode === "howToStart" && flow !== "custom" && <HowToStart handleClose={handleClose} />}
       </div>
 
       <SwatchOrder />

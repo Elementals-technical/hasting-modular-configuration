@@ -47,10 +47,17 @@
     }
   }
 
-  &.activeItem,
-  &:hover {
+  &.activeItem {
     .image {
       border: 1px solid #ac5331;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      .image {
+        border: 1px solid #ac5331;
+      }
     }
   }
 
@@ -113,6 +120,13 @@
   .linkIcon {
     display: flex;
     align-items: center;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .productStyleItem {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 }
 
