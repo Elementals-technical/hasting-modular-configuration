@@ -20,6 +20,8 @@ import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { HintIcon } from "@/shared/assets/images/svg/HintIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
+import { CloseIcon } from "@/shared/assets/images/svg/CloseIcon";
+import { ExpandIcon } from "@/shared/assets/images/svg/ExpandIcon";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 import { HowToStart } from "@/shared/ui/Popups/ui/HowToStartPopup/HowToStartPopup";
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
@@ -62,11 +64,18 @@ import s from "./Player.module.scss";
 import { QuoteIcon } from "@/shared/assets/images/svg/QuoteIcon";
 
 type PlayerProps = {
+  isCanvasFullMode?: boolean;
+  onCanvasFullModeChange?: (isFullMode: boolean) => void;
   initialInteractiveTutorialOpen?: boolean;
   onInteractiveTutorialClose?: () => void;
 };
 
-export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTutorialClose }: PlayerProps = {}) {
+export function Player({
+  isCanvasFullMode = false,
+  onCanvasFullModeChange,
+  initialInteractiveTutorialOpen = false,
+  onInteractiveTutorialClose,
+}: PlayerProps = {}) {
   const location = useLocation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -461,12 +470,24 @@ export function Player({ initialInteractiveTutorialOpen = false, onInteractiveTu
   ];
 
   return (
-    <div className={s.player}>
+    <div className={`${s.player} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
       <div className={s.mobileStepNavigation}>
         <StepNavigationBar title={activeStep} flow={pathname.includes("/custom") ? "custom" : "prebuilt"} />
       </div>
 
       <PlayCanvasIntegration />
+
+      {onCanvasFullModeChange && (
+        <button
+          type="button"
+          className={s.canvasFullModeToggle}
+          onClick={() => onCanvasFullModeChange(!isCanvasFullMode)}
+          aria-label={isCanvasFullMode ? "Exit canvas full mode" : "Open canvas full mode"}
+          aria-pressed={isCanvasFullMode}
+        >
+          {isCanvasFullMode ? <CloseIcon fill="#282828" /> : <ExpandIcon />}
+        </button>
+      )}
 
       {showRotateHint && (
         <div className={s.rotateBlock}>

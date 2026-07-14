@@ -7,6 +7,10 @@
   display: none;
 }
 
+.canvasFullModeToggle {
+  display: none;
+}
+
 .rotateBlock {
   position: absolute;
   bottom: 15%;
@@ -101,10 +105,46 @@
     background: #fff;
   }
 
+  .canvasFullModeToggle {
+    position: absolute;
+    top: 72px;
+    right: 16px;
+    z-index: 45;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    padding: 0;
+
+    border: 1px solid #282828;
+    border-radius: 999px;
+    background: #fff;
+
+    cursor: pointer;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
   .player {
     height: 100%;
     min-height: 100%;
     max-height: 100%;
+  }
+
+  .canvasFullMode {
+    .mobileStepNavigation {
+      display: none;
+    }
+
+    .canvasFullModeToggle {
+      top: 16px;
+    }
   }
 
   .rotateBlock {
@@ -136,6 +176,25 @@
     height: 100%;
     min-height: 100%;
     max-height: 100%;
+  }
+
+  .canvasFullModeToggle {
+    top: 62px;
+    right: 8px;
+
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .canvasFullMode {
+    .canvasFullModeToggle {
+      top: 10px;
+    }
   }
 
   .rotateBlock {
