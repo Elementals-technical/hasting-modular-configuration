@@ -52,6 +52,13 @@ export type CameraHQSnapshotResult = {
   quality?: number;
   source?: string;
   dataUrl?: string;
+  memoryGuard?: {
+    profile: "ios" | "mobile" | "desktop";
+    adjusted: boolean;
+    reasons: string[];
+    requested: Record<string, unknown>;
+    effective: Record<string, unknown>;
+  };
 };
 
 export type CameraState = Record<string, unknown>;

@@ -59,9 +59,14 @@ const CURRENT_VIEW_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
   format: "image/png",
   bg: "#ffffff",
   cameraFrame: false,
+  ssao: false,
+  ss: 1,
 };
 const DOWNLOAD_HQ_SNAPSHOT_OPTIONS: CameraHQSnapshotOptions = {
   out: 4096,
+  ss: 1,
+  cameraFrame: false,
+  ssao: false,
 };
 const DOWNLOAD_OUTPUT_SIZE = {
   width: BRANDING_REFERENCE_WIDTH,
