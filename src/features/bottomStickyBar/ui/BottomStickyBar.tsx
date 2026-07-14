@@ -11,7 +11,7 @@ import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
-import { QouteMobileIcon } from "@/shared/assets/images/svg/QouteMobileIcon";
+import { FileDollarIcon } from "@/shared/assets/images/svg/FileDollarIcon";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -138,7 +138,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
                 </span>
               </span>
               <span className={s.quoteMobileIcon} aria-hidden="true">
-                {isQuotePending ? <span className={s.quoteSpinner} /> : <QouteMobileIcon />}
+                {isQuotePending ? <span className={s.quoteSpinner} /> : <FileDollarIcon />}
               </span>
             </Link>
           </span>
