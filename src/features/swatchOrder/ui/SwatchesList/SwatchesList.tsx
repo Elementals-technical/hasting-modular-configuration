@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getIsAutofillEnabled,
@@ -17,8 +18,32 @@ export const SwatchesList = () => {
   const dispatch = useAppDispatch();
   const selectedMaterials = useAppSelector(getSelectedMaterials);
   const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
+  const [isAutofillTooltipOpen, setIsAutofillTooltipOpen] = useState(false);
+  const tooltipWrapRef = useRef<HTMLDivElement | null>(null);
   const cartCount = selectedMaterials.reduce((sum, item) => sum + (item.count ?? 0), 0);
   const mockCount = Math.max(0, MAX_SLOTS - selectedMaterials.length);
+
+  useEffect(() => {
+    if (!isAutofillTooltipOpen) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && tooltipWrapRef.current?.contains(target)) return;
+      setIsAutofillTooltipOpen(false);
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsAutofillTooltipOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isAutofillTooltipOpen]);
 
   return (
     <div className={s.root}>
@@ -75,27 +100,43 @@ export const SwatchesList = () => {
         ))}
       </div>
 
-      <label className={s.autofillRow}>
-        <input
-          type="checkbox"
-          className={s.autofillInput}
-          checked={isAutofillEnabled}
-          onChange={(event) => dispatch(setAutofillEnabled(event.target.checked))}
-        />
-        <span
-          className={`${s.autofillBox} ${isAutofillEnabled ? s.autofillBoxChecked : ""}`}
-          aria-hidden
-        >
-          {isAutofillEnabled && <CheckMarkIconSVG width={10} height={8} />}
-        </span>
-        <span className={s.autofillLabel}>Autofill My Swatches</span>
-        <span className={s.autofillInfo} tabIndex={0} aria-label={AUTOFILL_TOOLTIP} title={AUTOFILL_TOOLTIP}>
-          i
-          <span className={s.autofillTooltip} role="tooltip">
+      <div className={s.autofillControls}>
+        <label className={s.autofillRow}>
+          <input
+            type="checkbox"
+            className={s.autofillInput}
+            checked={isAutofillEnabled}
+            onChange={(event) => dispatch(setAutofillEnabled(event.target.checked))}
+          />
+          <span
+            className={`${s.autofillBox} ${isAutofillEnabled ? s.autofillBoxChecked : ""}`}
+            aria-hidden
+          >
+            {isAutofillEnabled && <CheckMarkIconSVG width={10} height={8} />}
+          </span>
+          <span className={s.autofillLabel}>Autofill My Swatches</span>
+        </label>
+
+        <div ref={tooltipWrapRef} className={s.autofillInfoWrap}>
+          <button
+            type="button"
+            className={`${s.autofillInfo} ${isAutofillTooltipOpen ? s.autofillInfoOpen : ""}`}
+            aria-label={AUTOFILL_TOOLTIP}
+            aria-expanded={isAutofillTooltipOpen}
+            aria-describedby="autofill-swatches-tooltip"
+            onClick={() => setIsAutofillTooltipOpen((value) => !value)}
+          >
+            i
+          </button>
+          <span
+            id="autofill-swatches-tooltip"
+            className={`${s.autofillTooltip} ${isAutofillTooltipOpen ? s.autofillTooltipOpen : ""}`}
+            role="tooltip"
+          >
             {AUTOFILL_TOOLTIP}
           </span>
-        </span>
-      </label>
+        </div>
+      </div>
     </div>
   );
 };

@@ -146,9 +146,16 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
   cursor: pointer;
   user-select: none;
+}
+
+.autofillControls {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .autofillInput {
@@ -183,13 +190,18 @@
   font-family: "Poppins", sans-serif;
 }
 
-.autofillInfo {
+.autofillInfoWrap {
   position: relative;
+  display: inline-flex;
+}
+
+.autofillInfo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
+  padding: 0;
   border-radius: 50%;
   border: 1px solid #c7c2b9;
   color: #59524a;
@@ -197,22 +209,22 @@
   font-size: 10px;
   font-style: italic;
   font-weight: 600;
-  cursor: help;
+  cursor: pointer;
   outline: none;
+}
 
-  &:hover .autofillTooltip,
-  &:focus-visible .autofillTooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -6px);
-  }
+.autofillInfoOpen,
+.autofillInfo:hover,
+.autofillInfo:focus-visible {
+  border-color: var(--swatch-accent, #df6f4a);
+  color: var(--swatch-accent, #df6f4a);
 }
 
 .autofillTooltip {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translate(-50%, 0);
+  right: 0;
+  bottom: calc(100% + 8px);
+  transform: translateY(4px);
   width: max-content;
   max-width: 220px;
   padding: 8px 10px;
@@ -230,9 +242,41 @@
   z-index: 5;
 }
 
+.autofillTooltipOpen,
+.autofillInfoWrap:hover .autofillTooltip,
+.autofillInfoWrap:focus-within .autofillTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 @media (max-width: 767px) {
   .root {
-    padding: 14px 16px 16px;
+    padding: 10px 16px 12px;
+  }
+
+  .header {
+    margin-bottom: 8px;
+  }
+
+  .tiles {
+    gap: 7px;
+  }
+
+  .tile {
+    width: 44px;
+    height: 44px;
+  }
+
+  .removeBtn {
+    top: -5px;
+    right: -5px;
+    width: 17px;
+    height: 17px;
+  }
+
+  .autofillControls {
+    margin-top: 10px;
   }
 
   .title,
@@ -246,6 +290,13 @@
 
   .autofillLabel {
     font-size: 12px;
+  }
+
+  .autofillTooltip {
+    right: -8px;
+    max-width: min(260px, calc(100vw - 32px));
+    padding: 9px 10px;
+    text-align: left;
   }
 
   .tileTooltip,
