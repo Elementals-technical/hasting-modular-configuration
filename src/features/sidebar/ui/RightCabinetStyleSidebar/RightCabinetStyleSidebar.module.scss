@@ -58,6 +58,8 @@
 }
 
 .bottomText {
+  margin-top: auto;
+
   color: #ac5331;
   font-family: Poppins;
   font-size: 11px;
@@ -183,7 +185,8 @@
 @media (max-width: 767px) {
   .cabinetStyleSidebar {
     width: calc(100vw - 86px);
-    padding: 10px 12px;
+    padding: 10px 12px 0;
+    overflow-y: auto;
   }
 
   .arrow {
@@ -214,8 +217,25 @@
   }
 
   .bottomText {
-    font-size: 10px;
-    line-height: 13px;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: auto -12px 0;
+    padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
+
+    color: #ac5331;
+    background: #fff;
+    border-top: 1px solid #e5e6ea;
+    box-shadow: 0 -8px 18px rgba(40, 40, 40, 0.08);
+
+    font-size: 11px;
+    line-height: 14px;
+    text-align: center;
   }
 
   .plusButtonIcon {
