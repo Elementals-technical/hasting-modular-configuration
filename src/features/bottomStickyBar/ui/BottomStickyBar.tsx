@@ -11,6 +11,7 @@ import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
+import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 import { FileDollarIcon } from "@/shared/assets/images/svg/FileDollarIcon";
 
 const formatPrice = (value?: number | null) => {
@@ -26,6 +27,8 @@ type BottomStickyBarProps = PropsWithChildren<{
 
 const HOW_TO_BUY_HUBSPOT_PORTAL_ID = "21569224";
 const HOW_TO_BUY_HUBSPOT_FORM_ID = "e12e000d-b948-4749-b10c-f31f364299b9";
+const isMobileQuoteButtonVisible = () =>
+  typeof window.matchMedia === "function" && window.matchMedia("(max-width: 767px)").matches;
 
 export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
@@ -41,6 +44,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
   const [isNavigatingToQuote, setIsNavigatingToQuote] = useState(false);
   const [isHowToBuyOpen, setIsHowToBuyOpen] = useState(false);
+  const [isQuoteDownloadModalOpen, setIsQuoteDownloadModalOpen] = useState(false);
   const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
   const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
 
@@ -53,6 +57,12 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
       setIsNavigatingToQuote(false);
     }
   }, [isQuotePrintRequested, location.pathname]);
+
+  useEffect(() => {
+    if (!isQuotePending) {
+      setIsQuoteDownloadModalOpen(false);
+    }
+  }, [isQuotePending]);
 
   const handleQuoteClick = async () => {
     if (isQuotePending) return;
@@ -112,6 +122,9 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
               onClick={(e) => {
                 e.preventDefault();
                 if (isQuotePending) return;
+                if (isMobileQuoteButtonVisible()) {
+                  setIsQuoteDownloadModalOpen(true);
+                }
                 void handleQuoteClick();
               }}
               aria-label={isQuotePending ? "Generating quote" : "Quote"}
@@ -138,7 +151,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
                 </span>
               </span>
               <span className={s.quoteMobileIcon} aria-hidden="true">
-                {isQuotePending ? <span className={s.quoteSpinner} /> : <FileDollarIcon />}
+                <FileDollarIcon />
               </span>
             </Link>
           </span>
@@ -179,6 +192,17 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
         hubspotFormId={HOW_TO_BUY_HUBSPOT_FORM_ID}
         onFormSubmitted={() => setIsHowToBuyOpen(false)}
       />
+
+      {isQuoteDownloadModalOpen && (
+        <PortalBody>
+          <div className={s.quoteDownloadOverlay}>
+            <div className={s.quoteDownloadModal} role="dialog" aria-modal="true" aria-live="polite">
+              <span className={s.quoteSpinner} />
+              <span>Downloading Quote</span>
+            </div>
+          </div>
+        </PortalBody>
+      )}
     </>
   );
 };
