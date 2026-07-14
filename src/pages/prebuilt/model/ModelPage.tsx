@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Outlet, useMatch, useNavigate, useSearchParams } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
@@ -171,7 +171,9 @@ export const ModelPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const isDetail = !!useMatch("/prebuilt/model/:modelId");
+  const detailMatch = useMatch("/prebuilt/model/:modelId");
+  const detailModelId = detailMatch?.params.modelId;
+  const isDetail = !!detailMatch;
   const isDefinedProductsRef = useRef(false);
   const presetSelectionQueueRef = useRef<Promise<void>>(Promise.resolve());
   const presetSelectionRequestIdRef = useRef(0);
@@ -1030,6 +1032,15 @@ export const ModelPage = () => {
 
     sessionStorage.removeItem(modelScrollRestoreFlagKey);
   }, [getStepContentContainer, isDetail]);
+
+  useLayoutEffect(() => {
+    if (!isDetail) return;
+
+    const container = getStepContentContainer();
+    if (!container) return;
+
+    container.scrollTop = 0;
+  }, [detailModelId, getStepContentContainer, isDetail]);
 
   const clearAllFilters = () => {
     setSizeFilter("all");
