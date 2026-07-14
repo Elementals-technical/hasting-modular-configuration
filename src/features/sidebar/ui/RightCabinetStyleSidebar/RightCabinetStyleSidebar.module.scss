@@ -184,8 +184,12 @@
 
 @media (max-width: 767px) {
   .cabinetStyleSidebar {
+    position: fixed;
+    top: calc(var(--header-height, 0px) + var(--banner-height, 0px) + var(--mobile-player-height, 0px));
+    bottom: 0;
     width: calc(100vw - 86px);
-    padding: 10px 12px 0;
+    height: auto;
+    padding: 10px 12px 48px;
     overflow-y: auto;
   }
 
@@ -217,15 +221,17 @@
   }
 
   .bottomText {
-    position: sticky;
+    position: fixed;
+    right: 0;
     bottom: 0;
-    z-index: 1;
+    z-index: 1001;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    margin: auto -12px 0;
+    width: calc(100vw - 86px);
+    margin: 0;
     padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
 
     color: #ac5331;
