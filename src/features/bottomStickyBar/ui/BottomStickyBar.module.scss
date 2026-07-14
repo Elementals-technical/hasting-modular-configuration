@@ -197,11 +197,6 @@
       display: flex;
       align-items: center;
     }
-
-    &:hover {
-      background-color: #ac5331;
-      color: #fff;
-    }
   }
 }
 
@@ -227,6 +222,14 @@
   animation: price-spin 0.9s linear infinite;
 }
 
+.quoteDownloadOverlay {
+  display: none;
+}
+
+.quoteDownloadModal {
+  display: none;
+}
+
 .total_text {
   white-space: nowrap;
 }
@@ -238,6 +241,37 @@
 
   .quoteMobileIcon {
     display: inline-flex;
+  }
+
+  .quoteDownloadOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    background: rgba(40, 40, 40, 0.25);
+  }
+
+  .quoteDownloadModal {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    min-width: 188px;
+    padding: 14px 18px;
+
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(40, 40, 40, 0.16);
+
+    color: #282828;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;
   }
 
   .showroom_link {

@@ -151,6 +151,26 @@
     max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
     overflow: hidden;
   }
+
+  .canvasFullMode {
+    --mobile-player-height: 100svh;
+
+    & > :nth-child(2) {
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+
+      min-height: 100vh;
+      height: 100vh;
+      max-height: 100vh;
+      min-height: 100svh;
+      height: 100svh;
+      max-height: 100svh;
+
+      border-bottom: none;
+      background: #f8f8f8;
+    }
+  }
 }
 
 @media (max-width: 767px) {

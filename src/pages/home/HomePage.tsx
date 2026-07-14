@@ -29,6 +29,7 @@ const shouldOpenInitialBuildInfo = () => !sessionStorage.getItem("howToBuildSeen
 
 export const HomePage = () => {
   const [shouldShowInitialBuildInfo, setShouldShowInitialBuildInfo] = useState(shouldOpenInitialBuildInfo);
+  const [isCanvasFullMode, setIsCanvasFullMode] = useState(false);
 
   const { pathname, search } = useLocation();
   const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
@@ -102,6 +103,10 @@ export const HomePage = () => {
   );
 
   useEffect(() => {
+    setIsCanvasFullMode(false);
+  }, [pathname]);
+
+  useEffect(() => {
     if (readHostUrlFromSearch(search)) {
       persistHostUrlFromSearch(search);
     } else if (!hostUrlInitializedRef.current) {
@@ -121,12 +126,14 @@ export const HomePage = () => {
 
   return (
     <div className={s.homePageWrap}>
-      <div className={`${s.content} ${isSummary ? s.summaryLayout : ""}`}>
+      <div className={`${s.content} ${isSummary ? s.summaryLayout : ""} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
           <SideNavigation flow={flow} />
         </div>
 
         <Player
+          isCanvasFullMode={isCanvasFullMode}
+          onCanvasFullModeChange={setIsCanvasFullMode}
           initialInteractiveTutorialOpen={shouldOpenInitialInteractiveTutorial}
           onInteractiveTutorialClose={shouldOpenInitialInteractiveTutorial ? handleClose : undefined}
         />
