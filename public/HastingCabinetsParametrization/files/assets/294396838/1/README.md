@@ -6,9 +6,70 @@
 
 ## Де знаходиться
 
-- Сервіс: `Scripts/app-configuration/services/snapshot/hq-snapshot-service.mjs`
+- Публічний entry point: `Scripts/app-configuration/services/snapshot/index.mjs`
+- Renderer: `Scripts/app-configuration/services/snapshot/hq-snapshot-service.mjs`
+- Memory policy: `Scripts/app-configuration/services/snapshot/snapshot-memory-policy.mjs`
 - PlayCanvas script-wrapper: `Scripts/hqSnapshot.mjs`
-- Bridge API: `ConfiguratorAPI.camera.*` у `Scripts/app-configuration/bridge/plugins/camera.plugin.mjs`
+- Optional ConfiguratorAPI adapter: `Scripts/app-configuration/bridge/adapters/camera.plugin.mjs`
+
+Старий шлях `bridge/plugins/camera.plugin.mjs` залишений лише як deprecated
+compatibility re-export. Новий код має імпортувати adapter з `bridge/adapters`.
+
+## Публічний модуль
+
+Імпортуйте renderer і policy тільки через `index.mjs`:
+
+```javascript
+import {
+  HQSnapshotService,
+  SNAPSHOT_DEVICE_PROFILE,
+  createSnapshotMemoryPlan
+} from './services/snapshot/index.mjs';
+```
+
+`index.mjs` експортує:
+
+- `HQSnapshotService`;
+- `DEFAULT_HQ_SNAPSHOT_CONFIG`;
+- `DEFAULT_HQ_SNAPSHOT_PRESETS`;
+- `SNAPSHOT_DEVICE_PROFILE`;
+- `resolveSnapshotDeviceProfile()`;
+- `getSnapshotMemoryPolicy()`;
+- `createSnapshotMemoryPlan()`.
+
+Bridge adapter навмисно не експортується з snapshot module. Завдяки цьому інший
+PlayCanvas-проєкт може використовувати renderer і memory policy без
+`ConfiguratorAPI`, `LoggerService` та camera bridge methods.
+
+## Підключення в іншому PlayCanvas-проєкті
+
+```javascript
+import { HQSnapshotService } from './services/snapshot/index.mjs';
+
+const snapshots = new HQSnapshotService(app, {
+  cameraResolver: (currentApp) => currentApp.root.findByName('ProductCamera'),
+  platformCapabilities: {
+    ios: isIOS,
+    mobile: isMobile
+  },
+  memoryPolicy: {
+    maxOutputLongEdge: 4096,
+    maxSuperSample: 1
+  }
+});
+
+const result = await snapshots.capture('page');
+```
+
+`cameraResolver(app)` має повернути PlayCanvas entity з camera component. Якщо
+resolver не заданий або не повернув камеру, renderer використовує fallback:
+
+1. `app.cameraController.getCameraEntity()`;
+2. entity з ім'ям `Camera`;
+3. першу активну camera component у сцені.
+
+`platformCapabilities` дозволяє проєкту самостійно визначити mobile/iOS profile,
+а `memoryPolicy` — перевизначити ліміти профілю без змін renderer.
 
 ## Важливо
 
@@ -83,6 +144,7 @@ const shot = await ConfiguratorAPI.camera.hqSnapshot.capture('hero');
   format: string,
   quality: number,
   source: 'service',
+  memoryGuard: object,
   dataUrl: string
 }
 ```
