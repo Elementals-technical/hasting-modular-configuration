@@ -38,6 +38,9 @@ export const captureQuotePreviewImage = async () => {
       includeLogo: false,
       hqSnapshotOptions: {
         out: QUOTE_PREVIEW_HQ_SOURCE_SIZE,
+        ss: 1,
+        cameraFrame: false,
+        ssao: false,
       },
       outputSize: QUOTE_PREVIEW_SIZE,
       renderSourceAtOutputSize: true,

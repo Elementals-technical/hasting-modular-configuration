@@ -114,7 +114,6 @@ import {
 import { BaseButton, ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
-import { captureScreenshot } from "@/utils/functions/playcanvas/captureScreenshot";
 import { formatCmWithInches } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
@@ -260,6 +259,7 @@ export const PlayCanvasIntegration = () => {
   type PendingDividerResizeAction = DividerWidthResizeAction | null;
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
+  const bridgedDocumentRef = useRef<Document | null>(null);
   const pendingHandleSyncRef = useRef(false);
   const prevHandleRef = useRef<string | undefined>(undefined);
   const isMobileMediaQueryRef = useRef<MediaQueryList | null>(null);
@@ -288,7 +288,6 @@ export const PlayCanvasIntegration = () => {
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
   const [pendingDividerResizeAction, setPendingDividerResizeAction] = useState<PendingDividerResizeAction>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
-  const [mobilePreviewImage, setMobilePreviewImage] = useState<string | null>(null);
   const openDrawerButtonsTargetRef = useRef<string | null>(null);
   const suppressNextDropdownOpenRef = useRef(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -1005,13 +1004,31 @@ export const PlayCanvasIntegration = () => {
   // Bridge PlayCanvas Configurator API
   useEffect(() => {
     (window as any).containerRef = containerRef;
-    (window as any).playCanvasReady = false;
 
     const iframeEl = containerRef.current;
     if (!iframeEl) return;
 
+    const getIframeDocument = (): Document | null => {
+      try {
+        return iframeEl.contentDocument;
+      } catch {
+        return null;
+      }
+    };
+
+    let activeDocument = getIframeDocument();
     let pollId: number | null = null;
+    let bridgeEstablished =
+      activeDocument !== null &&
+      bridgedDocumentRef.current === activeDocument &&
+      Boolean((window as any).playCanvasReady);
+    let readyDispatched = bridgeEstablished;
+    let disposed = false;
     const cameraFramingMediaQuery = window.matchMedia(MOBILE_CAMERA_FRAMING_QUERY);
+
+    if (!bridgeEstablished) {
+      (window as any).playCanvasReady = false;
+    }
 
     const applyCameraFramingConfig = (cameraApi?: PlayCanvasCameraApi) => {
       if (!cameraApi) return;
@@ -1019,14 +1036,30 @@ export const PlayCanvasIntegration = () => {
       cameraApi.setFramingConfig?.(getCameraFramingConfig(cameraFramingMediaQuery.matches));
     };
 
+    const stopPolling = () => {
+      const activePollId = pollId;
+      pollId = null;
+
+      if (activePollId === null) return;
+
+      window.clearInterval(activePollId);
+    };
+
     const markReady = () => {
+      if (disposed || readyDispatched) return;
+
+      readyDispatched = true;
       (window as any).playCanvasReady = true;
       window.dispatchEvent(new Event("playcanvas-ready"));
     };
 
     const tryBridgeApi = (cw: PlayCanvasContentWindow) => {
+      if (disposed) return false;
+      if (bridgeEstablished) return true;
+
       const api = cw?.ConfiguratorAPI;
       const addProduct = api?.addProduct || cw?.addProduct;
+
       if (typeof addProduct === "function") {
         cw.addProduct = api?.addProduct ? api.addProduct.bind(api) : addProduct.bind(api || cw);
 
@@ -1043,6 +1076,11 @@ export const PlayCanvasIntegration = () => {
           }
         }
 
+        bridgeEstablished = true;
+        if (activeDocument) {
+          bridgedDocumentRef.current = activeDocument;
+        }
+        stopPolling();
         markReady();
         return true;
       }
@@ -1058,29 +1096,52 @@ export const PlayCanvasIntegration = () => {
       }
     };
 
-    const handleLoad = () => {
+    const activateCurrentDocument = () => {
       const cw = iframeEl.contentWindow as PlayCanvasContentWindow | null;
       if (!cw) return;
 
+      const nextDocument = getIframeDocument();
+      const documentChanged = nextDocument !== null && nextDocument !== activeDocument;
+
+      if (documentChanged) {
+        stopPolling();
+        activeDocument = nextDocument;
+        bridgeEstablished =
+          bridgedDocumentRef.current === nextDocument && Boolean((window as any).playCanvasReady);
+        readyDispatched = bridgeEstablished;
+
+        if (!bridgeEstablished) {
+          (window as any).playCanvasReady = false;
+        }
+      }
+
       if (tryBridgeApi(cw)) return;
+
+      if (disposed || bridgeEstablished || pollId !== null) return;
 
       const startedAt = Date.now();
       const pollInterval = 200;
       const maxWaitMs = 30000;
 
-      pollId = window.setInterval(() => {
-        if (tryBridgeApi(cw)) {
-          if (pollId !== null) clearInterval(pollId);
-          pollId = null;
+      const intervalId = window.setInterval(() => {
+        if (disposed || tryBridgeApi(cw)) {
+          window.clearInterval(intervalId);
+          if (pollId === intervalId) pollId = null;
           return;
         }
 
         if (Date.now() - startedAt > maxWaitMs) {
-          if (pollId !== null) clearInterval(pollId);
-          pollId = null;
+          window.clearInterval(intervalId);
+          if (pollId === intervalId) pollId = null;
           console.warn("PlayCanvasIntegration: ConfiguratorAPI.addProduct not available");
         }
       }, pollInterval);
+
+      pollId = intervalId;
+    };
+
+    const handleLoad = () => {
+      activateCurrentDocument();
     };
 
     iframeEl.addEventListener("load", handleLoad);
@@ -1090,16 +1151,17 @@ export const PlayCanvasIntegration = () => {
     // already fired before this effect ran), start polling immediately.
     try {
       if (iframeEl.contentWindow && iframeEl.contentWindow.document.readyState === "complete") {
-        handleLoad();
+        activateCurrentDocument();
       }
     } catch {
       // contentWindow access may throw for cross-origin; ignore
     }
 
     return () => {
+      disposed = true;
       iframeEl.removeEventListener("load", handleLoad);
       cameraFramingMediaQuery.removeEventListener("change", handleCameraFramingViewportChange);
-      if (pollId !== null) clearInterval(pollId);
+      stopPolling();
     };
   }, []);
 
@@ -2402,33 +2464,6 @@ export const PlayCanvasIntegration = () => {
   }, []);
 
   useEffect(() => {
-    if (!isMobileMenu) {
-      setMobilePreviewImage(null);
-      return;
-    }
-
-    if (!dropdownState.visible && !countertopPopoverState.visible) {
-      setMobilePreviewImage(null);
-      return;
-    }
-
-    let isCancelled = false;
-
-    const loadPreview = async () => {
-      const image = await captureScreenshot();
-      if (!isCancelled) {
-        setMobilePreviewImage(image);
-      }
-    };
-
-    void loadPreview();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [countertopPopoverState.visible, dropdownState.visible, isMobileMenu, selectedSceneProduct]);
-
-  useEffect(() => {
     const entityName = countertopPopoverState.entityName;
     if (!countertopPopoverState.visible || !entityName) return;
 
@@ -3162,6 +3197,12 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1100,
           }}
         >
+          {/*
+            Keep model selection free of screenshot work. This menu does not render previewImage,
+            but the previous selection effect still called captureScreenshot(), which performs a
+            2048px HQ PlayCanvas rerender. On iPhone that hidden capture overlapped outline rendering,
+            added roughly 0.9 GB to WebContent, and crossed the iOS Jetsam limit.
+          */}
           <MobileNestedMenu
             key={`mobile-dropdown-${vesselBasinSelectionInfo?.entityName ?? selectedSceneProduct ?? "unknown"}`}
             items={activeDropdownItems}
@@ -3170,7 +3211,6 @@ export const PlayCanvasIntegration = () => {
               setDropdownState((prev) => ({ ...prev, visible: false }));
             }}
             previewLabel={vesselBasinSelectionInfo?.displayName ?? selectedSceneProduct}
-            previewImage={mobilePreviewImage}
             selectedDimensions={selectedDimensions}
           />
         </div>
@@ -3184,13 +3224,13 @@ export const PlayCanvasIntegration = () => {
             zIndex: 1100,
           }}
         >
+          {/* See the selection-menu note above: never start an HQ snapshot from this interaction path. */}
           <MobileNestedMenu
             key={`mobile-countertop-${countertopPopoverState.entityName ?? "unknown"}`}
             items={countertopPopoverItems}
             onClose={closeCountertopPopover}
             title="Select Countertop Configuration"
             previewLabel={countertopPopoverState.entityName}
-            previewImage={mobilePreviewImage}
             selectedDimensions={selectedDimensions}
           />
         </div>
