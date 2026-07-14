@@ -182,5 +182,10 @@
 
   .optionImage {
     max-width: 100%;
+
+    .innerButton {
+      padding: 3px 3px 3px 4px;
+      font-size: 9px;
+    }
   }
 }
