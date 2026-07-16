@@ -54,7 +54,6 @@ const JOYRIDE_Z_INDEX = 2000;
 const JOYRIDE_TOOLTIP_WIDTH = 420;
 const JOYRIDE_ARROW_WIDTH = 48;
 const JOYRIDE_ARROW_HEIGHT = 52;
-const JOYRIDE_TOOLTIP_OFFSET = -24;
 const COMPACT_JOYRIDE_TOOLTIP_OFFSET = -42;
 const JOYRIDE_SPOTLIGHT_RADIUS = 4;
 const JOYRIDE_SPOTLIGHT_PADDING = 0;
@@ -75,7 +74,6 @@ const JOYRIDE_OPTIONS = {
   dismissKeyAction: false,
   overlayClickAction: false,
   overlayColor: "rgba(40, 40, 40, 0.25)",
-  offset: JOYRIDE_TOOLTIP_OFFSET,
   primaryColor: "#ac5331",
   scrollDuration: 250,
   scrollOffset: 90,
@@ -158,7 +156,7 @@ const mapTutorialStepToJoyrideStep = (
   id: step.id,
   target: getInteractiveConfiguratorTutorialTargetSelector(step.target),
   placement: isCompactLayout ? (COMPACT_STEP_PLACEMENTS[step.id] ?? step.placement) : step.placement,
-  offset: isCompactLayout ? COMPACT_JOYRIDE_TOOLTIP_OFFSET : JOYRIDE_TOOLTIP_OFFSET,
+  ...(isCompactLayout ? { offset: COMPACT_JOYRIDE_TOOLTIP_OFFSET } : {}),
   title: step.title,
   content: step.description,
   blockTargetInteraction: !step.allowTargetScroll,
