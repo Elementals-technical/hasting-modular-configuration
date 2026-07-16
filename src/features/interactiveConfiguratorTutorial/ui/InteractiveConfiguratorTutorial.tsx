@@ -54,6 +54,8 @@ const JOYRIDE_Z_INDEX = 2000;
 const JOYRIDE_TOOLTIP_WIDTH = 420;
 const JOYRIDE_ARROW_WIDTH = 48;
 const JOYRIDE_ARROW_HEIGHT = 52;
+const JOYRIDE_TOOLTIP_OFFSET = -24;
+const COMPACT_JOYRIDE_TOOLTIP_OFFSET = -42;
 const JOYRIDE_SPOTLIGHT_RADIUS = 4;
 const JOYRIDE_SPOTLIGHT_PADDING = 0;
 const STEP_PREPARATION_DELAY_MS = 250;
@@ -73,6 +75,7 @@ const JOYRIDE_OPTIONS = {
   dismissKeyAction: false,
   overlayClickAction: false,
   overlayColor: "rgba(40, 40, 40, 0.25)",
+  offset: JOYRIDE_TOOLTIP_OFFSET,
   primaryColor: "#ac5331",
   scrollDuration: 250,
   scrollOffset: 90,
@@ -90,17 +93,13 @@ const COMPACT_STEP_PLACEMENTS: Partial<
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode]: "top",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails]: "top",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customMode]: "bottom",
-  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType]: "bottom",
+  [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType]: "top",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle]: "bottom",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle]: "left",
   [INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet]: "bottom",
 };
 
-const COMPACT_TOP_SHEET_STEP_IDS: ReadonlySet<string> = new Set([
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode,
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType,
-  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
-]);
+const COMPACT_TOP_SHEET_STEP_IDS: ReadonlySet<string> = new Set([]);
 
 const COMPACT_ABOVE_BOTTOM_BAR_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
@@ -112,7 +111,10 @@ const COMPACT_CENTERED_STEP_IDS: ReadonlySet<string> = new Set([
 
 const COMPACT_TARGET_ANCHORED_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customMode,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
 ]);
 
@@ -156,6 +158,7 @@ const mapTutorialStepToJoyrideStep = (
   id: step.id,
   target: getInteractiveConfiguratorTutorialTargetSelector(step.target),
   placement: isCompactLayout ? (COMPACT_STEP_PLACEMENTS[step.id] ?? step.placement) : step.placement,
+  offset: isCompactLayout ? COMPACT_JOYRIDE_TOOLTIP_OFFSET : JOYRIDE_TOOLTIP_OFFSET,
   title: step.title,
   content: step.description,
   blockTargetInteraction: !step.allowTargetScroll,
@@ -279,6 +282,31 @@ const getProxyTargetStyle = ({ height, left, top, width }: ViewportRect): CSSPro
   height,
   pointerEvents: "none",
 });
+
+const lockCompactTutorialScroll = () => {
+  const lockedElements = [
+    document.documentElement,
+    document.body,
+    ...Array.from(document.querySelectorAll<HTMLElement>(STEP_CONTENT_SCROLL_CONTAINER_SELECTOR)),
+  ];
+  const previousStyles = lockedElements.map((element) => ({
+    element,
+    overflow: element.style.overflow,
+    touchAction: element.style.touchAction,
+  }));
+
+  lockedElements.forEach((element) => {
+    element.style.overflow = "hidden";
+    element.style.touchAction = "none";
+  });
+
+  return () => {
+    previousStyles.forEach(({ element, overflow, touchAction }) => {
+      element.style.overflow = overflow;
+      element.style.touchAction = touchAction;
+    });
+  };
+};
 
 type StepButtonLabelData = Partial<
   Pick<InteractiveConfiguratorTutorialStep, "primaryLabel" | "secondaryLabel" | "secondaryAction" | "progressLabel">
@@ -674,6 +702,22 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
       document.removeEventListener("auxclick", blockTargetClick, true);
     };
   }, [activeStep, isOpen]);
+
+  useEffect(() => {
+    const hasFixedProxyTarget =
+      createYourOwnTargetRect || modeSwitcherTargetRect || playCanvasTargetRect || prebuiltModelsGridTargetRect;
+
+    if (!isOpen || !isCompactLayout || !hasFixedProxyTarget) return;
+
+    return lockCompactTutorialScroll();
+  }, [
+    createYourOwnTargetRect,
+    isCompactLayout,
+    isOpen,
+    modeSwitcherTargetRect,
+    playCanvasTargetRect,
+    prebuiltModelsGridTargetRect,
+  ]);
 
   return (
     <>

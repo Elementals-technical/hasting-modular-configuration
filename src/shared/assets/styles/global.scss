@@ -39,3 +39,22 @@ body {
   max-width: 1200px;
   margin: 0 auto;
 }
+
+@media (max-width: 768px) {
+  [class*="_popupWrapper_"] [class*="_centerContent_"] *,
+  [class*="_rightContent_"] *,
+  [role="dialog"] * {
+    font-size: 12px !important;
+    line-height: 16px !important;
+  }
+
+  [class*="_popupWrapper_"] [class*="_centerContent_"] [class*="_title_"],
+  [class*="_popupWrapper_"] [class*="_centerContent_"] [class*="Title"],
+  [class*="_rightContent_"] [class*="_title_"],
+  [class*="_rightContent_"] [class*="Title"],
+  [role="dialog"] [class*="_title_"],
+  [role="dialog"] [class*="Title"] {
+    font-size: 14px !important;
+    line-height: 20px !important;
+  }
+}
