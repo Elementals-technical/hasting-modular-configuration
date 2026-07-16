@@ -74,6 +74,7 @@
 @media (max-width: 1024px) {
   :global(#react-joyride-step-0.react-joyride__floater),
   :global(#react-joyride-step-3.react-joyride__floater),
+  :global(#react-joyride-step-5.react-joyride__floater),
   :global(#react-joyride-step-7.react-joyride__floater) {
     position: fixed !important;
     right: auto !important;
@@ -92,6 +93,11 @@
   :global(#react-joyride-step-3.react-joyride__floater) {
     top: auto !important;
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 66px) !important;
+  }
+
+  :global(#react-joyride-step-5.react-joyride__floater) {
+    top: max(12px, env(safe-area-inset-top)) !important;
+    bottom: auto !important;
   }
 
   :global(#react-joyride-step-7.react-joyride__floater) {
