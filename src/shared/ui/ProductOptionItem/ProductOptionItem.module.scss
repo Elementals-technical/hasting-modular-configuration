@@ -132,6 +132,18 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .expandBtn {
+    width: 18.2px;
+    height: 18.2px;
+
+    svg {
+      width: 9.8px;
+      height: 9.8px;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .materialOption {
     .title,
