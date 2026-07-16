@@ -243,9 +243,13 @@ const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
 type PlayCanvasIntegrationProps = {
   isCanvasFullMode?: boolean;
+  onCanvasFullModeClose?: () => void;
 };
 
-export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIntegrationProps) => {
+export const PlayCanvasIntegration = ({
+  isCanvasFullMode = false,
+  onCanvasFullModeClose,
+}: PlayCanvasIntegrationProps) => {
   type CustomizeModePromptAction =
     | "default"
     | "add"
@@ -972,6 +976,11 @@ export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIn
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, []);
+
+  const closeCanvasFullMode = useCallback(() => {
+    if (!isCanvasFullMode) return;
+    onCanvasFullModeClose?.();
+  }, [isCanvasFullMode, onCanvasFullModeClose]);
 
   // Track pointer position so we know where the user clicked inside the iframe.
   // We listen on both: postMessage from the iframe (preferred) and mousemove on
@@ -1751,9 +1760,10 @@ export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIn
   const handleAddAdditionalProduct = useCallback(() => {
     if (!canAddAnotherCabinet) return;
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
+    closeCanvasFullMode();
 
     closeInPlayerActionSurface();
-  }, [canAddAnotherCabinet, closeInPlayerActionSurface, navigate]);
+  }, [canAddAnotherCabinet, closeCanvasFullMode, closeInPlayerActionSurface, navigate]);
 
   const handleOpenCustomizeModePrompt = useCallback(
     (action: CustomizeModePromptAction, deleteTarget: string | null = null) => {
@@ -1804,35 +1814,39 @@ export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIn
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-color");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=thickness");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-styles");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=basin-style");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
@@ -2002,46 +2016,55 @@ export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIn
 
     if (action === "add") {
       navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "cabinet-style") {
       navigate("/custom/cabinet-builder?accordion=cabinet-style");
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "countertop-color") {
       navigate("/custom/countertop?accordion=counter-top-color");
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "countertop-thickness" || action === "countertop-style") {
       navigate(`/custom/countertop?accordion=${action}`);
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "basin-style") {
       navigate("/custom/countertop?accordion=basin-style");
+      closeCanvasFullMode();
       return;
     }
 
     navigate(ROUTES.CUSTOM);
-  }, [customizeModePromptAction, customizeModePromptDeleteTarget, dispatch, navigate, productsPresets]);
+    closeCanvasFullMode();
+  }, [closeCanvasFullMode, customizeModePromptAction, customizeModePromptDeleteTarget, dispatch, navigate, productsPresets]);
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
+    closeCanvasFullMode();
     closeInPlayerActionSurface();
-  }, [closeInPlayerActionSurface, navigate]);
+  }, [closeCanvasFullMode, closeInPlayerActionSurface, navigate]);
 
   const handleOpenCabinetColor = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/color" : "/custom/cabinet-colors?accordion=cabinet-color");
+    closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenAccessories = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/accessories" : "/custom/accessories");
+    closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const isTopViewActive = useCallback((): boolean => {
     const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
@@ -2951,44 +2974,49 @@ export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIn
         ? "/prebuilt/countertop?accordion=counter-top-color"
         : "/custom/countertop?accordion=counter-top-color",
     );
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenCountertopStyle = useCallback(() => {
     navigate(
       isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style",
     );
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenBasinStyle = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenVesselBasinColor = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=vessel-color" : "/custom/countertop?accordion=vessel-color");
+    closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
     dispatch(setCountertopStyle(isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated"));
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
+  }, [closeCanvasFullMode, dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
 
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
