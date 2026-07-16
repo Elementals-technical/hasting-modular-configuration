@@ -116,6 +116,16 @@ const COMPACT_TARGET_ANCHORED_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
 ]);
 
+const COMPACT_SKIP_SCROLL_STEP_IDS: ReadonlySet<string> = new Set([
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.gettingStarted,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltMode,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customMode,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
+]);
+
 const getIsCompactTutorialLayout = () => window.matchMedia(COMPACT_TUTORIAL_MEDIA_QUERY).matches;
 
 const getCompactFloaterStyle = (step: InteractiveConfiguratorTutorialStep): CSSProperties => {
@@ -160,7 +170,9 @@ const mapTutorialStepToJoyrideStep = (
   title: step.title,
   content: step.description,
   blockTargetInteraction: !step.allowTargetScroll,
-  skipScroll: step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
+  skipScroll: isCompactLayout
+    ? COMPACT_SKIP_SCROLL_STEP_IDS.has(step.id)
+    : step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.prebuiltDetails,
   spotlightPadding: step.spotlightPadding,
   styles: isCompactLayout
     ? COMPACT_TARGET_ANCHORED_STEP_IDS.has(step.id)
