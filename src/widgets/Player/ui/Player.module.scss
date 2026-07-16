@@ -206,22 +206,23 @@
   .generateBtn,
   .shareIcon {
     bottom: 10px;
-    gap: 4px;
-    min-height: 30px;
-    padding: 6px 10px;
-    font-size: 10px;
+    gap: 3px;
+    min-height: 24px;
+    padding: 4px 7px;
+    font-size: 8px;
     line-height: 1.05;
 
     svg {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       flex-shrink: 0;
     }
   }
 
   .generateBtn {
-    max-width: 108px;
+    max-width: none;
     text-align: center;
+    white-space: nowrap;
   }
 
   .shareIcon {
