@@ -147,6 +147,7 @@ const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const MOBILE_CAMERA_PADDING_WIDE = 1.55;
 const MOBILE_CAMERA_PADDING_TALL = 2.0;
 const MOBILE_CAMERA_FRAMING_QUERY = "(max-width: 767px)";
+const FULLSCREEN_VIEWPORT_TOLERANCE_PX = 2;
 const SIDE_SHELF_WIDTH_CM = 15;
 
 type PlayCanvasCameraApi = {
@@ -240,7 +241,11 @@ const cmToInchLabel = (cm: number): string => {
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
-export const PlayCanvasIntegration = () => {
+type PlayCanvasIntegrationProps = {
+  isCanvasFullMode?: boolean;
+};
+
+export const PlayCanvasIntegration = ({ isCanvasFullMode = false }: PlayCanvasIntegrationProps) => {
   type CustomizeModePromptAction =
     | "default"
     | "add"
@@ -288,6 +293,8 @@ export const PlayCanvasIntegration = () => {
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
   const [pendingDividerResizeAction, setPendingDividerResizeAction] = useState<PendingDividerResizeAction>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
+  const [isDetectedFullscreenMode, setIsDetectedFullscreenMode] = useState(false);
+  const isFullscreenMode = isCanvasFullMode || isDetectedFullscreenMode;
   const openDrawerButtonsTargetRef = useRef<string | null>(null);
   const suppressNextDropdownOpenRef = useRef(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -325,6 +332,31 @@ export const PlayCanvasIntegration = () => {
 
   const shouldShowEmptySceneRedirectButton =
     isPlayCanvasReady && isCustomPage && !isCabinetBuilderPage && productIds.length === 0;
+
+  const getIsPlayerFullscreenMode = useCallback(() => {
+    const iframeElement = containerRef.current;
+    if (!iframeElement) return false;
+
+    const ownerFullscreenElement = document.fullscreenElement;
+    const iframeFullscreenElement = iframeElement.contentDocument?.fullscreenElement ?? null;
+    const iframeRect = iframeElement.getBoundingClientRect();
+    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const isViewportSizedIframe =
+      Math.abs(iframeRect.left) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX &&
+      Math.abs(iframeRect.top) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX &&
+      Math.abs(iframeRect.width - viewportWidth) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX &&
+      Math.abs(iframeRect.height - viewportHeight) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX;
+
+    return (
+      Boolean(
+        ownerFullscreenElement &&
+          (ownerFullscreenElement === iframeElement || ownerFullscreenElement.contains(iframeElement)),
+      ) ||
+      Boolean(iframeFullscreenElement) ||
+      isViewportSizedIframe
+    );
+  }, []);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -890,6 +922,7 @@ export const PlayCanvasIntegration = () => {
       if (!iframeEl) return;
 
       if (isMobileMediaQueryRef.current?.matches) {
+        setIsDetectedFullscreenMode(getIsPlayerFullscreenMode());
         setDropdownState((prev) => ({ ...prev, visible: true }));
         return;
       }
@@ -905,25 +938,29 @@ export const PlayCanvasIntegration = () => {
       });
       setDropdownState({ visible: true, x: pos.x, y: pos.y });
     },
-    [quickEditorNotification.hasSeen, quickEditorNotification.isEligible],
+    [getIsPlayerFullscreenMode, quickEditorNotification.hasSeen, quickEditorNotification.isEligible],
   );
 
-  const showCountertopPopoverForEntity = useCallback((entityName: string) => {
-    const iframeEl = containerRef.current;
-    if (!iframeEl) return;
+  const showCountertopPopoverForEntity = useCallback(
+    (entityName: string) => {
+      const iframeEl = containerRef.current;
+      if (!iframeEl) return;
 
-    if (isMobileMediaQueryRef.current?.matches) {
-      setCountertopPopoverState((prev) => ({ ...prev, visible: true, entityName }));
-      return;
-    }
+      if (isMobileMediaQueryRef.current?.matches) {
+        setIsDetectedFullscreenMode(getIsPlayerFullscreenMode());
+        setCountertopPopoverState((prev) => ({ ...prev, visible: true, entityName }));
+        return;
+      }
 
-    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
-      width: 360,
-      height: 320,
-    });
+      const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
+        width: 360,
+        height: 320,
+      });
 
-    setCountertopPopoverState({ visible: true, x: pos.x, y: pos.y, entityName });
-  }, []);
+      setCountertopPopoverState({ visible: true, x: pos.x, y: pos.y, entityName });
+    },
+    [getIsPlayerFullscreenMode],
+  );
 
   const closeCountertopPopover = useCallback(() => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -951,6 +988,34 @@ export const PlayCanvasIntegration = () => {
     mediaQuery.addEventListener("change", sync);
     return () => mediaQuery.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    const syncFullscreenMode = () => setIsDetectedFullscreenMode(getIsPlayerFullscreenMode());
+    const iframeElement = containerRef.current;
+    let iframeDocument: Document | null = null;
+
+    const attachIframeDocumentListener = () => {
+      iframeDocument?.removeEventListener("fullscreenchange", syncFullscreenMode);
+      iframeDocument = iframeElement?.contentDocument ?? null;
+      iframeDocument?.addEventListener("fullscreenchange", syncFullscreenMode);
+      syncFullscreenMode();
+    };
+
+    syncFullscreenMode();
+    document.addEventListener("fullscreenchange", syncFullscreenMode);
+    window.addEventListener("resize", syncFullscreenMode);
+    window.addEventListener("orientationchange", syncFullscreenMode);
+    iframeElement?.addEventListener("load", attachIframeDocumentListener);
+    attachIframeDocumentListener();
+
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFullscreenMode);
+      window.removeEventListener("resize", syncFullscreenMode);
+      window.removeEventListener("orientationchange", syncFullscreenMode);
+      iframeElement?.removeEventListener("load", attachIframeDocumentListener);
+      iframeDocument?.removeEventListener("fullscreenchange", syncFullscreenMode);
+    };
+  }, [getIsPlayerFullscreenMode]);
 
   useEffect(() => {
     let timerId: number | null = null;
@@ -3206,6 +3271,7 @@ export const PlayCanvasIntegration = () => {
           <MobileNestedMenu
             key={`mobile-dropdown-${vesselBasinSelectionInfo?.entityName ?? selectedSceneProduct ?? "unknown"}`}
             items={activeDropdownItems}
+            isFullscreenMode={isFullscreenMode}
             onClose={() => {
               setVesselBasinSelectionInfo(null);
               setDropdownState((prev) => ({ ...prev, visible: false }));
@@ -3228,6 +3294,7 @@ export const PlayCanvasIntegration = () => {
           <MobileNestedMenu
             key={`mobile-countertop-${countertopPopoverState.entityName ?? "unknown"}`}
             items={countertopPopoverItems}
+            isFullscreenMode={isFullscreenMode}
             onClose={closeCountertopPopover}
             title="Select Countertop Configuration"
             previewLabel={countertopPopoverState.entityName}

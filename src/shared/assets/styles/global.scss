@@ -42,8 +42,7 @@ body {
 
 @media (max-width: 768px) {
   [class*="_popupWrapper_"] [class*="_centerContent_"] *,
-  [class*="_rightContent_"] *,
-  [role="dialog"] * {
+  [class*="_rightContent_"] * {
     font-size: 12px !important;
     line-height: 16px !important;
   }
@@ -51,9 +50,7 @@ body {
   [class*="_popupWrapper_"] [class*="_centerContent_"] [class*="_title_"],
   [class*="_popupWrapper_"] [class*="_centerContent_"] [class*="Title"],
   [class*="_rightContent_"] [class*="_title_"],
-  [class*="_rightContent_"] [class*="Title"],
-  [role="dialog"] [class*="_title_"],
-  [role="dialog"] [class*="Title"] {
+  [class*="_rightContent_"] [class*="Title"] {
     font-size: 14px !important;
     line-height: 20px !important;
   }

@@ -475,7 +475,7 @@ export function Player({
         <StepNavigationBar title={activeStep} flow={pathname.includes("/custom") ? "custom" : "prebuilt"} />
       </div>
 
-      <PlayCanvasIntegration />
+      <PlayCanvasIntegration isCanvasFullMode={isCanvasFullMode} />
 
       {onCanvasFullModeChange && (
         <button
