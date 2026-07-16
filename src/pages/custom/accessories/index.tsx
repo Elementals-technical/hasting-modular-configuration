@@ -488,7 +488,7 @@ export const CustomAccessoriesPage = () => {
       parentEl.style.gap = "6px";
       parentEl.style.pointerEvents = "auto";
       const widgetWindow = parentEl.ownerDocument.defaultView;
-      const isMobileWidget = widgetWindow?.matchMedia("(max-width: 767px)").matches ?? false;
+      const isMobileWidget = widgetWindow?.matchMedia("(max-width: 1024px)").matches ?? false;
       parentEl.style.gap = isMobileWidget ? "3px" : "6px";
 
       if (drawerInfo.hasOccupiedDividers) {

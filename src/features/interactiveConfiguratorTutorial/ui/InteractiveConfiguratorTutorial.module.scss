@@ -15,8 +15,8 @@
 
 .compactTooltip {
   width: min(420px, calc(100vw - 32px));
-  max-height: calc(100vh - 24px);
-  max-height: calc(100svh - 24px);
+  max-height: calc(100vh - 72px);
+  max-height: calc(100svh - 72px);
 
   .content {
     min-height: 0;
@@ -73,10 +73,8 @@
 
 @media (max-width: 1024px) {
   :global(#react-joyride-step-0.react-joyride__floater),
-  :global(#react-joyride-step-2.react-joyride__floater),
   :global(#react-joyride-step-3.react-joyride__floater),
   :global(#react-joyride-step-5.react-joyride__floater),
-  :global(#react-joyride-step-6.react-joyride__floater),
   :global(#react-joyride-step-7.react-joyride__floater) {
     position: fixed !important;
     right: auto !important;
@@ -92,16 +90,14 @@
     transform: translate(-50%, -50%) !important;
   }
 
-  :global(#react-joyride-step-2.react-joyride__floater),
-  :global(#react-joyride-step-5.react-joyride__floater),
-  :global(#react-joyride-step-6.react-joyride__floater) {
-    top: max(12px, env(safe-area-inset-top)) !important;
-    bottom: auto !important;
-  }
-
   :global(#react-joyride-step-3.react-joyride__floater) {
     top: auto !important;
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 66px) !important;
+  }
+
+  :global(#react-joyride-step-5.react-joyride__floater) {
+    top: max(12px, env(safe-area-inset-top)) !important;
+    bottom: auto !important;
   }
 
   :global(#react-joyride-step-7.react-joyride__floater) {
@@ -255,33 +251,46 @@
 
 @media (max-width: 430px) {
   .tooltip {
-    width: calc(100vw - 24px);
-    max-width: calc(100vw - 24px);
-    max-height: calc(100vh - 24px);
-    max-height: calc(100svh - 24px);
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 72px);
+    max-height: calc(100svh - 72px);
   }
 
   .compactTooltip {
-    width: calc(100vw - 24px);
-    max-height: calc(100vh - 24px);
-    max-height: calc(100svh - 24px);
+    width: calc(100vw - 32px);
+    max-height: calc(100vh - 72px);
+    max-height: calc(100svh - 72px);
   }
 
-  .header,
-  .content,
-  .footer {
-    padding: 14px;
-  }
-
-  .title {
-    font-size: 15px;
-    line-height: 22px;
+  .header {
+    padding: 12px 14px;
   }
 
   .content {
-    gap: 12px;
-    font-size: 13px;
-    line-height: 19px;
+    padding: 10px 14px 12px;
+  }
+
+  .footer {
+    padding: 0 14px 14px;
+  }
+
+  .title {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .content {
+    gap: 10px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .list {
+    strong {
+      font-size: 12px;
+      line-height: 16px;
+    }
   }
 
   .footer {
@@ -296,8 +305,8 @@
   .secondaryButton,
   .primaryButton {
     width: 100%;
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 32px;
+    padding: 6px 10px;
   }
 
   .secondaryButtonPlaceholder {
@@ -310,10 +319,22 @@
 }
 
 @media (max-width: 360px), (max-height: 620px) {
-  .header,
-  .content,
+  .tooltip,
+  .compactTooltip {
+    max-height: calc(100vh - 88px);
+    max-height: calc(100svh - 88px);
+  }
+
+  .header {
+    padding: 10px 12px;
+  }
+
+  .content {
+    padding: 8px 12px 10px;
+  }
+
   .footer {
-    padding: 12px;
+    padding: 0 12px 12px;
   }
 
   .title {
@@ -324,7 +345,7 @@
   .content {
     gap: 10px;
     font-size: 12px;
-    line-height: 18px;
+    line-height: 16px;
   }
 
   .list {
@@ -332,21 +353,29 @@
 
     strong {
       font-size: 12px;
-      line-height: 18px;
+      line-height: 16px;
     }
   }
 
   .emphasizedLine {
     font-size: 12px;
-    line-height: 18px;
+    line-height: 16px;
   }
 
   .proTip {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 16px;
   }
 
   .footer {
     gap: 8px;
+  }
+
+  .secondaryButton,
+  .primaryButton {
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 12px;
+    line-height: 16px;
   }
 }

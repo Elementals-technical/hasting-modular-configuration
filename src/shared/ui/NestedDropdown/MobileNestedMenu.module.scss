@@ -70,6 +70,18 @@
   border-left: 1px solid #e5e6ea;
 }
 
+.fullscreenOverlay {
+  .actionsPane {
+    bottom: auto;
+    height: auto;
+    max-height: calc(100% - 58px);
+  }
+
+  .actionList {
+    flex: 0 1 auto;
+  }
+}
+
 .actionsHeader {
   display: flex;
   min-height: 34px;

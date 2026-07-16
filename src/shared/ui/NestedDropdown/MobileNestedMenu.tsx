@@ -24,6 +24,7 @@ interface MobileNestedMenuProps {
   previewImage?: string | null;
   selectedDimensions?: SelectedDimensions;
   className?: string;
+  isFullscreenMode?: boolean;
 }
 
 const renderItemTrail = (item: DropdownItem) => {
@@ -32,7 +33,7 @@ const renderItemTrail = (item: DropdownItem) => {
   return null;
 };
 
-export const MobileNestedMenu = ({ items, onClose, className }: MobileNestedMenuProps) => {
+export const MobileNestedMenu = ({ items, onClose, className, isFullscreenMode = false }: MobileNestedMenuProps) => {
   const [path, setPath] = useState<string[]>([]);
 
   const resolveTrail = (ids: string[]) => {
@@ -66,7 +67,11 @@ export const MobileNestedMenu = ({ items, onClose, className }: MobileNestedMenu
 
   return (
     <div className={s.layer}>
-      <div className={clsx(s.overlay, className)} role="dialog" aria-modal="true">
+      <div
+        className={clsx(s.overlay, isFullscreenMode && s.fullscreenOverlay, className)}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className={s.content}>
           <div className={s.actionsPane}>
             <div className={s.actionsHeader}>

@@ -147,7 +147,56 @@ const GLOBAL_CAMERA_PADDING_TALL = 2.6;
 const MOBILE_CAMERA_PADDING_WIDE = 1.55;
 const MOBILE_CAMERA_PADDING_TALL = 2.0;
 const MOBILE_CAMERA_FRAMING_QUERY = "(max-width: 767px)";
+const FULLSCREEN_VIEWPORT_TOLERANCE_PX = 2;
+
+const MOBILE_TABLET_MEDIA_QUERY = "(max-width: 1024px)";
+const PLAYER_PLUS_BUTTON_STYLE_ID = "hasting-mobile-player-plus-button-size";
+const PLAYER_PLUS_BUTTON_CLASS = "hasting-mobile-player-plus-button";
 const SIDE_SHELF_WIDTH_CM = 15;
+
+const installMobilePlayerPlusButtonStyles = (document: Document) => {
+  const existingStyle = document.getElementById(PLAYER_PLUS_BUTTON_STYLE_ID);
+  if (!existingStyle) {
+    const style = document.createElement("style");
+    style.id = PLAYER_PLUS_BUTTON_STYLE_ID;
+    style.textContent = `
+@media ${MOBILE_TABLET_MEDIA_QUERY} {
+  .${PLAYER_PLUS_BUTTON_CLASS}:not(.ap-plus-btn),
+  .divider-slot-btn,
+  .divider-slot-add,
+  .divider-slot-occupied {
+    scale: 0.7 !important;
+    transform-origin: center center !important;
+  }
+
+  .ap-plus-btn {
+    width: 25.2px !important;
+    height: 25.2px !important;
+    line-height: 22.4px !important;
+    font-size: 14px !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  const tagPlusButtons = () => {
+    document.querySelectorAll("button").forEach((button) => {
+      if (button.textContent?.trim() === "+") {
+        button.classList.add(PLAYER_PLUS_BUTTON_CLASS);
+      }
+    });
+  };
+
+  tagPlusButtons();
+
+  const Observer = document.defaultView?.MutationObserver ?? MutationObserver;
+  const observer = new Observer(tagPlusButtons);
+  observer.observe(document.body, { characterData: true, childList: true, subtree: true });
+
+  return () => observer.disconnect();
+};
 
 type PlayCanvasCameraApi = {
   setFramingConfig?: (config: CameraFramingConfig) => void;
@@ -240,7 +289,15 @@ const cmToInchLabel = (cm: number): string => {
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
 
-export const PlayCanvasIntegration = () => {
+type PlayCanvasIntegrationProps = {
+  isCanvasFullMode?: boolean;
+  onCanvasFullModeClose?: () => void;
+};
+
+export const PlayCanvasIntegration = ({
+  isCanvasFullMode = false,
+  onCanvasFullModeClose,
+}: PlayCanvasIntegrationProps) => {
   type CustomizeModePromptAction =
     | "default"
     | "add"
@@ -288,6 +345,8 @@ export const PlayCanvasIntegration = () => {
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
   const [pendingDividerResizeAction, setPendingDividerResizeAction] = useState<PendingDividerResizeAction>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
+  const [isDetectedFullscreenMode, setIsDetectedFullscreenMode] = useState(false);
+  const isFullscreenMode = isCanvasFullMode || isDetectedFullscreenMode;
   const openDrawerButtonsTargetRef = useRef<string | null>(null);
   const suppressNextDropdownOpenRef = useRef(false);
   const lastPointerPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -325,6 +384,31 @@ export const PlayCanvasIntegration = () => {
 
   const shouldShowEmptySceneRedirectButton =
     isPlayCanvasReady && isCustomPage && !isCabinetBuilderPage && productIds.length === 0;
+
+  const getIsPlayerFullscreenMode = useCallback(() => {
+    const iframeElement = containerRef.current;
+    if (!iframeElement) return false;
+
+    const ownerFullscreenElement = document.fullscreenElement;
+    const iframeFullscreenElement = iframeElement.contentDocument?.fullscreenElement ?? null;
+    const iframeRect = iframeElement.getBoundingClientRect();
+    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const isViewportSizedIframe =
+      Math.abs(iframeRect.left) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX &&
+      Math.abs(iframeRect.top) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX &&
+      Math.abs(iframeRect.width - viewportWidth) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX &&
+      Math.abs(iframeRect.height - viewportHeight) <= FULLSCREEN_VIEWPORT_TOLERANCE_PX;
+
+    return (
+      Boolean(
+        ownerFullscreenElement &&
+          (ownerFullscreenElement === iframeElement || ownerFullscreenElement.contains(iframeElement)),
+      ) ||
+      Boolean(iframeFullscreenElement) ||
+      isViewportSizedIframe
+    );
+  }, []);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
@@ -890,6 +974,7 @@ export const PlayCanvasIntegration = () => {
       if (!iframeEl) return;
 
       if (isMobileMediaQueryRef.current?.matches) {
+        setIsDetectedFullscreenMode(getIsPlayerFullscreenMode());
         setDropdownState((prev) => ({ ...prev, visible: true }));
         return;
       }
@@ -905,25 +990,29 @@ export const PlayCanvasIntegration = () => {
       });
       setDropdownState({ visible: true, x: pos.x, y: pos.y });
     },
-    [quickEditorNotification.hasSeen, quickEditorNotification.isEligible],
+    [getIsPlayerFullscreenMode, quickEditorNotification.hasSeen, quickEditorNotification.isEligible],
   );
 
-  const showCountertopPopoverForEntity = useCallback((entityName: string) => {
-    const iframeEl = containerRef.current;
-    if (!iframeEl) return;
+  const showCountertopPopoverForEntity = useCallback(
+    (entityName: string) => {
+      const iframeEl = containerRef.current;
+      if (!iframeEl) return;
 
-    if (isMobileMediaQueryRef.current?.matches) {
-      setCountertopPopoverState((prev) => ({ ...prev, visible: true, entityName }));
-      return;
-    }
+      if (isMobileMediaQueryRef.current?.matches) {
+        setIsDetectedFullscreenMode(getIsPlayerFullscreenMode());
+        setCountertopPopoverState((prev) => ({ ...prev, visible: true, entityName }));
+        return;
+      }
 
-    const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
-      width: 360,
-      height: 320,
-    });
+      const pos = getDropdownPosition(entityName, iframeEl, lastPointerPosRef.current, {
+        width: 360,
+        height: 320,
+      });
 
-    setCountertopPopoverState({ visible: true, x: pos.x, y: pos.y, entityName });
-  }, []);
+      setCountertopPopoverState({ visible: true, x: pos.x, y: pos.y, entityName });
+    },
+    [getIsPlayerFullscreenMode],
+  );
 
   const closeCountertopPopover = useCallback(() => {
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
@@ -935,6 +1024,11 @@ export const PlayCanvasIntegration = () => {
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, []);
+
+  const closeCanvasFullMode = useCallback(() => {
+    if (!isCanvasFullMode) return;
+    onCanvasFullModeClose?.();
+  }, [isCanvasFullMode, onCanvasFullModeClose]);
 
   // Track pointer position so we know where the user clicked inside the iframe.
   // We listen on both: postMessage from the iframe (preferred) and mousemove on
@@ -951,6 +1045,34 @@ export const PlayCanvasIntegration = () => {
     mediaQuery.addEventListener("change", sync);
     return () => mediaQuery.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    const syncFullscreenMode = () => setIsDetectedFullscreenMode(getIsPlayerFullscreenMode());
+    const iframeElement = containerRef.current;
+    let iframeDocument: Document | null = null;
+
+    const attachIframeDocumentListener = () => {
+      iframeDocument?.removeEventListener("fullscreenchange", syncFullscreenMode);
+      iframeDocument = iframeElement?.contentDocument ?? null;
+      iframeDocument?.addEventListener("fullscreenchange", syncFullscreenMode);
+      syncFullscreenMode();
+    };
+
+    syncFullscreenMode();
+    document.addEventListener("fullscreenchange", syncFullscreenMode);
+    window.addEventListener("resize", syncFullscreenMode);
+    window.addEventListener("orientationchange", syncFullscreenMode);
+    iframeElement?.addEventListener("load", attachIframeDocumentListener);
+    attachIframeDocumentListener();
+
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFullscreenMode);
+      window.removeEventListener("resize", syncFullscreenMode);
+      window.removeEventListener("orientationchange", syncFullscreenMode);
+      iframeElement?.removeEventListener("load", attachIframeDocumentListener);
+      iframeDocument?.removeEventListener("fullscreenchange", syncFullscreenMode);
+    };
+  }, [getIsPlayerFullscreenMode]);
 
   useEffect(() => {
     let timerId: number | null = null;
@@ -1024,6 +1146,7 @@ export const PlayCanvasIntegration = () => {
       Boolean((window as any).playCanvasReady);
     let readyDispatched = bridgeEstablished;
     let disposed = false;
+    let cleanupPlayerPlusButtonStyles: (() => void) | null = null;
     const cameraFramingMediaQuery = window.matchMedia(MOBILE_CAMERA_FRAMING_QUERY);
 
     if (!bridgeEstablished) {
@@ -1104,6 +1227,8 @@ export const PlayCanvasIntegration = () => {
       const documentChanged = nextDocument !== null && nextDocument !== activeDocument;
 
       if (documentChanged) {
+        cleanupPlayerPlusButtonStyles?.();
+        cleanupPlayerPlusButtonStyles = null;
         stopPolling();
         activeDocument = nextDocument;
         bridgeEstablished =
@@ -1113,6 +1238,10 @@ export const PlayCanvasIntegration = () => {
         if (!bridgeEstablished) {
           (window as any).playCanvasReady = false;
         }
+      }
+
+      if (nextDocument && !cleanupPlayerPlusButtonStyles) {
+        cleanupPlayerPlusButtonStyles = installMobilePlayerPlusButtonStyles(nextDocument);
       }
 
       if (tryBridgeApi(cw)) return;
@@ -1161,6 +1290,7 @@ export const PlayCanvasIntegration = () => {
       disposed = true;
       iframeEl.removeEventListener("load", handleLoad);
       cameraFramingMediaQuery.removeEventListener("change", handleCameraFramingViewportChange);
+      cleanupPlayerPlusButtonStyles?.();
       stopPolling();
     };
   }, []);
@@ -1686,9 +1816,10 @@ export const PlayCanvasIntegration = () => {
   const handleAddAdditionalProduct = useCallback(() => {
     if (!canAddAnotherCabinet) return;
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
+    closeCanvasFullMode();
 
     closeInPlayerActionSurface();
-  }, [canAddAnotherCabinet, closeInPlayerActionSurface, navigate]);
+  }, [canAddAnotherCabinet, closeCanvasFullMode, closeInPlayerActionSurface, navigate]);
 
   const handleOpenCustomizeModePrompt = useCallback(
     (action: CustomizeModePromptAction, deleteTarget: string | null = null) => {
@@ -1739,35 +1870,39 @@ export const PlayCanvasIntegration = () => {
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-color");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=thickness");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=countertop-styles");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
     navigate("/prebuilt/countertop?accordion=basin-style");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [navigate]);
+  }, [closeCanvasFullMode, navigate]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
@@ -1937,46 +2072,55 @@ export const PlayCanvasIntegration = () => {
 
     if (action === "add") {
       navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "cabinet-style") {
       navigate("/custom/cabinet-builder?accordion=cabinet-style");
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "countertop-color") {
       navigate("/custom/countertop?accordion=counter-top-color");
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "countertop-thickness" || action === "countertop-style") {
       navigate(`/custom/countertop?accordion=${action}`);
+      closeCanvasFullMode();
       return;
     }
 
     if (action === "basin-style") {
       navigate("/custom/countertop?accordion=basin-style");
+      closeCanvasFullMode();
       return;
     }
 
     navigate(ROUTES.CUSTOM);
-  }, [customizeModePromptAction, customizeModePromptDeleteTarget, dispatch, navigate, productsPresets]);
+    closeCanvasFullMode();
+  }, [closeCanvasFullMode, customizeModePromptAction, customizeModePromptDeleteTarget, dispatch, navigate, productsPresets]);
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
+    closeCanvasFullMode();
     closeInPlayerActionSurface();
-  }, [closeInPlayerActionSurface, navigate]);
+  }, [closeCanvasFullMode, closeInPlayerActionSurface, navigate]);
 
   const handleOpenCabinetColor = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/color" : "/custom/cabinet-colors?accordion=cabinet-color");
+    closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenAccessories = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/accessories" : "/custom/accessories");
+    closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const isTopViewActive = useCallback((): boolean => {
     const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
@@ -2014,16 +2158,20 @@ export const PlayCanvasIntegration = () => {
       parentEl.style.alignItems = "center";
       parentEl.style.gap = "6px";
       parentEl.style.pointerEvents = "auto";
+      const widgetWindow = parentEl.ownerDocument.defaultView;
+      const isMobileTabletWidget = widgetWindow?.matchMedia(MOBILE_TABLET_MEDIA_QUERY).matches ?? false;
+      parentEl.style.gap = isMobileTabletWidget ? "3px" : "6px";
 
       if (drawerInfo.hasOccupiedDividers) {
         const indicator = document.createElement("div");
+        const indicatorIconSize = isMobileTabletWidget ? 12 : 16;
         indicator.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${indicatorIconSize}" height="${indicatorIconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         indicator.style.background = "#262b31";
         indicator.style.color = "#fff";
         indicator.style.borderRadius = "999px";
-        indicator.style.width = "42px";
-        indicator.style.height = "42px";
+        indicator.style.width = isMobileTabletWidget ? "24px" : "42px";
+        indicator.style.height = isMobileTabletWidget ? "24px" : "42px";
         indicator.style.display = "flex";
         indicator.style.alignItems = "center";
         indicator.style.justifyContent = "center";
@@ -2038,27 +2186,27 @@ export const PlayCanvasIntegration = () => {
       const plus = document.createElement("span");
       plus.textContent = "+";
       plus.setAttribute("aria-hidden", "true");
-      plus.style.width = "14px";
-      plus.style.height = "14px";
+      plus.style.width = isMobileTabletWidget ? "10px" : "14px";
+      plus.style.height = isMobileTabletWidget ? "10px" : "14px";
       plus.style.borderRadius = "999px";
       plus.style.background = "rgba(255,255,255,0.22)";
       plus.style.display = "inline-flex";
       plus.style.alignItems = "center";
       plus.style.justifyContent = "center";
-      plus.style.fontSize = "11px";
+      plus.style.fontSize = isMobileTabletWidget ? "8px" : "11px";
       plus.style.fontWeight = "700";
       plus.style.lineHeight = "1";
       button.style.background = "#A05535";
       button.style.color = "#fff";
       button.style.border = "none";
       button.style.borderRadius = "999px";
-      button.style.padding = "5px 8px 5px 12px";
+      button.style.padding = isMobileTabletWidget ? "3px 5px 3px 7px" : "5px 8px 5px 12px";
       button.style.cursor = "pointer";
       button.style.display = "inline-flex";
       button.style.alignItems = "center";
       button.style.justifyContent = "center";
-      button.style.gap = "5px";
-      button.style.fontSize = "11px";
+      button.style.gap = isMobileTabletWidget ? "3px" : "5px";
+      button.style.fontSize = isMobileTabletWidget ? "8px" : "11px";
       button.style.lineHeight = "1.1";
       button.style.fontFamily = "Poppins, sans-serif";
       button.append(label, plus);
@@ -2886,44 +3034,49 @@ export const PlayCanvasIntegration = () => {
         ? "/prebuilt/countertop?accordion=counter-top-color"
         : "/custom/countertop?accordion=counter-top-color",
     );
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenCountertopStyle = useCallback(() => {
     navigate(
       isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style",
     );
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenBasinStyle = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenVesselBasinColor = useCallback(() => {
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=vessel-color" : "/custom/countertop?accordion=vessel-color");
+    closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
     dispatch(setCountertopStyle(isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated"));
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
+  }, [closeCanvasFullMode, dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
 
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");
@@ -3206,6 +3359,7 @@ export const PlayCanvasIntegration = () => {
           <MobileNestedMenu
             key={`mobile-dropdown-${vesselBasinSelectionInfo?.entityName ?? selectedSceneProduct ?? "unknown"}`}
             items={activeDropdownItems}
+            isFullscreenMode={isFullscreenMode}
             onClose={() => {
               setVesselBasinSelectionInfo(null);
               setDropdownState((prev) => ({ ...prev, visible: false }));
@@ -3228,6 +3382,7 @@ export const PlayCanvasIntegration = () => {
           <MobileNestedMenu
             key={`mobile-countertop-${countertopPopoverState.entityName ?? "unknown"}`}
             items={countertopPopoverItems}
+            isFullscreenMode={isFullscreenMode}
             onClose={closeCountertopPopover}
             title="Select Countertop Configuration"
             previewLabel={countertopPopoverState.entityName}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
@@ -282,6 +282,10 @@ export function Player({
     );
   };
 
+  const handleCanvasFullModeClose = useCallback(() => {
+    onCanvasFullModeChange?.(false);
+  }, [onCanvasFullModeChange]);
+
   const closePopupWithoutBack = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("help");
@@ -475,7 +479,10 @@ export function Player({
         <StepNavigationBar title={activeStep} flow={pathname.includes("/custom") ? "custom" : "prebuilt"} />
       </div>
 
-      <PlayCanvasIntegration />
+      <PlayCanvasIntegration
+        isCanvasFullMode={isCanvasFullMode}
+        onCanvasFullModeClose={handleCanvasFullModeClose}
+      />
 
       {onCanvasFullModeChange && (
         <button
