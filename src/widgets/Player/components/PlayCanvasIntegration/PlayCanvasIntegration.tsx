@@ -148,7 +148,55 @@ const MOBILE_CAMERA_PADDING_WIDE = 1.55;
 const MOBILE_CAMERA_PADDING_TALL = 2.0;
 const MOBILE_CAMERA_FRAMING_QUERY = "(max-width: 767px)";
 const FULLSCREEN_VIEWPORT_TOLERANCE_PX = 2;
+
+const MOBILE_TABLET_MEDIA_QUERY = "(max-width: 1024px)";
+const PLAYER_PLUS_BUTTON_STYLE_ID = "hasting-mobile-player-plus-button-size";
+const PLAYER_PLUS_BUTTON_CLASS = "hasting-mobile-player-plus-button";
 const SIDE_SHELF_WIDTH_CM = 15;
+
+const installMobilePlayerPlusButtonStyles = (document: Document) => {
+  const existingStyle = document.getElementById(PLAYER_PLUS_BUTTON_STYLE_ID);
+  if (!existingStyle) {
+    const style = document.createElement("style");
+    style.id = PLAYER_PLUS_BUTTON_STYLE_ID;
+    style.textContent = `
+@media ${MOBILE_TABLET_MEDIA_QUERY} {
+  .${PLAYER_PLUS_BUTTON_CLASS}:not(.ap-plus-btn),
+  .divider-slot-btn,
+  .divider-slot-add,
+  .divider-slot-occupied {
+    scale: 0.7 !important;
+    transform-origin: center center !important;
+  }
+
+  .ap-plus-btn {
+    width: 25.2px !important;
+    height: 25.2px !important;
+    line-height: 22.4px !important;
+    font-size: 14px !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  const tagPlusButtons = () => {
+    document.querySelectorAll("button").forEach((button) => {
+      if (button.textContent?.trim() === "+") {
+        button.classList.add(PLAYER_PLUS_BUTTON_CLASS);
+      }
+    });
+  };
+
+  tagPlusButtons();
+
+  const Observer = document.defaultView?.MutationObserver ?? MutationObserver;
+  const observer = new Observer(tagPlusButtons);
+  observer.observe(document.body, { characterData: true, childList: true, subtree: true });
+
+  return () => observer.disconnect();
+};
 
 type PlayCanvasCameraApi = {
   setFramingConfig?: (config: CameraFramingConfig) => void;
@@ -1098,6 +1146,7 @@ export const PlayCanvasIntegration = ({
       Boolean((window as any).playCanvasReady);
     let readyDispatched = bridgeEstablished;
     let disposed = false;
+    let cleanupPlayerPlusButtonStyles: (() => void) | null = null;
     const cameraFramingMediaQuery = window.matchMedia(MOBILE_CAMERA_FRAMING_QUERY);
 
     if (!bridgeEstablished) {
@@ -1178,6 +1227,8 @@ export const PlayCanvasIntegration = ({
       const documentChanged = nextDocument !== null && nextDocument !== activeDocument;
 
       if (documentChanged) {
+        cleanupPlayerPlusButtonStyles?.();
+        cleanupPlayerPlusButtonStyles = null;
         stopPolling();
         activeDocument = nextDocument;
         bridgeEstablished =
@@ -1187,6 +1238,10 @@ export const PlayCanvasIntegration = ({
         if (!bridgeEstablished) {
           (window as any).playCanvasReady = false;
         }
+      }
+
+      if (nextDocument && !cleanupPlayerPlusButtonStyles) {
+        cleanupPlayerPlusButtonStyles = installMobilePlayerPlusButtonStyles(nextDocument);
       }
 
       if (tryBridgeApi(cw)) return;
@@ -1235,6 +1290,7 @@ export const PlayCanvasIntegration = ({
       disposed = true;
       iframeEl.removeEventListener("load", handleLoad);
       cameraFramingMediaQuery.removeEventListener("change", handleCameraFramingViewportChange);
+      cleanupPlayerPlusButtonStyles?.();
       stopPolling();
     };
   }, []);
@@ -2102,16 +2158,20 @@ export const PlayCanvasIntegration = ({
       parentEl.style.alignItems = "center";
       parentEl.style.gap = "6px";
       parentEl.style.pointerEvents = "auto";
+      const widgetWindow = parentEl.ownerDocument.defaultView;
+      const isMobileTabletWidget = widgetWindow?.matchMedia(MOBILE_TABLET_MEDIA_QUERY).matches ?? false;
+      parentEl.style.gap = isMobileTabletWidget ? "3px" : "6px";
 
       if (drawerInfo.hasOccupiedDividers) {
         const indicator = document.createElement("div");
+        const indicatorIconSize = isMobileTabletWidget ? 12 : 16;
         indicator.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${indicatorIconSize}" height="${indicatorIconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         indicator.style.background = "#262b31";
         indicator.style.color = "#fff";
         indicator.style.borderRadius = "999px";
-        indicator.style.width = "42px";
-        indicator.style.height = "42px";
+        indicator.style.width = isMobileTabletWidget ? "24px" : "42px";
+        indicator.style.height = isMobileTabletWidget ? "24px" : "42px";
         indicator.style.display = "flex";
         indicator.style.alignItems = "center";
         indicator.style.justifyContent = "center";
@@ -2126,27 +2186,27 @@ export const PlayCanvasIntegration = ({
       const plus = document.createElement("span");
       plus.textContent = "+";
       plus.setAttribute("aria-hidden", "true");
-      plus.style.width = "14px";
-      plus.style.height = "14px";
+      plus.style.width = isMobileTabletWidget ? "10px" : "14px";
+      plus.style.height = isMobileTabletWidget ? "10px" : "14px";
       plus.style.borderRadius = "999px";
       plus.style.background = "rgba(255,255,255,0.22)";
       plus.style.display = "inline-flex";
       plus.style.alignItems = "center";
       plus.style.justifyContent = "center";
-      plus.style.fontSize = "11px";
+      plus.style.fontSize = isMobileTabletWidget ? "8px" : "11px";
       plus.style.fontWeight = "700";
       plus.style.lineHeight = "1";
       button.style.background = "#A05535";
       button.style.color = "#fff";
       button.style.border = "none";
       button.style.borderRadius = "999px";
-      button.style.padding = "5px 8px 5px 12px";
+      button.style.padding = isMobileTabletWidget ? "3px 5px 3px 7px" : "5px 8px 5px 12px";
       button.style.cursor = "pointer";
       button.style.display = "inline-flex";
       button.style.alignItems = "center";
       button.style.justifyContent = "center";
-      button.style.gap = "5px";
-      button.style.fontSize = "11px";
+      button.style.gap = isMobileTabletWidget ? "3px" : "5px";
+      button.style.fontSize = isMobileTabletWidget ? "8px" : "11px";
       button.style.lineHeight = "1.1";
       button.style.fontFamily = "Poppins, sans-serif";
       button.append(label, plus);
