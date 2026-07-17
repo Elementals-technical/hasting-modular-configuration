@@ -224,7 +224,7 @@
   .bottomText {
     position: fixed;
     right: 0;
-    bottom: calc(54px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(0 + env(safe-area-inset-bottom, 0px));
     z-index: 1001;
 
     display: flex;
