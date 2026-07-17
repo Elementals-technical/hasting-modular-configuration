@@ -59,6 +59,8 @@
   }
 
   // max-height: 822px;
+
+  margin-bottom: 75px;
 }
 
 @media (max-width: 1024px) {
@@ -80,8 +82,15 @@
 
   .stepContent {
     margin-bottom: 0;
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 767px) {
+  .stepContent {
+    padding-bottom: calc(54px + env(safe-area-inset-bottom, 0px));
   }
 }
 

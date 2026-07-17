@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: #fff;
 }
 
@@ -29,6 +30,7 @@
     grid-template-rows: auto auto;
     height: calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px));
     height: calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px));
+    height: calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px));
     min-height: 0;
     overflow: hidden;
   }
@@ -149,6 +151,9 @@
     min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
     height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
     max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    min-height: max(220px, calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    height: max(220px, calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    max-height: max(220px, calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
     overflow: hidden;
   }
 
@@ -166,6 +171,9 @@
       min-height: 100svh;
       height: 100svh;
       max-height: 100svh;
+      min-height: 100dvh;
+      height: 100dvh;
+      max-height: 100dvh;
 
       border-bottom: none;
       background: #f8f8f8;
