@@ -956,6 +956,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             </div>
           )}
 
+          <div className={`${s.bottomText} ${s.mobileBottomText}`}>
+            Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
+          </div>
+
           {!handlesDisabled && (
             <div className={s.image}>
               <img src={handleImage} alt="handle preview" />
@@ -963,7 +967,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           )}
         </div>
 
-        <div className={s.bottomText}>
+        <div className={`${s.bottomText} ${s.desktopBottomText}`}>
           Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
         </div>
       </div>
