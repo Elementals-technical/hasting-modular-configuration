@@ -3348,6 +3348,7 @@ export const PlayCanvasIntegration = ({
             position: "absolute",
             inset: 0,
             zIndex: 1100,
+            pointerEvents: "none",
           }}
         >
           {/*
@@ -3376,6 +3377,7 @@ export const PlayCanvasIntegration = ({
             position: "absolute",
             inset: 0,
             zIndex: 1100,
+            pointerEvents: "none",
           }}
         >
           {/* See the selection-menu note above: never start an HQ snapshot from this interaction path. */}
