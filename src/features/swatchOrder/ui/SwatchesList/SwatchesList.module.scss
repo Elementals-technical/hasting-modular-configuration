@@ -61,6 +61,18 @@
     visibility: visible;
     transform: translate(-50%, -6px);
   }
+
+  &:first-child {
+    .tileTooltip {
+      left: 0;
+      transform: translate(0, 0);
+    }
+
+    &:hover .tileTooltip,
+    &:focus-within .tileTooltip {
+      transform: translate(0, -6px);
+    }
+  }
 }
 
 .tile {
