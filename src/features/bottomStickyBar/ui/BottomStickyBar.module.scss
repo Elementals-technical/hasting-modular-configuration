@@ -113,8 +113,12 @@
 
 @media (max-width: 1024px) {
   .bottomBar {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
+    z-index: 120;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .bottomBar > div {
@@ -136,6 +140,10 @@
 }
 
 @media (max-width: 767px) {
+  .bottomBar {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .bottomBar > .total {
     width: 45%;
     gap: 8px;
