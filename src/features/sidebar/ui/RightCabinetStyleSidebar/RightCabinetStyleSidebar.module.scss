@@ -66,6 +66,10 @@
   line-height: 14px; /* 140% */
 }
 
+.mobileBottomText {
+  display: none;
+}
+
 .image {
   width: 100%;
   height: 160px;
@@ -222,27 +226,27 @@
   }
 
   .bottomText {
-    position: fixed;
-    right: 0;
-    bottom: calc(0 + env(safe-area-inset-bottom, 0px));
-    z-index: 1001;
-
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: calc(100vw - 86px);
+    width: 100%;
     margin: 0;
-    padding: 9px 12px;
+    padding: 8px 10px;
 
     color: #ac5331;
-    background: #fff;
-    border-top: 1px solid #e5e6ea;
-    box-shadow: 0 -8px 18px rgba(40, 40, 40, 0.08);
 
     font-size: 11px;
     line-height: 14px;
     text-align: center;
+  }
+
+  .desktopBottomText {
+    display: none;
+  }
+
+  .mobileBottomText {
+    display: flex;
   }
 
   .plusButtonIcon {
