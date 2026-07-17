@@ -46,8 +46,8 @@
       height: 24px;
 
       svg {
-        width: 15px;
-        height: 15px;
+        width: 16px;
+        height: 16px;
       }
     }
   }
@@ -113,6 +113,9 @@
 
 .dimensionButtonWrap {
   position: relative;
+
+  display: flex;
+  align-items: center;
 }
 
 .unitMenu {
