@@ -182,13 +182,16 @@
 
 @media (max-width: 767px) {
   .cabinetStyleSidebar {
+    --bottom-sticky-bar-offset: calc(54px + env(safe-area-inset-bottom, 0px));
+
     position: fixed;
     top: calc(var(--header-height, 0px) + var(--banner-height, 0px) + var(--mobile-player-height, 0px));
-    bottom: 0;
+    bottom: var(--bottom-sticky-bar-offset);
     width: calc(100vw - 86px);
     height: auto;
     padding: 10px 12px 48px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .arrow {
@@ -221,7 +224,7 @@
   .bottomText {
     position: fixed;
     right: 0;
-    bottom: 0;
+    bottom: calc(54px + env(safe-area-inset-bottom, 0px));
     z-index: 1001;
 
     display: flex;
@@ -230,7 +233,7 @@
 
     width: calc(100vw - 86px);
     margin: 0;
-    padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
+    padding: 9px 12px;
 
     color: #ac5331;
     background: #fff;
