@@ -47,6 +47,8 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const [isQuoteDownloadModalOpen, setIsQuoteDownloadModalOpen] = useState(false);
   const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
   const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
+  const isDisplayedPriceLoading = isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number");
+  const fullPriceLabel = activeSkus.length ? formatPrice(displayedTotal) : "$0.00";
 
   const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
   const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
@@ -106,13 +108,11 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
       <div className={s.bottomBar}>
         <div className={s.total}>
           <span className={s.total_text}>Total List Price</span>
-          <span>
-            {!activeSkus.length ? (
-              "$0.00"
-            ) : isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number") ? (
+          <span className={s.priceValue} aria-label={isDisplayedPriceLoading ? undefined : fullPriceLabel}>
+            {isDisplayedPriceLoading ? (
               <span className={s.priceSpinner} />
             ) : (
-              formatPrice(displayedTotal)
+              fullPriceLabel
             )}
           </span>
           <span className={s.showroom_link}>

@@ -81,6 +81,12 @@
   animation: price-spin 0.9s linear infinite;
 }
 
+.priceValue {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
 @keyframes price-spin {
   to {
     transform: rotate(360deg);
@@ -141,21 +147,25 @@
 
 @media (max-width: 767px) {
   .bottomBar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 46%);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .bottomBar > .total {
-    width: 45%;
-    gap: 8px;
+    width: auto;
+    min-width: 0;
+    gap: 6px;
   }
 
   .bottomBar > .nextStepWrapp {
-    width: 55%;
+    width: auto;
+    min-width: 0;
   }
 
   .nextStepWrapp {
-    justify-content: space-between;
-    gap: 8px;
+    justify-content: flex-end;
+    gap: 6px;
   }
 
   .nextStepWrappNoBack {
@@ -172,13 +182,21 @@
   }
 
   .bottomBar > div {
-    padding: 10px;
+    padding: 10px 8px;
     height: 54px;
   }
 
   .backButton {
     width: 34px;
     height: 34px;
+  }
+
+  .priceValue {
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -294,7 +312,7 @@
     display: inline-flex;
     flex: 1 1 auto;
     min-width: 0;
-    max-width: 128px;
+    max-width: 118px;
     min-height: 34px;
     padding: 8px 10px;
     border-radius: 30px;
