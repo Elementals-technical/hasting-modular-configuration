@@ -234,9 +234,9 @@
 
 .autofillTooltip {
   position: absolute;
-  right: 0;
+  left: 50%;
   bottom: calc(100% + 8px);
-  transform: translateY(4px);
+  transform: translate(-50%, 4px);
   width: max-content;
   max-width: 220px;
   padding: 8px 10px;
@@ -259,7 +259,7 @@
 .autofillInfoWrap:focus-within .autofillTooltip {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
 }
 
 @media (max-width: 767px) {
@@ -305,7 +305,6 @@
   }
 
   .autofillTooltip {
-    right: -8px;
     max-width: min(260px, calc(100vw - 32px));
     padding: 9px 10px;
     text-align: left;

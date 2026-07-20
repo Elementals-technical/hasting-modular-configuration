@@ -10,9 +10,17 @@ interface CustomizeModePromptProps {
   isOpening: boolean;
   setIsOpening: (isOpening: boolean) => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
 }
 
-export const CustomizeModePrompt: React.FC<CustomizeModePromptProps> = ({ isOpening, setIsOpening, onConfirm }) => {
+export const CustomizeModePrompt: React.FC<CustomizeModePromptProps> = ({
+  isOpening,
+  setIsOpening,
+  onConfirm,
+  title = "Looking to alter the configuration?",
+  description = "Switch to Custom Mode to add, resize, reposition, remove cabinets, and more.",
+}) => {
   const handleCancel = () => setIsOpening(false);
 
   const handleConfirm = () => {
@@ -24,14 +32,14 @@ export const CustomizeModePrompt: React.FC<CustomizeModePromptProps> = ({ isOpen
     <PopupCenterContent onClose={handleCancel} isOpening={isOpening}>
       <div className={s.instrPopup}>
         <div className={s.header}>
-          <div className={s.title}>Looking to alter the configuration?</div>
+          <div className={s.title}>{title}</div>
           <div className={s.button} onClick={handleCancel}>
             <CloseBtnIcon />
           </div>
         </div>
 
         <div className={s.content}>
-          <p>Switch to Custom Mode to add, resize, reposition, remove cabinets, and more.</p>
+          <p>{description}</p>
         </div>
 
         <div className={s.footer}>

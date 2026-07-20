@@ -150,6 +150,11 @@ const MOBILE_CAMERA_FRAMING_QUERY = "(max-width: 767px)";
 const FULLSCREEN_VIEWPORT_TOLERANCE_PX = 2;
 
 const MOBILE_TABLET_MEDIA_QUERY = "(max-width: 1024px)";
+const MOBILE_DOUBLE_TAP_MAX_DELAY_MS = 350;
+const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
+const CUSTOMIZE_MODE_MOBILE_PROMPT_TITLE = "Looking to further customize this model?";
+const CUSTOMIZE_MODE_MOBILE_PROMPT_DESCRIPTION =
+  "Switch to custom mode for full cabinet design control–add, remove, reposition cabinets and more";
 const PLAYER_PLUS_BUTTON_STYLE_ID = "hasting-mobile-player-plus-button-size";
 const PLAYER_PLUS_BUTTON_CLASS = "hasting-mobile-player-plus-button";
 const SIDE_SHELF_WIDTH_CM = 15;
@@ -1037,7 +1042,7 @@ export const PlayCanvasIntegration = ({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+    const mediaQuery = window.matchMedia(MOBILE_TABLET_MEDIA_QUERY);
     isMobileMediaQueryRef.current = mediaQuery;
     const sync = () => setIsMobileMenu(mediaQuery.matches);
 
@@ -1959,14 +1964,51 @@ export const PlayCanvasIntegration = ({
     if (!iframeEl) return;
 
     let detachListeners: (() => void) | null = null;
+    let lastMobileTap: { time: number; x: number; y: number } | null = null;
+
+    const openDefaultCustomizePrompt = () => {
+      setCustomizeModePromptAction("default");
+      setCustomizeModePromptDeleteTarget(null);
+      setIsCustomizeModePromptOpen(true);
+    };
+
+    const isMobileDoubleTap = (x: number, y: number) => {
+      const now = Date.now();
+      const previousTap = lastMobileTap;
+
+      lastMobileTap = { time: now, x, y };
+
+      if (!previousTap) return false;
+
+      const elapsed = now - previousTap.time;
+      const distance = Math.hypot(x - previousTap.x, y - previousTap.y);
+
+      return elapsed <= MOBILE_DOUBLE_TAP_MAX_DELAY_MS && distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
+    };
 
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 0) return;
       if (!isPrebuiltRef.current) return;
       if (e.detail !== 2) return;
-      setCustomizeModePromptAction("default");
-      setCustomizeModePromptDeleteTarget(null);
-      setIsCustomizeModePromptOpen(true);
+      openDefaultCustomizePrompt();
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") return;
+      if (!isPrebuiltRef.current) return;
+      if (!isMobileDoubleTap(e.clientX, e.clientY)) return;
+
+      openDefaultCustomizePrompt();
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isPrebuiltRef.current) return;
+
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      if (!isMobileDoubleTap(touch.clientX, touch.clientY)) return;
+
+      openDefaultCustomizePrompt();
     };
 
     const attach = () => {
@@ -1976,8 +2018,16 @@ export const PlayCanvasIntegration = ({
       if (href === "about:blank") return () => {};
 
       doc.addEventListener("mousedown", onMouseDown, true);
+      if (typeof doc.defaultView?.PointerEvent === "function") {
+        doc.addEventListener("pointerup", onPointerUp, true);
+      } else {
+        doc.addEventListener("touchend", onTouchEnd, true);
+      }
+
       return () => {
         doc.removeEventListener("mousedown", onMouseDown, true);
+        doc.removeEventListener("pointerup", onPointerUp, true);
+        doc.removeEventListener("touchend", onTouchEnd, true);
       };
     };
 
@@ -3291,6 +3341,8 @@ export const PlayCanvasIntegration = ({
           isOpening={isCustomizeModePromptOpen}
           setIsOpening={handleCustomizeModePromptOpenChange}
           onConfirm={handleCustomizeFromPrompt}
+          title={isMobileMenu ? CUSTOMIZE_MODE_MOBILE_PROMPT_TITLE : undefined}
+          description={isMobileMenu ? CUSTOMIZE_MODE_MOBILE_PROMPT_DESCRIPTION : undefined}
         />
       )}
 
