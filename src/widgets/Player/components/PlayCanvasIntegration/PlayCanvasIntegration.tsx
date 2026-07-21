@@ -152,9 +152,6 @@ const FULLSCREEN_VIEWPORT_TOLERANCE_PX = 2;
 const MOBILE_TABLET_MEDIA_QUERY = "(max-width: 1024px)";
 const MOBILE_DOUBLE_TAP_MAX_DELAY_MS = 350;
 const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
-const CUSTOMIZE_MODE_MOBILE_PROMPT_TITLE = "Looking to further customize this model?";
-const CUSTOMIZE_MODE_MOBILE_PROMPT_DESCRIPTION =
-  "Switch to custom mode for full cabinet design control–add, remove, reposition cabinets and more";
 const PLAYER_PLUS_BUTTON_STYLE_ID = "hasting-mobile-player-plus-button-size";
 const PLAYER_PLUS_BUTTON_CLASS = "hasting-mobile-player-plus-button";
 const SIDE_SHELF_WIDTH_CM = 15;
@@ -3341,8 +3338,6 @@ export const PlayCanvasIntegration = ({
           isOpening={isCustomizeModePromptOpen}
           setIsOpening={handleCustomizeModePromptOpenChange}
           onConfirm={handleCustomizeFromPrompt}
-          title={isMobileMenu ? CUSTOMIZE_MODE_MOBILE_PROMPT_TITLE : undefined}
-          description={isMobileMenu ? CUSTOMIZE_MODE_MOBILE_PROMPT_DESCRIPTION : undefined}
         />
       )}
 
