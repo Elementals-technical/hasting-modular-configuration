@@ -36,6 +36,9 @@ const testimonials = [
   },
 ];
 
+const HOW_TO_BUY_CONFIGURATION_ID_FIELD = "configuration-id";
+const HOW_TO_BUY_CONFIGURATION_URL_FIELD = "configuration-url";
+
 type TestimonialListProps = {
   className: string;
 };
@@ -76,6 +79,11 @@ type HowToBuyPopupProps = {
   onOpenChange: (open: boolean) => void;
   hubspotPortalId: string;
   hubspotFormId: string;
+  configurationId?: string | null;
+  configurationUrl?: string | null;
+  isConfigurationLoading?: boolean;
+  configurationError?: string | null;
+  onRetryConfiguration?: () => void;
   onFormSubmitted?: () => void;
 };
 
@@ -84,6 +92,11 @@ export default function HowToBuyPopup({
   onOpenChange,
   hubspotPortalId,
   hubspotFormId,
+  configurationId,
+  configurationUrl,
+  isConfigurationLoading = false,
+  configurationError,
+  onRetryConfiguration,
   onFormSubmitted,
 }: HowToBuyPopupProps) {
   const rightColRef = useRef<HTMLDivElement | null>(null);
@@ -164,6 +177,14 @@ export default function HowToBuyPopup({
   if (!open) {
     return null;
   }
+
+  const hubspotHiddenFields =
+    configurationId && configurationUrl
+      ? {
+          [HOW_TO_BUY_CONFIGURATION_ID_FIELD]: configurationId,
+          [HOW_TO_BUY_CONFIGURATION_URL_FIELD]: configurationUrl,
+        }
+      : undefined;
 
   return (
     <PortalBody>
@@ -433,12 +454,28 @@ export default function HowToBuyPopup({
                 }}
               >
                 <div className={styles.formRight}>
-                  <HubspotForm
-                    portalId={hubspotPortalId}
-                    formId={hubspotFormId}
-                    onFormSubmitted={onFormSubmitted}
-                    customStyle={true}
-                  />
+                  {isConfigurationLoading ? (
+                    <div className={styles.formStatus} aria-live="polite">
+                      Preparing your design...
+                    </div>
+                  ) : configurationError ? (
+                    <div className={styles.formStatus} role="alert">
+                      <p>{configurationError}</p>
+                      {onRetryConfiguration && (
+                        <button type="button" className={styles.retryButton} onClick={onRetryConfiguration}>
+                          Try again
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <HubspotForm
+                      portalId={hubspotPortalId}
+                      formId={hubspotFormId}
+                      onFormSubmitted={onFormSubmitted}
+                      customStyle={true}
+                      hiddenFields={hubspotHiddenFields}
+                    />
+                  )}
                 </div>
               </div>
             </div>
