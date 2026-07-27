@@ -13,6 +13,7 @@ import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuo
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 import { FileDollarIcon } from "@/shared/assets/images/svg/FileDollarIcon";
+import { useCurrentConfigurationLink, type CurrentConfigurationLink } from "@/features/saveConfiguration";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -44,7 +45,11 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
   const [isNavigatingToQuote, setIsNavigatingToQuote] = useState(false);
   const [isHowToBuyOpen, setIsHowToBuyOpen] = useState(false);
+  const [isPreparingHowToBuyConfiguration, setIsPreparingHowToBuyConfiguration] = useState(false);
+  const [howToBuyConfigurationLink, setHowToBuyConfigurationLink] = useState<CurrentConfigurationLink | null>(null);
+  const [howToBuyConfigurationError, setHowToBuyConfigurationError] = useState<string | null>(null);
   const [isQuoteDownloadModalOpen, setIsQuoteDownloadModalOpen] = useState(false);
+  const { createCurrentConfigurationLink } = useCurrentConfigurationLink();
   const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
   const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
   const isDisplayedPriceLoading = isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number");
@@ -87,13 +92,32 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
     }
   };
 
+  const prepareHowToBuyConfiguration = async () => {
+    if (isPreparingHowToBuyConfiguration) return;
+
+    setIsHowToBuyOpen(true);
+    setIsPreparingHowToBuyConfiguration(true);
+    setHowToBuyConfigurationLink(null);
+    setHowToBuyConfigurationError(null);
+
+    try {
+      const link = await createCurrentConfigurationLink();
+      setHowToBuyConfigurationLink(link);
+    } catch (error) {
+      console.error("[How to Buy] Failed to prepare configuration link", error);
+      setHowToBuyConfigurationError("We couldn't prepare your design details. Please try again.");
+    } finally {
+      setIsPreparingHowToBuyConfiguration(false);
+    }
+  };
+
   const handleNavigate = () => {
     if (nextStep) {
       closeDrawerInteraction();
 
       navigate(nextStep?.path);
     } else {
-      setIsHowToBuyOpen(true);
+      void prepareHowToBuyConfiguration();
     }
   };
 
@@ -170,14 +194,24 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
               <ArrowLeft fill="#1f2933" />
             </button>
           )}
-          <BaseButton className={s.desktopNextButton} onClick={handleNavigate} fullWidth={true}>
-            <span className={s.nextButtonDesktopLabel}>{nextStep ? `Next: ${nextStep.label}` : "How to Buy"}</span>
-            <span className={s.nextButtonMobileLabel}>{nextStep ? nextStep.label : "How to Buy"}</span>
+          <BaseButton
+            className={s.desktopNextButton}
+            onClick={handleNavigate}
+            disabled={!nextStep && isPreparingHowToBuyConfiguration}
+            fullWidth={true}
+          >
+            <span className={s.nextButtonDesktopLabel}>
+              {nextStep ? `Next: ${nextStep.label}` : isPreparingHowToBuyConfiguration ? "Preparing..." : "How to Buy"}
+            </span>
+            <span className={s.nextButtonMobileLabel}>
+              {nextStep ? nextStep.label : isPreparingHowToBuyConfiguration ? "Preparing..." : "How to Buy"}
+            </span>
           </BaseButton>
           <button
             type="button"
             className={`${s.backButton} ${s.mobileNextButton}`}
             onClick={handleNavigate}
+            disabled={!nextStep && isPreparingHowToBuyConfiguration}
             aria-label={nextStep ? `Next to ${nextStep.label}` : "How to Buy"}
           >
             <ArrowLeft fill="#1f2933" />
@@ -190,6 +224,11 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
         onOpenChange={setIsHowToBuyOpen}
         hubspotPortalId={HOW_TO_BUY_HUBSPOT_PORTAL_ID}
         hubspotFormId={HOW_TO_BUY_HUBSPOT_FORM_ID}
+        configurationId={howToBuyConfigurationLink?.id}
+        configurationUrl={howToBuyConfigurationLink?.url}
+        isConfigurationLoading={isPreparingHowToBuyConfiguration}
+        configurationError={howToBuyConfigurationError}
+        onRetryConfiguration={() => void prepareHowToBuyConfiguration()}
         onFormSubmitted={() => setIsHowToBuyOpen(false)}
       />
 

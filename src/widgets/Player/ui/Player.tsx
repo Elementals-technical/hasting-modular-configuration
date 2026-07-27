@@ -70,6 +70,11 @@ type PlayerProps = {
   onInteractiveTutorialClose?: () => void;
 };
 
+type PlayerLocationState = {
+  helpModal?: boolean;
+  openSwatchOrderFromHelp?: boolean;
+};
+
 export function Player({
   isCanvasFullMode = false,
   onCanvasFullModeChange,
@@ -220,7 +225,8 @@ export function Player({
   }, [ready]);
 
   const isOpening = searchParams.get("help") === "1";
-  const hasHelpState = Boolean((location.state as { helpModal?: boolean } | null)?.helpModal);
+  const locationState = location.state as PlayerLocationState | null;
+  const hasHelpState = Boolean(locationState?.helpModal);
   const summaryViewPath = pathname.includes("/custom") ? "/custom/summary" : "/prebuilt/summary";
   const helpPath = (searchParams.get("helpPath") ?? "")
     .split(".")
@@ -302,6 +308,40 @@ export function Player({
     );
   };
 
+  const navigateToSummarySwatches = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("help");
+    nextParams.delete("step");
+    nextParams.delete("helpPath");
+    const search = nextParams.toString();
+
+    navigate(
+      {
+        pathname: summaryViewPath,
+        search: search ? `?${search}` : "",
+      },
+      { state: { openSwatchOrderFromHelp: true } },
+    );
+  };
+
+  useEffect(() => {
+    if (!isSummaryPage || !locationState?.openSwatchOrderFromHelp) return;
+
+    dispatch(openSwatchOrder());
+
+    const nextState = { ...locationState };
+    delete nextState.openSwatchOrderFromHelp;
+    const hasNextState = Object.keys(nextState).length > 0;
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: location.search,
+      },
+      { replace: true, state: hasNextState ? nextState : null },
+    );
+  }, [dispatch, isSummaryPage, location.pathname, location.search, locationState, navigate]);
+
   const helpNodes: HelpCenterNode[] = [
     {
       id: "configurator-how-tos",
@@ -360,15 +400,7 @@ export function Player({
     {
       id: "order-free-swatches",
       label: "Order Free Swatches",
-      action: () => {
-        const section = pathname.includes("countertop")
-          ? "Countertop Color"
-          : pathname.includes("accessor")
-            ? "Towel Bar Color"
-            : "Cabinet Color";
-        dispatch(openSwatchOrder(section));
-        handleClosePopup();
-      },
+      action: navigateToSummarySwatches,
     },
     {
       id: "how-to-buy",

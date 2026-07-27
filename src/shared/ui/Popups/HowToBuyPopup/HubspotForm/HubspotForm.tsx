@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import "./hubspot-forms.css";
 
 type HubspotCallback = (...args: unknown[]) => void;
+type HubspotHiddenFields = Record<string, string | null | undefined>;
 
 type HubspotFormProps = {
   portalId: string;
@@ -14,6 +15,7 @@ type HubspotFormProps = {
   onFormSubmitted?: HubspotCallback;
   customStyle?: boolean;
   customCss?: string;
+  hiddenFields?: HubspotHiddenFields;
 };
 
 type HubspotFormsApi = {
@@ -51,6 +53,26 @@ const isHubspotMessage = (value: unknown): value is HubspotMessage => {
   return typeof value === "object" && value !== null && "type" in value;
 };
 
+const escapeAttributeValue = (value: string) => value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
+const syncHubspotFieldValues = (root: HTMLElement | null, values: HubspotHiddenFields | undefined) => {
+  if (!root || !values) return;
+
+  Object.entries(values).forEach(([name, value]) => {
+    const normalizedValue = value?.trim();
+    if (!name || !normalizedValue) return;
+
+    const field = root.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+      `[name="${escapeAttributeValue(name)}"]`,
+    );
+    if (!field) return;
+
+    field.value = normalizedValue;
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+};
+
 const HubspotForm = ({
   portalId,
   formId,
@@ -61,6 +83,7 @@ const HubspotForm = ({
   onFormSubmitted,
   customStyle = false,
   customCss,
+  hiddenFields,
 }: HubspotFormProps) => {
   const reactId = useId().replace(/:/g, "");
   const targetId = `hubspot-form-target-${reactId}`;
@@ -71,10 +94,16 @@ const HubspotForm = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const callbacksRef = useRef({ onFormReady, onFormSubmit, onFormSubmitted });
+  const hiddenFieldsRef = useRef(hiddenFields);
 
   useEffect(() => {
     callbacksRef.current = { onFormReady, onFormSubmit, onFormSubmitted };
   }, [onFormReady, onFormSubmit, onFormSubmitted]);
+
+  useEffect(() => {
+    hiddenFieldsRef.current = hiddenFields;
+    syncHubspotFieldValues(formRef.current, hiddenFields);
+  }, [hiddenFields]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -84,11 +113,13 @@ const HubspotForm = ({
 
       if (event.data.eventName === "onFormSubmit" && !formSubmitRef.current) {
         formSubmitRef.current = true;
+        syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
         callbacksRef.current.onFormSubmit?.();
       }
 
       if (event.data.eventName === "onFormSubmitted" && !formSubmittedRef.current) {
         formSubmittedRef.current = true;
+        syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
         callbacksRef.current.onFormSubmitted?.();
       }
     };
@@ -153,6 +184,7 @@ const HubspotForm = ({
       }
 
       formConfig.onFormReady = (...args) => {
+        syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
         setIsLoading(false);
         callbacksRef.current.onFormReady?.(...args);
       };
@@ -160,12 +192,14 @@ const HubspotForm = ({
       formConfig.onFormSubmit = (...args) => {
         if (formSubmitRef.current) return;
         formSubmitRef.current = true;
+        syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
         callbacksRef.current.onFormSubmit?.(...args);
       };
 
       formConfig.onFormSubmitted = (...args) => {
         if (formSubmittedRef.current) return;
         formSubmittedRef.current = true;
+        syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
         callbacksRef.current.onFormSubmitted?.(...args);
       };
 
