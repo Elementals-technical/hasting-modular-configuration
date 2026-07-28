@@ -1,6 +1,6 @@
 import grigioBromoImage from "@/shared/assets/images/materials/LacqueredMatte_Color_Grigio_Bromo_.jpg";
 
-const SPECIAL_PROXY_NAME = "Cabinet Color";
+const SPECIAL_PROXY_NAMES = new Set(["Cabinet Color", "Handle Groove Color", "Towel Bar Color"]);
 const SPECIAL_VARIANT_NAME = "Grigio Bromo";
 export const SPECIAL_VARIANT_FALLBACK_CODE = "DS MT";
 export const SPECIAL_VARIANT_DISPLAY_VALUE = `${SPECIAL_VARIANT_NAME} ${SPECIAL_VARIANT_FALLBACK_CODE}`;
@@ -33,7 +33,7 @@ export const getConfiguratorVariantOverrides = ({
   value?: string;
   image?: string;
 } => {
-  if (proxyName !== SPECIAL_PROXY_NAME) return {};
+  if (!SPECIAL_PROXY_NAMES.has(proxyName)) return {};
   if (variant.name.trim() !== SPECIAL_VARIANT_NAME) return {};
 
   const meta = (variant.metadata ?? {}) as Record<string, unknown>;

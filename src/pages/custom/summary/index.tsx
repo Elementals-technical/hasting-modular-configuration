@@ -5,6 +5,7 @@ import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
 import { buildMaterialLookup } from "@/shared/lib/buildMaterialLookup";
 import { buildSummaryMaterialElements } from "@/shared/lib/summaryMaterialElements";
+import { copyTextToClipboard } from "@/shared/lib/copyTextToClipboard";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
 import { EditPenIcon } from "@/shared/assets/images/svg/EditPenIcon";
@@ -367,15 +368,12 @@ export const CustomSummaryPage = () => {
     [generatedConfigId, location.search],
   );
 
-  const handleCopy = (text: string, id: string) => {
-    if (!navigator.clipboard) {
-      return;
-    }
+  const handleCopy = async (text: string, id: string) => {
+    const isCopied = await copyTextToClipboard(text);
+    if (!isCopied) return;
 
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 1500);
-    });
+    setCopiedId(id);
+    window.setTimeout(() => setCopiedId(null), 1500);
   };
   const handleEditSection = useCallback(
     (sectionId: string) => {
