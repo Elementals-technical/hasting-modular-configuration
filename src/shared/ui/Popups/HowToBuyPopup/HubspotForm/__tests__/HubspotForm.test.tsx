@@ -16,8 +16,8 @@ const renderHubspotFields = (config: HubspotCreateConfig) => {
   const configurationId = document.createElement("input");
   const configurationUrl = document.createElement("input");
 
-  configurationId.name = "configuration-id";
-  configurationUrl.name = "configuration-url";
+  configurationId.name = "configuration_id";
+  configurationUrl.name = "configuration_url";
 
   form.append(configurationId, configurationUrl);
   target?.append(form);
@@ -55,8 +55,8 @@ describe("HubspotForm", () => {
         portalId="21569224"
         formId="form-id"
         hiddenFields={{
-          "configuration-id": "config-123",
-          "configuration-url": "https://example.test/config?configId=config-123",
+          configuration_id: "config-123",
+          configuration_url: "https://example.test/config?configId=config-123",
         }}
       />,
     );
@@ -67,8 +67,8 @@ describe("HubspotForm", () => {
     });
 
     expect(createFormCalls).toBe(1);
-    expect(document.querySelector<HTMLInputElement>('[name="configuration-id"]')?.value).toBe("config-123");
-    expect(document.querySelector<HTMLInputElement>('[name="configuration-url"]')?.value).toBe(
+    expect(document.querySelector<HTMLInputElement>('[name="configuration_id"]')?.value).toBe("config-123");
+    expect(document.querySelector<HTMLInputElement>('[name="configuration_url"]')?.value).toBe(
       "https://example.test/config?configId=config-123",
     );
   });
@@ -79,8 +79,8 @@ describe("HubspotForm", () => {
         portalId="21569224"
         formId="form-id"
         hiddenFields={{
-          "configuration-id": "config-123",
-          "configuration-url": "https://example.test/config?configId=config-123",
+          configuration_id: "config-123",
+          configuration_url: "https://example.test/config?configId=config-123",
         }}
       />,
     );
@@ -95,14 +95,14 @@ describe("HubspotForm", () => {
         portalId="21569224"
         formId="form-id"
         hiddenFields={{
-          "configuration-id": "config-456",
-          "configuration-url": "https://example.test/config?configId=config-456",
+          configuration_id: "config-456",
+          configuration_url: "https://example.test/config?configId=config-456",
         }}
       />,
     );
 
-    const configurationId = document.querySelector<HTMLInputElement>('[name="configuration-id"]');
-    const configurationUrl = document.querySelector<HTMLInputElement>('[name="configuration-url"]');
+    const configurationId = document.querySelector<HTMLInputElement>('[name="configuration_id"]');
+    const configurationUrl = document.querySelector<HTMLInputElement>('[name="configuration_url"]');
 
     expect(configurationId?.value).toBe("config-456");
     expect(configurationUrl?.value).toBe("https://example.test/config?configId=config-456");

@@ -36,8 +36,8 @@ const testimonials = [
   },
 ];
 
-const HOW_TO_BUY_CONFIGURATION_ID_FIELD = "configuration-id";
-const HOW_TO_BUY_CONFIGURATION_URL_FIELD = "configuration-url";
+const HOW_TO_BUY_CONFIGURATION_ID_FIELD = "configuration_id";
+const HOW_TO_BUY_CONFIGURATION_URL_FIELD = "configuration_url";
 
 type TestimonialListProps = {
   className: string;
