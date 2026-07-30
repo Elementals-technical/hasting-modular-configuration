@@ -38,6 +38,7 @@ import {
   getGrainDirection,
   getHandleGrooveColor,
   getPlacedCabinetStyles,
+  getProductsPresets,
   getSelectedProductConfig,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
@@ -51,6 +52,7 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import {
+  addProductPreset,
   setCabinetColor,
   setCabinetColorSku,
   setCabinetColorMaterial,
@@ -80,6 +82,7 @@ export const CustomCabinetColorsPage = () => {
   const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
+  const productsPresets = useAppSelector(getProductsPresets);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
   const isPlayCanvasReady = usePlayCanvasReady();
@@ -442,15 +445,42 @@ export const CustomCabinetColorsPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    await setConfigBatch(
-      {},
-      {
-        CabinetColor: colorName,
-      },
-    );
+    const shouldSyncHandleGrooveColor = Boolean(activeCabinetColor) && activeGrooveColor === activeCabinetColor;
+    const configPatch: Record<string, string> = {
+      CabinetColor: colorName,
+    };
+
+    if (shouldSyncHandleGrooveColor) {
+      configPatch.HandleGrooveColor = colorName;
+    }
+
+    await setConfigBatch({}, configPatch);
+
+    if (productsPresets.length) {
+      dispatch(
+        addProductPreset(
+          productsPresets.map((preset) => ({
+            ...preset,
+            CabinetColor: colorName,
+            ...(shouldSyncHandleGrooveColor ? { HandleGrooveColor: colorName } : {}),
+          })),
+        ),
+      );
+    }
 
     dispatch(setCabinetColor(colorName));
     dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
+
+    if (shouldSyncHandleGrooveColor) {
+      dispatch(
+        setSelectedProductConfig({
+          ...selectedProductConfig,
+          HandleGrooveColor: colorName,
+        }),
+      );
+      dispatch(setHandleGrooveColor(colorName));
+      dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
+    }
 
     const option = findOptionByColorName(colorName);
     const materialToken = resolveMaterialToken(option);
