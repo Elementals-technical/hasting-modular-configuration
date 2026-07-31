@@ -17,6 +17,7 @@ import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_ROUTE_QUERY,
+  INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS,
   INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
   dispatchInteractiveConfiguratorTutorialSceneCabinetReady,
   subscribeToInteractiveConfiguratorTutorialActiveStepChange,
@@ -142,6 +143,19 @@ const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
 const PENDING_CUSTOM_DELETE_PRODUCT_ID_KEY = "pendingCustomDeleteProductId";
+
+const getTutorialAccordionValue = (stepId: string | null) => {
+  if (stepId === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType) return CABINET_TYPE_ID;
+  if (
+    stepId === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetStyle ||
+    stepId === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customSizingHandle ||
+    stepId === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet
+  ) {
+    return CABINET_STYLE_ID;
+  }
+
+  return null;
+};
 
 const isSidePanelStatus = (value: string | undefined): value is SidePanelStatus =>
   value === "active" || value === "none" || value === "auto-removed";
@@ -877,6 +891,11 @@ export const CabinetBuilderPage = () => {
     () =>
       subscribeToInteractiveConfiguratorTutorialActiveStepChange(({ stepId }) => {
         setIsInteractiveTutorialActive(stepId !== null);
+
+        const tutorialAccordionValue = getTutorialAccordionValue(stepId);
+        if (tutorialAccordionValue) {
+          setAccordionValue(tutorialAccordionValue);
+        }
       }),
     [],
   );
