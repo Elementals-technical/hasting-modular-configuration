@@ -61,6 +61,7 @@ import { flutingRule } from "@/features/configurator-rule-core/options";
 import { BaseButton } from "@/shared";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
+import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 
 const isHiddenVariantMeta = (meta: { label?: string; value?: string }): boolean =>
   isHiddenConfiguratorDisplayValue(meta.label) || isHiddenConfiguratorDisplayValue(meta.value);
@@ -593,6 +594,15 @@ export const CabinetPage = () => {
     dispatch(setBookMatching(checked ? "enabled" : ""));
   };
 
+  const handleOrderCabinetSwatches = () => {
+    trackModularOrderFreeSwatchesClick({
+      cta_location: "cabinet_color",
+      configurator_flow: "prebuilt",
+      product_element: "Cabinet Color",
+    });
+    dispatch(openSwatchOrder("Cabinet Color"));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -601,7 +611,7 @@ export const CabinetPage = () => {
       content: (
         <>
           <ViewModePanel
-            onOrderSwatches={() => dispatch(openSwatchOrder("Cabinet Color"))}
+            onOrderSwatches={handleOrderCabinetSwatches}
             fullModeTitle="Cabinet Color"
             fullModeOptions={sortedAllBasePanelOptions}
             fullModeActiveValue={activeCabinetColor}
@@ -630,7 +640,7 @@ export const CabinetPage = () => {
             content: (
               <>
                 <ViewModePanel
-                  onOrderSwatches={() => dispatch(openSwatchOrder("Cabinet Color"))}
+                  onOrderSwatches={handleOrderCabinetSwatches}
                   fullModeTitle="Handle Groove Color"
                   fullModeOptions={allGrooveColorOptions}
                   fullModeActiveValue={activeGrooveColor}

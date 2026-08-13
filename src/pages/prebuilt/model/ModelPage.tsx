@@ -88,6 +88,7 @@ import {
   resolveCountertopColorSkuFromCandidates,
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
+import { trackModularCustomizeClick } from "@/shared/lib/analytics/modularKeyEvents";
 import { optionsMockData3 } from "../countertop/constants";
 
 import s from "./ModelPage.module.scss";
@@ -677,6 +678,12 @@ export const ModelPage = () => {
 
   const handleCustomizePreset = async (presetProducts?: PresetProduct[]) => {
     if (!presetProducts?.length) return;
+
+    trackModularCustomizeClick({
+      cta_location: "prebuilt_model_selection",
+      configurator_flow: "prebuilt",
+      model_count: presetProducts.length,
+    });
 
     await resetAccessoriesForCustomTransition();
     await removeAllProducts();
