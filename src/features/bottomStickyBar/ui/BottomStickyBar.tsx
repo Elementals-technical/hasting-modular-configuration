@@ -14,6 +14,7 @@ import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 import { FileDollarIcon } from "@/shared/assets/images/svg/FileDollarIcon";
 import { useCurrentConfigurationLink, type CurrentConfigurationLink } from "@/features/saveConfiguration";
+import { trackModularHowToBuyClick } from "@/shared/lib/analytics/modularKeyEvents";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -117,6 +118,10 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
 
       navigate(nextStep?.path);
     } else {
+      trackModularHowToBuyClick({
+        cta_location: "bottom_sticky_bar",
+        configurator_flow: flow,
+      });
       void prepareHowToBuyConfiguration();
     }
   };

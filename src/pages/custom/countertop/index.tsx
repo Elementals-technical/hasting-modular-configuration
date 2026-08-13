@@ -98,6 +98,7 @@ import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
 import { normalizeProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
+import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
@@ -1798,6 +1799,15 @@ export const CustomCountertopPage = () => {
     </FilterRow>
   );
 
+  const handleOrderCountertopSwatches = () => {
+    trackModularOrderFreeSwatchesClick({
+      cta_location: "countertop_color",
+      configurator_flow: "custom",
+      product_element: "Countertop Color",
+    });
+    dispatch(openSwatchOrder("Countertop Color"));
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "counter-top-color",
@@ -1806,7 +1816,7 @@ export const CustomCountertopPage = () => {
       content: (
         <>
           <ViewModePanel
-            onOrderSwatches={() => dispatch(openSwatchOrder("Countertop Color"))}
+            onOrderSwatches={handleOrderCountertopSwatches}
             fullModeTitle="Countertop Color"
             fullModeOptions={fullModeCountertopOptions}
             fullModeActiveValue={activeCountertopColor}

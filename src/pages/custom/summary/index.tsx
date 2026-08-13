@@ -91,6 +91,7 @@ import {
   formatCountertopThicknessLabel,
 } from "@/entities/countertop";
 import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
+import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import {
   SYNTESI_MATERIAL,
   findSyntesiCountertopUiValue,
@@ -390,6 +391,14 @@ export const CustomSummaryPage = () => {
     },
     [dispatch, navigate, editPathBySectionId],
   );
+  const handleOrderSummarySwatches = useCallback(() => {
+    trackModularOrderFreeSwatchesClick({
+      cta_location: "summary_view",
+      configurator_flow: "custom",
+      product_element: "Swatches",
+    });
+    handleEditSection("swatches");
+  }, [handleEditSection]);
 
   const handleCabinetEditMenuNavigate = useCallback(
     (path: string) => {
@@ -2180,7 +2189,7 @@ export const CustomSummaryPage = () => {
                 })}
               </div>
 
-              <button type="button" className={s.orderSwatchesButton} onClick={() => handleEditSection("swatches")}>
+              <button type="button" className={s.orderSwatchesButton} onClick={handleOrderSummarySwatches}>
                 Order Swatches
               </button>
             </div>
