@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   MODULAR_ANALYTICS_MESSAGE_SOURCE,
@@ -11,19 +11,30 @@ import {
 
 type TestWindow = Window & {
   dataLayer?: unknown[];
-  gtag?: ReturnType<typeof vi.fn>;
 };
 
 describe("modularKeyEvents", () => {
-  afterEach(() => {
-    delete (window as TestWindow).dataLayer;
-    delete (window as TestWindow).gtag;
-    vi.restoreAllMocks();
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn(() => Promise.resolve({}));
+    vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("pushes modular key events to dataLayer and gtag", () => {
+  afterEach(() => {
+    delete (window as TestWindow).dataLayer;
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  const getLastCollectUrl = () => {
+    const [url] = fetchMock.mock.calls.at(-1) ?? [];
+    expect(url).toEqual(expect.stringContaining("https://www.google-analytics.com/g/collect"));
+    return new URL(String(url));
+  };
+
+  it("pushes modular key events to dataLayer and GA collect", () => {
     const testWindow = window as TestWindow;
-    testWindow.gtag = vi.fn();
 
     window.history.replaceState(null, "", "/custom/summary?configId=123");
 
@@ -43,15 +54,13 @@ describe("modularKeyEvents", () => {
       configurator_flow: "custom",
       page_path: "/custom/summary",
     });
-    expect(testWindow.gtag).toHaveBeenCalledWith(
-      "event",
-      MODULAR_KEY_EVENT_NAMES.howToBuyClick,
-      expect.objectContaining({
-        cta_name: "How to Buy",
-        cta_location: "bottom_sticky_bar",
-        configurator_flow: "custom",
-      }),
-    );
+
+    const collectUrl = getLastCollectUrl();
+    expect(collectUrl.searchParams.get("tid")).toBe("G-68WCR6H7MY");
+    expect(collectUrl.searchParams.get("en")).toBe(MODULAR_KEY_EVENT_NAMES.howToBuyClick);
+    expect(collectUrl.searchParams.get("ep.cta_name")).toBe("How to Buy");
+    expect(collectUrl.searchParams.get("ep.cta_location")).toBe("bottom_sticky_bar");
+    expect(collectUrl.searchParams.get("ep.configurator_flow")).toBe("custom");
   });
 
   it("uses one shared order-free-swatches event with location details", () => {
@@ -68,6 +77,10 @@ describe("modularKeyEvents", () => {
       configurator_flow: "prebuilt",
       product_element: "Countertop Color",
     });
+
+    const collectUrl = getLastCollectUrl();
+    expect(collectUrl.searchParams.get("en")).toBe("hastings_modular_swatches_click");
+    expect(collectUrl.searchParams.get("ep.original_event")).toBe(MODULAR_KEY_EVENT_NAMES.orderFreeSwatchesClick);
   });
 
   it("posts the same event payload to the iframe parent", () => {
@@ -99,5 +112,19 @@ describe("modularKeyEvents", () => {
       },
       "https://www.hastingsbathcollection.com",
     );
+  });
+
+  it("sends a GA collect request when gtag has not loaded yet", () => {
+    trackModularHowToBuyClick({
+      cta_location: "bottom_sticky_bar",
+      configurator_flow: "prebuilt",
+    });
+
+    expect((window as TestWindow).dataLayer).toEqual([
+      expect.objectContaining({
+        event: MODULAR_KEY_EVENT_NAMES.howToBuyClick,
+      }),
+    ]);
+    expect(getLastCollectUrl().searchParams.get("en")).toBe(MODULAR_KEY_EVENT_NAMES.howToBuyClick);
   });
 });
