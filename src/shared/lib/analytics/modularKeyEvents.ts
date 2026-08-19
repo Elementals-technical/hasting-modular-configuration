@@ -1,10 +1,9 @@
+type GtagFn = (command: "event", eventName: string, params: Record<string, string | number>) => void;
+
 type AnalyticsWindow = Window & {
   dataLayer?: unknown[];
+  gtag?: GtagFn;
 };
-
-const GA_COLLECT_ENDPOINT = "https://www.google-analytics.com/g/collect";
-const GA_CLIENT_ID_STORAGE_KEY = "hastings:ga:client_id";
-const GA_SESSION_ID_STORAGE_KEY = "hastings:ga:session_id";
 
 export const MODULAR_ANALYTICS_MESSAGE_SOURCE = "hastings_modular_configurator";
 export const MODULAR_ANALYTICS_MESSAGE_TYPE = "hastings_modular_key_event";
@@ -61,8 +60,6 @@ const getCurrentPageContext = () => {
   };
 };
 
-const getConfiguredGaId = () => import.meta.env.VITE_GA_ID?.trim() ?? "";
-
 const compactParams = (params: Record<string, string | number | undefined>) =>
   Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== "")) as Record<
     string,
@@ -102,105 +99,19 @@ const postToParent = (payload: ModularKeyEventPayload) => {
   analyticsWindow.parent.postMessage(message, resolveParentTargetOrigin());
 };
 
-const createRandomNumber = () => {
+const sendGtagEvent = (event: ModularKeyEventName, params: Record<string, string | number>) => {
   const analyticsWindow = getAnalyticsWindow();
-  const cryptoApi = analyticsWindow?.crypto;
-
-  if (cryptoApi) {
-    const values = new Uint32Array(1);
-    cryptoApi.getRandomValues(values);
-    return values[0] ?? Math.floor(Math.random() * 2_147_483_647);
-  }
-
-  return Math.floor(Math.random() * 2_147_483_647);
-};
-
-const readStorageValue = (storage: Storage | undefined, key: string) => {
-  try {
-    return storage?.getItem(key) ?? "";
-  } catch {
-    return "";
-  }
-};
-
-const writeStorageValue = (storage: Storage | undefined, key: string, value: string) => {
-  try {
-    storage?.setItem(key, value);
-  } catch {
-    return;
-  }
-};
-
-const getOrCreateStorageValue = (storage: Storage | undefined, key: string, createValue: () => string) => {
-  const existing = readStorageValue(storage, key);
-  if (existing) return existing;
-
-  const next = createValue();
-  writeStorageValue(storage, key, next);
-  return next;
-};
-
-const getGaClientId = () => {
-  const analyticsWindow = getAnalyticsWindow();
-
-  return getOrCreateStorageValue(
-    analyticsWindow?.localStorage,
-    GA_CLIENT_ID_STORAGE_KEY,
-    () => `${createRandomNumber()}.${Math.floor(Date.now() / 1000)}`,
-  );
-};
-
-const getGaSessionId = () => {
-  const analyticsWindow = getAnalyticsWindow();
-
-  return getOrCreateStorageValue(analyticsWindow?.sessionStorage, GA_SESSION_ID_STORAGE_KEY, () =>
-    String(Math.floor(Date.now() / 1000)),
-  );
-};
-
-const appendGaCollectParam = (searchParams: URLSearchParams, key: string, value: string | number | undefined) => {
-  if (value === undefined || value === "") return;
-
-  searchParams.set(key, String(value));
-};
-
-const sendGaCollectEvent = (event: ModularKeyEventName, params: Record<string, string | number>) => {
-  const analyticsWindow = getAnalyticsWindow();
-  const gaId = getConfiguredGaId();
-  if (!analyticsWindow || !gaId) return false;
+  if (!analyticsWindow) return;
 
   const gaEventName = MODULAR_GA_EVENT_NAMES[event];
-  const collectUrl = new URL(GA_COLLECT_ENDPOINT);
-  const searchParams = collectUrl.searchParams;
 
-  appendGaCollectParam(searchParams, "v", "2");
-  appendGaCollectParam(searchParams, "tid", gaId);
-  appendGaCollectParam(searchParams, "cid", getGaClientId());
-  appendGaCollectParam(searchParams, "sid", getGaSessionId());
-  appendGaCollectParam(searchParams, "en", gaEventName);
-  appendGaCollectParam(searchParams, "dl", analyticsWindow.location.href);
-  appendGaCollectParam(searchParams, "dt", analyticsWindow.document.title);
-  appendGaCollectParam(searchParams, "dr", analyticsWindow.document.referrer);
-  appendGaCollectParam(searchParams, "ul", analyticsWindow.navigator.language);
-  appendGaCollectParam(searchParams, "sr", `${analyticsWindow.screen.width}x${analyticsWindow.screen.height}`);
-  appendGaCollectParam(searchParams, "_p", createRandomNumber());
+  if (analyticsWindow.gtag) {
+    analyticsWindow.gtag("event", gaEventName, params);
+    return;
+  }
 
-  Object.entries(params).forEach(([key, value]) => {
-    if (key === "send_to") return;
-
-    appendGaCollectParam(searchParams, typeof value === "number" ? `epn.${key}` : `ep.${key}`, value);
-  });
-
-  void fetch(collectUrl.toString(), {
-    method: "GET",
-    mode: "no-cors",
-    keepalive: true,
-  }).catch(() => {
-    const image = new Image();
-    image.src = collectUrl.toString();
-  });
-
-  return true;
+  analyticsWindow.dataLayer = analyticsWindow.dataLayer ?? [];
+  analyticsWindow.dataLayer.push(["event", gaEventName, params]);
 };
 
 export const buildModularKeyEventPayload = (
@@ -221,7 +132,6 @@ export const trackModularKeyEvent = (event: ModularKeyEventName, params: Modular
 
   const payload = buildModularKeyEventPayload(event, params);
   const gtagParams = compactParams({
-    send_to: getConfiguredGaId(),
     original_event: event,
     event_category: payload.event_category,
     event_action: payload.event_action,
@@ -236,8 +146,7 @@ export const trackModularKeyEvent = (event: ModularKeyEventName, params: Modular
   });
 
   analyticsWindow.dataLayer = analyticsWindow.dataLayer ?? [];
-  analyticsWindow.dataLayer.push(payload);
-  sendGaCollectEvent(event, gtagParams);
+  sendGtagEvent(event, gtagParams);
   analyticsWindow.dispatchEvent(new CustomEvent(event, { detail: payload }));
   postToParent(payload);
 };
