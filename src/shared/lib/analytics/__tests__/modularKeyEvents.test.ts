@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   MODULAR_ANALYTICS_MESSAGE_SOURCE,
@@ -11,30 +11,19 @@ import {
 
 type TestWindow = Window & {
   dataLayer?: unknown[];
+  gtag?: ReturnType<typeof vi.fn>;
 };
 
 describe("modularKeyEvents", () => {
-  let fetchMock: ReturnType<typeof vi.fn>;
-
-  beforeEach(() => {
-    fetchMock = vi.fn(() => Promise.resolve({}));
-    vi.stubGlobal("fetch", fetchMock);
-  });
-
   afterEach(() => {
     delete (window as TestWindow).dataLayer;
+    delete (window as TestWindow).gtag;
     vi.restoreAllMocks();
-    vi.unstubAllGlobals();
   });
 
-  const getLastCollectUrl = () => {
-    const [url] = fetchMock.mock.calls.at(-1) ?? [];
-    expect(url).toEqual(expect.stringContaining("https://www.google-analytics.com/g/collect"));
-    return new URL(String(url));
-  };
-
-  it("pushes modular key events to dataLayer and GA collect", () => {
+  it("sends modular key events to gtag", () => {
     const testWindow = window as TestWindow;
+    testWindow.gtag = vi.fn();
 
     window.history.replaceState(null, "", "/custom/summary?configId=123");
 
@@ -43,44 +32,35 @@ describe("modularKeyEvents", () => {
       configurator_flow: "custom",
     });
 
-    expect(testWindow.dataLayer).toHaveLength(1);
-    expect(testWindow.dataLayer?.[0]).toMatchObject({
-      event: MODULAR_KEY_EVENT_NAMES.howToBuyClick,
-      event_category: "modular_configurator",
-      event_action: "click",
-      event_label: "How to Buy",
-      cta_name: "How to Buy",
-      cta_location: "bottom_sticky_bar",
-      configurator_flow: "custom",
-      page_path: "/custom/summary",
-    });
-
-    const collectUrl = getLastCollectUrl();
-    expect(collectUrl.searchParams.get("tid")).toBe("G-68WCR6H7MY");
-    expect(collectUrl.searchParams.get("en")).toBe(MODULAR_KEY_EVENT_NAMES.howToBuyClick);
-    expect(collectUrl.searchParams.get("ep.cta_name")).toBe("How to Buy");
-    expect(collectUrl.searchParams.get("ep.cta_location")).toBe("bottom_sticky_bar");
-    expect(collectUrl.searchParams.get("ep.configurator_flow")).toBe("custom");
+    expect(testWindow.dataLayer).toEqual([]);
+    expect(testWindow.gtag).toHaveBeenCalledWith(
+      "event",
+      MODULAR_KEY_EVENT_NAMES.howToBuyClick,
+      expect.objectContaining({
+        cta_name: "How to Buy",
+        cta_location: "bottom_sticky_bar",
+        configurator_flow: "custom",
+      }),
+    );
   });
 
   it("uses one shared order-free-swatches event with location details", () => {
+    const testWindow = window as TestWindow;
+    testWindow.gtag = vi.fn();
+
     trackModularOrderFreeSwatchesClick({
       cta_location: "countertop_color",
       configurator_flow: "prebuilt",
       product_element: "Countertop Color",
     });
 
-    expect((window as TestWindow).dataLayer?.[0]).toMatchObject({
-      event: MODULAR_KEY_EVENT_NAMES.orderFreeSwatchesClick,
-      cta_name: "Order Free Swatches",
-      cta_location: "countertop_color",
-      configurator_flow: "prebuilt",
-      product_element: "Countertop Color",
-    });
-
-    const collectUrl = getLastCollectUrl();
-    expect(collectUrl.searchParams.get("en")).toBe("hastings_modular_swatches_click");
-    expect(collectUrl.searchParams.get("ep.original_event")).toBe(MODULAR_KEY_EVENT_NAMES.orderFreeSwatchesClick);
+    expect(testWindow.gtag).toHaveBeenCalledWith(
+      "event",
+      "hastings_modular_swatches_click",
+      expect.objectContaining({
+        original_event: MODULAR_KEY_EVENT_NAMES.orderFreeSwatchesClick,
+      }),
+    );
   });
 
   it("posts the same event payload to the iframe parent", () => {
@@ -114,17 +94,21 @@ describe("modularKeyEvents", () => {
     );
   });
 
-  it("sends a GA collect request when gtag has not loaded yet", () => {
+  it("queues a gtag event command when gtag has not loaded yet", () => {
     trackModularHowToBuyClick({
       cta_location: "bottom_sticky_bar",
       configurator_flow: "prebuilt",
     });
 
     expect((window as TestWindow).dataLayer).toEqual([
-      expect.objectContaining({
-        event: MODULAR_KEY_EVENT_NAMES.howToBuyClick,
-      }),
+      [
+        "event",
+        MODULAR_KEY_EVENT_NAMES.howToBuyClick,
+        expect.objectContaining({
+          cta_name: "How to Buy",
+          cta_location: "bottom_sticky_bar",
+        }),
+      ],
     ]);
-    expect(getLastCollectUrl().searchParams.get("en")).toBe(MODULAR_KEY_EVENT_NAMES.howToBuyClick);
   });
 });

@@ -29,9 +29,9 @@ export const initGoogleAnalytics = () => {
 
   analyticsWindow.gtag =
     analyticsWindow.gtag ??
-    ((...args) => {
-      analyticsWindow.dataLayer?.push(args);
-    });
+    function gtag() {
+      analyticsWindow.dataLayer?.push(arguments);
+    };
 
   analyticsWindow.gtag("js", new Date());
   analyticsWindow.gtag("config", gaId);
