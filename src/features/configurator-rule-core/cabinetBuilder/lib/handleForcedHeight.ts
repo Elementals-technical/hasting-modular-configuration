@@ -1,15 +1,22 @@
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { parseHeightMapping, resolveForcedHeight } from "@/entities/collection";
+import type { CabinetHandleRelations } from "@/entities/collection";
+import type { ConfiguratorCatalog, TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
-export const parseHeightMapping = (raw: string): Record<string, number> =>
-  Object.fromEntries(
-    raw.split("|").flatMap((entry) => {
-      const colonIdx = entry.indexOf(":");
-      if (colonIdx === -1) return [];
-      const key = entry.slice(0, colonIdx).trim();
-      const num = Number(entry.slice(colonIdx + 1).trim());
-      return key && Number.isFinite(num) ? [[key, num]] : [];
-    }),
-  );
+export { parseHeightMapping };
+
+/**
+ * Adapts a catalog rule to the generic handle relations.
+ * The rule already carries normalized maps, so no handle id appears here.
+ */
+export const toHandleRelations = (rule: TypeCabinetRuleConfig | undefined): CabinetHandleRelations | null => {
+  if (!rule) return null;
+
+  return {
+    cabinetType: rule.code,
+    forcedHeightByHandle: rule.forcedHeightByHandle ?? {},
+    requiresDrawersByHandle: rule.requiresDrawersByHandle ?? {},
+  };
+};
 
 export const resolveForcedHeightForHandle = (args: {
   catalog: ConfiguratorCatalog;
@@ -20,19 +27,7 @@ export const resolveForcedHeightForHandle = (args: {
   const { catalog, cabinetType, drawers, handle } = args;
   if (!cabinetType || !drawers || !handle) return null;
 
-  const rule = catalog.typeCabinetRules.find((r) => r.code === cabinetType);
-  if (!rule) return null;
+  const rule = catalog.typeCabinetRules.find((entry) => entry.code === cabinetType);
 
-  const raw =
-    handle === "handle_pto"
-      ? rule.handlePtoForcedHeightCm
-      : handle === "handle_urban_topcut"
-        ? rule.handleUrbanTopcutForcedHeightCm
-        : handle === "handle_urban_botcut"
-          ? rule.handleUrbanBotcutForcedHeightCm
-          : null;
-
-  if (!raw) return null;
-
-  return parseHeightMapping(raw)[drawers] ?? null;
+  return resolveForcedHeight(toHandleRelations(rule), handle, drawers);
 };

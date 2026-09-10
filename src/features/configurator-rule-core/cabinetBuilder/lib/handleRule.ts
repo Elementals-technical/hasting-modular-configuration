@@ -1,19 +1,24 @@
+import {
+  isHandleAllowedForDrawers,
+  resolveForcedHeight,
+  resolvePossibleForcedHeights,
+  selectEffectiveFallback,
+  selectMessage,
+  selectOptions,
+  type ProductProfile,
+} from "@/entities/collection";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { cmToInches } from "@/shared/lib/sku";
 
 import type { OptionState, RuleContext, RuleResult } from "../model/types";
-import { parseHeightMapping } from "./handleForcedHeight";
+import { toHandleRelations } from "./handleForcedHeight";
 
-const HANDLE_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: "handle_pto", label: "Push to open" },
-  { value: "handle_urban_topcut", label: "Upper Groove" },
-  { value: "handle_urban_botcut", label: "Central Groove" },
-];
-
-const DEFAULT_ALLOWED_HANDLES = HANDLE_OPTIONS.map((option) => option.value);
-const CENTRAL_GROOVE_REASON = "Available only for selected drawers";
-const HANDLE_HEIGHT_REASON = "Required for selected handle";
-const DEFAULT_HANDLE_HEIGHT_REASON = "Required for selected handle and all products";
+/** Stable reason codes; the English fallback text lives in profile.messages. */
+const REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS = "handle.centralGrooveRequiresDrawers";
+const REASON_REQUIRED_HEIGHT = "handle.requiredHeight";
+const REASON_DEFAULT_REQUIRED_HEIGHT = "handle.defaultRequiredHeight";
+const REASON_NOT_AVAILABLE_FOR_CABINET_TYPE = "handle.notAvailableForCabinetType";
+const REASON_SELECT_DRAWERS_FOR_HEIGHT = "handle.selectDrawersForHeight";
 
 const supportsHeightForAllProducts = (
   productIds: string[] | undefined,
@@ -54,10 +59,20 @@ export const handleRule = (
   ruleResult: RuleResult,
   context: RuleContext,
   catalog: ConfiguratorCatalog,
+  profile: ProductProfile | null,
 ): RuleResult => {
   const { selection } = context;
   const activeRule = catalog.typeCabinetRules.find((rule) => rule.code === selection.cabinetType);
-  const allowedHandles = activeRule?.handlesAllowed?.length ? activeRule.handlesAllowed : DEFAULT_ALLOWED_HANDLES;
+  const relations = toHandleRelations(activeRule);
+
+  // Catalog of the active collection. No local list of handle ids.
+  const handleCatalog = selectOptions(profile, "Handle");
+  const catalogValues = handleCatalog.map((option) => option.value);
+
+  // handles_allowed narrows the catalog for this cabinet type; an empty column means
+  // "every catalog option", which is what the previous DEFAULT_ALLOWED_HANDLES did.
+  const allowedHandles = activeRule?.handlesAllowed?.length ? activeRule.handlesAllowed : catalogValues;
+
   const heightLocked = ruleResult.heightLocked;
   const heightLockedReason =
     typeof heightLocked === "number"
@@ -65,86 +80,78 @@ export const handleRule = (
       : null;
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;
-  const requiresDrawers = activeRule?.handleUrbanBotcutRequiresDrawers ?? [];
-  const isDrawerAllowed =
-    requiresDrawers.length === 0 ||
-    (hasDrawerSelection && requiresDrawers.includes(selection.drawers as string));
+
+  const isDrawerAllowedFor = (handleValue: string): boolean =>
+    isHandleAllowedForDrawers(relations, handleValue, selection.drawers ?? null);
+
+  const hasDrawerRestriction = (handleValue: string): boolean =>
+    (relations?.requiresDrawersByHandle[handleValue]?.length ?? 0) > 0;
 
   let heightOptions = ruleResult.availableOptions.height;
   const violations = [...ruleResult.violations];
-
-  const getRawMapping = (handleValue: string): string | null => {
-    if (!activeRule) return null;
-    if (handleValue === "handle_pto") return activeRule.handlePtoForcedHeightCm ?? null;
-    if (handleValue === "handle_urban_topcut") return activeRule.handleUrbanTopcutForcedHeightCm ?? null;
-    if (handleValue === "handle_urban_botcut") return activeRule.handleUrbanBotcutForcedHeightCm ?? null;
-    return null;
-  };
-
-  const resolveForcedHeight = (handleValue: string, drawers: string | null | undefined): number | null => {
-    const raw = getRawMapping(handleValue);
-    if (!raw) return null;
-    if (!drawers) return null;
-    return parseHeightMapping(raw)[drawers] ?? null;
-  };
-
-  const resolvePossibleForcedHeights = (handleValue: string): number[] => {
-    const raw = getRawMapping(handleValue);
-    if (!raw) return [];
-    return Object.values(parseHeightMapping(raw)).filter((value) => Number.isFinite(value));
-  };
 
   const isHandleLockedConflict = (handleValue: string): boolean => {
     if (typeof heightLocked !== "number") return false;
 
     if (hasDrawerSelection) {
-      const forced = resolveForcedHeight(handleValue, selection.drawers);
+      const forced = resolveForcedHeight(relations, handleValue, selection.drawers ?? null);
       return typeof forced === "number" && forced !== heightLocked;
     }
 
-    const possible = resolvePossibleForcedHeights(handleValue);
+    const possible = resolvePossibleForcedHeights(relations, handleValue);
     return possible.length > 0 && !possible.includes(heightLocked);
   };
 
   const handles: OptionState<string>[] = allowedHandles.length
-    ? HANDLE_OPTIONS.map((option) => {
+    ? handleCatalog.map((option) => {
         if (!allowedHandles.includes(option.value)) {
-          return { ...option, enabled: false, reason: "Not available for selected cabinet type" };
+          return {
+            value: option.value,
+            label: option.label,
+            enabled: false,
+            reason: selectMessage(profile, REASON_NOT_AVAILABLE_FOR_CABINET_TYPE),
+          };
         }
 
         if (heightLockedReason && isHandleLockedConflict(option.value)) {
-          return { ...option, enabled: false, reason: heightLockedReason };
+          return { value: option.value, label: option.label, enabled: false, reason: heightLockedReason };
         }
 
-        if (option.value === "handle_urban_botcut" && !isDrawerAllowed) {
-          return { ...option, enabled: false, reason: CENTRAL_GROOVE_REASON, deferAutoChange: !hasDrawerSelection };
+        if (hasDrawerRestriction(option.value) && !isDrawerAllowedFor(option.value)) {
+          return {
+            value: option.value,
+            label: option.label,
+            enabled: false,
+            reason: selectMessage(profile, REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS),
+            deferAutoChange: !hasDrawerSelection,
+          };
         }
 
-        return { ...option, enabled: true };
+        return { value: option.value, label: option.label, enabled: true };
       })
     : [];
 
   const handleIsAllowed = selection.handle ? allowedHandles.includes(selection.handle) : false;
 
-  // When no handle is explicitly selected, fall back to "handle_urban_topcut" for height computation.
-  // This ensures the correct forced height is applied even before the user picks a handle,
-  // since handle_urban_topcut is the default applied during auto-add.
-  const DEFAULT_HANDLE = "handle_urban_topcut";
+  // While nothing is selected, the collection's declared fallback drives the height
+  // computation, matching the value auto-add applies. It is not the attribute's
+  // initial value and must not be treated as a global default.
+  const declaredFallback = selectEffectiveFallback(profile, "Handle");
   const effectiveHandle =
     selection.handle && handleIsAllowed
       ? selection.handle
-      : allowedHandles.includes(DEFAULT_HANDLE)
-        ? DEFAULT_HANDLE
+      : declaredFallback && allowedHandles.includes(declaredFallback)
+        ? declaredFallback
         : null;
 
   if (selection.handle && handleIsAllowed) {
-    const raw = getRawMapping(selection.handle);
-    if (raw && !selection.drawers) {
-      violations.push({ field: "drawers", reason: "Select drawers to determine height for selected handle" });
+    const hasMapping = Object.keys(relations?.forcedHeightByHandle[selection.handle] ?? {}).length > 0;
+    if (hasMapping && !selection.drawers) {
+      violations.push({ field: "drawers", reason: selectMessage(profile, REASON_SELECT_DRAWERS_FOR_HEIGHT) });
     }
   }
 
-  const forcedHeight = effectiveHandle ? resolveForcedHeight(effectiveHandle, selection.drawers) : null;
+  const forcedHeight = resolveForcedHeight(relations, effectiveHandle, selection.drawers ?? null);
   const forcedHeightConflictsLock =
     typeof heightLocked === "number" && typeof forcedHeight === "number" && forcedHeight !== heightLocked;
   const hasForcedHeight =
@@ -152,12 +159,13 @@ export const handleRule = (
     heightOptions.some((option) => option.value === forcedHeight && option.enabled) &&
     supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
 
-  if (effectiveHandle === "handle_pto" && hasForcedHeight && !forcedHeightConflictsLock) {
-    heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
-  } else if (effectiveHandle === "handle_urban_topcut" && hasForcedHeight && !forcedHeightConflictsLock) {
-    heightOptions = constrainHeightOptions(heightOptions, forcedHeight, DEFAULT_HANDLE_HEIGHT_REASON);
-  } else if (effectiveHandle === "handle_urban_botcut" && hasForcedHeight && isDrawerAllowed && !forcedHeightConflictsLock) {
-    heightOptions = constrainHeightOptions(heightOptions, forcedHeight, HANDLE_HEIGHT_REASON);
+  if (effectiveHandle && hasForcedHeight && !forcedHeightConflictsLock && isDrawerAllowedFor(effectiveHandle)) {
+    // The collection's fallback handle applies to every product, so its explanation
+    // differs from an explicitly chosen handle. Both texts come from profile.messages.
+    const reasonCode =
+      effectiveHandle === declaredFallback ? REASON_DEFAULT_REQUIRED_HEIGHT : REASON_REQUIRED_HEIGHT;
+
+    heightOptions = constrainHeightOptions(heightOptions, forcedHeight as number, selectMessage(profile, reasonCode));
   }
 
   return {

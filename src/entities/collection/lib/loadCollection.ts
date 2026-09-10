@@ -15,12 +15,14 @@ import {
   type CollectionManifest,
   type CollectionRegistry,
 } from "../model/schemas";
+import type { ProductProfile } from "../model/productProfile";
 import type {
   CollectionRuntimeDependencies,
   LoadedCollectionData,
   LocalCollectionSources,
   RemoteCollectionSources,
 } from "../model/types";
+import { parseProductProfile } from "./parseProductProfile";
 import type { CollectionResolution } from "./resolveCollection";
 import { resolveCollectionImageUrl, resolveCollectionJsonUrl } from "./paths";
 import { validateCollectionManifest, validateCollectionRegistry } from "./validation";
@@ -50,6 +52,43 @@ const fetchSource = async <T>(
     if (error instanceof CollectionDataError) throw error;
     throw new CollectionDataError("source-load-failed", `${sourceName} could not be loaded`, { cause: error });
   }
+};
+
+/**
+ * Loads the ProductProfile.
+ *
+ * Validated by `parseProductProfile` instead of a zod schema: the profile contract
+ * belongs to C, and its diagnostics carry the exact data path of a bad entry, which a
+ * second schema here would only duplicate and eventually contradict.
+ */
+const fetchProductProfile = async (
+  reference: string,
+  manifestUrl: string,
+  dependencies: CollectionRuntimeDependencies,
+  signal: AbortSignal,
+): Promise<ProductProfile> => {
+  const url = resolveCollectionJsonUrl(reference, manifestUrl, dependencies.collectionsRootUrl);
+
+  let input: unknown;
+  try {
+    input = await dependencies.fetchJson(url, signal);
+  } catch (error) {
+    throw new CollectionDataError("source-load-failed", "Product profile could not be loaded", { cause: error });
+  }
+
+  const result = parseProductProfile(input);
+
+  if (!result.ok) {
+    const details = result.diagnostics.map(({ code, dataPath }) => `${dataPath} (${code})`).join(", ");
+    // The diagnostics travel in `cause` as well as in the message: `toCollectionError`
+    // passes `cause` through, so a consumer can group or render them without parsing
+    // the text back apart.
+    throw new CollectionDataError("source-validation-failed", `Product profile failed validation: ${details}`, {
+      cause: result.diagnostics,
+    });
+  }
+
+  return result.profile;
 };
 
 export const loadCollectionRegistry = async (
@@ -82,7 +121,7 @@ const loadLocalSources = async (
   const local = manifest.local;
   if (!local) return {};
 
-  const [navigation, presets, staticOptions, cabinetSkuMappings] = await Promise.all([
+  const [navigation, presets, staticOptions, cabinetSkuMappings, productProfile] = await Promise.all([
     local.navigation
       ? fetchSource(navigationSchema, local.navigation, manifestUrl, dependencies, signal, "Navigation data")
       : undefined,
@@ -102,6 +141,9 @@ const loadLocalSources = async (
           "Cabinet SKU mappings",
         )
       : undefined,
+    local.productProfile
+      ? fetchProductProfile(local.productProfile, manifestUrl, dependencies, signal)
+      : undefined,
   ]);
 
   return {
@@ -112,6 +154,7 @@ const loadLocalSources = async (
     })),
     staticOptions,
     cabinetSkuMappings,
+    productProfile,
   };
 };
 
@@ -172,7 +215,14 @@ export const assembleCollectionData = (
             groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
           }
         : undefined,
-      cabinets: remote.cabinetTable ? buildCabinetCatalogFromMatrix(remote.cabinetTable) : undefined,
+      productProfile: local.productProfile,
+      // Normalized against the profile: the handle -> column mapping of the legacy
+      // matrix comes from data, so a collection with different handles needs no code
+      // change here. Without a profile the parser falls back to the hardcoded USH
+      // columns, which is right for USH and silently wrong for anything else.
+      cabinets: remote.cabinetTable
+        ? buildCabinetCatalogFromMatrix(remote.cabinetTable, local.productProfile ?? null)
+        : undefined,
       countertops: remote.countertopTable ? parseCountertopMatrix(remote.countertopTable) : undefined,
     },
   };

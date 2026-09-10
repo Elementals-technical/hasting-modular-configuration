@@ -60,6 +60,8 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { useGetConfiguratorQuery } from "@/entities";
+import { hasCapability, selectEffectiveFallback, selectOptions } from "@/entities/collection";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import {
@@ -107,8 +109,19 @@ interface PendingDepthChange {
   previous: number | null;
 }
 
+/**
+ * Presentation-only mapping. An unknown handle id falls back to the generic image
+ * instead of gating behaviour, so a new handle renders without a change here.
+ */
+const HANDLE_IMAGES_BY_VALUE: Record<string, string> = {
+  handle_urban_topcut: upperHandleImage,
+  handle_urban_botcut: centralHandleImage,
+  handle_pto: ptoHandleImage,
+};
+
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
@@ -159,20 +172,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         ? dimensionOptions.handles
         : handlesDisabled
           ? []
-          : [
-              { label: "Push to open", value: "handle_pto" },
-              { label: "Upper Groove", value: "handle_urban_topcut" },
-              { label: "Central Groove", value: "handle_urban_botcut" },
-            ],
-    [dimensionOptions.handles, handlesDisabled],
+          : // Fallback before the rules produced availability: the catalog of the active
+            // collection, never a local list of handle ids.
+            selectOptions(activeProfile, "Handle").map((option) => ({
+              label: option.label,
+              value: option.value,
+            })),
+    [dimensionOptions.handles, handlesDisabled, activeProfile],
   );
 
   const handleImage = useMemo(() => {
     const value = selectedProductConfig?.Handle;
-    if (value === "handle_urban_topcut") return upperHandleImage;
-    if (value === "handle_urban_botcut") return centralHandleImage;
-    if (value === "handle_pto") return ptoHandleImage;
-    return image;
+    return (typeof value === "string" ? HANDLE_IMAGES_BY_VALUE[value] : undefined) ?? image;
   }, [selectedProductConfig?.Handle]);
 
   useEffect(
@@ -451,7 +462,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     );
 
     if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
+      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor, activeProfile));
     }
   };
 
@@ -469,7 +480,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     );
 
     if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
+      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor, activeProfile));
     }
 
     dispatch(setSelectedDimensions(previousDimensions));
@@ -506,7 +517,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
       if (option?.disabled && option.reason?.startsWith("Not available for current configuration height")) {
         const ossIdsForLock = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
-        if (ossIdsForLock.length > 0 && handleType !== "handle_pto" && previousHandle === "handle_pto") {
+        const leavingNonGroove =
+          !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
+          hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
+
+        if (ossIdsForLock.length > 0 && leavingNonGroove) {
           setPendingOssHandleChange({
             next: handleType,
             previous: previousHandle,
@@ -529,7 +544,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (previousHandle === handleType) return;
 
-    const isSwitchingAwayFromPto = previousHandle === "handle_pto" && handleType !== "handle_pto";
+    const isSwitchingAwayFromPto =
+      !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
+      hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
     const ossIds = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
       setPendingOssHandleChange({
@@ -602,15 +619,17 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
-    if (!handlesDisabled && !selectedProductConfig?.Handle && selectedProductConfig !== null) {
+    const fallbackHandle = selectEffectiveFallback(activeProfile, "Handle");
+
+    if (!handlesDisabled && fallbackHandle && !selectedProductConfig?.Handle && selectedProductConfig !== null) {
       dispatch(
         setSelectedProductConfig({
           ...selectedProductConfig,
-          Handle: "handle_urban_topcut",
+          Handle: fallbackHandle,
         }),
       );
     }
-  }, [dispatch, selectedProductConfig, handlesDisabled]);
+  }, [dispatch, selectedProductConfig, handlesDisabled, activeProfile]);
 
   // Sync handle to PlayCanvas when it changes (e.g. auto-reset due to rule change)
   useEffect(() => {
@@ -621,8 +640,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (!currentHandle || currentHandle === prevHandle) return;
     if (!selectedProducts.length) return;
 
-    setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor));
-  }, [handleGrooveColor, selectedProductConfig?.Handle, selectedProducts]);
+    setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor, activeProfile));
+  }, [handleGrooveColor, selectedProductConfig?.Handle, selectedProducts, activeProfile]);
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {

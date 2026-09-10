@@ -4,6 +4,8 @@ import type { ProductDatatable } from "@/entities/product/api/types";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
 
+import type { ProductProfile } from "./productProfile";
+
 import type { CollectionError } from "./errors";
 import type {
   CabinetSkuMappings,
@@ -19,6 +21,7 @@ export type LocalCollectionSources = {
   presets?: CollectionPreset[];
   staticOptions?: CollectionStaticOptions;
   cabinetSkuMappings?: CabinetSkuMappings;
+  productProfile?: ProductProfile;
 };
 
 export type RemoteCollectionSources = {
@@ -44,6 +47,11 @@ export type LoadedCollectionData = {
     presets?: CollectionPreset[];
     staticOptions?: CollectionStaticOptions;
     cabinetSkuMappings?: CabinetSkuMappings;
+    /**
+     * Product data driving the rules. `cabinets` below is normalized against it, so an
+     * option added here reaches the rules without a code change.
+     */
+    productProfile?: ProductProfile;
     configurator?: ConfiguratorGroupCatalog;
     cabinets?: ConfiguratorCatalog;
     countertops?: CountertopMatrixRule[];

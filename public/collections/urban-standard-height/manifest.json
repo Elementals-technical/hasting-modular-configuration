@@ -11,7 +11,8 @@
     "navigation": "navigation.json",
     "presets": "presets.json",
     "staticOptions": "static-options.json",
-    "cabinetSkuMappings": "cabinet-sku-mappings.json"
+    "cabinetSkuMappings": "cabinet-sku-mappings.json",
+    "productProfile": "product-profile.json"
   },
   "remote": {
     "configurator": {

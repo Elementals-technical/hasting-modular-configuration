@@ -59,7 +59,6 @@ import {
   setVesselColor,
   setDrawerProduct,
   addProductPreset,
-  setCabinetCatalog,
   setPlacedCabinetStyle,
   replacePlacedDividersForCabinet,
   switchAllCabinetsDrawerStyle,
@@ -91,8 +90,10 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
-import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
+import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
+import { hasCapability, selectEffectiveFallback, selectOptionsByCapability, useActiveCollection } from "@/entities/collection";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
@@ -113,7 +114,6 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
@@ -135,7 +135,6 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
-const MATRIX_CABINET_DATATABLE_ID = 439;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
@@ -274,6 +273,7 @@ export const CabinetBuilderPage = () => {
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -292,10 +292,11 @@ export const CabinetBuilderPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
 
-  const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
-    useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
-
-  // console.log("matrixCabinetTable", matrixCabinetTable);
+  // The cabinet matrix arrives with the active collection: the page no longer knows the
+  // table id, and a collection that is still loading yields no catalog rather than an
+  // empty one.
+  const activeCollection = useActiveCollection();
+  const isMatrixLoading = activeCollection.status === "resolving" || activeCollection.status === "loading";
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
@@ -393,7 +394,12 @@ export const CabinetBuilderPage = () => {
   ]);
 
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
-  const isOssBlockedByHandle = Boolean(selectedHandle && selectedHandle !== "handle_pto");
+  // Open/side shelves have no drawer front to cut a groove into, so only a handle without
+  // the groove capability works with them. Read from the profile instead of naming an id.
+  const nonGrooveHandle = selectOptionsByCapability(activeProfile, "Handle", "supportsGrooveColor", false)[0]?.value;
+  const isOssBlockedByHandle = Boolean(
+    selectedHandle && hasCapability(activeProfile, "Handle", selectedHandle, "supportsGrooveColor"),
+  );
 
   const hasBaseOrSideCabinetOnScene = useMemo(
     () =>
@@ -496,17 +502,21 @@ export const CabinetBuilderPage = () => {
     setIsPtoSwitchPromptOpen(false);
     if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
     await saveSnapshot();
+    if (!nonGrooveHandle) return;
+
     dispatch(
       setSelectedProductConfig({
         ...(selectedProductConfig ?? {}),
-        Handle: "handle_pto",
+        Handle: nonGrooveHandle,
       }),
     );
-    await setConfigBatch({}, buildHandleStyleConfigPatch("handle_pto", handleGrooveColor));
+    await setConfigBatch({}, buildHandleStyleConfigPatch(nonGrooveHandle, handleGrooveColor, activeProfile));
     dispatch(setActiveCabinetType("Side-Shelf"));
     dispatch(setDrawerProduct("Side-Shelf"));
     dispatch(setOpenStyleSidebar(true));
   }, [
+    activeProfile,
+    nonGrooveHandle,
     countertopCompositionConstraint.canAddCabinet,
     dispatch,
     handleGrooveColor,
@@ -632,32 +642,16 @@ export const CabinetBuilderPage = () => {
       undefined,
       { selectedProductIds: [] },
       cabinetCatalog,
+      activeProfile,
     );
 
-    // Handle: replicate applyRulesToState auto-change logic so PlayCanvas stays in sync
+    // Handle: reuse the same auto-change resolution as the reducer so PlayCanvas stays in sync.
     const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
-    let newHandle: string | null = currentHandle;
-    const handles = rulesResult.availableOptions.handles;
-
-    if (currentHandle && handles.length > 0) {
-      const handleOption = handles.find((h) => h.value === currentHandle);
-      if (handleOption && !handleOption.enabled && !handleOption.deferAutoChange) {
-        const preferred =
-          typeof rulesResult.heightLocked === "number"
-            ? handles.find((h) => h.value === "handle_pto" && h.enabled)
-            : undefined;
-        const firstEnabled = preferred ?? handles.find((h) => h.enabled);
-        newHandle = firstEnabled ? String(firstEnabled.value) : null;
-      }
-    } else if (!currentHandle && typeof rulesResult.heightLocked === "number") {
-      const preferred = handles.find((h) => h.value === "handle_pto" && h.enabled);
-      if (preferred) newHandle = "handle_pto";
-    }
-
-    if (typeof rulesResult.heightLocked === "number" && rulesResult.heightLocked === 50 && newHandle !== "handle_pto") {
-      const preferred = handles.find((h) => h.value === "handle_pto" && h.enabled);
-      if (preferred) newHandle = "handle_pto";
-    }
+    const newHandle = resolveHandleAfterRules({
+      currentHandle,
+      handles: rulesResult.availableOptions.handles,
+      heightLocked: rulesResult.heightLocked,
+    });
 
     // Height: if the handle changed, re-run rules with the NEW handle so the forced-height
     // mapping is evaluated against the correct handle (not the old one).
@@ -675,11 +669,13 @@ export const CabinetBuilderPage = () => {
             undefined,
             { selectedProductIds: [] },
             cabinetCatalog,
+            activeProfile,
           )
         : rulesResult;
 
     const newHeight = finalRulesResult.nextSelection.height;
-    const newHandleConfig = newHandle !== null ? buildHandleStyleConfigPatch(newHandle, handleGrooveColor) : null;
+    const newHandleConfig =
+      newHandle !== null ? buildHandleStyleConfigPatch(newHandle, handleGrooveColor, activeProfile) : null;
 
     await saveSnapshot();
 
@@ -772,6 +768,7 @@ export const CabinetBuilderPage = () => {
       }),
     );
   }, [
+    activeProfile,
     pendingMixingStyle,
     dispatch,
     cabinetStyleOptions,
@@ -944,14 +941,6 @@ export const CabinetBuilderPage = () => {
     },
     [cabinetCatalog.typeCabinetRules],
   );
-
-  useEffect(() => {
-    if (!matrixCabinetTable) return;
-    const catalog = buildCabinetCatalogFromMatrix(matrixCabinetTable);
-    if (catalog.typeCabinetRules.length) {
-      dispatch(setCabinetCatalog(catalog));
-    }
-  }, [dispatch, matrixCabinetTable]);
 
   useEffect(() => {
     if (isStyleSidebarOpen && !hasProducts && canvasReady) {
@@ -1572,18 +1561,21 @@ export const CabinetBuilderPage = () => {
           undefined,
           { selectedProductIds: [] },
           cabinetCatalog,
+          activeProfile,
         );
 
         const resolvedHeight = newProductRules.nextSelection.height ?? selectedDimensions.height;
+        // Auto-add falls back to the collection's declared handle, not a hardcoded id.
+        const autoAddFallbackHandle = selectEffectiveFallback(activeProfile, "Handle") ?? undefined;
         const resolvedHandle = (() => {
           const handles = newProductRules.availableOptions.handles;
           if (currentHandle && handles.length > 0) {
             const option = handles.find((handle) => handle.value === currentHandle);
             if (option && !option.enabled) {
-              return handles.find((handle) => handle.enabled)?.value?.toString() ?? "handle_urban_topcut";
+              return handles.find((handle) => handle.enabled)?.value?.toString() ?? autoAddFallbackHandle;
             }
           }
-          return currentHandle ?? "handle_urban_topcut";
+          return currentHandle ?? autoAddFallbackHandle;
         })();
 
         const productConfig: addProductConfigI = {
@@ -1646,6 +1638,7 @@ export const CabinetBuilderPage = () => {
       }
     },
     [
+      activeProfile,
       activeCabinetType,
       activeStyleId,
       cabinetCatalog,

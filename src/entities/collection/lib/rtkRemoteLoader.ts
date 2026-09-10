@@ -1,4 +1,4 @@
-import { type AppDispatch } from "@/app/store";
+import type { AppDispatch } from "@/app/store";
 import { configuratorApi } from "@/entities/configurator/api/configuratorApi";
 import { countertopApi } from "@/entities/countertop/api/countertopApi";
 import { productApi } from "@/entities/product/api/productApi";

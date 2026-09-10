@@ -41,6 +41,13 @@ export const collectionManifestSchema = z
         presets: localJsonReferenceSchema.optional(),
         staticOptions: localJsonReferenceSchema.optional(),
         cabinetSkuMappings: localJsonReferenceSchema.optional(),
+        /**
+         * Product data of the collection — option catalogs, capabilities, rule
+         * parameters and reason codes. Validated by `parseProductProfile` rather than a
+         * schema here: the profile contract is owned by C, and two validators over one
+         * file would drift apart.
+         */
+        productProfile: localJsonReferenceSchema.optional(),
       })
       .strict()
       .optional(),
