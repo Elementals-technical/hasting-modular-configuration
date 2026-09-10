@@ -101,6 +101,8 @@ import {
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { selectOptions } from "@/entities/collection";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -358,6 +360,7 @@ export const PlayCanvasIntegration = ({
   const pendingQuickEditorAutoSelectRef = useRef(false);
 
   const dispatch = useAppDispatch();
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -534,27 +537,15 @@ export const PlayCanvasIntegration = ({
       }));
     }
 
-    return [
-      {
-        label: "Push to open",
-        value: "handle_pto",
-        disabled: isOpenCabinet || undefined,
-        reason: isOpenCabinet ? openReason : undefined,
-      },
-      {
-        label: "Upper Groove",
-        value: "handle_urban_topcut",
-        disabled: isOpenCabinet || undefined,
-        reason: isOpenCabinet ? openReason : undefined,
-      },
-      {
-        label: "Central Groove",
-        value: "handle_urban_botcut",
-        disabled: isOpenCabinet || undefined,
-        reason: isOpenCabinet ? openReason : undefined,
-      },
-    ];
-  }, [activeCabinetRule?.isOpen, dimensionOptions.handles]);
+    // Fallback before the rules produced availability: the catalog of the active
+    // collection, never a local list of handle ids.
+    return selectOptions(activeProfile, "Handle").map((option) => ({
+      label: option.label,
+      value: option.value,
+      disabled: isOpenCabinet || undefined,
+      reason: isOpenCabinet ? openReason : undefined,
+    }));
+  }, [activeCabinetRule?.isOpen, dimensionOptions.handles, activeProfile]);
 
   const getCompositionProducts = useCallback((): Record<string, any> | null => {
     // @ts-ignore
@@ -1531,7 +1522,7 @@ export const PlayCanvasIntegration = ({
         dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
 
         if (productIds.length) {
-          await setConfigBatch({}, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
+          await setConfigBatch({}, buildHandleStyleConfigPatch(handleType, handleGrooveColor, activeProfile));
         }
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
@@ -1539,7 +1530,15 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [dispatch, dimensionOptions.handles, handleGrooveColor, productIds, saveSnapshot, selectedProductConfig],
+    [
+      dispatch,
+      dimensionOptions.handles,
+      handleGrooveColor,
+      productIds,
+      saveSnapshot,
+      selectedProductConfig,
+      activeProfile,
+    ],
   );
 
   // After a handle selection forces a new height via the rules engine, push it to PlayCanvas.
@@ -1561,8 +1560,8 @@ export const PlayCanvasIntegration = ({
     if (!currentHandle || currentHandle === prevHandle) return;
     if (!productIds.length) return;
 
-    setConfigBatch({}, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor));
-  }, [handleGrooveColor, productIds.length, selectedProductConfig?.Handle]);
+    setConfigBatch({}, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor, activeProfile));
+  }, [handleGrooveColor, productIds.length, selectedProductConfig?.Handle, activeProfile]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;

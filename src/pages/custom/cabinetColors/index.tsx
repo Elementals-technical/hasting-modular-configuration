@@ -18,6 +18,8 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { hasCapability } from "@/entities/collection";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   getConfiguratorVariantOverrides,
   isHiddenConfiguratorDisplayValue,
@@ -73,8 +75,8 @@ const isHiddenVariantMeta = (meta: { label?: string; value?: string }): boolean 
 
 export const CustomCabinetColorsPage = () => {
   const { key: locationKey } = useLocation();
-  const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const saveSnapshot = useHistorySnapshot();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
@@ -85,7 +87,13 @@ export const CustomCabinetColorsPage = () => {
   const activeBookMatching = useAppSelector(getBookMatching);
   const productsPresets = useAppSelector(getProductsPresets);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  const isUrbanHandleSelected = URBAN_HANDLES.has(String(selectedProductConfig?.Handle ?? ""));
+  // Groove-color availability comes from the option capability, not a list of handle ids.
+  const isUrbanHandleSelected = hasCapability(
+    activeProfile,
+    "Handle",
+    typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+    "supportsGrooveColor",
+  );
   const isPlayCanvasReady = usePlayCanvasReady();
   const activeCabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const grainDirectionState = useAppSelector(selectGrainDirectionState);

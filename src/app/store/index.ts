@@ -4,6 +4,7 @@ import { baseApi } from "@/shared";
 
 import { rootReducer } from "./reducer";
 import { optionsListenerMiddleware } from "./optionsListener";
+import { bootstrapActiveCollection } from "./bootstrapCollection";
 
 export const store = configureStore({
   reducer: rootReducer,
@@ -16,6 +17,8 @@ export const store = configureStore({
       .prepend(optionsListenerMiddleware.middleware)
       .concat(baseApi.middleware),
 });
+
+bootstrapActiveCollection(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

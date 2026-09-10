@@ -6,8 +6,10 @@ import {
   type Selection,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveForcedHeightForHandle } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleForcedHeight";
+import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { getDividerTypeFromOptionTitle } from "@/features/dividers/model/normalize";
 import type { DividerType } from "@/features/dividers/model/types";
+import { hasCapability, normalizeOptionValue, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
@@ -45,6 +47,16 @@ type ProductState = {
   hasBootstrappedCabinetBuilder: boolean;
   dimensionOptions: DimensionOptionGroup;
   cabinetCatalog: ConfiguratorCatalog;
+  /**
+   * Product data of the active collection, supplied by A.
+   *
+   * Transitional home: rule evaluation still runs inside the reducers below, and a
+   * `createSlice` reducer cannot read another slice, so the profile lives next to
+   * `cabinetCatalog`. Consumers must read it through `getActiveProductProfile` in
+   * entities/configuration so this location stays replaceable when C06 moves rule
+   * evaluation into the command layer.
+   */
+  activeProfile: ProductProfile | null;
   placedDividers: PlacedDivider[];
   /**
    * SSOT for the currently selected divider type. Derived from
@@ -106,7 +118,13 @@ type ProductConfig = {
   [key: string]: unknown;
 } & Partial<addProductConfigI>;
 
-export type HandleOption = "" | "handle_pto" | "handle_urban_topcut" | "handle_urban_botcut";
+/**
+ * Handle option id. Deliberately not a closed union: the catalog comes from the active
+ * ProductProfile, so a collection with different handles needs no type change.
+ * Membership is validated against the profile catalog, so an arbitrary unknown string
+ * still never becomes an allowed option.
+ */
+export type HandleOption = string;
 
 const DEFAULT_DIMENSIONS: ProductDimensions = {
   width: null,
@@ -121,27 +139,41 @@ const mapOptionState = <T extends string | number>(option: OptionState<T>): Dime
   reason: option.reason,
 });
 
-const mapDrawerConfigToRule = (value: unknown): string | null => {
-  if (typeof value !== "string") return null;
-
-  const normalized = value.trim();
-
-  if (normalized === "1D") return "1";
-  if (normalized === "2D") return "2";
-  if (normalized === "1DWID") return "1+inner";
-
-  if (normalized === "1" || normalized === "2" || normalized === "1+inner") {
-    return normalized;
-  }
-
-  return null;
+/**
+ * Legacy drawer spellings kept only for the window where no profile is loaded yet.
+ * The authoritative aliases live in the Drawers catalog of the active profile.
+ */
+const LEGACY_DRAWER_ALIASES: Record<string, string> = {
+  "1D": "1",
+  "2D": "2",
+  "1DWID": "1+inner",
+  "1": "1",
+  "2": "2",
+  "1+inner": "1+inner",
 };
 
-const mapHandleConfigToRule = (value: unknown): string | null => {
+const mapDrawerConfigToRule = (value: unknown, profile: ProductProfile | null): string | null => {
+  if (typeof value !== "string") return null;
+
+  const fromProfile = normalizeOptionValue(profile, "Drawers", value);
+  if (fromProfile) return fromProfile;
+
+  if (profile) return null;
+
+  return LEGACY_DRAWER_ALIASES[value.trim()] ?? null;
+};
+
+const mapHandleConfigToRule = (value: unknown, profile: ProductProfile | null): string | null => {
   if (typeof value !== "string") return null;
 
   const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
+  if (!normalized) return null;
+
+  // Without a profile there is no catalog to check against, so keep the legacy
+  // pass-through; with one, an unknown id is not an option.
+  if (!profile) return normalized;
+
+  return normalizeOptionValue(profile, "Handle", normalized);
 };
 
 const toSelection = (state: ProductState): Selection => ({
@@ -149,8 +181,8 @@ const toSelection = (state: ProductState): Selection => ({
   width: state.selectedDimensions.width ?? 0,
   depth: state.selectedDimensions.depth ?? 0,
   height: state.selectedDimensions.height ?? 0,
-  drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers),
-  handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle),
+  drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers, state.activeProfile),
+  handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile),
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
@@ -171,6 +203,7 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
     intent,
     { selectedProductIds: state.productIds },
     state.cabinetCatalog,
+    state.activeProfile,
   );
 
   state.dimensionOptions = {
@@ -188,51 +221,74 @@ const applyRulesToState = (state: ProductState, intent?: Intent) => {
   };
   state.heightLocked = ruleResult.heightLocked;
 
-  const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
-  if (currentHandle && ruleResult.availableOptions.handles.length > 0) {
-    const handleOption = ruleResult.availableOptions.handles.find((h) => h.value === currentHandle);
-    if (handleOption && !handleOption.enabled && !handleOption.deferAutoChange) {
-      const preferred =
-        typeof ruleResult.heightLocked === "number"
-          ? ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled)
-          : undefined;
-      const firstEnabled = preferred ?? ruleResult.availableOptions.handles.find((h) => h.enabled);
-      if (state.selectedProductConfig) {
-        state.selectedProductConfig = {
-          ...state.selectedProductConfig,
-          Handle: firstEnabled ? (String(firstEnabled.value) as HandleOption) : undefined,
-        };
-      }
-    }
-  }
+  const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile);
 
-  if (!currentHandle && typeof ruleResult.heightLocked === "number") {
-    const preferred = ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled);
-    if (preferred && state.selectedProductConfig) {
-      state.selectedProductConfig = {
-        ...state.selectedProductConfig,
-        Handle: "handle_pto",
-      };
-    }
-  }
+  // Same resolution as the CabinetBuilder page — one implementation, so the two cannot drift.
+  const nextHandle = resolveHandleAfterRules({
+    currentHandle,
+    handles: ruleResult.availableOptions.handles,
+    heightLocked: ruleResult.heightLocked,
+  });
 
-  if (
-    typeof ruleResult.heightLocked === "number" &&
-    ruleResult.heightLocked === 50 &&
-    state.selectedProductConfig &&
-    mapHandleConfigToRule(state.selectedProductConfig.Handle) !== "handle_pto"
-  ) {
-    const preferred = ruleResult.availableOptions.handles.find((h) => h.value === "handle_pto" && h.enabled);
-    if (preferred) {
-      state.selectedProductConfig = {
-        ...state.selectedProductConfig,
-        Handle: "handle_pto",
-      };
-    }
+  if (nextHandle !== currentHandle && state.selectedProductConfig) {
+    state.selectedProductConfig = {
+      ...state.selectedProductConfig,
+      Handle: nextHandle ?? undefined,
+    };
   }
 };
 
-const createInitialState = (): ProductState => {
+/**
+ * Every product option at "not chosen". Collection-specific starting values come from
+ * `profile.defaults`, not from literals here — a collection without a value for an
+ * attribute starts empty rather than inheriting the USH one.
+ */
+const EMPTY_PRODUCT_OPTIONS: ProductState["productOptions"] = {
+  CabinetColor: "",
+  CabinetColorSku: "",
+  CabinetColorMaterial: "",
+  CabinetColorFinish: "",
+  sinkType: "",
+  CountertopColor: "",
+  CountertopColorSku: "",
+  VesselColor: "",
+  HandleGrooveColor: "",
+  HandleGrooveColorSku: "",
+  Handle: "",
+  Thickness: "",
+  DrawerPanelFluting: "",
+  GrainDirection: "",
+  BookMatching: "",
+  CountertopStyle: "",
+  SidePanels: "",
+  SidePanelLeft: "none",
+  SidePanelRight: "none",
+  LedOption: "",
+  DividersOption: "",
+  DividersStyle: "",
+  TowelBarOption: "",
+  TowelBarColor: "",
+  FaucetHolesAmount: "",
+  FaucetHolesSpacing: "",
+};
+
+/**
+ * Starting values declared by the active collection.
+ *
+ * Only keys that exist in the typed options are applied, so a profile cannot invent a
+ * field here; unknown attribute ids belong in the configuration slice instead.
+ */
+const applyProfileDefaults = (profile: ProductProfile | null): Partial<ProductState["productOptions"]> => {
+  if (!profile) return {};
+
+  const known = Object.keys(EMPTY_PRODUCT_OPTIONS);
+
+  return Object.fromEntries(
+    Object.entries(profile.defaults).filter(([attributeId]) => known.includes(attributeId)),
+  ) as Partial<ProductState["productOptions"]>;
+};
+
+const createInitialState = (profile: ProductProfile | null = null): ProductState => {
   const baseState: ProductState = {
     productIds: [],
     activeCabinetType: null,
@@ -251,37 +307,11 @@ const createInitialState = (): ProductState => {
       handles: [],
     },
     cabinetCatalog: { typeCabinetRules: [] },
+    activeProfile: profile,
     placedDividers: [],
     selectedDividerType: null,
     placedCabinetStyles: {},
-    productOptions: {
-      CabinetColor: "Pulpis Chiaro TKH",
-      CabinetColorSku: "",
-      CabinetColorMaterial: "",
-      CabinetColorFinish: "",
-      sinkType: "Top_Tekorlux_Rectangular",
-      CountertopColor: "Cacao Orinoco FF MT",
-      CountertopColorSku: "",
-      VesselColor: "",
-      HandleGrooveColor: "",
-      HandleGrooveColorSku: "",
-      Handle: "",
-      Thickness: "",
-      DrawerPanelFluting: "",
-      GrainDirection: "",
-      BookMatching: "",
-      CountertopStyle: "integrated",
-      SidePanels: "",
-      SidePanelLeft: "none" as const,
-      SidePanelRight: "none" as const,
-      LedOption: "",
-      DividersOption: "",
-      DividersStyle: "",
-      TowelBarOption: "None",
-      TowelBarColor: "",
-      FaucetHolesAmount: "0",
-      FaucetHolesSpacing: '4"',
-    },
+    productOptions: { ...EMPTY_PRODUCT_OPTIONS, ...applyProfileDefaults(profile) },
 
     productsPresets: [],
     selectedSceneProduct: "",
@@ -356,7 +386,7 @@ const productSlice = createSlice({
     },
     reset(state) {
       return {
-        ...createInitialState(),
+        ...createInitialState(state.activeProfile),
         cabinetCatalog: state.cabinetCatalog,
       };
     },
@@ -375,6 +405,16 @@ const productSlice = createSlice({
     },
     setCabinetCatalog(state, action: PayloadAction<ConfiguratorCatalog>) {
       state.cabinetCatalog = action.payload;
+      applyRulesToState(state);
+    },
+    /**
+     * Supplied by A once the active collection is loaded and validated.
+     * Dispatched at bootstrap, before anything is rendered or chosen, so applying the
+     * collection defaults here cannot overwrite a user selection.
+     */
+    setActiveProfile(state, action: PayloadAction<ProductProfile | null>) {
+      state.activeProfile = action.payload;
+      state.productOptions = { ...state.productOptions, ...applyProfileDefaults(action.payload) };
       applyRulesToState(state);
     },
     addProductPreset(state, action: PayloadAction<PresetProduct[]>) {
@@ -416,7 +456,7 @@ const productSlice = createSlice({
         state.selectedDimensions.height = forcedHeight;
       }
       if (forcedHandle && state.selectedProductConfig) {
-        state.selectedProductConfig = { ...state.selectedProductConfig, Handle: forcedHandle as HandleOption };
+        state.selectedProductConfig = { ...state.selectedProductConfig, Handle: forcedHandle };
       }
     },
     setDrawerProduct(state, action: PayloadAction<string>) {
@@ -477,7 +517,7 @@ const productSlice = createSlice({
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
     },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
-      const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
+      const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile);
 
       // Preserve Handle from previous config if new config doesn't have one
       const preservedHandle = action.payload?.Handle ? action.payload.Handle : state.selectedProductConfig?.Handle;
@@ -491,27 +531,38 @@ const productSlice = createSlice({
           ? { Handle: preservedHandle }
           : null;
 
-      const nextHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
+      const nextHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile);
 
-      // On PTO exit, switch height to the forced target of the new handle instead of
-      // restoring a pre-PTO snapshot (which can drift across sessions or differ from
-      // the new handle's required height — e.g. CG→PTO→UG needs 56, not the stale 53).
-      if (prevHandle === "handle_pto" && nextHandle !== "handle_pto" && nextHandle !== null) {
-        const drawers = mapDrawerConfigToRule(state.selectedProductConfig?.Drawers);
-        const targetHeight = resolveForcedHeightForHandle({
-          catalog: state.cabinetCatalog,
-          cabinetType: state.activeCabinetType,
-          drawers,
-          handle: nextHandle,
-        });
-        if (typeof targetHeight === "number") {
+      // When the handle changes to one that forces a different height, apply that height
+      // instead of restoring a pre-change snapshot (which can drift across sessions or
+      // differ from the new handle's required height — e.g. CG→PTO→UG needs 56, not 53).
+      //
+      // Previously this was gated on leaving "handle_pto". The generic form is the
+      // forced heights of the two handles differing, which is what made PTO special in
+      // the USH data: it is the only handle whose forced height differs from the others.
+      if (prevHandle !== nextHandle && nextHandle !== null) {
+        const drawers = mapDrawerConfigToRule(state.selectedProductConfig?.Drawers, state.activeProfile);
+        const forcedHeightFor = (handle: string | null) =>
+          resolveForcedHeightForHandle({
+            catalog: state.cabinetCatalog,
+            cabinetType: state.activeCabinetType,
+            drawers,
+            handle,
+          });
+
+        const targetHeight = forcedHeightFor(nextHandle);
+
+        if (typeof targetHeight === "number" && forcedHeightFor(prevHandle) !== targetHeight) {
           state.selectedDimensions.height = targetHeight;
         }
       }
 
-      // Clear groove color when switching away from urban handles (PTO has no groove)
-      const URBAN_HANDLES = new Set<string | null>(["handle_urban_topcut", "handle_urban_botcut"]);
-      if (URBAN_HANDLES.has(prevHandle) && !URBAN_HANDLES.has(nextHandle)) {
+      // Clear the groove color when leaving a handle that supports it for one that does not.
+      // Applicability comes from the option capability, so a new groove handle needs no id here.
+      const hadGroove = hasCapability(state.activeProfile, "Handle", prevHandle, "supportsGrooveColor");
+      const hasGroove = hasCapability(state.activeProfile, "Handle", nextHandle, "supportsGrooveColor");
+
+      if (hadGroove && !hasGroove) {
         state.productOptions.HandleGrooveColor = "";
         state.productOptions.HandleGrooveColorSku = "";
       }
@@ -723,6 +774,7 @@ export const {
   setFaucetHolesSpacing,
   resetPrebuiltProducts,
   setCabinetCatalog,
+  setActiveProfile,
   setSelectedSceneProduct,
   setIsDrawerOpen,
   resetCabinetBuilderBootstrap,

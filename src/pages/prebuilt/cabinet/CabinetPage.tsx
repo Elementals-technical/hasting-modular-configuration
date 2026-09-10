@@ -52,6 +52,8 @@ import {
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
+import { hasCapability } from "@/entities/collection";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   getConfiguratorVariantOverrides,
   isHiddenConfiguratorDisplayValue,
@@ -67,8 +69,8 @@ const isHiddenVariantMeta = (meta: { label?: string; value?: string }): boolean 
   isHiddenConfiguratorDisplayValue(meta.label) || isHiddenConfiguratorDisplayValue(meta.value);
 
 export const CabinetPage = () => {
-  const URBAN_HANDLES = new Set(["handle_urban_topcut", "handle_urban_botcut"]);
   const dispatch = useAppDispatch();
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const saveSnapshot = useHistorySnapshot();
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const presetsProducts = useAppSelector(getProductsPresets);
@@ -83,7 +85,8 @@ export const CabinetPage = () => {
     typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
   const handleFromFirstPreset = typeof presetsProducts[0]?.Handle === "string" ? presetsProducts[0].Handle : undefined;
   const effectiveHandle = handleFromSelectedConfig ?? handleFromFirstPreset ?? "";
-  const isUrbanHandleSelected = URBAN_HANDLES.has(String(effectiveHandle));
+  // Groove-color availability comes from the option capability, not a list of handle ids.
+  const isUrbanHandleSelected = hasCapability(activeProfile, "Handle", String(effectiveHandle), "supportsGrooveColor");
 
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const cabinetMaterial = useAppSelector(getCabinetColorMaterial);

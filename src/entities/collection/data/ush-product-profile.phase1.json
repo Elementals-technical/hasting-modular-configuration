@@ -1,0 +1,453 @@
+{
+  "schemaVersion": 1,
+  "profileVersion": "0.1.0-draft",
+  "status": "draft-from-static-source-audit",
+  "collectionId": "urban-standard-height",
+  "label": "Urban Standard Height",
+  "provenance": {
+    "repositoryHead": "9783bce8",
+    "auditedAt": "2026-09-09",
+    "warning": "This fixture preserves confirmed legacy code data. It is not a production contract and must not be inherited by another collection without confirmation."
+  },
+  "sourceRefs": {
+    "configuratorId": 4,
+    "countertopMatrixTableId": 438,
+    "cabinetMatrixTableId": 439
+  },
+  "defaults": {
+    "CabinetColor": "Pulpis Chiaro TKH",
+    "CountertopColor": "Cacao Orinoco FF MT",
+    "sinkType": "Top_Tekorlux_Rectangular",
+    "CountertopStyle": "integrated",
+    "SidePanelLeft": "none",
+    "SidePanelRight": "none",
+    "TowelBarOption": "None",
+    "FaucetHolesAmount": "0",
+    "FaucetHolesSpacing": "4\""
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 10,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet with a basin"
+        },
+        {
+          "value": "Sink-Cabinet",
+          "label": "Side Cabinet",
+          "order": 20,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet without a basin"
+        },
+        {
+          "value": "Open-Shelf",
+          "label": "Open Shelf",
+          "order": 30,
+          "category": "open-cabinet"
+        },
+        {
+          "value": "Side-Cabinet",
+          "label": "Side Cabinet",
+          "order": 40,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet without a basin"
+        },
+        {
+          "value": "Side-Shelf",
+          "label": "Side Shelf",
+          "order": 50,
+          "category": "open-cabinet"
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 10,
+          "aliases": ["1D", "1DW"]
+        },
+        {
+          "value": "2",
+          "label": "2 Drawer",
+          "order": 20,
+          "aliases": ["2D", "2DW"]
+        },
+        {
+          "value": "1+inner",
+          "label": "1 Drawer With Inner Drawer",
+          "order": 30,
+          "aliases": ["1DWID", "1+INNER"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Handle",
+      "scope": "cabinet",
+      "initialValue": "",
+      "effectiveFallbackValue": "handle_urban_topcut",
+      "options": [
+        {
+          "value": "handle_pto",
+          "label": "Push to open",
+          "order": 10,
+          "capabilities": {
+            "supportsGrooveColor": false
+          }
+        },
+        {
+          "value": "handle_urban_topcut",
+          "label": "Upper Groove",
+          "order": 20,
+          "capabilities": {
+            "supportsGrooveColor": true
+          }
+        },
+        {
+          "value": "handle_urban_botcut",
+          "label": "Central Groove",
+          "order": 30,
+          "capabilities": {
+            "supportsGrooveColor": true
+          }
+        }
+      ]
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "scope": "cabinet",
+      "resetValue": "None",
+      "optionsSource": "configurator:Handle Groove Color"
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "scope": "cabinet",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "FlutingVerticalA", "label": "Vertical Asymmetrical", "order": 20 },
+        { "value": "FlutingVerticalB", "label": "Vertical Symmetrical", "order": 30 },
+        { "value": "FlutingHorizontalA", "label": "Horizontal Asymmetrical", "order": 40 },
+        { "value": "FlutingHorizontalB", "label": "Horizontal Symmetrical", "order": 50 }
+      ]
+    },
+    {
+      "attributeId": "GrainDirection",
+      "scope": "cabinet",
+      "options": [
+        { "value": "GrainHorizontal", "label": "Horizontal", "order": 10 },
+        { "value": "GrainVertical", "label": "Vertical", "order": 20 }
+      ]
+    },
+    {
+      "attributeId": "BookMatching",
+      "scope": "global",
+      "defaultValue": "",
+      "options": [
+        { "value": "", "label": "Disabled", "order": 10 },
+        { "value": "enabled", "label": "Enabled", "order": 20 }
+      ]
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "defaultValue": "integrated",
+      "options": [
+        { "value": "integrated", "label": "Integrated", "order": 10 },
+        { "value": "vessel", "label": "Vessel", "order": 20 }
+      ]
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        { "value": "0.375", "label": "0.4\"", "order": 10 },
+        { "value": "0.4", "label": "0.4\"", "order": 20 },
+        { "value": "0.5", "label": "0.5\"", "order": 30 },
+        { "value": "2.4", "label": "2.4\"", "order": 40, "aliases": ["2.375", "2.5"] },
+        { "value": "4", "label": "4\"", "order": 50 },
+        { "value": "5.125", "label": "5.1\"", "order": 60 },
+        { "value": "5.5", "label": "5.5\"", "order": 70 }
+      ]
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "options": [
+        { "legacyId": 3001, "value": "Top_HPLPrisma", "label": "HPL Prisma 50", "kind": "integrated", "order": 10 },
+        { "legacyId": 3002, "value": "Top_HPLQuadra", "label": "HPL Quadra 50", "kind": "integrated", "order": 20 },
+        { "legacyId": 3003, "value": "Top_HPLCover", "label": "HPL Cover 50", "kind": "integrated", "order": 30 },
+        { "legacyId": 3004, "value": "Top_HPLStrip", "label": "HPL Strip 48", "kind": "integrated", "order": 40 },
+        { "legacyId": 3005, "value": "Top_HPL/Fenix_Cover_Gres", "label": "Fenix Cover 50", "kind": "integrated", "order": 50 },
+        { "legacyId": 3006, "value": "Top_HPL/Fenix_Prisma_Gres", "label": "Fenix Prisma 50", "kind": "integrated", "order": 60 },
+        { "legacyId": 3007, "value": "Top_HPL/Fenix_Quadra_Gres", "label": "Fenix Quadra 50", "kind": "integrated", "order": 70 },
+        { "legacyId": 3008, "value": "Top_HPL/Fenix_Strip_Gres", "label": "Fenix Strip 48", "kind": "integrated", "order": 80 },
+        { "legacyId": 3009, "value": "Fenix_Strip_Gres", "label": "Fenix Strip Gres", "kind": "integrated", "order": 90 },
+        { "legacyId": 3010, "value": "Top_Glass_Nettuno", "label": "Glass Nettuno", "kind": "integrated", "order": 100 },
+        { "legacyId": 3011, "value": "Top_Glass_Ovale", "label": "Glass Ovale", "kind": "integrated", "order": 110 },
+        { "legacyId": 3012, "value": "Top_Mineralmarmo_Diamond", "label": "Mineralmarmo Diamond", "kind": "integrated", "order": 120 },
+        { "legacyId": 3013, "value": "Top_Ocritech_Oly55", "label": "Ocritech Oly 55", "kind": "integrated", "order": 130 },
+        { "legacyId": 3014, "value": "Top_Ocritech_Oly56", "label": "Ocritech Oly 56", "kind": "integrated", "order": 140 },
+        { "legacyId": 3015, "value": "Top_Ocritech_Orion", "label": "Ocritech Orion", "kind": "integrated", "order": 150 },
+        { "legacyId": 3016, "value": "Top_Ocritech_Quadra", "label": "Ocritech Quadra", "kind": "integrated", "order": 160 },
+        { "legacyId": 3017, "value": "Top_Ocritech_Rayo", "label": "Ocritech Rayo", "kind": "integrated", "order": 170 },
+        { "legacyId": 3018, "value": "Top_Ocritech_Roll", "label": "Ocritech Roll", "kind": "integrated", "order": 180 },
+        { "legacyId": 3019, "value": "Top_Porcelain_Cover", "label": "Porcelain Cover 48", "kind": "integrated", "order": 190 },
+        { "legacyId": 3020, "value": "Top_Porcelain_Prisma", "label": "Porcelain Prisma 48", "kind": "integrated", "order": 200 },
+        { "legacyId": 3021, "value": "Top_Porcelain_Quadra", "label": "Porcelain Quadra 48", "kind": "integrated", "order": 210 },
+        { "legacyId": 3022, "value": "Top_Porcelain_Strip", "label": "Porcelain Strip 48", "kind": "integrated", "order": 220 },
+        { "legacyId": 3023, "value": "Top_Tekorlux_Syntesi", "label": "Syntesi 48", "kind": "integrated", "order": 230 },
+        { "legacyId": 3024, "value": "Top_Tekorlux_Quadra", "label": "Tekorlux Quadra 50", "kind": "integrated", "order": 240 },
+        { "legacyId": 3025, "value": "Top_Tekorlux_Rectangular", "label": "Tekorlux Rectangular 50", "kind": "integrated", "order": 250 },
+        { "legacyId": 3026, "value": "Top_Tekorlux_Ron", "label": "Tekorlux Ron 50", "kind": "integrated", "order": 260 },
+        { "legacyId": 3027, "value": "Top_Tekorlux_Trip", "label": "Tekorlux Trip 50", "kind": "integrated", "order": 270 },
+        { "legacyId": 3028, "value": "Top_Tekormud_Tivi", "label": "Tekormud TIVI", "kind": "integrated", "order": 280 },
+        { "legacyId": 3029, "value": "Vessel_Blade11", "label": "Vessel Blade 11", "kind": "vessel", "order": 290 },
+        { "legacyId": 3030, "value": "Vessel_Blade18", "label": "Vessel Blade 18", "kind": "vessel", "order": 300 },
+        { "legacyId": 3033, "value": "Vessel_UrbanModo", "label": "Vessel Urban Modo", "kind": "vessel", "order": 310 },
+        { "legacyId": 3034, "value": "Vessel_UrbanModo_Flat", "label": "Vessel Urban Modo Flat", "kind": "vessel", "order": 320, "visibility": "hiddenLegacy" },
+        { "legacyId": 3035, "value": "Vessel_UrbanModo_Seam", "label": "Vessel Urban Modo Seam", "kind": "vessel", "order": 330, "visibility": "hiddenLegacy" },
+        { "legacyId": 3036, "value": "Vessel_UrbanModo_Cover", "label": "Vessel Urban Modo Cover", "kind": "vessel", "order": 340, "visibility": "hiddenLegacy" },
+        { "legacyId": 3037, "value": "Vessel_UrbanMorris", "label": "Vessel Urban Morris", "kind": "vessel", "order": 350 },
+        { "legacyId": 3038, "value": "Vessel_Aquarius", "label": "Vessel Acquarius", "kind": "vessel", "order": 360 }
+      ]
+    },
+    {
+      "attributeId": "SidePanels",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "NoG", "label": "No groove", "order": 20 },
+        { "value": "UpperG", "label": "1 groove (upper)", "order": 30 },
+        { "value": "CenterG", "label": "1 groove (central)", "order": 40 },
+        { "value": "DoubleG", "label": "2 groove", "order": 50 }
+      ]
+    },
+    {
+      "attributeId": "LedOption",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Auto Fill", "label": "Auto Fill", "order": 20 },
+        { "value": "Customize", "label": "Customize", "order": 30 }
+      ]
+    },
+    {
+      "attributeId": "DividersOption",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Customize", "label": "Customize", "order": 20 }
+      ]
+    },
+    {
+      "attributeId": "DividersStyle",
+      "scope": "drawer",
+      "options": [
+        { "value": "A", "label": "Option A", "order": 10 },
+        { "value": "B", "label": "Option B", "order": 20 },
+        { "value": "C", "label": "Option C", "order": 30 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "scope": "global",
+      "defaultValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Left", "label": "Left", "order": 20 },
+        { "value": "Right", "label": "Right", "order": 30 },
+        { "value": "Both", "label": "Both", "order": 40 }
+      ]
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "scope": "countertop",
+      "defaultValue": "0",
+      "sourcePolicy": "intersect-profile-options-with-countertop-matrix",
+      "needsConfirmation": true,
+      "options": [
+        { "value": "0", "label": "0", "order": 10 },
+        { "value": "1", "label": "1", "order": 20 },
+        { "value": "2", "label": "2", "order": 30 },
+        { "value": "3", "label": "3", "order": 40 },
+        { "value": "4", "label": "4", "order": 50 },
+        { "value": "5", "label": "5", "order": 60 }
+      ]
+    }
+  ],
+  "ruleData": {
+    "materialNormalization": {
+      "aliases": {
+        "tekorund": ["tekormud", "sstm"],
+        "tekormud": ["tekorund", "sstm"],
+        "glass": ["glassmt", "glassgl"],
+        "glassmt": ["glass", "glassgl"],
+        "glassgl": ["glass", "glassmt"],
+        "ssocr": ["ocritech", "solidsurface", "sst1c", "sst1d"],
+        "ocritech": ["ssocr", "solidsurface", "sst1c", "sst1d"],
+        "solidsurface": ["ocritech", "ssocr", "sst1c", "sst1d"],
+        "sst1c": ["ocritech", "ssocr", "solidsurface", "sst1d"],
+        "sst1d": ["ocritech", "ssocr", "solidsurface", "sst1c"],
+        "sstkr": ["tekorlux", "tal", "tam"],
+        "tekorlux": ["sstkr", "tal", "tam"],
+        "tal": ["tekorlux", "sstkr", "tam"],
+        "tam": ["tekorlux", "sstkr", "tal"],
+        "sstm": ["tekormud", "tekorund"],
+        "ssmmo": ["mineralmarmo", "minermalmaro"],
+        "mineralmarmo": ["ssmmo"],
+        "minermalmaro": ["ssmmo"],
+        "fx": ["fenix"],
+        "fenix": ["fx"],
+        "por": ["porcelain"],
+        "porcelain": ["por"],
+        "sssyn": ["syntesi"],
+        "syntesi": ["sssyn"]
+      },
+      "displayHierarchy": [
+        {
+          "value": "solid-surface",
+          "label": "Solid Surface",
+          "children": ["Mineralmarmo", "Ocritech", "Syntesi", "Tekorlux", "Tekormud"],
+          "aliases": ["Solid-Surface", "Solid Surface", "SolidSurface"]
+        },
+        {
+          "value": "glass",
+          "label": "Glass",
+          "children": ["Glass", "Glass GL", "Glass MT"],
+          "aliases": ["Glass"]
+        }
+      ],
+      "vesselCompatibleCountertopMaterialTokens": ["hpl", "porcelain", "tekorlux", "tal", "tam", "solidsurface"]
+    },
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 439,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {
+          "handle_pto": "handle_pto_forced_height_cm",
+          "handle_urban_topcut": "handle_urban_topcut_forced_height_cm",
+          "handle_urban_botcut": "handle_urban_botcut_forced_height_cm"
+        },
+        "requiresDrawersByHandle": {
+          "handle_urban_botcut": "handle_urban_botcut_requires_drawers"
+        }
+      }
+    },
+    "grainDirection": {
+      "eligibleMaterials": ["Essenze", "HPL", "3D"],
+      "excludedFinishesByMaterial": {
+        "HPL": ["TKP", "TKQ", "TKN"],
+        "3D": ["10B", "10F", "1A1", "1A2", "1A3", "1A4", "1A5", "1PE"]
+      }
+    },
+    "fluting": {
+      "eligibleMaterialAliases": ["LACM", "LACQUER MATTE", "LACQUERED MATTE", "LACQUERED MT", "LACQUER MT"],
+      "forbiddenTargetParts": ["SIDE_PANEL"]
+    },
+    "bookMatching": {
+      "horizontalMinimumAdjacentDrawerCabinets": 2,
+      "verticalAllowedDrawerStyles": ["2"],
+      "drawerCabinetAliases": ["Sink-Base", "Sink-Cabinet", "Side-Cabinet", "SB", "SC"],
+      "openCabinetAliases": ["Open-Shelf", "Side-Shelf", "OS", "OSS"]
+    },
+    "countertopFallbacks": {
+      "needsConfirmation": true,
+      "restrictedIntegratedDepthsCm": [46],
+      "restrictedIntegratedMaterialTokens": ["tekormud", "tekorund", "sstm", "solidsurface", "ssocr", "sst1c", "sst1d"],
+      "restrictedIntegratedBasinKeys": ["oly55", "oly56", "orion"],
+      "excludedMaterialFilterTokens": ["lacqueredmt", "lacqueredgl"]
+    },
+    "syntesi": {
+      "material": "Syntesi",
+      "materialSkuToken": "SSSYN",
+      "maxCabinetCount": 1,
+      "allowsSidePanels": false,
+      "finishTransforms": [
+        {
+          "finish": "TAN",
+          "sourceFinish": "TAL",
+          "label": "Bianco Gloss TAN",
+          "value": "Bianco Gloss TAN",
+          "runtimeValue": "Bianco Gloss TAL"
+        },
+        {
+          "finish": "TAP",
+          "sourceFinish": "TAM",
+          "label": "Bianco Matte TAP",
+          "value": "Bianco Matte TAP",
+          "runtimeValue": "Bianco Matte TAM"
+        }
+      ],
+      "sourceMaterialTokens": ["tekorlux", "sstkr", "tal", "tam"]
+    },
+    "sidePanels": {
+      "heightTokenByCm": {
+        "50": "50H",
+        "53": "53H",
+        "56": "56H"
+      },
+      "blockedCabinetTypes": ["OS", "OSS"],
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        { "height": "50H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] },
+        { "height": "50H", "handleType": "2D", "cabinetType": "SBSC", "allowed": ["NoG"] },
+        { "height": "53H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "53H", "handleType": "2D", "cabinetType": "SBSC", "allowed": ["NoG", "CenterG"] },
+        { "height": "56H", "handleType": "2D", "cabinetType": "SBSC", "allowed": ["NoG", "DoubleG"] },
+        { "height": "56H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] }
+      ]
+    },
+    "dividerValidation": {
+      "gateOrder": ["no-context", "no-selection", "type-unavailable", "cannot-place", "slot-mismatch", "ok"]
+    }
+  },
+  "messages": {
+    "handle.centralGrooveRequiresDrawers": "Available only for selected drawers",
+    "handle.requiredHeight": "Required for selected handle",
+    "handle.defaultRequiredHeight": "Required for selected handle and all products",
+    "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
+    "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
+    "grain.selectDirection": "Select grain direction first.",
+    "grain.horizontalNeedsAdjacentCabinets": "Horizontal grain requires at least 2 adjacent drawer cabinets.",
+    "grain.verticalRequiresTwoDrawers": "Vertical book matching is only available for 2 drawer cabinet styles.",
+    "grain.bookMatchingUnavailable": "Book matching is not available.",
+    "fluting.sidePanelUnavailable": "Fluting is not available for side panels.",
+    "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "syntesi.singleCabinetOnly": "Syntesi is available for single cabinet configurations only.",
+    "syntesi.sidePanelsUnavailable": "Syntesi is not available with side panels.",
+    "sidePanel.sideShelfUnavailable": "Side panels are not available for Side-Shelf cabinets.",
+    "sidePanel.openShelfUnavailable": "Side panels are not available for use with Open Shelf cabinets.",
+    "divider.noSelection": "Select a Divider option before placing it.",
+    "divider.slotMismatch": "Selected Divider does not match this placement slot. Choose the matching Divider option.",
+    "divider.cannotPlace": "Selected Divider does not fit here. Choose another available option.",
+    "divider.noContext": "Open a drawer before placing a Divider."
+  },
+  "excludedFromThisProfile": {
+    "uiStepsAndSections": "Owned by B in ui.json.",
+    "runtimeBindings": "Owned by I.",
+    "skuAndPricing": "Owned by D.",
+    "presetCatalogLoading": "Owned by A; preset values are validated by this profile."
+  }
+}

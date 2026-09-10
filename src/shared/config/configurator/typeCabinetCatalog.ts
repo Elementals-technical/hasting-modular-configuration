@@ -7,10 +7,13 @@ export type TypeCabinetRuleConfig = {
   hasSink?: boolean;
   isOpen?: boolean;
   handlesAllowed?: string[];
-  handleUrbanBotcutRequiresDrawers?: string[];
-  handlePtoForcedHeightCm?: string | null;
-  handleUrbanTopcutForcedHeightCm?: string | null;
-  handleUrbanBotcutForcedHeightCm?: string | null;
+  /**
+   * handleId -> drawers value -> forced height in cm.
+   * Replaces the per-handle `handle*ForcedHeightCm` fields, so a new handle is data only.
+   */
+  forcedHeightByHandle?: Record<string, Record<string, number>>;
+  /** handleId -> drawers values that allow this handle. Absent/empty means no restriction. */
+  requiresDrawersByHandle?: Record<string, string[]>;
   supportsHeight?: number[];
 };
 
