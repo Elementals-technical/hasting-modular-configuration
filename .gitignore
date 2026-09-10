@@ -101,5 +101,6 @@ docs/*
 !docs/parent-configurator-integration.md
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
+!docs/collection-data-migration-status-v1.md
 
 iphone-safari-debugging
