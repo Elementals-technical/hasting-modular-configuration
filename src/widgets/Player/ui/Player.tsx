@@ -31,6 +31,7 @@ import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { useSaveConfigurationMutation } from "@/entities";
 import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
+import { selectConfigurationSavePayload } from "@/features/saveConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -95,6 +96,7 @@ export function Player({
   const [isCustomInstructionOpen, setIsCustomInstructionOpen] = useState(false);
   const [isInteractiveTutorialOpen, setIsInteractiveTutorialOpen] = useState(initialInteractiveTutorialOpen);
 
+  const savePayload = useAppSelector(selectConfigurationSavePayload);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const sinkType = useAppSelector(getSinkType);
@@ -146,6 +148,9 @@ export function Player({
       orderedProductIds: ids,
       uiState: {
         CabinetColor: cabinetColor,
+        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
+        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
+        Handle: savePayload.uiState.Handle,
         HandleGrooveColor: handleGrooveColor,
         sinkType,
         CountertopColor: countertopColor,
@@ -173,6 +178,7 @@ export function Player({
         isAutofillEnabled,
         hasSubmittedCart,
       },
+      fragment: savePayload.fragment,
     });
 
     try {

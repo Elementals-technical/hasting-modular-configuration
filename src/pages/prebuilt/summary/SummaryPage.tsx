@@ -87,6 +87,7 @@ import {
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
 import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
+import { selectConfigurationSavePayload } from "@/features/saveConfiguration";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import {
   SYNTESI_MATERIAL,
@@ -312,6 +313,7 @@ export const SummaryPage = () => {
     [],
   );
 
+  const savePayload = useAppSelector(selectConfigurationSavePayload);
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
@@ -1830,6 +1832,9 @@ export const SummaryPage = () => {
           orderedProductIds: ids,
           uiState: {
             CabinetColor: cabinetColor,
+        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
+        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
+        Handle: savePayload.uiState.Handle,
             HandleGrooveColor: handleGrooveColor,
             sinkType,
             CountertopColor: countertopColor,
@@ -1857,6 +1862,7 @@ export const SummaryPage = () => {
             isAutofillEnabled,
             hasSubmittedCart,
           },
+          fragment: savePayload.fragment,
         });
 
         const snapshotHash = JSON.stringify({ configuration, metadata });
@@ -1884,6 +1890,7 @@ export const SummaryPage = () => {
       isCancelled = true;
     };
   }, [
+    savePayload,
     cabinetColor,
     countertopColor,
     countertopStyle,

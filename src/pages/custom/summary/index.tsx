@@ -91,6 +91,7 @@ import {
   formatCountertopThicknessLabel,
 } from "@/entities/countertop";
 import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
+import { selectConfigurationSavePayload } from "@/features/saveConfiguration";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import {
   SYNTESI_MATERIAL,
@@ -316,6 +317,7 @@ export const CustomSummaryPage = () => {
     [],
   );
 
+  const savePayload = useAppSelector(selectConfigurationSavePayload);
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
@@ -1824,6 +1826,9 @@ export const CustomSummaryPage = () => {
           orderedProductIds: ids,
           uiState: {
             CabinetColor: cabinetColor,
+        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
+        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
+        Handle: savePayload.uiState.Handle,
             HandleGrooveColor: handleGrooveColor,
             sinkType,
             CountertopColor: countertopColor,
@@ -1851,6 +1856,7 @@ export const CustomSummaryPage = () => {
             isAutofillEnabled,
             hasSubmittedCart,
           },
+          fragment: savePayload.fragment,
         });
 
         const snapshotHash = JSON.stringify({ configuration, metadata });
@@ -1878,6 +1884,7 @@ export const CustomSummaryPage = () => {
       isCancelled = true;
     };
   }, [
+    savePayload,
     cabinetColor,
     countertopColor,
     countertopStyle,

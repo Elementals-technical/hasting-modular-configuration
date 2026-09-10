@@ -37,6 +37,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
 import { buildConfigurationMetadata } from "../lib/buildConfigurationMetadata";
+import { selectConfigurationSavePayload } from "../lib/selectSavePayload";
 import { buildConfigurationShareUrl } from "../lib/buildConfigurationShareUrl";
 import { resolveConfigurationIdFromSearch } from "../lib/configurationUrlParams";
 
@@ -50,6 +51,7 @@ export const useCurrentConfigurationLink = () => {
   const [saveConfiguration] = useSaveConfigurationMutation();
 
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const savePayload = useAppSelector(selectConfigurationSavePayload);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const sinkType = useAppSelector(getSinkType);
@@ -101,6 +103,9 @@ export const useCurrentConfigurationLink = () => {
       orderedProductIds: ids,
       uiState: {
         CabinetColor: cabinetColor,
+        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
+        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
+        Handle: savePayload.uiState.Handle,
         HandleGrooveColor: handleGrooveColor,
         sinkType,
         CountertopColor: countertopColor,
@@ -128,6 +133,7 @@ export const useCurrentConfigurationLink = () => {
         isAutofillEnabled,
         hasSubmittedCart,
       },
+      fragment: savePayload.fragment,
     });
 
     const result = await saveConfiguration({ configuration, metadata }).unwrap();
@@ -141,6 +147,7 @@ export const useCurrentConfigurationLink = () => {
       url: buildConfigurationShareUrl(configId),
     };
   }, [
+    savePayload,
     bookMatching,
     cabinetColor,
     countertopColor,

@@ -27,6 +27,7 @@ import {
   getSelectedMaterials,
 } from "@/features/swatchOrder";
 import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
+import { selectConfigurationSavePayload } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -95,6 +96,7 @@ export const BottomCanvasButtons = () => {
 
   const dispatch = useAppDispatch();
 
+  const savePayload = useAppSelector(selectConfigurationSavePayload);
   const cabinetColor = useAppSelector(getCabinetColor);
   // const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
@@ -295,6 +297,9 @@ export const BottomCanvasButtons = () => {
       orderedProductIds: ids,
       uiState: {
         CabinetColor: cabinetColor,
+        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
+        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
+        Handle: savePayload.uiState.Handle,
         HandleGrooveColor: handleGrooveColor,
         sinkType,
         CountertopColor: countertopColor,
@@ -322,6 +327,7 @@ export const BottomCanvasButtons = () => {
         isAutofillEnabled,
         hasSubmittedCart,
       },
+      fragment: savePayload.fragment,
     });
 
     try {
