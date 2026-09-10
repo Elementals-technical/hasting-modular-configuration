@@ -1,0 +1,7 @@
+{
+  "id": "fixture-rules",
+  "label": "Fixture Rules Collection",
+  "defaults": {
+    "CabinetColor": "Rules Green"
+  }
+}

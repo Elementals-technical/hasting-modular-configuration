@@ -1,0 +1,45 @@
+{
+  "cabinetType": {
+    "Sink-Base": "SB",
+    "Sink-Cabinet": "SC",
+    "Side-Cabinet": "SC",
+    "Open-Shelf": "OS",
+    "Side-Shelf": "OSS"
+  },
+  "drawer": {
+    "1D": "1DW",
+    "2D": "2DW",
+    "1DWID": "1DWID"
+  },
+  "handle": {
+    "handle_urban_topcut": "UG",
+    "handle_urban_botcut": "CG",
+    "handle_pto": "PTO"
+  },
+  "pattern": {
+    "FlutingVerticalA": "CVA",
+    "FlutingVerticalB": "CVB",
+    "FlutingHorizontalA": "CHA",
+    "FlutingHorizontalB": "CHB",
+    "None": "X"
+  },
+  "sidePanel": {
+    "None": "X",
+    "NoG": "NOG",
+    "UpperG": "UPG",
+    "CenterG": "CTG",
+    "DoubleG": "DBG"
+  },
+  "divider": {
+    "Option A": "DVA",
+    "Option B": "DVB",
+    "Option C": "DVC",
+    "None": "X"
+  },
+  "towelBar": {
+    "None": "X",
+    "Left": "TBL",
+    "Right": "TBR",
+    "Both": "TBB"
+  }
+}
