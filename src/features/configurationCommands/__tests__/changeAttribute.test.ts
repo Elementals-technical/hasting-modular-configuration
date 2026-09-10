@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
-import { getPackagedProductProfile } from "@/entities/collection";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import {
   getAttributeValue,
@@ -24,8 +24,7 @@ import { changeAttribute } from "../lib/changeAttribute";
 import { createTestRuntimePort } from "../lib/testRuntimePort";
 import type { AttributeChange } from "../model/types";
 
-const profile = getPackagedProductProfile();
-if (!profile) throw new Error("packaged profile must parse");
+const profile = ushProfile;
 
 const matrix = {
   rows: [

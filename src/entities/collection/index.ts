@@ -38,10 +38,6 @@ export type {
   NormalizedHandleProfile,
 } from "./model/handleProfile";
 
-/** Phase-1 packaged source; replaced once the loader supplies the profile (A06). */
-export { getPackagedProductProfile, loadPackagedProductProfile } from "./lib/bootstrapProductProfile";
-export type { BootstrapProductProfileResult } from "./lib/bootstrapProductProfile";
-
 export { parseProductProfile } from "./lib/parseProductProfile";
 export type {
   ParseProductProfileResult,

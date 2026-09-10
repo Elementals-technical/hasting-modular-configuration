@@ -1,5 +1,7 @@
 export * from "./api";
 
+export { CollectionStateBridge } from "./ui/CollectionStateBridge";
+
 export type {
   AttributeValue,
   CabinetEntry,

@@ -8,7 +8,7 @@ import {
 } from "../lib/normalizeHandleProfile";
 import type { NormalizedMatrixRow } from "../lib/normalizeHandleProfile";
 import { parseProductProfile } from "../lib/parseProductProfile";
-import ushProfile from "../data/ush-product-profile.phase1.json";
+import ushProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
 
 const parsed = parseProductProfile(ushProfile);
 if (!parsed.ok) throw new Error("USH fixture must parse");

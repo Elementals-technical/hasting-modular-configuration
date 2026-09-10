@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPackagedProductProfile } from "@/entities/collection";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -9,8 +9,7 @@ import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder
 
 import { REASON_GROOVE_NOT_SUPPORTED, buildChangePlan } from "../lib/buildChangePlan";
 
-const profile = getPackagedProductProfile();
-if (!profile) throw new Error("packaged profile must parse");
+const profile = ushProfile;
 
 /** Matrix rows in the shape the 439 adapter expects. Numbers are the fixture's own. */
 const matrix = {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
-import ushProfile from "../data/ush-product-profile.phase1.json";
+import ushProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 

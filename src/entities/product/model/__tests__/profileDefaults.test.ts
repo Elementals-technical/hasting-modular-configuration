@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPackagedProductProfile } from "@/entities/collection";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import { productReducer, reset, setActiveProfile } from "@/entities/product/model/store/slice";
 
@@ -33,7 +33,7 @@ describe("product defaults from the active profile", () => {
   });
 
   it("reproduces the legacy USH starting values from data", () => {
-    const state = withProfile(getPackagedProductProfile());
+    const state = withProfile(ushProfile);
 
     for (const [attributeId, value] of Object.entries(LEGACY_USH_DEFAULTS)) {
       expect(state.productOptions[attributeId as keyof typeof LEGACY_USH_DEFAULTS], attributeId).toBe(value);
@@ -41,8 +41,7 @@ describe("product defaults from the active profile", () => {
   });
 
   it("does not let another collection inherit the USH values", () => {
-    const profile = getPackagedProductProfile();
-    if (!profile) throw new Error("packaged profile must parse");
+    const profile = ushProfile;
 
     const other: ProductProfile = {
       ...profile,
@@ -58,8 +57,7 @@ describe("product defaults from the active profile", () => {
   });
 
   it("ignores defaults that are not typed options", () => {
-    const profile = getPackagedProductProfile();
-    if (!profile) throw new Error("packaged profile must parse");
+    const profile = ushProfile;
 
     const withUnknown: ProductProfile = {
       ...profile,
@@ -73,7 +71,7 @@ describe("product defaults from the active profile", () => {
   });
 
   it("keeps the collection defaults after a reset", () => {
-    const active = withProfile(getPackagedProductProfile());
+    const active = withProfile(ushProfile);
     const afterReset = productReducer(active, reset());
 
     expect(afterReset.productOptions.CabinetColor).toBe(LEGACY_USH_DEFAULTS.CabinetColor);

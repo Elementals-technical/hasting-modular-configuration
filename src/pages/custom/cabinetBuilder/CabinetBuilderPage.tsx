@@ -59,7 +59,6 @@ import {
   setVesselColor,
   setDrawerProduct,
   addProductPreset,
-  setCabinetCatalog,
   setPlacedCabinetStyle,
   replacePlacedDividersForCabinet,
   switchAllCabinetsDrawerStyle,
@@ -91,10 +90,9 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
-import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
-import { hasCapability, selectEffectiveFallback, selectOptionsByCapability } from "@/entities/collection";
+import { hasCapability, selectEffectiveFallback, selectOptionsByCapability, useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   formatCompositionLengthReachedReason,
@@ -116,7 +114,6 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import { useLazyRestoreConfigurationQuery } from "@/entities";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { useGetProductDatatableQuery } from "@/entities/product/api";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
@@ -138,7 +135,6 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
-const MATRIX_CABINET_DATATABLE_ID = 439;
 const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
 const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
@@ -296,10 +292,11 @@ export const CabinetBuilderPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
 
-  const { data: matrixCabinetTable, isLoading: isMatrixLoading } =
-    useGetProductDatatableQuery(MATRIX_CABINET_DATATABLE_ID);
-
-  // console.log("matrixCabinetTable", matrixCabinetTable);
+  // The cabinet matrix arrives with the active collection: the page no longer knows the
+  // table id, and a collection that is still loading yields no catalog rather than an
+  // empty one.
+  const activeCollection = useActiveCollection();
+  const isMatrixLoading = activeCollection.status === "resolving" || activeCollection.status === "loading";
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
@@ -944,14 +941,6 @@ export const CabinetBuilderPage = () => {
     },
     [cabinetCatalog.typeCabinetRules],
   );
-
-  useEffect(() => {
-    if (!matrixCabinetTable) return;
-    const catalog = buildCabinetCatalogFromMatrix(matrixCabinetTable);
-    if (catalog.typeCabinetRules.length) {
-      dispatch(setCabinetCatalog(catalog));
-    }
-  }, [dispatch, matrixCabinetTable]);
 
   useEffect(() => {
     if (isStyleSidebarOpen && !hasProducts && canvasReady) {

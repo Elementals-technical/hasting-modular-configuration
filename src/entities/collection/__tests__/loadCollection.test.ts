@@ -6,6 +6,7 @@ import productionNavigation from "../../../../public/collections/urban-standard-
 import productionPresets from "../../../../public/collections/urban-standard-height/presets.json";
 import productionStaticOptions from "../../../../public/collections/urban-standard-height/static-options.json";
 import productionSkuMappings from "../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
+import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
 
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
@@ -20,6 +21,8 @@ import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
+import { toCollectionError } from "../model/errors";
+import type { ProfileDiagnostic } from "../lib/parseProductProfile";
 import { resolveCollection } from "../lib/resolveCollection";
 import type { CollectionRuntimeDependencies, RemoteCollectionLoader } from "../model/types";
 
@@ -46,6 +49,56 @@ const unusedRemote = (): RemoteCollectionLoader => ({
 });
 
 describe("collection loading and assembly", () => {
+  it("reports a broken product profile with its diagnostics instead of loading it", async () => {
+    const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
+    const brokenProfile = JSON.parse(JSON.stringify(productionProductProfile)) as {
+      attributes: { attributeId: string; options?: { value: string; label: string; order: number }[] }[];
+    };
+    const handle = brokenProfile.attributes.find(({ attributeId }) => attributeId === "Handle");
+    handle?.options?.push({ value: "handle_pto", label: "Duplicate", order: 40 });
+
+    const fetchJson = jsonFetcher({
+      [registryUrl]: productionRegistry,
+      [manifestUrl]: productionManifest,
+      [`${rootUrl}urban-standard-height/navigation.json`]: productionNavigation,
+      [`${rootUrl}urban-standard-height/presets.json`]: productionPresets,
+      [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
+      [`${rootUrl}urban-standard-height/product-profile.json`]: brokenProfile,
+      [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+    });
+
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl: rootUrl,
+      fetchJson,
+      remote: {
+        loadConfigurator: vi.fn(async () => configurator4),
+        loadCountertopTable: vi.fn(async () => datatable438),
+        loadCabinetTable: vi.fn(async () => datatable439),
+      },
+    };
+
+    const registry = await loadCollectionRegistry(dependencies, abortSignal);
+    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    if (!resolution.ok) throw new Error("Expected a resolved collection");
+
+    const error = await loadResolvedCollection(resolution, dependencies, abortSignal).then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+
+    expect(error?.code).toBe("source-validation-failed");
+    expect(error?.message).toContain("/attributes/Handle/options/3/value");
+
+    // The structured diagnostics survive as data, so a consumer does not have to parse
+    // them back out of the message.
+    const diagnostics = error?.cause as ProfileDiagnostic[];
+    expect(diagnostics[0]).toMatchObject({
+      code: "attribute.duplicate_option",
+      dataPath: "/attributes/Handle/options/3/value",
+    });
+  });
+
   it("loads the complete default USH package and starts all declared remote sources in parallel", async () => {
     const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
     const fetchJson = jsonFetcher({
@@ -54,6 +107,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/navigation.json`]: productionNavigation,
       [`${rootUrl}urban-standard-height/presets.json`]: productionPresets,
       [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
+      [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
     });
     const pending: Array<(value: unknown) => void> = [];
@@ -100,6 +154,18 @@ describe("collection loading and assembly", () => {
     expect(data.catalog.configurator?.groupsByName["Cabinet Color"]?.proxyName).toBe("Cabinet Color");
     expect(data.catalog.cabinets?.typeCabinetRules).toHaveLength(4);
     expect(data.catalog.countertops).toHaveLength(27);
+
+    // The profile reaches the loader and normalizes the legacy matrix: handle-specific
+    // columns become a generic relation keyed by handle id.
+    expect(data.catalog.productProfile?.collectionId).toBe("urban-standard-height");
+
+    const sinkBase = data.catalog.cabinets?.typeCabinetRules.find(({ code }) => code === "Sink-Base");
+    expect(sinkBase?.forcedHeightByHandle).toEqual({
+      handle_pto: { "1": 50, "2": 50, "1+inner": 50 },
+      handle_urban_topcut: { "1": 53, "2": 56, "1+inner": 53 },
+      handle_urban_botcut: { "2": 53 },
+    });
+    expect(sinkBase?.requiresDrawersByHandle).toEqual({ handle_urban_botcut: ["2"] });
     expect(new Set(productionPresets.map(({ img }) => img)).size).toBe(54);
   });
 
@@ -184,6 +250,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/navigation.json`]: productionNavigation,
       [`${rootUrl}urban-standard-height/presets.json`]: productionPresets,
       [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
+      [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
     });
     const dependencies: CollectionRuntimeDependencies = {

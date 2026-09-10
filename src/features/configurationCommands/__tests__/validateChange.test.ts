@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { getPackagedProductProfile } from "@/entities/collection";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 
 import { REASON_VALUE_NOT_IN_CATALOG, validateChange } from "../lib/validateChange";
 import type { AttributeChange } from "../model/types";
 
-const profile = getPackagedProductProfile();
-if (!profile) throw new Error("packaged profile must parse");
+const profile = ushProfile;
 
 const change = (overrides: Partial<AttributeChange> = {}): AttributeChange =>
   ({

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import ushProfile from "@/entities/collection/data/ush-product-profile.phase1.json";
+import ushProfile from "../../../../../public/collections/urban-standard-height/product-profile.json";
 import { parseProductProfile } from "@/entities/collection";
 import { productReducer } from "@/entities/product/model/store/slice";
 
