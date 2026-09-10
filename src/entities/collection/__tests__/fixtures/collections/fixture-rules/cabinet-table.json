@@ -1,0 +1,24 @@
+{
+  "id": 0,
+  "name": "fixture cabinet rules (test only)",
+  "description": null,
+  "schema": [
+    { "name": "cabinet_type", "type": "string" },
+    { "name": "widths_cm", "type": "string" }
+  ],
+  "rows": [
+    {
+      "cabinet_type": "Fixture-Cabinet",
+      "widths_cm": "13|37",
+      "depths_cm": "11",
+      "heights_cm": "17",
+      "drawer_configs": "fixture-drawer",
+      "has_sink": "FALSE",
+      "is_open": "TRUE",
+      "fixtureExtension": "retained"
+    }
+  ],
+  "organizationId": 0,
+  "createdAt": "2026-09-10T00:00:00.000Z",
+  "updatedAt": "2026-09-10T00:00:00.000Z"
+}

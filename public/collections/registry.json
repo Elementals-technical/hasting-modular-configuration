@@ -1,0 +1,9 @@
+{
+  "defaultCollectionId": "urban-standard-height",
+  "collections": [
+    {
+      "id": "urban-standard-height",
+      "manifest": "urban-standard-height/manifest.json"
+    }
+  ]
+}
