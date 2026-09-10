@@ -1,0 +1,29 @@
+{
+  "id": "urban-standard-height",
+  "label": "Urban Standard Height",
+  "defaults": {
+    "CabinetColor": "Pulpis Chiaro TKH",
+    "CountertopColor": "Cacao Orinoco FF MT",
+    "sinkType": "Top_Tekorlux_Rectangular"
+  },
+  "defaultPresetId": 1,
+  "local": {
+    "navigation": "navigation.json",
+    "presets": "presets.json",
+    "staticOptions": "static-options.json",
+    "cabinetSkuMappings": "cabinet-sku-mappings.json"
+  },
+  "remote": {
+    "configurator": {
+      "id": 4,
+      "view": "full",
+      "serialize": true
+    },
+    "countertopTable": {
+      "id": 438
+    },
+    "cabinetTable": {
+      "id": 439
+    }
+  }
+}
