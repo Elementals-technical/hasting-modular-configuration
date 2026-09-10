@@ -1,0 +1,8 @@
+{
+  "defaultCollectionId": "fixture-ui",
+  "collections": [
+    { "id": "fixture-ui", "manifest": "fixture-ui/manifest.json" },
+    { "id": "fixture-rules", "manifest": "fixture-rules/manifest.json" },
+    { "id": "urban-standard-height", "manifest": "urban-standard-height/manifest.json" }
+  ]
+}
