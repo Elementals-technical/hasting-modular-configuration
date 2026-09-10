@@ -2,6 +2,7 @@ export * from "./lib/collectionUrl";
 export * from "./lib/loadCollection";
 export * from "./lib/paths";
 export * from "./lib/resolveCollection";
+export * from "./lib/resolveRestoredCollection";
 export * from "./lib/rtkRemoteLoader";
 export * from "./lib/validation";
 export * from "./model/constants";
