@@ -29,6 +29,16 @@ export {
 } from "./lib/selectSavePayload";
 export { useCurrentConfigurationLink, type CurrentConfigurationLink } from "./hooks/useCurrentConfigurationLink";
 export {
+  hashConfigurationRequest,
+  useBuildConfigurationRequest,
+  useSaveCurrentConfiguration,
+  type BuildConfigurationRequestOptions,
+  type ConfigurationSaveRequest,
+  type SaveCurrentConfigurationOptions,
+  type SaveCurrentConfigurationResult,
+} from "./hooks/useSaveCurrentConfiguration";
+export { collectSceneConfiguration, type SceneConfiguration } from "./lib/collectSceneConfiguration";
+export {
   CONFIGURATION_ID_QUERY_PARAM,
   HOST_URL_QUERY_PARAM,
   buildPublicConfigurationShareUrl,

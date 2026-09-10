@@ -86,8 +86,8 @@ import {
 } from "@/shared/lib/sku";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
-import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
-import { selectConfigurationSavePayload } from "@/features/saveConfiguration";
+import { buildConfigurationShareUrl } from "@/features/saveConfiguration";
+import { hashConfigurationRequest, useBuildConfigurationRequest } from "@/features/saveConfiguration";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import {
   SYNTESI_MATERIAL,
@@ -313,7 +313,7 @@ export const SummaryPage = () => {
     [],
   );
 
-  const savePayload = useAppSelector(selectConfigurationSavePayload);
+  const buildConfigurationRequest = useBuildConfigurationRequest();
   const priceBySku = useAppSelector(getPriceBySku);
   const isPriceLoading = useAppSelector(getPriceLoading);
   const productsPresets = useAppSelector(getProductsPresets);
@@ -1812,63 +1812,23 @@ export const SummaryPage = () => {
 
     const run = async () => {
       setConfigurationLinkStatus("pending");
-      const ids = getOrderedProductIds();
-      if (!ids.length) {
-        if (!isCancelled) {
-          setConfigurationLinkStatus("settled");
-        }
-        return;
-      }
 
       try {
-        const configs = await Promise.all(ids.map((id) => getConfig(id)));
-        const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-          acc[id] = configs[index];
-          return acc;
-        }, {});
+        const request = await buildConfigurationRequest();
 
-        const metadata = buildConfigurationMetadata({
-          path: location.pathname,
-          orderedProductIds: ids,
-          uiState: {
-            CabinetColor: cabinetColor,
-        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
-        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
-        Handle: savePayload.uiState.Handle,
-            HandleGrooveColor: handleGrooveColor,
-            sinkType,
-            CountertopColor: countertopColor,
-            CountertopColorSku: countertopColorSku,
-            VesselColor: vesselColor,
-            Thickness: countertopThickness,
-            DrawerPanelFluting: drawerPanelFluting,
-            GrainDirection: grainDirection,
-            BookMatching: bookMatching,
-            CountertopStyle: countertopStyle,
-            SidePanels: sidePanelsOption,
-            SidePanelLeft: sidePanelLeft,
-            SidePanelRight: sidePanelRight,
-            LedOption: ledOption,
-            DividersOption: dividersOption,
-            DividersStyle: dividersStyle,
-            TowelBarOption: towelBarOption,
-            TowelBarColor: towelBarColor,
-            FaucetHolesAmount: faucetHolesAmount,
-            FaucetHolesSpacing: faucetHolesSpacing,
-          },
-          swatchOrder: {
-            selectedMaterials,
-            manualSelectedMaterials,
-            isAutofillEnabled,
-            hasSubmittedCart,
-          },
-          fragment: savePayload.fragment,
-        });
+        if (!request) {
+          if (!isCancelled) {
+            setConfigurationLinkStatus("settled");
+          }
+          return;
+        }
 
-        const snapshotHash = JSON.stringify({ configuration, metadata });
+        // Hashing ignores `savedAt`; including it made the guard never match, so the
+        // same configuration was saved again on every run of this effect.
+        const snapshotHash = hashConfigurationRequest(request);
         if (lastSavedHashRef.current === snapshotHash) return;
 
-        const result = await saveConfiguration({ configuration, metadata }).unwrap();
+        const result = await saveConfiguration(request).unwrap();
         if (isCancelled) return;
         lastSavedHashRef.current = snapshotHash;
         const nextConfigId = result?.id;
@@ -1890,7 +1850,7 @@ export const SummaryPage = () => {
       isCancelled = true;
     };
   }, [
-    savePayload,
+    buildConfigurationRequest,
     cabinetColor,
     countertopColor,
     countertopStyle,

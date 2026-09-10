@@ -10,7 +10,7 @@ import { UndoIcon } from "@/shared/assets/images/svg/UndoIcon";
 import { RedoIcon } from "@/shared/assets/images/svg/RedoIcon";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 
-import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
+import { useCreateArConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -20,14 +20,8 @@ import {
 import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
-import {
-  getHasSubmittedCart,
-  getIsAutofillEnabled,
-  getManualSelectedMaterials,
-  getSelectedMaterials,
-} from "@/features/swatchOrder";
-import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
-import { selectConfigurationSavePayload } from "@/features/saveConfiguration";
+
+import { useSaveCurrentConfiguration } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -48,27 +42,7 @@ import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
 import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
 import {
-  getActiveCountertopColor,
-  getCountertopColorSku,
   getActiveCountertopThickness,
-  getBookMatching,
-  getCabinetColor,
-  getCountertopStyle,
-  getDividersOption,
-  getDividersStyle,
-  getDrawerPanelFluting,
-  getFaucetHolesAmount,
-  getFaucetHolesSpacing,
-  getGrainDirection,
-  getHandleGrooveColor,
-  getLedOption,
-  getSidePanelsOption,
-  getSidePanelLeftStatus,
-  getSidePanelRightStatus,
-  getSinkType,
-  getTowelBarColor,
-  getTowelBarOption,
-  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
@@ -96,33 +70,9 @@ export const BottomCanvasButtons = () => {
 
   const dispatch = useAppDispatch();
 
-  const savePayload = useAppSelector(selectConfigurationSavePayload);
-  const cabinetColor = useAppSelector(getCabinetColor);
-  // const cabinetCatalog = useAppSelector(getCabinetCatalog);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
-  const sinkType = useAppSelector(getSinkType);
-  const countertopColor = useAppSelector(getActiveCountertopColor);
-  const countertopColorSku = useAppSelector(getCountertopColorSku);
-  const vesselColor = useAppSelector(getVesselColor);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
-  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const grainDirection = useAppSelector(getGrainDirection);
-  const bookMatching = useAppSelector(getBookMatching);
-  const countertopStyle = useAppSelector(getCountertopStyle);
-  const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
-  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const ledOption = useAppSelector(getLedOption);
-  const dividersOption = useAppSelector(getDividersOption);
-  const dividersStyle = useAppSelector(getDividersStyle);
-  const towelBarOption = useAppSelector(getTowelBarOption);
-  const towelBarColor = useAppSelector(getTowelBarColor);
-  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
-  const selectedMaterials = useAppSelector(getSelectedMaterials);
-  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
-  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
-  const hasSubmittedCart = useAppSelector(getHasSubmittedCart);
+  const saveCurrentConfiguration = useSaveCurrentConfiguration();
+  // const cabinetCatalog = useAppSelector(getCabinetCatalog);
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
@@ -215,7 +165,6 @@ export const BottomCanvasButtons = () => {
   // const isCustomRoute = pathname.includes("/custom");
   const isSummaryPage = pathname.includes("/summary");
 
-  const [saveConfiguration] = useSaveConfigurationMutation();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
   // const resetCustomBuilderScene = async () => {
@@ -276,71 +225,19 @@ export const BottomCanvasButtons = () => {
   // };
 
   const handleSaveConfiguration = async () => {
-    const ids = getOrderedProductIds();
-
-    if (!ids.length) {
-      console.warn("[Configurations] No products to save");
-
-      setShareValue("No products to save");
-      setIsShareOpening(true);
-      return;
-    }
-
-    const configs = await Promise.all(ids.map((id) => getConfig(id)));
-    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-      acc[id] = configs[index];
-      return acc;
-    }, {});
-
-    const metadata = buildConfigurationMetadata({
-      path: pathname,
-      orderedProductIds: ids,
-      uiState: {
-        CabinetColor: cabinetColor,
-        CabinetColorMaterial: savePayload.uiState.CabinetColorMaterial,
-        CabinetColorFinish: savePayload.uiState.CabinetColorFinish,
-        Handle: savePayload.uiState.Handle,
-        HandleGrooveColor: handleGrooveColor,
-        sinkType,
-        CountertopColor: countertopColor,
-        CountertopColorSku: countertopColorSku,
-        VesselColor: vesselColor,
-        Thickness: countertopThickness,
-        DrawerPanelFluting: drawerPanelFluting,
-        GrainDirection: grainDirection,
-        BookMatching: bookMatching,
-        CountertopStyle: countertopStyle,
-        SidePanels: sidePanelsOption,
-        SidePanelLeft: sidePanelLeft,
-        SidePanelRight: sidePanelRight,
-        LedOption: ledOption,
-        DividersOption: dividersOption,
-        DividersStyle: dividersStyle,
-        TowelBarOption: towelBarOption,
-        TowelBarColor: towelBarColor,
-        FaucetHolesAmount: faucetHolesAmount,
-        FaucetHolesSpacing: faucetHolesSpacing,
-      },
-      swatchOrder: {
-        selectedMaterials,
-        manualSelectedMaterials,
-        isAutofillEnabled,
-        hasSubmittedCart,
-      },
-      fragment: savePayload.fragment,
-    });
-
     try {
-      const result = await saveConfiguration({ configuration, metadata }).unwrap();
+      const result = await saveCurrentConfiguration();
 
-      const configId = result?.id;
+      if (!result.ok) {
+        console.warn("[Configurations] No products to save");
 
-      if (configId !== undefined && configId !== null) {
-        const url = buildConfigurationShareUrl(configId);
-
-        setShareValue(url);
+        setShareValue("No products to save");
         setIsShareOpening(true);
+        return;
       }
+
+      setShareValue(result.url);
+      setIsShareOpening(true);
     } catch (error) {
       console.error("[Configurations] Save failed", error);
     }
