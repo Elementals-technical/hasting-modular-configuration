@@ -132,14 +132,14 @@ describe("resolveRuntimeBinding", () => {
     });
   });
 
-  it("paints every cabinet in prebuilt and only the selected ones in custom", () => {
+  it("paints every product in prebuilt and only the cabinets in custom", () => {
     expect(resolveRuntimeBinding(ushRuntimeBindings, "GrainDirection", "GrainVertical", "prebuilt")).toMatchObject({
       target: { kind: "all" },
       patch: { GrainDirection: "GrainVertical" },
     });
     expect(resolveRuntimeBinding(ushRuntimeBindings, "DrawerPanelFluting", "FlutingVerticalA", "custom")).toMatchObject(
       {
-        target: { kind: "selected" },
+        target: { kind: "cabinets" },
         patch: { DrawerPanelFluting: "FlutingVerticalA" },
       },
     );

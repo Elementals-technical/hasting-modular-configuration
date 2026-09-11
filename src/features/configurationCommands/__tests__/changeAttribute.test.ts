@@ -21,7 +21,8 @@ import {
 } from "@/entities/product/model/store/slice";
 
 import { changeAttribute } from "../lib/changeAttribute";
-import { createTestRuntimePort } from "../lib/testRuntimePort";
+import { createTestRuntimePort } from "@/features/playCanvasAdapter";
+import type { TestRuntimePort } from "@/features/playCanvasAdapter";
 import type { AttributeChange } from "../model/types";
 
 const profile = ushProfile;
@@ -49,6 +50,7 @@ const runChange = (change: AttributeChange, runtime = createTestRuntimePort()) =
     getState: () => store.getState(),
     dispatch: (action) => store.dispatch(action),
     runtime: runtime.port,
+    flow: "custom",
   });
 
 const setUpScene = () => {
@@ -88,6 +90,38 @@ describe("changeAttribute", () => {
     );
 
     expect(runtime.resolvedIds[0][0]).toBe("runtime-b");
+  });
+
+  it("hands the runtime the collection, the flow and the placed cabinets", async () => {
+    const runtime = createTestRuntimePort();
+
+    await runChange(
+      { attributeId: "Handle", value: "handle_pto", scope: "cabinet", cabinetId: "cab-1" },
+      runtime,
+    );
+
+    expect(runtime.contexts[0]).toMatchObject({
+      collectionId: "urban-standard-height",
+      flow: "custom",
+      cabinetRuntimeIds: ["runtime-a", "runtime-b"],
+    });
+  });
+
+  it.each([
+    ["not ready", "runtime-not-ready", (runtime: TestRuntimePort) => runtime.setReady(false)],
+    ["unsupported", "runtime-unsupported", (runtime: TestRuntimePort) => runtime.rejectNext(() => true)],
+    ["failing on the first command", "runtime-failed", (runtime: TestRuntimePort) => runtime.failNext(() => true)],
+  ])("records nothing when the scene is %s", async (_label, code, arrange) => {
+    const runtime = createTestRuntimePort();
+    arrange(runtime);
+
+    const result = await runChange(
+      { attributeId: "Handle", value: "handle_pto", scope: "cabinet", cabinetId: "cab-1" },
+      runtime,
+    );
+
+    expect(result).toMatchObject({ status: "error", code });
+    expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut");
   });
 
   it("carries the dependent height in the same set", async () => {
@@ -163,6 +197,7 @@ describe("changeAttribute", () => {
           return store.dispatch(action);
         },
         runtime: runtime.port,
+        flow: "custom",
       },
     );
 

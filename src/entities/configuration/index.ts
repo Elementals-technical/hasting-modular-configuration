@@ -15,6 +15,17 @@ export type {
 } from "./model/types";
 export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget } from "./model/types";
 
+// runtimePort — owned by I: the typed boundary between C and the scene.
+export type {
+  ConfigurationRuntimePort,
+  FailedRuntimeChange,
+  RuntimeApplyResult,
+  RuntimeChange,
+  RuntimeContext,
+  RuntimeFailureCode,
+  UnsupportedRuntimeChange,
+} from "./model/runtimePort";
+
 export type { AttributeOwnership, PersistedIn, ValueOwner } from "./model/ownership";
 export {
   ATTRIBUTE_OWNERSHIP,

@@ -2,7 +2,9 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import { normalizeOptionValue } from "@/entities/collection";
+import type { RuntimeFlow } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries, resolveStableKey } from "@/entities/configuration";
+import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 import { getCabinetCatalog } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
@@ -10,7 +12,7 @@ import { buildChangePlan } from "./buildChangePlan";
 import { commitChange } from "./commitChange";
 import { resolveTarget } from "./resolveTarget";
 import { validateChange } from "./validateChange";
-import type { AttributeChange, ChangeResult, ConfigurationRuntimePort } from "../model/types";
+import type { AttributeChange, ChangeResult } from "../model/types";
 
 /**
  * The single entry point for changing a configuration value.
@@ -25,6 +27,8 @@ export type ChangeAttributeDeps = {
   getState: () => RootState;
   dispatch: (action: UnknownAction) => unknown;
   runtime: ConfigurationRuntimePort;
+  /** Flow the change is made in; some attributes reach different products in each. */
+  flow: RuntimeFlow;
 };
 
 /**
@@ -49,7 +53,7 @@ const toSelection = (state: RootState): Selection => {
 
 export const changeAttribute = async (
   change: AttributeChange,
-  { getState, dispatch, runtime }: ChangeAttributeDeps,
+  { getState, dispatch, runtime, flow }: ChangeAttributeDeps,
 ): Promise<ChangeResult> => {
   const state = getState();
   const profile = getActiveProductProfile(state);
@@ -104,7 +108,34 @@ export const changeAttribute = async (
     return entry?.runtimeId ?? null;
   };
 
-  const runtimeResult = await runtime.apply(planResult.plan, resolveRuntimeId);
+  const context: RuntimeContext = {
+    collectionId: activeProfile.collectionId,
+    flow,
+    resolveRuntimeId,
+    cabinetRuntimeIds: cabinets.map((entry) => entry.runtimeId),
+  };
+
+  const runtimeResult = await runtime.apply(planResult.plan, context);
+
+  // Nothing reached the scene: nothing is recorded.
+  switch (runtimeResult.status) {
+    case "not-ready":
+      return { status: "error", code: "runtime-not-ready", message: "The scene is not ready yet." };
+
+    case "unsupported":
+      return {
+        status: "error",
+        code: "runtime-unsupported",
+        message: `No scene translation for ${runtimeResult.unsupported.map(({ change }) => change.attributeId).join(", ")}.`,
+      };
+
+    case "failed":
+      return {
+        status: "error",
+        code: "runtime-failed",
+        message: runtimeResult.failed[0]?.message ?? "The scene did not apply the change.",
+      };
+  }
 
   const commitContext = {
     selectedProductConfig: state.rootStateUI.product.selectedProductConfig ?? null,
@@ -119,7 +150,7 @@ export const changeAttribute = async (
     }
   }
 
-  if (runtimeResult.failed.length > 0) {
+  if (runtimeResult.status === "partial") {
     return {
       status: "partial",
       applied: runtimeResult.applied,

@@ -90,10 +90,10 @@ describe("parseRuntimeBindings", () => {
       });
 
     const result = parseRuntimeBindings(
-      byFlow({ kind: "byFlow", prebuilt: { kind: "all" }, custom: { kind: "selected" } }),
+      byFlow({ kind: "byFlow", prebuilt: { kind: "all" }, custom: { kind: "cabinets" } }),
     );
     expect(result.ok && result.bindings.bindings[0]).toMatchObject({
-      target: { kind: "byFlow", prebuilt: { kind: "all" }, custom: { kind: "selected" } },
+      target: { kind: "byFlow", prebuilt: { kind: "all" }, custom: { kind: "cabinets" } },
     });
 
     expect(codesOf(byFlow({ kind: "byFlow", prebuilt: { kind: "everywhere" } }))).toEqual([

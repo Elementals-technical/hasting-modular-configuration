@@ -22,8 +22,11 @@ export type SemanticValue = string | number | boolean | null;
 export type RuntimeTarget =
   /** The addressed cabinet, by its runtime id. */
   | { kind: "product" }
-  /** The products selected in the scene: setConfigBatch(selectedProducts, patch). */
-  | { kind: "selected" }
+  /**
+   * Every placed cabinet, without the countertop and add-ons: setConfigBatch(productIds, patch).
+   * Pages read these ids through the misleadingly named getSelectedProducts.
+   */
+  | { kind: "cabinets" }
   /** Every product: setConfigBatch({}, patch). */
   | { kind: "all" }
   /** Every product of one runtime type: setConfigBatch({ productType }, patch). */
@@ -32,7 +35,7 @@ export type RuntimeTarget =
 /** Configurator flow; the same attribute may reach different products in each. */
 export type RuntimeFlow = "prebuilt" | "custom";
 
-/** A target that differs by flow, e.g. prebuilt paints every cabinet, custom only the selected ones. */
+/** A target that differs by flow, e.g. prebuilt paints every product, custom only the cabinets. */
 export type FlowTargets = {
   kind: "byFlow";
   prebuilt: RuntimeTarget;

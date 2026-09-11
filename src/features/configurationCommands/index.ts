@@ -3,10 +3,8 @@ export type {
   ChangeBlockedReason,
   ChangeErrorCode,
   ChangeResult,
-  ConfigurationRuntimePort,
   FailedChange,
   PlannedChange,
-  RuntimeApplyResult,
 } from "./model/types";
 
 export { changeAttribute } from "./lib/changeAttribute";
@@ -21,6 +19,3 @@ export type { BuildChangePlanArgs, BuildChangePlanResult } from "./lib/buildChan
 export { resolveTarget } from "./lib/resolveTarget";
 export { commitChange, TYPED_COMMIT_ATTRIBUTE_IDS } from "./lib/commitChange";
 export type { CommitContext } from "./lib/commitChange";
-
-export { createTestRuntimePort } from "./lib/testRuntimePort";
-export type { TestRuntimePort } from "./lib/testRuntimePort";

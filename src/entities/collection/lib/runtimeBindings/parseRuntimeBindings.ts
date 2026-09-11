@@ -65,7 +65,7 @@ const parseTarget = (raw: unknown, path: string, collect: Collector): RuntimeTar
     return null;
   }
 
-  if (raw.kind === "product" || raw.kind === "selected" || raw.kind === "all") {
+  if (raw.kind === "product" || raw.kind === "cabinets" || raw.kind === "all") {
     return { kind: raw.kind };
   }
 
@@ -81,7 +81,7 @@ const parseTarget = (raw: unknown, path: string, collect: Collector): RuntimeTar
   collect.add(
     "binding.invalid_target",
     `${path}/kind`,
-    'target kind must be "product", "selected", "all" or "productType"',
+    'target kind must be "product", "cabinets", "all" or "productType"',
   );
   return null;
 };

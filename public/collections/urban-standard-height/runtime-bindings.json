@@ -65,14 +65,14 @@
           "kind": "all"
         },
         "custom": {
-          "kind": "selected"
+          "kind": "cabinets"
         }
       },
       "values": {
         "kind": "identity",
         "sceneKey": "DrawerPanelFluting"
       },
-      "note": "Prebuilt paints every cabinet (CabinetPage.tsx), custom only the selected ones (custom/cabinetColors). \"None\" clears it."
+      "note": "Prebuilt sends to every product ({}, CabinetPage.tsx); custom only to the placed cabinets (productIds via getSelectedProducts, custom/cabinetColors). \"None\" clears it."
     },
     {
       "attributeId": "GrainDirection",
@@ -83,14 +83,14 @@
           "kind": "all"
         },
         "custom": {
-          "kind": "selected"
+          "kind": "cabinets"
         }
       },
       "values": {
         "kind": "identity",
         "sceneKey": "GrainDirection"
       },
-      "note": "Prebuilt paints every cabinet (CabinetPage.tsx), custom only the selected ones (custom/cabinetColors). \"\" clears the grain."
+      "note": "Prebuilt sends to every product ({}, CabinetPage.tsx); custom only to the placed cabinets (productIds via getSelectedProducts, custom/cabinetColors). \"\" clears the grain."
     },
     {
       "attributeId": "Height",
