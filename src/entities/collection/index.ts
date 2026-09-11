@@ -32,18 +32,10 @@ export type {
 } from "./model/productProfile";
 export { ATTRIBUTE_SCOPES } from "./model/productProfile";
 
-export type {
-  CabinetHandleRelations,
-  HandleHeightConstraint,
-  NormalizedHandleProfile,
-} from "./model/handleProfile";
+export type { CabinetHandleRelations, HandleHeightConstraint, NormalizedHandleProfile } from "./model/handleProfile";
 
 export { parseProductProfile } from "./lib/parseProductProfile";
-export type {
-  ParseProductProfileResult,
-  ProfileDiagnostic,
-  ProfileDiagnosticCode,
-} from "./lib/parseProductProfile";
+export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCode } from "./lib/parseProductProfile";
 
 export {
   hasCapability,
