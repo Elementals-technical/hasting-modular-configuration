@@ -32,18 +32,10 @@ export type {
 } from "./model/productProfile";
 export { ATTRIBUTE_SCOPES } from "./model/productProfile";
 
-export type {
-  CabinetHandleRelations,
-  HandleHeightConstraint,
-  NormalizedHandleProfile,
-} from "./model/handleProfile";
+export type { CabinetHandleRelations, HandleHeightConstraint, NormalizedHandleProfile } from "./model/handleProfile";
 
 export { parseProductProfile } from "./lib/parseProductProfile";
-export type {
-  ParseProductProfileResult,
-  ProfileDiagnostic,
-  ProfileDiagnosticCode,
-} from "./lib/parseProductProfile";
+export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCode } from "./lib/parseProductProfile";
 
 export {
   hasCapability,
@@ -68,3 +60,16 @@ export {
   resolvePossibleForcedHeights,
 } from "./lib/normalizeHandleProfile";
 export type { NormalizedMatrixRow, NormalizeHandleProfileArgs } from "./lib/normalizeHandleProfile";
+
+export type {
+  CustomizationFieldControl,
+  CustomizationFieldDefinition,
+  CustomizationFlow,
+  CustomizationFlowId,
+  CustomizationFlowStepRef,
+  CustomizationScreenKind,
+  CustomizationSchema,
+  CustomizationSectionDefinition,
+  CustomizationStepDefinition,
+  FieldRuntimeState,
+} from "./model/customizationSchema";
