@@ -103,5 +103,6 @@ docs/*
 !docs/side-panel-reasons-refactor.md
 !docs/collection-data-migration-status-v1.md
 !docs/product-profile-migration.md
+!docs/runtime-bindings-migration.md
 
 iphone-safari-debugging
