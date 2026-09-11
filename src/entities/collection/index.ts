@@ -68,3 +68,42 @@ export {
   resolvePossibleForcedHeights,
 } from "./lib/normalizeHandleProfile";
 export type { NormalizedMatrixRow, NormalizeHandleProfileArgs } from "./lib/normalizeHandleProfile";
+
+// Runtime bindings — owned by I: how a semantic value reaches the PlayCanvas scene.
+export type {
+  BoundRuntimeBinding,
+  FlowTargets,
+  IdentityValues,
+  MappedValues,
+  RuntimeBinding,
+  RuntimeBindingSet,
+  RuntimeFlow,
+  RuntimeTarget,
+  SceneValue,
+  ScenePatch,
+  SemanticValue,
+  UnboundRuntimeBinding,
+} from "./model/runtimeBindings";
+
+export { parseRuntimeBindings } from "./lib/runtimeBindings/parseRuntimeBindings";
+export type {
+  ParseRuntimeBindingsResult,
+  RuntimeBindingsDiagnostic,
+  RuntimeBindingsDiagnosticCode,
+} from "./lib/runtimeBindings/parseRuntimeBindings";
+
+export {
+  findMissingBindings,
+  resolveRuntimeBinding,
+  selectRuntimeBinding,
+} from "./lib/runtimeBindings/resolveRuntimeBinding";
+export type {
+  ResolvedRuntimeBinding,
+  RuntimeBindingFailure,
+  RuntimeBindingFailureReason,
+  RuntimeBindingRequest,
+  RuntimeBindingResolution,
+} from "./lib/runtimeBindings/resolveRuntimeBinding";
+
+export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
+export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";

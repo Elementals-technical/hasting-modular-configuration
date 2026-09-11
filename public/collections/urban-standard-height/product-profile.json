@@ -162,8 +162,8 @@
       "scope": "countertop",
       "defaultValue": "integrated",
       "options": [
-        { "value": "integrated", "label": "Integrated", "order": 10 },
-        { "value": "vessel", "label": "Vessel", "order": 20 }
+        { "value": "integrated", "label": "Integrated", "order": 10, "aliases": ["Integrated"] },
+        { "value": "vessel", "label": "Vessel", "order": 20, "aliases": ["Vessel"] }
       ]
     },
     {
