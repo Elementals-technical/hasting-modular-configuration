@@ -31,6 +31,10 @@ export type ResolvedRuntimeBinding = {
   attributeId: string;
   target: RuntimeTarget;
   patch: ScenePatch;
+  /** Phase of the binding; absent when the collection declares none. */
+  order?: number;
+  /** Patch to send before `patch`, e.g. clearing the towel bar before another side. */
+  resetBefore?: ScenePatch;
 };
 
 export type RuntimeBindingFailure = {
@@ -112,7 +116,14 @@ export const resolveRuntimeBinding = (
     return { ok: false, attributeId, value, reason: "flow-required" };
   }
 
-  return { ok: true, attributeId, target, patch };
+  return {
+    ok: true,
+    attributeId,
+    target,
+    patch,
+    ...(binding.order !== undefined ? { order: binding.order } : {}),
+    ...(binding.resetBefore ? { resetBefore: { ...binding.resetBefore } } : {}),
+  };
 };
 
 /**

@@ -23,13 +23,15 @@ const createFakeScene = (): FakeScene => {
     isReady: () => scene.ready,
     async apply(selector, patch) {
       const index = scene.calls.push({ selector, patch }) - 1;
-      return scene.answers.get(index) ?? { status: "applied", updatedIds: selector.productIds ?? [] };
+      // Like the real scene: a broadcast updates every product.
+      return scene.answers.get(index) ?? { status: "applied", updatedIds: selector.productIds ?? ALL_PRODUCTS };
     },
   };
   return scene;
 };
 
 const RUNTIME_IDS: Record<string, string> = { "cab-1": "rt-1", "cab-2": "rt-2" };
+const ALL_PRODUCTS = ["rt-1", "rt-2", "countertop-1"];
 
 const context = (overrides: Partial<RuntimeContext> = {}): RuntimeContext => ({
   collectionId: "urban-standard-height",
@@ -191,12 +193,19 @@ describe("createPlayCanvasRuntimePort", () => {
 
   it("refuses a one-cabinet binding for a change that names no cabinet", async () => {
     const { scene, port } = setUp();
-    // sinkType is sent to one Sink-Base, but a basin-scoped change carries no cabinet key.
-    const basin: RuntimeChange = { attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel_Blade11" };
+    const globalDrawers: RuntimeChange = { attributeId: "Drawers", target: { scope: "global" }, value: "2" };
 
-    const result = await port.apply([basin], context());
+    const result = await port.apply([globalDrawers], context());
 
     expect(result).toMatchObject({ status: "failed", failed: [{ code: "unknown-target" }] });
     expect(scene.calls).toHaveLength(0);
+  });
+
+  it("sends the basin to every sink base, since USH has one basin per configuration", async () => {
+    const { scene, port } = setUp();
+    const basin: RuntimeChange = { attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel_Blade11" };
+
+    expect(await port.apply([basin], context())).toMatchObject({ status: "applied" });
+    expect(scene.calls).toEqual([{ selector: { productType: "Sink-Base" }, patch: { sinkType: "Vessel_Blade11" } }]);
   });
 });

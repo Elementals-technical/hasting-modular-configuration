@@ -22,6 +22,7 @@ describe("resolveRuntimeBinding", () => {
       attributeId: "Drawers",
       target: { kind: "product" },
       patch: { Drawers: "2D" },
+      order: 10,
     });
     expect(resolveRuntimeBinding(ushRuntimeBindings, "Drawers", "1+inner")).toMatchObject({
       patch: { Drawers: "1DWID" },
@@ -67,6 +68,8 @@ describe("resolveRuntimeBinding", () => {
       attributeId: "TowelBarOption",
       target: { kind: "all" },
       patch: { TowelBar: "TowelBar40_R", TowelBarSide: "left" },
+      order: 70,
+      resetBefore: { TowelBar: "None", TowelBarSide: "both" },
     });
     expect(resolveRuntimeBinding(ushRuntimeBindings, "TowelBarOption", "None")).toMatchObject({
       patch: { TowelBar: "None", TowelBarSide: "both" },
@@ -122,6 +125,7 @@ describe("resolveRuntimeBinding", () => {
       attributeId: "Height",
       target: { kind: "all" },
       patch: { Height: 56 },
+      order: 30,
     });
   });
 

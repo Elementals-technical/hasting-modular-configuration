@@ -1,5 +1,5 @@
 import { resolveRuntimeBinding } from "@/entities/collection";
-import type { RuntimeBindingSet, ScenePatch } from "@/entities/collection";
+import type { RuntimeBindingSet, RuntimeTarget, ScenePatch } from "@/entities/collection";
 import type {
   ConfigurationRuntimePort,
   FailedRuntimeChange,
@@ -16,11 +16,14 @@ import { resolveSceneSelector } from "./resolveSceneSelector";
 /**
  * The runtimePort over the existing PlayCanvas wrappers.
  *
- * Everything that can be known without touching the scene is checked first, so a set
- * with an unknown translation or an unaddressable cabinet sends nothing at all. Then the
- * commands run one by one through the shared batch queue and the first failure stops
- * the set. Ordering rules between attributes and reading back actual values are later
- * tasks (I03/I04); here the set runs in the order C planned it.
+ * 1. Everything that can be known without the scene is checked first, so a set with an
+ *    unknown translation or an unaddressable cabinet sends nothing at all.
+ * 2. The set runs in the phases the collection declares (`order`: drawers before the
+ *    handle, the handle before the height), keeping C's order within a phase.
+ * 3. A value may take steps (`resetBefore`, then the value); a change counts as applied
+ *    only when every step is. An identical step is sent once per set.
+ * 4. The first failure stops the set. Once any step reached the scene the result is
+ *    "partial", never "failed": the scene has changed and C must know it.
  */
 
 /** The scene side of the adapter. Tests pass a fake; the app uses sceneBridge. */
@@ -35,14 +38,58 @@ export type PlayCanvasRuntimePortDeps = {
   scene?: SceneBridge;
 };
 
-type SceneCommand<T extends RuntimeChange> = {
-  change: T;
-  /** Null when there is nothing to send, e.g. no cabinets placed. */
-  selector: SceneSelector | null;
+type SceneStep = {
+  selector: SceneSelector;
   patch: ScenePatch;
+  /** Identity of the step, so the same command is not sent twice in one set. */
+  key: string;
 };
 
+type SceneCommand<T extends RuntimeChange> = {
+  change: T;
+  targetKind: RuntimeTarget["kind"];
+  /** Empty when there is nothing to send, e.g. no cabinets placed. */
+  steps: SceneStep[];
+  order: number;
+  /** Position in C's set, which breaks ties within a phase. */
+  index: number;
+};
+
+type StepFailure = Pick<FailedRuntimeChange, "code" | "message">;
+
 const defaultScene: SceneBridge = { isReady: isSceneReady, apply: applySceneConfig };
+
+const sortedEntries = (record: object) => Object.entries(record).sort(([a], [b]) => a.localeCompare(b));
+
+const stepKey = (selector: SceneSelector, patch: ScenePatch): string =>
+  JSON.stringify([sortedEntries(selector), sortedEntries(patch)]);
+
+const toSteps = (selector: SceneSelector | null, patch: ScenePatch, resetBefore?: ScenePatch): SceneStep[] => {
+  if (!selector) return [];
+
+  const valueStep = { selector, patch, key: stepKey(selector, patch) };
+
+  // Resetting to the value itself would only repeat the command.
+  if (!resetBefore || stepKey(selector, resetBefore) === valueStep.key) return [valueStep];
+
+  return [{ selector, patch: resetBefore, key: stepKey(selector, resetBefore) }, valueStep];
+};
+
+const byPhase = <T extends RuntimeChange>(a: SceneCommand<T>, b: SceneCommand<T>): number =>
+  a.order === b.order ? a.index - b.index : a.order < b.order ? -1 : 1;
+
+/**
+ * A broadcast must reach every placed cabinet. The bridge already checks explicit
+ * product ids; a product-type target has no known full list, and add-ons return none.
+ */
+const missingCabinets = (
+  targetKind: RuntimeTarget["kind"],
+  updatedIds: string[] | null,
+  context: RuntimeContext,
+): string[] =>
+  targetKind === "all" && updatedIds
+    ? context.cabinetRuntimeIds.filter((runtimeId) => !updatedIds.includes(runtimeId))
+    : [];
 
 const notAttempted = <T extends RuntimeChange>(commands: SceneCommand<T>[]): FailedRuntimeChange<T>[] =>
   commands.map(({ change }) => ({
@@ -75,60 +122,87 @@ export const createPlayCanvasRuntimePort = ({
       };
     }
 
-    // 1. Translate every change before the first scene call.
+    // 1. Translate and address every change before the first scene call.
     const unsupported: UnsupportedRuntimeChange<T>[] = [];
     const unaddressable: FailedRuntimeChange<T>[] = [];
     const commands: SceneCommand<T>[] = [];
 
-    for (const change of changes) {
+    changes.forEach((change, index) => {
       const resolution = resolveRuntimeBinding(bindings, change.attributeId, change.value, context.flow);
 
       if (!resolution.ok) {
         unsupported.push({ change, reason: resolution.reason, detail: resolution.detail });
-        continue;
+        return;
       }
 
       const addressed = resolveSceneSelector(resolution.target, change, context);
 
       if (!addressed.ok) {
         unaddressable.push({ change, code: "unknown-target", message: addressed.message });
-        continue;
+        return;
       }
 
-      commands.push({ change, selector: addressed.selector, patch: resolution.patch });
-    }
+      commands.push({
+        change,
+        targetKind: resolution.target.kind,
+        steps: toSteps(addressed.selector, resolution.patch, resolution.resetBefore),
+        order: resolution.order ?? Number.POSITIVE_INFINITY,
+        index,
+      });
+    });
 
     if (unsupported.length > 0) return { status: "unsupported", unsupported };
 
     if (unaddressable.length > 0) return { status: "failed", failed: unaddressable };
 
-    // 2. Send them in order; the first failure stops the set.
+    // 2. Run the set phase by phase; the first failure stops it.
+    commands.sort(byPhase);
+
     const applied: T[] = [];
+    const sent = new Set<string>();
+    let sceneChanged = false;
 
-    for (const [index, command] of commands.entries()) {
-      if (!command.selector) {
+    for (const [position, command] of commands.entries()) {
+      let failure: StepFailure | null = null;
+
+      for (const step of command.steps) {
+        if (sent.has(step.key)) continue;
+
+        const result = await scene.apply(step.selector, step.patch);
+
+        if (result.status === "not-ready") {
+          // Nothing reached the scene yet: the whole set is simply not ready.
+          if (!sceneChanged) return { status: "not-ready" };
+
+          failure = { code: "not-ready", message: "The scene stopped being ready." };
+          break;
+        }
+
+        if (result.status === "failed") {
+          failure = { code: result.code, message: result.message };
+          break;
+        }
+
+        sceneChanged ||= result.updatedIds === null || result.updatedIds.length > 0;
+
+        const missing = missingCabinets(command.targetKind, result.updatedIds, context);
+
+        if (missing.length > 0) {
+          failure = { code: "product-not-found", message: `The scene did not update ${missing.join(", ")}.` };
+          break;
+        }
+
+        sent.add(step.key);
+      }
+
+      if (!failure) {
         applied.push(command.change);
         continue;
       }
 
-      const result = await scene.apply(command.selector, command.patch);
+      const failed = [{ change: command.change, ...failure }, ...notAttempted(commands.slice(position + 1))];
 
-      if (result.status === "applied") {
-        applied.push(command.change);
-        continue;
-      }
-
-      // Nothing sent yet and the scene went away: the whole set is simply not ready.
-      if (result.status === "not-ready" && applied.length === 0) return { status: "not-ready" };
-
-      const failure: FailedRuntimeChange<T> =
-        result.status === "not-ready"
-          ? { change: command.change, code: "not-ready", message: "The scene stopped being ready." }
-          : { change: command.change, code: result.code, message: result.message };
-
-      const failed = [failure, ...notAttempted(commands.slice(index + 1))];
-
-      return applied.length > 0 ? { status: "partial", applied, failed } : { status: "failed", failed };
+      return sceneChanged ? { status: "partial", applied, failed } : { status: "failed", failed };
     }
 
     return { status: "applied", applied };

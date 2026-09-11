@@ -63,6 +63,14 @@ export type BoundRuntimeBinding = {
   status: "bound";
   target: RuntimeTarget | FlowTargets;
   values: IdentityValues | MappedValues;
+  /**
+   * Phase the attribute is sent in: a set runs lowest first, e.g. drawers before the
+   * handle and the handle before the height. Equal or missing orders keep C's order;
+   * missing sorts after every declared order.
+   */
+  order?: number;
+  /** Sent before the value, e.g. clearing the towel bar before setting another side. */
+  resetBefore?: ScenePatch;
   /** Where the translation comes from or what to confirm. Not read by code. */
   note?: string;
 };

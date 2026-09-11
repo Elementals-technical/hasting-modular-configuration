@@ -19,6 +19,7 @@
         "kind": "identity",
         "sceneKey": "Handle"
       },
+      "order": 20,
       "note": "Broadcast: per-product calls do not apply a handle change (CabinetBuilderPage.tsx). handleStyleConfig.ts sends the id unchanged."
     },
     {
@@ -32,6 +33,7 @@
         "sceneKey": "HandleGrooveColor",
         "emptyValue": "None"
       },
+      "order": 50,
       "note": "\"\" means cleared; the scene reverts the groove to the cabinet color on \"None\"."
     },
     {
@@ -54,6 +56,7 @@
           }
         }
       },
+      "order": 10,
       "note": "The scene keeps the legacy spellings; ModelPage.tsx, CabinetBuilderPage.tsx, RightCabinetStyleSidebar.tsx and restoreSnapshot.ts hold the reverse."
     },
     {
@@ -72,6 +75,7 @@
         "kind": "identity",
         "sceneKey": "DrawerPanelFluting"
       },
+      "order": 50,
       "note": "Prebuilt sends to every product ({}, CabinetPage.tsx); custom only to the placed cabinets (productIds via getSelectedProducts, custom/cabinetColors). \"None\" clears it."
     },
     {
@@ -90,6 +94,7 @@
         "kind": "identity",
         "sceneKey": "GrainDirection"
       },
+      "order": 50,
       "note": "Prebuilt sends to every product ({}, CabinetPage.tsx); custom only to the placed cabinets (productIds via getSelectedProducts, custom/cabinetColors). \"\" clears the grain."
     },
     {
@@ -102,6 +107,7 @@
         "kind": "identity",
         "sceneKey": "Height"
       },
+      "order": 30,
       "note": "Number in cm. Broadcast: per-product calls do not apply it (CabinetBuilderPage.tsx)."
     },
     {
@@ -114,6 +120,7 @@
         "kind": "identity",
         "sceneKey": "Width"
       },
+      "order": 30,
       "note": "Number in cm, set on one cabinet (PlayCanvasIntegration.tsx applySetWidth)."
     },
     {
@@ -126,6 +133,7 @@
         "kind": "identity",
         "sceneKey": "Depth"
       },
+      "order": 30,
       "note": "Number in cm, one depth for the composition (PlayCanvasIntegration.tsx applySetDepth)."
     },
     {
@@ -137,7 +145,8 @@
       "values": {
         "kind": "identity",
         "sceneKey": "CabinetColor"
-      }
+      },
+      "order": 50
     },
     {
       "attributeId": "CountertopColor",
@@ -153,6 +162,7 @@
           "Bianco Matte TAP": "Bianco Matte TAM"
         }
       },
+      "order": 50,
       "note": "Syntesi finishes reuse the Tekorlux scene materials: the scene knows TAL/TAM, not TAN/TAP (syntesiOptions.ts, configValue). Countertop pages also send the color to the countertop product (Top_Solid); the broadcast covers it."
     },
     {
@@ -165,20 +175,23 @@
         "kind": "identity",
         "sceneKey": "Thickness"
       },
+      "order": 50,
       "note": "Sent as the catalog string (8 of 9 calls; PlayCanvasIntegration.tsx:3066 sends a number). The scene uses it as an object key (thicknessOffsets.countertop[thickness]), so \"0.5\" and 0.5 reach the same entry."
     },
     {
       "attributeId": "sinkType",
       "status": "bound",
       "target": {
-        "kind": "product"
+        "kind": "productType",
+        "productType": "Sink-Base"
       },
       "values": {
         "kind": "identity",
         "sceneKey": "sinkType",
         "emptyValue": "Vessel"
       },
-      "note": "\"Vessel\" is the scene placeholder for a vessel countertop without a basin (CountertopPage.tsx, vesselBasinSelection.ts). Legacy code also broadcasts to every Sink-Base."
+      "order": 40,
+      "note": "Sent to every Sink-Base: USH picks one basin for the whole configuration, and a basin-scoped change names no cabinet. \"Vessel\" is the scene placeholder for a vessel countertop without a basin (CountertopPage.tsx, vesselBasinSelection.ts). A basin per cabinet needs addressed bindings (Mako/Class)."
     },
     {
       "attributeId": "VesselColor",
@@ -191,6 +204,7 @@
         "kind": "identity",
         "sceneKey": "VesselColor"
       },
+      "order": 60,
       "note": "\"\" clears the color (CountertopPage.tsx)."
     },
     {
@@ -220,7 +234,12 @@
           }
         }
       },
-      "note": "Accessories pages and restoreSnapshot.ts clear with the None patch before setting a side; that order belongs to whoever executes it."
+      "order": 70,
+      "resetBefore": {
+        "TowelBar": "None",
+        "TowelBarSide": "both"
+      },
+      "note": "Cleared first so a side switch (Left -> Right) leaves no stale meshes (AccessoriesPage.tsx, restoreSnapshot.ts)."
     },
     {
       "attributeId": "TowelBarColor",
@@ -232,6 +251,7 @@
         "kind": "identity",
         "sceneKey": "TowelBarColor"
       },
+      "order": 80,
       "note": "\"\" clears the color (StepNavigationBar.tsx, ModelPage.tsx)."
     },
     {
@@ -251,6 +271,7 @@
           }
         }
       },
+      "order": 40,
       "note": "Sent capitalized, as the code does today (CabinetBuilderPage.tsx, ModelPage.tsx, restoreSnapshot.ts). The scene export has no reader for this key; the style also reaches the scene through sinkType."
     },
     {

@@ -61,9 +61,10 @@ export type FailedRuntimeChange<T extends RuntimeChange = RuntimeChange> = {
  * never inferred from each other:
  * - applied: every change reached the scene;
  * - not-ready / unsupported: nothing was sent;
- * - failed: the first command failed, nothing was applied;
- * - partial: some changes were applied before one failed. The runtime API is not
- *   atomic, so this is reported rather than hidden.
+ * - failed: a command failed before anything reached the scene, which is untouched;
+ * - partial: the scene changed before a command failed. `applied` lists the changes
+ *   that fully went through and may be empty, e.g. when a towel bar was cleared but the
+ *   new side failed. The runtime API is not atomic, so this is reported, not hidden.
  */
 export type RuntimeApplyResult<T extends RuntimeChange = RuntimeChange> =
   | { status: "applied"; applied: T[] }

@@ -243,17 +243,27 @@ const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBi
     return null;
   }
 
-  // Both parsed before returning, so one entry reports every problem it has.
+  // All parsed before returning, so one entry reports every problem it has.
   const target = parseTargetSpec(raw.target, `${path}/target`, collect);
   const values = parseValues(raw.values, `${path}/values`, collect);
 
-  if (!target || !values) return null;
+  const orderValid = raw.order === undefined || (typeof raw.order === "number" && Number.isFinite(raw.order));
+  if (!orderValid) {
+    collect.add("bindings.invalid_field_type", `${path}/order`, "order must be a number");
+  }
+
+  const resetBefore =
+    raw.resetBefore === undefined ? undefined : parsePatch(raw.resetBefore, `${path}/resetBefore`, collect);
+
+  if (!target || !values || !orderValid || resetBefore === null) return null;
 
   return {
     attributeId: raw.attributeId,
     status: "bound",
     target,
     values,
+    ...(typeof raw.order === "number" ? { order: raw.order } : {}),
+    ...(resetBefore ? { resetBefore } : {}),
     ...(isNonEmptyString(raw.note) ? { note: raw.note } : {}),
   };
 };

@@ -115,6 +115,28 @@ describe("parseRuntimeBindings", () => {
     ).toEqual([["binding.invalid_values", "/bindings/0/values/overrides/Bianco Gloss TAN"]]);
   });
 
+  it("reads the phase and the step sent before the value", () => {
+    const towelBar = {
+      attributeId: "TowelBarOption",
+      status: "bound",
+      target: { kind: "all" },
+      values: { kind: "map", patches: { Left: { TowelBar: "TowelBar40_R", TowelBarSide: "left" } } },
+      order: 70,
+      resetBefore: { TowelBar: "None", TowelBarSide: "both" },
+    };
+
+    const result = parseRuntimeBindings(withBinding(towelBar));
+    expect(result.ok && result.bindings.bindings[0]).toMatchObject({
+      order: 70,
+      resetBefore: { TowelBar: "None", TowelBarSide: "both" },
+    });
+
+    expect(codesOf(withBinding({ ...towelBar, order: "first", resetBefore: { TowelBar: null } }))).toEqual([
+      ["bindings.invalid_field_type", "/bindings/0/order"],
+      ["binding.invalid_values", "/bindings/0/resetBefore/TowelBar"],
+    ]);
+  });
+
   it("points at the exact scene value that cannot be sent", () => {
     expect(
       codesOf(
