@@ -53,6 +53,7 @@ export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCod
 
 export {
   hasCapability,
+  isDrawerStyleMixingRestricted,
   isKnownOption,
   normalizeOptionValue,
   selectAttribute,

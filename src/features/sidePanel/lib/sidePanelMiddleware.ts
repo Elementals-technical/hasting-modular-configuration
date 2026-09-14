@@ -12,6 +12,7 @@ import {
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
+  mapCabinetTypeToGroup,
   selectSidePanelAvailability,
 } from "../model/selectors";
 import { applyGrooveToActiveSides, resolveGroove } from "./sidePanelService";
@@ -72,6 +73,8 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
     effect: async (action, listenerApi) => {
       const previousState = (listenerApi.getOriginalState?.() as RootState | undefined) ?? null;
       const state = listenerApi.getState() as RootState;
+      // Before the collection loads every groove reads as unavailable; do not remove panels on that account.
+      if (!state.rootStateUI.product.activeProfile) return;
       const act = action as { type: string; payload?: SelectedDimensionsPayload };
       const isCountertopMaterialChange = act.type === setCountertopColorSku.type;
       const isSelectedProductConfigChange = act.type === setSelectedProductConfig.type;
@@ -103,14 +106,9 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
       if (!currentSidePanels || currentSidePanels === "None") return;
 
       // Skip when selected entity is not a SP-eligible cabinet (OS, OSS, countertop, towel bar).
-      const cabType = state.rootStateUI.product.activeCabinetType ?? "";
-      const normalized = cabType.toLowerCase().replace(/[^a-z]/g, "");
       const isSbSc =
-        normalized.includes("sinkbase") ||
-        normalized.includes("sinkcabinet") ||
-        normalized.includes("sidecabinet") ||
-        normalized === "sb" ||
-        normalized === "sc";
+        mapCabinetTypeToGroup(state.rootStateUI.product.activeCabinetType, state.rootStateUI.product.activeProfile) ===
+        "SBSC";
       if (!isCountertopMaterialChange && !isSbSc) return;
 
       const availability = selectSidePanelAvailability(state);

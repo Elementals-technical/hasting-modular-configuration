@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { selectMessage, selectRuleData } from "../lib/productProfileSelectors";
+import { isDrawerStyleMixingRestricted, selectMessage, selectRuleData } from "../lib/productProfileSelectors";
 import type { ProductProfile } from "../model/productProfile";
 import { ushProfile } from "./ushProfileFixture";
 
@@ -33,13 +33,56 @@ describe("selectMessage", () => {
   });
 });
 
+describe("isDrawerStyleMixingRestricted", () => {
+  it.each([
+    [[], "2", false],
+    [["1"], "2", true],
+    [["1"], "1+inner", false],
+    [["1+inner"], "1", false],
+    [["2"], "1", true],
+    [["2"], "2", false],
+    // One two-drawer cabinet makes the composition two-drawer, as before.
+    [["1", "2"], "1", true],
+    [["1", "2"], "2", false],
+    // Scene spellings resolve through the catalog aliases.
+    [["2D"], "1DWID", true],
+    [["2"], "3", false],
+  ])("restricts style %j after %j placed: %j", (placed, candidate, restricted) => {
+    expect(isDrawerStyleMixingRestricted(ushProfile, placed, candidate)).toBe(restricted);
+  });
+
+  it("follows the groups the collection declares", () => {
+    const allTogether: ProductProfile = {
+      ...ushProfile,
+      ruleData: { ...ushProfile.ruleData, drawerStyleGroups: [["1", "1+inner", "2"]] },
+    };
+
+    expect(isDrawerStyleMixingRestricted(allTogether, ["2"], "1")).toBe(false);
+  });
+
+  it("does not restrict in a collection without groups", () => {
+    const noGroups: ProductProfile = {
+      ...ushProfile,
+      ruleData: { ...ushProfile.ruleData, drawerStyleGroups: undefined },
+    };
+
+    expect(isDrawerStyleMixingRestricted(noGroups, ["2"], "1")).toBe(false);
+    expect(isDrawerStyleMixingRestricted(null, ["2"], "1")).toBe(false);
+  });
+});
+
 describe("selectRuleData", () => {
   it("returns a declared rule section", () => {
     expect(selectRuleData(ushProfile, "syntesi")?.maxCabinetCount).toBe(1);
   });
 
   it("returns undefined for an undeclared section or without a profile", () => {
-    expect(selectRuleData(ushProfile, "vesselCompatibility")).toBeUndefined();
+    const withoutVessels: ProductProfile = {
+      ...ushProfile,
+      ruleData: { ...ushProfile.ruleData, vesselCompatibility: undefined },
+    };
+
+    expect(selectRuleData(withoutVessels, "vesselCompatibility")).toBeUndefined();
     expect(selectRuleData(null, "fluting")).toBeUndefined();
   });
 });

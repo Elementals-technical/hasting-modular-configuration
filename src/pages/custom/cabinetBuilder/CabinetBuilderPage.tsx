@@ -90,7 +90,13 @@ import {
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
-import { hasCapability, selectEffectiveFallback, selectOptionsByCapability, useActiveCollection } from "@/entities/collection";
+import {
+  hasCapability,
+  isDrawerStyleMixingRestricted,
+  selectEffectiveFallback,
+  selectOptionsByCapability,
+  useActiveCollection,
+} from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
 import {
@@ -345,6 +351,7 @@ export const CabinetBuilderPage = () => {
       return a.localeCompare(b);
     });
     const heightValue = selectedDimensions.height ?? 0;
+    const placedDrawerValues = Object.values(placedCabinetStyles);
 
     return activeDrawerValues.filter(Boolean).map((value, index) => {
       const ruleOption = drawerOptionMap.get(String(value));
@@ -354,9 +361,8 @@ export const CabinetBuilderPage = () => {
         isShortDesc: false,
       };
 
-      const isMixingRestricted =
-        (dominantDrawerGroup === "double" && (value === "1" || value === "1+inner")) ||
-        (dominantDrawerGroup === "single" && value === "2");
+      // Drawer style groups of the collection decide which styles cannot be mixed.
+      const isMixingRestricted = isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, String(value));
 
       return {
         id: meta.id,
@@ -384,7 +390,8 @@ export const CabinetBuilderPage = () => {
     selectedDimensions.height,
     dimensionOptions.drawers,
     activeCabinetType,
-    dominantDrawerGroup,
+    activeProfile,
+    placedCabinetStyles,
     countertopCompositionConstraint.canAddCabinet,
     countertopCompositionConstraint.reason,
     hasAddableWidthForActiveType,
@@ -1424,7 +1431,14 @@ export const CabinetBuilderPage = () => {
           dispatch(setSidePanelsOption(sidePanel));
           dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus }));
           dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus }));
-          await enforceSidePanelEligibility(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length);
+          await enforceSidePanelEligibility(
+            dispatch,
+            getActiveProductProfile(store.getState()),
+            sidePanel,
+            leftStatus,
+            rightStatus,
+            orderedIds.length,
+          );
         }
 
         const snapshot = await captureSnapshot(() => store.getState() as RootState);

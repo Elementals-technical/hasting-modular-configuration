@@ -1,68 +1,72 @@
-import { SIDE_PANEL_AVAILABILITY, SIDE_PANELS_NONE, SYNTESI_MATERIAL_TOKEN } from "./constants";
+import type { ProductProfile } from "@/entities/collection";
+import { selectAttribute, selectMessage, selectRuleData } from "@/entities/collection";
 import type {
   SidePanelAvailabilityInput,
   SidePanelAvailabilityResult,
   SidePanelCountertopLengthInput,
   SidePanelCountertopLengthResult,
+  SidePanelReasonCode,
   SidePanelSpecInput,
   SidePanelSpecResult,
   SyntesiSidePanelRuleInput,
   SyntesiSidePanelRuleResult,
 } from "@/features/configurator-rule-core/options/types";
-import { SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON } from "@/features/configurator-rule-core/countertop";
 
-export const SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON = "Side panels are not available for Side-Shelf cabinets.";
-export const SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON =
-  "Side panels are not available for use with Open Shelf cabinets.";
+/**
+ * Side panel rules. The availability table, the blocked cabinet groups, the length increment
+ * and the panel quantity come from `ruleData.sidePanels` of the active collection; a
+ * collection without that section does not offer side panels.
+ */
 
-type SidePanelAvailabilityRow = (typeof SIDE_PANEL_AVAILABILITY)[number];
-type SidePanelHeightToken = SidePanelAvailabilityRow["height"];
-type SidePanelAllowedFlag = keyof SidePanelAvailabilityRow["allowed"];
+export const REASON_SIDE_PANEL_NOT_IN_COLLECTION = "sidePanel.notInCollection";
+export const REASON_SIDE_PANEL_SIDE_SHELF = "sidePanel.sideShelfUnavailable";
+export const REASON_SIDE_PANEL_OPEN_SHELF = "sidePanel.openShelfUnavailable";
+const REASON_SYNTESI_SIDE_PANELS = "syntesi.sidePanelsUnavailable";
+
 type SidePanelGroove = SidePanelAvailabilityResult["allowed"] extends Set<infer Groove> ? Groove : never;
 type SidePanelCabinetType = NonNullable<SidePanelAvailabilityInput["cabinetType"]>;
+type SidePanelHandleType = NonNullable<SidePanelAvailabilityInput["handleType"]>;
 
-const HEIGHT_TOKEN_BY_CM: Partial<Record<number, SidePanelHeightToken>> = {
-  50: "50H",
-  53: "53H",
-  56: "56H",
-};
+const GROOVES: readonly SidePanelGroove[] = ["NoG", "UpperG", "CenterG", "DoubleG"];
+const isGroove = (value: string): value is SidePanelGroove => (GROOVES as readonly string[]).includes(value);
 
-const CABINET_TYPE_AVAILABILITY_BLOCKERS: Partial<
-  Record<SidePanelCabinetType, Pick<SidePanelAvailabilityResult, "reason" | "reasonCode">>
+/** Structured reason of a blocked cabinet group; the group ids themselves are the code's own. */
+const BLOCKER_BY_CABINET_TYPE: Partial<
+  Record<SidePanelCabinetType, { reasonCode: SidePanelReasonCode; messageCode: string }>
 > = {
-  OSS: {
-    reason: SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON,
-    reasonCode: "side-shelf",
-  },
-  OS: {
-    reason: SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON,
-    reasonCode: "open-shelf",
-  },
+  OSS: { reasonCode: "side-shelf", messageCode: REASON_SIDE_PANEL_SIDE_SHELF },
+  OS: { reasonCode: "open-shelf", messageCode: REASON_SIDE_PANEL_OPEN_SHELF },
 };
 
-const GROOVE_BY_ALLOWED_FLAG: readonly [SidePanelAllowedFlag, SidePanelGroove][] = [
-  ["noGroove", "NoG"],
-  ["upperGroove", "UpperG"],
-  ["centerGroove", "CenterG"],
-  ["doubleGroove", "DoubleG"],
-];
-
-const isSidePanelsEnabled = (value?: string | null) => {
-  if (!value) return false;
-  return value.trim() !== "" && value.trim() !== SIDE_PANELS_NONE;
+const isSidePanelsEnabled = (value: string | null | undefined, profile: ProductProfile | null) => {
+  const trimmed = value?.trim();
+  if (!trimmed) return false;
+  return trimmed !== selectAttribute(profile, "SidePanels")?.noneValue;
 };
 
-export const sidePanelSpecRule = ({
-  sidePanels,
-  cabinetHeight,
-  cabinetDepth,
-  heightType,
-}: SidePanelSpecInput): SidePanelSpecResult => {
-  if (!isSidePanelsEnabled(sidePanels)) {
+/** Drawer group of the availability table ("1D", "2D") that a cabinet's drawers belong to. */
+export const mapSidePanelDrawersToHandleType = (
+  drawers: string | null | undefined,
+  profile: ProductProfile | null,
+): SidePanelHandleType | null => {
+  if (!drawers) return null;
+
+  const groups = selectRuleData(profile, "sidePanels")?.drawersByHandleType;
+  const group = groups ? Object.entries(groups).find(([, values]) => values.includes(drawers))?.[0] : undefined;
+
+  return group === "1D" || group === "2D" ? group : null;
+};
+
+export const sidePanelSpecRule = (
+  { sidePanels, cabinetHeight, cabinetDepth, heightType }: SidePanelSpecInput,
+  profile: ProductProfile | null,
+): SidePanelSpecResult => {
+  const params = selectRuleData(profile, "sidePanels");
+  if (!params || !isSidePanelsEnabled(sidePanels, profile)) {
     return { enabled: false };
   }
 
-  const qty = heightType === "LOW" ? undefined : 2;
+  const qty = heightType === "LOW" ? undefined : params.defaultQuantityUnlessHeightTypeLow;
 
   return {
     enabled: true,
@@ -72,75 +76,73 @@ export const sidePanelSpecRule = ({
   };
 };
 
-export const sidePanelCountertopLengthRule = ({
-  sidePanels,
-  vanityLength,
-}: SidePanelCountertopLengthInput): SidePanelCountertopLengthResult => {
+export const sidePanelCountertopLengthRule = (
+  { sidePanels, vanityLength }: SidePanelCountertopLengthInput,
+  profile: ProductProfile | null,
+): SidePanelCountertopLengthResult => {
   if (typeof vanityLength !== "number") return { length: null };
 
-  if (!isSidePanelsEnabled(sidePanels)) {
+  const params = selectRuleData(profile, "sidePanels");
+  if (!params || !isSidePanelsEnabled(sidePanels, profile)) {
     return { length: vanityLength };
   }
 
-  return { length: vanityLength + 2 };
+  return { length: vanityLength + params.countertopLengthIncrementCm };
 };
 
-export const syntesiSidePanelRule = ({
-  sidePanels,
-  countertopMaterial,
-}: SyntesiSidePanelRuleInput): SyntesiSidePanelRuleResult => {
-  if (!isSidePanelsEnabled(sidePanels)) return { allowed: true };
+export const syntesiSidePanelRule = (
+  { sidePanels, countertopMaterial }: SyntesiSidePanelRuleInput,
+  profile: ProductProfile | null,
+): SyntesiSidePanelRuleResult => {
+  if (!isSidePanelsEnabled(sidePanels, profile)) return { allowed: true };
 
-  if (countertopMaterial?.trim() === SYNTESI_MATERIAL_TOKEN) {
-    return { allowed: false, reason: SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON };
+  // A collection without Syntesi, or whose Syntesi allows panels, has nothing to forbid.
+  const syntesi = selectRuleData(profile, "syntesi");
+  if (!syntesi || syntesi.allowsSidePanels) return { allowed: true };
+
+  if (countertopMaterial?.trim() === syntesi.material) {
+    return { allowed: false, reason: selectMessage(profile, REASON_SYNTESI_SIDE_PANELS) };
   }
 
   return { allowed: true };
 };
 
-const mapHeightToken = (height?: number | null) => {
-  if (typeof height !== "number") return null;
-  return HEIGHT_TOKEN_BY_CM[height] ?? null;
-};
+export const sidePanelAvailabilityRule = (
+  { height, handleType, cabinetType }: SidePanelAvailabilityInput,
+  profile: ProductProfile | null,
+): SidePanelAvailabilityResult => {
+  const allowed = new Set<SidePanelGroove>();
 
-const matchesSidePanelAvailabilityRow = ({
-  row,
-  heightToken,
-  handleType,
-  cabinetType,
-}: {
-  row: SidePanelAvailabilityRow;
-  heightToken: SidePanelHeightToken;
-  handleType: SidePanelAvailabilityInput["handleType"];
-  cabinetType: SidePanelAvailabilityInput["cabinetType"];
-}) => row.height === heightToken && row.cabinetType === cabinetType && (!handleType || row.handleType === handleType);
-
-export const sidePanelAvailabilityRule = ({
-  height,
-  handleType,
-  cabinetType,
-}: SidePanelAvailabilityInput): SidePanelAvailabilityResult => {
-  const allowed = new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">();
-
-  const blocker = cabinetType ? CABINET_TYPE_AVAILABILITY_BLOCKERS[cabinetType] : undefined;
-  if (blocker) {
-    return { allowed, ...blocker };
+  const params = selectRuleData(profile, "sidePanels");
+  if (!params) {
+    return {
+      allowed,
+      reason: selectMessage(profile, REASON_SIDE_PANEL_NOT_IN_COLLECTION),
+      reasonCode: "not-in-collection",
+    };
   }
 
-  const heightToken = mapHeightToken(height);
+  const blocker =
+    cabinetType && params.blockedCabinetTypes.includes(cabinetType) ? BLOCKER_BY_CABINET_TYPE[cabinetType] : undefined;
+  if (blocker) {
+    return { allowed, reason: selectMessage(profile, blocker.messageCode), reasonCode: blocker.reasonCode };
+  }
+
+  const heightToken = typeof height === "number" ? params.heightTokenByCm[String(height)] : undefined;
   if (!heightToken || !cabinetType) {
     return { allowed };
   }
 
-  const match = SIDE_PANEL_AVAILABILITY.find((row) =>
-    matchesSidePanelAvailabilityRow({ row, heightToken, handleType, cabinetType }),
+  const match = params.availability.find(
+    (row) =>
+      row.height === heightToken && row.cabinetType === cabinetType && (!handleType || row.handleType === handleType),
   );
 
   if (!match) {
     return { allowed };
   }
 
-  GROOVE_BY_ALLOWED_FLAG.filter(([flag]) => match.allowed[flag]).forEach(([, groove]) => allowed.add(groove));
+  match.allowed.filter(isGroove).forEach((groove) => allowed.add(groove));
 
   return { allowed };
 };

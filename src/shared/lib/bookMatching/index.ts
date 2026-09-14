@@ -1,18 +1,26 @@
+import type { ProductProfile } from "@/entities/collection";
 import { buildBookMatchingSku, type BookMatchingSkuInput } from "@/shared/lib/sku";
 
+/**
+ * Book matching availability and charge.
+ *
+ * The cabinet families, the drawer styles that allow vertical matching and the minimum run
+ * of adjacent drawer cabinets come from `ruleData.bookMatching` of the active collection. A
+ * collection without that section does not offer book matching.
+ */
+
+// Grain option values mapped to the SKU direction; the SKU format belongs to D.
 const GRAIN_HORIZONTAL = "GrainHorizontal";
 const GRAIN_VERTICAL = "GrainVertical";
 
-const SELECT_GRAIN_REASON = "Select grain direction first.";
-const HORIZONTAL_GRAIN_REASON = "Horizontal grain requires at least 2 adjacent drawer cabinets.";
-const VERTICAL_GRAIN_REASON = "Vertical book matching is only available for 2 drawer cabinet styles.";
-const BOOK_MATCHING_UNAVAILABLE_REASON = "Book matching is not available.";
-
-const SINGLE_DRAWER_VALUES = new Set(["1", "1D", "1DW", "1+INNER", "1DWID"]);
-const DOUBLE_DRAWER_VALUES = new Set(["2", "2D", "2DW"]);
+export const REASON_BOOK_MATCHING_NOT_IN_COLLECTION = "bookMatching.notInCollection";
+const REASON_SELECT_GRAIN = "grain.selectDirection";
+const REASON_HORIZONTAL_NEEDS_ADJACENT = "grain.horizontalNeedsAdjacentCabinets";
+const REASON_VERTICAL_DRAWER_STYLES = "grain.verticalRequiresTwoDrawers";
+const REASON_BOOK_MATCHING_UNAVAILABLE = "grain.bookMatchingUnavailable";
 
 type BookMatchingDirection = BookMatchingSkuInput["direction"];
-type BookMatchingDrawerStyle = "single" | "double";
+type BookMatchingParams = NonNullable<ProductProfile["ruleData"]["bookMatching"]>;
 
 export type BookMatchingCabinetInput = {
   name?: string | null;
@@ -22,6 +30,8 @@ export type BookMatchingCabinetInput = {
 export type BookMatchingAvailability = {
   available: boolean;
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
   direction: BookMatchingDirection | null;
 };
 
@@ -35,39 +45,57 @@ export type BookMatchingChargeInfo = {
   applies: boolean;
 };
 
+/** Reason text of the active collection; the code itself when the collection has none. */
+const resolveMessage = (
+  profile: ProductProfile | null,
+  reasonCode: string,
+  params: Record<string, string | number> = {},
+): string =>
+  (profile?.messages[reasonCode] ?? reasonCode).replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    Object.hasOwn(params, name) ? String(params[name]) : placeholder,
+  );
+
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
-const normalizeCabinetKind = (name?: string | null): "drawer" | "open" | null => {
-  if (!name) return null;
-
+/**
+ * A short code (SB, OSS) must be the whole name; a family name may sit inside a runtime id
+ * such as "Sink-Base-80".
+ */
+const matchesCabinetAlias = (name: string, alias: string): boolean => {
   const normalized = normalizeCabinetToken(name);
   const compact = normalized.replace(/-/g, "");
+  const normalizedAlias = normalizeCabinetToken(alias);
+  const compactAlias = normalizedAlias.replace(/-/g, "");
 
-  if (
-    normalized.includes("open-shelf") ||
-    normalized.includes("openshelf") ||
-    normalized.includes("side-shelf") ||
-    normalized.includes("sideshelf") ||
-    compact === "os" ||
-    compact === "oss"
-  ) {
-    return "open";
-  }
+  if (compactAlias.length <= 3) return compact === compactAlias;
 
-  if (
-    normalized.includes("sink-base") ||
-    normalized.includes("sinkbase") ||
-    normalized.includes("sink-cabinet") ||
-    normalized.includes("sinkcabinet") ||
-    normalized.includes("side-cabinet") ||
-    normalized.includes("sidecabinet") ||
-    compact === "sb" ||
-    compact === "sc"
-  ) {
-    return "drawer";
-  }
+  return normalized.includes(normalizedAlias) || compact.includes(compactAlias);
+};
+
+const normalizeCabinetKind = (
+  name: string | null | undefined,
+  params: BookMatchingParams,
+): "drawer" | "open" | null => {
+  if (!name) return null;
+
+  if (params.openCabinetAliases.some((alias) => matchesCabinetAlias(name, alias))) return "open";
+  if (params.drawerCabinetAliases.some((alias) => matchesCabinetAlias(name, alias))) return "drawer";
 
   return null;
+};
+
+/** Canonical Drawers option of a legacy or scene spelling, compared case-insensitively. */
+const resolveDrawerStyle = (profile: ProductProfile | null, drawers?: string | null): string | null => {
+  const normalized = drawers?.trim().toUpperCase();
+  if (!normalized) return null;
+
+  const options = profile?.attributes.find((attribute) => attribute.attributeId === "Drawers")?.options ?? [];
+  const option = options.find(
+    ({ value, aliases }) =>
+      value.toUpperCase() === normalized || aliases?.some((alias) => alias.toUpperCase() === normalized),
+  );
+
+  return option?.value ?? null;
 };
 
 const parseDrawerCount = (value?: string | null): number => {
@@ -80,119 +108,100 @@ const parseDrawerCount = (value?: string | null): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const normalizeBookMatchingDrawerStyle = (drawers?: string | null): BookMatchingDrawerStyle | null => {
-  const normalized = drawers?.trim().toUpperCase();
-  if (!normalized) return null;
-
-  if (SINGLE_DRAWER_VALUES.has(normalized)) return "single";
-  if (DOUBLE_DRAWER_VALUES.has(normalized)) return "double";
-
-  return null;
-};
-
 export const normalizeBookMatchingDirection = (grainDirection?: string | null): BookMatchingDirection | null => {
   if (grainDirection === GRAIN_HORIZONTAL) return "H";
   if (grainDirection === GRAIN_VERTICAL) return "V";
   return null;
 };
 
-export const isBookMatchingEligibleCabinet = (name?: string | null): boolean => {
-  return normalizeCabinetKind(name) === "drawer";
-};
+export const isBookMatchingEligibleCabinet = (name: string | null | undefined, params: BookMatchingParams): boolean =>
+  normalizeCabinetKind(name, params) === "drawer";
 
-export const countBookMatchingEligibleCabinets = (cabinets: readonly BookMatchingCabinetInput[]): number =>
-  cabinets.reduce((count, cabinet) => count + (isBookMatchingEligibleCabinet(cabinet.name) ? 1 : 0), 0);
-
-export const hasAdjacentBookMatchingEligibleCabinets = (cabinets: readonly BookMatchingCabinetInput[]): boolean => {
-  for (let index = 0; index < cabinets.length - 1; index += 1) {
-    if (
-      isBookMatchingEligibleCabinet(cabinets[index]?.name) &&
-      isBookMatchingEligibleCabinet(cabinets[index + 1]?.name)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-};
-
-const getHorizontalBookMatchingChargeableCabinets = (
+export const countBookMatchingEligibleCabinets = (
   cabinets: readonly BookMatchingCabinetInput[],
-): BookMatchingCabinetInput[] => {
-  const chargeableCabinets: BookMatchingCabinetInput[] = [];
-  let contiguousEligibleGroup: BookMatchingCabinetInput[] = [];
+  params: BookMatchingParams,
+): number =>
+  cabinets.reduce((count, cabinet) => count + (isBookMatchingEligibleCabinet(cabinet.name, params) ? 1 : 0), 0);
 
-  const flushGroup = () => {
-    if (contiguousEligibleGroup.length >= 2) {
-      chargeableCabinets.push(...contiguousEligibleGroup);
-    }
-    contiguousEligibleGroup = [];
-  };
+/** Runs of adjacent drawer cabinets, in composition order. */
+const getContiguousEligibleGroups = (
+  cabinets: readonly BookMatchingCabinetInput[],
+  params: BookMatchingParams,
+): BookMatchingCabinetInput[][] => {
+  const groups: BookMatchingCabinetInput[][] = [];
+  let current: BookMatchingCabinetInput[] = [];
 
   cabinets.forEach((cabinet) => {
-    if (isBookMatchingEligibleCabinet(cabinet.name)) {
-      contiguousEligibleGroup.push(cabinet);
+    if (isBookMatchingEligibleCabinet(cabinet.name, params)) {
+      current.push(cabinet);
       return;
     }
 
-    flushGroup();
+    if (current.length > 0) groups.push(current);
+    current = [];
   });
 
-  flushGroup();
+  if (current.length > 0) groups.push(current);
 
-  return chargeableCabinets;
+  return groups;
 };
 
-const hasIncompatibleVerticalBookMatchingCabinets = (cabinets: readonly BookMatchingCabinetInput[]): boolean =>
-  cabinets.some(
-    (cabinet) =>
-      isBookMatchingEligibleCabinet(cabinet.name) && normalizeBookMatchingDrawerStyle(cabinet.drawers) === "single",
+export const hasAdjacentBookMatchingEligibleCabinets = (
+  cabinets: readonly BookMatchingCabinetInput[],
+  params: BookMatchingParams,
+): boolean =>
+  getContiguousEligibleGroups(cabinets, params).some(
+    (group) => group.length >= params.horizontalMinimumAdjacentDrawerCabinets,
   );
+
+const hasIncompatibleVerticalBookMatchingCabinets = (
+  cabinets: readonly BookMatchingCabinetInput[],
+  params: BookMatchingParams,
+  profile: ProductProfile | null,
+): boolean =>
+  cabinets.some((cabinet) => {
+    if (!isBookMatchingEligibleCabinet(cabinet.name, params)) return false;
+
+    const style = resolveDrawerStyle(profile, cabinet.drawers);
+    return style !== null && !params.verticalAllowedDrawerStyles.includes(style);
+  });
 
 export const deriveBookMatchingAvailability = ({
   grainDirection,
   cabinets,
+  profile,
 }: {
   grainDirection?: string | null;
   cabinets: readonly BookMatchingCabinetInput[];
+  profile: ProductProfile | null;
 }): BookMatchingAvailability => {
   const direction = normalizeBookMatchingDirection(grainDirection);
+  const params = profile?.ruleData.bookMatching;
 
-  if (!direction) {
-    return {
-      available: false,
-      reason: SELECT_GRAIN_REASON,
-      direction: null,
-    };
-  }
+  const unavailable = (reasonCode: string, messageParams?: Record<string, string | number>) => ({
+    available: false,
+    reason: resolveMessage(profile, reasonCode, messageParams),
+    reasonCode,
+    direction,
+  });
+
+  if (!params) return unavailable(REASON_BOOK_MATCHING_NOT_IN_COLLECTION);
+
+  if (!direction) return unavailable(REASON_SELECT_GRAIN);
 
   if (direction === "V") {
-    if (hasIncompatibleVerticalBookMatchingCabinets(cabinets)) {
-      return {
-        available: false,
-        reason: VERTICAL_GRAIN_REASON,
-        direction,
-      };
+    if (hasIncompatibleVerticalBookMatchingCabinets(cabinets, params, profile)) {
+      return unavailable(REASON_VERTICAL_DRAWER_STYLES);
     }
 
-    return {
-      available: true,
-      direction,
-    };
+    return { available: true, direction };
   }
 
-  if (hasAdjacentBookMatchingEligibleCabinets(cabinets)) {
-    return {
-      available: true,
-      direction,
-    };
+  if (hasAdjacentBookMatchingEligibleCabinets(cabinets, params)) {
+    return { available: true, direction };
   }
 
-  return {
-    available: false,
-    reason: HORIZONTAL_GRAIN_REASON,
-    direction,
-  };
+  return unavailable(REASON_HORIZONTAL_NEEDS_ADJACENT, { count: params.horizontalMinimumAdjacentDrawerCabinets });
 };
 
 export const deriveBookMatchingChargeInfo = ({
@@ -200,20 +209,27 @@ export const deriveBookMatchingChargeInfo = ({
   bookMatching,
   materialSku,
   cabinets,
+  profile,
 }: {
   grainDirection?: string | null;
   bookMatching?: string | null;
   materialSku?: string | null;
   cabinets: readonly BookMatchingCabinetInput[];
+  profile: ProductProfile | null;
 }): BookMatchingChargeInfo => {
+  const params = profile?.ruleData.bookMatching;
   const availability = deriveBookMatchingAvailability({
     grainDirection,
     cabinets,
+    profile,
   });
-  const chargeableCabinets =
-    availability.direction === "H"
-      ? getHorizontalBookMatchingChargeableCabinets(cabinets)
-      : cabinets.filter((cabinet) => isBookMatchingEligibleCabinet(cabinet.name));
+  const chargeableCabinets = !params
+    ? []
+    : availability.direction === "H"
+      ? getContiguousEligibleGroups(cabinets, params)
+          .filter((group) => group.length >= params.horizontalMinimumAdjacentDrawerCabinets)
+          .flat()
+      : cabinets.filter((cabinet) => isBookMatchingEligibleCabinet(cabinet.name, params));
   const eligibleCabinetCount = chargeableCabinets.length;
   const parsedDrawerQty = chargeableCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
   const drawerQty = availability.available ? parsedDrawerQty || eligibleCabinetCount : 0;
@@ -227,7 +243,9 @@ export const deriveBookMatchingChargeInfo = ({
   return {
     eligibleCabinetCount,
     available: availability.available,
-    reason: availability.reason ?? (!availability.available ? BOOK_MATCHING_UNAVAILABLE_REASON : undefined),
+    reason:
+      availability.reason ??
+      (!availability.available ? resolveMessage(profile, REASON_BOOK_MATCHING_UNAVAILABLE) : undefined),
     direction: availability.direction,
     sku,
     drawerQty,

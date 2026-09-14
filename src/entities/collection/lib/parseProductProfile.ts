@@ -348,6 +348,8 @@ const RULE_SECTION_FIELDS = {
   sidePanels: {
     heightTokenByCm: [isStringRecord, "a map of centimetres to a height token"],
     blockedCabinetTypes: STRING_LIST,
+    cabinetGroups: [isStringArrayRecord, "a map of cabinet group to cabinet names"],
+    drawersByHandleType: [isStringArrayRecord, "a map of drawer group to drawers values"],
     exactBlockedCabinetLengthCm: NUMBER,
     countertopLengthIncrementCm: NUMBER,
     defaultQuantityUnlessHeightTypeLow: NUMBER,

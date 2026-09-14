@@ -77,6 +77,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { isGrooveType, reapplySidePanelsForPreset, restoreSidePanelState } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
@@ -170,6 +171,12 @@ const mapPresetDrawerToRuleValue = (drawers?: string | null): string | null => {
 export const ModelPage = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
+  // Read at call time inside the preset and restore flows, so a loaded profile does not re-run their effects.
+  const activeProfile = useAppSelector(getActiveProductProfile);
+  const activeProfileRef = useRef(activeProfile);
+  useEffect(() => {
+    activeProfileRef.current = activeProfile;
+  }, [activeProfile]);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const detailMatch = useMatch("/prebuilt/model/:modelId");
@@ -554,6 +561,7 @@ export const ModelPage = () => {
         if (spGroove && spGroove !== "None" && effectivePresetProducts.length) {
           await reapplySidePanelsForPreset(
             dispatch,
+            activeProfileRef.current,
             spGroove,
             effectivePresetProducts,
             effectivePresetProducts.length,
@@ -625,6 +633,7 @@ export const ModelPage = () => {
           activeCountertopStyle: countertopStyle,
           activeBasinStyle: selectedCountertopSinkType ?? null,
           activeThickness: countertopThickness,
+          profile: activeProfileRef.current,
         });
 
         if (!compatibility.isCompatible) {
@@ -931,6 +940,7 @@ export const ModelPage = () => {
           dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }));
           await enforceSidePanelEligibility(
             dispatch,
+            activeProfileRef.current,
             restoredSidePanels,
             leftStatus,
             rightStatus,

@@ -12,6 +12,7 @@ import {
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { adaptThreekitConfig } from "../lib/adaptThreekitConfig";
 import {
   closeSwatchOrder,
@@ -236,6 +237,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const towelBarColor = useAppSelector(getTowelBarColor);
   const vesselColor = useAppSelector(getVesselColor);
   const [activeElements, setActiveElements] = useState<string[] | null>(null);
@@ -255,8 +257,9 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
     () =>
       adaptThreekitConfig(data as unknown as IThreekitConfiguration | undefined, {
         countertopRules,
+        profile: activeProfile,
       }),
-    [data, countertopRules],
+    [data, countertopRules, activeProfile],
   );
   const autofillMaterials = useMemo(
     () =>

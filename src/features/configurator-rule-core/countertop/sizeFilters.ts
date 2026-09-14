@@ -1,3 +1,6 @@
+import type { ProductProfile } from "@/entities/collection";
+import { selectRuleData } from "@/entities/collection";
+
 import type { CountertopMatrixRule } from "./types";
 import {
   getCountertopRuleDepthsForStyle,
@@ -10,17 +13,7 @@ import {
 } from "./parse";
 import { isVesselSinkStyle } from "./vesselCompatibility";
 
-const INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM = [46];
 const WIDTH_EPSILON = 0.01;
-const INTEGRATED_STYLE_RESTRICTED_MATERIAL_TOKENS = new Set([
-  "tekormud",
-  "tekorund",
-  "sstm",
-  "solidsurface",
-  "ssocr",
-  "sst1c",
-  "sst1d",
-]);
 
 const toNumericDimension = (value: string | number): number | null => {
   if (typeof value === "number") {
@@ -196,43 +189,47 @@ type FilterThicknessValuesParams = {
   allowedThicknesses: Set<number>;
 };
 
-const INTEGRATED_STYLE_RESTRICTED_BASIN_KEYS = new Set(["oly55", "oly56", "orion"]);
+/**
+ * Integrated-countertop depths the collection restricts for some materials and basins when the
+ * countertop table lists no depths (`ruleData.countertopFallbacks`). Without that section nothing
+ * is restricted.
+ */
+const isRestrictedIntegratedDepth = (depth: number | null, profile: ProductProfile | null): depth is number => {
+  if (depth === null || !Number.isFinite(depth)) return false;
+
+  const restrictedDepths = selectRuleData(profile, "countertopFallbacks")?.restrictedIntegratedDepthsCm ?? [];
+  return restrictedDepths.some((restrictedDepth) => Math.abs(restrictedDepth - depth) < 0.01);
+};
 
 export const isIntegratedCountertopDepthRestrictedByMaterial = ({
   activeMaterialTokens,
   depth,
+  profile,
 }: {
   activeMaterialTokens: string[];
   depth: number | null;
+  profile: ProductProfile | null;
 }): boolean => {
-  if (depth === null || !Number.isFinite(depth)) return false;
+  if (!isRestrictedIntegratedDepth(depth, profile)) return false;
 
-  const matchesRestrictedDepth = INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM.some(
-    (restrictedDepth) => Math.abs(restrictedDepth - depth) < 0.01,
-  );
-  if (!matchesRestrictedDepth) return false;
-
-  return activeMaterialTokens.some((token) =>
-    INTEGRATED_STYLE_RESTRICTED_MATERIAL_TOKENS.has(normalizeMaterialToken(token)),
-  );
+  const restrictedMaterials = selectRuleData(profile, "countertopFallbacks")?.restrictedIntegratedMaterialTokens ?? [];
+  return activeMaterialTokens.some((token) => restrictedMaterials.includes(normalizeMaterialToken(token)));
 };
 
 export const isIntegratedCountertopDepthRestrictedByBasin = ({
   activeBasinStyle,
   depth,
+  profile,
 }: {
   activeBasinStyle?: string | null;
   depth: number | null;
+  profile: ProductProfile | null;
 }): boolean => {
-  if (depth === null || !Number.isFinite(depth)) return false;
-
-  const matchesRestrictedDepth = INTEGRATED_STYLE_RESTRICTED_DEPTHS_CM.some(
-    (restrictedDepth) => Math.abs(restrictedDepth - depth) < 0.01,
-  );
-  if (!matchesRestrictedDepth) return false;
+  if (!isRestrictedIntegratedDepth(depth, profile)) return false;
   if (!activeBasinStyle) return false;
 
-  return INTEGRATED_STYLE_RESTRICTED_BASIN_KEYS.has(normalizeBasinKey(activeBasinStyle));
+  const restrictedBasins = selectRuleData(profile, "countertopFallbacks")?.restrictedIntegratedBasinKeys ?? [];
+  return restrictedBasins.includes(normalizeBasinKey(activeBasinStyle));
 };
 
 export const filterDepthValuesByCountertopRules = ({
@@ -241,7 +238,8 @@ export const filterDepthValuesByCountertopRules = ({
   rules,
   activeCountertopStyle,
   activeBasinStyle,
-}: FilterDepthValuesParams): Array<string | number> => {
+  profile,
+}: FilterDepthValuesParams & { profile: ProductProfile | null }): Array<string | number> => {
   if (!values.length) return values;
 
   const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
@@ -282,6 +280,7 @@ export const filterDepthValuesByCountertopRules = ({
       isIntegratedCountertopDepthRestrictedByMaterial({
         activeMaterialTokens,
         depth: numeric,
+        profile,
       })
     ) {
       return false;
@@ -293,6 +292,7 @@ export const filterDepthValuesByCountertopRules = ({
       isIntegratedCountertopDepthRestrictedByBasin({
         activeBasinStyle,
         depth: numeric,
+        profile,
       })
     ) {
       return false;

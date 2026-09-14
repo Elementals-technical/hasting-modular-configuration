@@ -342,10 +342,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
+      profile: activeProfile,
     });
     const allowedValues = new Set(filteredValues.map((value) => String(value)));
     return dimensionOptions.depth.filter((option) => !option.disabled && allowedValues.has(String(option.value)));
-  }, [activeMaterialTokens, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
+  }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
 
   const widthDisplayOptions = useMemo(
     () =>

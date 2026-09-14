@@ -31,6 +31,7 @@ import {
   getPlacedDividers,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   buildProductSku,
   buildCountertopSkuIfComplete,
@@ -131,6 +132,7 @@ export function usePriceCalculation() {
   const cabinetColor = useAppSelector(getCabinetColor);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const handleGrooveColorSku = useAppSelector(getHandleGrooveColorSku);
 
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -366,7 +368,7 @@ export function usePriceCalculation() {
     const resolvedVesselColor = vesselColor;
     const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const allowedVesselMaterialTokens = vesselTypeForTokens
-      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
       : [];
     const vesselPreferredMaterialTokens =
       allowedVesselMaterialTokens.length > 0
@@ -390,9 +392,11 @@ export function usePriceCalculation() {
     const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const effectiveCountertopMaterialSku =
       resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
+    const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
     const isSyntesiCountertop =
-      isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku) ||
-      normalizeMaterialToken(resolvedSinkType ?? "").includes("syntesi");
+      syntesiMaterial !== null &&
+      (isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku, activeProfile) ||
+        normalizeMaterialToken(resolvedSinkType ?? "").includes(normalizeMaterialToken(syntesiMaterial)));
     const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const resolveNameFromRaw = (value: string) => {
       const lastDash = value.lastIndexOf("-");
@@ -1038,6 +1042,7 @@ export function usePriceCalculation() {
       bookMatching,
       materialSku: resolveCabinetMaterialSku(cabinetColor),
       cabinets: bookMatchingCabinets,
+      profile: activeProfile,
     });
 
     if (bookMatchingInfo.applies && bookMatchingInfo.sku) {
@@ -1096,6 +1101,7 @@ export function usePriceCalculation() {
     resolveCabinetType,
     countertopRules,
     grainDirection,
+    activeProfile,
   ]);
 
   // ── Stable key for the SKU list (avoid effect re-runs on same content) ─

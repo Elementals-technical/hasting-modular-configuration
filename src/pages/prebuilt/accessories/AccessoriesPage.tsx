@@ -40,6 +40,8 @@ import {
   applyGroove,
   autoRemoveBoth,
   buildSidePanelEdgeState,
+  mapCabinetTypeToGroup,
+  mapSidePanelDrawersToHandleType,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   isGrooveType,
@@ -58,6 +60,7 @@ import {
   type SidePanelApplySide,
   type GrooveType,
 } from "@/features/sidePanel";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { getEdgeCabinets, type EdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
   clearPlacedDividersInScene,
@@ -162,11 +165,12 @@ export const AccessoriesPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedProductOrderKey = selectedProducts.join("|");
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const productsPresets = useAppSelector(getProductsPresets);
   const lengthGuard = useCountertopLengthGuard(selectedProducts);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const sidePanelsBlockedByLength340 = isSidePanelLengthBlocked(lengthGuard.currentCabinetOnly);
+  const sidePanelsBlockedByLength340 = isSidePanelLengthBlocked(lengthGuard.currentCabinetOnly, activeProfile);
   const isPlayCanvasReady = usePlayCanvasReady();
 
   // Edge cabinets are read imperatively from PlayCanvas, whose composition order
@@ -198,8 +202,8 @@ export const AccessoriesPage = () => {
   }, [isPlayCanvasReady, selectedProductOrderKey, compositionVersion]);
 
   const sidePanelEdgeState = useMemo(
-    () => buildSidePanelEdgeState(edgeCabinets, selectedSceneProduct),
-    [edgeCabinets, selectedSceneProduct],
+    () => buildSidePanelEdgeState(edgeCabinets, selectedSceneProduct, activeProfile),
+    [edgeCabinets, selectedSceneProduct, activeProfile],
   );
 
   const resolvedSpSide = useMemo(
@@ -307,27 +311,11 @@ export const AccessoriesPage = () => {
       const firstPreset = productsPresets[0];
       if (!firstPreset) return selectorAvailability;
 
-      const name = firstPreset.name ?? null;
-      const cabinetType =
-        name === "Side-Shelf" || name === "OSS"
-          ? "OSS"
-          : name === "Open-Shelf" || name === "OS"
-            ? "OS"
-            : name === "Sink-Base" || name === "Sink-Cabinet" || name === "Side-Cabinet" || name === "SB" || name === "SC"
-              ? "SBSC"
-              : null;
-
-      const drawers = firstPreset.Drawers ?? null;
-      const handleType =
-        drawers === "1D" || drawers === "1DWID" || drawers === "1" || drawers === "1+inner"
-          ? "1D"
-          : drawers === "2D" || drawers === "2"
-            ? "2D"
-            : null;
-
+      const cabinetType = mapCabinetTypeToGroup(firstPreset.name ?? null, activeProfile);
+      const handleType = mapSidePanelDrawersToHandleType(firstPreset.Drawers ?? null, activeProfile);
       const height = firstPreset.Height ?? null;
 
-      return sidePanelAvailabilityRule({ height, handleType, cabinetType });
+      return sidePanelAvailabilityRule({ height, handleType, cabinetType }, activeProfile);
     })();
 
     return resolveSidePanelAvailabilityForEdges({
@@ -335,8 +323,10 @@ export const AccessoriesPage = () => {
       edgeState: sidePanelEdgeState,
       height: selectedDimensions.height ?? selectedConfigHeight,
       edgeDrawers: sidePanelFallbackEdgeDrawers ?? selectedConfigDrawers,
+      profile: activeProfile,
     });
   }, [
+    activeProfile,
     selectorAvailability,
     productsPresets,
     selectedSceneProduct,
@@ -355,8 +345,10 @@ export const AccessoriesPage = () => {
       isEdgeCabinet: sidePanelEdgeState.isSelectedEdge,
       cabinetOnlyLength: lengthGuard.currentCabinetOnly,
       availability: sidePanelAvailability,
+      profile: activeProfile,
     }),
     [
+      activeProfile,
       selectedProducts.length,
       selectedSceneProduct,
       sidePanelEdgeState.isSelectedEdge,
@@ -403,8 +395,10 @@ export const AccessoriesPage = () => {
         groove,
         height: selectedDimensions.height ?? selectedConfigHeight,
         edgeDrawers: getSidePanelEdgeDrawers(side) ?? selectedConfigDrawers,
+        profile: activeProfile,
       }),
     [
+      activeProfile,
       getSidePanelEdgeDrawers,
       selectedConfigDrawers,
       selectedConfigHeight,

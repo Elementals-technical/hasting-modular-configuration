@@ -124,3 +124,32 @@ export const selectRuleData = <K extends keyof ProfileRuleData>(
   profile: ProductProfile | null,
   section: K,
 ): ProfileRuleData[K] | undefined => profile?.ruleData[section];
+
+/**
+ * Whether a drawer style may not be placed with the cabinets already placed.
+ *
+ * Styles of different `drawerStyleGroups` cannot be mixed. When the placed cabinets already
+ * span several groups, the group listed last decides (USH: one two-drawer cabinet makes the
+ * composition two-drawer). A collection without groups has no such restriction.
+ */
+export const isDrawerStyleMixingRestricted = (
+  profile: ProductProfile | null,
+  placedValues: readonly string[],
+  candidate: string,
+): boolean => {
+  const groups = profile?.ruleData.drawerStyleGroups;
+  if (!groups?.length) return false;
+
+  const groupOf = (value: string): number => {
+    const canonical = normalizeOptionValue(profile, "Drawers", value) ?? value;
+    return groups.findIndex((group) => group.includes(canonical));
+  };
+
+  const candidateGroup = groupOf(candidate);
+  if (candidateGroup === -1) return false;
+
+  const placedGroups = placedValues.map(groupOf).filter((group) => group !== -1);
+  if (placedGroups.length === 0) return false;
+
+  return candidateGroup !== Math.max(...placedGroups);
+};

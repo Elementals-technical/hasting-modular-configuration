@@ -107,6 +107,15 @@ type ConfigurationFragment = {
 | `applyConfiguratorRules(..., catalog = typeCabinetCatalog)` | both `catalog` and `profile` are required arguments |
 | Drawers switch in `CabinetBuilderPage`: rules run twice, handle and height broadcast, then `switchAllCabinetsDrawerStyle` with `forcedHeight`/`forcedHandle` | `buildChangePlan` Drawers branch through `changeAttribute` |
 | `CabinetColor`, `CountertopColor`, `VesselColor`, `TowelBarColor` known only from `profile.defaults` | Attributes with `optionsSource` (`configurator:Cabinet Color`, `Countertop Color`, `Vessels`, `Towel Bar Color`) |
+| `isLacquerMatte` spellings, `FLUTING_VALUES`, `SIDE_PANEL` target in `flutingRule.ts` | `ruleData.fluting` + options of `DrawerPanelFluting` |
+| `Essenze/HPL/3D`, `HPL_NO_GRAIN_FINISHES`, `THREE_D_NO_GRAIN_FINISHES` and their labels in `options/constants.ts` | `ruleData.grainDirection` + options of `GrainDirection` |
+| Cabinet families, `SINGLE/DOUBLE_DRAWER_VALUES`, minimum of 2 adjacent cabinets in `shared/lib/bookMatching` | `ruleData.bookMatching` + aliases of `Drawers` |
+| `dominantDrawerGroup === "double" && (value === "1" \|\| …)` in `CabinetBuilderPage` | `ruleData.drawerStyleGroups`, read by `isDrawerStyleMixingRestricted` |
+| `SIDE_PANEL_AVAILABILITY`, `mapCabinetTypeToGroup` and two copies of `mapDrawersToHandleType`, `SIDE_PANEL_LENGTH_BLOCK_CM = 340`, `+ 2` cm, quantity `2` | `ruleData.sidePanels` (`availability`, `cabinetGroups`, `drawersByHandleType`, `exactBlockedCabinetLengthCm`, `countertopLengthIncrementCm`, `defaultQuantityUnlessHeightTypeLow`) |
+| `SYNTESI_MATERIAL`, `SYNTESI_MATERIAL_SKU`, `SYNTESI_FINISH_CONFIGS`, `SYNTESI_MAX_CABINET_COUNT`, "Syntesi without side panels" | `ruleData.syntesi` |
+| Depth `46`, restricted materials and basins in `sizeFilters.ts`; `lacqueredmt/lacqueredgl` filters in both countertop pages | `ruleData.countertopFallbacks` |
+| Hidden vessel styles in `vesselCompatibility.ts`; `vesselAllowedMaterialsMap`, colour-code maps and `vesselDefaultFinishMap` in `shared/lib/sku/vesselSkuMaps.ts` | `ruleData.vesselCompatibility` (the SKU maps of D stay in `vesselSkuMaps.ts`) |
+| Rule reason strings in fluting, grain, book matching, side panels, Syntesi, vessels | `profile.messages`, with `{name}` params where a value is part of the text |
 
 Two duplicated implementations of the same handle auto-change — one in the product reducer, one in `CabinetBuilderPage` — now share `resolveHandleAfterRules.ts`.
 
@@ -125,6 +134,10 @@ They are recorded because CONTRACTS §4 forbids silently changing established be
 5. **A drawers switch no longer re-sends an unchanged handle.** The page broadcast the handle after every drawers change "so PlayCanvas re-evaluates its height-forcing rules" and then the height. The command sends the handle only when the new drawers require a different one, and the forced height explicitly. The top dividers of cabinets leaving two drawers are cleared in a call of their own just before the drawers, where the page sent both in one patch. Both need the browser check (I06).
 
 6. **Removing the towel bar clears its colour in the scene too.** The accessory pages cleared `TowelBarColor` in state only; through the command the empty colour is part of the set and reaches the scene, which treats `""` as no colour.
+
+7. **A collection without a rule section does not get USH's rule.** Fluting, grain direction, book matching and side panels are not offered (`*.notInCollection` reason); drawer style groups, Syntesi, countertop fallbacks and vessel compatibility impose no restriction. USH declares every section, and the behaviour tests recorded before the migration pass unchanged on its profile.
+
+8. **Nothing is cleared before the collection loads.** Every rule reads as unavailable while `activeProfile` is null, so the option listeners, the fluting/grain/book-matching effects in the cabinet pages, the side panel middleware, `enforceSidePanelEligibility` and `reapplySidePanelsForPreset` do nothing until it is loaded, instead of clearing chosen values or removing panels.
 
 ## Defects found and fixed
 
@@ -160,12 +173,19 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 - **Rule evaluation still runs inside twelve product reducers.** `CollectionStateBridge` exists to copy the collection into the store because hooks are unavailable there. Only the handle and its height have one owner so far; moving evaluation for the remaining attributes into the command layer is the rest of C06 and removes both the bridge and the transitional `activeProfile` field.
 - **C06 beyond handle and drawers.** Width and depth need I04, because the scene decides the actual size. Fluting, grain, towel bar, thickness and the colours are ready in the command service but their fields still write state and call the scene directly; wiring them is B06. The colours need committers for SKU, material and finish first. The runtime bindings reach the app through a temporary loader until A07 (see the runtime bindings document).
 - **Legacy steps around the drawers command.** Clearing the top dividers (`TODO(I)`, no runtimePort operation) and re-sending a stale height per cabinet (`TODO(I04)`, needs the actual size) stay direct scene calls in `handleMixingConfirm`.
-- **Confirmations still on the legacy path.** Depth and the Side-Shelf removal are not moved to C05: dimensions are not planned by the command service yet, and removing products has no runtimePort operation. The mixing restriction itself is still computed in the page.
+- **Confirmations still on the legacy path.** Depth and the Side-Shelf removal are not moved to C05: dimensions are not planned by the command service yet, and removing products has no runtimePort operation. The mixing restriction now comes from `drawerStyleGroups`; its prompt is still the page's own.
+- **Material aliases still in code.** `MATERIAL_ALIASES` in `countertop/parse.ts` (also mirrored as `ruleData.materialNormalization.aliases`) derives the basin name markers used by `normalizeBasinKey` and `scopeCountertopRulesByBasinStyle`, which almost every countertop rule and both countertop pages, the price hook and the summaries call. Moving it means passing the aliases through that whole module; it was left out of this migration and needs its own task.
+- **Countertop fallbacks not confirmed against 438.** The 438 fixture (27 rows) repeats the restriction for Tekorund and the Orion basin (integrated depth 50.5 only) but has no rows for Tekormud, SSTM, Solid Surface, SST1C/SST1D or the Oly55/Oly56 basins. The facts were moved into `ruleData.countertopFallbacks` with `needsConfirmation: true` instead of being deleted; A and D decide once the full table is compared.
+- **Rules that stay code.** `getDominantDrawerGroup` still picks the style images from the legacy `single/double` values (presentation, B). `HANDLE_GROOVE_PRIORITY` in `sidePanelService.ts` maps handle ids to preferred grooves (runtime, I). The cabinet groups `SBSC/OS/OSS`, the `Vessel_` prefix and the divider validation gate order are code concepts; only their members moved into data.
+- **New rule kinds of Mako/Class are not covered.** `maxCabinetWidthSum`, `maxCabinetTypeCount`, `integratedMaterialBasinAndOwningSinkBase` and the other kinds in `collection-inputs/mako.json`/`class.json` have no evaluator yet; `drawerStyleGroups` matches their `compositionStyleGroups`.
+- **`syntesi.finishTransforms[].runtimeValue`** is also expressed by the `CountertopColor` overrides in `runtime-bindings.json`; one of the two should go.
 
 ## Scope and completion
 
 Developer C owns the ProductProfile contract and its pure transformations, the configuration state model and value ownership, the single change path, and the Save format with its legacy reader. Developer C does not migrate page rendering or navigation (B), collection source binding and loading (A), SKU and pricing (D), or PlayCanvas bindings and scene execution (I).
 
 C01, C02, C05, C07 and C08 are complete against their acceptance criteria. C06 is in progress: the handle and the drawers run through the command service in the app, with one owner in state and one send to the scene; fluting, grain, towel bar, thickness and the colours are accepted and recorded by the service; the remaining fields depend on B06/B08/B09 and the dimensions on I04; C09 depends on A07 and I05. C12 and C13 depend on all of the above.
+
+The P1 rules of the hardcode audit — fluting, grain direction, book matching, drawer mixing, side panels, Syntesi, countertop fallbacks and vessel compatibility — read their parameters from `ruleData` of the active profile. Material aliases are the remaining P1 item in code (see Open items); there is no task for it in the plan yet.
 
 Parity is proven against the real DataTable 439 payload from the Developer A fixtures. Browser verification of the full B → C → I path remains, and is evaluated jointly in C12 and I06.

@@ -28,6 +28,7 @@ export {
   getSidePanelRightStatus,
   selectSidePanelAvailability,
   mapCabinetTypeToGroup,
+  type SidePanelCabinetGroup,
 } from "./model/selectors";
 
 // Rules
@@ -36,8 +37,9 @@ export {
   sidePanelSpecRule,
   sidePanelCountertopLengthRule,
   syntesiSidePanelRule,
-  SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON,
-  SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON,
+  REASON_SIDE_PANEL_NOT_IN_COLLECTION,
+  REASON_SIDE_PANEL_OPEN_SHELF,
+  REASON_SIDE_PANEL_SIDE_SHELF,
 } from "./lib/sidePanelRules";
 
 export {
@@ -52,9 +54,6 @@ export {
   type SidePanelEdgeState,
   type SidePanelTargetSide,
 } from "./lib/sidePanelEdgeCompatibility";
-
-// Constants
-export { SIDE_PANEL_AVAILABILITY, SIDE_PANELS_NONE, SYNTESI_MATERIAL_TOKEN } from "./lib/constants";
 
 // Reasons registry (panel-level blocks + non-blocking notice)
 export {
@@ -74,7 +73,7 @@ export {
   isSidePanelLengthBlocked,
   formatSidePanelLength340Reason,
   SIDE_PANEL_BLOCK_REASONS,
-  SIDE_PANEL_LENGTH_BLOCK_CM,
+  REASON_SIDE_PANEL_EXACT_LENGTH,
   SIDE_PANEL_SELECT_END_HINT,
   type SidePanelReasonCtx,
   type SidePanelNotice,

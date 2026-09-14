@@ -49,6 +49,7 @@ import {
   getPlacedDividers,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 // import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import {
@@ -90,7 +91,6 @@ import { buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import { hashConfigurationRequest, useBuildConfigurationRequest } from "@/features/saveConfiguration";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import {
-  SYNTESI_MATERIAL,
   findSyntesiCountertopUiValue,
   getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
@@ -325,6 +325,7 @@ export const SummaryPage = () => {
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const vesselColor = useAppSelector(getVesselColor);
@@ -1158,24 +1159,26 @@ export const SummaryPage = () => {
       }) ||
       resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
+    const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
     const isSyntesiCountertop =
-      isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku) ||
-      normalizeMaterialToken(resolvedSinkType ?? "").includes("syntesi");
+      syntesiMaterial !== null &&
+      (isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku, activeProfile) ||
+        normalizeMaterialToken(resolvedSinkType ?? "").includes(normalizeMaterialToken(syntesiMaterial)));
     const displayCountertopColor = isSyntesiCountertop
-      ? (findSyntesiCountertopUiValue(countertopColor) ??
-        findSyntesiCountertopUiValue(resolvedCountertopColor) ??
+      ? (findSyntesiCountertopUiValue(countertopColor, activeProfile) ??
+        findSyntesiCountertopUiValue(resolvedCountertopColor, activeProfile) ??
         resolvedCountertopColor)
       : resolvedCountertopColor;
-    const displayCountertopLabel = isSyntesiCountertop ? `${SYNTESI_MATERIAL} Countertop` : "Countertop";
+    const displayCountertopLabel = isSyntesiCountertop ? `${syntesiMaterial} Countertop` : "Countertop";
     const displayCountertopMaterial = isSyntesiCountertop
-      ? SYNTESI_MATERIAL
+      ? syntesiMaterial
       : resolvedCountertopMaterialSku
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
     const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const allowedVesselMaterialTokens = vesselTypeForTokens
-      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
       : [];
     const vesselPreferredMaterialTokens =
       allowedVesselMaterialTokens.length > 0
@@ -1240,6 +1243,7 @@ export const SummaryPage = () => {
       bookMatching,
       materialSku: resolveCabinetMaterialSku(cabinetColor),
       cabinets: bookMatchingCabinets,
+      profile: activeProfile,
     });
 
     const bookMatchingItem: SummaryItem | null =
@@ -1762,6 +1766,7 @@ export const SummaryPage = () => {
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,
+    activeProfile,
   ]);
 
   const fullSkuJson = useMemo(() => {
@@ -1884,8 +1889,8 @@ export const SummaryPage = () => {
   const quoteModelName = "Urban Standard Height";
 
   const swatchOrderData = useMemo(
-    () => adaptThreekitConfig(cabinetColors, { countertopRules }),
-    [cabinetColors, countertopRules],
+    () => adaptThreekitConfig(cabinetColors, { countertopRules, profile: activeProfile }),
+    [cabinetColors, countertopRules, activeProfile],
   );
   const summaryAutofillValues = useMemo<AutofillValueRequest[]>(() => {
     const requests: AutofillValueRequest[] = [];

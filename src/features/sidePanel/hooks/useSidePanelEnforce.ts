@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSidePanelsOption, getSidePanelLeftStatus, getSidePanelRightStatus } from "../model/selectors";
 import { enforceSidePanelEligibility } from "../lib/sidePanelEnforce";
@@ -14,17 +15,24 @@ export function useSidePanelEnforce(productIdsLength: number) {
   const spGroove = useAppSelector(getSidePanelsOption);
   const spLeft = useAppSelector(getSidePanelLeftStatus);
   const spRight = useAppSelector(getSidePanelRightStatus);
+  const profile = useAppSelector(getActiveProductProfile);
 
   const spGrooveRef = useRef(spGroove);
   const spLeftRef = useRef(spLeft);
   const spRightRef = useRef(spRight);
+  const profileRef = useRef(profile);
   spGrooveRef.current = spGroove;
   spLeftRef.current = spLeft;
   spRightRef.current = spRight;
 
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
+
   const enforce = useCallback(async () => {
     await enforceSidePanelEligibility(
       dispatch,
+      profileRef.current,
       spGrooveRef.current || "",
       spLeftRef.current || "none",
       spRightRef.current || "none",

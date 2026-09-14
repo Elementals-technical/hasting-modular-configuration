@@ -1,3 +1,4 @@
+import type { ProductProfile } from "@/entities/collection";
 import type { PresetProduct } from "@/entities/product/types";
 
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
@@ -27,6 +28,7 @@ export type PrebuiltModelCountertopCompatibilityInput = {
   activeCountertopStyle?: string | null;
   activeBasinStyle?: string | null;
   activeThickness?: string | null;
+  profile: ProductProfile | null;
 };
 
 export type PrebuiltModelCountertopCompatibilityResult = {
@@ -142,6 +144,7 @@ const isMaterialCompatible = ({
   activeBasinStyle,
   activeThickness,
   dimensions,
+  profile,
 }: {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
@@ -149,12 +152,14 @@ const isMaterialCompatible = ({
   activeBasinStyle?: string | null;
   activeThickness?: string | null;
   dimensions: PrebuiltPresetDimensions;
+  profile: ProductProfile | null;
 }): boolean => {
   if (!activeMaterialTokens.length) return true;
 
   const compositionConstraint = resolveCountertopCabinetCompositionConstraint({
     materialTokens: activeMaterialTokens,
     cabinetCount: dimensions.cabinetCount,
+    profile,
   });
   if (!compositionConstraint.isWithinCabinetLimit) return false;
 
@@ -207,6 +212,7 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
   activeCountertopStyle,
   activeBasinStyle,
   activeThickness,
+  profile,
 }: PrebuiltModelCountertopCompatibilityInput): PrebuiltModelCountertopCompatibilityResult => {
   if (!rules.length || !presetProducts.length) return { isCompatible: true };
   if (!activeMaterialTokens.length && !activeCountertopStyle) return { isCompatible: true };
@@ -219,6 +225,7 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
     activeBasinStyle,
     activeThickness,
     dimensions,
+    profile,
   });
   if (!materialCompatible) {
     return {

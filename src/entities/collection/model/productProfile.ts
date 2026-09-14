@@ -138,6 +138,13 @@ export type SidePanelAvailabilityRow = {
 export type SidePanelsRuleData = {
   heightTokenByCm: Record<string, string>;
   blockedCabinetTypes: string[];
+  /**
+   * Cabinet group ("SBSC", "OS", "OSS") -> names and codes of its cabinets. A name with a
+   * hyphen may sit inside a runtime id; a code without one must match the whole id.
+   */
+  cabinetGroups: Record<string, string[]>;
+  /** Drawer group of the availability table ("1D", "2D") -> drawers values that belong to it. */
+  drawersByHandleType: Record<string, string[]>;
   exactBlockedCabinetLengthCm: number;
   countertopLengthIncrementCm: number;
   defaultQuantityUnlessHeightTypeLow: number;

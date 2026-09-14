@@ -39,6 +39,12 @@ import {
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
+/**
+ * The option rules read the active collection's profile. Before it loads every rule reads as
+ * unavailable, so the listeners below must not clear a chosen value on that account.
+ */
+const hasActiveProfile = (state: RootState) => state.rootStateUI.product.activeProfile !== null;
+
 // Stable cabinet keys follow the placed products.
 optionsListenerMiddleware.startListening({
   predicate: (_, current, previous) =>
@@ -74,6 +80,7 @@ optionsListenerMiddleware.startListening({
   matcher: isAnyOf(setCabinetColorMaterial, setCabinetColorFinish),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
+    if (!hasActiveProfile(state)) return;
     const grainState = selectGrainDirectionState(state);
     const currentGrain = getGrainDirection(state);
     const selectedProducts = getSelectedProducts(state);
@@ -91,6 +98,7 @@ optionsListenerMiddleware.startListening({
   actionCreator: setGrainDirection,
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
+    if (!hasActiveProfile(state)) return;
     const bookState = selectBookMatchingState(state);
     const currentBook = getBookMatching(state);
 
@@ -112,6 +120,7 @@ optionsListenerMiddleware.startListening({
   ),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
+    if (!hasActiveProfile(state)) return;
     const bookState = selectBookMatchingState(state);
     const currentBook = getBookMatching(state);
 
@@ -125,6 +134,7 @@ optionsListenerMiddleware.startListening({
   actionCreator: setActiveCabinetType,
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
+    if (!hasActiveProfile(state)) return;
     const flutingState = selectFlutingState(state);
     const currentFluting = getDrawerPanelFluting(state);
 
@@ -138,6 +148,7 @@ optionsListenerMiddleware.startListening({
   matcher: isAnyOf(setCabinetColorMaterial, setSelectedProductConfig, commitRuleSelection),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
+    if (!hasActiveProfile(state)) return;
     const flutingState = selectFlutingState(state);
     const currentFluting = getDrawerPanelFluting(state);
 
