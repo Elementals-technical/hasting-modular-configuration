@@ -1,5 +1,6 @@
 import {
   ATTRIBUTE_SCOPES,
+  type AttributeConfirmation,
   type AttributeScope,
   type CabinetMatrixLegacyAdapter,
   type ProductProfile,
@@ -131,6 +132,25 @@ const parseOptions = (raw: unknown, attributePath: string, collect: Collector): 
 /** Values that must belong to the attribute catalog when the catalog is closed. */
 const CATALOG_BOUND_FIELDS = ["defaultValue", "effectiveFallbackValue", "noneValue"] as const;
 
+const parseConfirmation = (
+  raw: unknown,
+  attributePath: string,
+  collect: Collector,
+): AttributeConfirmation | undefined => {
+  if (raw === undefined) return undefined;
+
+  if (!isRecord(raw) || raw.when !== "cabinetsPlaced" || !isNonEmptyString(raw.reasonCode)) {
+    collect.add(
+      "profile.invalid_field_type",
+      `${attributePath}/confirmation`,
+      'confirmation must be { when: "cabinetsPlaced", reasonCode }',
+    );
+    return undefined;
+  }
+
+  return { when: raw.when, reasonCode: raw.reasonCode };
+};
+
 const parseAttribute = (raw: unknown, index: number, collect: Collector): ProfileAttribute | null => {
   const path = `/attributes/${index}`;
 
@@ -169,6 +189,7 @@ const parseAttribute = (raw: unknown, index: number, collect: Collector): Profil
   const attribute: ProfileAttribute = {
     attributeId: raw.attributeId,
     scope: raw.scope as AttributeScope,
+    confirmation: parseConfirmation(raw.confirmation, attributePath, collect),
     options,
     optionsSource: isNonEmptyString(raw.optionsSource) ? raw.optionsSource : undefined,
     initialValue: typeof raw.initialValue === "string" ? raw.initialValue : undefined,

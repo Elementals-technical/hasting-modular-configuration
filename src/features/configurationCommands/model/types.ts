@@ -1,4 +1,10 @@
-import type { AttributeValue, DrawerType, StableCabinetKey, ValueTarget } from "@/entities/configuration";
+import type {
+  AttributeValue,
+  DrawerType,
+  FailedRuntimeChange,
+  StableCabinetKey,
+  ValueTarget,
+} from "@/entities/configuration";
 
 /**
  * The single path through which a value changes.
@@ -32,16 +38,20 @@ export type PlannedChange = {
   reasonCode?: string;
 };
 
-export type FailedChange = {
-  change: PlannedChange;
-  message: string;
-};
+/** A change of the set the scene did not apply, with I's reason. */
+export type FailedChange = FailedRuntimeChange<PlannedChange>;
 
 export type ChangeErrorCode =
   | "no-active-profile"
   | "unknown-attribute"
   | "scope-mismatch"
-  | "unknown-target";
+  | "unknown-target"
+  /** The scene cannot take commands yet; nothing was sent or recorded. */
+  | "runtime-not-ready"
+  /** The collection has no scene translation for part of the set; nothing was sent. */
+  | "runtime-unsupported"
+  /** The first scene command failed; nothing was applied. */
+  | "runtime-failed";
 
 export type ChangeBlockedReason = {
   attributeId: string;
@@ -50,39 +60,38 @@ export type ChangeBlockedReason = {
   reason: string;
 };
 
+/** Why a change waits for the user's confirmation. B resolves the code to text. */
+export type ConfirmationReason = {
+  attributeId: string;
+  reasonCode: string;
+  /** Legacy English fallback from profile.messages. */
+  reason: string;
+};
+
+/**
+ * A change held for confirmation. Nothing has been written or sent for it. Confirming
+ * checks the change again against the state at that moment; cancelling is dropping it.
+ */
+export type ChangePreview = {
+  change: AttributeChange;
+  /** The set that would be applied, dependencies included. */
+  plan: PlannedChange[];
+  /** Why confirmation is asked first, then why each dependency belongs to the set. */
+  reasons: ConfirmationReason[];
+};
+
 /**
  * Outcome of a change.
  *
- * `confirmation-required` is deliberately absent: preview/confirm/cancel is C05.
+ * `confirmation-required` carries a preview; nothing is written or sent until it is
+ * confirmed. `replaced` says the state moved since the preview being confirmed, so the
+ * set changed and is shown again instead of being applied.
  * `partial` exists because the runtime API is not atomic — CONTRACTS §"Узгодження з I"
  * requires reporting the actual result instead of promising atomicity.
  */
 export type ChangeResult =
   | { status: "applied"; plan: PlannedChange[] }
+  | { status: "confirmation-required"; preview: ChangePreview; replaced: boolean }
   | ({ status: "blocked" } & ChangeBlockedReason)
   | { status: "partial"; applied: PlannedChange[]; failed: FailedChange[]; needsSync: true }
   | { status: "error"; code: ChangeErrorCode; message: string };
-
-export type RuntimeApplyResult = {
-  applied: PlannedChange[];
-  failed: FailedChange[];
-};
-
-/**
- * What C needs from the runtime.
- *
- * I owns the real port (`entities/configuration/model/runtimePort.ts`, task I02) and the
- * mapping of semantic ids onto scene keys. This declares only the consumer side, so the
- * command service can be written and tested before that port exists.
- *
- * `resolveRuntimeId` is passed in because C addresses products by stable key while the
- * scene knows only runtime ids; the translation stays on C's side of the boundary.
- *
- * TODO(I02): replace with the port type once I publishes it.
- */
-export type ConfigurationRuntimePort = {
-  apply(
-    changes: PlannedChange[],
-    resolveRuntimeId: (cabinetId: StableCabinetKey) => string | null,
-  ): Promise<RuntimeApplyResult>;
-};

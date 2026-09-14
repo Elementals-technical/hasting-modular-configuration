@@ -2,15 +2,16 @@ export type {
   AttributeChange,
   ChangeBlockedReason,
   ChangeErrorCode,
+  ChangePreview,
   ChangeResult,
-  ConfigurationRuntimePort,
+  ConfirmationReason,
   FailedChange,
   PlannedChange,
-  RuntimeApplyResult,
 } from "./model/types";
 
 export { changeAttribute } from "./lib/changeAttribute";
 export type { ChangeAttributeDeps } from "./lib/changeAttribute";
+export { confirmAttributeChange } from "./lib/confirmAttributeChange";
 
 export { validateChange, REASON_VALUE_NOT_IN_CATALOG } from "./lib/validateChange";
 export type { ValidationVerdict } from "./lib/validateChange";
@@ -21,6 +22,3 @@ export type { BuildChangePlanArgs, BuildChangePlanResult } from "./lib/buildChan
 export { resolveTarget } from "./lib/resolveTarget";
 export { commitChange, TYPED_COMMIT_ATTRIBUTE_IDS } from "./lib/commitChange";
 export type { CommitContext } from "./lib/commitChange";
-
-export { createTestRuntimePort } from "./lib/testRuntimePort";
-export type { TestRuntimePort } from "./lib/testRuntimePort";

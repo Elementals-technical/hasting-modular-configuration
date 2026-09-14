@@ -20,6 +20,7 @@ export * from "./ui/activeCollectionContext";
 // people, and an explicit list turns a name collision into a compile error here instead
 // of a silently missing export at the call site.
 export type {
+  AttributeConfirmation,
   AttributeScope,
   CabinetMatrixLegacyAdapter,
   OptionCapabilities,
@@ -61,6 +62,46 @@ export {
 } from "./lib/normalizeHandleProfile";
 export type { NormalizedMatrixRow, NormalizeHandleProfileArgs } from "./lib/normalizeHandleProfile";
 
+// Runtime bindings — owned by I: how a semantic value reaches the PlayCanvas scene.
+export type {
+  BoundRuntimeBinding,
+  FlowTargets,
+  IdentityValues,
+  MappedValues,
+  RuntimeBinding,
+  RuntimeBindingSet,
+  RuntimeFlow,
+  RuntimeTarget,
+  SceneValue,
+  ScenePatch,
+  SemanticValue,
+  UnboundRuntimeBinding,
+} from "./model/runtimeBindings";
+
+export { parseRuntimeBindings } from "./lib/runtimeBindings/parseRuntimeBindings";
+export type {
+  ParseRuntimeBindingsResult,
+  RuntimeBindingsDiagnostic,
+  RuntimeBindingsDiagnosticCode,
+} from "./lib/runtimeBindings/parseRuntimeBindings";
+
+export {
+  findMissingBindings,
+  resolveRuntimeBinding,
+  selectRuntimeBinding,
+} from "./lib/runtimeBindings/resolveRuntimeBinding";
+export type {
+  ResolvedRuntimeBinding,
+  RuntimeBindingFailure,
+  RuntimeBindingFailureReason,
+  RuntimeBindingRequest,
+  RuntimeBindingResolution,
+} from "./lib/runtimeBindings/resolveRuntimeBinding";
+
+export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
+export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
+
+// Customization schema — owned by B: the UI description of steps, sections and fields.
 export type {
   CustomizationFieldControl,
   CustomizationFieldDefinition,

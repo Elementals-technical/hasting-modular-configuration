@@ -13,6 +13,20 @@ type ConfigBatchIds = string[] | ConfigBatchSelector;
 // When multiple products are available, the first batch grows, the second one may appear earlier, and conflicts arise, forcing you to select options twice. This is serialized setConfigBatch so that the batches are executed strictly in sequence.
 let batchQueue: Promise<unknown> = Promise.resolve();
 
+/**
+ * Runs a scene command after every batch queued before it. Shared with the runtime
+ * adapter (sceneBridge.ts), so its commands and these calls never overtake each other.
+ */
+export const runInBatchQueue = <T>(task: () => Promise<T>): Promise<T> => {
+  const queued = batchQueue.then(task, task);
+  batchQueue = queued.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  return queued;
+};
+
 export async function setConfigBatch(ids: ConfigBatchIds, config: any) {
   // @ts-ignore
   const containerRef = window.containerRef;
@@ -50,11 +64,5 @@ export async function setConfigBatch(ids: ConfigBatchIds, config: any) {
     }
   };
 
-  const queued = batchQueue.then(run, run);
-  batchQueue = queued.then(
-    () => undefined,
-    () => undefined,
-  );
-
-  return queued;
+  return runInBatchQueue(run);
 }
