@@ -211,6 +211,8 @@ describe("changeAttribute", () => {
     );
     if (asked.status !== "confirmation-required") throw new Error("a handle change with placed cabinets asks first");
 
+    const heightBefore = store.getState().rootStateUI.product.selectedDimensions.height;
+
     const result = await confirmAttributeChange(asked.preview, deps);
 
     expect(result).toMatchObject({ status: "partial", needsSync: true });
@@ -218,17 +220,13 @@ describe("changeAttribute", () => {
 
     expect(result.failed[0].change.attributeId).toBe("Height");
 
-    // The rejected change is not written by the command service.
-    expect(dispatched).not.toContain("product/setSelectedDimensions");
     // What the scene did apply is recorded.
-    expect(dispatched).toContain("product/setSelectedProductConfig");
+    expect(dispatched).toContain("product/commitRuleSelection");
     expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_pto");
 
-    // Known gap, owned by C06: `setSelectedProductConfig` re-runs the rules inside the
-    // reducer and derives the forced height on its own, so the value still converges even
-    // though the runtime refused it. Until rule evaluation moves out of the reducers,
-    // `needsSync` is the only signal that state and scene may disagree.
-    expect(store.getState().rootStateUI.product.selectedDimensions.height).toBe(50);
+    // The refused height is not written, and the reducer does not derive it on its own:
+    // the command is the only owner of the value (C06).
+    expect(store.getState().rootStateUI.product.selectedDimensions.height).toBe(heightBefore);
   });
 
   it("stores an attribute that has no reducer field of its own", async () => {

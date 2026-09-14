@@ -2,11 +2,10 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import { setAttributeValue } from "@/entities/configuration";
 import {
+  commitRuleSelection,
   setHandleGrooveColor,
   setHandleGrooveColorSku,
   setPlacedCabinetStyle,
-  setSelectedDimensions,
-  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
 import type { PlannedChange } from "../model/types";
@@ -30,9 +29,9 @@ export type CommitContext = {
 type Committer = (change: PlannedChange, context: CommitContext) => UnknownAction[];
 
 const COMMITTERS: Record<string, Committer> = {
-  Handle: (change, context) => [
-    setSelectedProductConfig({ ...(context.selectedProductConfig ?? {}), Handle: String(change.value) }),
-  ],
+  // The command already planned the dependent height and groove reset, so the reducer
+  // records the handle without deriving them a second time.
+  Handle: (change) => [commitRuleSelection({ handle: String(change.value) })],
 
   Drawers: (change, context) => {
     if (change.target.scope !== "cabinet") return [];
@@ -43,8 +42,7 @@ const COMMITTERS: Record<string, Committer> = {
     return [setPlacedCabinetStyle({ id: runtimeId, value: String(change.value) })];
   },
 
-  Height: (change) =>
-    typeof change.value === "number" ? [setSelectedDimensions({ height: change.value })] : [],
+  Height: (change) => (typeof change.value === "number" ? [commitRuleSelection({ height: change.value })] : []),
 
   // Clearing the colour also clears its SKU, so the pricing input cannot outlive the value.
   HandleGrooveColor: (change) => [

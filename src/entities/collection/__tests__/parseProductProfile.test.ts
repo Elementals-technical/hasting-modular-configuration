@@ -125,6 +125,90 @@ describe("parseProductProfile", () => {
     expect(result.diagnostics[0].dataPath).toBe("/");
   });
 
+  it("reads the rule sections of the USH profile", () => {
+    const result = parseProductProfile(ushProfile);
+    if (!result.ok) throw new Error("fixture must parse");
+
+    const { ruleData } = result.profile;
+
+    expect(ruleData.fluting?.eligibleMaterialAliases).toContain("LACM");
+    expect(ruleData.grainDirection?.excludedFinishesByMaterial.HPL).toEqual(["TKP", "TKQ", "TKN"]);
+    expect(ruleData.bookMatching?.horizontalMinimumAdjacentDrawerCabinets).toBe(2);
+    expect(ruleData.sidePanels?.availability).toHaveLength(6);
+    expect(ruleData.syntesi?.maxCabinetCount).toBe(1);
+    expect(ruleData.countertopFallbacks?.restrictedIntegratedDepthsCm).toEqual([46]);
+    expect(ruleData.materialNormalization?.aliases.tekormud).toEqual(["tekorund", "sstm"]);
+  });
+
+  it("accepts a profile without an optional rule section and leaves it out", () => {
+    const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
+    delete raw.ruleData.fluting;
+
+    const result = parseProductProfile(raw);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect("fluting" in result.profile.ruleData).toBe(false);
+  });
+
+  it("reports every broken field of a rule section with its data path", () => {
+    const raw = clone(ushProfile) as { ruleData: { sidePanels: Record<string, unknown> } };
+    raw.ruleData.sidePanels.exactBlockedCabinetLengthCm = "340";
+    raw.ruleData.sidePanels.availability = [{ height: "53H", handleType: "1D", cabinetType: "SBSC" }];
+
+    const result = parseProductProfile(raw);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+
+    expect(result.diagnostics).toEqual([
+      {
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/sidePanels/exactBlockedCabinetLengthCm",
+        message: "exactBlockedCabinetLengthCm must be a finite number",
+      },
+      {
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/sidePanels/availability",
+        message: "availability must be an array of { height, handleType, cabinetType, allowed }",
+      },
+    ]);
+  });
+
+  it("rejects a rule section that is not an object", () => {
+    const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
+    raw.ruleData.fluting = ["LACM"];
+
+    const result = parseProductProfile(raw);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+
+    expect(result.diagnostics).toContainEqual({
+      code: "ruleData.invalid_section",
+      dataPath: "/ruleData/fluting",
+      message: "fluting must be an object",
+    });
+  });
+
+  it("reads drawer style groups and rejects a malformed one", () => {
+    const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
+    raw.ruleData.drawerStyleGroups = [["1", "1+inner"], ["2"]];
+
+    const accepted = parseProductProfile(raw);
+    expect(accepted.ok ? accepted.profile.ruleData.drawerStyleGroups : null).toEqual([["1", "1+inner"], ["2"]]);
+
+    raw.ruleData.drawerStyleGroups = [["1"], []];
+    const rejected = parseProductProfile(raw);
+
+    expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+      code: "ruleData.invalid_section",
+      dataPath: "/ruleData/drawerStyleGroups",
+      message: "drawerStyleGroups must be an array of non-empty string arrays",
+    });
+  });
+
   it("reports a missing legacy adapter column mapping", () => {
     const raw = clone(ushProfile) as Record<string, unknown>;
     const ruleData = raw.ruleData as Record<string, { columns: Record<string, unknown> }>;

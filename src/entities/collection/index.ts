@@ -22,7 +22,14 @@ export * from "./ui/activeCollectionContext";
 export type {
   AttributeConfirmation,
   AttributeScope,
+  BookMatchingRuleData,
   CabinetMatrixLegacyAdapter,
+  CountertopFallbacksRuleData,
+  DrawerStyleGroups,
+  FlutingRuleData,
+  GrainDirectionRuleData,
+  MaterialDisplayGroup,
+  MaterialNormalizationRuleData,
   OptionCapabilities,
   ProductProfile,
   ProfileAttribute,
@@ -30,6 +37,12 @@ export type {
   ProfileOption,
   ProfileRuleData,
   ProfileSourceRefs,
+  SidePanelAvailabilityRow,
+  SidePanelsRuleData,
+  SyntesiFinishTransform,
+  SyntesiRuleData,
+  VesselCompatibilityRuleData,
+  VesselFinishPreference,
 } from "./model/productProfile";
 export { ATTRIBUTE_SCOPES } from "./model/productProfile";
 
@@ -51,7 +64,9 @@ export {
   selectOptions,
   selectOptionsByCapability,
   selectResetValue,
+  selectRuleData,
 } from "./lib/productProfileSelectors";
+export type { MessageParams } from "./lib/productProfileSelectors";
 
 export {
   isHandleAllowedForDrawers,

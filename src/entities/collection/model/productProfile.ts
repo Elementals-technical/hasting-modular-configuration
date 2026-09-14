@@ -100,11 +100,125 @@ export type CabinetMatrixLegacyAdapter = {
 };
 
 /**
- * Rule parameters. Only the P0 slice is typed here; later waves (grain, fluting,
- * countertop, side panels, dividers) add their own fields as they are migrated.
+ * Drawer option values that may be placed together; a style outside the group of the
+ * placed cabinets is restricted. Same shape as `compositionStyleGroups` of Mako/Class.
+ */
+export type DrawerStyleGroups = string[][];
+
+export type FlutingRuleData = {
+  /** Cabinet material spellings that allow fluting, compared trimmed and upper-cased. */
+  eligibleMaterialAliases: string[];
+  /** Parts that never take fluting, e.g. "SIDE_PANEL". */
+  forbiddenTargetParts: string[];
+};
+
+export type GrainDirectionRuleData = {
+  eligibleMaterials: string[];
+  excludedFinishesByMaterial: Record<string, string[]>;
+  /** Readable list of the excluded finishes per material, shown in the reason text. */
+  excludedFinishLabelsByMaterial?: Record<string, string>;
+};
+
+export type BookMatchingRuleData = {
+  horizontalMinimumAdjacentDrawerCabinets: number;
+  /** Drawers option values that allow vertical book matching. */
+  verticalAllowedDrawerStyles: string[];
+  drawerCabinetAliases: string[];
+  openCabinetAliases: string[];
+};
+
+export type SidePanelAvailabilityRow = {
+  height: string;
+  handleType: string;
+  cabinetType: string;
+  /** SidePanels option values allowed for this row. */
+  allowed: string[];
+};
+
+export type SidePanelsRuleData = {
+  heightTokenByCm: Record<string, string>;
+  blockedCabinetTypes: string[];
+  exactBlockedCabinetLengthCm: number;
+  countertopLengthIncrementCm: number;
+  defaultQuantityUnlessHeightTypeLow: number;
+  availability: SidePanelAvailabilityRow[];
+};
+
+export type SyntesiFinishTransform = {
+  finish: string;
+  sourceFinish: string;
+  label: string;
+  value: string;
+  runtimeValue: string;
+};
+
+export type SyntesiRuleData = {
+  material: string;
+  materialSkuToken: string;
+  maxCabinetCount: number;
+  allowsSidePanels: boolean;
+  finishTransforms: SyntesiFinishTransform[];
+  sourceMaterialTokens: string[];
+};
+
+export type CountertopFallbacksRuleData = {
+  restrictedIntegratedDepthsCm: number[];
+  restrictedIntegratedMaterialTokens: string[];
+  restrictedIntegratedBasinKeys: string[];
+  excludedMaterialFilterTokens: string[];
+  /** Set while it is unconfirmed whether these facts duplicate the countertop table. */
+  needsConfirmation?: boolean;
+};
+
+export type MaterialDisplayGroup = {
+  value: string;
+  label: string;
+  children: string[];
+  aliases: string[];
+};
+
+export type MaterialNormalizationRuleData = {
+  /** Normalized material token -> tokens that mean the same material. */
+  aliases: Record<string, string[]>;
+  displayHierarchy?: MaterialDisplayGroup[];
+  vesselCompatibleCountertopMaterialTokens?: string[];
+};
+
+export type VesselFinishPreference = {
+  materialTokens: string[];
+  colorCodes: string[];
+};
+
+export type VesselCompatibilityRuleData = {
+  hiddenStyles: string[];
+  /** Vessel style (or style prefix) -> countertop material tokens it accepts. */
+  allowedMaterialsByStyle: Record<string, string[]>;
+  /** Vessel style -> material token -> colour codes allowed inside that material. */
+  allowedColorCodesByStyle: Record<string, Record<string, string[]>>;
+  /** Vessel style -> material token -> colour codes excluded inside that material. */
+  unavailableColorCodesByStyle: Record<string, Record<string, string[]>>;
+  defaultFinishByStyle: Record<string, VesselFinishPreference>;
+};
+
+/**
+ * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
+ *
+ * Every section except the cabinet matrix adapter is optional. An absent section means the
+ * collection does not offer the feature (fluting, grain direction, book matching, side
+ * panels) or has no such restriction (drawer style groups, Syntesi, countertop fallbacks,
+ * vessel compatibility, material aliases). USH values are never substituted.
  */
 export type ProfileRuleData = {
   cabinetMatrixLegacyAdapter: CabinetMatrixLegacyAdapter;
+  drawerStyleGroups?: DrawerStyleGroups;
+  fluting?: FlutingRuleData;
+  grainDirection?: GrainDirectionRuleData;
+  bookMatching?: BookMatchingRuleData;
+  sidePanels?: SidePanelsRuleData;
+  syntesi?: SyntesiRuleData;
+  countertopFallbacks?: CountertopFallbacksRuleData;
+  materialNormalization?: MaterialNormalizationRuleData;
+  vesselCompatibility?: VesselCompatibilityRuleData;
 };
 
 /** Stable reason codes -> legacy English fallback. B owns display and translation. */

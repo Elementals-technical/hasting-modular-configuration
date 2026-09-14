@@ -3,6 +3,7 @@ import type {
   ProductProfile,
   ProfileAttribute,
   ProfileOption,
+  ProfileRuleData,
 } from "../model/productProfile";
 
 /**
@@ -92,6 +93,27 @@ export const selectEffectiveFallback = (profile: ProductProfile | null, attribut
 export const selectResetValue = (profile: ProductProfile | null, attributeId: string): string | null =>
   selectAttribute(profile, attributeId)?.resetValue ?? null;
 
-/** Reason text for a stable reason code. B owns display and translation; this is the legacy fallback. */
-export const selectMessage = (profile: ProductProfile | null, reasonCode: string): string =>
-  profile?.messages[reasonCode] ?? reasonCode;
+/** Values substituted into `{name}` placeholders of a message. */
+export type MessageParams = Record<string, string | number>;
+
+/**
+ * Reason text for a stable reason code. B owns display and translation; this is the legacy fallback.
+ * A placeholder without a matching param is left as written, so a missing value is visible.
+ */
+export const selectMessage = (profile: ProductProfile | null, reasonCode: string, params?: MessageParams): string => {
+  const template = profile?.messages[reasonCode] ?? reasonCode;
+  if (!params) return template;
+
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    Object.hasOwn(params, name) ? String(params[name]) : placeholder,
+  );
+};
+
+/**
+ * Parameters of one rule. `undefined` when the collection does not declare the section:
+ * the rule then treats the feature as not offered, never as USH.
+ */
+export const selectRuleData = <K extends keyof ProfileRuleData>(
+  profile: ProductProfile | null,
+  section: K,
+): ProfileRuleData[K] | undefined => profile?.ruleData[section];

@@ -66,8 +66,9 @@ export const normalizeProductConfigSnapshot = ({
     type: typeof raw.type === "string" ? raw.type : null,
     entityName: typeof raw.entityName === "string" ? raw.entityName : null,
     Width: (typeof raw.Width === "number" ? raw.Width : null) ?? toolWidth,
-    Height: selectedDimensions.height ?? toolHeight ?? (typeof raw.Height === "number" ? raw.Height : null),
-    Depth: selectedDimensions.depth ?? toolDepth ?? (typeof raw.Depth === "number" ? raw.Depth : null),
+    // Each product keeps its own size: its scene config first, the shared selection last.
+    Height: (typeof raw.Height === "number" ? raw.Height : null) ?? toolHeight ?? selectedDimensions.height,
+    Depth: (typeof raw.Depth === "number" ? raw.Depth : null) ?? toolDepth ?? selectedDimensions.depth,
     Thickness: typeof raw.Thickness === "string" ? raw.Thickness : null,
     Drawers: typeof raw.Drawers === "string" ? raw.Drawers : null,
     Handle: typeof raw.Handle === "string" ? raw.Handle : null,

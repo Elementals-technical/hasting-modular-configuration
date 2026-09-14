@@ -3,6 +3,7 @@ import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import type { RootState } from "./index";
 import {
   addProductId,
+  commitRuleSelection,
   insertProductIdRelative,
   removeProductId,
   resetProducts,
@@ -30,8 +31,44 @@ import {
 } from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setupSidePanelListener } from "@/features/sidePanel";
+import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  resolveCabinetSyncActions,
+  resolveHandleSceneSync,
+} from "@/features/configurationCommands/lib/compositionListeners";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
+
+// Stable cabinet keys follow the placed products.
+optionsListenerMiddleware.startListening({
+  predicate: (_, current, previous) =>
+    (current as RootState).rootStateUI.product.productIds !== (previous as RootState).rootStateUI.product.productIds,
+  effect: (_, listenerApi) => {
+    const actions = resolveCabinetSyncActions(
+      listenerApi.getOriginalState() as RootState,
+      listenerApi.getState() as RootState,
+    );
+
+    actions.forEach((action) => listenerApi.dispatch(action));
+  },
+});
+
+// A handle the state changed on its own (rules, restore, selection) reaches the scene once.
+optionsListenerMiddleware.startListening({
+  predicate: (action, current, previous) =>
+    resolveHandleSceneSync(action, previous as RootState, current as RootState) !== null,
+  effect: async (action, listenerApi) => {
+    const state = listenerApi.getState() as RootState;
+    const handle = resolveHandleSceneSync(action, listenerApi.getOriginalState() as RootState, state);
+    if (!handle) return;
+
+    const product = state.rootStateUI.product;
+    await setConfigBatch(
+      {},
+      buildHandleStyleConfigPatch(handle, product.productOptions.HandleGrooveColor, product.activeProfile),
+    );
+  },
+});
 
 optionsListenerMiddleware.startListening({
   matcher: isAnyOf(setCabinetColorMaterial, setCabinetColorFinish),
@@ -98,7 +135,7 @@ optionsListenerMiddleware.startListening({
 });
 
 optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setCabinetColorMaterial, setSelectedProductConfig),
+  matcher: isAnyOf(setCabinetColorMaterial, setSelectedProductConfig, commitRuleSelection),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState() as RootState;
     const flutingState = selectFlutingState(state);

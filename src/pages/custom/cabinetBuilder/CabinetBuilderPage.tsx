@@ -93,7 +93,8 @@ import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/pr
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { hasCapability, selectEffectiveFallback, selectOptionsByCapability, useActiveCollection } from "@/entities/collection";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import { useChangeAttribute } from "@/features/configurationCommands";
 import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
@@ -498,29 +499,50 @@ export const CabinetBuilderPage = () => {
     ],
   );
 
+  const {
+    change: changeAttributeValue,
+    confirm: confirmAttributeValue,
+    getState: getCommandState,
+  } = useChangeAttribute();
+
   const handleApprovePtoSwitch = useCallback(async () => {
     setIsPtoSwitchPromptOpen(false);
     if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
     await saveSnapshot();
     if (!nonGrooveHandle) return;
 
-    dispatch(
-      setSelectedProductConfig({
-        ...(selectedProductConfig ?? {}),
-        Handle: nonGrooveHandle,
-      }),
-    );
-    await setConfigBatch({}, buildHandleStyleConfigPatch(nonGrooveHandle, handleGrooveColor, activeProfile));
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+
+    if (cabinetId) {
+      // The prompt the user just approved is the confirmation, so a preview is confirmed at once.
+      const asked = await changeAttributeValue({
+        attributeId: "Handle",
+        value: nonGrooveHandle,
+        scope: "cabinet",
+        cabinetId,
+      });
+      const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+
+      if (result.status !== "applied" && result.status !== "partial") {
+        console.error("[CabinetBuilderPage] Failed to switch to a non-groove handle", result);
+        return;
+      }
+    } else {
+      // No cabinet placed yet: the handle is the choice for the next cabinet.
+      dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: nonGrooveHandle }));
+    }
+
     dispatch(setActiveCabinetType("Side-Shelf"));
     dispatch(setDrawerProduct("Side-Shelf"));
     dispatch(setOpenStyleSidebar(true));
   }, [
-    activeProfile,
-    nonGrooveHandle,
+    changeAttributeValue,
+    confirmAttributeValue,
     countertopCompositionConstraint.canAddCabinet,
     dispatch,
-    handleGrooveColor,
+    getCommandState,
     hasProducts,
+    nonGrooveHandle,
     saveSnapshot,
     selectedProductConfig,
   ]);

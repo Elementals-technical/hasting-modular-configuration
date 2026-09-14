@@ -516,6 +516,32 @@ const productSlice = createSlice({
     syncSelectedDimensionsFromScene(state, action: PayloadAction<Partial<ProductDimensions>>) {
       state.selectedDimensions = { ...state.selectedDimensions, ...action.payload };
     },
+    /**
+     * Records values the command service has already applied in the scene.
+     *
+     * The rules run once to refresh availability, but they do not re-derive these values:
+     * the command planned the dependent height and the groove reset itself, so deriving
+     * them again here would make the reducer a second owner of the same values.
+     */
+    commitRuleSelection(state, action: PayloadAction<{ handle?: string; height?: number }>) {
+      const { handle, height } = action.payload;
+
+      if (handle !== undefined) {
+        state.selectedProductConfig = { ...(state.selectedProductConfig ?? {}), Handle: handle };
+      }
+
+      if (height !== undefined) {
+        state.selectedDimensions = { ...state.selectedDimensions, height };
+      }
+
+      const committedDimensions = { ...state.selectedDimensions };
+      const committedConfig = state.selectedProductConfig ? { ...state.selectedProductConfig } : null;
+
+      applyRulesToState(state);
+
+      state.selectedDimensions = committedDimensions;
+      state.selectedProductConfig = committedConfig;
+    },
     setSelectedProductConfig(state, action: PayloadAction<ProductConfig | null>) {
       const prevHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile);
 
@@ -741,6 +767,7 @@ export const {
   setActiveCabinetType,
   setSelectedDimensions,
   syncSelectedDimensionsFromScene,
+  commitRuleSelection,
   setDrawerProduct,
   setSelectedProductConfig,
   setCabinetColor,

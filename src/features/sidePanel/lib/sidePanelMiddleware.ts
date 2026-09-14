@@ -1,6 +1,7 @@
 import { isAnyOf } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import {
+  commitRuleSelection,
   setCountertopColorSku,
   setSelectedDimensions,
   setSelectedProductConfig,
@@ -64,6 +65,7 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
     matcher: isAnyOf(
       setSelectedDimensions,
       setSelectedProductConfig,
+      commitRuleSelection,
       switchAllCabinetsDrawerStyle,
       setCountertopColorSku,
     ),
@@ -74,7 +76,9 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
       const isCountertopMaterialChange = act.type === setCountertopColorSku.type;
       const isSelectedProductConfigChange = act.type === setSelectedProductConfig.type;
       const isDrawerStyleChange = act.type === switchAllCabinetsDrawerStyle.type;
-      let shouldRefreshActivePanels = isDrawerStyleChange;
+      // A handle or height applied by the command service changes the panels like a user edit.
+      const isCommittedSelection = act.type === commitRuleSelection.type;
+      let shouldRefreshActivePanels = isDrawerStyleChange || isCommittedSelection;
 
       if (act.type === setSelectedDimensions.type) {
         const payload = act.payload;

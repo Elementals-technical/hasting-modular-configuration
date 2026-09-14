@@ -83,7 +83,7 @@ The types live in `entities/configuration/model/runtimePort.ts` so C depends on 
 4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success.
 5. The first failure stops the set; the remaining changes are reported as `not-attempted`.
 
-`getBindings` returns the active collection's table. Until A07 loads it, nothing in the app provides it, and the port is exercised only by tests.
+`getBindings` returns the active collection's table. Until A07 exposes `catalog.runtimeBindings`, a temporary loader provides it: `RuntimeBindingsBridge` (mounted in `CollectionRouterRoot`) reads `/collections/<collectionId>/runtime-bindings.json` once per collection, checks it with `parseRuntimeBindings` and keeps it for `getLoadedRuntimeBindings`. A broken or foreign table gives `null`, so the port answers `unsupported` and nothing is sent. Both files carry `TODO(A07)` and are deleted when A's loader lands.
 
 The scene side is `utils/functions/playcanvas/sceneBridge.ts`, the only place on this path that touches the iframe. `isSceneReady()` reads `playCanvasReady` and checks the batch API; `applySceneConfig(selector, patch)` sends one patch and turns the scene's answer into a status:
 
@@ -146,7 +146,7 @@ These apply only on the adapter path; legacy calls behave as before.
 | `setConfig` and `setConfigBatch` return `null` for both not-ready and error | Readiness and failure cannot be told apart | On the adapter path |
 | `setConfigBatch` expects an array, the scene returns `{ updatedIds }` (`setConfigBatch.ts:56`) | Dimension labels are not refreshed after a broadcast | No, legacy behaviour kept |
 | `setConfig` bypasses the batch queue | Direct `setConfig` and `setConfigBatch` calls may run out of order | No, until pages move to the port |
-| One handle click sends the handle patch twice (`RightCabinetStyleSidebar.tsx:455` and the effect at `:634`) plus height through another effect | Repeated commands for one action | No, removed when the sidebar moves to `changeAttribute` (C06) |
+| One handle click sends the handle patch twice (`RightCabinetStyleSidebar.tsx:455` and the effect at `:634`) plus height through another effect | Repeated commands for one action | Yes (C06): a handle choice is sent once through the adapter; a handle the rules change is sent once by a listener |
 | Restore and the cabinet builder send `CountertopColor` from state untranslated | A Syntesi colour reaches the scene as `TAN`/`TAP`, which the scene does not know | No, suspected, not verified in the browser |
 | Patches of two attributes merged into one call | The scene returns early on `SidePanel`, `TowelBar` and `TowelBarColor` and drops the other keys | Design constraint: the adapter sends one patch per change |
 
@@ -169,7 +169,7 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 
 ## Open items
 
-- **Handoff to A07.** `validateRuntimeBindings` issues carry `code`, `attributeId` and `value`, but CONTRACTS §5 asks for `severity`, `dataset/path` and `message` as well. The manifest schema is `.strict()`, so `local.runtimeBindings` must be added to it before the file can be referenced. Loading, validating and exposing `catalog.runtimeBindings` is A07.
+- **Handoff to A07.** `validateRuntimeBindings` issues carry `code`, `attributeId` and `value`, but CONTRACTS §5 asks for `severity`, `dataset/path` and `message` as well. The manifest schema is `.strict()`, so `local.runtimeBindings` must be added to it before the file can be referenced. Loading, validating and exposing `catalog.runtimeBindings` is A07; it replaces `runtimeBindingsCache.ts` and `RuntimeBindingsBridge.tsx` in `features/playCanvasAdapter`.
 - **Required attribute list.** B's `ui.json` now supplies the UI fields, and every one of them has a scene decision (tested). The C01 part is still one list for every collection, so a collection without a towel bar still has to declare `TowelBarOption` as unbound. `ui.json` has no `Handle` field and no dimensions: `Handle` is required through the profile, the dimensions through the C01 part.
 - **Fixture bindings.** `fixture-ui` (`TestGrooveFinish -> HandleGrooveColor`, all cabinets) and `fixture-rules` need their own tables once A08 prepares the fixture profiles. The fixture-ui binding is covered by an inline test.
 - **Basin per cabinet.** Mako/Class need "чаша конкретної SB" (developer-i README line 53). That needs a cabinet key on basin-scoped changes, which is a C model change, not a binding.
