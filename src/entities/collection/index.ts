@@ -58,6 +58,7 @@ export {
   selectAttribute,
   selectEffectiveFallback,
   selectInitialValue,
+  selectLegacySpelling,
   selectMessage,
   selectOption,
   selectOptionValues,

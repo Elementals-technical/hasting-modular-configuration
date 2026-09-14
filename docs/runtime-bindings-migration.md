@@ -174,7 +174,8 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 - **Fixture bindings.** `fixture-ui` (`TestGrooveFinish -> HandleGrooveColor`, all cabinets) and `fixture-rules` need their own tables once A08 prepares the fixture profiles. The fixture-ui binding is covered by an inline test.
 - **Basin per cabinet.** Mako/Class need "чаша конкретної SB" (developer-i README line 53). That needs a cabinet key on basin-scoped changes, which is a C model change, not a binding.
 - **`CountertopStyle` is not read by the scene.** No file under `public/HastingCabinetsParametrization` contains the key. It is kept because the code sends it; it may be removable.
-- **Handle re-send after drawers.** Legacy code re-broadcasts the handle after a drawers change "so PlayCanvas re-evaluates its internal height-forcing rules". C sends the dependent height explicitly, so this may be unnecessary; it is one data field if the browser check shows otherwise.
+- **Handle re-send after drawers.** Legacy code re-broadcast the handle after a drawers change "so PlayCanvas re-evaluates its internal height-forcing rules". The drawers command (C06) sends the handle only when it changes and the dependent height explicitly; the page still re-sends handle and height to a cabinet whose height stayed stale (`TODO(I04)`). Whether the scene needs the unchanged handle is part of the browser check.
+- **Top dividers around drawers.** Clearing `TopDrawerDividers` for cabinets leaving two drawers has no binding and no port operation, so `CabinetBuilderPage` sends it just before the drawers command, where it used to share the drawers patch.
 - **`order` values** are derived from the legacy call sequences and need confirming in the real scene.
 - **`syntesi.finishTransforms[].runtimeValue` in the profile** duplicates the bindings. The profile's own `excludedFromThisProfile` assigns runtime bindings to I; the field can be dropped.
 

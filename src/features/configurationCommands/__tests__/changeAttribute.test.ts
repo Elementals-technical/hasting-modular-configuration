@@ -5,6 +5,7 @@ import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import {
   getAttributeValue,
+  getCabinetEntries,
   resetConfiguration,
   setActiveCollectionId,
   syncCabinets,
@@ -16,8 +17,11 @@ import {
   setActiveCabinetType,
   setActiveProfile,
   setCabinetCatalog,
+  setCabinetColorMaterial,
   setHandleGrooveColor,
+  setPlacedCabinetStyle,
   setSelectedProductConfig,
+  setTowelBarColor,
 } from "@/entities/product/model/store/slice";
 
 import { changeAttribute } from "../lib/changeAttribute";
@@ -250,6 +254,138 @@ describe("changeAttribute", () => {
 
     expect(result.status).toBe("applied");
     expect(getAttributeValue(store.getState(), "TestGrooveFinish", { scope: "global" })).toBe("Matte");
+  });
+});
+
+describe("changeAttribute for values outside the rule selection", () => {
+  beforeEach(setUpScene);
+
+  const productOptions = () => store.getState().rootStateUI.product.productOptions;
+
+  it("refuses fluting while the cabinet material does not allow it, and records it once allowed", async () => {
+    store.dispatch(setCabinetColorMaterial("HPL"));
+    const refusedRuntime = createTestRuntimePort();
+
+    const refused = await runChange(
+      { attributeId: "DrawerPanelFluting", value: "FlutingVerticalA", scope: "cabinet", cabinetId: "cab-1" },
+      refusedRuntime,
+    );
+
+    expect(refused).toEqual({
+      status: "blocked",
+      attributeId: "DrawerPanelFluting",
+      reasonCode: "fluting.notAvailable",
+      reason: "Fluting is available only for Lacquer Matte (LACM).",
+    });
+    expect(refusedRuntime.calls).toHaveLength(0);
+
+    store.dispatch(setCabinetColorMaterial("LACM"));
+    const applied = await runChange({
+      attributeId: "DrawerPanelFluting",
+      value: "FlutingVerticalA",
+      scope: "cabinet",
+      cabinetId: "cab-1",
+    });
+
+    expect(applied.status).toBe("applied");
+    expect(productOptions().DrawerPanelFluting).toBe("FlutingVerticalA");
+  });
+
+  it("always allows clearing fluting", async () => {
+    store.dispatch(setCabinetColorMaterial("HPL"));
+
+    const result = await runChange({ attributeId: "DrawerPanelFluting", value: "None", scope: "cabinet", cabinetId: "cab-1" });
+
+    expect(result.status).toBe("applied");
+  });
+
+  it("refuses a grain direction without an eligible material, and records it once eligible", async () => {
+    const refused = await runChange({
+      attributeId: "GrainDirection",
+      value: "GrainVertical",
+      scope: "cabinet",
+      cabinetId: "cab-1",
+    });
+
+    expect(refused).toMatchObject({ status: "blocked", reasonCode: "grain.notAvailable" });
+
+    store.dispatch(setCabinetColorMaterial("Essenze"));
+    const applied = await runChange({
+      attributeId: "GrainDirection",
+      value: "GrainVertical",
+      scope: "cabinet",
+      cabinetId: "cab-1",
+    });
+
+    expect(applied.status).toBe("applied");
+    expect(productOptions().GrainDirection).toBe("GrainVertical");
+  });
+
+  it("records the towel bar option and clears its colour when the towel bar is removed", async () => {
+    await runChange({ attributeId: "TowelBarOption", value: "Left", scope: "global" });
+    expect(productOptions().TowelBarOption).toBe("Left");
+
+    store.dispatch(setTowelBarColor("Chrome"));
+    const runtime = createTestRuntimePort();
+    const result = await runChange({ attributeId: "TowelBarOption", value: "None", scope: "global" }, runtime);
+
+    expect(result.status).toBe("applied");
+    expect(runtime.calls[0].map(({ attributeId, value }) => [attributeId, value])).toEqual([
+      ["TowelBarOption", "None"],
+      ["TowelBarColor", ""],
+    ]);
+    expect(productOptions().TowelBarOption).toBe("None");
+    expect(productOptions().TowelBarColor).toBe("");
+  });
+
+  it("records the thickness as the change carries it", async () => {
+    const result = await runChange({ attributeId: "Thickness", value: "2.375", scope: "countertop" });
+
+    expect(result.status).toBe("applied");
+    expect(productOptions().Thickness).toBe("2.375");
+  });
+});
+
+describe("changeAttribute for drawers", () => {
+  const DRAWER_CABINETS = ["Sink-Base-60-a", "Sink-Base-80-b"];
+
+  beforeEach(() => {
+    setUpScene();
+    store.dispatch(syncCabinets(DRAWER_CABINETS));
+    DRAWER_CABINETS.forEach((id) => store.dispatch(setPlacedCabinetStyle({ id, value: "1" })));
+  });
+
+  it("switches every drawer cabinet and records the set in one rule pass", async () => {
+    const runtime = createTestRuntimePort();
+    const dispatched: string[] = [];
+    const [first] = getCabinetEntries(store.getState());
+
+    const result = await changeAttribute(
+      { attributeId: "Drawers", value: "2", scope: "cabinet", cabinetId: first.stableKey },
+      {
+        getState: () => store.getState(),
+        dispatch: (action) => {
+          dispatched.push(action.type);
+          return store.dispatch(action);
+        },
+        runtime: runtime.port,
+        flow: "custom",
+      },
+    );
+
+    expect(result.status).toBe("applied");
+    expect(runtime.calls).toHaveLength(1);
+    expect(runtime.calls[0].map(({ attributeId, value }) => [attributeId, value])).toEqual([
+      ["Drawers", "2"],
+      ["Drawers", "2"],
+      ["Height", 56],
+    ]);
+
+    const product = store.getState().rootStateUI.product;
+    expect(product.placedCabinetStyles).toEqual({ "Sink-Base-60-a": "2", "Sink-Base-80-b": "2" });
+    expect(product.selectedProductConfig?.Drawers).toBe("2D");
+    expect(product.selectedDimensions.height).toBe(56);
+    expect(dispatched.filter((type) => type === "product/commitRuleSelection")).toHaveLength(1);
   });
 });
 

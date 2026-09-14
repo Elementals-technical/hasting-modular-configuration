@@ -123,6 +123,11 @@
       ]
     },
     {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Cabinet Color"
+    },
+    {
       "attributeId": "HandleGrooveColor",
       "scope": "cabinet",
       "resetValue": "None",
@@ -179,6 +184,16 @@
         { "value": "5.125", "label": "5.1\"", "order": 60 },
         { "value": "5.5", "label": "5.5\"", "order": 70 }
       ]
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Countertop Color"
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Vessels"
     },
     {
       "attributeId": "sinkType",
@@ -269,12 +284,18 @@
       "attributeId": "TowelBarOption",
       "scope": "global",
       "defaultValue": "None",
+      "noneValue": "None",
       "options": [
         { "value": "None", "label": "None", "order": 10 },
         { "value": "Left", "label": "Left", "order": 20 },
         { "value": "Right", "label": "Right", "order": 30 },
         { "value": "Both", "label": "Both", "order": 40 }
       ]
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "scope": "global",
+      "optionsSource": "configurator:Towel Bar Color"
     },
     {
       "attributeId": "FaucetHolesAmount",
@@ -444,7 +465,11 @@
     "divider.noSelection": "Select a Divider option before placing it.",
     "divider.slotMismatch": "Selected Divider does not match this placement slot. Choose the matching Divider option.",
     "divider.cannotPlace": "Selected Divider does not fit here. Choose another available option.",
-    "divider.noContext": "Open a drawer before placing a Divider."
+    "divider.noContext": "Open a drawer before placing a Divider.",
+    "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
+    "grain.notAvailable": "Grain direction is not available for the selected cabinet material.",
+    "drawers.handleChanged": "The handle changes to one that fits the selected drawers.",
+    "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {
     "uiStepsAndSections": "Owned by B in ui.json.",

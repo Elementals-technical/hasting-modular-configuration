@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
 import ushProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import configurator4 from "./fixtures/remote/configurator-4.json";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
@@ -123,6 +124,28 @@ describe("parseProductProfile", () => {
 
     expect(result.diagnostics[0].code).toBe("profile.invalid_json");
     expect(result.diagnostics[0].dataPath).toBe("/");
+  });
+
+  it("declares the colours with the configurator section their options come from", () => {
+    const result = parseProductProfile(ushProfile);
+    if (!result.ok) throw new Error("fixture must parse");
+
+    const proxyNames = new Set(
+      Array.from(JSON.stringify(configurator4).matchAll(/"proxyName":"([^"]*)"/g), (match) => match[1]),
+    );
+
+    for (const [attributeId, scope, section] of [
+      ["CabinetColor", "global", "Cabinet Color"],
+      ["CountertopColor", "countertop", "Countertop Color"],
+      ["VesselColor", "basin", "Vessels"],
+      ["TowelBarColor", "global", "Towel Bar Color"],
+    ]) {
+      const attribute = result.profile.attributes.find((entry) => entry.attributeId === attributeId);
+
+      expect(attribute, attributeId).toMatchObject({ scope, optionsSource: `configurator:${section}` });
+      expect(attribute?.options, attributeId).toBeUndefined();
+      expect(proxyNames.has(section), section).toBe(true);
+    }
   });
 
   it("reads the rule sections of the USH profile", () => {

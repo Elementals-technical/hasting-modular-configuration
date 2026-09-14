@@ -61,7 +61,6 @@ import {
   addProductPreset,
   setPlacedCabinetStyle,
   replacePlacedDividersForCabinet,
-  switchAllCabinetsDrawerStyle,
   clearTopPlacedDividersForCabinets,
 } from "@/entities/product/model/store/slice";
 
@@ -91,7 +90,6 @@ import {
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
-import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { hasCapability, selectEffectiveFallback, selectOptionsByCapability, useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
@@ -635,173 +633,87 @@ export const CabinetBuilderPage = () => {
     const cabinetIdsToUpdate = Array.from(
       new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),
     );
-    const inferredCabinetType =
-      cabinetIdsToUpdate
-        .map(
-          (productId) =>
-            cabinetCatalog.typeCabinetRules.find((rule) => productId.toLowerCase().includes(rule.code.toLowerCase()))
-              ?.code,
-        )
-        .find((code): code is string => Boolean(code)) ?? activeCabinetType;
-
-    if (!inferredCabinetType) {
-      return;
-    }
-
-    // Compute the full rules result for the new drawer selection to capture any rule-driven changes
-    // (e.g. handle_urban_topcut may force a different height for 1DW vs 2DW).
-    // Use selectedProductIds:[] so supportsHeightForAllProducts always returns true —
-    // we are switching ALL cabinets, so old-style products must not block the height change.
-    const rulesResult = applyConfiguratorRules(
-      {
-        cabinetType: inferredCabinetType,
-        width: selectedDimensions.width ?? 0,
-        depth: selectedDimensions.depth ?? 0,
-        height: selectedDimensions.height ?? 0,
-        drawers: drawerRawValue,
-        handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined,
-      },
-      undefined,
-      { selectedProductIds: [] },
-      cabinetCatalog,
-      activeProfile,
-    );
-
-    // Handle: reuse the same auto-change resolution as the reducer so PlayCanvas stays in sync.
-    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
-    const newHandle = resolveHandleAfterRules({
-      currentHandle,
-      handles: rulesResult.availableOptions.handles,
-      heightLocked: rulesResult.heightLocked,
-    });
-
-    // Height: if the handle changed, re-run rules with the NEW handle so the forced-height
-    // mapping is evaluated against the correct handle (not the old one).
-    const finalRulesResult =
-      newHandle !== currentHandle
-        ? applyConfiguratorRules(
-            {
-              cabinetType: inferredCabinetType,
-              width: selectedDimensions.width ?? 0,
-              depth: selectedDimensions.depth ?? 0,
-              height: selectedDimensions.height ?? 0,
-              drawers: drawerRawValue,
-              handle: newHandle || undefined,
-            },
-            undefined,
-            { selectedProductIds: [] },
-            cabinetCatalog,
-            activeProfile,
-          )
-        : rulesResult;
-
-    const newHeight = finalRulesResult.nextSelection.height;
-    const newHandleConfig =
-      newHandle !== null ? buildHandleStyleConfigPatch(newHandle, handleGrooveColor, activeProfile) : null;
+    // The command addresses a drawer cabinet: the rules are judged for its type, and the set
+    // reaches every drawer cabinet. Without one there is nothing to switch.
+    const cabinetId = getCabinetEntries(getCommandState()).find(({ runtimeId }) => isDrawerCabinetId(runtimeId))
+      ?.stableKey;
+    if (!cabinetId) return;
 
     await saveSnapshot();
 
-    const configsBeforeDrawerChange =
-      drawerRawValue === "1" && cabinetIdsToUpdate.length > 0
-        ? await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)))
-        : [];
-    const topDividerClearCabinetIds =
-      drawerRawValue === "1"
-        ? cabinetIdsToUpdate.filter((productId, index) => {
-            const previousDrawerValue =
-              placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
-            return previousDrawerValue === "2";
-          })
-        : [];
-    const topDividerClearCabinetIdSet = new Set(topDividerClearCabinetIds);
-
-    // 1. Apply Drawers to placed products (per-product IDs)
-    if (cabinetIdsToUpdate.length > 0) {
-      const cabinetIdsToKeepDividers = cabinetIdsToUpdate.filter(
-        (productId) => !topDividerClearCabinetIdSet.has(productId),
-      );
-
-      if (cabinetIdsToKeepDividers.length > 0) {
-        await setConfigBatch(cabinetIdsToKeepDividers, { Drawers: mappedValue });
-      }
+    // TODO(I): clearing the top dividers of cabinets that leave two drawers is not a runtimePort
+    // operation yet, so it stays a direct scene call made before the drawers change.
+    if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
+      const configsBeforeDrawerChange = await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)));
+      const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
+        const previousDrawerValue =
+          placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
+        return previousDrawerValue === "2";
+      });
 
       if (topDividerClearCabinetIds.length > 0) {
-        await setConfigBatch(topDividerClearCabinetIds, {
-          Drawers: mappedValue,
-          TopDrawerDividers: { zones: {} },
-        });
+        await setConfigBatch(topDividerClearCabinetIds, { TopDrawerDividers: { zones: {} } });
+        dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
       }
     }
 
-    // Height and Handle must use the broadcast form setConfigBatch({}) — same pattern as the sidebar
-    // and PlayCanvasIntegration. Per-product-ID calls do not propagate height/handle changes.
-    // Always broadcast Handle (even if unchanged) so PlayCanvas re-evaluates its internal
-    // height-forcing rules. Then always broadcast Height to ensure the correct value is applied.
-    if (newHandleConfig) {
-      await setConfigBatch({}, newHandleConfig);
-    }
-    if (typeof newHeight === "number") {
-      const dimConfig: Record<string, number> = { Height: newHeight };
-      if (typeof selectedDimensions.depth === "number") {
-        dimConfig.Depth = selectedDimensions.depth;
-      }
-      await setConfigBatch({}, dimConfig);
-    }
-
-    // Fallback: in some compositions batch updates can keep stale height until sidebar interaction.
-    // Force-sync each updated cabinet if its real config height is still not the rule-derived one.
-    if (typeof newHeight === "number" && cabinetIdsToUpdate.length > 0) {
-      const currentConfigs = await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)));
-
-      for (let i = 0; i < cabinetIdsToUpdate.length; i += 1) {
-        const productId = cabinetIdsToUpdate[i];
-        const rawConfig = currentConfigs[i];
-        const config = rawConfig && typeof rawConfig === "object" ? (rawConfig as Record<string, unknown>) : {};
-
-        if (typeof config.Height === "number" && config.Height === newHeight) continue;
-
-        await setConfig(productId, {
-          ...config,
-          Drawers: mappedValue,
-          ...(newHandleConfig ?? {}),
-          Height: newHeight,
-          ...(typeof selectedDimensions.depth === "number" ? { Depth: selectedDimensions.depth } : {}),
-        });
-      }
-    }
-
-    // 2. Atomically update Redux: selectedProductConfig.Drawers + all placedCabinetStyles in one action
-    //    to ensure dominantDrawerGroup and cabinetStyleOptions recompute in the same render cycle.
-    setActiveStyleId(id);
-    cabinetIdsToUpdate.forEach((productId) => {
-      dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
+    // Drawers, the handle the new drawers require and the forced height go to the scene as one
+    // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
+    const asked = await changeAttributeValue({
+      attributeId: "Drawers",
+      value: drawerRawValue,
+      scope: "cabinet",
+      cabinetId,
     });
-    if (topDividerClearCabinetIds.length > 0) {
-      dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
+    const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+
+    if (result.status !== "applied" && result.status !== "partial") {
+      console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
+      return;
     }
-    dispatch(
-      switchAllCabinetsDrawerStyle({
-        configValue: mappedValue,
-        rawValue: drawerRawValue,
-        // Pass the rule-derived values already sent to PlayCanvas so Redux stays in sync
-        // even when applyRulesToState's supportsHeightForAllProducts check would block the change.
-        forcedHeight: typeof newHeight === "number" ? newHeight : null,
-        forcedHandle: newHandle !== currentHandle ? newHandle : null,
-      }),
-    );
+
+    setActiveStyleId(id);
+
+    // TODO(I04): in some compositions a batch update keeps a stale height until the sidebar is
+    // touched. Until I reports the actual size, a cabinet whose height differs is sent again.
+    const product = getCommandState().rootStateUI.product;
+    const appliedHeight = product.selectedDimensions.height;
+    if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
+
+    const appliedHandle = product.selectedProductConfig?.Handle;
+    const handleConfig =
+      typeof appliedHandle === "string" && appliedHandle
+        ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
+        : null;
+    const depth = product.selectedDimensions.depth;
+    const currentConfigs = await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)));
+
+    for (let i = 0; i < cabinetIdsToUpdate.length; i += 1) {
+      const productId = cabinetIdsToUpdate[i];
+      const rawConfig = currentConfigs[i];
+      const config = rawConfig && typeof rawConfig === "object" ? (rawConfig as Record<string, unknown>) : {};
+
+      if (typeof config.Height === "number" && config.Height === appliedHeight) continue;
+
+      await setConfig(productId, {
+        ...config,
+        Drawers: mappedValue,
+        ...(handleConfig ?? {}),
+        Height: appliedHeight,
+        ...(typeof depth === "number" ? { Depth: depth } : {}),
+      });
+    }
   }, [
-    activeProfile,
-    pendingMixingStyle,
-    dispatch,
-    cabinetStyleOptions,
-    placedCabinetStyles,
-    activeCabinetType,
-    selectedDimensions,
-    selectedProductConfig,
-    selectedProducts,
     cabinetCatalog,
-    handleGrooveColor,
+    cabinetStyleOptions,
+    changeAttributeValue,
+    confirmAttributeValue,
+    dispatch,
+    getCommandState,
+    pendingMixingStyle,
+    placedCabinetStyles,
     saveSnapshot,
+    selectedProducts,
   ]);
 
   const handleMixingCancel = useCallback(() => {

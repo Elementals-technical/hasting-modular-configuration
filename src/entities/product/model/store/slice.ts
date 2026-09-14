@@ -520,14 +520,19 @@ const productSlice = createSlice({
      * Records values the command service has already applied in the scene.
      *
      * The rules run once to refresh availability, but they do not re-derive these values:
-     * the command planned the dependent height and the groove reset itself, so deriving
+     * the command planned the dependent handle, height and groove reset itself, so deriving
      * them again here would make the reducer a second owner of the same values.
+     * `drawers` is the legacy spelling ("1D"); per-cabinet drawers are recorded separately.
      */
-    commitRuleSelection(state, action: PayloadAction<{ handle?: string; height?: number }>) {
-      const { handle, height } = action.payload;
+    commitRuleSelection(state, action: PayloadAction<{ handle?: string; height?: number; drawers?: string }>) {
+      const { handle, height, drawers } = action.payload;
 
       if (handle !== undefined) {
         state.selectedProductConfig = { ...(state.selectedProductConfig ?? {}), Handle: handle };
+      }
+
+      if (drawers !== undefined) {
+        state.selectedProductConfig = { ...(state.selectedProductConfig ?? {}), Drawers: drawers };
       }
 
       if (height !== undefined) {

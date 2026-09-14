@@ -80,6 +80,13 @@ export const normalizeOptionValue = (
   return aliased?.value ?? null;
 };
 
+/**
+ * The spelling legacy state stores for a canonical option value: its first alias
+ * (Drawers "1" -> "1D"). The value itself when the option declares no alias.
+ */
+export const selectLegacySpelling = (profile: ProductProfile | null, attributeId: string, value: string): string =>
+  selectOption(profile, attributeId, value)?.aliases?.[0] ?? value;
+
 export const selectInitialValue = (profile: ProductProfile | null, attributeId: string): string =>
   selectAttribute(profile, attributeId)?.initialValue ?? "";
 

@@ -22,5 +22,5 @@ export { buildChangePlan, REASON_DEPENDENT_HEIGHT, REASON_GROOVE_NOT_SUPPORTED }
 export type { BuildChangePlanArgs, BuildChangePlanResult } from "./lib/buildChangePlan";
 
 export { resolveTarget } from "./lib/resolveTarget";
-export { commitChange, TYPED_COMMIT_ATTRIBUTE_IDS } from "./lib/commitChange";
+export { commitChange, commitPlan, TYPED_COMMIT_ATTRIBUTE_IDS } from "./lib/commitChange";
 export type { CommitContext } from "./lib/commitChange";
