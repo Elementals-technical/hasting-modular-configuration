@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "fixture-rules",
+  "label": "Fixture Rules Product Profile",
+  "sourceRefs": {
+    "configuratorId": 9801,
+    "countertopMatrixTableId": 9802,
+    "cabinetMatrixTableId": 9803
+  },
+  "defaults": {
+    "CabinetColor": "Rules Green",
+    "Height": "56",
+    "Drawers": "2",
+    "Handle": "handle_urban_topcut"
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "initialValue": "Fixture-Cabinet",
+      "options": [{ "value": "Fixture-Cabinet", "label": "Fixture Cabinet", "order": 1 }]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "initialValue": "2",
+      "options": [{ "value": "2", "label": "Two drawers", "order": 1, "aliases": ["2D"] }]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "initialValue": "56",
+      "options": [{ "value": "56", "label": "56 cm", "order": 1 }]
+    },
+    {
+      "attributeId": "Handle",
+      "scope": "cabinet",
+      "initialValue": "handle_urban_topcut",
+      "effectiveFallbackValue": "handle_urban_topcut",
+      "options": [
+        {
+          "value": "handle_urban_topcut",
+          "label": "Upper Groove",
+          "order": 1,
+          "capabilities": { "supportsGrooveColor": true }
+        }
+      ]
+    }
+  ],
+  "ruleData": {
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 9803,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {
+          "handle_urban_topcut": "handle_topcut_forced_height_cm"
+        },
+        "requiresDrawersByHandle": {}
+      }
+    }
+  },
+  "messages": {
+    "cabinet.handle.notAvailableForType": "Not available for fixture cabinet",
+    "cabinet.handle.selectDrawersForHeight": "Select fixture drawers",
+    "cabinet.handle.requiredHeight": "Required for fixture handle",
+    "cabinet.handle.requiredHeightForAllProducts": "Required for fixture handle and all products"
+  }
+}

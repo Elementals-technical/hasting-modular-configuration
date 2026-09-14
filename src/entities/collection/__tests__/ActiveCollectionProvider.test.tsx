@@ -27,6 +27,9 @@ import fixtureUiSchema from "./fixtures/collections/fixture-ui/ui.json";
 import fixtureRulesManifest from "./fixtures/collections/fixture-rules/manifest.json";
 import fixtureCabinetTable from "./fixtures/collections/fixture-rules/cabinet-table.json";
 import fixtureCountertopTable from "./fixtures/collections/fixture-rules/countertop-table.json";
+import fixtureRulesProfile from "./fixtures/collections/fixture-rules/product-profile.json";
+import fixtureRulesBindings from "./fixtures/collections/fixture-rules/runtime-bindings.json";
+import fixtureRulesUi from "./fixtures/collections/fixture-rules/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
@@ -67,6 +70,9 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}fixture-ui/ui.json`]: fixtureUiSchema,
   [`${rootUrl}fixture-ui/runtime-bindings.json`]: fixtureUiBindings,
   [`${rootUrl}fixture-rules/manifest.json`]: fixtureRulesManifest,
+  [`${rootUrl}fixture-rules/product-profile.json`]: fixtureRulesProfile,
+  [`${rootUrl}fixture-rules/runtime-bindings.json`]: fixtureRulesBindings,
+  [`${rootUrl}fixture-rules/ui.json`]: fixtureRulesUi,
 };
 
 const makeDependencies = (
@@ -197,15 +203,13 @@ describe("ActiveCollectionProvider", () => {
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("loading:fixture-ui:"));
 
     fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Fixture-Cabinet"),
-    );
+    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
     await act(async () => {
       if (outcome === "success") resolveOld?.(fixtureUiManifest);
       else rejectOld?.(new Error("late failure"));
       await Promise.resolve();
     });
-    expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Fixture-Cabinet");
+    expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish");
   });
 
   it("switches one hook consumer between USH and fixture-rules catalogs", async () => {
@@ -214,9 +218,7 @@ describe("ActiveCollectionProvider", () => {
       expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
     );
     fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Fixture-Cabinet"),
-    );
+    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
   });
 
   it("publishes an error when a declared source fails", async () => {

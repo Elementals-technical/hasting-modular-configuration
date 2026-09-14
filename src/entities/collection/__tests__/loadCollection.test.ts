@@ -21,6 +21,9 @@ import fixtureUiSchema from "./fixtures/collections/fixture-ui/ui.json";
 import fixtureRulesManifest from "./fixtures/collections/fixture-rules/manifest.json";
 import fixtureCabinetTable from "./fixtures/collections/fixture-rules/cabinet-table.json";
 import fixtureCountertopTable from "./fixtures/collections/fixture-rules/countertop-table.json";
+import fixtureRulesProfile from "./fixtures/collections/fixture-rules/product-profile.json";
+import fixtureRulesBindings from "./fixtures/collections/fixture-rules/runtime-bindings.json";
+import fixtureRulesUi from "./fixtures/collections/fixture-rules/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
@@ -244,7 +247,12 @@ describe("collection loading and assembly", () => {
   });
 
   it("normalizes injected fixture-rules inputs with the shared parsers and no remote IDs", async () => {
-    const fetchJson = jsonFetcher({ [`${rootUrl}fixture-rules/manifest.json`]: fixtureRulesManifest });
+    const fetchJson = jsonFetcher({
+      [`${rootUrl}fixture-rules/manifest.json`]: fixtureRulesManifest,
+      [`${rootUrl}fixture-rules/product-profile.json`]: fixtureRulesProfile,
+      [`${rootUrl}fixture-rules/runtime-bindings.json`]: fixtureRulesBindings,
+      [`${rootUrl}fixture-rules/ui.json`]: fixtureRulesUi,
+    });
     const remote = unusedRemote();
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -267,13 +275,24 @@ describe("collection loading and assembly", () => {
     expect(data.manifest.remote).toBeUndefined();
     expect(data.sources.remote.cabinetTable?.rows[0]?.fixtureExtension).toBe("retained");
     expect(data.catalog.cabinets?.typeCabinetRules).toEqual([
-      expect.objectContaining({ code: "Fixture-Cabinet", widths: [13, 37], depths: [11] }),
+      expect.objectContaining({
+        code: "Fixture-Cabinet",
+        widths: [60],
+        depths: [50.5],
+        heights: [56],
+        drawers: ["2"],
+        handlesAllowed: ["handle_urban_topcut"],
+      }),
     ]);
     expect(data.catalog.countertops).toEqual([
       expect.objectContaining({ material: "Fixtureium", topThicknesses: ["9"], depths: [12, 34] }),
     ]);
     expect(data.catalog.cabinets?.typeCabinetRules.some(({ code }) => code === "Sink-Base")).toBe(false);
     expect(data.catalog.countertops?.some(({ material }) => material === "Mineralmarmo")).toBe(false);
+    expect(data.catalog.productProfile?.collectionId).toBe("fixture-rules");
+    expect(data.catalog.customization?.steps.finish?.label).toBe("Finish");
+    expect(data.catalog.runtimeBindings?.collectionId).toBe("fixture-rules");
+    expect(data.diagnostics).toEqual([]);
     expect(remote.loadConfigurator).not.toHaveBeenCalled();
     expect(remote.loadCountertopTable).not.toHaveBeenCalled();
     expect(remote.loadCabinetTable).not.toHaveBeenCalled();
