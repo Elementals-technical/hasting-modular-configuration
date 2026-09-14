@@ -7,3 +7,7 @@ in full so the existing cabinet and countertop parsers are exercised against the
 
 `collections/fixture-ui` and `collections/fixture-rules` are synthetic test packages. They are injected through
 the collection runtime dependencies and never appear under `public/collections`.
+
+The `9901`–`9903` source references inside `fixture-ui/product-profile.json` are test-only sentinels required by
+the current ProductProfile contract. Its manifest declares no remote source, the loader never requests those
+sentinels, and the integration test verifies that only the initial USH load reaches the remote adapter.

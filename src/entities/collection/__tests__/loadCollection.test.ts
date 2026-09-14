@@ -15,6 +15,9 @@ import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
 import fixtureUiPresets from "./fixtures/collections/fixture-ui/presets.json";
 import fixtureUiOptions from "./fixtures/collections/fixture-ui/static-options.json";
+import fixtureUiProfile from "./fixtures/collections/fixture-ui/product-profile.json";
+import fixtureUiBindings from "./fixtures/collections/fixture-ui/runtime-bindings.json";
+import fixtureUiSchema from "./fixtures/collections/fixture-ui/ui.json";
 import fixtureRulesManifest from "./fixtures/collections/fixture-rules/manifest.json";
 import fixtureCabinetTable from "./fixtures/collections/fixture-rules/cabinet-table.json";
 import fixtureCountertopTable from "./fixtures/collections/fixture-rules/countertop-table.json";
@@ -201,6 +204,9 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
       [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
       [`${rootUrl}fixture-ui/static-options.json`]: fixtureUiOptions,
+      [`${rootUrl}fixture-ui/product-profile.json`]: fixtureUiProfile,
+      [`${rootUrl}fixture-ui/ui.json`]: fixtureUiSchema,
+      [`${rootUrl}fixture-ui/runtime-bindings.json`]: fixtureUiBindings,
     });
     const remote = unusedRemote();
     const dependencies: CollectionRuntimeDependencies = {
@@ -225,6 +231,9 @@ describe("collection loading and assembly", () => {
     expect(data.catalog.presets?.[0]?.id).toBe(901);
     expect(data.catalog.presets?.[0]?.presetProducts[0]?.fixtureExtension).toBe("retained");
     expect(data.catalog.staticOptions?.cabinetTypes).toEqual(["Fixture-Cabinet"]);
+    expect(data.catalog.customization?.collectionId).toBe("fixture-ui");
+    expect(data.catalog.runtimeBindings?.collectionId).toBe("fixture-ui");
+    expect(data.diagnostics).toEqual([]);
     expect(data.sources.remote).toEqual({});
     expect(data.catalog.configurator).toBeUndefined();
     expect(data.catalog.cabinets).toBeUndefined();

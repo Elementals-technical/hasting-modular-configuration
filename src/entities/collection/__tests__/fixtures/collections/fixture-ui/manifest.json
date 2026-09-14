@@ -10,6 +10,9 @@
   "local": {
     "navigation": "navigation.json",
     "presets": "presets.json",
-    "staticOptions": "static-options.json"
+    "staticOptions": "static-options.json",
+    "productProfile": "product-profile.json",
+    "ui": "ui.json",
+    "runtimeBindings": "runtime-bindings.json"
   }
 }

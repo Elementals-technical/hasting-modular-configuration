@@ -21,6 +21,9 @@ import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
 import fixtureUiPresets from "./fixtures/collections/fixture-ui/presets.json";
 import fixtureUiOptions from "./fixtures/collections/fixture-ui/static-options.json";
+import fixtureUiProfile from "./fixtures/collections/fixture-ui/product-profile.json";
+import fixtureUiBindings from "./fixtures/collections/fixture-ui/runtime-bindings.json";
+import fixtureUiSchema from "./fixtures/collections/fixture-ui/ui.json";
 import fixtureRulesManifest from "./fixtures/collections/fixture-rules/manifest.json";
 import fixtureCabinetTable from "./fixtures/collections/fixture-rules/cabinet-table.json";
 import fixtureCountertopTable from "./fixtures/collections/fixture-rules/countertop-table.json";
@@ -60,6 +63,9 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
   [`${rootUrl}fixture-ui/static-options.json`]: fixtureUiOptions,
+  [`${rootUrl}fixture-ui/product-profile.json`]: fixtureUiProfile,
+  [`${rootUrl}fixture-ui/ui.json`]: fixtureUiSchema,
+  [`${rootUrl}fixture-ui/runtime-bindings.json`]: fixtureUiBindings,
   [`${rootUrl}fixture-rules/manifest.json`]: fixtureRulesManifest,
 };
 
