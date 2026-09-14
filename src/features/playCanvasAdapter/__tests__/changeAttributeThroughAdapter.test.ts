@@ -15,7 +15,8 @@ import {
   setHandleGrooveColor,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
-import { changeAttribute } from "@/features/configurationCommands";
+import { changeAttribute, confirmAttributeChange } from "@/features/configurationCommands";
+import type { ChangeAttributeDeps } from "@/features/configurationCommands";
 import type { SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createPlayCanvasRuntimePort } from "../lib/createPlayCanvasRuntimePort";
@@ -74,15 +75,24 @@ describe("changeAttribute through the PlayCanvas adapter", () => {
     store.dispatch(setHandleGrooveColor("Pulpis Chiaro TKH"));
     const { scene, calls } = createRecordedScene();
 
-    const result = await changeAttribute(
+    const deps: ChangeAttributeDeps = {
+      getState: () => store.getState(),
+      dispatch: (action) => store.dispatch(action),
+      runtime: createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene }),
+      flow: "custom",
+    };
+
+    const asked = await changeAttribute(
       { attributeId: "Handle", value: "handle_pto", scope: "cabinet", cabinetId: "cab-1" },
-      {
-        getState: () => store.getState(),
-        dispatch: (action) => store.dispatch(action),
-        runtime: createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene }),
-        flow: "custom",
-      },
+      deps,
     );
+
+    // Placed cabinets: the user is asked first, and the scene hears nothing yet.
+    expect(asked.status).toBe("confirmation-required");
+    expect(calls).toHaveLength(0);
+    if (asked.status !== "confirmation-required") return;
+
+    const result = await confirmAttributeChange(asked.preview, deps);
 
     expect(result.status).toBe("applied");
     expect(calls).toEqual([

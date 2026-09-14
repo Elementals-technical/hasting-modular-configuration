@@ -20,6 +20,7 @@ export * from "./ui/activeCollectionContext";
 // people, and an explicit list turns a name collision into a compile error here instead
 // of a silently missing export at the call site.
 export type {
+  AttributeConfirmation,
   AttributeScope,
   CabinetMatrixLegacyAdapter,
   OptionCapabilities,

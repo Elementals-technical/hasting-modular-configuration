@@ -21,6 +21,8 @@ import {
 } from "@/entities/product/model/store/slice";
 
 import { changeAttribute } from "../lib/changeAttribute";
+import type { ChangeAttributeDeps } from "../lib/changeAttribute";
+import { confirmAttributeChange } from "../lib/confirmAttributeChange";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import type { TestRuntimePort } from "@/features/playCanvasAdapter";
 import type { AttributeChange } from "../model/types";
@@ -45,13 +47,18 @@ const matrix = {
   ],
 } as unknown as ProductDatatable;
 
-const runChange = (change: AttributeChange, runtime = createTestRuntimePort()) =>
-  changeAttribute(change, {
+/** Runs a change and confirms it when the profile asks, as a user clicking Confirm would. */
+const runChange = async (change: AttributeChange, runtime = createTestRuntimePort()) => {
+  const deps: ChangeAttributeDeps = {
     getState: () => store.getState(),
     dispatch: (action) => store.dispatch(action),
     runtime: runtime.port,
     flow: "custom",
-  });
+  };
+  const result = await changeAttribute(change, deps);
+
+  return result.status === "confirmation-required" ? confirmAttributeChange(result.preview, deps) : result;
+};
 
 const setUpScene = () => {
   store.dispatch(reset());
@@ -188,18 +195,23 @@ describe("changeAttribute", () => {
 
     const dispatched: string[] = [];
 
-    const result = await changeAttribute(
-      { attributeId: "Handle", value: "handle_pto", scope: "cabinet", cabinetId: "cab-1" },
-      {
-        getState: () => store.getState(),
-        dispatch: (action) => {
-          dispatched.push(action.type);
-          return store.dispatch(action);
-        },
-        runtime: runtime.port,
-        flow: "custom",
+    const deps: ChangeAttributeDeps = {
+      getState: () => store.getState(),
+      dispatch: (action) => {
+        dispatched.push(action.type);
+        return store.dispatch(action);
       },
+      runtime: runtime.port,
+      flow: "custom",
+    };
+
+    const asked = await changeAttribute(
+      { attributeId: "Handle", value: "handle_pto", scope: "cabinet", cabinetId: "cab-1" },
+      deps,
     );
+    if (asked.status !== "confirmation-required") throw new Error("a handle change with placed cabinets asks first");
+
+    const result = await confirmAttributeChange(asked.preview, deps);
 
     expect(result).toMatchObject({ status: "partial", needsSync: true });
     if (result.status !== "partial") return;

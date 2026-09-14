@@ -47,9 +47,21 @@ export type ProfileOption = {
   legacyDescription?: string;
 };
 
+/**
+ * When a change of the attribute waits for the user's confirmation before anything is
+ * applied. The text shown for `reasonCode` lives in `messages`; B owns its display.
+ */
+export type AttributeConfirmation = {
+  /** Ask only while at least one cabinet is placed: the change reaches all of them. */
+  when: "cabinetsPlaced";
+  reasonCode: string;
+};
+
 export type ProfileAttribute = {
   attributeId: string;
   scope: AttributeScope;
+  /** Absent: the change is applied without asking. */
+  confirmation?: AttributeConfirmation;
   /** Closed catalog. Absent when the options come from an external source. */
   options?: ProfileOption[];
   /** Reference to an external option source, resolved by A (e.g. "configurator:Handle Groove Color"). */

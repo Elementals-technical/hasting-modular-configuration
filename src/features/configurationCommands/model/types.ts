@@ -60,15 +60,38 @@ export type ChangeBlockedReason = {
   reason: string;
 };
 
+/** Why a change waits for the user's confirmation. B resolves the code to text. */
+export type ConfirmationReason = {
+  attributeId: string;
+  reasonCode: string;
+  /** Legacy English fallback from profile.messages. */
+  reason: string;
+};
+
+/**
+ * A change held for confirmation. Nothing has been written or sent for it. Confirming
+ * checks the change again against the state at that moment; cancelling is dropping it.
+ */
+export type ChangePreview = {
+  change: AttributeChange;
+  /** The set that would be applied, dependencies included. */
+  plan: PlannedChange[];
+  /** Why confirmation is asked first, then why each dependency belongs to the set. */
+  reasons: ConfirmationReason[];
+};
+
 /**
  * Outcome of a change.
  *
- * `confirmation-required` is deliberately absent: preview/confirm/cancel is C05.
+ * `confirmation-required` carries a preview; nothing is written or sent until it is
+ * confirmed. `replaced` says the state moved since the preview being confirmed, so the
+ * set changed and is shown again instead of being applied.
  * `partial` exists because the runtime API is not atomic — CONTRACTS §"Узгодження з I"
  * requires reporting the actual result instead of promising atomicity.
  */
 export type ChangeResult =
   | { status: "applied"; plan: PlannedChange[] }
+  | { status: "confirmation-required"; preview: ChangePreview; replaced: boolean }
   | ({ status: "blocked" } & ChangeBlockedReason)
   | { status: "partial"; applied: PlannedChange[]; failed: FailedChange[]; needsSync: true }
   | { status: "error"; code: ChangeErrorCode; message: string };

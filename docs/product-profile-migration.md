@@ -2,7 +2,7 @@
 
 This document is the Developer C handoff for the product-data boundary introduced in September 2026. It records what moved out of code into collection data, the behaviour that changed on the way, and the production consumers that still know Urban Standard Height product values directly. The boundary is ready; the remaining consumer migrations belong to Developers A, B, D, and I.
 
-Covers C01 (configuration state model), C02 (ProductProfile and the P0 slice), C07 (save format), and C08 (shared save assembly).
+Covers C01 (configuration state model), C02 (ProductProfile and the P0 slice), C05 (preview, confirm and cancel), C07 (save format), and C08 (shared save assembly).
 
 Verified locally: `npm test` — 404 tests in 40 files, up from 256 in 20. `npm run build` succeeds. `npm run lint` reports the same 108 problems as before the change, with no new errors or warnings. Browser behaviour was not verified.
 
@@ -63,7 +63,7 @@ type AttributeChange = { attributeId: string; value: AttributeValue } & (
 changeAttribute(change, deps): Promise<ChangeResult>;
 ```
 
-`ChangeResult` is `applied | blocked | partial | error`. `confirmation-required` is deliberately absent — preview/confirm/cancel is C05. `partial` exists because the runtime API is not atomic: a set the scene applied halfway is reported with `needsSync: true` and never recorded as a successful configuration.
+`ChangeResult` is `applied | confirmation-required | blocked | partial | error`. A change whose profile attribute declares `confirmation` (USH: `Handle` while cabinets are placed) returns `confirmation-required` with a `ChangePreview` — the set and its reasons — and writes and sends nothing. `confirmAttributeChange(preview, deps)` checks the change again against the current state: the same set is applied, a changed set comes back as a new preview with `replaced: true`, a change that became disallowed is `blocked`. Cancel needs no call. `partial` exists because the runtime API is not atomic: a set the scene applied halfway is reported with `needsSync: true` and never recorded as a successful configuration.
 
 The service talks to the scene through the port I owns (`entities/configuration/model/runtimePort.ts`, I02). `createTestRuntimePort()` from `@/features/playCanvasAdapter` records the agreed set and can answer with each of the port's five statuses, so the call order and C's handling of every outcome are proven without a scene.
 
@@ -106,11 +106,13 @@ Two duplicated implementations of the same handle auto-change — one in the pro
 
 ## Behaviour changes that are not pure refactoring
 
-Both are recorded because CONTRACTS §4 forbids silently correcting a business rule.
+They are recorded because CONTRACTS §4 forbids silently changing established behaviour.
 
 1. **`heightLocked === 50` special case removed.** The old code explicitly preferred `handle_pto` when a height was locked and repeated that with a hardcoded `50`. The handle rule already disables every option whose forced height conflicts with the lock, so the replacement picks the first still-enabled option in catalog order. Against the real 439 payload that is the push-to-open option, which forces 50 for every drawer configuration, so the outcome is unchanged.
 
 2. **"On PTO exit, re-apply forced height" generalised.** The condition was `prevHandle === "handle_pto" && nextHandle !== "handle_pto"`. It is now "the two handles force different heights", which is what made PTO special in the USH data.
+
+3. **A handle change asks before it is applied.** The style sidebar applied the handle first, showed "The handle style has been updated", and reverted through the scene on Cancel. C05 requires that nothing changes before Confirm and that Cancel does not reach the scene, so the preview comes first and the message reads "will be updated". The user no longer sees the new handle in 3D before confirming. This takes effect once the sidebar is wired to the command service (C06).
 
 ## Defects found and fixed
 
@@ -144,12 +146,12 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 - **Three data discrepancies** against the real 438/439 fixtures: `Side-Cabinet` exists in code in ten places but not in the 439 payload; `drawerConfigurations` is spelled `1D|2D|1DWID` in static options while the table returns `1|2|1+inner`; thickness is 5 values in static options, 7 in code and 6 fractions in 438 (`3/8`, `1/2`, `2-3/8`, `4`, `5-1/8`, `5-1/2`). The third affects SKU and price.
 - **`sourceRefs` in the profile duplicates `manifest.remote`.** CONTRACTS §4 makes the manifest authoritative for source ids; the profile field should be dropped.
 - **Rule evaluation still runs inside twelve product reducers.** `CollectionStateBridge` exists to copy the collection into the store because hooks are unavailable there. Moving evaluation into the command layer is C06 and removes both the bridge and the transitional `activeProfile` field.
-- **`runtimePort` is available for C05.** I02/I03 distinguish applied, not-ready, unsupported, failed and partial, and `changeAttribute` records nothing the scene did not apply. What remains of C05 is preview/confirm/cancel itself.
+- **Confirmations still on the legacy path.** Depth, the drawer-mixing prompt in `CabinetBuilderPage` and the Side-Shelf removal are not moved to C05: dimensions are not planned by the command service yet, the mixing restriction is computed in the page, and removing products has no runtimePort operation.
 
 ## Scope and completion
 
 Developer C owns the ProductProfile contract and its pure transformations, the configuration state model and value ownership, the single change path, and the Save format with its legacy reader. Developer C does not migrate page rendering or navigation (B), collection source binding and loading (A), SKU and pricing (D), or PlayCanvas bindings and scene execution (I).
 
-C01, C02, C07 and C08 are complete against their acceptance criteria. C05 can start, as the I02/I03 result contract is in place; C06 depends on C05, I04 and B06/B08/B09; C09 depends on A07 and I05. C12 and C13 depend on all of the above.
+C01, C02, C05, C07 and C08 are complete against their acceptance criteria; C05 is proven through the command service and the runtimePort stand-in, while wiring its dialogs into pages belongs to C06. C06 depends on I04 and B06/B08/B09; C09 depends on A07 and I05. C12 and C13 depend on all of the above.
 
 Parity is proven against the real DataTable 439 payload from the Developer A fixtures. Browser verification of the full B → C → I path remains, and is evaluated jointly in C12 and I06.

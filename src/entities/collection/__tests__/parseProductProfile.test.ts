@@ -6,6 +6,27 @@ import ushProfile from "../../../../public/collections/urban-standard-height/pro
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 describe("parseProductProfile", () => {
+  it("reads when a change waits for confirmation and rejects an unknown condition", () => {
+    const result = parseProductProfile(ushProfile);
+    if (!result.ok) throw new Error("fixture must parse");
+
+    expect(result.profile.attributes.find(({ attributeId }) => attributeId === "Handle")?.confirmation).toEqual({
+      when: "cabinetsPlaced",
+      reasonCode: "handle.appliesToAllCabinets",
+    });
+
+    const broken = clone(ushProfile) as { attributes: { attributeId: string; confirmation?: unknown }[] };
+    const handle = broken.attributes.find(({ attributeId }) => attributeId === "Handle");
+    if (handle) handle.confirmation = { when: "always", reasonCode: "handle.appliesToAllCabinets" };
+
+    const rejected = parseProductProfile(broken);
+
+    expect(rejected.ok).toBe(false);
+    expect(rejected.ok ? [] : rejected.diagnostics.map(({ dataPath }) => dataPath)).toContain(
+      "/attributes/Handle/confirmation",
+    );
+  });
+
   it("accepts the USH profile and keeps catalog order", () => {
     const result = parseProductProfile(ushProfile);
 
