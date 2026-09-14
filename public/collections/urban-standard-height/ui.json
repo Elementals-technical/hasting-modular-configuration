@@ -1,0 +1,226 @@
+{
+  "collectionId": "urban-standard-height",
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "model",
+      "steps": [
+        { "stepId": "model", "path": "/prebuilt/model" },
+        { "stepId": "cabinet", "path": "/prebuilt/color" },
+        { "stepId": "countertop", "path": "/prebuilt/countertop" },
+        { "stepId": "accessories", "path": "/prebuilt/accessories" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
+        { "stepId": "summary", "path": "/prebuilt/summary" }
+      ]
+    },
+    "custom": {
+      "entryStepId": "cabinet-builder",
+      "steps": [
+        { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
+        { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors" },
+        { "stepId": "countertop-custom", "path": "/custom/countertop" },
+        { "stepId": "accessories-custom", "path": "/custom/accessories" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
+        { "stepId": "summary", "path": "/custom/summary" }
+      ]
+    }
+  },
+  "steps": {
+    "model": { "label": "Model", "kind": "preset-picker" },
+    "cabinet-builder": {
+      "label": "Cabinet Builder",
+      "headerPrefix": null,
+      "kind": "cabinet-builder",
+      "sectionIds": ["cabinet-type", "cabinet-style"]
+    },
+    "cabinet": {
+      "label": "Color",
+      "kind": "fields",
+      "sectionIds": ["cabinet-color", "handle-groove", "drawer-panel", "grain-direction"]
+    },
+    "cabinet-colors": {
+      "label": "Color",
+      "kind": "fields",
+      "sectionIds": ["cabinet-color-custom", "groove-color", "drawer-panel-custom", "grain-direction-custom"]
+    },
+    "countertop": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": ["countertop-color", "thickness", "countertop-styles", "basin-style", "vessel-color"]
+    },
+    "countertop-custom": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": [
+        "counter-top-color",
+        "thickness-custom",
+        "countertop-style",
+        "basin-style-custom",
+        "vessel-color-custom"
+      ]
+    },
+    "accessories": { "label": "Accessories", "kind": "fields", "sectionIds": ["side-panels", "dividers", "towel-bar"] },
+    "accessories-custom": {
+      "label": "Accessories",
+      "kind": "fields",
+      "sectionIds": ["side-panels-custom", "dividers-custom", "tovel-bar"]
+    },
+    "faucet-holes": { "label": "Faucet Details", "kind": "fields", "sectionIds": ["faucet-holes-amount"] },
+    "summary": { "label": "Summary", "kind": "summary" }
+  },
+  "sections": {
+    "cabinet-color": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetColor", "control": "swatches", "optionsRef": "CabinetColor" }]
+    },
+    "handle-groove": {
+      "label": "Handle Groove Color (Optional)",
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "swatches",
+          "optionsRef": "configurator:Handle Groove Color",
+          "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "drawer-panel": {
+      "label": "Drawer Panel Fluting",
+      "fields": [
+        {
+          "attributeId": "DrawerPanelFluting",
+          "control": "options-grid",
+          "availabilityRef": "DrawerPanelFluting.available"
+        }
+      ]
+    },
+    "grain-direction": {
+      "label": "Grain Direction",
+      "fields": [
+        { "attributeId": "GrainDirection", "control": "options-grid", "availabilityRef": "GrainDirection.available" },
+        { "attributeId": "BookMatching", "control": "checkbox", "availabilityRef": "BookMatching.available" }
+      ]
+    },
+    "cabinet-color-custom": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetColor", "control": "swatches", "optionsRef": "CabinetColor" }]
+    },
+    "groove-color": {
+      "label": "Handle Groove Color (Optional)",
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "swatches",
+          "optionsRef": "configurator:Handle Groove Color",
+          "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "drawer-panel-custom": {
+      "label": "Drawer Panel Fluting",
+      "fields": [
+        {
+          "attributeId": "DrawerPanelFluting",
+          "control": "options-grid",
+          "availabilityRef": "DrawerPanelFluting.available"
+        }
+      ]
+    },
+    "grain-direction-custom": {
+      "label": "Grain Direction",
+      "fields": [
+        { "attributeId": "GrainDirection", "control": "options-grid", "availabilityRef": "GrainDirection.available" },
+        { "attributeId": "BookMatching", "control": "checkbox", "availabilityRef": "BookMatching.available" }
+      ]
+    },
+    "countertop-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CountertopColor", "control": "swatches", "optionsRef": "CountertopColor" }]
+    },
+    "thickness": {
+      "label": "Thickness",
+      "fields": [{ "attributeId": "Thickness", "control": "options-grid" }]
+    },
+    "countertop-styles": {
+      "label": "Countertop Style",
+      "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
+    },
+    "basin-style": {
+      "label": "Basin style / Vessel Sink Style",
+      "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
+    },
+    "vessel-color": {
+      "label": "Vessel Color",
+      "fields": [{ "attributeId": "VesselColor", "control": "swatches", "availabilityRef": "Countertop.isVesselStyle" }]
+    },
+    "counter-top-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CountertopColor", "control": "swatches", "optionsRef": "CountertopColor" }]
+    },
+    "thickness-custom": {
+      "label": "Thickness",
+      "fields": [{ "attributeId": "Thickness", "control": "options-grid" }]
+    },
+    "countertop-style": {
+      "label": "Countertop Style",
+      "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
+    },
+    "basin-style-custom": {
+      "label": "Basin style / Vessel Sink Style",
+      "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
+    },
+    "vessel-color-custom": {
+      "label": "Vessel Color",
+      "fields": [{ "attributeId": "VesselColor", "control": "swatches", "availabilityRef": "Countertop.isVesselStyle" }]
+    },
+    "side-panels": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
+    },
+    "dividers": {
+      "label": "Dividers",
+      "fields": [{ "attributeId": "DividersOption", "control": "swatches" }]
+    },
+    "towel-bar": {
+      "label": "Towel Bar",
+      "fields": [
+        { "attributeId": "TowelBarOption", "control": "swatches" },
+        { "attributeId": "TowelBarColor", "control": "options-grid", "availabilityRef": "TowelBarColor.available" }
+      ]
+    },
+    "side-panels-custom": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
+    },
+    "dividers-custom": {
+      "label": "Dividers",
+      "fields": [{ "attributeId": "DividersOption", "control": "swatches" }]
+    },
+    "tovel-bar": {
+      "label": "Towel Bar",
+      "fields": [
+        { "attributeId": "TowelBarOption", "control": "swatches" },
+        { "attributeId": "TowelBarColor", "control": "options-grid", "availabilityRef": "TowelBarColor.available" }
+      ]
+    },
+    "cabinet-type": {
+      "label": "Cabinet Type",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetType", "control": "options-grid" }]
+    },
+    "cabinet-style": {
+      "label": "Cabinet Style",
+      "fields": [{ "attributeId": "Drawers", "control": "options-grid", "availabilityRef": "CabinetStyle.available" }]
+    },
+    "faucet-holes-amount": {
+      "label": "Faucet Holes",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "FaucetHolesAmount", "control": "swatches" }]
+    }
+  }
+}

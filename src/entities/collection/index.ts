@@ -32,18 +32,10 @@ export type {
 } from "./model/productProfile";
 export { ATTRIBUTE_SCOPES } from "./model/productProfile";
 
-export type {
-  CabinetHandleRelations,
-  HandleHeightConstraint,
-  NormalizedHandleProfile,
-} from "./model/handleProfile";
+export type { CabinetHandleRelations, HandleHeightConstraint, NormalizedHandleProfile } from "./model/handleProfile";
 
 export { parseProductProfile } from "./lib/parseProductProfile";
-export type {
-  ParseProductProfileResult,
-  ProfileDiagnostic,
-  ProfileDiagnosticCode,
-} from "./lib/parseProductProfile";
+export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCode } from "./lib/parseProductProfile";
 
 export {
   hasCapability,
@@ -107,3 +99,17 @@ export type {
 
 export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
+
+// Customization schema — owned by B: the UI description of steps, sections and fields.
+export type {
+  CustomizationFieldControl,
+  CustomizationFieldDefinition,
+  CustomizationFlow,
+  CustomizationFlowId,
+  CustomizationFlowStepRef,
+  CustomizationScreenKind,
+  CustomizationSchema,
+  CustomizationSectionDefinition,
+  CustomizationStepDefinition,
+  FieldRuntimeState,
+} from "./model/customizationSchema";
