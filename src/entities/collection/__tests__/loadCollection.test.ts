@@ -7,6 +7,7 @@ import productionPresets from "../../../../public/collections/urban-standard-hei
 import productionStaticOptions from "../../../../public/collections/urban-standard-height/static-options.json";
 import productionSkuMappings from "../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 
 import fixtureRegistry from "./fixtures/collections/registry.json";
@@ -49,6 +50,21 @@ const unusedRemote = (): RemoteCollectionLoader => ({
   }),
 });
 
+const loadUshLocalContract = async (manifest: unknown, sources: Record<string, unknown>) => {
+  const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
+  const dependencies: CollectionRuntimeDependencies = {
+    registryUrl,
+    collectionsRootUrl: rootUrl,
+    registry: productionRegistry,
+    fetchJson: jsonFetcher({ [manifestUrl]: manifest, ...sources }),
+    remote: unusedRemote(),
+  };
+  const registry = await loadCollectionRegistry(dependencies, abortSignal);
+  const resolution = resolveCollection({ registry, urlCollectionId: null });
+  if (!resolution.ok) throw new Error("Expected USH to resolve");
+  return loadResolvedCollection(resolution, dependencies, abortSignal);
+};
+
 describe("collection loading and assembly", () => {
   it("reports a broken product profile with its diagnostics instead of loading it", async () => {
     const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
@@ -67,6 +83,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/product-profile.json`]: brokenProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
       [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+      [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
     });
 
     const dependencies: CollectionRuntimeDependencies = {
@@ -112,6 +129,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
       [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+      [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
     });
     const pending: Array<(value: unknown) => void> = [];
     const calls: string[] = [];
@@ -162,6 +180,9 @@ describe("collection loading and assembly", () => {
     expect(data.catalog.productProfile?.collectionId).toBe("urban-standard-height");
     expect(data.sources.local.ui?.collectionId).toBe("urban-standard-height");
     expect(data.catalog.customization?.flows.custom.entryStepId).toBe("cabinet-builder");
+    expect(data.sources.local.runtimeBindings?.collectionId).toBe("urban-standard-height");
+    expect(data.catalog.runtimeBindings?.bindings.length).toBeGreaterThan(0);
+    expect(data.diagnostics).toEqual([]);
     expect(data.catalog.navigation).toEqual(productionNavigation);
 
     const sinkBase = data.catalog.cabinets?.typeCabinetRules.find(({ code }) => code === "Sink-Base");
@@ -258,6 +279,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
       [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+      [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
     });
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -290,6 +312,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
       [`${rootUrl}urban-standard-height/ui.json`]: { ...productionUi, collectionId: "copied-collection" },
+      [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
     });
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -326,6 +349,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
       [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+      [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
     });
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -344,6 +368,159 @@ describe("collection loading and assembly", () => {
 
     await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(
       "Navigation data does not match customization schema at prebuilt[0].label",
+    );
+  });
+
+  it("normalizes malformed runtime-binding parser diagnostics into collection diagnostics", async () => {
+    const loading = loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: { runtimeBindings: "runtime-bindings.json" },
+      },
+      { [`${rootUrl}urban-standard-height/runtime-bindings.json`]: {} },
+    );
+
+    const error = await loading.then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+    expect(error?.cause).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "bindings.missing_field",
+          severity: "error",
+          dataset: "runtimeBindings",
+          dataPath: "/schemaVersion",
+        }),
+      ]),
+    );
+  });
+
+  it("requires ProductProfile when a collection declares runtime bindings", async () => {
+    const loading = loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: { runtimeBindings: "runtime-bindings.json" },
+      },
+      { [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings },
+    );
+
+    const error = await loading.then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+    expect(error?.cause).toEqual([
+      expect.objectContaining({
+        code: "runtime.missing-product-profile",
+        severity: "error",
+        dataset: "runtimeBindings",
+      }),
+    ]);
+  });
+
+  it("rejects a missing required runtime binding before the collection becomes ready", async () => {
+    const runtimeBindings = {
+      ...productionRuntimeBindings,
+      bindings: productionRuntimeBindings.bindings.filter(({ attributeId }) => attributeId !== "Handle"),
+    };
+    const loading = loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: {
+          productProfile: "product-profile.json",
+          ui: "ui.json",
+          runtimeBindings: "runtime-bindings.json",
+        },
+      },
+      {
+        [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
+        [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+        [`${rootUrl}urban-standard-height/runtime-bindings.json`]: runtimeBindings,
+      },
+    );
+
+    const error = await loading.then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+    expect(error?.cause).toContainEqual(
+      expect.objectContaining({
+        code: "runtime.missing-binding",
+        severity: "error",
+        dataset: "runtimeBindings",
+        message: expect.stringContaining("Handle"),
+      }),
+    );
+  });
+
+  it("keeps an orphan runtime binding as a ready-data warning", async () => {
+    const runtimeBindings = {
+      ...productionRuntimeBindings,
+      bindings: [
+        ...productionRuntimeBindings.bindings,
+        { attributeId: "OldAttribute", status: "unbound", reason: "Removed from the active contract" },
+      ],
+    };
+    const data = await loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: {
+          productProfile: "product-profile.json",
+          ui: "ui.json",
+          runtimeBindings: "runtime-bindings.json",
+        },
+      },
+      {
+        [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
+        [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+        [`${rootUrl}urban-standard-height/runtime-bindings.json`]: runtimeBindings,
+      },
+    );
+
+    expect(data.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "runtime.orphan-binding",
+        severity: "warning",
+        dataset: "runtimeBindings",
+        message: expect.stringContaining("OldAttribute"),
+      }),
+    ]);
+  });
+
+  it("rejects ProductProfile identity that does not match the manifest", async () => {
+    const loading = loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: { productProfile: "product-profile.json" },
+      },
+      {
+        [`${rootUrl}urban-standard-height/product-profile.json`]: {
+          ...productionProductProfile,
+          collectionId: "copied-collection",
+        },
+      },
+    );
+
+    const error = await loading.then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+    expect(error?.cause).toContainEqual(
+      expect.objectContaining({
+        code: "profile.collection-mismatch",
+        severity: "error",
+        dataset: "productProfile",
+      }),
     );
   });
 });

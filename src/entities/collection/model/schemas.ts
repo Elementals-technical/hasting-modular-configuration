@@ -61,6 +61,8 @@ export const collectionManifestSchema = z
         productProfile: localJsonReferenceSchema.optional(),
         /** Collection-defined flows, steps, sections and fields. */
         ui: localJsonReferenceSchema.optional(),
+        /** Semantic attribute and value translations used by the scene adapter. */
+        runtimeBindings: localJsonReferenceSchema.optional(),
       })
       .strict()
       .optional(),

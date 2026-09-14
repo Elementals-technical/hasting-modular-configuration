@@ -14,6 +14,7 @@ import productionPresets from "../../../../public/collections/urban-standard-hei
 import productionStaticOptions from "../../../../public/collections/urban-standard-height/static-options.json";
 import productionSkuMappings from "../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
@@ -54,6 +55,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
   [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
   [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+  [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,

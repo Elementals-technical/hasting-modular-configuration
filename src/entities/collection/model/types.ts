@@ -5,6 +5,8 @@ import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabin
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
 
 import type { ProductProfile } from "./productProfile";
+import type { CollectionDiagnostic } from "./diagnostics";
+import type { RuntimeBindingSet } from "./runtimeBindings";
 import type { CustomizationSchema } from "./customizationSchema";
 
 import type { CollectionError } from "./errors";
@@ -24,6 +26,7 @@ export type LocalCollectionSources = {
   cabinetSkuMappings?: CabinetSkuMappings;
   productProfile?: ProductProfile;
   ui?: CustomizationSchema;
+  runtimeBindings?: RuntimeBindingSet;
 };
 
 export type RemoteCollectionSources = {
@@ -40,6 +43,7 @@ export type ConfiguratorGroupCatalog = {
 export type LoadedCollectionData = {
   id: string;
   manifest: CollectionManifest;
+  diagnostics: CollectionDiagnostic[];
   sources: {
     local: LocalCollectionSources;
     remote: RemoteCollectionSources;
@@ -55,6 +59,7 @@ export type LoadedCollectionData = {
      */
     productProfile?: ProductProfile;
     customization?: CustomizationSchema;
+    runtimeBindings?: RuntimeBindingSet;
     configurator?: ConfiguratorGroupCatalog;
     cabinets?: ConfiguratorCatalog;
     countertops?: CountertopMatrixRule[];

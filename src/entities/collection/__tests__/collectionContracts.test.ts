@@ -27,6 +27,7 @@ describe("collection contracts", () => {
     );
     expect(manifest.defaultPresetId).toBe(1);
     expect(manifest.local?.ui).toBe("ui.json");
+    expect(manifest.local?.runtimeBindings).toBe("runtime-bindings.json");
     expect(manifest.remote).toMatchObject({
       configurator: { id: 4 },
       countertopTable: { id: 438 },

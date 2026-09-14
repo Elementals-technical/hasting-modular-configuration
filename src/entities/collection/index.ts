@@ -9,6 +9,7 @@ export * from "./lib/resolveRestoredCollection";
 export * from "./lib/rtkRemoteLoader";
 export * from "./lib/validation";
 export * from "./model/constants";
+export * from "./model/diagnostics";
 export * from "./model/errors";
 export * from "./model/schemas";
 export * from "./model/types";
@@ -102,6 +103,10 @@ export type {
 
 export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
+export {
+  collectCustomizationAttributeIds,
+  validateCollectionRuntimeContract,
+} from "./lib/runtimeBindings/collectionRuntimeContract";
 
 // Customization schema — owned by B: the UI description of steps, sections and fields.
 export type {
