@@ -12,7 +12,9 @@
     "presets": "presets.json",
     "staticOptions": "static-options.json",
     "cabinetSkuMappings": "cabinet-sku-mappings.json",
-    "productProfile": "product-profile.json"
+    "productProfile": "product-profile.json",
+    "ui": "ui.json",
+    "runtimeBindings": "runtime-bindings.json"
   },
   "remote": {
     "configurator": {

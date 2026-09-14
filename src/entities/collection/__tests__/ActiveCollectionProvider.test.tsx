@@ -14,14 +14,22 @@ import productionPresets from "../../../../public/collections/urban-standard-hei
 import productionStaticOptions from "../../../../public/collections/urban-standard-height/static-options.json";
 import productionSkuMappings from "../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
+import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
 import fixtureUiPresets from "./fixtures/collections/fixture-ui/presets.json";
 import fixtureUiOptions from "./fixtures/collections/fixture-ui/static-options.json";
+import fixtureUiProfile from "./fixtures/collections/fixture-ui/product-profile.json";
+import fixtureUiBindings from "./fixtures/collections/fixture-ui/runtime-bindings.json";
+import fixtureUiSchema from "./fixtures/collections/fixture-ui/ui.json";
 import fixtureRulesManifest from "./fixtures/collections/fixture-rules/manifest.json";
 import fixtureCabinetTable from "./fixtures/collections/fixture-rules/cabinet-table.json";
 import fixtureCountertopTable from "./fixtures/collections/fixture-rules/countertop-table.json";
+import fixtureRulesProfile from "./fixtures/collections/fixture-rules/product-profile.json";
+import fixtureRulesBindings from "./fixtures/collections/fixture-rules/runtime-bindings.json";
+import fixtureRulesUi from "./fixtures/collections/fixture-rules/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
@@ -52,11 +60,19 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
   [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
   [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+  [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+  [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
   [`${rootUrl}fixture-ui/static-options.json`]: fixtureUiOptions,
+  [`${rootUrl}fixture-ui/product-profile.json`]: fixtureUiProfile,
+  [`${rootUrl}fixture-ui/ui.json`]: fixtureUiSchema,
+  [`${rootUrl}fixture-ui/runtime-bindings.json`]: fixtureUiBindings,
   [`${rootUrl}fixture-rules/manifest.json`]: fixtureRulesManifest,
+  [`${rootUrl}fixture-rules/product-profile.json`]: fixtureRulesProfile,
+  [`${rootUrl}fixture-rules/runtime-bindings.json`]: fixtureRulesBindings,
+  [`${rootUrl}fixture-rules/ui.json`]: fixtureRulesUi,
 };
 
 const makeDependencies = (
@@ -83,11 +99,12 @@ const makeDependencies = (
 const CollectionConsumer = () => {
   const state = useActiveCollection();
   const navigate = useNavigate();
-  const detail = state.status === "ready"
-    ? state.data.catalog.navigation?.prebuilt[0]?.label ?? state.data.catalog.cabinets?.typeCabinetRules[0]?.code
-    : state.status === "error"
-      ? state.error.code
-      : "";
+  const detail =
+    state.status === "ready"
+      ? (state.data.catalog.navigation?.prebuilt[0]?.label ?? state.data.catalog.cabinets?.typeCabinetRules[0]?.code)
+      : state.status === "error"
+        ? state.error.code
+        : "";
   const collectionId = "collectionId" in state ? state.collectionId : undefined;
 
   return (
@@ -139,7 +156,10 @@ describe("ActiveCollectionProvider", () => {
     await waitFor(() =>
       expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
     );
-    expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 4 }), expect.any(AbortSignal));
+    expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 4 }),
+      expect.any(AbortSignal),
+    );
     expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(438, expect.any(AbortSignal));
     expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
   });
@@ -160,7 +180,11 @@ describe("ActiveCollectionProvider", () => {
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui"));
     fireEvent.click(screen.getByRole("button", { name: target }));
     const expectedCode = target === "empty" ? "invalid-collection-id" : "unknown-collection";
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe(`error:${target === "empty" ? "" : "unknown"}:${expectedCode}`));
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toBe(
+        `error:${target === "empty" ? "" : "unknown"}:${expectedCode}`,
+      ),
+    );
   });
 
   it.each(["success", "failure"])("ignores a late %s from the previous URL", async (outcome) => {
@@ -179,29 +203,22 @@ describe("ActiveCollectionProvider", () => {
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("loading:fixture-ui:"));
 
     fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Fixture-Cabinet"),
-    );
+    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
     await act(async () => {
       if (outcome === "success") resolveOld?.(fixtureUiManifest);
       else rejectOld?.(new Error("late failure"));
       await Promise.resolve();
     });
-    expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Fixture-Cabinet");
+    expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish");
   });
 
   it("switches one hook consumer between USH and fixture-rules catalogs", async () => {
-    renderProvider(
-      "/?collectionId=urban-standard-height",
-      makeDependencies(undefined, productionRemote),
-    );
+    renderProvider("/?collectionId=urban-standard-height", makeDependencies(undefined, productionRemote));
     await waitFor(() =>
       expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
     );
     fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Fixture-Cabinet"),
-    );
+    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
   });
 
   it("publishes an error when a declared source fails", async () => {
@@ -213,9 +230,7 @@ describe("ActiveCollectionProvider", () => {
     };
     renderProvider("/", makeDependencies(undefined, failingRemote, productionRegistry));
     await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe(
-        "error:urban-standard-height:source-load-failed",
-      ),
+      expect(screen.getByTestId("collection-state").textContent).toBe("error:urban-standard-height:source-load-failed"),
     );
   });
 });

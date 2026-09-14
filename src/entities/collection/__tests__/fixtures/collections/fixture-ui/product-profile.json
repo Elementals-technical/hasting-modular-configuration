@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "fixture-ui",
+  "label": "Fixture UI Product Profile",
+  "sourceRefs": {
+    "configuratorId": 9901,
+    "countertopMatrixTableId": 9902,
+    "cabinetMatrixTableId": 9903
+  },
+  "defaults": {
+    "CabinetColor": "Fixture Blue",
+    "CountertopColor": "Fixture Copper",
+    "sinkType": "Fixture_Basin"
+  },
+  "attributes": [
+    {
+      "attributeId": "TestGrooveFinish",
+      "scope": "global",
+      "initialValue": "test-finish",
+      "options": [
+        {
+          "value": "test-finish",
+          "label": "Test Finish",
+          "order": 1
+        }
+      ]
+    }
+  ],
+  "ruleData": {
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 9903,
+      "columns": {
+        "cabinetType": "Fixture Cabinet Type",
+        "drawers": "Fixture Drawers",
+        "handlesAllowed": "Fixture Handles",
+        "supportsHeight": "Fixture Heights",
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {}
+      }
+    }
+  },
+  "messages": {}
+}

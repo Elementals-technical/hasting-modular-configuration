@@ -54,3 +54,22 @@ export type FieldRuntimeState = {
   loading?: boolean;
   error?: string;
 };
+
+export type CustomizationSchemaDiagnosticCode =
+  | "invalid-schema"
+  | "missing-entry-step"
+  | "unknown-step-id"
+  | "duplicate-route"
+  | "unsupported-kind"
+  | "unknown-section-id"
+  | "unsupported-control";
+
+export type CustomizationSchemaDiagnostic = {
+  code: CustomizationSchemaDiagnosticCode;
+  dataPath: string;
+  message: string;
+};
+
+export type ValidateCustomizationSchemaResult =
+  | { ok: true; schema: CustomizationSchema }
+  | { ok: false; diagnostics: CustomizationSchemaDiagnostic[] };

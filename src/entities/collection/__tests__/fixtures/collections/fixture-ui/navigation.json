@@ -1,8 +1,7 @@
 {
   "prebuilt": [
-    { "id": "fixture-model", "label": "Fixture Models", "path": "/fixture/models" }
+    { "id": "fixture-model", "label": "Fixture Models", "path": "/fixture/models" },
+    { "id": "fixture-finish", "label": "Test Finish", "path": "/fixture/finish" }
   ],
-  "custom": [
-    { "id": "fixture-builder", "label": "Fixture Builder", "path": "/fixture/builder", "headerPrefix": null }
-  ]
+  "custom": [{ "id": "fixture-builder", "label": "Fixture Builder", "path": "/fixture/builder", "headerPrefix": null }]
 }
