@@ -26,6 +26,7 @@ describe("collection contracts", () => {
       rootUrl,
     );
     expect(manifest.defaultPresetId).toBe(1);
+    expect(manifest.local?.ui).toBe("ui.json");
     expect(manifest.remote).toMatchObject({
       configurator: { id: 4 },
       countertopTable: { id: 438 },
@@ -34,9 +35,9 @@ describe("collection contracts", () => {
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {
-    expect(() =>
-      validateCollectionRegistry({ ...productionRegistry, typo: true }, registryUrl, rootUrl),
-    ).toThrow("failed validation");
+    expect(() => validateCollectionRegistry({ ...productionRegistry, typo: true }, registryUrl, rootUrl)).toThrow(
+      "failed validation",
+    );
     expect(() =>
       validateCollectionRegistry(
         { ...productionRegistry, collections: [...productionRegistry.collections, ...productionRegistry.collections] },
@@ -76,10 +77,7 @@ describe("collection identity resolution", () => {
   const extendedRegistry = validateCollectionRegistry(
     {
       defaultCollectionId: "urban-standard-height",
-      collections: [
-        ...productionRegistry.collections,
-        { id: "fixture-ui", manifest: "fixture-ui/manifest.json" },
-      ],
+      collections: [...productionRegistry.collections, { id: "fixture-ui", manifest: "fixture-ui/manifest.json" }],
     },
     registryUrl,
     rootUrl,
@@ -119,14 +117,18 @@ describe("collection identity resolution", () => {
       collectionId: "urban-standard-height",
       source: "legacy-saved",
     });
-    expect(resolveCollection({ registry, urlCollectionId: null, savedCollection: { collectionId: null } })).toMatchObject({
+    expect(
+      resolveCollection({ registry, urlCollectionId: null, savedCollection: { collectionId: null } }),
+    ).toMatchObject({
       ok: false,
       error: { code: "invalid-collection-id" },
     });
-    expect(resolveCollection({ registry, urlCollectionId: null, savedCollection: { collectionId: "" } })).toMatchObject({
-      ok: false,
-      error: { code: "invalid-collection-id" },
-    });
+    expect(resolveCollection({ registry, urlCollectionId: null, savedCollection: { collectionId: "" } })).toMatchObject(
+      {
+        ok: false,
+        error: { code: "invalid-collection-id" },
+      },
+    );
     expect(
       resolveCollection({ registry, urlCollectionId: null, savedCollection: { collectionId: "unknown" } }),
     ).toMatchObject({ ok: false, error: { code: "unknown-collection" } });

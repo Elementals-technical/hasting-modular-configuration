@@ -14,6 +14,7 @@ import productionPresets from "../../../../public/collections/urban-standard-hei
 import productionStaticOptions from "../../../../public/collections/urban-standard-height/static-options.json";
 import productionSkuMappings from "../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
@@ -52,6 +53,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
   [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
   [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+  [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
@@ -83,11 +85,12 @@ const makeDependencies = (
 const CollectionConsumer = () => {
   const state = useActiveCollection();
   const navigate = useNavigate();
-  const detail = state.status === "ready"
-    ? state.data.catalog.navigation?.prebuilt[0]?.label ?? state.data.catalog.cabinets?.typeCabinetRules[0]?.code
-    : state.status === "error"
-      ? state.error.code
-      : "";
+  const detail =
+    state.status === "ready"
+      ? (state.data.catalog.navigation?.prebuilt[0]?.label ?? state.data.catalog.cabinets?.typeCabinetRules[0]?.code)
+      : state.status === "error"
+        ? state.error.code
+        : "";
   const collectionId = "collectionId" in state ? state.collectionId : undefined;
 
   return (
@@ -139,7 +142,10 @@ describe("ActiveCollectionProvider", () => {
     await waitFor(() =>
       expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
     );
-    expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 4 }), expect.any(AbortSignal));
+    expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 4 }),
+      expect.any(AbortSignal),
+    );
     expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(438, expect.any(AbortSignal));
     expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
   });
@@ -160,7 +166,11 @@ describe("ActiveCollectionProvider", () => {
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui"));
     fireEvent.click(screen.getByRole("button", { name: target }));
     const expectedCode = target === "empty" ? "invalid-collection-id" : "unknown-collection";
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe(`error:${target === "empty" ? "" : "unknown"}:${expectedCode}`));
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toBe(
+        `error:${target === "empty" ? "" : "unknown"}:${expectedCode}`,
+      ),
+    );
   });
 
   it.each(["success", "failure"])("ignores a late %s from the previous URL", async (outcome) => {
@@ -191,10 +201,7 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it("switches one hook consumer between USH and fixture-rules catalogs", async () => {
-    renderProvider(
-      "/?collectionId=urban-standard-height",
-      makeDependencies(undefined, productionRemote),
-    );
+    renderProvider("/?collectionId=urban-standard-height", makeDependencies(undefined, productionRemote));
     await waitFor(() =>
       expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
     );
@@ -213,9 +220,7 @@ describe("ActiveCollectionProvider", () => {
     };
     renderProvider("/", makeDependencies(undefined, failingRemote, productionRegistry));
     await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe(
-        "error:urban-standard-height:source-load-failed",
-      ),
+      expect(screen.getByTestId("collection-state").textContent).toBe("error:urban-standard-height:source-load-failed"),
     );
   });
 });

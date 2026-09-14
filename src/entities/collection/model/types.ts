@@ -5,6 +5,7 @@ import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabin
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
 
 import type { ProductProfile } from "./productProfile";
+import type { CustomizationSchema } from "./customizationSchema";
 
 import type { CollectionError } from "./errors";
 import type {
@@ -22,6 +23,7 @@ export type LocalCollectionSources = {
   staticOptions?: CollectionStaticOptions;
   cabinetSkuMappings?: CabinetSkuMappings;
   productProfile?: ProductProfile;
+  ui?: CustomizationSchema;
 };
 
 export type RemoteCollectionSources = {
@@ -52,6 +54,7 @@ export type LoadedCollectionData = {
      * option added here reaches the rules without a code change.
      */
     productProfile?: ProductProfile;
+    customization?: CustomizationSchema;
     configurator?: ConfiguratorGroupCatalog;
     cabinets?: ConfiguratorCatalog;
     countertops?: CountertopMatrixRule[];
@@ -65,7 +68,10 @@ export type ActiveCollectionState =
   | { status: "error"; collectionId?: string; error: CollectionError };
 
 export type RemoteCollectionLoader = {
-  loadConfigurator: (reference: NonNullable<CollectionManifest["remote"]>["configurator"], signal: AbortSignal) => Promise<unknown>;
+  loadConfigurator: (
+    reference: NonNullable<CollectionManifest["remote"]>["configurator"],
+    signal: AbortSignal,
+  ) => Promise<unknown>;
   loadCountertopTable: (id: string | number, signal: AbortSignal) => Promise<unknown>;
   loadCabinetTable: (id: string | number, signal: AbortSignal) => Promise<unknown>;
 };

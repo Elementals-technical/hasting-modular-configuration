@@ -7,6 +7,7 @@ import productionPresets from "../../../../public/collections/urban-standard-hei
 import productionStaticOptions from "../../../../public/collections/urban-standard-height/static-options.json";
 import productionSkuMappings from "../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
@@ -65,6 +66,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
       [`${rootUrl}urban-standard-height/product-profile.json`]: brokenProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+      [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
     });
 
     const dependencies: CollectionRuntimeDependencies = {
@@ -109,6 +111,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
       [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+      [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
     });
     const pending: Array<(value: unknown) => void> = [];
     const calls: string[] = [];
@@ -136,10 +139,7 @@ describe("collection loading and assembly", () => {
     pending[2]?.(datatable439);
     const data = await loading;
 
-    expect(remote.loadConfigurator).toHaveBeenCalledWith(
-      { id: 4, view: "full", serialize: true },
-      abortSignal,
-    );
+    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(439, abortSignal);
     expect(data.id).toBe("urban-standard-height");
@@ -147,7 +147,9 @@ describe("collection loading and assembly", () => {
     expect(data.catalog.presets?.flatMap(({ presetProducts }) => presetProducts)).toHaveLength(123);
     expect(new Set(data.catalog.presets?.map(({ id }) => id)).size).toBe(54);
     expect(data.catalog.presets?.[0]?.id).toBe(1);
-    expect(data.catalog.presets?.every(({ img }) => img.startsWith(`${rootUrl}urban-standard-height/images/`))).toBe(true);
+    expect(data.catalog.presets?.every(({ img }) => img.startsWith(`${rootUrl}urban-standard-height/images/`))).toBe(
+      true,
+    );
     expect(data.sources.remote.configurator?.availableOptions[0]?.options[0]?.variants[0]?.metadata).toHaveProperty(
       "codeColor",
     );
@@ -158,6 +160,9 @@ describe("collection loading and assembly", () => {
     // The profile reaches the loader and normalizes the legacy matrix: handle-specific
     // columns become a generic relation keyed by handle id.
     expect(data.catalog.productProfile?.collectionId).toBe("urban-standard-height");
+    expect(data.sources.local.ui?.collectionId).toBe("urban-standard-height");
+    expect(data.catalog.customization?.flows.custom.entryStepId).toBe("cabinet-builder");
+    expect(data.catalog.navigation).toEqual(productionNavigation);
 
     const sinkBase = data.catalog.cabinets?.typeCabinetRules.find(({ code }) => code === "Sink-Base");
     expect(sinkBase?.forcedHeightByHandle).toEqual({
@@ -252,6 +257,7 @@ describe("collection loading and assembly", () => {
       [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
       [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
       [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+      [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
     });
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -269,6 +275,75 @@ describe("collection loading and assembly", () => {
     const registry = await loadCollectionRegistry(dependencies, abortSignal);
     const resolution = resolveCollection({ registry, urlCollectionId: null });
     if (!resolution.ok) throw new Error("Expected USH to resolve");
-    await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow("countertop unavailable");
+    await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(
+      "countertop unavailable",
+    );
+  });
+
+  it("rejects customization data written for another collection", async () => {
+    const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
+    const fetchJson = jsonFetcher({
+      [manifestUrl]: productionManifest,
+      [`${rootUrl}urban-standard-height/navigation.json`]: productionNavigation,
+      [`${rootUrl}urban-standard-height/presets.json`]: productionPresets,
+      [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
+      [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
+      [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+      [`${rootUrl}urban-standard-height/ui.json`]: { ...productionUi, collectionId: "copied-collection" },
+    });
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl: rootUrl,
+      registry: productionRegistry,
+      fetchJson,
+      remote: {
+        loadConfigurator: vi.fn(async () => configurator4),
+        loadCountertopTable: vi.fn(async () => datatable438),
+        loadCabinetTable: vi.fn(async () => datatable439),
+      },
+    };
+    const registry = await loadCollectionRegistry(dependencies, abortSignal);
+    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    if (!resolution.ok) throw new Error("Expected USH to resolve");
+
+    await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(
+      "does not match manifest",
+    );
+  });
+
+  it("rejects legacy navigation that diverges from the customization schema", async () => {
+    const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
+    const fetchJson = jsonFetcher({
+      [manifestUrl]: productionManifest,
+      [`${rootUrl}urban-standard-height/navigation.json`]: {
+        ...productionNavigation,
+        prebuilt: productionNavigation.prebuilt.map((step, index) =>
+          index === 0 ? { ...step, label: "Stale Model Label" } : step,
+        ),
+      },
+      [`${rootUrl}urban-standard-height/presets.json`]: productionPresets,
+      [`${rootUrl}urban-standard-height/static-options.json`]: productionStaticOptions,
+      [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
+      [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
+      [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+    });
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl: rootUrl,
+      registry: productionRegistry,
+      fetchJson,
+      remote: {
+        loadConfigurator: vi.fn(async () => configurator4),
+        loadCountertopTable: vi.fn(async () => datatable438),
+        loadCabinetTable: vi.fn(async () => datatable439),
+      },
+    };
+    const registry = await loadCollectionRegistry(dependencies, abortSignal);
+    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    if (!resolution.ok) throw new Error("Expected USH to resolve");
+
+    await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(
+      "Navigation data does not match customization schema at prebuilt[0].label",
+    );
   });
 });

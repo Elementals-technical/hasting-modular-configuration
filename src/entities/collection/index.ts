@@ -1,5 +1,7 @@
 // Collection data access — owned by A.
 export * from "./lib/collectionUrl";
+export * from "./lib/customization/deriveCollectionNavigation";
+export * from "./lib/customization/validateCustomizationSchema";
 export * from "./lib/loadCollection";
 export * from "./lib/paths";
 export * from "./lib/resolveCollection";
@@ -110,7 +112,10 @@ export type {
   CustomizationFlowStepRef,
   CustomizationScreenKind,
   CustomizationSchema,
+  CustomizationSchemaDiagnostic,
+  CustomizationSchemaDiagnosticCode,
   CustomizationSectionDefinition,
   CustomizationStepDefinition,
   FieldRuntimeState,
+  ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
