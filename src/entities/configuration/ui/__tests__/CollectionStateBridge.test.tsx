@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
 import { ActiveCollectionContext, type ActiveCollectionState, type LoadedCollectionData } from "@/entities/collection";
@@ -15,31 +15,39 @@ import { CollectionStateBridge } from "../CollectionStateBridge";
 import { resetConfiguration, setActiveCollectionId } from "../../model/store/slice";
 
 const cabinets: ConfiguratorCatalog = {
-  typeCabinetRules: [
-    { code: "Sink-Base", widths: [60], depths: [46], heights: [56], drawers: ["1", "2"] },
-  ],
+  typeCabinetRules: [{ code: "Sink-Base", widths: [60], depths: [46], heights: [56], drawers: ["1", "2"] }],
 };
 
-const readyState = (overrides: Partial<LoadedCollectionData> = {}): ActiveCollectionState => ({
-  status: "ready",
-  collectionId: "urban-standard-height",
-  data: {
+const readyState = (overrides: Partial<LoadedCollectionData> = {}): ActiveCollectionState => {
+  const data = {
     id: "urban-standard-height",
     manifest: { id: "urban-standard-height", label: "USH", defaults: {} },
+    diagnostics: [],
     sources: { local: {}, remote: {} },
     catalog: { productProfile: ushProfile, cabinets },
     ...overrides,
-  } as LoadedCollectionData,
-});
+  } as LoadedCollectionData;
 
-const renderBridge = (state: ActiveCollectionState) =>
-  render(
-    <Provider store={store}>
-      <ActiveCollectionContext.Provider value={state}>
-        <CollectionStateBridge />
-      </ActiveCollectionContext.Provider>
-    </Provider>,
-  );
+  return { status: "ready", collectionId: data.id, data };
+};
+
+const bridgeTree = (state: ActiveCollectionState) => (
+  <Provider store={store}>
+    <ActiveCollectionContext.Provider value={state}>
+      <CollectionStateBridge />
+    </ActiveCollectionContext.Provider>
+  </Provider>
+);
+
+const renderBridge = (state: ActiveCollectionState) => render(bridgeTree(state));
+
+const populateUshCollectionData = () => {
+  store.dispatch(setActiveCollectionId("urban-standard-height"));
+  store.dispatch(setActiveProfile(ushProfile));
+  store.dispatch(setCabinetCatalog(cabinets));
+};
+
+afterEach(cleanup);
 
 describe("CollectionStateBridge", () => {
   beforeEach(() => {
@@ -61,15 +69,31 @@ describe("CollectionStateBridge", () => {
     expect(getCabinetCatalog(state).typeCabinetRules).toHaveLength(1);
   });
 
-  it("writes nothing while the collection is still resolving", () => {
+  it("clears a previous ready collection while the next identity is resolving", () => {
+    populateUshCollectionData();
     renderBridge({ status: "resolving" });
 
     const state = store.getState();
     expect(getActiveCollectionId(state)).toBeNull();
     expect(getActiveProductProfile(state)).toBeNull();
+    expect(getCabinetCatalog(state).typeCabinetRules).toEqual([]);
+    expect(state.rootStateUI.product.productOptions.CabinetColor).toBe("");
+    expect(state.rootStateUI.product.productOptions.CountertopColor).toBe("");
   });
 
-  it("writes nothing when the collection failed to load", () => {
+  it("clears a previous ready collection while the next collection is loading", () => {
+    populateUshCollectionData();
+    renderBridge({ status: "loading", collectionId: "fixture-ui" });
+
+    const state = store.getState();
+    expect(getActiveCollectionId(state)).toBeNull();
+    expect(getActiveProductProfile(state)).toBeNull();
+    expect(getCabinetCatalog(state).typeCabinetRules).toEqual([]);
+    expect(state.rootStateUI.product.productOptions.CabinetColor).toBe("");
+  });
+
+  it("clears a previous ready collection when the next collection fails", () => {
+    populateUshCollectionData();
     renderBridge({
       status: "error",
       collectionId: "mako",
@@ -79,14 +103,46 @@ describe("CollectionStateBridge", () => {
     // A failed load must not leave the previous collection's data in place either.
     expect(getActiveCollectionId(store.getState())).toBeNull();
     expect(getActiveProductProfile(store.getState())).toBeNull();
+    expect(getCabinetCatalog(store.getState()).typeCabinetRules).toEqual([]);
+    expect(store.getState().rootStateUI.product.productOptions.CabinetColor).toBe("");
   });
 
-  it("does not dispatch a catalog the collection did not provide", () => {
-    renderBridge(readyState({ catalog: { productProfile: ushProfile } }));
+  it("replaces defaults and clears a catalog omitted by the next ready collection", () => {
+    populateUshCollectionData();
+    const fixtureProfile = {
+      ...ushProfile,
+      collectionId: "fixture-ui",
+      defaults: { CabinetColor: "Fixture Blue" },
+    };
+    renderBridge(
+      readyState({
+        id: "fixture-ui",
+        manifest: { id: "fixture-ui", label: "Fixture UI", defaults: {} },
+        catalog: { productProfile: fixtureProfile },
+      }),
+    );
 
     const state = store.getState();
-    expect(getActiveProductProfile(state)).not.toBeNull();
-    // The previous catalog stays rather than being replaced by an empty one.
+    expect(getActiveCollectionId(state)).toBe("fixture-ui");
+    expect(getActiveProductProfile(state)?.collectionId).toBe("fixture-ui");
+    expect(state.rootStateUI.product.productOptions.CabinetColor).toBe("Fixture Blue");
+    expect(state.rootStateUI.product.productOptions.CountertopColor).toBe("");
     expect(getCabinetCatalog(state).typeCabinetRules).toEqual([]);
+  });
+
+  it("clears ready data when the same mounted bridge receives an error", () => {
+    const view = renderBridge(readyState());
+    expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height");
+
+    view.rerender(
+      bridgeTree({
+        status: "error",
+        collectionId: "unknown",
+        error: { code: "unknown-collection", message: "Unknown collection" },
+      }),
+    );
+
+    expect(getActiveCollectionId(store.getState())).toBeNull();
+    expect(getActiveProductProfile(store.getState())).toBeNull();
   });
 });
