@@ -65,7 +65,7 @@ changeAttribute(change, deps): Promise<ChangeResult>;
 
 `ChangeResult` is `applied | blocked | partial | error`. `confirmation-required` is deliberately absent — preview/confirm/cancel is C05. `partial` exists because the runtime API is not atomic: a set the scene applied halfway is reported with `needsSync: true` and never recorded as a successful configuration.
 
-The service talks to the scene through a narrow port. I owns the real one (`entities/configuration/model/runtimePort.ts`, task I02); until it lands, `createTestRuntimePort()` records the agreed set so the call order and its content can be proven without a scene.
+The service talks to the scene through the port I owns (`entities/configuration/model/runtimePort.ts`, I02). `createTestRuntimePort()` from `@/features/playCanvasAdapter` records the agreed set and can answer with each of the port's five statuses, so the call order and C's handling of every outcome are proven without a scene.
 
 **Scope mismatch to resolve:** CONTRACTS §3 enumerates `global | countertop | cabinet`, while the profile and the configuration model both address five scopes — `sinkType` is `basin`, `DividersStyle` is `drawer`. The wider set is implemented here; the contract needs the same widening before B writes its UI description against three.
 
@@ -144,12 +144,12 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 - **Three data discrepancies** against the real 438/439 fixtures: `Side-Cabinet` exists in code in ten places but not in the 439 payload; `drawerConfigurations` is spelled `1D|2D|1DWID` in static options while the table returns `1|2|1+inner`; thickness is 5 values in static options, 7 in code and 6 fractions in 438 (`3/8`, `1/2`, `2-3/8`, `4`, `5-1/8`, `5-1/2`). The third affects SKU and price.
 - **`sourceRefs` in the profile duplicates `manifest.remote`.** CONTRACTS §4 makes the manifest authoritative for source ids; the profile field should be dropped.
 - **Rule evaluation still runs inside twelve product reducers.** `CollectionStateBridge` exists to copy the collection into the store because hooks are unavailable there. Moving evaluation into the command layer is C06 and removes both the bridge and the transitional `activeProfile` field.
-- **`runtimePort` form is needed for C05.** Three of its four criteria are implementable now; "an error from I is not a success" needs I to distinguish not-ready, failed and unanswered. The interface shape is enough — the implementation is only required for I06.
+- **`runtimePort` is available for C05.** I02/I03 distinguish applied, not-ready, unsupported, failed and partial, and `changeAttribute` records nothing the scene did not apply. What remains of C05 is preview/confirm/cancel itself.
 
 ## Scope and completion
 
 Developer C owns the ProductProfile contract and its pure transformations, the configuration state model and value ownership, the single change path, and the Save format with its legacy reader. Developer C does not migrate page rendering or navigation (B), collection source binding and loading (A), SKU and pricing (D), or PlayCanvas bindings and scene execution (I).
 
-C01, C02, C07 and C08 are complete against their acceptance criteria. C05 is partially blocked on I02/I03; C06 depends on C05, I04 and B06/B08/B09; C09 depends on A07 and I05. C12 and C13 depend on all of the above.
+C01, C02, C07 and C08 are complete against their acceptance criteria. C05 can start, as the I02/I03 result contract is in place; C06 depends on C05, I04 and B06/B08/B09; C09 depends on A07 and I05. C12 and C13 depend on all of the above.
 
 Parity is proven against the real DataTable 439 payload from the Developer A fixtures. Browser verification of the full B → C → I path remains, and is evaluated jointly in C12 and I06.

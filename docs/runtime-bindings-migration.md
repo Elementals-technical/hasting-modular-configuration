@@ -39,9 +39,9 @@ The pure functions are exported from `@/entities/collection`:
 - `parseRuntimeBindings(input)` validates the document and returns either the table or diagnostics carrying `code`, `dataPath` and `message`.
 - `resolveRuntimeBinding(set, attributeId, value, flow?)` returns the target, patch, order and reset step, or the reason it cannot: `no-binding`, `unbound`, `unknown-value`, `flow-required`.
 - `findMissingBindings(set, changes, flow?)` reports every change of a set without a translation, before anything is sent.
-- `validateRuntimeBindings(profile, set, requiredAttributeIds)` cross-checks the table against the profile and the migrated attributes: missing bindings, missing catalog values, cabinet types without a product type, orphans, duplicates and a foreign collection.
+- `validateRuntimeBindings(profile, set, requiredAttributeIds)` cross-checks the table against the profile and the required attributes: missing bindings, missing catalog values, cabinet types without a product type, orphans, duplicates and a foreign collection.
 
-Until B's UI description exists, the required list is the C01 registry plus the dimensions: `[...CORE_ATTRIBUTE_IDS, "Height", "Width", "Depth"]`.
+The required list is every field of the collection's `ui.json` plus what C's commands can send without a field — the C01 registry and the dimensions: `[...uiFieldIds, ...CORE_ATTRIBUTE_IDS, "Height", "Width", "Depth"]`. `ui.json` alone is not enough: eleven bindings belong to no field, among them `Height`, which a handle change carries as a dependency.
 
 ### The port between C and the scene
 
@@ -170,7 +170,7 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 ## Open items
 
 - **Handoff to A07.** `validateRuntimeBindings` issues carry `code`, `attributeId` and `value`, but CONTRACTS §5 asks for `severity`, `dataset/path` and `message` as well. The manifest schema is `.strict()`, so `local.runtimeBindings` must be added to it before the file can be referenced. Loading, validating and exposing `catalog.runtimeBindings` is A07.
-- **Required attribute list.** The C01 registry stands in for B's field list. It is one list for every collection, so a collection without a towel bar still has to declare `TowelBarOption` as unbound. `ui.json` replaces it without changing the function.
+- **Required attribute list.** B's `ui.json` now supplies the UI fields, and every one of them has a scene decision (tested). The C01 part is still one list for every collection, so a collection without a towel bar still has to declare `TowelBarOption` as unbound. `ui.json` has no `Handle` field and no dimensions: `Handle` is required through the profile, the dimensions through the C01 part.
 - **Fixture bindings.** `fixture-ui` (`TestGrooveFinish -> HandleGrooveColor`, all cabinets) and `fixture-rules` need their own tables once A08 prepares the fixture profiles. The fixture-ui binding is covered by an inline test.
 - **Basin per cabinet.** Mako/Class need "чаша конкретної SB" (developer-i README line 53). That needs a cabinet key on basin-scoped changes, which is a C model change, not a binding.
 - **`CountertopStyle` is not read by the scene.** No file under `public/HastingCabinetsParametrization` contains the key. It is kept because the code sends it; it may be removable.

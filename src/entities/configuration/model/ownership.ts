@@ -10,8 +10,9 @@ import type { Scope } from "./types";
  *
  * Verified against the code at the audited head: the product slice `productOptions`
  * block, `ConfigurationUiState` in buildConfigurationMetadata, and the PlayCanvas
- * re-apply lists in restoreSnapshot. Anything marked `runtime` still needs confirming
- * with I when runtimePort lands.
+ * re-apply lists in restoreSnapshot. Entries owned by `runtime` were confirmed against
+ * runtime-bindings.json: CabinetType is set by placing a product, and SidePanelLeft/Right
+ * are per-side statuses sidePanels.ts records after the scene call.
  */
 
 /** Who may write the value. */

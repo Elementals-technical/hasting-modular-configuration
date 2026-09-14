@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
+import { validateCustomizationSchema } from "@/features/collectionCustomization";
+
+import ushUiDocument from "../../../../../../public/collections/urban-standard-height/ui.json";
 
 import { normalizeOptionValue } from "../../productProfileSelectors";
 import { findMissingBindings, resolveRuntimeBinding } from "../resolveRuntimeBinding";
@@ -11,9 +14,19 @@ import type { RuntimeBindingSet } from "../../../model/runtimeBindings";
 import { ushProfile } from "../../../__tests__/ushProfileFixture";
 import { ushRuntimeBindings } from "./ushRuntimeBindingsFixture";
 
-// Stand-in for B's field list until the UI description exists: every migrated attribute
-// plus the dimensions, which the C01 registry does not list yet.
-const MIGRATED_ATTRIBUTE_IDS = [...CORE_ATTRIBUTE_IDS, "Height", "Width", "Depth"];
+/** Every field of the USH UI description (B's ui.json). */
+const USH_UI_FIELD_IDS = (() => {
+  const result = validateCustomizationSchema(ushUiDocument);
+  if (!result.ok) throw new Error("Packaged USH ui.json failed validation");
+
+  return Object.values(result.schema.sections).flatMap(({ fields }) => fields.map(({ attributeId }) => attributeId));
+})();
+
+// Attributes that need a scene decision: what the UI lets the user change, and what C's
+// commands can send without a field of their own — the C01 registry plus the dimensions,
+// which C plans as dependencies (a handle change carries Height) and the registry does
+// not list yet.
+const REQUIRED_ATTRIBUTE_IDS = [...new Set([...USH_UI_FIELD_IDS, ...CORE_ATTRIBUTE_IDS, "Height", "Width", "Depth"])];
 
 describe("resolveRuntimeBinding", () => {
   it("translates a renamed value for the addressed cabinet", () => {
@@ -225,7 +238,13 @@ describe("findMissingBindings", () => {
 
 describe("validateRuntimeBindings", () => {
   it("finds no gap between the USH profile and its bindings", () => {
-    expect(validateRuntimeBindings(ushProfile, ushRuntimeBindings, MIGRATED_ATTRIBUTE_IDS)).toEqual([]);
+    expect(validateRuntimeBindings(ushProfile, ushRuntimeBindings, REQUIRED_ATTRIBUTE_IDS)).toEqual([]);
+  });
+
+  it("has a scene decision for every field of the USH UI description", () => {
+    const issues = validateRuntimeBindings(ushProfile, ushRuntimeBindings, USH_UI_FIELD_IDS);
+
+    expect(issues.filter(({ code }) => code === "missing-binding")).toEqual([]);
   });
 
   it("finds a migrated attribute the profile does not list", () => {
@@ -234,7 +253,7 @@ describe("validateRuntimeBindings", () => {
       bindings: ushRuntimeBindings.bindings.filter(({ attributeId }) => attributeId !== "Height"),
     };
 
-    expect(validateRuntimeBindings(ushProfile, set, MIGRATED_ATTRIBUTE_IDS)).toEqual([
+    expect(validateRuntimeBindings(ushProfile, set, REQUIRED_ATTRIBUTE_IDS)).toEqual([
       { code: "missing-binding", attributeId: "Height" },
     ]);
   });
@@ -245,7 +264,7 @@ describe("validateRuntimeBindings", () => {
     );
 
     expect(
-      validateRuntimeBindings(ushProfile, { ...ushRuntimeBindings, productTypes }, MIGRATED_ATTRIBUTE_IDS),
+      validateRuntimeBindings(ushProfile, { ...ushRuntimeBindings, productTypes }, REQUIRED_ATTRIBUTE_IDS),
     ).toEqual([{ code: "missing-product-type", attributeId: "CabinetType", value: "Side-Cabinet" }]);
   });
 
@@ -259,7 +278,7 @@ describe("validateRuntimeBindings", () => {
       ),
     };
 
-    expect(validateRuntimeBindings(profile, ushRuntimeBindings, MIGRATED_ATTRIBUTE_IDS)).toEqual([
+    expect(validateRuntimeBindings(profile, ushRuntimeBindings, REQUIRED_ATTRIBUTE_IDS)).toEqual([
       { code: "missing-value", attributeId: "Drawers", value: "3" },
     ]);
   });
@@ -270,7 +289,7 @@ describe("validateRuntimeBindings", () => {
       attributes: [...ushProfile.attributes, { attributeId: "LegsStyle", scope: "cabinet" }],
     };
 
-    expect(validateRuntimeBindings(profile, ushRuntimeBindings, MIGRATED_ATTRIBUTE_IDS)).toEqual([
+    expect(validateRuntimeBindings(profile, ushRuntimeBindings, REQUIRED_ATTRIBUTE_IDS)).toEqual([
       { code: "missing-binding", attributeId: "LegsStyle" },
     ]);
   });
@@ -287,7 +306,7 @@ describe("validateRuntimeBindings", () => {
       ],
     };
 
-    expect(validateRuntimeBindings(ushProfile, set, MIGRATED_ATTRIBUTE_IDS)).toEqual([
+    expect(validateRuntimeBindings(ushProfile, set, REQUIRED_ATTRIBUTE_IDS)).toEqual([
       { code: "collection-mismatch" },
       { code: "duplicate-binding", attributeId: "Handle" },
       { code: "orphan-binding", attributeId: "OldAttribute" },

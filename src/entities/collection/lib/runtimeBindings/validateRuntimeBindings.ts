@@ -37,8 +37,9 @@ export const validateRuntimeBindings = (
   profile: ProductProfile,
   set: RuntimeBindingSet,
   /**
-   * Attributes that need an entry beyond the profile catalog, such as dimensions and
-   * colors. Until B's UI description exists, the caller passes the migrated attributes.
+   * Attributes that need an entry beyond the profile catalog: the fields of the
+   * collection's UI description (ui.json) and the attributes C commands can send
+   * without a field, such as the dimensions a handle change carries.
    */
   requiredAttributeIds: readonly string[] = [],
 ): RuntimeBindingIssue[] => {
