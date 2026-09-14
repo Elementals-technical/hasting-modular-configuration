@@ -13,6 +13,11 @@ export type { SceneReadBridge, SceneReaderDeps } from "./lib/createSceneReader";
 export { createTestSceneReader } from "./lib/testSceneReader";
 export type { TestSceneReader } from "./lib/testSceneReader";
 
+export { createSceneRestorer, resolveSceneProductType } from "./lib/createSceneRestorer";
+export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRestorer";
+export { createTestSceneRestorer } from "./lib/testSceneRestorer";
+export type { TestSceneRestorer } from "./lib/testSceneRestorer";
+
 // TODO(A07): temporary runtime-bindings loader.
 export { getLoadedRuntimeBindings, loadRuntimeBindings, resetRuntimeBindingsCache } from "./lib/runtimeBindingsCache";
 export { RuntimeBindingsBridge } from "./ui/RuntimeBindingsBridge";
