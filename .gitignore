@@ -102,6 +102,7 @@ docs/*
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
 !docs/collection-data-migration-status-v1.md
+!docs/collection-data-migration-status-v2.md
 !docs/product-profile-migration.md
 !docs/runtime-bindings-migration.md
 

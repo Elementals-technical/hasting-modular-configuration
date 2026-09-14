@@ -4,13 +4,13 @@ Publish a versioned Developer A migration-status report after the active-collect
 
 ## Acceptance criteria
 
-- [ ] A new versioned migration-status document links to v1 as its baseline.
-- [ ] The document records the completed customization, ProductProfile, runtime-binding, runtime-port, state, and Save foundations accurately.
-- [ ] Remaining UI, command, PlayCanvas, pricing, Save/restore, and browser-acceptance consumers are listed with their current source, target contract, owner, and status.
-- [ ] A07 and the Developer A portion of A08 are marked complete only when their tests and fixtures provide evidence.
-- [ ] A09 remains explicitly partial until B10, C12, I06, and D03 evidence exists.
-- [ ] Full tests, TypeScript validation, production build, and lint results are recorded accurately, including any unrelated baseline lint failures.
-- [ ] The document gives the next developers a concrete first vertical browser scenario to implement and verify.
+- [x] A new versioned migration-status document links to v1 as its baseline.
+- [x] The document records the completed customization, ProductProfile, runtime-binding, runtime-port, state, and Save foundations accurately.
+- [x] Remaining UI, command, PlayCanvas, pricing, Save/restore, and browser-acceptance consumers are listed with their current source, target contract, owner, and status.
+- [x] A07 and the Developer A portion of A08 are marked complete only when their tests and fixtures provide evidence.
+- [x] A09 remains explicitly partial until B10, C12, I06, and D03 evidence exists.
+- [x] Full tests, TypeScript validation, production build, and lint results are recorded accurately, including any unrelated baseline lint failures.
+- [x] The document gives the next developers a concrete first vertical browser scenario to implement and verify.
 
 ## Blocked by
 

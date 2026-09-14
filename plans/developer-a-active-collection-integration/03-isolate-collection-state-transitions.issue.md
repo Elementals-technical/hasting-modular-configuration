@@ -4,15 +4,14 @@ Make collection lifecycle transitions isolate collection-derived configuration s
 
 ## Acceptance criteria
 
-- [ ] A previous ready collection is not treated as current during a later resolving, loading, or error state.
-- [ ] The Redux bridge clears the active collection identity, ProductProfile-derived state, and cabinet catalog when active collection data is unavailable.
-- [ ] A newly ready collection replaces collection-derived defaults and options rather than merging them over values from the previous collection.
-- [ ] A ready collection without an optional cabinet catalog clears the previous cabinet catalog.
-- [ ] Regression tests begin with populated USH state and cover ready-to-loading, ready-to-error, and ready-to-collection-with-omitted-source transitions.
-- [ ] Configuration commands and Save/restore semantics remain unchanged.
-- [ ] Relevant tests, TypeScript validation, and changed-file linting pass.
+- [x] A previous ready collection is not treated as current during a later resolving, loading, or error state.
+- [x] The Redux bridge clears the active collection identity, ProductProfile-derived state, and cabinet catalog when active collection data is unavailable.
+- [x] A newly ready collection replaces collection-derived defaults and options rather than merging them over values from the previous collection.
+- [x] A ready collection without an optional cabinet catalog clears the previous cabinet catalog.
+- [x] Regression tests begin with populated USH state and cover ready-to-loading, ready-to-error, and ready-to-collection-with-omitted-source transitions.
+- [x] Configuration commands and Save/restore semantics remain unchanged.
+- [x] Relevant tests, TypeScript validation, and changed-file linting pass.
 
 ## Blocked by
 
 - Blocked by #plans/developer-a-active-collection-integration/01-load-customization-contract.issue.md
-
