@@ -583,11 +583,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     // Selecting another cabinet copies its actual size into the selection. That is not a change
     // to send: it would give every cabinet the selected one's height and depth (I04).
     const state = getCommandState();
-    const selectedActual = getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state));
+    const hasSize = (dimensions: ReturnType<typeof getCabinetDimensionsByRuntimeId>) =>
+      dimensions?.height === selectedDimensions.height && dimensions?.depth === selectedDimensions.depth;
+
+    if (hasSize(getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state)))) return;
+
+    // Opening the sidebar re-runs this effect; when every cabinet already has this size there is nothing to send.
+    const placedCabinets = getCabinetEntries(state);
     if (
-      selectedActual &&
-      selectedActual.height === selectedDimensions.height &&
-      selectedActual.depth === selectedDimensions.depth
+      placedCabinets.length > 0 &&
+      placedCabinets.every(({ runtimeId }) => hasSize(getCabinetDimensionsByRuntimeId(state, runtimeId)))
     ) {
       return;
     }

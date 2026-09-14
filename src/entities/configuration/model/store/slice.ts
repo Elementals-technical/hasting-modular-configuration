@@ -70,7 +70,17 @@ const configurationSlice = createSlice({
      */
     recordSceneState(state, action: PayloadAction<RecordedSceneState>) {
       const { order, cabinets } = action.payload;
-      state.cabinets = reconcileOrder(state.cabinets, order);
+
+      // An unchanged order keeps its reference, so consumers do not recompute on every read.
+      const reconciled = reconcileOrder(state.cabinets, order);
+      const orderChanged =
+        reconciled.length !== state.cabinets.length ||
+        reconciled.some(
+          (entry, index) =>
+            entry.stableKey !== state.cabinets[index].stableKey || entry.index !== state.cabinets[index].index,
+        );
+
+      if (orderChanged) state.cabinets = reconciled;
 
       for (const { runtimeId, dimensions } of cabinets) {
         const stableKey = resolveStableKey(state.cabinets, runtimeId);

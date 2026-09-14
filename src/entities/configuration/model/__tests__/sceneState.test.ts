@@ -65,6 +65,14 @@ describe("recorded scene state", () => {
     expect(getDimensionsByCabinet(store.getState())).toEqual({ "cab-1": LOW });
   });
 
+  it("keeps the reference of an unchanged order", () => {
+    const before = getCabinetEntries(store.getState());
+
+    store.dispatch(recordSceneState({ order: ["rt-a", "countertop-1", "rt-b"], cabinets: [] }));
+
+    expect(getCabinetEntries(store.getState())).toBe(before);
+  });
+
   it("keeps the reference of an unchanged size", () => {
     store.dispatch(recordSceneState({ order: [], cabinets: [{ runtimeId: "rt-a", dimensions: LOW }] }));
     const before = getDimensionsByCabinet(store.getState());
