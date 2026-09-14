@@ -31,7 +31,12 @@ import {
   getPlacedDividers,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  getDimensionsByCabinet,
+} from "@/entities/configuration/model/store/selectors";
 import {
   buildProductSku,
   buildCountertopSkuIfComplete,
@@ -126,6 +131,9 @@ export function usePriceCalculation() {
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  // Actual size of each cabinet read from the scene (I04), so no cabinet borrows the selected one's.
+  const cabinetEntries = useAppSelector(getCabinetEntries);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const productIds = useAppSelector(getSelectedProducts);
 
@@ -229,7 +237,7 @@ export function usePriceCalculation() {
           normalizeProductConfigSnapshot({
             id,
             raw: raw as Record<string, unknown>,
-            selectedDimensions,
+            recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, id),
           }),
         );
       } catch (err) {
@@ -246,6 +254,8 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    cabinetEntries,
+    dimensionsByCabinet,
   ]);
 
   useEffect(() => {
@@ -582,8 +592,14 @@ export function usePriceCalculation() {
           handle: (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null,
           pattern: drawerPanelFluting || null,
           width: preset.Width ?? null,
-          height: selectedDimensions.height ?? preset.Height ?? null,
-          depth: selectedDimensions.depth ?? preset.Depth ?? null,
+          height:
+            resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[idx])?.height ??
+            preset.Height ??
+            null,
+          depth:
+            resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[idx])?.depth ??
+            preset.Depth ??
+            null,
           cab: cabMaterialSku
             ? {
                 materialSku: cabMaterialSku,
@@ -790,7 +806,7 @@ export function usePriceCalculation() {
           productId: productIds[index] ?? null,
           width: p.Width ?? null,
           height: p.Height ?? null,
-          depth: selectedDimensions.depth ?? p.Depth ?? null,
+          depth: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[index])?.depth ?? p.Depth ?? null,
           sinkType: shouldUsePresetSinkType ? (p.sinkType ?? resolvedSinkType) : resolvedSinkType,
         })),
         ...sceneConfigsInSceneOrder.map((cfg) => ({
@@ -1073,6 +1089,8 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    cabinetEntries,
+    dimensionsByCabinet,
     selectedProductConfig,
     cabinetColor,
     cabinetColorSku,
@@ -1224,5 +1242,7 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    cabinetEntries,
+    dimensionsByCabinet,
   ]);
 }

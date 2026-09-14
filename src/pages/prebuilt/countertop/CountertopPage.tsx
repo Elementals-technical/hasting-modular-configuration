@@ -77,7 +77,12 @@ import {
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { selectMessage } from "@/entities/collection";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  getDimensionsByCabinet,
+} from "@/entities/configuration/model/store/selectors";
 
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
 import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
@@ -155,6 +160,8 @@ export const CountertopPage = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const cabinetEntries = useAppSelector(getCabinetEntries);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const cabinetCompositionCount = selectedProducts.length > 0 ? selectedProducts.length : presetsProducts.length;
@@ -1567,7 +1574,7 @@ export const CountertopPage = () => {
         const normalizedConfig = normalizeProductConfigSnapshot({
           id: productId,
           raw: config,
-          selectedDimensions,
+          recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productId),
         });
         return canUseBasinAtWidth(normalizedConfig.Width);
       });
@@ -1588,6 +1595,8 @@ export const CountertopPage = () => {
       dispatch,
       sceneTotalWidth,
       selectedDimensions,
+      cabinetEntries,
+      dimensionsByCabinet,
     ],
   );
 

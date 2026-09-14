@@ -88,7 +88,12 @@ import {
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { selectMessage } from "@/entities/collection";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  getDimensionsByCabinet,
+} from "@/entities/configuration/model/store/selectors";
 
 import s from "./Countertop.module.scss";
 import { useGetConfiguratorQuery } from "@/entities";
@@ -150,6 +155,8 @@ export const CustomCountertopPage = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const cabinetEntries = useAppSelector(getCabinetEntries);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
   const [hasSinkBase, setHasSinkBase] = useState(false);
@@ -1565,7 +1572,7 @@ export const CustomCountertopPage = () => {
         const normalizedConfig = normalizeProductConfigSnapshot({
           id: productId,
           raw: config,
-          selectedDimensions,
+          recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productId),
         });
         return canUseBasinAtWidth(normalizedConfig.Width);
       });
@@ -1586,6 +1593,8 @@ export const CustomCountertopPage = () => {
       dispatch,
       sceneTotalWidth,
       selectedDimensions,
+      cabinetEntries,
+      dimensionsByCabinet,
     ],
   );
 

@@ -49,7 +49,12 @@ import {
   getPlacedDividers,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  getDimensionsByCabinet,
+} from "@/entities/configuration/model/store/selectors";
 // import { dividersMockData } from "@/pages/prebuilt/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import {
@@ -320,6 +325,8 @@ export const SummaryPage = () => {
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const cabinetEntries = useAppSelector(getCabinetEntries);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
@@ -538,7 +545,7 @@ export const SummaryPage = () => {
             ? normalizeProductConfigSnapshot({
                 id,
                 raw: config as Record<string, unknown>,
-                selectedDimensions,
+                recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, id),
               })
             : null;
         }),
@@ -552,7 +559,7 @@ export const SummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, selectedDimensions, selectedProducts]);
+  }, [dispatch, selectedDimensions, selectedProducts, cabinetEntries, dimensionsByCabinet]);
 
   useEffect(() => {
     let isMounted = true;
@@ -726,8 +733,9 @@ export const SummaryPage = () => {
     );
     const presetCabinetItems = shouldUsePresets
       ? productsPresets.map((preset, index) => {
-          const presetHeight = selectedDimensions.height ?? preset.Height ?? undefined;
-          const presetDepth = selectedDimensions.depth ?? preset.Depth ?? undefined;
+          const recordedDimensions = resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, selectedProducts[index]);
+          const presetHeight = recordedDimensions?.height ?? preset.Height ?? undefined;
+          const presetDepth = recordedDimensions?.depth ?? preset.Depth ?? undefined;
           const swatchValue = preset.CabinetColor ?? cabinetColor;
           const swatch = resolveSwatch(swatchValue);
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
@@ -1564,7 +1572,10 @@ export const SummaryPage = () => {
     productsPresets.forEach((preset, index) => {
       const productId = selectedProducts[index];
       if (!productId || dividerDepthByCabinetId.has(productId)) return;
-      dividerDepthByCabinetId.set(productId, selectedDimensions.depth ?? preset.Depth ?? null);
+      dividerDepthByCabinetId.set(
+        productId,
+        resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productId)?.depth ?? preset.Depth ?? null,
+      );
     });
 
     const dividerItems: SummaryItem[] = (() => {
@@ -1753,6 +1764,8 @@ export const SummaryPage = () => {
     selectedDimensions.depth,
     selectedDimensions.height,
     selectedDimensions.width,
+    cabinetEntries,
+    dimensionsByCabinet,
     selectedProductConfig,
     sidePanelsOption,
     sidePanelLeft,

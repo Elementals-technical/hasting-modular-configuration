@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import { maxSeqFromKeys, rebindSavedCabinets, reconcileOrder, registerCabinets } from "../identity";
+import { maxSeqFromKeys, rebindSavedCabinets, reconcileOrder, registerCabinets, resolveStableKey } from "../identity";
+import type { SceneStateResult } from "../runtimePort";
 import { isSameTarget } from "../types";
 import type {
   AttributeValue,
@@ -10,6 +11,17 @@ import type {
   StableCabinetKey,
   ValueTarget,
 } from "../types";
+
+type RecordedSceneState = Omit<Extract<SceneStateResult, { status: "ready" }>, "status">;
+
+/** Sizes of products that are no longer placed must not be read for a new one. */
+const pruneDimensions = (state: ConfigurationState) => {
+  const placed = new Set(state.cabinets.map((entry) => entry.stableKey));
+
+  for (const stableKey of Object.keys(state.dimensionsByCabinet)) {
+    if (!placed.has(stableKey)) delete state.dimensionsByCabinet[stableKey];
+  }
+};
 
 /**
  * Holds only what the typed product slice cannot address today: the active collection,
@@ -25,6 +37,7 @@ const initialState: ConfigurationState = {
   collectionId: null,
   cabinets: [],
   nextCabinetSeq: 1,
+  dimensionsByCabinet: {},
   valuesByAttributeId: {},
 };
 
@@ -42,6 +55,7 @@ const configurationSlice = createSlice({
       const { entries, nextSeq } = registerCabinets(state.cabinets, action.payload, state.nextCabinetSeq);
       state.cabinets = entries;
       state.nextCabinetSeq = nextSeq;
+      pruneDimensions(state);
     },
 
     /** Applies the composition order reported by the scene. */
@@ -49,11 +63,36 @@ const configurationSlice = createSlice({
       state.cabinets = reconcileOrder(state.cabinets, action.payload);
     },
 
+    /**
+     * Records the actual order and sizes read from the scene (I04). Each size goes to the
+     * product the scene reported it for; a product the scene did not report keeps its last
+     * size, and an id with no stable key is ignored, since only `syncCabinets` creates keys.
+     */
+    recordSceneState(state, action: PayloadAction<RecordedSceneState>) {
+      const { order, cabinets } = action.payload;
+      state.cabinets = reconcileOrder(state.cabinets, order);
+
+      for (const { runtimeId, dimensions } of cabinets) {
+        const stableKey = resolveStableKey(state.cabinets, runtimeId);
+        if (!stableKey) continue;
+
+        // An unchanged size keeps its reference, so consumers do not recompute on every read.
+        const recorded = state.dimensionsByCabinet[stableKey];
+        const unchanged =
+          recorded?.width === dimensions.width &&
+          recorded.height === dimensions.height &&
+          recorded.depth === dimensions.depth;
+
+        if (!unchanged) state.dimensionsByCabinet[stableKey] = { ...dimensions };
+      }
+    },
+
     /** Restores saved identity by pairing saved keys with freshly created runtime ids. */
     restoreCabinets(state, action: PayloadAction<{ stableKeys: StableCabinetKey[]; runtimeIds: string[] }>) {
       const { stableKeys, runtimeIds } = action.payload;
       state.cabinets = rebindSavedCabinets(stableKeys, runtimeIds);
       state.nextCabinetSeq = Math.max(state.nextCabinetSeq, maxSeqFromKeys(stableKeys) + 1);
+      pruneDimensions(state);
     },
 
     setAttributeValue(
@@ -118,6 +157,7 @@ const configurationSlice = createSlice({
         state.nextCabinetSeq,
         maxSeqFromKeys(cabinets.map((entry) => entry.stableKey)) + 1,
       );
+      pruneDimensions(state);
     },
 
     resetConfiguration(state) {
@@ -130,6 +170,7 @@ export const {
   setActiveCollectionId,
   syncCabinets,
   syncCabinetOrder,
+  recordSceneState,
   restoreCabinets,
   setAttributeValue,
   clearAttributeValue,

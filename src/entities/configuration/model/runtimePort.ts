@@ -1,6 +1,6 @@
 import type { RuntimeBindingFailureReason, RuntimeFlow } from "@/entities/collection";
 
-import type { AttributeValue, StableCabinetKey, ValueTarget } from "./types";
+import type { AttributeValue, CabinetDimensions, StableCabinetKey, ValueTarget } from "./types";
 
 /**
  * runtimePort — the one boundary between C and the PlayCanvas scene.
@@ -77,4 +77,28 @@ export type ConfigurationRuntimePort = {
   /** Whether the scene can take commands now. */
   isReady(): boolean;
   apply<T extends RuntimeChange>(changes: readonly T[], context: RuntimeContext): Promise<RuntimeApplyResult<T>>;
+};
+
+/** The actual size of one product, keyed by the id the scene knows. */
+export type SceneCabinetState = {
+  runtimeId: string;
+  dimensions: CabinetDimensions;
+};
+
+/**
+ * What the scene actually holds (I04):
+ * - ready: `order` is the composition order of every product the scene has; `cabinets` has
+ *   one entry per requested product the scene has, never a size borrowed from another one;
+ * - not-ready: nothing could be read, so C keeps what it recorded before.
+ */
+export type SceneStateResult =
+  | { status: "ready"; order: string[]; cabinets: SceneCabinetState[] }
+  | { status: "not-ready" };
+
+/**
+ * Reads the actual result of the scene. The scene fires no events of its own for sizes or
+ * order, so C reads after the actions that change them; I never writes Redux.
+ */
+export type ConfigurationSceneReader = {
+  read(runtimeIds: readonly string[]): Promise<SceneStateResult>;
 };

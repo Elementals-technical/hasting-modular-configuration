@@ -36,6 +36,8 @@ import {
   resolveCabinetSyncActions,
   resolveHandleSceneSync,
 } from "@/features/configurationCommands/lib/compositionListeners";
+import { setupSceneStateListener } from "@/features/configurationCommands/lib/sceneStateSync";
+import { createSceneReader } from "@/features/playCanvasAdapter/lib/createSceneReader";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
@@ -58,6 +60,9 @@ optionsListenerMiddleware.startListening({
     actions.forEach((action) => listenerApi.dispatch(action));
   },
 });
+
+// The actual order and per-cabinet sizes are read back from the scene after they change.
+setupSceneStateListener(optionsListenerMiddleware.startListening, { reader: createSceneReader() });
 
 // A handle the state changed on its own (rules, restore, selection) reaches the scene once.
 optionsListenerMiddleware.startListening({

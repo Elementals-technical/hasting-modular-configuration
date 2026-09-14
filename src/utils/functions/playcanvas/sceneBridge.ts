@@ -50,6 +50,18 @@ const getSceneBatchApi = (): SceneBatchApi | null => {
   return api.setConfigBatch as SceneBatchApi;
 };
 
+type SceneComposition = { getOrderProductIds?: () => unknown };
+type SceneCompositionManager = { getActiveComposition?: () => unknown };
+type SceneConfigApi = (productId: string) => unknown;
+
+const getConfiguratorApi = (): Record<string, unknown> | null => {
+  const host = window as unknown as PlayCanvasHost;
+  const contentWindow = host.containerRef?.current?.contentWindow;
+  if (!isRecord(contentWindow)) return null;
+
+  return isRecord(contentWindow.ConfiguratorAPI) ? contentWindow.ConfiguratorAPI : null;
+};
+
 /**
  * Ready once PlayCanvasIntegration has bridged the iframe (playCanvasReady) and the
  * batch API exists. The flag is reset when the iframe reloads.
@@ -125,4 +137,58 @@ export const applySceneConfig = (selector: SceneSelector, patch: SceneConfigPatc
         message: error instanceof Error ? error.message : String(error),
       };
     }
+  });
+
+export type SceneProductsRead =
+  | { status: "ready"; order: string[]; configs: Record<string, Record<string, unknown>> }
+  | { status: "not-ready" };
+
+/**
+ * Composition order as the scene holds it, or null without an active composition.
+ * Unlike getOrderedProductIds, a miss is never replaced with a fallback list.
+ */
+const readSceneOrder = (): string[] | null => {
+  const config = getConfiguratorApi()?.config;
+  const manager = isRecord(config) ? (config.compositionManager as SceneCompositionManager | undefined) : undefined;
+  if (!isRecord(manager) || typeof manager.getActiveComposition !== "function") return null;
+
+  const composition = manager.getActiveComposition() as SceneComposition | undefined;
+  if (!isRecord(composition) || typeof composition.getOrderProductIds !== "function") return null;
+
+  const orderMap = composition.getOrderProductIds();
+  if (!isRecord(orderMap)) return null;
+
+  const position = (productId: string) => {
+    const value = orderMap[productId];
+    return typeof value === "number" ? value : 0;
+  };
+
+  return Object.keys(orderMap).sort((a, b) => position(a) - position(b));
+};
+
+/**
+ * Reads the order and the config of the given products. Queued like the commands, so it
+ * sees every batch sent before it. A product the scene has no config for is left out.
+ */
+export const readSceneProducts = (productIds: readonly string[]): Promise<SceneProductsRead> =>
+  runInBatchQueue(async (): Promise<SceneProductsRead> => {
+    const api = getConfiguratorApi();
+    const getConfig = api?.getConfig;
+    if (!isSceneReady() || typeof getConfig !== "function") return { status: "not-ready" };
+
+    const order = readSceneOrder();
+    if (!order) return { status: "not-ready" };
+
+    const configs: Record<string, Record<string, unknown>> = {};
+
+    for (const productId of productIds) {
+      try {
+        const config = await (getConfig as SceneConfigApi)(productId);
+        if (isRecord(config)) configs[productId] = config;
+      } catch {
+        // A product the scene cannot answer for gets no size rather than another one's.
+      }
+    }
+
+    return { status: "ready", order, configs };
   });

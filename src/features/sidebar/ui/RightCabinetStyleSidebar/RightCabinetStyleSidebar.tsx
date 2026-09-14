@@ -34,6 +34,7 @@ import {
   getGrainDirection,
   getSelectedDimensions,
   getSelectedProducts,
+  getSelectedSceneProduct,
   getSelectedProductConfig,
   getHeightLocked,
   getSinkType,
@@ -61,7 +62,11 @@ import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { useGetConfiguratorQuery } from "@/entities";
 import { hasCapability, selectEffectiveFallback, selectOptions } from "@/entities/collection";
-import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import {
+  getActiveProductProfile,
+  getCabinetDimensionsByRuntimeId,
+  getCabinetEntries,
+} from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
@@ -575,11 +580,23 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
+    // Selecting another cabinet copies its actual size into the selection. That is not a change
+    // to send: it would give every cabinet the selected one's height and depth (I04).
+    const state = getCommandState();
+    const selectedActual = getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state));
+    if (
+      selectedActual &&
+      selectedActual.height === selectedDimensions.height &&
+      selectedActual.depth === selectedDimensions.depth
+    ) {
+      return;
+    }
+
     const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
     setConfigBatch({}, dimConfig);
 
     selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)

@@ -99,6 +99,7 @@ import {
 } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
+import { createSceneReader } from "@/features/playCanvasAdapter";
 import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
@@ -681,8 +682,8 @@ export const CabinetBuilderPage = () => {
 
     setActiveStyleId(id);
 
-    // TODO(I04): in some compositions a batch update keeps a stale height until the sidebar is
-    // touched. Until I reports the actual size, a cabinet whose height differs is sent again.
+    // In some compositions a batch update keeps a stale height until the sidebar is touched. The
+    // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
     const product = getCommandState().rootStateUI.product;
     const appliedHeight = product.selectedDimensions.height;
     if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
@@ -693,14 +694,19 @@ export const CabinetBuilderPage = () => {
         ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
         : null;
     const depth = product.selectedDimensions.depth;
-    const currentConfigs = await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)));
+    const sceneState = await createSceneReader().read(cabinetIdsToUpdate);
+    const actualHeights = new Map(
+      sceneState.status === "ready"
+        ? sceneState.cabinets.map(({ runtimeId, dimensions }) => [runtimeId, dimensions.height])
+        : [],
+    );
+    const staleIds = cabinetIdsToUpdate.filter((productId) => actualHeights.get(productId) !== appliedHeight);
+    const currentConfigs = await Promise.all(staleIds.map((productId) => getConfig(productId)));
 
-    for (let i = 0; i < cabinetIdsToUpdate.length; i += 1) {
-      const productId = cabinetIdsToUpdate[i];
+    for (let i = 0; i < staleIds.length; i += 1) {
+      const productId = staleIds[i];
       const rawConfig = currentConfigs[i];
       const config = rawConfig && typeof rawConfig === "object" ? (rawConfig as Record<string, unknown>) : {};
-
-      if (typeof config.Height === "number" && config.Height === appliedHeight) continue;
 
       await setConfig(productId, {
         ...config,

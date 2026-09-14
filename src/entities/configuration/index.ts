@@ -4,6 +4,7 @@ export { CollectionStateBridge } from "./ui/CollectionStateBridge";
 
 export type {
   AttributeValue,
+  CabinetDimensions,
   CabinetEntry,
   ConfigurationSnapshot,
   ConfigurationState,
@@ -18,11 +19,14 @@ export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget } from "./mo
 // runtimePort — owned by I: the typed boundary between C and the scene.
 export type {
   ConfigurationRuntimePort,
+  ConfigurationSceneReader,
   FailedRuntimeChange,
   RuntimeApplyResult,
   RuntimeChange,
   RuntimeContext,
   RuntimeFailureCode,
+  SceneCabinetState,
+  SceneStateResult,
   UnsupportedRuntimeChange,
 } from "./model/runtimePort";
 
@@ -43,6 +47,7 @@ export {
   rebindSavedCabinets,
   reconcileOrder,
   registerCabinets,
+  resolveCabinetDimensions,
   resolveStableKey,
 } from "./model/identity";
 
@@ -50,6 +55,7 @@ export {
   clearAttributeValue,
   configurationReducer,
   dropValuesForCabinet,
+  recordSceneState,
   resetConfiguration,
   restoreCabinets,
   restoreConfigurationFragment,
@@ -64,6 +70,9 @@ export {
   getActiveProductProfile,
   getAttributeValue,
   getCabinetByStableKey,
+  getCabinetDimensions,
+  getCabinetDimensionsByRuntimeId,
+  getDimensionsByCabinet,
   getCabinetEntries,
   getConfigurationSnapshot,
   getConfigurationState,

@@ -43,10 +43,22 @@ export type CabinetEntry = {
   index: number;
 };
 
+/** Size of one product as the scene reports it, in cm. Null when the scene has no value. */
+export type CabinetDimensions = {
+  width: number | null;
+  height: number | null;
+  depth: number | null;
+};
+
 export type ConfigurationState = {
   /** Active collection, supplied by A. Never inferred from a source id such as 4/438/439. */
   collectionId: string | null;
   cabinets: CabinetEntry[];
+  /**
+   * Actual size of each product, recorded from the scene (I04). Not part of the snapshot:
+   * the saved per-product config already carries the size.
+   */
+  dimensionsByCabinet: Record<StableCabinetKey, CabinetDimensions>;
   /** Monotonic counter behind stableKey generation; never reused within a session. */
   nextCabinetSeq: number;
   /**
