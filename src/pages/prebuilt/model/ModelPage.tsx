@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Outlet, useMatch, useNavigate, useSearchParams } from "react-router-dom";
+import { Outlet, useMatch, useSearchParams } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import {
@@ -19,7 +19,9 @@ import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entit
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
-import { productMockData, ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
+import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
+import { useActiveCollection, useCollectionPresets } from "@/entities/collection";
+import { useStepNavigate } from "@/features/collectionCustomization";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -172,13 +174,14 @@ const mapPresetDrawerToRuleValue = (drawers?: string | null): string | null => {
 export const ModelPage = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
+  const activeCollection = useActiveCollection();
   // Read at call time inside the preset and restore flows, so a loaded profile does not re-run their effects.
   const activeProfile = useAppSelector(getActiveProductProfile);
   const activeProfileRef = useRef(activeProfile);
   useEffect(() => {
     activeProfileRef.current = activeProfile;
   }, [activeProfile]);
-  const navigate = useNavigate();
+  const navigate = useStepNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const detailMatch = useMatch("/prebuilt/model/:modelId");
   const detailModelId = detailMatch?.params.modelId;
@@ -210,13 +213,18 @@ export const ModelPage = () => {
     return container instanceof HTMLElement ? container : null;
   }, []);
 
+  const presets = useCollectionPresets();
+  const defaultPresetId =
+    activeCollection.status === "ready" ? Number(activeCollection.data.manifest.defaultPresetId) : NaN;
+  const defaultPreset = presets.find((preset) => preset.id === defaultPresetId) ?? presets[0] ?? null;
+
   const filteredData = useMemo(() => {
-    return productMockData.filter((item) => {
-      if (sizeFilter !== "all" && item.size !== sizeFilter) return false;
-      if (styleFilter !== "all" && !item.style.includes(styleFilter)) return false;
+    return presets.filter((preset) => {
+      if (sizeFilter !== "all" && preset.size !== sizeFilter) return false;
+      if (styleFilter !== "all" && !preset.style.includes(styleFilter)) return false;
       return true;
     });
-  }, [sizeFilter, styleFilter]);
+  }, [presets, sizeFilter, styleFilter]);
 
   const presetIdFromUrl = useMemo(() => {
     const rawPresetId = searchParams.get("preset");
@@ -338,8 +346,8 @@ export const ModelPage = () => {
 
   const presetFromUrl = useMemo(() => {
     if (presetIdFromUrl === null) return null;
-    return productMockData.find((item) => item.id === presetIdFromUrl) ?? null;
-  }, [presetIdFromUrl]);
+    return presets.find((preset) => preset.id === presetIdFromUrl) ?? null;
+  }, [presetIdFromUrl, presets]);
 
   const handleSizeFilter = useCallback((value?: string | number) => {
     if (value === undefined) {
@@ -401,12 +409,12 @@ export const ModelPage = () => {
   );
 
   const activePresetId = useMemo(() => {
-    const target = productsPresets.length ? productsPresets : (productMockData[0]?.presetProducts ?? []);
+    const target = productsPresets.length ? productsPresets : (defaultPreset?.presetProducts ?? []);
 
-    const match = productMockData.find((preset) => arePrebuiltModelPresetsEqual(preset.presetProducts, target));
+    const match = presets.find((preset) => arePrebuiltModelPresetsEqual(preset.presetProducts, target));
 
-    return match?.id ?? productMockData[0]?.id ?? null;
-  }, [productsPresets]);
+    return match?.id ?? defaultPreset?.id ?? null;
+  }, [productsPresets, presets, defaultPreset]);
 
   const syncPresetProductIdsFromScene = useCallback(
     (presetProducts?: PresetProduct[], preferredProductIds?: string[]) => {
@@ -637,7 +645,7 @@ export const ModelPage = () => {
         });
 
         if (!compatibility.isCompatible) {
-          const modelTitle = productMockData.find((item) => item.id === presetId)?.title ?? "Selected model";
+          const modelTitle = presets.find((preset) => preset.id === presetId)?.title ?? "Selected model";
           setPendingModelSelection({
             presetProducts,
             presetId,
@@ -659,6 +667,7 @@ export const ModelPage = () => {
       countertopRules,
       countertopThickness,
       countertopStyle,
+      presets,
       productsPresets,
       selectedCountertopSinkType,
     ],
@@ -965,7 +974,7 @@ export const ModelPage = () => {
     isDefinedProductsRef.current = true;
 
     const presetProducts =
-      presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : productMockData[0].presetProducts);
+      presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : (defaultPreset?.presetProducts ?? []));
 
     const run = async () => {
       try {
@@ -1005,6 +1014,7 @@ export const ModelPage = () => {
     canvasReady,
     configIdFromUrl,
     configuratorData,
+    defaultPreset,
     dispatch,
     presetFromUrl,
     productsPresets,
