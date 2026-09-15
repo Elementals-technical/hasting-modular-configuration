@@ -24,23 +24,27 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
       <div className={s.optionsGrid}>
         {createModelBtn}
 
-        {data.map((preset) => {
-          return (
-            <ProductModelItem
-              key={preset.id}
-              id={preset.id}
-              title={preset.title}
-              img={preset.img}
-              desc={preset.desc}
-              price={preset.price}
-              isProductModel={true}
-              presetProducts={preset.presetProducts}
-              onSelect={handleAddPreset}
-              onCustomize={handleCustomizePreset}
-              isActive={activePresetId === preset.id}
-            />
-          );
-        })}
+        {!data.length ? (
+          <div className={s.message}>No preset compositions available for this collection</div>
+        ) : (
+          data.map((preset) => {
+            return (
+              <ProductModelItem
+                key={preset.id}
+                id={preset.id}
+                title={preset.title}
+                img={preset.img}
+                desc={preset.desc}
+                price={preset.price}
+                isProductModel={true}
+                presetProducts={preset.presetProducts}
+                onSelect={handleAddPreset}
+                onCustomize={handleCustomizePreset}
+                isActive={activePresetId === preset.id}
+              />
+            );
+          })
+        )}
       </div>
     </div>
   );
