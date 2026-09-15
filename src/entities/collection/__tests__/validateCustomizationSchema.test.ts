@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
-import { validateCustomizationSchema } from "../lib/validateCustomizationSchema";
+import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 
 describe("validateCustomizationSchema", () => {
   it("accepts the real USH ui.json", () => {
@@ -11,10 +11,7 @@ describe("validateCustomizationSchema", () => {
   });
 
   it("rejects an unknown entryStepId", () => {
-    const broken = {
-      ...uiJson,
-      flows: { ...uiJson.flows, prebuilt: { ...uiJson.flows.prebuilt, entryStepId: "ghost" } },
-    };
+    const broken = { ...uiJson, flows: { ...uiJson.flows, prebuilt: { ...uiJson.flows.prebuilt, entryStepId: "ghost" } } };
 
     const result = validateCustomizationSchema(broken);
 
@@ -28,10 +25,7 @@ describe("validateCustomizationSchema", () => {
       ...uiJson,
       flows: {
         ...uiJson.flows,
-        prebuilt: {
-          ...uiJson.flows.prebuilt,
-          steps: [...uiJson.flows.prebuilt.steps, { stepId: "ghost", path: "/prebuilt/ghost" }],
-        },
+        prebuilt: { ...uiJson.flows.prebuilt, steps: [...uiJson.flows.prebuilt.steps, { stepId: "ghost", path: "/prebuilt/ghost" }] },
       },
     };
 
@@ -47,10 +41,7 @@ describe("validateCustomizationSchema", () => {
       ...uiJson,
       flows: {
         ...uiJson.flows,
-        prebuilt: {
-          ...uiJson.flows.prebuilt,
-          steps: [...uiJson.flows.prebuilt.steps, { stepId: "model", path: "/prebuilt/model" }],
-        },
+        prebuilt: { ...uiJson.flows.prebuilt, steps: [...uiJson.flows.prebuilt.steps, { stepId: "model", path: "/prebuilt/model" }] },
       },
     };
 
@@ -72,10 +63,7 @@ describe("validateCustomizationSchema", () => {
   });
 
   it("rejects a sectionId that is not defined in sections", () => {
-    const broken = {
-      ...uiJson,
-      steps: { ...uiJson.steps, cabinet: { ...uiJson.steps.cabinet, sectionIds: ["ghost-section"] } },
-    };
+    const broken = { ...uiJson, steps: { ...uiJson.steps, cabinet: { ...uiJson.steps.cabinet, sectionIds: ["ghost-section"] } } };
 
     const result = validateCustomizationSchema(broken);
 
