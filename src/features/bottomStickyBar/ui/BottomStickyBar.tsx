@@ -3,7 +3,7 @@ import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 
 import s from "./BottomStickyBar.module.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { type PropsWithChildren, useEffect, useState, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
@@ -35,7 +35,7 @@ const isMobileQuoteButtonVisible = () =>
 export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
+  const navigation = useCollectionNavigation(flow ?? "prebuilt");
 
   const priceTotal = useAppSelector(getPriceTotal);
   const activeSkus = useAppSelector(getActiveSkus);
@@ -56,9 +56,8 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const isDisplayedPriceLoading = isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number");
   const fullPriceLabel = activeSkus.length ? formatPrice(displayedTotal) : "$0.00";
 
-  const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
-  const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
-  const previousStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
+  const nextStep = navigation?.nextStep ?? undefined;
+  const previousStep = navigation?.previousStep ?? undefined;
 
   useEffect(() => {
     if (!isQuotePrintRequested) {
@@ -85,7 +84,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
       return;
     }
 
-    const summaryStep = steps[steps.length - 1];
+    const summaryStep = navigation?.summaryStep;
     if (summaryStep) {
       setIsNavigatingToQuote(true);
       closeDrawerInteraction();

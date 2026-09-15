@@ -2,7 +2,7 @@ import { useLocation, useMatch, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
-import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
@@ -28,7 +28,7 @@ interface StepNavigationBarI {
 export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
+  const navigation = useCollectionNavigation(flow ?? "prebuilt");
 
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
 
@@ -38,10 +38,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   const hasProducts = selectedProducts.length > 0;
 
   const isModelDetails = !!useMatch("/prebuilt/model/:modelId");
-  const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
 
-  const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
-  const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
+  const prevStep = navigation?.previousStep ?? undefined;
+  const nextStep = navigation?.nextStep ?? undefined;
 
   const handleNavigate = () => {
     closeDrawerInteraction();

@@ -1,3 +1,5 @@
+import type { CustomizationSchema } from "@/entities/collection";
+
 export type InSceneQuickEditorNotificationFlow = "custom" | "prebuilt";
 
 export type InSceneQuickEditorNotificationTransition = "none" | "forward" | "backtrack" | "outside-flow";
@@ -49,6 +51,7 @@ export type ResolveInSceneQuickEditorNotificationBacktrackArgs = {
   flow: InSceneQuickEditorNotificationFlow;
   currentPath: string;
   previousPath: string | null;
+  schema: CustomizationSchema | null;
 };
 
 export type InSceneQuickEditorNotificationTransitionResult = {
