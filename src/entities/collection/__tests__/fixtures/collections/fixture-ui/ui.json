@@ -1,0 +1,39 @@
+{
+  "collectionId": "fixture-ui",
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "fixture-model",
+      "steps": [
+        { "stepId": "fixture-model", "path": "/fixture/models" },
+        { "stepId": "fixture-finish", "path": "/fixture/finish" }
+      ]
+    },
+    "custom": {
+      "entryStepId": "fixture-builder",
+      "steps": [{ "stepId": "fixture-builder", "path": "/fixture/builder" }]
+    }
+  },
+  "steps": {
+    "fixture-model": { "label": "Fixture Models", "kind": "preset-picker" },
+    "fixture-finish": { "label": "Test Finish", "kind": "fields", "sectionIds": ["test-finish"] },
+    "fixture-builder": {
+      "label": "Fixture Builder",
+      "headerPrefix": null,
+      "kind": "fields",
+      "sectionIds": ["test-finish"]
+    }
+  },
+  "sections": {
+    "test-finish": {
+      "label": "Test Finish",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "TestGrooveFinish",
+          "control": "swatches",
+          "optionsRef": "TestGrooveFinish"
+        }
+      ]
+    }
+  }
+}

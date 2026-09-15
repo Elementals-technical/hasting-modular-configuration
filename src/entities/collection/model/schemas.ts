@@ -7,10 +7,21 @@ import type { ProductDatatable } from "@/entities/product/api/types";
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export const jsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
-  z.union([z.string(), z.number(), z.boolean(), z.null(), z.array(jsonValueSchema), z.record(z.string(), jsonValueSchema)]),
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(jsonValueSchema),
+    z.record(z.string(), jsonValueSchema),
+  ]),
 );
 
-const collectionIdSchema = z.string().trim().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const collectionIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const localJsonReferenceSchema = z.string().trim().min(1);
 
 export const collectionRegistrySchema = z
@@ -48,6 +59,10 @@ export const collectionManifestSchema = z
          * file would drift apart.
          */
         productProfile: localJsonReferenceSchema.optional(),
+        /** Collection-defined flows, steps, sections and fields. */
+        ui: localJsonReferenceSchema.optional(),
+        /** Semantic attribute and value translations used by the scene adapter. */
+        runtimeBindings: localJsonReferenceSchema.optional(),
       })
       .strict()
       .optional(),

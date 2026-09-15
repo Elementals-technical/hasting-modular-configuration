@@ -1,5 +1,7 @@
 // Collection data access — owned by A.
 export * from "./lib/collectionUrl";
+export * from "./lib/customization/deriveCollectionNavigation";
+export * from "./lib/customization/validateCustomizationSchema";
 export * from "./lib/loadCollection";
 export * from "./lib/paths";
 export * from "./lib/resolveCollection";
@@ -7,6 +9,7 @@ export * from "./lib/resolveRestoredCollection";
 export * from "./lib/rtkRemoteLoader";
 export * from "./lib/validation";
 export * from "./model/constants";
+export * from "./model/diagnostics";
 export * from "./model/errors";
 export * from "./model/schemas";
 export * from "./model/types";
@@ -117,6 +120,10 @@ export type {
 
 export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
+export {
+  collectCustomizationAttributeIds,
+  validateCollectionRuntimeContract,
+} from "./lib/runtimeBindings/collectionRuntimeContract";
 
 // Customization schema — owned by B: the UI description of steps, sections and fields.
 export type {
@@ -127,7 +134,10 @@ export type {
   CustomizationFlowStepRef,
   CustomizationScreenKind,
   CustomizationSchema,
+  CustomizationSchemaDiagnostic,
+  CustomizationSchemaDiagnosticCode,
   CustomizationSectionDefinition,
   CustomizationStepDefinition,
   FieldRuntimeState,
+  ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";

@@ -9,12 +9,15 @@
   "rows": [
     {
       "cabinet_type": "Fixture-Cabinet",
-      "widths_cm": "13|37",
-      "depths_cm": "11",
-      "heights_cm": "17",
-      "drawer_configs": "fixture-drawer",
+      "widths_cm": "60",
+      "depths_cm": "50.5",
+      "heights_cm": "56",
+      "drawer_configs": "2",
+      "handles_allowed": "handle_urban_topcut",
+      "supports_height": "56",
+      "handle_topcut_forced_height_cm": "2:56",
       "has_sink": "FALSE",
-      "is_open": "TRUE",
+      "is_open": "FALSE",
       "fixtureExtension": "retained"
     }
   ],

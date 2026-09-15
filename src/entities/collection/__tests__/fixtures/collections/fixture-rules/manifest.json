@@ -2,6 +2,14 @@
   "id": "fixture-rules",
   "label": "Fixture Rules Collection",
   "defaults": {
-    "CabinetColor": "Rules Green"
+    "CabinetColor": "Rules Green",
+    "Height": "56",
+    "Drawers": "2",
+    "Handle": "handle_urban_topcut"
+  },
+  "local": {
+    "productProfile": "product-profile.json",
+    "ui": "ui.json",
+    "runtimeBindings": "runtime-bindings.json"
   }
 }

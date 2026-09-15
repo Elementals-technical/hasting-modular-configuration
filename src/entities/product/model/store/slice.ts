@@ -408,6 +408,25 @@ const productSlice = createSlice({
       applyRulesToState(state);
     },
     /**
+     * Atomically replaces every input owned by the active collection.
+     *
+     * A collection switch cannot merge defaults over the previous collection or keep
+     * an omitted catalog. Other product/session state remains owned by its existing
+     * reducers and by C's command lifecycle.
+     */
+    replaceCollectionData(
+      state,
+      action: PayloadAction<{ profile: ProductProfile | null; cabinetCatalog: ConfiguratorCatalog | null }>,
+    ) {
+      state.activeProfile = action.payload.profile;
+      state.cabinetCatalog = action.payload.cabinetCatalog ?? { typeCabinetRules: [] };
+      state.productOptions = {
+        ...EMPTY_PRODUCT_OPTIONS,
+        ...applyProfileDefaults(action.payload.profile),
+      };
+      applyRulesToState(state);
+    },
+    /**
      * Supplied by A once the active collection is loaded and validated.
      * Dispatched at bootstrap, before anything is rendered or chosen, so applying the
      * collection defaults here cannot overwrite a user selection.
@@ -435,7 +454,12 @@ const productSlice = createSlice({
      *  rule engine result when supportsHeightForAllProducts would otherwise block the height change. */
     switchAllCabinetsDrawerStyle(
       state,
-      action: PayloadAction<{ configValue: string; rawValue: string; forcedHeight?: number | null; forcedHandle?: string | null }>,
+      action: PayloadAction<{
+        configValue: string;
+        rawValue: string;
+        forcedHeight?: number | null;
+        forcedHandle?: string | null;
+      }>,
     ) {
       const { configValue, rawValue, forcedHeight, forcedHandle } = action.payload;
 
@@ -677,7 +701,9 @@ const productSlice = createSlice({
     ) {
       const { cabinetId, drawerType, dividers } = action.payload;
       state.placedDividers = [
-        ...state.placedDividers.filter((divider) => divider.cabinetId !== cabinetId || divider.drawerType !== drawerType),
+        ...state.placedDividers.filter(
+          (divider) => divider.cabinetId !== cabinetId || divider.drawerType !== drawerType,
+        ),
         ...dividers,
       ];
     },
@@ -806,6 +832,7 @@ export const {
   setFaucetHolesSpacing,
   resetPrebuiltProducts,
   setCabinetCatalog,
+  replaceCollectionData,
   setActiveProfile,
   setSelectedSceneProduct,
   setIsDrawerOpen,

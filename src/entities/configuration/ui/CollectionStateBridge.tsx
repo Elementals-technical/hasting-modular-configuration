@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { useActiveCollection } from "@/entities/collection";
 import { setActiveCollectionId } from "@/entities/configuration/model/store/slice";
-import { setActiveProfile, setCabinetCatalog } from "@/entities/product/model/store/slice";
+import { replaceCollectionData } from "@/entities/product/model/store/slice";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
 /**
@@ -24,16 +24,19 @@ export const CollectionStateBridge = () => {
   const data = isReady ? collection.data : null;
 
   useEffect(() => {
-    if (!data) return;
+    if (!data) {
+      dispatch(setActiveCollectionId(null));
+      dispatch(replaceCollectionData({ profile: null, cabinetCatalog: null }));
+      return;
+    }
 
     dispatch(setActiveCollectionId(data.id));
-    // Both come from the same load, so the rules never see a profile from one
-    // collection next to a catalog from another.
-    dispatch(setActiveProfile(data.catalog.productProfile ?? null));
-
-    if (data.catalog.cabinets) {
-      dispatch(setCabinetCatalog(data.catalog.cabinets));
-    }
+    dispatch(
+      replaceCollectionData({
+        profile: data.catalog.productProfile ?? null,
+        cabinetCatalog: data.catalog.cabinets ?? null,
+      }),
+    );
   }, [data, dispatch]);
 
   return null;
