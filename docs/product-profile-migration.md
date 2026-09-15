@@ -101,6 +101,8 @@ type ConfigurationFragment = {
 5. `applyRestoredIdentity` gives the products their saved stable keys and restores per-cabinet values (`restoreConfigurationFragment`); a legacy payload keeps the keys the cabinet sync hands out.
 6. The history starts over with the restored configuration as its only entry.
 
+The saved collection is read with `readSavedCollectionIdentity`: no field anywhere is legacy USH, a field that is present but `null` or empty fails the restore (CONTRACTS §4), and Save refuses to write a configuration while no collection is active (`no-collection`). A collection that fails to load marks the restore `failed` instead of leaving it waiting. Every failure carries a reason (`not-found`, `collection`, `invalid`, `scene`, `partial`) that `RestoreFailurePopup` (mounted in `HomePage`) shows once in the existing attention popup. After a custom restore the page moves to the saved path. `ActiveCollectionProvider` reloads the collection only when the URL selects a different collection: a change of other query params (`accordion`, `configId`) or dropping `collectionId` that resolves to the collection already loaded keeps it, so `CollectionStateBridge` does not reset the restored options on the next navigation.
+
 | Status | Meaning | Save |
 |---|---|---|
 | `restoring` | Running | Refused |

@@ -33,22 +33,33 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
     };
   }, [dependencies, remote]);
   const [state, setState] = useState<ActiveCollectionState>({ status: "resolving" });
+  // Only the collection id selects the collection. Other query params (`accordion`, `configId`)
+  // change on ordinary navigation and must not reload it: the store resets the options on reload.
+  const urlCollectionId = new URLSearchParams(location.search).get("collectionId");
+  const readyCollectionId = useRef<string | null>(null);
+
+  useEffect(() => {
+    readyCollectionId.current = state.status === "ready" ? state.collectionId : null;
+  }, [state]);
 
   useEffect(() => {
     const sequence = ++requestSequence.current;
     const abortController = new AbortController();
     const isLatest = () => requestSequence.current === sequence && !abortController.signal.aborted;
+    const loadedCollectionId = readyCollectionId.current;
     let activeCollectionId: string | undefined;
 
-    queueMicrotask(() => {
-      if (isLatest()) setState({ status: "resolving" });
-    });
+    // A ready collection stays published until the URL is known to select another one.
+    if (loadedCollectionId === null) {
+      queueMicrotask(() => {
+        if (isLatest()) setState({ status: "resolving" });
+      });
+    }
     void (async () => {
       try {
         const registry = await loadCollectionRegistry(runtimeDependencies, abortController.signal);
         if (!isLatest()) return;
 
-        const urlCollectionId = new URLSearchParams(location.search).get("collectionId");
         const resolution = resolveCollection({ registry, urlCollectionId });
         if (!resolution.ok) {
           setState({
@@ -58,6 +69,9 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
           });
           return;
         }
+
+        // `?collectionId=<default>` and no id at all select the same collection.
+        if (resolution.collectionId === loadedCollectionId) return;
 
         activeCollectionId = resolution.collectionId;
         setState({ status: "loading", collectionId: resolution.collectionId });
@@ -69,7 +83,7 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
     })();
 
     return () => abortController.abort();
-  }, [location.search, runtimeDependencies]);
+  }, [urlCollectionId, runtimeDependencies]);
 
   return <ActiveCollectionContext.Provider value={state}>{children}</ActiveCollectionContext.Provider>;
 };

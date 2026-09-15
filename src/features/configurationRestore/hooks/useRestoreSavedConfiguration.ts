@@ -3,7 +3,7 @@ import { useStore } from "react-redux";
 
 import type { RootState } from "@/app/store";
 import { useActiveCollection } from "@/entities/collection";
-import { useLazyRestoreConfigurationQuery } from "@/entities/configuration";
+import { failRestore, getRestoreState, useLazyRestoreConfigurationQuery } from "@/entities/configuration";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
@@ -29,6 +29,7 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   const canvasReady = usePlayCanvasReady();
   const collection = useActiveCollection();
   const isCollectionReady = collection.status === "ready";
+  const collectionError = collection.status === "error" ? collection.error.message : null;
   // Preflight checks product types against these, so they come with the loaded collection.
   const bindings = isCollectionReady ? (collection.data.catalog.runtimeBindings ?? null) : null;
   const [loadConfiguration] = useLazyRestoreConfigurationQuery();
@@ -38,6 +39,17 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   useEffect(() => {
     applyPageRef.current = applyPage;
   }, [applyPage]);
+
+  // A collection that failed to load cannot take the configuration: report it rather than wait
+  // for a ready state that never comes. The scene is not touched.
+  useEffect(() => {
+    if (!configId || collectionError === null) return;
+
+    const restore = getRestoreState(store.getState());
+    if (restore.configId === configId && restore.status !== "idle") return;
+
+    dispatch(failRestore({ configId, reason: "collection", message: collectionError }));
+  }, [collectionError, configId, dispatch, store]);
 
   useEffect(() => {
     if (!configId || !canvasReady || !isCollectionReady) return;

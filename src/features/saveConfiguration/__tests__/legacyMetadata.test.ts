@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { readFragmentValue } from "../lib/configurationFragment";
-import { readConfigurationFragment, readSavedCollectionId } from "../lib/legacyMetadata";
+import { readConfigurationFragment, readSavedCollectionId, readSavedCollectionIdentity } from "../lib/legacyMetadata";
 
 /** A payload as saved before C07: flat uiState, no fragment, no collection identity. */
 const legacyMetadata = {
@@ -57,6 +57,30 @@ describe("reading a payload saved before C07", () => {
     expect(readSavedCollectionId({ ...legacyMetadata, collectionId: "mako" })).toBe("mako");
     expect(readSavedCollectionId({ ...legacyMetadata, configuration: { collectionId: "class" } })).toBe("class");
     expect(readSavedCollectionId({ ...legacyMetadata, collectionId: "   " })).toBeNull();
+  });
+});
+
+describe("reading the saved collection identity for restore", () => {
+  it("treats a payload without the field anywhere as legacy", () => {
+    expect(readSavedCollectionIdentity(legacyMetadata)).toEqual({ kind: "absent" });
+    expect(readSavedCollectionIdentity(undefined)).toEqual({ kind: "absent" });
+  });
+
+  it.each([null, "", "   "])("treats a recorded but empty collection %j as invalid, not as USH", (collectionId) => {
+    expect(readSavedCollectionIdentity({ ...legacyMetadata, collectionId })).toMatchObject({ kind: "invalid" });
+    expect(readSavedCollectionIdentity({ ...legacyMetadata, configuration: { collectionId } })).toMatchObject({
+      kind: "invalid",
+    });
+  });
+
+  it("reads a recorded collection at either level", () => {
+    expect(readSavedCollectionIdentity({ ...legacyMetadata, collectionId: "mako" })).toEqual({
+      kind: "id",
+      collectionId: "mako",
+    });
+    expect(
+      readSavedCollectionIdentity({ ...legacyMetadata, collectionId: null, configuration: { collectionId: "class" } }),
+    ).toEqual({ kind: "id", collectionId: "class" });
   });
 });
 

@@ -5,6 +5,7 @@ import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { SwatchOrder } from "@/features/swatchOrder";
+import { RestoreFailurePopup } from "@/features/configurationRestore";
 import { reset } from "@/entities/product/model/store/slice";
 import {
   captureOrbitCameraState,
@@ -144,6 +145,7 @@ export const HomePage = () => {
       </div>
 
       <SwatchOrder />
+      <RestoreFailurePopup />
     </div>
   );
 };
