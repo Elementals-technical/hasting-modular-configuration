@@ -13,8 +13,8 @@ import { ROUTES } from "@/shared";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
 const RESTORE_TARGET = {
-  prebuilt: `${ROUTES.PREBUILT}/model`,
-  custom: `${ROUTES.CUSTOM}/cabinet-builder`,
+  prebuilt: ROUTES.PREBUILT,
+  custom: ROUTES.CUSTOM,
 } as const;
 
 const resolveRestoreTarget = (sourcePath: unknown): string => {

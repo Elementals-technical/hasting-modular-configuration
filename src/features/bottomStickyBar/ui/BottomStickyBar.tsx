@@ -2,8 +2,8 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 
 import s from "./BottomStickyBar.module.scss";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { Link, useLocation } from "react-router-dom";
+import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { type PropsWithChildren, useEffect, useState, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
@@ -34,7 +34,7 @@ const isMobileQuoteButtonVisible = () =>
 
 export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useStepNavigate();
   const navigation = useCollectionNavigation(flow ?? "prebuilt");
 
   const priceTotal = useAppSelector(getPriceTotal);

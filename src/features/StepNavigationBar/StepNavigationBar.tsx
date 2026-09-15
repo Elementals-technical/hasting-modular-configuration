@@ -1,8 +1,8 @@
-import { useLocation, useMatch, useNavigate } from "react-router-dom";
+import { useLocation, useMatch } from "react-router-dom";
 import { useState } from "react";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
@@ -27,7 +27,7 @@ interface StepNavigationBarI {
 
 export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow }) => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useStepNavigate();
   const navigation = useCollectionNavigation(flow ?? "prebuilt");
 
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);

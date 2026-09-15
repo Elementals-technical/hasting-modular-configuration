@@ -5,6 +5,8 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
+import { parseProductProfile } from "@/entities/collection";
+import { getCabinetEntries, resetConfiguration, syncCabinets } from "@/entities/configuration";
 import {
   getBookMatching,
   getDrawerPanelFluting,
@@ -15,9 +17,13 @@ import {
 import {
   reset,
   restoreProductState,
+  setActiveProfile,
   setCabinetColorMaterial,
+  setDrawerPanelFluting,
   setGrainDirection,
 } from "@/entities/product/model/store/slice";
+
+import productProfileJson from "../../../../../public/collections/urban-standard-height/product-profile.json";
 
 import { CustomCabinetColorsPage } from "../index";
 
@@ -25,6 +31,25 @@ import type { RootState } from "@/app/store";
 
 const setConfigBatchMock = vi.fn(async (_ids: unknown, _config: unknown) => null);
 const saveSnapshotMock = vi.fn(async () => undefined);
+
+const changeAttributeMock = vi.fn(async (change: { attributeId: string; value: string }) => {
+  if (change.attributeId === "DrawerPanelFluting") store.dispatch(setDrawerPanelFluting(change.value));
+  if (change.attributeId === "GrainDirection") store.dispatch(setGrainDirection(change.value));
+  return { status: "applied" as const, plan: [] };
+});
+
+vi.mock("@/features/configurationCommands", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/configurationCommands")>();
+
+  return {
+    ...actual,
+    useChangeAttribute: () => ({
+      change: changeAttributeMock,
+      confirm: vi.fn(),
+      getState: () => store.getState(),
+    }),
+  };
+});
 
 vi.mock("@/entities", () => ({
   useGetConfiguratorQuery: () => ({
@@ -232,6 +257,10 @@ vi.mock("@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid", () => ({
   ),
 }));
 
+const parsedProfile = parseProductProfile(productProfileJson);
+if (!parsedProfile.ok) throw new Error("fixture product-profile.json failed validation");
+const profile = parsedProfile.profile;
+
 const renderPage = () =>
   render(
     <Provider store={store}>
@@ -280,14 +309,18 @@ const restoreImportedPresetState = (args?: { handleGrooveColor?: string }) => {
       ],
     }),
   );
+  store.dispatch(syncCabinets(["Sink-Base-runtime"]));
 };
 
 describe("CustomCabinetColorsPage", () => {
   beforeEach(() => {
     store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(profile));
     restoreImportedPresetState();
     setConfigBatchMock.mockClear();
     saveSnapshotMock.mockClear();
+    changeAttributeMock.mockClear();
   });
 
   afterEach(() => {
@@ -322,6 +355,7 @@ describe("CustomCabinetColorsPage", () => {
   it("does not overwrite an explicitly different handle groove color", async () => {
     cleanup();
     store.dispatch(reset());
+    store.dispatch(resetConfiguration());
     restoreImportedPresetState({ handleGrooveColor: "Explicit Groove Color" });
     setConfigBatchMock.mockClear();
 
@@ -350,26 +384,38 @@ describe("CustomCabinetColorsPage", () => {
   it("updates the scene and state when selecting a drawer panel fluting option", async () => {
     store.dispatch(setCabinetColorMaterial("LACM"));
     renderPage();
-    setConfigBatchMock.mockClear();
+
+    const cabinetId = getCabinetEntries(store.getState())[0]?.stableKey;
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "FlutingVerticalA" }));
     });
 
-    expect(setConfigBatchMock).toHaveBeenCalledWith(["Sink-Base-runtime"], { DrawerPanelFluting: "FlutingVerticalA" });
+    expect(changeAttributeMock).toHaveBeenCalledWith({
+      attributeId: "DrawerPanelFluting",
+      value: "FlutingVerticalA",
+      scope: "cabinet",
+      cabinetId,
+    });
     expect(getDrawerPanelFluting(store.getState() as RootState)).toBe("FlutingVerticalA");
   });
 
   it("updates the scene and state when selecting a grain direction option", async () => {
     store.dispatch(setCabinetColorMaterial("Essenze"));
     renderPage();
-    setConfigBatchMock.mockClear();
+
+    const cabinetId = getCabinetEntries(store.getState())[0]?.stableKey;
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "GrainVertical" }));
     });
 
-    expect(setConfigBatchMock).toHaveBeenCalledWith(["Sink-Base-runtime"], { GrainDirection: "GrainVertical" });
+    expect(changeAttributeMock).toHaveBeenCalledWith({
+      attributeId: "GrainDirection",
+      value: "GrainVertical",
+      scope: "cabinet",
+      cabinetId,
+    });
     expect(getGrainDirection(store.getState() as RootState)).toBe("GrainVertical");
   });
 
