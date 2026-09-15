@@ -35,6 +35,7 @@ import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/c
 import {
   resolveCabinetSyncActions,
   resolveHandleSceneSync,
+  resolveRestoreStatusReset,
 } from "@/features/configurationCommands/lib/compositionListeners";
 import { setupSceneStateListener } from "@/features/configurationCommands/lib/sceneStateSync";
 import { createSceneReader } from "@/features/playCanvasAdapter/lib/createSceneReader";
@@ -52,12 +53,14 @@ optionsListenerMiddleware.startListening({
   predicate: (_, current, previous) =>
     (current as RootState).rootStateUI.product.productIds !== (previous as RootState).rootStateUI.product.productIds,
   effect: (_, listenerApi) => {
-    const actions = resolveCabinetSyncActions(
-      listenerApi.getOriginalState() as RootState,
-      listenerApi.getState() as RootState,
-    );
+    const previous = listenerApi.getOriginalState() as RootState;
+    const current = listenerApi.getState() as RootState;
+    const actions = resolveCabinetSyncActions(previous, current);
 
     actions.forEach((action) => listenerApi.dispatch(action));
+
+    const restoreReset = resolveRestoreStatusReset(previous, current);
+    if (restoreReset) listenerApi.dispatch(restoreReset);
   },
 });
 

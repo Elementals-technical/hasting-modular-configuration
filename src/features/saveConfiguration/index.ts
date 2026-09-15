@@ -38,9 +38,12 @@ export {
   type SaveCurrentConfigurationResult,
 } from "./hooks/useSaveCurrentConfiguration";
 export { collectSceneConfiguration, type SceneConfiguration } from "./lib/collectSceneConfiguration";
+export { RESTORE_INCOMPLETE_SAVE_MESSAGE, isRestoreBlockingSave } from "./lib/restoreSaveGuard";
 export {
+  COLLECTION_ID_QUERY_PARAM,
   CONFIGURATION_ID_QUERY_PARAM,
   HOST_URL_QUERY_PARAM,
+  buildConfigurationRestoreSearch,
   buildPublicConfigurationShareUrl,
   clearPersistedHostUrl,
   persistHostUrlFromSearch,

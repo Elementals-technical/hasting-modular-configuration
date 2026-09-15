@@ -9,12 +9,14 @@ export type {
   ConfigurationSnapshot,
   ConfigurationState,
   DrawerType,
+  RestoreState,
+  RestoreStatus,
   Scope,
   ScopedValue,
   StableCabinetKey,
   ValueTarget,
 } from "./model/types";
-export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget } from "./model/types";
+export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget, parseTarget } from "./model/types";
 
 // runtimePort — owned by I: the typed boundary between C and the scene.
 export type {
@@ -62,8 +64,11 @@ export {
 export {
   clearAttributeValue,
   configurationReducer,
+  clearRestore,
   dropValuesForCabinet,
+  finishRestore,
   recordSceneState,
+  startRestore,
   resetConfiguration,
   restoreCabinets,
   restoreConfigurationFragment,
@@ -81,6 +86,8 @@ export {
   getCabinetDimensions,
   getCabinetDimensionsByRuntimeId,
   getDimensionsByCabinet,
+  getRestoreState,
+  isRestoreInFlightOrDone,
   getCabinetEntries,
   getConfigurationSnapshot,
   getConfigurationState,

@@ -72,7 +72,8 @@ import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
 import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
-import { useLazyRestoreConfigurationQuery } from "@/entities";
+import type { SceneRestoreMatch } from "@/entities/configuration";
+import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { isGrooveType, reapplySidePanelsForPreset, restoreSidePanelState } from "@/features/sidePanel";
@@ -227,7 +228,6 @@ export const ModelPage = () => {
     return parsedPresetId;
   }, [searchParams]);
   const configIdFromUrl = useMemo(() => searchParams.get("configId"), [searchParams]);
-  const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
   const selectedCountertopSinkType = useMemo(() => {
     if (activeBasinStyle) return activeBasinStyle;
     return countertopStyle.trim().toLowerCase() === "vessel" ? "Vessel" : undefined;
@@ -779,46 +779,20 @@ export const ModelPage = () => {
 
   const canvasReady = usePlayCanvasReady();
 
-  useEffect(() => {
-    if (!canvasReady || !configIdFromUrl || isDefinedProductsRef.current) return;
-
-    isDefinedProductsRef.current = true;
-
-    const run = async () => {
+  // Records a saved configuration the restore has already rebuilt in the scene (C09). Loading,
+  // checks, the scene and the history belong to the orchestrator in features/configurationRestore.
+  const applyPrebuiltRestore = useCallback(
+    async (plan: RestorePlan, matches: SceneRestoreMatch[]) => {
       try {
-        const result = await restoreConfiguration(configIdFromUrl).unwrap();
+        applySwatchOrderFromMetadata(plan.metadata, dispatch);
 
-        applySwatchOrderFromMetadata(result?.metadata as Record<string, unknown> | undefined, dispatch);
-
-        const configuration = result?.configuration || {};
-        const orderedIdsFromMeta = result?.metadata?.orderedProductIds;
-        const sourceIds = Array.isArray(orderedIdsFromMeta)
-          ? orderedIdsFromMeta.filter((id) => typeof id === "string")
-          : [];
-
-        const isTopConfig = (id: string, value: unknown) => {
-          if (!value || typeof value !== "object") return false;
-
-          const record = value as Record<string, unknown>;
-          const name =
-            (typeof record.productType === "string" && record.productType) ||
-            (typeof record.ProductType === "string" && record.ProductType) ||
-            (typeof record.entityName === "string" && record.entityName) ||
-            (typeof record.EntityName === "string" && record.EntityName) ||
-            id;
-
-          return name.startsWith("Top_");
-        };
-
-        const configIdsRaw = sourceIds.length ? sourceIds : Object.keys(configuration);
-        const productConfigIds = configIdsRaw.filter((id) => !isTopConfig(id, configuration[id]));
+        const configuration = plan.configuration;
+        const productConfigIds = matches.map(({ sourceId }) => sourceId);
+        const sceneIds = matches.map(({ runtimeId }) => runtimeId);
         const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
         if (!presetProducts.length) return;
 
-        const uiState = result?.metadata?.uiState;
-        const uiStateValues = uiState && typeof uiState === "object" ? (uiState as Record<string, unknown>) : null;
-
-        await removeAllProducts();
+        const uiStateValues = plan.uiState;
 
         const restoredCountertopColor =
           (typeof uiStateValues?.CountertopColor === "string" && uiStateValues.CountertopColor) || undefined;
@@ -845,12 +819,21 @@ export const ModelPage = () => {
           presetProducts,
         );
 
-        await addPreset(presetProducts, globalConfig);
+        // addPreset gave every product these scene defaults under its own config; the restorer
+        // creates the products one by one, so only the keys a saved config lacks are sent now.
+        for (const { sourceId, runtimeId } of matches) {
+          const sourceConfig = configuration[sourceId];
+          const savedKeys = sourceConfig && typeof sourceConfig === "object" ? Object.keys(sourceConfig) : [];
+          const defaults = Object.fromEntries(Object.entries(globalConfig).filter(([key]) => !savedKeys.includes(key)));
+
+          if (Object.keys(defaults).length > 0) {
+            await setConfigBatch([runtimeId], defaults);
+          }
+        }
         await syncCountertopSceneConfigAfterPreset(globalConfig, presetProducts);
 
         // Rebuild presets from real scene configs to keep SKU-driving fields
         // (name/drawers/handle/dimensions) consistent after restore.
-        const sceneIds = getOrderedProductIds();
         const restoredDividersByCabinet = await Promise.all(
           sceneIds.map(async (sceneId, index) => {
             const sourceId = productConfigIds[index];
@@ -877,7 +860,7 @@ export const ModelPage = () => {
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));
-        syncPresetProductIdsFromScene(effectivePresets);
+        syncPresetProductIdsFromScene(effectivePresets, sceneIds);
         restoredDividersByCabinet.forEach(({ cabinetId, dividers }) => {
           dispatch(replacePlacedDividersForCabinet({ cabinetId, dividers }));
         });
@@ -951,21 +934,26 @@ export const ModelPage = () => {
         sessionStorage.setItem("prebuiltModelInitialized", "1");
       } catch (error) {
         console.error("[Prebuilt] Failed to restore configuration", error);
+        // The orchestrator reports a restore whose page step failed as partial.
+        throw error;
       }
-    };
+    },
+    [
+      configuratorData,
+      dispatch,
+      resolveCompatibleCountertopSceneConfig,
+      syncCountertopSceneConfigAfterPreset,
+      syncPresetProductIdsFromScene,
+      updateSelectedDimensionsFromScene,
+    ],
+  );
 
-    run();
-  }, [
-    canvasReady,
-    configIdFromUrl,
-    configuratorData,
-    dispatch,
-    restoreConfiguration,
-    resolveCompatibleCountertopSceneConfig,
-    syncCountertopSceneConfigAfterPreset,
-    syncPresetProductIdsFromScene,
-    updateSelectedDimensionsFromScene,
-  ]);
+  // A configuration opened by id replaces the default preset: the preset effect below must not run over it.
+  useEffect(() => {
+    if (configIdFromUrl) isDefinedProductsRef.current = true;
+  }, [configIdFromUrl]);
+
+  useRestoreSavedConfiguration({ configId: configIdFromUrl, applyPage: applyPrebuiltRestore });
 
   useEffect(() => {
     const hasInitialized = sessionStorage.getItem("prebuiltModelInitialized") === "1";

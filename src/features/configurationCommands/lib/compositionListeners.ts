@@ -2,7 +2,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
-import { dropValuesForCabinet, syncCabinets } from "@/entities/configuration/model/store/slice";
+import { clearRestore, dropValuesForCabinet, syncCabinets } from "@/entities/configuration/model/store/slice";
 import { commitRuleSelection } from "@/entities/product/model/store/slice";
 
 /**
@@ -26,6 +26,19 @@ export const resolveCabinetSyncActions = (previous: RootState, current: RootStat
     .map(({ stableKey }) => dropValuesForCabinet(stableKey));
 
   return [syncCabinets([...productIds]), ...dropRemoved];
+};
+
+/**
+ * An incomplete restore blocks Save (C09). Once the composition changes it is the user's own
+ * configuration again, so the status is cleared.
+ */
+export const resolveRestoreStatusReset = (previous: RootState, current: RootState): UnknownAction | null => {
+  const { status } = current.rootStateUI.configuration.restore;
+
+  if (status !== "partial" && status !== "failed") return null;
+  if (current.rootStateUI.product.productIds === previous.rootStateUI.product.productIds) return null;
+
+  return clearRestore();
 };
 
 /**

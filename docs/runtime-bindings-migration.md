@@ -208,7 +208,7 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 | `AccessoriesPage.tsx:812`, `custom/accessories/index.tsx:787`, `CabinetBuilderPage.tsx:1430`, `PlayCanvasIntegration.tsx:1627`, `restoreSnapshot.ts:114` | `TowelBar40_R` with a clearing step | `TowelBarOption` binding | C (C06), I (I05 for restore) | Pending downstream migration |
 | `CountertopPage.tsx:1465`, `custom/countertop/index.tsx:1466` | `metadata.configValue ?? colorName` | `CountertopColor` overrides | C (C06) | Pending downstream migration |
 | `restoreSnapshot.ts` (undo/redo) | Scene restorer | — | I (I05) | Migrated |
-| `ModelPage.tsx` and `CabinetBuilderPage.tsx` restore by `configId` | `removeAllProducts` + `addPreset` before any check | `createSceneRestorer` from the C09 orchestration | C (C09), B for page wiring | Pending downstream migration |
+| `ModelPage.tsx` and `CabinetBuilderPage.tsx` restore by `configId` | `useRestoreSavedConfiguration` (C09) over the scene restorer; the pages keep only their state step | — | C (C09) | Migrated |
 | `addPreset` when a preset is chosen (`ModelPage.applyPresetSelection`, Custom bootstrap) | `presetProducts` | Not a restore; stays until presets move to A's catalog | B, A | Accepted for now |
 | `applySetWidth` / `applySetDepth`, `syncCountertopConfig` in `PlayCanvasIntegration.tsx` | Divider clearing/restoring and countertop sync around resize | Adapter steps once the helpers leave the component | I (I04), C (C06) | Pending downstream migration |
 | `useSceneTotalWidth`, `useSinkBaseDimensions`, the selected-size polling in `PlayCanvasIntegration.tsx` | `getConfig` every 350 ms | `dimensionsByCabinet` recorded by I04 | B, D | Pending downstream migration |

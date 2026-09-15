@@ -6,6 +6,7 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 
 import { buildConfigurationShareUrl } from "../lib/buildConfigurationShareUrl";
 import { resolveConfigurationIdFromSearch } from "../lib/configurationUrlParams";
+import { RESTORE_INCOMPLETE_SAVE_MESSAGE } from "../lib/restoreSaveGuard";
 import { useSaveCurrentConfiguration } from "./useSaveCurrentConfiguration";
 
 export type CurrentConfigurationLink = {
@@ -36,9 +37,12 @@ export const useCurrentConfigurationLink = () => {
     const result = await saveCurrentConfiguration({ fallbackProductIds: selectedProducts });
 
     if (!result.ok) {
-      throw new Error(
-        result.reason === "no-products" ? "No products to save" : "Saved configuration response is missing id",
-      );
+      const messages: Record<typeof result.reason, string> = {
+        "no-products": "No products to save",
+        "missing-id": "Saved configuration response is missing id",
+        "restore-incomplete": RESTORE_INCOMPLETE_SAVE_MESSAGE,
+      };
+      throw new Error(messages[result.reason]);
     }
 
     return { id: result.id, url: result.url };

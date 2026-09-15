@@ -21,7 +21,7 @@ import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
-import { useSaveCurrentConfiguration } from "@/features/saveConfiguration";
+import { RESTORE_INCOMPLETE_SAVE_MESSAGE, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -251,9 +251,10 @@ export const BottomCanvasButtons = () => {
       const result = await saveCurrentConfiguration();
 
       if (!result.ok) {
-        console.warn("[Configurations] No products to save");
+        const message = result.reason === "restore-incomplete" ? RESTORE_INCOMPLETE_SAVE_MESSAGE : "No products to save";
+        console.warn(`[Configurations] ${message}`);
 
-        setShareValue("No products to save");
+        setShareValue(message);
         setIsShareOpening(true);
         return;
       }

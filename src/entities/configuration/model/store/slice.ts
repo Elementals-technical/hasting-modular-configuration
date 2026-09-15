@@ -8,6 +8,7 @@ import type {
   CabinetEntry,
   ConfigurationSnapshot,
   ConfigurationState,
+  RestoreStatus,
   StableCabinetKey,
   ValueTarget,
 } from "../types";
@@ -39,6 +40,7 @@ const initialState: ConfigurationState = {
   nextCabinetSeq: 1,
   dimensionsByCabinet: {},
   valuesByAttributeId: {},
+  restore: { configId: null, status: "idle", message: null },
 };
 
 const configurationSlice = createSlice({
@@ -171,7 +173,23 @@ const configurationSlice = createSlice({
     },
 
     resetConfiguration(state) {
-      return { ...initialState, collectionId: state.collectionId };
+      // A reset during a restore must not erase its status.
+      return { ...initialState, collectionId: state.collectionId, restore: state.restore };
+    },
+
+    startRestore(state, action: PayloadAction<string>) {
+      state.restore = { configId: action.payload, status: "restoring", message: null };
+    },
+
+    finishRestore(
+      state,
+      action: PayloadAction<{ status: Extract<RestoreStatus, "restored" | "partial" | "failed">; message: string | null }>,
+    ) {
+      state.restore = { ...state.restore, ...action.payload };
+    },
+
+    clearRestore(state) {
+      state.restore = initialState.restore;
     },
   },
 });
@@ -187,6 +205,9 @@ export const {
   dropValuesForCabinet,
   restoreConfigurationFragment,
   resetConfiguration,
+  startRestore,
+  finishRestore,
+  clearRestore,
 } = configurationSlice.actions;
 
 export const configurationReducer = configurationSlice.reducer;

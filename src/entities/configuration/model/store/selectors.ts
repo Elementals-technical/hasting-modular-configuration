@@ -9,10 +9,19 @@ import type {
   CabinetEntry,
   ConfigurationSnapshot,
   ConfigurationState,
+  RestoreState,
   ValueTarget,
 } from "../types";
 
 export const getConfigurationState = (state: RootState) => state.rootStateUI.configuration;
+
+export const getRestoreState = (state: RootState): RestoreState => state.rootStateUI.configuration.restore;
+
+/** Whether this configuration is being restored or already came back, so it must not start again. */
+export const isRestoreInFlightOrDone = (state: RootState, configId: string): boolean => {
+  const { configId: restoringId, status } = getRestoreState(state);
+  return restoringId === configId && (status === "restoring" || status === "restored" || status === "partial");
+};
 
 export const getActiveCollectionId = (state: RootState): string | null =>
   state.rootStateUI.configuration.collectionId;

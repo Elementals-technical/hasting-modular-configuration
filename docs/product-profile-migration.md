@@ -90,6 +90,24 @@ type ConfigurationFragment = {
 
 `useBuildConfigurationRequest()` and `useSaveCurrentConfiguration()` assemble the payload once for every save entry point.
 
+### Restoring a saved configuration (C09)
+
+`/restore?configId=…` puts the saved collection into the URL (`buildConfigurationRestoreSearch`), so `ActiveCollectionProvider` loads the collection the configuration belongs to; a payload without one opens the default collection. The page then calls `useRestoreSavedConfiguration({ configId, applyPage })`, which waits for the scene and the collection and runs `restoreSavedConfiguration`:
+
+1. A configuration that is restoring or already came back is skipped. The status lives in `configuration.restore`, so a re-run effect, StrictMode or a remount does not restore twice.
+2. The record is loaded, its collection (`readSavedCollectionId`, legacy → USH) must be the open one, and `buildRestorePlan` checks it: product configs present, every saved id has a config, at least one cabinet, a readable fragment. `Top_*` parts are kept apart. Any failure ends as `failed` with the scene untouched.
+3. The scene restorer (I05) rebuilds the cabinets; `rejected` / `not-ready` also leave the scene untouched.
+4. The page's `applyPage(plan, matches)` records the products and re-applies its add-ons and `uiState` options. Prebuilt and custom keep separate steps; prebuilt sends the preset scene defaults a saved config lacks, which `addPreset` used to merge.
+5. `applyRestoredIdentity` gives the products their saved stable keys and restores per-cabinet values (`restoreConfigurationFragment`); a legacy payload keeps the keys the cabinet sync hands out.
+6. The history starts over with the restored configuration as its only entry.
+
+| Status | Meaning | Save |
+|---|---|---|
+| `restoring` | Running | Refused |
+| `restored` | Came back whole | Allowed |
+| `partial` | The scene was rebuilt only partly, or the page step failed after the rebuild | Refused (`restore-incomplete`) until the composition changes |
+| `failed` | Stopped before the scene was touched | Refused until the composition changes |
+
 ## What moved into data
 
 | Was | Now |
@@ -184,7 +202,7 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 
 Developer C owns the ProductProfile contract and its pure transformations, the configuration state model and value ownership, the single change path, and the Save format with its legacy reader. Developer C does not migrate page rendering or navigation (B), collection source binding and loading (A), SKU and pricing (D), or PlayCanvas bindings and scene execution (I).
 
-C01, C02, C05, C07 and C08 are complete against their acceptance criteria. C06 is in progress: the handle and the drawers run through the command service in the app, with one owner in state and one send to the scene; fluting, grain, towel bar, thickness and the colours are accepted and recorded by the service; the remaining fields depend on B06/B08/B09 and the dimensions on I04; C09 depends on A07 and I05. C12 and C13 depend on all of the above.
+C01, C02, C05, C07 and C08 are complete against their acceptance criteria. C06 is in progress: the handle and the drawers run through the command service in the app, with one owner in state and one send to the scene; fluting, grain, towel bar, thickness and the colours are accepted and recorded by the service; the remaining fields depend on B06/B08/B09 and the dimensions on I04; C09 is complete in code and unit tests: both saved-configuration restores run through one orchestrator over the I05 scene restorer; `uiState` options are still applied by each page until their fields move to the command service, and the browser check is part of C12. C12 and C13 depend on all of the above.
 
 The P1 rules of the hardcode audit — fluting, grain direction, book matching, drawer mixing, side panels, Syntesi, countertop fallbacks and vessel compatibility — read their parameters from `ruleData` of the active profile. Material aliases are the remaining P1 item in code (see Open items); there is no task for it in the plan yet.
 

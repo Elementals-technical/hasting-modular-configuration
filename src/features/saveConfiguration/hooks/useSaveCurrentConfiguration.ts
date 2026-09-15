@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useSaveConfigurationMutation } from "@/entities";
+import { getRestoreState } from "@/entities/configuration/model/store/selectors";
 import {
   getHasSubmittedCart,
   getIsAutofillEnabled,
@@ -13,6 +14,7 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 import { buildConfigurationMetadata, type ConfigurationMetadata } from "../lib/buildConfigurationMetadata";
 import { buildConfigurationShareUrl } from "../lib/buildConfigurationShareUrl";
 import { collectSceneConfiguration } from "../lib/collectSceneConfiguration";
+import { isRestoreBlockingSave } from "../lib/restoreSaveGuard";
 import { selectConfigurationSavePayload } from "../lib/selectSavePayload";
 
 /**
@@ -83,16 +85,19 @@ export const useBuildConfigurationRequest = () => {
 
 export type SaveCurrentConfigurationResult =
   | { ok: true; id: string; url: string; request: ConfigurationSaveRequest }
-  | { ok: false; reason: "no-products" | "missing-id" };
+  | { ok: false; reason: "no-products" | "missing-id" | "restore-incomplete" };
 
 export type SaveCurrentConfigurationOptions = BuildConfigurationRequestOptions;
 
 export const useSaveCurrentConfiguration = () => {
   const buildRequest = useBuildConfigurationRequest();
   const [saveConfiguration] = useSaveConfigurationMutation();
+  const restoreStatus = useAppSelector(getRestoreState).status;
 
   return useCallback(
     async (options: SaveCurrentConfigurationOptions = {}): Promise<SaveCurrentConfigurationResult> => {
+      if (isRestoreBlockingSave(restoreStatus)) return { ok: false, reason: "restore-incomplete" };
+
       const request = await buildRequest(options);
 
       if (!request) return { ok: false, reason: "no-products" };
@@ -111,7 +116,7 @@ export const useSaveCurrentConfiguration = () => {
         request,
       };
     },
-    [buildRequest, saveConfiguration],
+    [buildRequest, restoreStatus, saveConfiguration],
   );
 };
 

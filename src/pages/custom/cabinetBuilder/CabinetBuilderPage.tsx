@@ -118,15 +118,14 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
-import { useLazyRestoreConfigurationQuery } from "@/entities";
+import type { SceneRestoreMatch } from "@/entities/configuration";
+import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
-import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
-import { pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
-import { store, type RootState } from "@/app/store";
+import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 
@@ -269,7 +268,6 @@ export const CabinetBuilderPage = () => {
     return productMockData.find((item) => item.id === presetIdFromUrl) ?? null;
   }, [presetIdFromUrl]);
   const customPresetBootstrapKey = presetFromUrl ? String(presetFromUrl.id) : null;
-  const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
@@ -1160,316 +1158,268 @@ export const CabinetBuilderPage = () => {
     void runDelete();
   }, [canvasReady, dispatch, hasBootstrappedCabinetBuilder, productsPresets, selectedProducts, resolveCabinetTypeId]);
 
-  const handleRestoreConfiguration = useCallback(
-    async (id: string | number) => {
-      dispatch(setHistoryRestoring(true));
-      try {
-        const result = await restoreConfiguration(id).unwrap();
+  // Records a saved configuration the restore has already rebuilt in the scene (C09): the
+  // products, their add-ons and the options. Loading, checks, the scene and the history belong
+  // to the orchestrator in features/configurationRestore.
+  const applyCustomRestore = useCallback(
+    async (plan: RestorePlan, matches: SceneRestoreMatch[]) => {
+      const restorePath = plan.path;
 
-        const path = result?.metadata?.path;
-        const restorePath = typeof path === "string" && path.startsWith("/") ? path : null;
+      applySwatchOrderFromMetadata(plan.metadata, dispatch);
 
-        applySwatchOrderFromMetadata(result?.metadata as Record<string, unknown> | undefined, dispatch);
+      const configuration = plan.configuration;
+      const uiStateValues = plan.uiState;
+      const configIds = matches.map(({ sourceId }) => sourceId);
+      const orderedIds = matches.map(({ runtimeId }) => runtimeId);
+      const topConfigIds = plan.topConfigs.map(({ sourceId }) => sourceId);
 
-        const configuration = result?.configuration || {};
+      const presetProducts = buildPresetFromConfiguration(configuration, configIds);
 
-        const orderedIdsFromMeta = result?.metadata?.orderedProductIds;
-        const sourceIds = Array.isArray(orderedIdsFromMeta)
-          ? orderedIdsFromMeta.filter((id) => typeof id === "string")
-          : [];
+      dispatch(resetProducts());
+      dispatch(addProductPreset(presetProducts));
+      orderedIds.forEach((productId) => dispatch(addProductId(productId)));
 
-        const isTopConfig = (id: string, value: unknown) => {
-          if (!value || typeof value !== "object") return false;
+      let sidePanelValue: string | undefined;
+      let towelBarValue: string | undefined;
+      let towelBarSideValue: string | undefined;
+      let towelBarColorValue: string | undefined;
 
-          const record = value as Record<string, unknown>;
-          const name =
-            (typeof record.productType === "string" && record.productType) ||
-            (typeof record.entityName === "string" && record.entityName) ||
-            id;
+      for (let i = 0; i < orderedIds.length; i += 1) {
+        const sourceId = configIds[i];
+        const configValue = sourceId ? configuration[sourceId] : null;
 
-          return name.startsWith("Top_");
-        };
+        if (configValue && typeof configValue === "object") {
+          const cfg = configValue as Record<string, unknown>;
 
-        const configIdsRaw = sourceIds.length ? sourceIds : Object.keys(configuration);
-        const productConfigIds = configIdsRaw.filter((id) => !isTopConfig(id, configuration[id]));
-        const topConfigIds = configIdsRaw.filter((id) => isTopConfig(id, configuration[id]));
-
-        const uiState = result?.metadata?.uiState;
-        const uiStateValues = uiState && typeof uiState === "object" ? (uiState as Record<string, unknown>) : null;
-
-        const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
-
-        dispatch(resetProducts());
-        await removeAllProducts();
-
-        const createdIds = await addPreset(presetProducts);
-        dispatch(addProductPreset(presetProducts));
-
-        const createdProductIds = Array.isArray(createdIds)
-          ? createdIds.filter((productId): productId is string => typeof productId === "string")
-          : [];
-        const orderedIds = getOrderedProductIds(createdProductIds);
-        orderedIds.forEach((productId) => dispatch(addProductId(productId)));
-
-        const configIds = productConfigIds;
-        let sidePanelValue: string | undefined;
-        let towelBarValue: string | undefined;
-        let towelBarSideValue: string | undefined;
-        let towelBarColorValue: string | undefined;
-
-        for (let i = 0; i < orderedIds.length; i += 1) {
-          const sourceId = configIds[i];
-          const configValue = sourceId ? configuration[sourceId] : null;
-
-          if (configValue && typeof configValue === "object") {
-            const cfg = configValue as Record<string, unknown>;
-
-            // Populate mixing restriction state from restored config
-            if (typeof cfg.Drawers === "string") {
-              const drawerRawValue = mapConfigToDrawerValue(cfg.Drawers);
-              if (drawerRawValue) {
-                dispatch(setPlacedCabinetStyle({ id: orderedIds[i], value: drawerRawValue }));
-              }
-            }
-
-            if (!sidePanelValue && typeof cfg.SidePanel === "string") {
-              sidePanelValue = cfg.SidePanel;
-            }
-            if (!sidePanelValue && typeof cfg.SidePanels === "string") {
-              sidePanelValue = cfg.SidePanels;
-            }
-            if (!towelBarValue && typeof cfg.TowelBarOption === "string") {
-              towelBarValue = cfg.TowelBarOption;
-            }
-            if (!towelBarValue && typeof cfg.TowelBar === "string") {
-              towelBarValue = cfg.TowelBar;
-            }
-            if (!towelBarSideValue && typeof cfg.TowelBarSide === "string") {
-              towelBarSideValue = cfg.TowelBarSide;
-            }
-            if (!towelBarColorValue && typeof cfg.TowelBarColor === "string") {
-              towelBarColorValue = cfg.TowelBarColor;
-            }
-
-            await setConfig(orderedIds[i], configValue);
-            dispatch(
-              replacePlacedDividersForCabinet({
-                cabinetId: orderedIds[i],
-                dividers: collectPlacedDividersFromConfig(orderedIds[i], configValue),
-              }),
-            );
-          }
-        }
-
-        for (const topId of topConfigIds) {
-          const configValue = configuration[topId];
-
-          if (!configValue || typeof configValue !== "object") continue;
-
-          const record = configValue as Record<string, unknown>;
-          const name =
-            (typeof record.productType === "string" && record.productType) ||
-            (typeof record.entityName === "string" && record.entityName) ||
-            topId;
-
-          if (name.startsWith("Top_")) {
-            await setConfigBatch({ productType: name }, configValue);
-          }
-        }
-
-        let topConfigThickness: string | undefined;
-        for (const topId of topConfigIds) {
-          const cfg = configuration[topId];
-          if (cfg && typeof cfg === "object") {
-            const record = cfg as Record<string, unknown>;
-            if (typeof record.Thickness === "number" && isFinite(record.Thickness)) {
-              topConfigThickness = String(record.Thickness);
-              break;
-            }
-            if (typeof record.Thickness === "string" && record.Thickness) {
-              topConfigThickness = record.Thickness;
-              break;
+          // Populate mixing restriction state from restored config
+          if (typeof cfg.Drawers === "string") {
+            const drawerRawValue = mapConfigToDrawerValue(cfg.Drawers);
+            if (drawerRawValue) {
+              dispatch(setPlacedCabinetStyle({ id: orderedIds[i], value: drawerRawValue }));
             }
           }
-        }
 
-        const uiCabinetColor =
-          typeof uiStateValues?.CabinetColor === "string" ? (uiStateValues.CabinetColor as string) : undefined;
-        const uiHandleGrooveColor =
-          typeof uiStateValues?.HandleGrooveColor === "string"
-            ? (uiStateValues.HandleGrooveColor as string)
-            : undefined;
-        const uiSinkType = typeof uiStateValues?.sinkType === "string" ? (uiStateValues.sinkType as string) : undefined;
-        const uiCountertopColor =
-          typeof uiStateValues?.CountertopColor === "string" ? (uiStateValues.CountertopColor as string) : undefined;
-        const uiCountertopColorSku =
-          typeof uiStateValues?.CountertopColorSku === "string"
-            ? (uiStateValues.CountertopColorSku as string)
-            : undefined;
-        const uiVesselColor =
-          typeof uiStateValues?.VesselColor === "string" ? (uiStateValues.VesselColor as string) : undefined;
-        const uiCountertopThickness =
-          (typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined) ??
-          topConfigThickness;
-        const uiDrawerPanelFluting =
-          typeof uiStateValues?.DrawerPanelFluting === "string"
-            ? (uiStateValues.DrawerPanelFluting as string)
-            : undefined;
-        const uiGrainDirection =
-          typeof uiStateValues?.GrainDirection === "string" ? (uiStateValues.GrainDirection as string) : undefined;
-        const uiBookMatching =
-          typeof uiStateValues?.BookMatching === "string" ? (uiStateValues.BookMatching as string) : undefined;
-        const uiCountertopStyle =
-          typeof uiStateValues?.CountertopStyle === "string" ? (uiStateValues.CountertopStyle as string) : undefined;
-        const uiSidePanels =
-          typeof uiStateValues?.SidePanels === "string" ? (uiStateValues.SidePanels as string) : undefined;
-        const uiSidePanelLeft =
-          typeof uiStateValues?.SidePanelLeft === "string" ? (uiStateValues.SidePanelLeft as string) : undefined;
-        const uiSidePanelRight =
-          typeof uiStateValues?.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
-        const uiLedOption =
-          typeof uiStateValues?.LedOption === "string" ? (uiStateValues.LedOption as string) : undefined;
-        const uiDividersOption =
-          typeof uiStateValues?.DividersOption === "string" ? (uiStateValues.DividersOption as string) : undefined;
-        const uiDividersStyle =
-          typeof uiStateValues?.DividersStyle === "string" ? (uiStateValues.DividersStyle as string) : undefined;
-        const uiTowelBarOption =
-          typeof uiStateValues?.TowelBarOption === "string" ? (uiStateValues.TowelBarOption as string) : undefined;
-        const uiTowelBarColor =
-          typeof uiStateValues?.TowelBarColor === "string" ? (uiStateValues.TowelBarColor as string) : undefined;
-        const uiTowelBarSide =
-          typeof uiStateValues?.["TowelBarSide"] === "string" ? (uiStateValues["TowelBarSide"] as string) : undefined;
-        const uiFaucetHolesAmount =
-          typeof uiStateValues?.FaucetHolesAmount === "string"
-            ? (uiStateValues.FaucetHolesAmount as string)
-            : undefined;
-        const uiFaucetHolesSpacing =
-          typeof uiStateValues?.FaucetHolesSpacing === "string"
-            ? (uiStateValues.FaucetHolesSpacing as string)
-            : undefined;
-
-        const batchConfig: Record<string, unknown> = {};
-        if (uiCabinetColor) batchConfig.CabinetColor = uiCabinetColor;
-        if (uiHandleGrooveColor) batchConfig.HandleGrooveColor = uiHandleGrooveColor;
-        if (uiCountertopColor) batchConfig.CountertopColor = uiCountertopColor;
-        if (uiCountertopStyle) batchConfig.CountertopStyle = uiCountertopStyle;
-
-        if (Object.keys(batchConfig).length) {
-          await setConfigBatch(orderedIds, batchConfig);
-        }
-
-        if (uiCountertopThickness) {
-          await setConfigBatch({}, { Thickness: uiCountertopThickness });
-        }
-
-        if (uiVesselColor !== undefined) {
-          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: uiVesselColor });
-        }
-
-        const towelBarOption = uiTowelBarOption || towelBarValue;
-        const towelBarSide = uiTowelBarSide || towelBarSideValue;
-        if (typeof towelBarOption === "string") {
-          const isNone = towelBarOption === "None";
-          const side = typeof towelBarSide === "string" && towelBarSide ? towelBarSide : towelBarOption.toLowerCase();
-          await setConfigBatch(
-            {},
-            {
-              TowelBar: isNone ? "None" : "TowelBar40_R",
-              TowelBarSide: isNone ? "both" : side,
-            },
-          );
-
-          dispatch(setTowelBarOption(towelBarOption));
-          if (isNone) {
-            dispatch(setTowelBarColor(""));
+          if (!sidePanelValue && typeof cfg.SidePanel === "string") {
+            sidePanelValue = cfg.SidePanel;
           }
-        }
+          if (!sidePanelValue && typeof cfg.SidePanels === "string") {
+            sidePanelValue = cfg.SidePanels;
+          }
+          if (!towelBarValue && typeof cfg.TowelBarOption === "string") {
+            towelBarValue = cfg.TowelBarOption;
+          }
+          if (!towelBarValue && typeof cfg.TowelBar === "string") {
+            towelBarValue = cfg.TowelBar;
+          }
+          if (!towelBarSideValue && typeof cfg.TowelBarSide === "string") {
+            towelBarSideValue = cfg.TowelBarSide;
+          }
+          if (!towelBarColorValue && typeof cfg.TowelBarColor === "string") {
+            towelBarColorValue = cfg.TowelBarColor;
+          }
 
-        const towelColor = uiTowelBarColor || towelBarColorValue;
-        if (towelColor) {
-          await setConfigBatch({}, { TowelBarColor: towelColor });
-          dispatch(setTowelBarColor(towelColor));
-        }
-
-        if (uiCabinetColor) dispatch(setCabinetColor(uiCabinetColor));
-        if (uiHandleGrooveColor) dispatch(setHandleGrooveColor(uiHandleGrooveColor));
-        if (uiSinkType) dispatch(setActiveBasinStyle(uiSinkType));
-        if (uiCountertopColor) dispatch(setActiveCountertopColor(uiCountertopColor));
-        if (uiCountertopColorSku) dispatch(setCountertopColorSku(uiCountertopColorSku));
-        if (uiVesselColor !== undefined) dispatch(setVesselColor(uiVesselColor));
-        if (uiCountertopThickness) dispatch(setActiveCountertopThickness(uiCountertopThickness));
-        if (uiDrawerPanelFluting) dispatch(setDrawerPanelFluting(uiDrawerPanelFluting));
-        if (uiGrainDirection) dispatch(setGrainDirection(uiGrainDirection));
-        if (uiBookMatching !== undefined) dispatch(setBookMatching(uiBookMatching));
-        if (uiCountertopStyle) dispatch(setCountertopStyle(uiCountertopStyle));
-        if (uiLedOption) dispatch(setLedOption(uiLedOption));
-        if (uiDividersOption) dispatch(setDividersOption(uiDividersOption));
-        if (uiDividersStyle) dispatch(setDividersStyle(uiDividersStyle));
-        if (uiFaucetHolesAmount) dispatch(setFaucetHolesAmount(uiFaucetHolesAmount));
-        if (uiFaucetHolesSpacing !== undefined) dispatch(setFaucetHolesSpacing(uiFaucetHolesSpacing));
-
-        const [firstPreset] = presetProducts;
-        if (firstPreset?.name) {
-          dispatch(setDrawerProduct(firstPreset.name));
-        }
-
-        dispatch(setSelectedProductConfig(firstPreset ?? null));
-
-        const nextDimensions: Partial<typeof selectedDimensions> = {};
-        if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
-        if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
-        if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
-
-        if (Object.keys(nextDimensions).length) {
-          dispatch(setSelectedDimensions(nextDimensions));
-        }
-
-        const cabinetTypeId = resolveCabinetTypeId(firstPreset?.name);
-        if (cabinetTypeId !== null) {
-          dispatch(setActiveCabinetType(cabinetTypeId));
-        }
-
-        const sidePanel = uiSidePanels || sidePanelValue;
-        if (sidePanel && isGrooveType(sidePanel)) {
-          const leftStatus = resolveSidePanelStatus(uiSidePanelLeft, "active");
-          const rightStatus = resolveSidePanelStatus(uiSidePanelRight, "active");
-          await restoreSidePanelState(sidePanel, leftStatus, rightStatus, orderedIds.length);
-          dispatch(setSidePanelsOption(sidePanel));
-          dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus }));
-          dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus }));
-          await enforceSidePanelEligibility(
-            dispatch,
-            getActiveProductProfile(store.getState()),
-            sidePanel,
-            leftStatus,
-            rightStatus,
-            orderedIds.length,
+          // The restorer already applied the product's config in the scene.
+          dispatch(
+            replacePlacedDividersForCabinet({
+              cabinetId: orderedIds[i],
+              dividers: collectPlacedDividersFromConfig(orderedIds[i], configValue),
+            }),
           );
         }
+      }
 
-        const snapshot = await captureSnapshot(() => store.getState() as RootState);
-        dispatch(setHistoryRestoring(false));
-        dispatch(pushSnapshot(snapshot));
+      for (const topId of topConfigIds) {
+        const configValue = configuration[topId];
 
-        if (restorePath) {
-          navigate(restorePath);
+        if (!configValue || typeof configValue !== "object") continue;
+
+        const record = configValue as Record<string, unknown>;
+        const name =
+          (typeof record.productType === "string" && record.productType) ||
+          (typeof record.entityName === "string" && record.entityName) ||
+          topId;
+
+        if (name.startsWith("Top_")) {
+          await setConfigBatch({ productType: name }, configValue);
         }
-      } catch (error) {
-        dispatch(setHistoryRestoring(false));
-        console.error("[Configurations] Restore failed", error);
+      }
+
+      let topConfigThickness: string | undefined;
+      for (const topId of topConfigIds) {
+        const cfg = configuration[topId];
+        if (cfg && typeof cfg === "object") {
+          const record = cfg as Record<string, unknown>;
+          if (typeof record.Thickness === "number" && isFinite(record.Thickness)) {
+            topConfigThickness = String(record.Thickness);
+            break;
+          }
+          if (typeof record.Thickness === "string" && record.Thickness) {
+            topConfigThickness = record.Thickness;
+            break;
+          }
+        }
+      }
+
+      const uiCabinetColor =
+        typeof uiStateValues.CabinetColor === "string" ? (uiStateValues.CabinetColor as string) : undefined;
+      const uiHandleGrooveColor =
+        typeof uiStateValues.HandleGrooveColor === "string" ? (uiStateValues.HandleGrooveColor as string) : undefined;
+      const uiSinkType = typeof uiStateValues.sinkType === "string" ? (uiStateValues.sinkType as string) : undefined;
+      const uiCountertopColor =
+        typeof uiStateValues.CountertopColor === "string" ? (uiStateValues.CountertopColor as string) : undefined;
+      const uiCountertopColorSku =
+        typeof uiStateValues.CountertopColorSku === "string" ? (uiStateValues.CountertopColorSku as string) : undefined;
+      const uiVesselColor =
+        typeof uiStateValues.VesselColor === "string" ? (uiStateValues.VesselColor as string) : undefined;
+      const uiCountertopThickness =
+        (typeof uiStateValues.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined) ??
+        topConfigThickness;
+      const uiDrawerPanelFluting =
+        typeof uiStateValues.DrawerPanelFluting === "string" ? (uiStateValues.DrawerPanelFluting as string) : undefined;
+      const uiGrainDirection =
+        typeof uiStateValues.GrainDirection === "string" ? (uiStateValues.GrainDirection as string) : undefined;
+      const uiBookMatching =
+        typeof uiStateValues.BookMatching === "string" ? (uiStateValues.BookMatching as string) : undefined;
+      const uiCountertopStyle =
+        typeof uiStateValues.CountertopStyle === "string" ? (uiStateValues.CountertopStyle as string) : undefined;
+      const uiSidePanels =
+        typeof uiStateValues.SidePanels === "string" ? (uiStateValues.SidePanels as string) : undefined;
+      const uiSidePanelLeft =
+        typeof uiStateValues.SidePanelLeft === "string" ? (uiStateValues.SidePanelLeft as string) : undefined;
+      const uiSidePanelRight =
+        typeof uiStateValues.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
+      const uiLedOption = typeof uiStateValues.LedOption === "string" ? (uiStateValues.LedOption as string) : undefined;
+      const uiDividersOption =
+        typeof uiStateValues.DividersOption === "string" ? (uiStateValues.DividersOption as string) : undefined;
+      const uiDividersStyle =
+        typeof uiStateValues.DividersStyle === "string" ? (uiStateValues.DividersStyle as string) : undefined;
+      const uiTowelBarOption =
+        typeof uiStateValues.TowelBarOption === "string" ? (uiStateValues.TowelBarOption as string) : undefined;
+      const uiTowelBarColor =
+        typeof uiStateValues.TowelBarColor === "string" ? (uiStateValues.TowelBarColor as string) : undefined;
+      const uiTowelBarSide =
+        typeof uiStateValues["TowelBarSide"] === "string" ? (uiStateValues["TowelBarSide"] as string) : undefined;
+      const uiFaucetHolesAmount =
+        typeof uiStateValues.FaucetHolesAmount === "string" ? (uiStateValues.FaucetHolesAmount as string) : undefined;
+      const uiFaucetHolesSpacing =
+        typeof uiStateValues.FaucetHolesSpacing === "string" ? (uiStateValues.FaucetHolesSpacing as string) : undefined;
+
+      const batchConfig: Record<string, unknown> = {};
+      if (uiCabinetColor) batchConfig.CabinetColor = uiCabinetColor;
+      if (uiHandleGrooveColor) batchConfig.HandleGrooveColor = uiHandleGrooveColor;
+      if (uiCountertopColor) batchConfig.CountertopColor = uiCountertopColor;
+      if (uiCountertopStyle) batchConfig.CountertopStyle = uiCountertopStyle;
+
+      if (Object.keys(batchConfig).length && orderedIds.length) {
+        await setConfigBatch(orderedIds, batchConfig);
+      }
+
+      if (uiCountertopThickness) {
+        await setConfigBatch({}, { Thickness: uiCountertopThickness });
+      }
+
+      if (uiVesselColor !== undefined) {
+        await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: uiVesselColor });
+      }
+
+      const towelBarOption = uiTowelBarOption || towelBarValue;
+      const towelBarSide = uiTowelBarSide || towelBarSideValue;
+      if (typeof towelBarOption === "string") {
+        const isNone = towelBarOption === "None";
+        const side = typeof towelBarSide === "string" && towelBarSide ? towelBarSide : towelBarOption.toLowerCase();
+        await setConfigBatch(
+          {},
+          {
+            TowelBar: isNone ? "None" : "TowelBar40_R",
+            TowelBarSide: isNone ? "both" : side,
+          },
+        );
+
+        dispatch(setTowelBarOption(towelBarOption));
+        if (isNone) {
+          dispatch(setTowelBarColor(""));
+        }
+      }
+
+      const towelColor = uiTowelBarColor || towelBarColorValue;
+      if (towelColor) {
+        await setConfigBatch({}, { TowelBarColor: towelColor });
+        dispatch(setTowelBarColor(towelColor));
+      }
+
+      if (uiCabinetColor) dispatch(setCabinetColor(uiCabinetColor));
+      if (uiHandleGrooveColor) dispatch(setHandleGrooveColor(uiHandleGrooveColor));
+      if (uiSinkType) dispatch(setActiveBasinStyle(uiSinkType));
+      if (uiCountertopColor) dispatch(setActiveCountertopColor(uiCountertopColor));
+      if (uiCountertopColorSku) dispatch(setCountertopColorSku(uiCountertopColorSku));
+      if (uiVesselColor !== undefined) dispatch(setVesselColor(uiVesselColor));
+      if (uiCountertopThickness) dispatch(setActiveCountertopThickness(uiCountertopThickness));
+      if (uiDrawerPanelFluting) dispatch(setDrawerPanelFluting(uiDrawerPanelFluting));
+      if (uiGrainDirection) dispatch(setGrainDirection(uiGrainDirection));
+      if (uiBookMatching !== undefined) dispatch(setBookMatching(uiBookMatching));
+      if (uiCountertopStyle) dispatch(setCountertopStyle(uiCountertopStyle));
+      if (uiLedOption) dispatch(setLedOption(uiLedOption));
+      if (uiDividersOption) dispatch(setDividersOption(uiDividersOption));
+      if (uiDividersStyle) dispatch(setDividersStyle(uiDividersStyle));
+      if (uiFaucetHolesAmount) dispatch(setFaucetHolesAmount(uiFaucetHolesAmount));
+      if (uiFaucetHolesSpacing !== undefined) dispatch(setFaucetHolesSpacing(uiFaucetHolesSpacing));
+
+      const [firstPreset] = presetProducts;
+      if (firstPreset?.name) {
+        dispatch(setDrawerProduct(firstPreset.name));
+      }
+
+      dispatch(setSelectedProductConfig(firstPreset ?? null));
+
+      const nextDimensions: Partial<typeof selectedDimensions> = {};
+      if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+      if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+      if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+
+      if (Object.keys(nextDimensions).length) {
+        dispatch(setSelectedDimensions(nextDimensions));
+      }
+
+      const cabinetTypeId = resolveCabinetTypeId(firstPreset?.name);
+      if (cabinetTypeId !== null) {
+        dispatch(setActiveCabinetType(cabinetTypeId));
+      }
+
+      const sidePanel = uiSidePanels || sidePanelValue;
+      if (sidePanel && isGrooveType(sidePanel)) {
+        const leftStatus = resolveSidePanelStatus(uiSidePanelLeft, "active");
+        const rightStatus = resolveSidePanelStatus(uiSidePanelRight, "active");
+        await restoreSidePanelState(sidePanel, leftStatus, rightStatus, orderedIds.length);
+        dispatch(setSidePanelsOption(sidePanel));
+        dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus }));
+        dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus }));
+        await enforceSidePanelEligibility(
+          dispatch,
+          getActiveProductProfile(store.getState()),
+          sidePanel,
+          leftStatus,
+          rightStatus,
+          orderedIds.length,
+        );
+      }
+
+      if (restorePath) {
+        navigate(restorePath);
       }
     },
-    [dispatch, navigate, resolveCabinetTypeId, restoreConfiguration],
+    [dispatch, navigate, resolveCabinetTypeId],
   );
 
+  // A configuration opened by id replaces the builder bootstrap: the preset and empty-builder
+  // effects above must not run over it.
   useEffect(() => {
-    if (!canvasReady || !configId || bootstrappedRef.current) return;
+    if (!configId || bootstrappedRef.current) return;
 
     bootstrappedRef.current = true;
     dispatch(setHasBootstrappedCabinetBuilder(true));
+  }, [configId, dispatch]);
 
-    handleRestoreConfiguration(configId);
-  }, [canvasReady, configId, dispatch, handleRestoreConfiguration]);
+  useRestoreSavedConfiguration({ configId, applyPage: applyCustomRestore });
 
   const addSelectedCabinetToScene = useCallback(
     async ({
