@@ -20,6 +20,7 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+import type { ProductProfile } from "@/entities/collection";
 import {
   appendSyntesiCountertopOptions,
   type CountertopMatrixRule,
@@ -53,6 +54,8 @@ const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
 
 type AdaptThreekitConfigOptions = {
   countertopRules?: CountertopMatrixRule[];
+  /** Active collection profile; its Syntesi data decides the rule-backed Syntesi swatches. */
+  profile: ProductProfile | null;
 };
 
 const inferCountertopMaterial = ({
@@ -174,6 +177,7 @@ const appendCountertopRuleBackedSwatches = (
   productElementOptions: IProductElementOption[],
   allMaterialValues: AttributeValue[],
   rules: CountertopMatrixRule[] | undefined,
+  profile: ProductProfile | null,
 ) => {
   if (!rules?.length) return;
 
@@ -181,7 +185,7 @@ const appendCountertopRuleBackedSwatches = (
   const sourceValues = countertopGroup?.valuesArray ?? [];
   const sourceOptions = sourceValues.map(toCountertopSourceOption);
   const sourceOptionIds = new Set(sourceOptions.map((option) => String(option.id)));
-  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules);
+  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules, profile);
   const syntheticValues = nextOptions
     .filter((option) => !sourceOptionIds.has(String(option.id)))
     .map(toCountertopAttributeValue);
@@ -204,7 +208,7 @@ const appendCountertopRuleBackedSwatches = (
 
 export const adaptThreekitConfig = (
   data: IThreekitConfiguration | null | undefined,
-  options: AdaptThreekitConfigOptions = {},
+  options: AdaptThreekitConfigOptions,
 ): IMapUIData => {
   if (!data?.availableOptions?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
@@ -340,6 +344,7 @@ export const adaptThreekitConfig = (
     productElementOptions,
     allMaterialValues,
     options.countertopRules,
+    options.profile,
   );
 
   allMaterialValues.sort((a, b) =>

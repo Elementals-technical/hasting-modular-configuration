@@ -2,10 +2,10 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
-import { getCabinetEntries } from "@/entities/configuration";
+import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration";
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 
-import { commitChange } from "./commitChange";
+import { commitPlan } from "./commitChange";
 import type { ChangeResult, PlannedChange } from "../model/types";
 
 /**
@@ -65,14 +65,13 @@ export const applyPlan = async (
   const commitContext = {
     selectedProductConfig: state.rootStateUI.product.selectedProductConfig ?? null,
     resolveRuntimeId,
+    profile: getActiveProductProfile(state),
   };
 
   // Only what the runtime actually applied is recorded. A change the scene rejected must
   // not end up in state as if it had succeeded.
-  for (const applied of runtimeResult.applied) {
-    for (const action of commitChange(applied, commitContext)) {
-      dispatch(action);
-    }
+  for (const action of commitPlan(runtimeResult.applied, commitContext)) {
+    dispatch(action);
   }
 
   if (runtimeResult.status === "partial") {

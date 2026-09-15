@@ -4,7 +4,7 @@ import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import type { ScenePatch } from "@/entities/collection";
-import { resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
+import { getCabinetEntries, resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import {
@@ -47,13 +47,13 @@ const matrix = {
   ],
 } as unknown as ProductDatatable;
 
-const createRecordedScene = () => {
+const createRecordedScene = (cabinets: string[] = CABINETS) => {
   const calls: { selector: SceneSelector; patch: ScenePatch }[] = [];
   const scene: SceneBridge = {
     isReady: () => true,
     async apply(selector, patch) {
       calls.push({ selector, patch });
-      return { status: "applied", updatedIds: selector.productIds ?? CABINETS };
+      return { status: "applied", updatedIds: selector.productIds ?? cabinets };
     },
   };
   return { scene, calls };
@@ -101,6 +101,31 @@ describe("changeAttribute through the PlayCanvas adapter", () => {
       { selector: {}, patch: { HandleGrooveColor: "None" } },
     ]);
     expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_pto");
+  });
+
+  it("switches every drawer cabinet before sending the forced height once", async () => {
+    const drawerCabinets = ["Sink-Base-60-a", "Sink-Base-80-b"];
+    store.dispatch(syncCabinets(drawerCabinets));
+    const { scene, calls } = createRecordedScene(drawerCabinets);
+    const [first] = getCabinetEntries(store.getState());
+
+    const result = await changeAttribute(
+      { attributeId: "Drawers", value: "2", scope: "cabinet", cabinetId: first.stableKey },
+      {
+        getState: () => store.getState(),
+        dispatch: (action) => store.dispatch(action),
+        runtime: createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene }),
+        flow: "custom",
+      },
+    );
+
+    expect(result.status).toBe("applied");
+    expect(calls).toEqual([
+      { selector: { productIds: ["Sink-Base-60-a"] }, patch: { Drawers: "2D" } },
+      { selector: { productIds: ["Sink-Base-80-b"] }, patch: { Drawers: "2D" } },
+      { selector: {}, patch: { Height: 56 } },
+    ]);
+    expect(store.getState().rootStateUI.product.selectedProductConfig?.Drawers).toBe("2D");
   });
 
   it("sends a drawers change to the addressed cabinet in the scene's spelling", async () => {

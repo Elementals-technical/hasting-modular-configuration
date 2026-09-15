@@ -1,11 +1,27 @@
 import type { RootState } from "@/app/store";
 import type { ProductProfile } from "@/entities/collection";
 
-import { findByStableKey, resolveStableKey } from "../identity";
+import { findByStableKey, resolveCabinetDimensions, resolveStableKey } from "../identity";
 import { CONFIGURATION_SNAPSHOT_VERSION, isSameTarget } from "../types";
-import type { AttributeValue, CabinetEntry, ConfigurationSnapshot, ValueTarget } from "../types";
+import type {
+  AttributeValue,
+  CabinetDimensions,
+  CabinetEntry,
+  ConfigurationSnapshot,
+  ConfigurationState,
+  RestoreState,
+  ValueTarget,
+} from "../types";
 
 export const getConfigurationState = (state: RootState) => state.rootStateUI.configuration;
+
+export const getRestoreState = (state: RootState): RestoreState => state.rootStateUI.configuration.restore;
+
+/** Whether this configuration is being restored or already came back, so it must not start again. */
+export const isRestoreInFlightOrDone = (state: RootState, configId: string): boolean => {
+  const { configId: restoringId, status } = getRestoreState(state);
+  return restoringId === configId && (status === "restoring" || status === "restored" || status === "partial");
+};
 
 export const getActiveCollectionId = (state: RootState): string | null =>
   state.rootStateUI.configuration.collectionId;
@@ -17,6 +33,17 @@ export const getCabinetByStableKey = (state: RootState, stableKey: string): Cabi
 
 export const getStableKeyForRuntimeId = (state: RootState, runtimeId: string): string | null =>
   resolveStableKey(getCabinetEntries(state), runtimeId);
+
+/** Actual sizes read from the scene, by stable key. The reference changes only when a size does. */
+export const getDimensionsByCabinet = (state: RootState): ConfigurationState["dimensionsByCabinet"] =>
+  state.rootStateUI.configuration.dimensionsByCabinet;
+
+/** The actual size of one product as last read from the scene, or null before the first read. */
+export const getCabinetDimensions = (state: RootState, stableKey: string): CabinetDimensions | null =>
+  getDimensionsByCabinet(state)[stableKey] ?? null;
+
+export const getCabinetDimensionsByRuntimeId = (state: RootState, runtimeId: string): CabinetDimensions | null =>
+  resolveCabinetDimensions(getCabinetEntries(state), getDimensionsByCabinet(state), runtimeId);
 
 export const getAttributeValue = (
   state: RootState,

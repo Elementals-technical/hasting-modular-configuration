@@ -61,7 +61,6 @@ import {
   getSidePanelsOption,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
-  getHandleGrooveColor,
   getPlacedDividers,
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
@@ -122,7 +121,10 @@ import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/e
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType, withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
-import { buildHandleStyleConfigPatch, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import { useChangeAttribute } from "@/features/configurationCommands";
+import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
+import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
   InSceneQuickEditorNotification,
   getInSceneQuickEditorNotificationSeen,
@@ -321,8 +323,6 @@ export const PlayCanvasIntegration = ({
 
   const containerRef = useRef<HTMLIFrameElement | null>(null);
   const bridgedDocumentRef = useRef<Document | null>(null);
-  const pendingHandleSyncRef = useRef(false);
-  const prevHandleRef = useRef<string | undefined>(undefined);
   const isMobileMediaQueryRef = useRef<MediaQueryList | null>(null);
   const [dropdownState, setDropdownState] = useState<{ visible: boolean; x: number; y: number }>({
     visible: false,
@@ -438,7 +438,6 @@ export const PlayCanvasIntegration = ({
   const sceneTotalWidth = lengthGuard.currentWithSp;
   const maxCountertopLength = lengthGuard.max;
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const wasRestoringRef = useRef(false);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
@@ -948,8 +947,9 @@ export const PlayCanvasIntegration = ({
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: activeBasinStyle ?? null,
+      profile: activeProfile,
     });
-  }, [activeMaterialTokens, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
+  }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
     (productType: string | null) => {
@@ -1513,19 +1513,42 @@ export const PlayCanvasIntegration = ({
     return () => clearTimeout(timer);
   }, [sidePanelsOption, sidePanelLeft, sidePanelRight, syncCountertopConfig]);
 
+  const {
+    change: changeAttributeValue,
+    confirm: confirmAttributeValue,
+    getState: getCommandState,
+  } = useChangeAttribute();
+  const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
+
+  const reportHandleChangeResult = useCallback((result: ChangeResult) => {
+    if (result.status === "confirmation-required") {
+      setPendingHandlePreview(result.preview);
+    } else if (result.status !== "applied") {
+      console.error("[PlayCanvasIntegration] Handle change was not applied", result);
+    }
+  }, []);
+
+  // A handle change goes through the command service, which sends the handle and the
+  // height it forces to the scene once. A handle changed by the rules reaches the scene
+  // through the handle listener in optionsListener.ts.
   const handleSetHandleType = useCallback(
     async (handleType: string) => {
       const option = dimensionOptions.handles.find((h) => String(h.value) === handleType);
       if (option?.disabled) return;
 
       try {
-        await saveSnapshot();
-        pendingHandleSyncRef.current = true;
-        dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+        const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
 
-        if (productIds.length) {
-          await setConfigBatch({}, buildHandleStyleConfigPatch(handleType, handleGrooveColor, activeProfile));
+        // No cabinet placed yet: the handle is the choice for the next cabinet.
+        if (!cabinetId) {
+          await saveSnapshot();
+          dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+          return;
         }
+
+        reportHandleChangeResult(
+          await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+        );
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
       } finally {
@@ -1533,37 +1556,32 @@ export const PlayCanvasIntegration = ({
       }
     },
     [
-      dispatch,
+      changeAttributeValue,
       dimensionOptions.handles,
-      handleGrooveColor,
-      productIds,
+      dispatch,
+      getCommandState,
+      reportHandleChangeResult,
       saveSnapshot,
       selectedProductConfig,
-      activeProfile,
     ],
   );
 
-  // After a handle selection forces a new height via the rules engine, push it to PlayCanvas.
-  // The same effect in RightCabinetStyleSidebar.
-  useEffect(() => {
-    if (!pendingHandleSyncRef.current) return;
+  const handleCancelHandlePreview = useCallback(() => {
+    setPendingHandlePreview(null);
+  }, []);
 
-    if (selectedDimensions.height === null || selectedDimensions.height === undefined) return;
+  const handleConfirmHandlePreview = useCallback(async () => {
+    if (!pendingHandlePreview) return;
+    const preview = pendingHandlePreview;
+    setPendingHandlePreview(null);
 
-    pendingHandleSyncRef.current = false;
-    setConfigBatch({}, { Height: selectedDimensions.height });
-  }, [selectedDimensions]);
-
-  useEffect(() => {
-    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
-    const prevHandle = prevHandleRef.current;
-    prevHandleRef.current = currentHandle;
-
-    if (!currentHandle || currentHandle === prevHandle) return;
-    if (!productIds.length) return;
-
-    setConfigBatch({}, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor, activeProfile));
-  }, [handleGrooveColor, productIds.length, selectedProductConfig?.Handle, activeProfile]);
+    try {
+      await saveSnapshot();
+      reportHandleChangeResult(await confirmAttributeValue(preview));
+    } catch (error) {
+      console.error("[PlayCanvasIntegration] Failed to set handle type", error);
+    }
+  }, [confirmAttributeValue, pendingHandlePreview, reportHandleChangeResult, saveSnapshot]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -2720,7 +2738,6 @@ export const PlayCanvasIntegration = ({
     let cancelled = false;
 
     const syncSelectedDimensionsFromScene = async () => {
-      if (pendingHandleSyncRef.current) return;
       const config = await getConfig(selectedSceneProduct);
       if (!config || cancelled) return;
 
@@ -3343,6 +3360,41 @@ export const PlayCanvasIntegration = ({
           onConfirm={handleCustomizeFromPrompt}
         />
       )}
+
+      <PopupCenterContent isOpening={pendingHandlePreview !== null} onClose={handleCancelHandlePreview}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="handle-change-confirmation-title"
+          style={{
+            width: "min(420px, calc(100vw - 32px))",
+            borderRadius: "8px",
+            background: "#fff",
+            color: "#333",
+            boxShadow: "0 16px 48px rgba(0, 0, 0, 0.18)",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ padding: "20px 24px 8px", borderBottom: "1px solid #eee" }}>
+            <div id="handle-change-confirmation-title" style={{ fontSize: "20px", fontWeight: 600 }}>
+              Update Handle Style?
+            </div>
+          </div>
+
+          <div style={{ padding: "16px 24px", fontSize: "15px", lineHeight: 1.5 }}>
+            {pendingHandlePreview?.reasons[0]?.reason}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", padding: "0 24px 24px" }}>
+            <BaseButton variant="ghost" onClick={handleCancelHandlePreview} fullWidth={true}>
+              Cancel
+            </BaseButton>
+            <BaseButton onClick={() => void handleConfirmHandlePreview()} fullWidth={true}>
+              Confirm
+            </BaseButton>
+          </div>
+        </div>
+      </PopupCenterContent>
 
       <PopupCenterContent isOpening={pendingDividerResizeAction !== null} onClose={handleCancelDividerResize}>
         <div

@@ -61,8 +61,8 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     scope: "global",
     owner: "redux",
     persistedIn: "both",
-    hasProfileAttribute: false,
-    note: "present in profile.defaults but not in profile.attributes; options come from the configurator",
+    hasProfileAttribute: true,
+    note: "declared with optionsSource: the options come from the configurator; SKU, material and finish are still written by the pages",
   }),
   CabinetColorSku: productOption("CabinetColorSku", {
     scope: "global",
@@ -95,8 +95,8 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     scope: "countertop",
     owner: "redux",
     persistedIn: "both",
-    hasProfileAttribute: false,
-    note: "in profile.defaults only; options come from the configurator",
+    hasProfileAttribute: true,
+    note: "declared with optionsSource: the options come from the configurator",
   }),
   CountertopColorSku: productOption("CountertopColorSku", {
     scope: "countertop",
@@ -108,8 +108,8 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     scope: "basin",
     owner: "redux",
     persistedIn: "both",
-    hasProfileAttribute: false,
-    note: "restore re-applies it to Sink-Base products only",
+    hasProfileAttribute: true,
+    note: "declared with optionsSource (configurator Vessels); restore re-applies it to Sink-Base products only",
   }),
   HandleGrooveColor: productOption("HandleGrooveColor", {
     scope: "cabinet",
@@ -210,7 +210,8 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     scope: "global",
     owner: "redux",
     persistedIn: "uiState",
-    hasProfileAttribute: false,
+    hasProfileAttribute: true,
+    note: "declared with optionsSource: the options come from the configurator",
   }),
   FaucetHolesAmount: productOption("FaucetHolesAmount", {
     scope: "countertop",

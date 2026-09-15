@@ -43,10 +43,22 @@ export type CabinetEntry = {
   index: number;
 };
 
+/** Size of one product as the scene reports it, in cm. Null when the scene has no value. */
+export type CabinetDimensions = {
+  width: number | null;
+  height: number | null;
+  depth: number | null;
+};
+
 export type ConfigurationState = {
   /** Active collection, supplied by A. Never inferred from a source id such as 4/438/439. */
   collectionId: string | null;
   cabinets: CabinetEntry[];
+  /**
+   * Actual size of each product, recorded from the scene (I04). Not part of the snapshot:
+   * the saved per-product config already carries the size.
+   */
+  dimensionsByCabinet: Record<StableCabinetKey, CabinetDimensions>;
   /** Monotonic counter behind stableKey generation; never reused within a session. */
   nextCabinetSeq: number;
   /**
@@ -54,6 +66,23 @@ export type ConfigurationState = {
    * Invariant: an attributeId lives either here or in the typed product slice — never in both.
    */
   valuesByAttributeId: Record<string, ScopedValue[]>;
+  /** Service state of restoring a saved configuration (C09). */
+  restore: RestoreState;
+};
+
+/**
+ * - restoring: a restore is running;
+ * - restored: the saved configuration came back whole;
+ * - partial: the scene was rebuilt but not completely;
+ * - failed: the restore stopped, before the scene was touched unless reported otherwise.
+ */
+export type RestoreStatus = "idle" | "restoring" | "restored" | "partial" | "failed";
+
+export type RestoreState = {
+  configId: string | null;
+  status: RestoreStatus;
+  /** What went wrong, for partial and failed. */
+  message: string | null;
 };
 
 /** Serialized form shared by Save/Share, history and the price consumer. */
@@ -86,4 +115,20 @@ export const formatTarget = (target: ValueTarget): string => {
   if (target.scope === "cabinet") return `cabinet:${target.cabinetId}`;
   if (target.scope === "drawer") return `drawer:${target.cabinetId}:${target.drawerType}`;
   return target.scope;
+};
+
+const isDrawerType = (value: string | undefined): value is DrawerType =>
+  value === "Top" || value === "TopFull" || value === "Bot";
+
+/** Reads a target back from its `formatTarget` form; null for a key this build does not know. */
+export const parseTarget = (key: string): ValueTarget | null => {
+  if (key === "global" || key === "countertop" || key === "basin") return { scope: key };
+
+  const [scope, cabinetId, drawerType, ...rest] = key.split(":");
+  if (!cabinetId || rest.length > 0) return null;
+
+  if (scope === "cabinet" && drawerType === undefined) return { scope, cabinetId };
+  if (scope === "drawer" && isDrawerType(drawerType)) return { scope, cabinetId, drawerType };
+
+  return null;
 };

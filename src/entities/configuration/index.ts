@@ -4,25 +4,39 @@ export { CollectionStateBridge } from "./ui/CollectionStateBridge";
 
 export type {
   AttributeValue,
+  CabinetDimensions,
   CabinetEntry,
   ConfigurationSnapshot,
   ConfigurationState,
   DrawerType,
+  RestoreState,
+  RestoreStatus,
   Scope,
   ScopedValue,
   StableCabinetKey,
   ValueTarget,
 } from "./model/types";
-export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget } from "./model/types";
+export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget, parseTarget } from "./model/types";
 
 // runtimePort — owned by I: the typed boundary between C and the scene.
 export type {
   ConfigurationRuntimePort,
+  ConfigurationSceneReader,
   FailedRuntimeChange,
   RuntimeApplyResult,
   RuntimeChange,
   RuntimeContext,
   RuntimeFailureCode,
+  ConfigurationSceneRestorer,
+  SceneCabinetState,
+  SceneRestoreFailure,
+  SceneRestoreIssue,
+  SceneRestoreIssueCode,
+  SceneRestoreMatch,
+  SceneRestoreProduct,
+  SceneRestoreRequest,
+  SceneRestoreResult,
+  SceneStateResult,
   UnsupportedRuntimeChange,
 } from "./model/runtimePort";
 
@@ -43,13 +57,18 @@ export {
   rebindSavedCabinets,
   reconcileOrder,
   registerCabinets,
+  resolveCabinetDimensions,
   resolveStableKey,
 } from "./model/identity";
 
 export {
   clearAttributeValue,
   configurationReducer,
+  clearRestore,
   dropValuesForCabinet,
+  finishRestore,
+  recordSceneState,
+  startRestore,
   resetConfiguration,
   restoreCabinets,
   restoreConfigurationFragment,
@@ -64,6 +83,11 @@ export {
   getActiveProductProfile,
   getAttributeValue,
   getCabinetByStableKey,
+  getCabinetDimensions,
+  getCabinetDimensionsByRuntimeId,
+  getDimensionsByCabinet,
+  getRestoreState,
+  isRestoreInFlightOrDone,
   getCabinetEntries,
   getConfigurationSnapshot,
   getConfigurationState,

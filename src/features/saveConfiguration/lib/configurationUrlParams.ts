@@ -1,5 +1,6 @@
 export const HOST_URL_QUERY_PARAM = "hostUrl";
 export const CONFIGURATION_ID_QUERY_PARAM = "configId";
+export const COLLECTION_ID_QUERY_PARAM = "collectionId";
 
 const HOST_URL_STORAGE_KEY = "hastingsModularConfiguratorHostUrl";
 
@@ -50,6 +51,34 @@ export const resolveHostUrl = (search = window.location.search): string | null =
 export const resolveConfigurationIdFromSearch = (search = window.location.search): string | null => {
   const params = toSearchParams(search);
   return normalizeQueryValue(params.get(CONFIGURATION_ID_QUERY_PARAM));
+};
+
+/**
+ * Search of the page a saved configuration opens on. The saved collection goes into the URL,
+ * where the collection provider reads it, so the page loads the collection the configuration
+ * belongs to. A legacy payload names none and opens the default collection.
+ */
+export const buildConfigurationRestoreSearch = ({
+  configId,
+  hostUrl,
+  collectionId,
+}: {
+  configId: string;
+  hostUrl: string | null;
+  collectionId: string | null;
+}): string => {
+  const params = new URLSearchParams();
+  params.set(CONFIGURATION_ID_QUERY_PARAM, configId);
+
+  if (collectionId) {
+    params.set(COLLECTION_ID_QUERY_PARAM, collectionId);
+  }
+
+  if (hostUrl) {
+    params.set(HOST_URL_QUERY_PARAM, hostUrl);
+  }
+
+  return `?${params.toString()}`;
 };
 
 export const buildPublicConfigurationShareUrl = (

@@ -9,6 +9,7 @@ vi.mock("@/utils/functions/playcanvas/sidePanels", () => ({
 }));
 
 import { store } from "@/app/store";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { reset, setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import {
   getSidePanelLeftStatus,
@@ -97,6 +98,7 @@ describe("sidePanelService", () => {
 
     await reapplySidePanelsForPreset(
       store.dispatch,
+      ushProfile,
       "UpperG",
       [
         { name: "Open-Shelf", Height: 56 },
@@ -124,6 +126,7 @@ describe("sidePanelService", () => {
 
     await reapplySidePanelsForPreset(
       store.dispatch,
+      ushProfile,
       "UpperG",
       [
         { name: "Sink-Base", Height: 56, Drawers: "2D", Handle: "handle_urban_topcut" },
@@ -151,6 +154,7 @@ describe("sidePanelService", () => {
 
     await reapplySidePanelsForPreset(
       store.dispatch,
+      ushProfile,
       "UpperG",
       [
         { name: "Open-Shelf", Height: 56 },

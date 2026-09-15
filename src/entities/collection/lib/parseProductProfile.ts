@@ -2,10 +2,20 @@ import {
   ATTRIBUTE_SCOPES,
   type AttributeConfirmation,
   type AttributeScope,
+  type BookMatchingRuleData,
   type CabinetMatrixLegacyAdapter,
+  type CountertopFallbacksRuleData,
+  type DrawerStyleGroups,
+  type FlutingRuleData,
+  type GrainDirectionRuleData,
+  type MaterialNormalizationRuleData,
   type ProductProfile,
   type ProfileAttribute,
   type ProfileOption,
+  type ProfileRuleData,
+  type SidePanelsRuleData,
+  type SyntesiRuleData,
+  type VesselCompatibilityRuleData,
 } from "../model/productProfile";
 
 /**
@@ -29,7 +39,8 @@ export type ProfileDiagnosticCode =
   | "attribute.duplicate_option"
   | "attribute.missing_options_source"
   | "attribute.value_outside_catalog"
-  | "adapter.missing_column";
+  | "adapter.missing_column"
+  | "ruleData.invalid_section";
 
 export type ParseProductProfileResult =
   | { ok: true; profile: ProductProfile }
@@ -44,6 +55,38 @@ const isFiniteNumber = (value: unknown): value is number => typeof value === "nu
 
 const isStringRecord = (value: unknown): value is Record<string, string> =>
   isRecord(value) && Object.values(value).every((entry) => typeof entry === "string");
+
+const isBoolean = (value: unknown): value is boolean => typeof value === "boolean";
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((entry) => typeof entry === "string");
+
+const isNumberArray = (value: unknown): value is number[] => Array.isArray(value) && value.every(isFiniteNumber);
+
+const isStringArrayRecord = (value: unknown): value is Record<string, string[]> =>
+  isRecord(value) && Object.values(value).every(isStringArray);
+
+type ValueCheck = (value: unknown) => boolean;
+
+const optional =
+  (check: ValueCheck): ValueCheck =>
+  (value) =>
+    value === undefined || check(value);
+
+const arrayOf =
+  (check: ValueCheck): ValueCheck =>
+  (value) =>
+    Array.isArray(value) && value.every(check);
+
+const recordOf =
+  (check: ValueCheck): ValueCheck =>
+  (value) =>
+    isRecord(value) && Object.values(value).every(check);
+
+const objectWith =
+  (fields: Record<string, ValueCheck>): ValueCheck =>
+  (value) =>
+    isRecord(value) && Object.entries(fields).every(([field, check]) => check(value[field]));
 
 type Collector = {
   diagnostics: ProfileDiagnostic[];
@@ -279,6 +322,172 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
   };
 };
 
+/** A field of a rule section: how it is checked and how the expectation is worded. */
+type FieldCheck = readonly [check: ValueCheck, expectation: string];
+
+const STRING_LIST: FieldCheck = [isStringArray, "an array of strings"];
+const NUMBER: FieldCheck = [isFiniteNumber, "a finite number"];
+const NON_EMPTY_STRING: FieldCheck = [isNonEmptyString, "a non-empty string"];
+
+const RULE_SECTION_FIELDS = {
+  fluting: {
+    eligibleMaterialAliases: STRING_LIST,
+    forbiddenTargetParts: STRING_LIST,
+  },
+  grainDirection: {
+    eligibleMaterials: STRING_LIST,
+    excludedFinishesByMaterial: [isStringArrayRecord, "a map of material to finish codes"],
+    excludedFinishLabelsByMaterial: [optional(isStringRecord), "a map of material to a label"],
+  },
+  bookMatching: {
+    horizontalMinimumAdjacentDrawerCabinets: NUMBER,
+    verticalAllowedDrawerStyles: STRING_LIST,
+    drawerCabinetAliases: STRING_LIST,
+    openCabinetAliases: STRING_LIST,
+  },
+  sidePanels: {
+    heightTokenByCm: [isStringRecord, "a map of centimetres to a height token"],
+    blockedCabinetTypes: STRING_LIST,
+    cabinetGroups: [isStringArrayRecord, "a map of cabinet group to cabinet names"],
+    drawersByHandleType: [isStringArrayRecord, "a map of drawer group to drawers values"],
+    exactBlockedCabinetLengthCm: NUMBER,
+    countertopLengthIncrementCm: NUMBER,
+    defaultQuantityUnlessHeightTypeLow: NUMBER,
+    availability: [
+      arrayOf(
+        objectWith({
+          height: isNonEmptyString,
+          handleType: isNonEmptyString,
+          cabinetType: isNonEmptyString,
+          allowed: isStringArray,
+        }),
+      ),
+      "an array of { height, handleType, cabinetType, allowed }",
+    ],
+  },
+  syntesi: {
+    material: NON_EMPTY_STRING,
+    materialSkuToken: NON_EMPTY_STRING,
+    maxCabinetCount: NUMBER,
+    allowsSidePanels: [isBoolean, "a boolean"],
+    finishTransforms: [
+      arrayOf(
+        objectWith({
+          finish: isNonEmptyString,
+          sourceFinish: isNonEmptyString,
+          label: isNonEmptyString,
+          value: isNonEmptyString,
+          runtimeValue: isNonEmptyString,
+        }),
+      ),
+      "an array of { finish, sourceFinish, label, value, runtimeValue }",
+    ],
+    sourceMaterialTokens: STRING_LIST,
+  },
+  countertopFallbacks: {
+    restrictedIntegratedDepthsCm: [isNumberArray, "an array of finite numbers"],
+    restrictedIntegratedMaterialTokens: STRING_LIST,
+    restrictedIntegratedBasinKeys: STRING_LIST,
+    excludedMaterialFilterTokens: STRING_LIST,
+    needsConfirmation: [optional(isBoolean), "a boolean"],
+  },
+  materialNormalization: {
+    aliases: [isStringArrayRecord, "a map of material token to alias tokens"],
+    displayHierarchy: [
+      optional(
+        arrayOf(
+          objectWith({
+            value: isNonEmptyString,
+            label: isNonEmptyString,
+            children: isStringArray,
+            aliases: isStringArray,
+          }),
+        ),
+      ),
+      "an array of { value, label, children, aliases }",
+    ],
+    vesselCompatibleCountertopMaterialTokens: [optional(isStringArray), "an array of strings"],
+  },
+  vesselCompatibility: {
+    hiddenStyles: STRING_LIST,
+    allowedMaterialsByStyle: [isStringArrayRecord, "a map of vessel style to material tokens"],
+    allowedColorCodesByStyle: [recordOf(isStringArrayRecord), "a map of vessel style to material colour codes"],
+    unavailableColorCodesByStyle: [recordOf(isStringArrayRecord), "a map of vessel style to material colour codes"],
+    defaultFinishByStyle: [
+      recordOf(objectWith({ materialTokens: isStringArray, colorCodes: isStringArray })),
+      "a map of vessel style to { materialTokens, colorCodes }",
+    ],
+  },
+} satisfies Record<string, Record<string, FieldCheck>>;
+
+type RuleSectionName = keyof typeof RULE_SECTION_FIELDS;
+
+/**
+ * Checks one optional rule section. Every broken field is reported, so a data author sees
+ * all problems of the section at once; a broken section fails the whole profile.
+ */
+const parseRuleSection = <T>(
+  ruleData: Record<string, unknown>,
+  section: RuleSectionName,
+  collect: Collector,
+): T | undefined => {
+  const raw = ruleData[section];
+  if (raw === undefined) return undefined;
+
+  const path = `/ruleData/${section}`;
+
+  if (!isRecord(raw)) {
+    collect.add("ruleData.invalid_section", path, `${section} must be an object`);
+    return undefined;
+  }
+
+  let valid = true;
+
+  for (const [field, [check, expectation]] of Object.entries(RULE_SECTION_FIELDS[section])) {
+    if (!check(raw[field])) {
+      collect.add("ruleData.invalid_section", `${path}/${field}`, `${field} must be ${expectation}`);
+      valid = false;
+    }
+  }
+
+  return valid ? (raw as T) : undefined;
+};
+
+const parseDrawerStyleGroups = (raw: unknown, collect: Collector): DrawerStyleGroups | undefined => {
+  if (raw === undefined) return undefined;
+
+  if (!Array.isArray(raw) || !raw.every((group) => isStringArray(group) && group.length > 0)) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/drawerStyleGroups",
+      "drawerStyleGroups must be an array of non-empty string arrays",
+    );
+    return undefined;
+  }
+
+  return raw as DrawerStyleGroups;
+};
+
+/** Optional rule sections of a profile, without the keys the collection does not declare. */
+const parseRuleSections = (
+  ruleData: Record<string, unknown>,
+  collect: Collector,
+): Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> => {
+  const sections: Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> = {
+    drawerStyleGroups: parseDrawerStyleGroups(ruleData.drawerStyleGroups, collect),
+    fluting: parseRuleSection<FlutingRuleData>(ruleData, "fluting", collect),
+    grainDirection: parseRuleSection<GrainDirectionRuleData>(ruleData, "grainDirection", collect),
+    bookMatching: parseRuleSection<BookMatchingRuleData>(ruleData, "bookMatching", collect),
+    sidePanels: parseRuleSection<SidePanelsRuleData>(ruleData, "sidePanels", collect),
+    syntesi: parseRuleSection<SyntesiRuleData>(ruleData, "syntesi", collect),
+    countertopFallbacks: parseRuleSection<CountertopFallbacksRuleData>(ruleData, "countertopFallbacks", collect),
+    materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
+    vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
+  };
+
+  return Object.fromEntries(Object.entries(sections).filter(([, value]) => value !== undefined));
+};
+
 /**
  * Validates an untyped profile document into a ProductProfile.
  * Accepts either a parsed value or a raw JSON string, so the same entry point serves
@@ -358,6 +567,7 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
   }
 
   const adapter = parseLegacyAdapter(ruleData.cabinetMatrixLegacyAdapter, collect);
+  const ruleSections = parseRuleSections(ruleData, collect);
 
   const messages = isStringRecord(raw.messages) ? raw.messages : null;
   if (!messages) {
@@ -381,7 +591,7 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
       },
       defaults: raw.defaults as Record<string, string>,
       attributes,
-      ruleData: { cabinetMatrixLegacyAdapter: adapter },
+      ruleData: { cabinetMatrixLegacyAdapter: adapter, ...ruleSections },
       messages,
     },
   };

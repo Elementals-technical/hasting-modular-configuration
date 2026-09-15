@@ -83,7 +83,7 @@ The types live in `entities/configuration/model/runtimePort.ts` so C depends on 
 4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success.
 5. The first failure stops the set; the remaining changes are reported as `not-attempted`.
 
-`getBindings` returns the active collection's table. Until A07 loads it, nothing in the app provides it, and the port is exercised only by tests.
+`getBindings` returns the active collection's table. Until A07 exposes `catalog.runtimeBindings`, a temporary loader provides it: `RuntimeBindingsBridge` (mounted in `CollectionRouterRoot`) reads `/collections/<collectionId>/runtime-bindings.json` once per collection, checks it with `parseRuntimeBindings` and keeps it for `getLoadedRuntimeBindings`. A broken or foreign table gives `null`, so the port answers `unsupported` and nothing is sent. Both files carry `TODO(A07)` and are deleted when A's loader lands.
 
 The scene side is `utils/functions/playcanvas/sceneBridge.ts`, the only place on this path that touches the iframe. `isSceneReady()` reads `playCanvasReady` and checks the batch API; `applySceneConfig(selector, patch)` sends one patch and turns the scene's answer into a status:
 
@@ -109,6 +109,53 @@ It reuses the legacy batch queue through `runInBatchQueue`, so adapter commands 
 | `not-ready` / `unsupported` / `failed` | `error: runtime-not-ready / runtime-unsupported / runtime-failed` | Nothing |
 
 C's temporary port type and its stand-in were removed; the `TODO(I02)` they carried is closed.
+
+### Actual scene state (I04)
+
+```ts
+type ConfigurationSceneReader = { read(runtimeIds: readonly string[]): Promise<SceneStateResult> };
+
+type SceneStateResult =
+  | { status: "ready"; order: string[]; cabinets: { runtimeId: string; dimensions: CabinetDimensions }[] }
+  | { status: "not-ready" };
+```
+
+The scene fires no events of its own for sizes or order: `ConfiguratorAPI.swapProducts` and `setConfigBatch` fire nothing, and the composition only keeps `meta.lastModified`. The events are therefore the app actions dispatched once the scene has changed: `addProductId`, `insertProductIdRelative`, `removeProductId`, `swapProductIds`, `resetProducts`, `restoreProductState`, `setSelectedDimensions`, `syncSelectedDimensionsFromScene`, `commitRuleSelection` and `restoreCabinets`.
+
+- `sceneBridge.readSceneProducts(ids)` reads the order from the active composition and the config of each product through the batch queue. Without a composition it answers `not-ready` instead of a fallback list, unlike `getOrderedProductIds`.
+- `createSceneReader()` turns that into sizes per product. A product the scene has no config for gets no entry, never a neighbour's size. `createTestSceneReader()` is its stand-in.
+- `setupSceneStateListener` (C, `configurationCommands/lib/sceneStateSync.ts`) waits 200 ms after the last event, reads the placed cabinets and dispatches `recordSceneState`. I never writes Redux.
+- `recordSceneState` records the order through `reconcileOrder` and the size by stable key in `configuration.dimensionsByCabinet`. An id without a stable key is ignored, an unchanged size keeps its reference, and a removed cabinet loses its size. Sizes are not part of the snapshot: the saved per-product config carries them.
+
+Consumers read a cabinet's own size through `resolveCabinetDimensions(entries, dimensionsByCabinet, runtimeId)` or `getCabinetDimensionsByRuntimeId`. The shared `selectedDimensions` is no longer used as another cabinet's size in `normalizeProductConfigSnapshot`, the preset items of the price hook and both summaries, or the divider depth of the summaries. The style sidebar no longer sends the selected cabinet's height and depth to every cabinet when the selection merely copies that cabinet's actual size.
+
+### Scene restore (I05)
+
+```ts
+type ConfigurationSceneRestorer = {
+  preflight(request: SceneRestoreRequest): SceneRestoreIssue[];
+  restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
+};
+
+type SceneRestoreRequest = { products: { sourceId: string; productType: string; config: Record<string, unknown> | null }[] };
+```
+
+`createSceneRestorer({ getBindings })` rebuilds a composition in composition order:
+
+1. **Preflight**, before the scene is touched: a non-empty composition, unique source ids, a config per product, loaded bindings and a scene type for every product type through `productTypes` of the bindings (`Side-Cabinet` is placed as `Sink-Cabinet`). The scene's product registry is not reachable from the host page, so the table is the check.
+2. The scene is cleared once (`removeAllProduct`), then each product is added on the right with `addProduct` and configured with `setConfig`. `addProduct` returns the runtime id, which gives the exact old → new mapping; `presetProducts` clears the scene itself and silently skips a product it cannot create, so it is not used here.
+3. A product that fails does not stop the rest. The actual order is read back through the scene reader and compared with the request.
+
+| Status | Meaning | Scene touched |
+|---|---|---|
+| `not-ready` | The scene cannot take commands | No |
+| `rejected` | Preflight issues (`empty-composition`, `duplicate-source`, `invalid-config`, `unknown-product-type`, `bindings-unavailable`) | No |
+| `restored` | Every product created, configured and in order; `matches` maps source ids to runtime ids | Yes |
+| `partial` | The scene was cleared but a product was not created (`not-created`), its config refused (`config-rejected`), the order differs (`order-mismatch`) or clearing failed (`scene-error`); `matches` lists what exists | Yes |
+
+The scene side is three new `sceneBridge` operations on the batch queue: `clearSceneProducts`, `addSceneProduct` (a missing id is a failure) and `setSceneProductConfig` (`false` from the scene is `product-not-found`; the legacy wrapper swallowed it). `createTestSceneRestorer()` is the stand-in.
+
+**First consumer: undo/redo.** `restoreSnapshot(snapshot, { dispatch, getState })` builds the request from the history snapshot and returns the result. A snapshot product without a config is rejected instead of silently dropped. On `restored`/`partial` it records only the products that exist; the snapshot now keeps each product's stable key (`cabinetKeys`), and `restoreCabinets` gives the rebuilt products their keys back before the product ids change, so values addressed to a cabinet survive undo. Values of cabinets that are not in the rebuilt composition are dropped. `BottomCanvasButtons` moves the history only when the scene was rebuilt and logs a partial result.
 
 ## What moved into data
 
@@ -146,7 +193,7 @@ These apply only on the adapter path; legacy calls behave as before.
 | `setConfig` and `setConfigBatch` return `null` for both not-ready and error | Readiness and failure cannot be told apart | On the adapter path |
 | `setConfigBatch` expects an array, the scene returns `{ updatedIds }` (`setConfigBatch.ts:56`) | Dimension labels are not refreshed after a broadcast | No, legacy behaviour kept |
 | `setConfig` bypasses the batch queue | Direct `setConfig` and `setConfigBatch` calls may run out of order | No, until pages move to the port |
-| One handle click sends the handle patch twice (`RightCabinetStyleSidebar.tsx:455` and the effect at `:634`) plus height through another effect | Repeated commands for one action | No, removed when the sidebar moves to `changeAttribute` (C06) |
+| One handle click sends the handle patch twice (`RightCabinetStyleSidebar.tsx:455` and the effect at `:634`) plus height through another effect | Repeated commands for one action | Yes (C06): a handle choice is sent once through the adapter; a handle the rules change is sent once by a listener |
 | Restore and the cabinet builder send `CountertopColor` from state untranslated | A Syntesi colour reaches the scene as `TAN`/`TAP`, which the scene does not know | No, suspected, not verified in the browser |
 | Patches of two attributes merged into one call | The scene returns early on `SidePanel`, `TowelBar` and `TowelBarColor` and drops the other keys | Design constraint: the adapter sends one patch per change |
 
@@ -160,8 +207,11 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 | `ModelPage.tsx:166`, `CabinetBuilderPage.tsx:197,204`, `RightCabinetStyleSidebar.tsx:783`, `PlayCanvasIntegration.tsx:1785`, `restoreSnapshot.ts:21`, `slice.ts:149`, `matrixCabinet.ts:31` | `1D <-> 1` drawer spellings | Profile aliases (`normalizeOptionValue`) for reading, bindings for writing | C | Pending downstream migration |
 | `AccessoriesPage.tsx:812`, `custom/accessories/index.tsx:787`, `CabinetBuilderPage.tsx:1430`, `PlayCanvasIntegration.tsx:1627`, `restoreSnapshot.ts:114` | `TowelBar40_R` with a clearing step | `TowelBarOption` binding | C (C06), I (I05 for restore) | Pending downstream migration |
 | `CountertopPage.tsx:1465`, `custom/countertop/index.tsx:1466` | `metadata.configValue ?? colorName` | `CountertopColor` overrides | C (C06) | Pending downstream migration |
-| `restoreSnapshot.ts`, `ModelPage.tsx` presets, `CabinetBuilderPage.tsx` restore | Direct scene rebuild | Restore through the adapter | I (I05), C (C09) | Pending downstream migration |
+| `restoreSnapshot.ts` (undo/redo) | Scene restorer | — | I (I05) | Migrated |
+| `ModelPage.tsx` and `CabinetBuilderPage.tsx` restore by `configId` | `useRestoreSavedConfiguration` (C09) over the scene restorer; the pages keep only their state step | — | C (C09) | Migrated |
+| `addPreset` when a preset is chosen (`ModelPage.applyPresetSelection`, Custom bootstrap) | `presetProducts` | Not a restore; stays until presets move to A's catalog | B, A | Accepted for now |
 | `applySetWidth` / `applySetDepth`, `syncCountertopConfig` in `PlayCanvasIntegration.tsx` | Divider clearing/restoring and countertop sync around resize | Adapter steps once the helpers leave the component | I (I04), C (C06) | Pending downstream migration |
+| `useSceneTotalWidth`, `useSinkBaseDimensions`, the selected-size polling in `PlayCanvasIntegration.tsx` | `getConfig` every 350 ms | `dimensionsByCabinet` recorded by I04 | B, D | Pending downstream migration |
 | `utils/functions/playcanvas/sidePanels.ts` | `SidePanel` with a side from the per-side status | Stays a dedicated helper, or an adapter command | I | Accepted as a helper for now |
 | `utils/functions/playcanvas/setWidth.ts` | Lowercase `width` key | None: the function has no callers | — | Dead code |
 
@@ -169,12 +219,15 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 
 ## Open items
 
-- **Handoff to A07.** `validateRuntimeBindings` issues carry `code`, `attributeId` and `value`, but CONTRACTS §5 asks for `severity`, `dataset/path` and `message` as well. The manifest schema is `.strict()`, so `local.runtimeBindings` must be added to it before the file can be referenced. Loading, validating and exposing `catalog.runtimeBindings` is A07.
+- **Handoff to A07.** `validateRuntimeBindings` issues carry `code`, `attributeId` and `value`, but CONTRACTS §5 asks for `severity`, `dataset/path` and `message` as well. The manifest schema is `.strict()`, so `local.runtimeBindings` must be added to it before the file can be referenced. Loading, validating and exposing `catalog.runtimeBindings` is A07; it replaces `runtimeBindingsCache.ts` and `RuntimeBindingsBridge.tsx` in `features/playCanvasAdapter`.
 - **Required attribute list.** B's `ui.json` now supplies the UI fields, and every one of them has a scene decision (tested). The C01 part is still one list for every collection, so a collection without a towel bar still has to declare `TowelBarOption` as unbound. `ui.json` has no `Handle` field and no dimensions: `Handle` is required through the profile, the dimensions through the C01 part.
 - **Fixture bindings.** `fixture-ui` (`TestGrooveFinish -> HandleGrooveColor`, all cabinets) and `fixture-rules` need their own tables once A08 prepares the fixture profiles. The fixture-ui binding is covered by an inline test.
 - **Basin per cabinet.** Mako/Class need "чаша конкретної SB" (developer-i README line 53). That needs a cabinet key on basin-scoped changes, which is a C model change, not a binding.
 - **`CountertopStyle` is not read by the scene.** No file under `public/HastingCabinetsParametrization` contains the key. It is kept because the code sends it; it may be removable.
-- **Handle re-send after drawers.** Legacy code re-broadcasts the handle after a drawers change "so PlayCanvas re-evaluates its internal height-forcing rules". C sends the dependent height explicitly, so this may be unnecessary; it is one data field if the browser check shows otherwise.
+- **Handle re-send after drawers.** Legacy code re-broadcast the handle after a drawers change "so PlayCanvas re-evaluates its internal height-forcing rules". The drawers command (C06) sends the handle only when it changes and the dependent height explicitly; the page still re-sends handle and height to a cabinet whose actual height, read through the scene reader, stayed stale. Whether the scene needs the unchanged handle is part of the browser check.
+- **Restore preflight depends on loaded bindings.** Until A07 exposes `catalog.runtimeBindings`, a collection whose table failed to load cannot undo (`bindings-unavailable`) rather than rebuilding blindly. History snapshots also carry no configuration values, so a value dropped when a cabinet was removed does not come back with undo; that belongs to C09.
+- **Scene events.** The reader runs after app actions because the scene has none. A scene event for resize and reorder (in `hasting-modular-playcanvas-flow-git`) would replace the 200 ms wait; I05 can use the same reader to confirm a restored composition.
+- **Top dividers around drawers.** Clearing `TopDrawerDividers` for cabinets leaving two drawers has no binding and no port operation, so `CabinetBuilderPage` sends it just before the drawers command, where it used to share the drawers patch.
 - **`order` values** are derived from the legacy call sequences and need confirming in the real scene.
 - **`syntesi.finishTransforms[].runtimeValue` in the profile** duplicates the bindings. The profile's own `excludedFromThisProfile` assigns runtime bindings to I; the field can be dropped.
 
@@ -182,6 +235,6 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 
 Developer I owns the runtime bindings shape and the USH table, the runtimePort contract, the adapter and its stand-in, and the scene bridge. Developer I does not load collection sources (A), migrate page rendering (B), decide which changes are allowed or record state (C), or build SKU and prices (D).
 
-I01, I02 and I03 are complete against their acceptance criteria, with the A07 handoff note above outstanding. I04 (actual values and scene events) and I05 (restore) come next; I06 verifies the adapter against the real scene in the browser; I07 covers Mako/Class resources.
+I01, I02 and I03 are complete against their acceptance criteria, with the A07 handoff note above outstanding. I04 is complete in code and unit tests (two cabinets of different sizes, swap, not-ready, a burst of events); its browser check is part of I06. I05 is complete in code and unit tests for the scene restorer and its first consumer, undo/redo; the saved-configuration restore moves onto it with C09; I06 verifies the adapter against the real scene in the browser; I07 covers Mako/Class resources.
 
 Parity is proven against the legacy call sequences and the scene source, through a recorded scene. Browser verification of the B → C → I path remains, and is evaluated jointly in C12 and I06.

@@ -21,7 +21,7 @@ import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
-import { useSaveCurrentConfiguration } from "@/features/saveConfiguration";
+import { RESTORE_INCOMPLETE_SAVE_MESSAGE, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -37,6 +37,7 @@ import {
 import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
+import type { SceneRestoreResult } from "@/entities/configuration";
 import { store, type RootState } from "@/app/store";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
@@ -53,6 +54,19 @@ const FULL_DIMENSION_UNIT_OPTIONS: ReadonlyArray<{ unit: FullDimensionsUnit; lab
   { unit: "in", label: "Inches" },
   { unit: "cm", label: "Metric" },
 ];
+
+/** Whether the scene took the snapshot. History moves only when it did; a partial rebuild is reported. */
+const isSceneRebuilt = (label: string, result: SceneRestoreResult): boolean => {
+  if (result.status === "restored") return true;
+
+  if (result.status === "partial") {
+    console.error(`${label}: the scene was only partly rebuilt`, result.failed);
+    return true;
+  }
+
+  console.error(`${label}: the scene was not rebuilt`, result);
+  return false;
+};
 
 export const BottomCanvasButtons = () => {
   const [isFullDimensionsEnabled, setIsFullDimensionsEnabled] = useState(false);
@@ -127,11 +141,15 @@ export const BottomCanvasButtons = () => {
     const cameraState = captureOrbitCameraState();
     try {
       const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
-      dispatch(undo(currentSnapshot));
       dispatch(setOpenStyleSidebar(false));
       dispatch(setIsDrawerOpen(false));
       dispatch(setSelectedSceneProduct(""));
-      await restoreSnapshot(lastPastSnapshot, dispatch);
+      const result = await restoreSnapshot(lastPastSnapshot, {
+        dispatch,
+        getState: () => store.getState() as RootState,
+      });
+      if (!isSceneRebuilt("[History] Undo", result)) return;
+      dispatch(undo(currentSnapshot));
       restoreOrbitCameraState(cameraState);
     } catch (error) {
       console.error("[History] Undo failed", error);
@@ -148,11 +166,15 @@ export const BottomCanvasButtons = () => {
     const cameraState = captureOrbitCameraState();
     try {
       const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
-      dispatch(redo(currentSnapshot));
       dispatch(setOpenStyleSidebar(false));
       dispatch(setIsDrawerOpen(false));
       dispatch(setSelectedSceneProduct(""));
-      await restoreSnapshot(lastFutureSnapshot, dispatch);
+      const result = await restoreSnapshot(lastFutureSnapshot, {
+        dispatch,
+        getState: () => store.getState() as RootState,
+      });
+      if (!isSceneRebuilt("[History] Redo", result)) return;
+      dispatch(redo(currentSnapshot));
       restoreOrbitCameraState(cameraState);
     } catch (error) {
       console.error("[History] Redo failed", error);
@@ -229,9 +251,10 @@ export const BottomCanvasButtons = () => {
       const result = await saveCurrentConfiguration();
 
       if (!result.ok) {
-        console.warn("[Configurations] No products to save");
+        const message = result.reason === "restore-incomplete" ? RESTORE_INCOMPLETE_SAVE_MESSAGE : "No products to save";
+        console.warn(`[Configurations] ${message}`);
 
-        setShareValue("No products to save");
+        setShareValue(message);
         setIsShareOpening(true);
         return;
       }

@@ -1,7 +1,8 @@
 import type { ProductProfile } from "@/entities/collection";
-import { hasCapability, selectMessage, selectResetValue } from "@/entities/collection";
-import type { ValueTarget } from "@/entities/configuration";
+import { hasCapability, selectAttribute, selectMessage, selectResetValue } from "@/entities/collection";
+import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
 import { applyConfiguratorRules, type Selection } from "@/features/configurator-rule-core/cabinetBuilder";
+import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import type { ChangeBlockedReason, PlannedChange } from "../model/types";
@@ -10,12 +11,14 @@ import type { ChangeBlockedReason, PlannedChange } from "../model/types";
  * Turns a validated request into the full set of changes that must happen together.
  *
  * The set is what I receives: the requested value plus everything the current rules
- * require alongside it — a forced height, a groove colour that no longer applies.
- * Nothing here talks to the scene or the store.
+ * require alongside it — a forced height, a handle the new drawers need, a colour that no
+ * longer applies. Nothing here talks to the scene or the store.
  */
 
 export const REASON_DEPENDENT_HEIGHT = "handle.requiredHeight";
 export const REASON_GROOVE_NOT_SUPPORTED = "handle.grooveColorCleared";
+export const REASON_HANDLE_CHANGED_FOR_DRAWERS = "drawers.handleChanged";
+export const REASON_TOWEL_BAR_COLOR_CLEARED = "towelBar.colorCleared";
 
 export type BuildChangePlanArgs = {
   attributeId: string;
@@ -29,6 +32,10 @@ export type BuildChangePlanArgs = {
   profile: ProductProfile;
   /** Current groove colour, to decide whether clearing it is part of the set. */
   handleGrooveColor: string | null | undefined;
+  /** Current towel bar colour, to decide whether clearing it is part of the set. */
+  towelBarColor?: string | null;
+  /** Placed cabinets, for changes that reach every drawer cabinet. */
+  cabinets?: readonly CabinetEntry[];
 };
 
 export type BuildChangePlanResult =
@@ -44,6 +51,64 @@ const SELECTION_FIELD_BY_ATTRIBUTE: Record<string, keyof Selection> = {
 
 const configurationTarget = (): ValueTarget => ({ scope: "global" });
 
+/** Catalog rule of a placed product, found by the type code inside its runtime id. */
+const findCabinetRule = (runtimeId: string, catalog: ConfiguratorCatalog) => {
+  const normalized = runtimeId.toLowerCase();
+  return catalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase())) ?? null;
+};
+
+const isDrawerCabinet = (runtimeId: string, catalog: ConfiguratorCatalog): boolean => {
+  const rule = findCabinetRule(runtimeId, catalog);
+  return Boolean(rule && !rule.isOpen);
+};
+
+/**
+ * Cabinets a drawers change reaches. Drawer styles of different groups cannot be mixed, so
+ * the change switches every drawer cabinet at once; open cabinets have no drawers.
+ */
+const resolveDrawersTargets = (
+  target: ValueTarget,
+  cabinets: readonly CabinetEntry[],
+  catalog: ConfiguratorCatalog,
+): ValueTarget[] => {
+  if (target.scope !== "cabinet") return [target];
+
+  const drawerCabinetKeys = cabinets
+    .filter(({ runtimeId }) => isDrawerCabinet(runtimeId, catalog))
+    .map(({ stableKey }) => stableKey);
+
+  const keys = drawerCabinetKeys.includes(target.cabinetId)
+    ? drawerCabinetKeys
+    : [target.cabinetId, ...drawerCabinetKeys];
+
+  return keys.map((cabinetId) => ({ scope: "cabinet", cabinetId }));
+};
+
+/** Leaving a handle that supports a groove for one that does not clears the colour. */
+const resolveGrooveReset = (
+  profile: ProductProfile,
+  previousHandle: string | null | undefined,
+  nextHandle: string | null,
+  handleGrooveColor: string | null | undefined,
+  target: ValueTarget,
+): PlannedChange | null => {
+  // Decided by the option capability, so a new groove handle needs no id here.
+  const hadGroove = hasCapability(profile, "Handle", previousHandle ?? null, "supportsGrooveColor");
+  const hasGroove = hasCapability(profile, "Handle", nextHandle, "supportsGrooveColor");
+
+  if (!hadGroove || hasGroove || !handleGrooveColor?.trim()) return null;
+
+  return {
+    attributeId: "HandleGrooveColor",
+    target: { scope: "cabinet", cabinetId: target.scope === "cabinet" ? target.cabinetId : "" },
+    // Redux stores "not chosen" as an empty string; the scene token lives in the
+    // profile and is applied by I. The two must not substitute for each other.
+    value: "",
+    origin: "dependency",
+    reasonCode: REASON_GROOVE_NOT_SUPPORTED,
+  };
+};
+
 export const buildChangePlan = ({
   attributeId,
   value,
@@ -53,8 +118,35 @@ export const buildChangePlan = ({
   catalog,
   profile,
   handleGrooveColor,
+  towelBarColor,
+  cabinets = [],
 }: BuildChangePlanArgs): BuildChangePlanResult => {
-  const plan: PlannedChange[] = [{ attributeId, target, value, origin: "requested" }];
+  const isDrawers = attributeId === "Drawers";
+  const requestedTargets = isDrawers ? resolveDrawersTargets(target, cabinets, catalog) : [target];
+
+  const plan: PlannedChange[] = requestedTargets.map((requestedTarget) => ({
+    attributeId,
+    target: requestedTarget,
+    value,
+    origin: "requested",
+  }));
+
+  // Removing the towel bar clears its colour, as the accessory pages do.
+  if (attributeId === "TowelBarOption") {
+    const noneValue = selectAttribute(profile, "TowelBarOption")?.noneValue;
+
+    if (noneValue !== undefined && value === noneValue && towelBarColor?.trim()) {
+      plan.push({
+        attributeId: "TowelBarColor",
+        target: configurationTarget(),
+        value: "",
+        origin: "dependency",
+        reasonCode: REASON_TOWEL_BAR_COLOR_CLEARED,
+      });
+    }
+
+    return { ok: true, plan };
+  }
 
   const selectionField = SELECTION_FIELD_BY_ATTRIBUTE[attributeId];
 
@@ -63,12 +155,27 @@ export const buildChangePlan = ({
     return { ok: true, plan };
   }
 
-  const nextSelection: Selection = { ...selection, [selectionField]: value };
+  const addressedCabinet =
+    target.scope === "cabinet" ? cabinets.find(({ stableKey }) => stableKey === target.cabinetId) : undefined;
+
+  // Drawers are judged for the cabinet they are set on, not for the builder's current pick,
+  // and every drawer cabinet switches at once, so cabinets still on the old drawers must not
+  // block the height.
+  const ruleSelection: Selection = {
+    ...selection,
+    cabinetType:
+      isDrawers && addressedCabinet
+        ? (findCabinetRule(addressedCabinet.runtimeId, catalog)?.code ?? selection.cabinetType)
+        : selection.cabinetType,
+  };
+  const ruleProductIds = isDrawers ? [] : selectedProductIds;
+
+  const nextSelection: Selection = { ...ruleSelection, [selectionField]: value };
 
   const result = applyConfiguratorRules(
     nextSelection,
     { field: selectionField === "cabinetType" ? "cabinetType" : selectionField, value },
-    { selectedProductIds },
+    { selectedProductIds: ruleProductIds },
     catalog,
     profile,
   );
@@ -90,9 +197,43 @@ export const buildChangePlan = ({
     };
   }
 
-  // A rule-driven height belongs to the same set: applying the handle without it would
+  const previousHandle = selection.handle ?? null;
+  let nextHandle = attributeId === "Handle" ? value : previousHandle;
+  let heightResult = result;
+
+  // New drawers may disallow the current handle; the replacement belongs to the same set.
+  if (isDrawers) {
+    const resolvedHandle = resolveHandleAfterRules({
+      currentHandle: previousHandle,
+      handles: result.availableOptions.handles,
+      heightLocked: result.heightLocked,
+    });
+
+    if (resolvedHandle && resolvedHandle !== previousHandle) {
+      nextHandle = resolvedHandle;
+
+      plan.push({
+        attributeId: "Handle",
+        target: target.scope === "cabinet" ? { scope: "cabinet", cabinetId: target.cabinetId } : target,
+        value: resolvedHandle,
+        origin: "dependency",
+        reasonCode: REASON_HANDLE_CHANGED_FOR_DRAWERS,
+      });
+
+      // The forced height is the new handle's, not the old one's.
+      heightResult = applyConfiguratorRules(
+        { ...nextSelection, handle: resolvedHandle },
+        undefined,
+        { selectedProductIds: ruleProductIds },
+        catalog,
+        profile,
+      );
+    }
+  }
+
+  // A rule-driven height belongs to the same set: applying the change without it would
   // leave the scene at a height the rules no longer allow.
-  const nextHeight = result.nextSelection.height;
+  const nextHeight = heightResult.nextSelection.height;
 
   if (typeof nextHeight === "number" && nextHeight !== selection.height) {
     plan.push({
@@ -104,25 +245,8 @@ export const buildChangePlan = ({
     });
   }
 
-  // Leaving a handle that supports a groove for one that does not clears the colour.
-  // Decided by the option capability, so a new groove handle needs no id here.
-  if (attributeId === "Handle") {
-    const hadGroove = hasCapability(profile, "Handle", selection.handle ?? null, "supportsGrooveColor");
-    const hasGroove = hasCapability(profile, "Handle", value, "supportsGrooveColor");
-    const colorIsSet = Boolean(handleGrooveColor?.trim());
-
-    if (hadGroove && !hasGroove && colorIsSet) {
-      plan.push({
-        attributeId: "HandleGrooveColor",
-        target: { scope: "cabinet", cabinetId: target.scope === "cabinet" ? target.cabinetId : "" },
-        // Redux stores "not chosen" as an empty string; the scene token lives in the
-        // profile and is applied by I. The two must not substitute for each other.
-        value: "",
-        origin: "dependency",
-        reasonCode: REASON_GROOVE_NOT_SUPPORTED,
-      });
-    }
-  }
+  const grooveReset = resolveGrooveReset(profile, previousHandle, nextHandle, handleGrooveColor, target);
+  if (grooveReset) plan.push(grooveReset);
 
   return { ok: true, plan };
 };

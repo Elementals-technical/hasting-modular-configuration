@@ -40,6 +40,7 @@ import {
   type SidePanelApplySide,
   type GrooveType,
 } from "@/features/sidePanel";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   clearPlacedDividers,
   setDividersOption,
@@ -161,6 +162,7 @@ export const CustomAccessoriesPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const activeProfile = useAppSelector(getActiveProductProfile);
 
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeAccordionId, setActiveAccordionId] = useState<string | null>(DEFAULT_ACCORDION_ID);
@@ -191,7 +193,7 @@ export const CustomAccessoriesPage = () => {
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const lengthGuard = useCountertopLengthGuard(selectedProducts);
-  const sidePanelsBlockedByLength340 = isSidePanelLengthBlocked(lengthGuard.currentCabinetOnly);
+  const sidePanelsBlockedByLength340 = isSidePanelLengthBlocked(lengthGuard.currentCabinetOnly, activeProfile);
 
   // Edge cabinets are read imperatively from PlayCanvas, whose composition order
   // settles asynchronously after add/remove/swap. Reading during render can be
@@ -225,8 +227,8 @@ export const CustomAccessoriesPage = () => {
   }, [isPlayCanvasReady, selectedProductOrderKey, compositionVersion]);
 
   const sidePanelEdgeState = useMemo(
-    () => buildSidePanelEdgeState(edgeCabinets, activeCabinetId),
-    [edgeCabinets, activeCabinetId],
+    () => buildSidePanelEdgeState(edgeCabinets, activeCabinetId, activeProfile),
+    [edgeCabinets, activeCabinetId, activeProfile],
   );
 
   const isEdgeCabinet = sidePanelEdgeState.isSelectedEdge;
@@ -245,8 +247,10 @@ export const CustomAccessoriesPage = () => {
         edgeState: sidePanelEdgeState,
         height: selectedDimensions.height ?? selectedConfigHeight,
         edgeDrawers: sidePanelFallbackEdgeDrawers ?? selectedConfigDrawers,
+        profile: activeProfile,
       }),
     [
+      activeProfile,
       selectedSidePanelAvailability,
       selectedDimensions.height,
       selectedConfigHeight,
@@ -264,8 +268,16 @@ export const CustomAccessoriesPage = () => {
       isEdgeCabinet,
       cabinetOnlyLength: lengthGuard.currentCabinetOnly,
       availability: sidePanelAvailability,
+      profile: activeProfile,
     }),
-    [selectedProducts.length, activeCabinetId, isEdgeCabinet, lengthGuard.currentCabinetOnly, sidePanelAvailability],
+    [
+      activeProfile,
+      selectedProducts.length,
+      activeCabinetId,
+      isEdgeCabinet,
+      lengthGuard.currentCabinetOnly,
+      sidePanelAvailability,
+    ],
   );
   const sidePanelBlock = resolveSidePanelBlock(sidePanelReasonCtx);
 
@@ -317,8 +329,10 @@ export const CustomAccessoriesPage = () => {
         groove,
         height: selectedDimensions.height ?? selectedConfigHeight,
         edgeDrawers: getSidePanelEdgeDrawers(side) ?? selectedConfigDrawers,
+        profile: activeProfile,
       }),
     [
+      activeProfile,
       getSidePanelEdgeDrawers,
       selectedConfigDrawers,
       selectedConfigHeight,

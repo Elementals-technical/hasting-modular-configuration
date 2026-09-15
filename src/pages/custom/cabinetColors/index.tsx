@@ -603,7 +603,8 @@ export const CustomCabinetColorsPage = () => {
   }, [flutingState.available, activeDrawerPanelFluting, isPlayCanvasReady, selectedProducts]);
 
   useEffect(() => {
-    if (!isPlayCanvasReady) return;
+    // Until the collection loads every rule reads as unavailable, so nothing is cleared before it.
+    if (!isPlayCanvasReady || !activeProfile) return;
 
     if (!grainDirectionState.available && activeGrainDirection) {
       setConfigBatch(selectedProducts, {
@@ -611,7 +612,14 @@ export const CustomCabinetColorsPage = () => {
       });
       dispatch(setGrainDirection(""));
     }
-  }, [grainDirectionState.available, activeGrainDirection, isPlayCanvasReady, selectedProducts, dispatch]);
+  }, [
+    activeProfile,
+    grainDirectionState.available,
+    activeGrainDirection,
+    isPlayCanvasReady,
+    selectedProducts,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (!isPlayCanvasReady || selectedProducts.length === 0) {
@@ -628,19 +636,27 @@ export const CustomCabinetColorsPage = () => {
     const availability = deriveBookMatchingAvailability({
       grainDirection: activeGrainDirection,
       cabinets,
+      profile: activeProfile,
     });
 
     setBookMatchingState({
       enabled: availability.available,
       reason: availability.reason,
     });
-  }, [selectorBookMatchingState, isPlayCanvasReady, selectedProducts, activeGrainDirection, placedCabinetStyles]);
+  }, [
+    selectorBookMatchingState,
+    isPlayCanvasReady,
+    selectedProducts,
+    activeGrainDirection,
+    placedCabinetStyles,
+    activeProfile,
+  ]);
 
   useEffect(() => {
-    if (!bookMatchingState.enabled && activeBookMatching) {
+    if (activeProfile && !bookMatchingState.enabled && activeBookMatching) {
       dispatch(setBookMatching(""));
     }
-  }, [bookMatchingState.enabled, activeBookMatching, dispatch]);
+  }, [activeProfile, bookMatchingState.enabled, activeBookMatching, dispatch]);
 
   const handleOrderCabinetSwatches = () => {
     trackModularOrderFreeSwatchesClick({

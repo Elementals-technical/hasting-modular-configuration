@@ -49,6 +49,12 @@ import {
   getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  getDimensionsByCabinet,
+} from "@/entities/configuration/model/store/selectors";
 // import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import {
@@ -94,7 +100,6 @@ import { buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import { hashConfigurationRequest, useBuildConfigurationRequest } from "@/features/saveConfiguration";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import {
-  SYNTESI_MATERIAL,
   findSyntesiCountertopUiValue,
   getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
@@ -324,11 +329,14 @@ export const CustomSummaryPage = () => {
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  const cabinetEntries = useAppSelector(getCabinetEntries);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const vesselColor = useAppSelector(getVesselColor);
@@ -541,7 +549,7 @@ export const CustomSummaryPage = () => {
             ? normalizeProductConfigSnapshot({
                 id,
                 raw: config as Record<string, unknown>,
-                selectedDimensions,
+                recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, id),
               })
             : null;
         }),
@@ -555,7 +563,7 @@ export const CustomSummaryPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, selectedDimensions, selectedProducts]);
+  }, [dispatch, selectedDimensions, selectedProducts, cabinetEntries, dimensionsByCabinet]);
 
   useEffect(() => {
     let isMounted = true;
@@ -838,8 +846,9 @@ export const CustomSummaryPage = () => {
     });
     const presetCabinetItems = shouldUsePresets
       ? productsPresets.map((preset, index) => {
-          const presetHeight = selectedDimensions.height ?? preset.Height ?? undefined;
-          const presetDepth = selectedDimensions.depth ?? preset.Depth ?? undefined;
+          const recordedDimensions = resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, selectedProducts[index]);
+          const presetHeight = recordedDimensions?.height ?? preset.Height ?? undefined;
+          const presetDepth = recordedDimensions?.depth ?? preset.Depth ?? undefined;
           const swatchValue = preset.CabinetColor ?? cabinetColor;
           const swatch = resolveSwatch(swatchValue);
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
@@ -1163,24 +1172,26 @@ export const CustomSummaryPage = () => {
       }) ||
       resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
       null;
+    const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
     const isSyntesiCountertop =
-      isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku) ||
-      normalizeMaterialToken(resolvedSinkType ?? "").includes("syntesi");
+      syntesiMaterial !== null &&
+      (isSyntesiCountertopMaterialSku(resolvedCountertopMaterialSku, activeProfile) ||
+        normalizeMaterialToken(resolvedSinkType ?? "").includes(normalizeMaterialToken(syntesiMaterial)));
     const displayCountertopColor = isSyntesiCountertop
-      ? (findSyntesiCountertopUiValue(countertopColor) ??
-        findSyntesiCountertopUiValue(resolvedCountertopColor) ??
+      ? (findSyntesiCountertopUiValue(countertopColor, activeProfile) ??
+        findSyntesiCountertopUiValue(resolvedCountertopColor, activeProfile) ??
         resolvedCountertopColor)
       : resolvedCountertopColor;
-    const displayCountertopLabel = isSyntesiCountertop ? `${SYNTESI_MATERIAL} Countertop` : "Countertop";
+    const displayCountertopLabel = isSyntesiCountertop ? `${syntesiMaterial} Countertop` : "Countertop";
     const displayCountertopMaterial = isSyntesiCountertop
-      ? SYNTESI_MATERIAL
+      ? syntesiMaterial
       : resolvedCountertopMaterialSku
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
     const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const allowedVesselMaterialTokens = vesselTypeForTokens
-      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
       : [];
     const vesselPreferredMaterialTokens =
       allowedVesselMaterialTokens.length > 0
@@ -1245,6 +1256,7 @@ export const CustomSummaryPage = () => {
       bookMatching,
       materialSku: resolveCabinetMaterialSku(cabinetColor),
       cabinets: bookMatchingCabinets,
+      profile: activeProfile,
     });
 
     const bookMatchingItem: SummaryItem | null =
@@ -1445,7 +1457,10 @@ export const CustomSummaryPage = () => {
     productsPresets.forEach((preset, index) => {
       const productId = selectedProducts[index];
       if (!productId || dividerDepthByCabinetId.has(productId)) return;
-      dividerDepthByCabinetId.set(productId, selectedDimensions.depth ?? preset.Depth ?? null);
+      dividerDepthByCabinetId.set(
+        productId,
+        resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productId)?.depth ?? preset.Depth ?? null,
+      );
     });
 
     const dividerItems: SummaryItem[] = (() => {
@@ -1743,6 +1758,8 @@ export const CustomSummaryPage = () => {
     selectedDimensions.depth,
     selectedDimensions.height,
     selectedDimensions.width,
+    cabinetEntries,
+    dimensionsByCabinet,
     selectedProductConfig,
     sidePanelsOption,
     sidePanelLeft,
@@ -1756,6 +1773,7 @@ export const CustomSummaryPage = () => {
     resolveSwatch,
     resolveItemPrice,
     buildCabinetDescription,
+    activeProfile,
   ]);
 
   const fullSkuJson = useMemo(() => {
@@ -1878,8 +1896,8 @@ export const CustomSummaryPage = () => {
   const quoteModelName = "Urban Standard Height";
 
   const swatchOrderData = useMemo(
-    () => adaptThreekitConfig(cabinetColors, { countertopRules }),
-    [cabinetColors, countertopRules],
+    () => adaptThreekitConfig(cabinetColors, { countertopRules, profile: activeProfile }),
+    [cabinetColors, countertopRules, activeProfile],
   );
   const summaryAutofillValues = useMemo<AutofillValueRequest[]>(() => {
     const requests: AutofillValueRequest[] = [];

@@ -15,6 +15,7 @@ import {
   filterDepthValuesByCountertopRules,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { ROUTES } from "@/shared";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
@@ -116,6 +117,7 @@ export const CabinetStyleDetailsPage = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const sinkType = useAppSelector(getSinkType);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const countertopRules = useCountertopRules();
 
   const style = params.get("style");
@@ -154,13 +156,14 @@ export const CabinetStyleDetailsPage = () => {
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
+      profile: activeProfile,
     })
       .map((option) => Number(option))
       .filter((value) => Number.isFinite(value));
 
     const uniqSorted = Array.from(new Set(values)).sort((a, b) => a - b);
     return uniqSorted.map(cmToInches);
-  }, [countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
+  }, [activeProfile, countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
 
   const cabinetLabel =
     cabinetType === "Sink-Base"

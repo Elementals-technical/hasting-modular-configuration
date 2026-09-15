@@ -3,6 +3,7 @@ import type {
   ProductProfile,
   ProfileAttribute,
   ProfileOption,
+  ProfileRuleData,
 } from "../model/productProfile";
 
 /**
@@ -79,6 +80,13 @@ export const normalizeOptionValue = (
   return aliased?.value ?? null;
 };
 
+/**
+ * The spelling legacy state stores for a canonical option value: its first alias
+ * (Drawers "1" -> "1D"). The value itself when the option declares no alias.
+ */
+export const selectLegacySpelling = (profile: ProductProfile | null, attributeId: string, value: string): string =>
+  selectOption(profile, attributeId, value)?.aliases?.[0] ?? value;
+
 export const selectInitialValue = (profile: ProductProfile | null, attributeId: string): string =>
   selectAttribute(profile, attributeId)?.initialValue ?? "";
 
@@ -92,6 +100,56 @@ export const selectEffectiveFallback = (profile: ProductProfile | null, attribut
 export const selectResetValue = (profile: ProductProfile | null, attributeId: string): string | null =>
   selectAttribute(profile, attributeId)?.resetValue ?? null;
 
-/** Reason text for a stable reason code. B owns display and translation; this is the legacy fallback. */
-export const selectMessage = (profile: ProductProfile | null, reasonCode: string): string =>
-  profile?.messages[reasonCode] ?? reasonCode;
+/** Values substituted into `{name}` placeholders of a message. */
+export type MessageParams = Record<string, string | number>;
+
+/**
+ * Reason text for a stable reason code. B owns display and translation; this is the legacy fallback.
+ * A placeholder without a matching param is left as written, so a missing value is visible.
+ */
+export const selectMessage = (profile: ProductProfile | null, reasonCode: string, params?: MessageParams): string => {
+  const template = profile?.messages[reasonCode] ?? reasonCode;
+  if (!params) return template;
+
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    Object.hasOwn(params, name) ? String(params[name]) : placeholder,
+  );
+};
+
+/**
+ * Parameters of one rule. `undefined` when the collection does not declare the section:
+ * the rule then treats the feature as not offered, never as USH.
+ */
+export const selectRuleData = <K extends keyof ProfileRuleData>(
+  profile: ProductProfile | null,
+  section: K,
+): ProfileRuleData[K] | undefined => profile?.ruleData[section];
+
+/**
+ * Whether a drawer style may not be placed with the cabinets already placed.
+ *
+ * Styles of different `drawerStyleGroups` cannot be mixed. When the placed cabinets already
+ * span several groups, the group listed last decides (USH: one two-drawer cabinet makes the
+ * composition two-drawer). A collection without groups has no such restriction.
+ */
+export const isDrawerStyleMixingRestricted = (
+  profile: ProductProfile | null,
+  placedValues: readonly string[],
+  candidate: string,
+): boolean => {
+  const groups = profile?.ruleData.drawerStyleGroups;
+  if (!groups?.length) return false;
+
+  const groupOf = (value: string): number => {
+    const canonical = normalizeOptionValue(profile, "Drawers", value) ?? value;
+    return groups.findIndex((group) => group.includes(canonical));
+  };
+
+  const candidateGroup = groupOf(candidate);
+  if (candidateGroup === -1) return false;
+
+  const placedGroups = placedValues.map(groupOf).filter((group) => group !== -1);
+  if (placedGroups.length === 0) return false;
+
+  return candidateGroup !== Math.max(...placedGroups);
+};
