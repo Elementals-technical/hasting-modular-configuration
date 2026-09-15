@@ -6,7 +6,6 @@ import { useActiveCollection } from "@/entities/collection";
 import { useLazyRestoreConfigurationQuery } from "@/entities/configuration";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
-import { getLoadedRuntimeBindings, loadRuntimeBindings } from "@/features/playCanvasAdapter/lib/runtimeBindingsCache";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
@@ -29,7 +28,9 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
   const collection = useActiveCollection();
-  const collectionId = collection.status === "ready" ? collection.data.id : null;
+  const isCollectionReady = collection.status === "ready";
+  // Preflight checks product types against these, so they come with the loaded collection.
+  const bindings = isCollectionReady ? (collection.data.catalog.runtimeBindings ?? null) : null;
   const [loadConfiguration] = useLazyRestoreConfigurationQuery();
 
   // The page callback changes with the page's state; the restore calls the latest one.
@@ -39,19 +40,14 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   }, [applyPage]);
 
   useEffect(() => {
-    if (!configId || !canvasReady || !collectionId) return;
+    if (!configId || !canvasReady || !isCollectionReady) return;
 
-    void (async () => {
-      // Preflight checks product types against the collection's bindings, so they must be loaded.
-      await loadRuntimeBindings(collectionId);
-
-      await restoreSavedConfiguration(configId, {
-        dispatch,
-        getState: store.getState,
-        loadRecord: (id) => loadConfiguration(id).unwrap(),
-        restorer: createSceneRestorer({ getBindings: () => getLoadedRuntimeBindings(collectionId) }),
-        applyPage: (plan, matches) => applyPageRef.current(plan, matches),
-      });
-    })();
-  }, [canvasReady, collectionId, configId, dispatch, loadConfiguration, store]);
+    void restoreSavedConfiguration(configId, {
+      dispatch,
+      getState: store.getState,
+      loadRecord: (id) => loadConfiguration(id).unwrap(),
+      restorer: createSceneRestorer({ getBindings: () => bindings }),
+      applyPage: (plan, matches) => applyPageRef.current(plan, matches),
+    });
+  }, [bindings, canvasReady, configId, dispatch, isCollectionReady, loadConfiguration, store]);
 };

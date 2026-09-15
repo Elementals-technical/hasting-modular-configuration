@@ -83,7 +83,7 @@ The types live in `entities/configuration/model/runtimePort.ts` so C depends on 
 4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success.
 5. The first failure stops the set; the remaining changes are reported as `not-attempted`.
 
-`getBindings` returns the active collection's table. Until A07 exposes `catalog.runtimeBindings`, a temporary loader provides it: `RuntimeBindingsBridge` (mounted in `CollectionRouterRoot`) reads `/collections/<collectionId>/runtime-bindings.json` once per collection, checks it with `parseRuntimeBindings` and keeps it for `getLoadedRuntimeBindings`. A broken or foreign table gives `null`, so the port answers `unsupported` and nothing is sent. Both files carry `TODO(A07)` and are deleted when A's loader lands.
+`getBindings` returns the active collection's table, `catalog.runtimeBindings` from `useActiveCollection()`. A loads it through the manifest (`local.runtimeBindings`) and validates it against the profile and the UI schema; a broken or foreign table blocks the collection with diagnostics. Until the collection is ready the callers pass `null`, so the port answers `unsupported` and nothing is sent. The temporary loader (`runtimeBindingsCache`, `RuntimeBindingsBridge`) was removed once A07 landed.
 
 The scene side is `utils/functions/playcanvas/sceneBridge.ts`, the only place on this path that touches the iframe. `isSceneReady()` reads `playCanvasReady` and checks the batch API; `applySceneConfig(selector, patch)` sends one patch and turns the scene's answer into a status:
 
@@ -219,7 +219,7 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 
 ## Open items
 
-- **Handoff to A07.** `validateRuntimeBindings` issues carry `code`, `attributeId` and `value`, but CONTRACTS §5 asks for `severity`, `dataset/path` and `message` as well. The manifest schema is `.strict()`, so `local.runtimeBindings` must be added to it before the file can be referenced. Loading, validating and exposing `catalog.runtimeBindings` is A07; it replaces `runtimeBindingsCache.ts` and `RuntimeBindingsBridge.tsx` in `features/playCanvasAdapter`.
+- **Handoff to A07 — done.** A's loader reads `local.runtimeBindings`, turns validation issues into diagnostics with `severity`, `dataset`, `dataPath` and `message` (`collectionRuntimeContract.ts`) and exposes `catalog.runtimeBindings`; the temporary loader is gone.
 - **Required attribute list.** B's `ui.json` now supplies the UI fields, and every one of them has a scene decision (tested). The C01 part is still one list for every collection, so a collection without a towel bar still has to declare `TowelBarOption` as unbound. `ui.json` has no `Handle` field and no dimensions: `Handle` is required through the profile, the dimensions through the C01 part.
 - **Fixture bindings.** `fixture-ui` (`TestGrooveFinish -> HandleGrooveColor`, all cabinets) and `fixture-rules` need their own tables once A08 prepares the fixture profiles. The fixture-ui binding is covered by an inline test.
 - **Basin per cabinet.** Mako/Class need "чаша конкретної SB" (developer-i README line 53). That needs a cabinet key on basin-scoped changes, which is a C model change, not a binding.

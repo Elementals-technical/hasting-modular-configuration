@@ -37,6 +37,7 @@ import {
 import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
+import { useActiveCollection } from "@/entities/collection";
 import type { SceneRestoreResult } from "@/entities/configuration";
 import { store, type RootState } from "@/app/store";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
@@ -87,6 +88,9 @@ export const BottomCanvasButtons = () => {
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
   // const cabinetCatalog = useAppSelector(getCabinetCatalog);
+  const activeCollection = useActiveCollection();
+  const runtimeBindings =
+    activeCollection.status === "ready" ? (activeCollection.data.catalog.runtimeBindings ?? null) : null;
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
@@ -147,6 +151,7 @@ export const BottomCanvasButtons = () => {
       const result = await restoreSnapshot(lastPastSnapshot, {
         dispatch,
         getState: () => store.getState() as RootState,
+        getBindings: () => runtimeBindings,
       });
       if (!isSceneRebuilt("[History] Undo", result)) return;
       dispatch(undo(currentSnapshot));
@@ -172,6 +177,7 @@ export const BottomCanvasButtons = () => {
       const result = await restoreSnapshot(lastFutureSnapshot, {
         dispatch,
         getState: () => store.getState() as RootState,
+        getBindings: () => runtimeBindings,
       });
       if (!isSceneRebuilt("[History] Redo", result)) return;
       dispatch(redo(currentSnapshot));
