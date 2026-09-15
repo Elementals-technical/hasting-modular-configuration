@@ -64,9 +64,12 @@ export const validateChange = (change: AttributeChange, profile: ProductProfile 
     const value = asString(change.value);
     // A declared alias is a member too ("2.375" is Thickness "2.4"). The direct check stays
     // first because an empty string is a legitimate member that normalization rejects.
+    // The declared initial value ("" for a fluting nobody chose) is how a value is cleared,
+    // so it is a member even when the catalog does not list it.
     const isMember =
       value !== null &&
       (options.some((option) => option.value === value) ||
+        (attribute.initialValue !== undefined && value === attribute.initialValue) ||
         normalizeOptionValue(profile, change.attributeId, value) !== null);
 
     if (!isMember) {

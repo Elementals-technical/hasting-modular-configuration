@@ -2,6 +2,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getCabinetEntries, resolveStableKey } from "@/entities/configuration";
 import type { ConfigurationRuntimePort } from "@/entities/configuration";
 
@@ -24,11 +25,13 @@ export type ChangeAttributeDeps = {
   runtime: ConfigurationRuntimePort;
   /** Flow the change is made in; some attributes reach different products in each. */
   flow: RuntimeFlow;
+  /** Configurator sections of the active collection; a colour is recorded without its material when absent. */
+  configurator?: ConfiguratorGroupCatalog | null;
 };
 
 export const changeAttribute = async (
   change: AttributeChange,
-  { getState, dispatch, runtime, flow }: ChangeAttributeDeps,
+  { getState, dispatch, runtime, flow, configurator }: ChangeAttributeDeps,
 ): Promise<ChangeResult> => {
   const state = getState();
   const evaluation = evaluateChange(change, state);
@@ -44,7 +47,14 @@ export const changeAttribute = async (
     };
   }
 
-  return applyPlan(evaluation.plan, { state, dispatch, runtime, flow, collectionId: evaluation.collectionId });
+  return applyPlan(evaluation.plan, {
+    state,
+    dispatch,
+    runtime,
+    flow,
+    collectionId: evaluation.collectionId,
+    configurator,
+  });
 };
 
 /** Exported for tests that need the same runtime-id lookup as the command service. */

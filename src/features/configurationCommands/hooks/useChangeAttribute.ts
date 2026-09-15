@@ -33,6 +33,7 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
   // stand-in runtime) there are none.
   const collection = useContext(ActiveCollectionContext);
   const bindings = collection?.status === "ready" ? (collection.data.catalog.runtimeBindings ?? null) : null;
+  const configurator = collection?.status === "ready" ? (collection.data.catalog.configurator ?? null) : null;
 
   const runtime = useMemo(
     () => runtimeOverride ?? createPlayCanvasRuntimePort({ getBindings: () => bindings }),
@@ -40,7 +41,7 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
   );
 
   return useMemo(() => {
-    const deps: ChangeAttributeDeps = { getState: store.getState, dispatch, runtime, flow };
+    const deps: ChangeAttributeDeps = { getState: store.getState, dispatch, runtime, flow, configurator };
 
     return {
       change: (change: AttributeChange): Promise<ChangeResult> => changeAttribute(change, deps),
@@ -48,5 +49,5 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
       /** Current state, for reading what a change should address at the moment it is made. */
       getState: store.getState,
     };
-  }, [dispatch, flow, runtime, store]);
+  }, [configurator, dispatch, flow, runtime, store]);
 };

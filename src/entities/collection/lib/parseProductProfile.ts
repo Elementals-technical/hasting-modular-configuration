@@ -3,6 +3,7 @@ import {
   type AttributeConfirmation,
   type AttributeScope,
   type BookMatchingRuleData,
+  type CabinetColorTraitsRuleData,
   type CabinetMatrixLegacyAdapter,
   type CountertopFallbacksRuleData,
   type DrawerStyleGroups,
@@ -330,6 +331,11 @@ const NUMBER: FieldCheck = [isFiniteNumber, "a finite number"];
 const NON_EMPTY_STRING: FieldCheck = [isNonEmptyString, "a non-empty string"];
 
 const RULE_SECTION_FIELDS = {
+  cabinetColorTraits: {
+    materialBySku: [isStringRecord, "a map of SKU to material token"],
+    knownMaterials: STRING_LIST,
+    finishCodes: STRING_LIST,
+  },
   fluting: {
     eligibleMaterialAliases: STRING_LIST,
     forbiddenTargetParts: STRING_LIST,
@@ -483,6 +489,7 @@ const parseRuleSections = (
     countertopFallbacks: parseRuleSection<CountertopFallbacksRuleData>(ruleData, "countertopFallbacks", collect),
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
+    cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
   };
 
   return Object.fromEntries(Object.entries(sections).filter(([, value]) => value !== undefined));

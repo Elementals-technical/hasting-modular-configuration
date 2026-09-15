@@ -6,6 +6,7 @@ import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { SwatchOrder } from "@/features/swatchOrder";
 import { RestoreFailurePopup } from "@/features/configurationRestore";
+import { useAvailabilityResets } from "@/features/configurationCommands";
 import { reset } from "@/entities/product/model/store/slice";
 import {
   captureOrbitCameraState,
@@ -37,6 +38,7 @@ export const HomePage = () => {
 
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
+  useAvailabilityResets();
 
   // restore default preset when navigate from custom route.
   const prevPathRef = useRef(pathname);

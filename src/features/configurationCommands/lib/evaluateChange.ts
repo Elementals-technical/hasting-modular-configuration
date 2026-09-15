@@ -91,6 +91,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
     catalog: getCabinetCatalog(state),
     profile: activeProfile,
     handleGrooveColor: state.rootStateUI.product.productOptions.HandleGrooveColor,
+    cabinetColor: state.rootStateUI.product.productOptions.CabinetColor,
     towelBarColor: state.rootStateUI.product.productOptions.TowelBarColor,
     cabinets,
   });

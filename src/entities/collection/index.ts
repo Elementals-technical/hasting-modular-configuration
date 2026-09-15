@@ -26,6 +26,7 @@ export type {
   AttributeConfirmation,
   AttributeScope,
   BookMatchingRuleData,
+  CabinetColorTraitsRuleData,
   CabinetMatrixLegacyAdapter,
   CountertopFallbacksRuleData,
   DrawerStyleGroups,
