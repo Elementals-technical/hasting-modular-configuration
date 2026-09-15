@@ -4,6 +4,7 @@ import { getActiveProductProfile, getCabinetEntries } from "@/entities/configura
 import { getCabinetCatalog } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
+import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
 import { resolveConfirmation } from "./confirmationPolicy";
 import { resolveTarget } from "./resolveTarget";
@@ -76,7 +77,11 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
   // `profile` is non-null here: validateChange returns an error otherwise.
   const activeProfile = profile as NonNullable<typeof profile>;
 
-  // Gate 4 plus the dependent changes.
+  // Gate 4 for attributes outside the rule selection.
+  const unavailable = checkAvailability(change.attributeId, change.value, state, activeProfile);
+  if (unavailable) return { kind: "blocked", ...unavailable };
+
+  // Gate 4 for the rule selection, plus the dependent changes.
   const planResult = buildChangePlan({
     attributeId: change.attributeId,
     value: String(change.value ?? ""),
@@ -86,6 +91,8 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
     catalog: getCabinetCatalog(state),
     profile: activeProfile,
     handleGrooveColor: state.rootStateUI.product.productOptions.HandleGrooveColor,
+    towelBarColor: state.rootStateUI.product.productOptions.TowelBarColor,
+    cabinets,
   });
 
   if (!planResult.ok) {

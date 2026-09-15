@@ -105,11 +105,14 @@ export const CabinetPage = () => {
     const firstPreset = presetsProducts[0];
     if (!firstPreset) return selectorFlutingState;
 
-    return flutingRule({
-      targetPart: "CABINET",
-      material: cabinetMaterial,
-    });
-  }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial]);
+    return flutingRule(
+      {
+        targetPart: "CABINET",
+        material: cabinetMaterial,
+      },
+      activeProfile,
+    );
+  }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial, activeProfile]);
 
   useEffect(() => {
     if (!flutingState.available && !activeDrawerPanelFluting) {
@@ -122,8 +125,9 @@ export const CabinetPage = () => {
     }
   }, [flutingState.available, activeDrawerPanelFluting]);
 
+  // Until the collection loads every rule reads as unavailable, so nothing is cleared before it.
   useEffect(() => {
-    if (!grainDirectionState.available && activeGrainDirection) {
+    if (activeProfile && !grainDirectionState.available && activeGrainDirection) {
       setConfigBatch(
         {},
         {
@@ -132,13 +136,13 @@ export const CabinetPage = () => {
       );
       dispatch(setGrainDirection(""));
     }
-  }, [grainDirectionState.available, activeGrainDirection, dispatch]);
+  }, [activeProfile, grainDirectionState.available, activeGrainDirection, dispatch]);
 
   useEffect(() => {
-    if (!bookMatchingState.enabled && activeBookMatching) {
+    if (activeProfile && !bookMatchingState.enabled && activeBookMatching) {
       dispatch(setBookMatching(""));
     }
-  }, [bookMatchingState.enabled, activeBookMatching, dispatch]);
+  }, [activeProfile, bookMatchingState.enabled, activeBookMatching, dispatch]);
 
   const { data: configuratorData } = useGetConfiguratorQuery({
     id: 4,

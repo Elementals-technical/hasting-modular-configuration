@@ -34,6 +34,7 @@ import {
   getGrainDirection,
   getSelectedDimensions,
   getSelectedProducts,
+  getSelectedSceneProduct,
   getSelectedProductConfig,
   getHeightLocked,
   getSinkType,
@@ -61,8 +62,13 @@ import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { useGetConfiguratorQuery } from "@/entities";
 import { hasCapability, selectEffectiveFallback, selectOptions } from "@/entities/collection";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
-import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  getActiveProductProfile,
+  getCabinetDimensionsByRuntimeId,
+  getCabinetEntries,
+} from "@/entities/configuration/model/store/selectors";
+import { useChangeAttribute } from "@/features/configurationCommands";
+import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import {
   filterDepthValuesByCountertopRules,
@@ -83,24 +89,8 @@ const STYLE_SIDEBAR_LOCKED_TUTORIAL_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
 ]);
 
-interface PendingHandleChange {
-  next: string;
-  previous: string | undefined;
-  previousDimensions: {
-    width: number | null;
-    height: number | null;
-    depth: number | null;
-  };
-}
-
 interface PendingOssHandleChange {
   next: string;
-  previous: string | undefined;
-  previousDimensions: {
-    width: number | null;
-    height: number | null;
-    depth: number | null;
-  };
   ossIds: string[];
 }
 
@@ -155,13 +145,17 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     serialize: true,
   });
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
-  const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
+  const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
   const [isStyleSidebarTutorialStepActive, setIsStyleSidebarTutorialStepActive] = useState(false);
+  const { change: changeAttributeValue, confirm: confirmAttributeValue, getState: getCommandState } =
+    useChangeAttribute();
+  /** Height the command service is applying; the dimensions effect must not send it again. */
+  const commandHeightRef = useRef<number | null>(null);
   const hasModalOpen =
-    pendingHandleChange !== null ||
+    pendingHandlePreview !== null ||
     pendingOssHandleChange !== null ||
     pendingDepthChange !== null ||
     handleLockNotice !== null;
@@ -353,10 +347,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
+      profile: activeProfile,
     });
     const allowedValues = new Set(filteredValues.map((value) => String(value)));
     return dimensionOptions.depth.filter((option) => !option.disabled && allowedValues.has(String(option.value)));
-  }, [activeMaterialTokens, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
+  }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
 
   const widthDisplayOptions = useMemo(
     () =>
@@ -452,62 +447,70 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   //   dispatch(setSelectedDimensions({ height: Number(value) }));
   // };
 
-  const applyHandleType = async (handleType: string) => {
+  /** Shows what the command service answered; an applied change needs nothing more. */
+  const showHandleChangeResult = (result: ChangeResult) => {
+    switch (result.status) {
+      case "confirmation-required":
+        setPendingHandlePreview(result.preview);
+        return;
+      case "blocked":
+        setHandleLockNotice(result.reason);
+        return;
+      case "error":
+        setHandleLockNotice(result.message);
+        return;
+      case "partial":
+        setHandleLockNotice(
+          `The handle was applied, but ${result.failed.map(({ change }) => change.attributeId).join(", ")} could not be updated.`,
+        );
+        return;
+      case "applied":
+        return;
+    }
+  };
+
+  /**
+   * A handle change goes through the command service: it checks the rules, asks for
+   * confirmation when the profile says so, and sends the agreed set to the scene once.
+   * Nothing changes before Confirm, so Cancel has nothing to revert.
+   */
+  const requestHandleChange = async (handleType: string) => {
+    // Read at the moment of the change: removing Side Shelves just before changes the list.
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+
+    // No cabinet placed yet: this is the choice for the next cabinet; there is nothing to send.
+    if (!cabinetId) {
+      await saveSnapshot();
+      dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+      return;
+    }
+
+    showHandleChangeResult(
+      await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+    );
+  };
+
+  const closePendingHandlePreview = () => {
+    setPendingHandlePreview(null);
+  };
+
+  const confirmPendingHandlePreview = async () => {
+    if (!pendingHandlePreview) return;
+    const preview = pendingHandlePreview;
+    setPendingHandlePreview(null);
+
     await saveSnapshot();
-    dispatch(
-      setSelectedProductConfig({
-        ...(selectedProductConfig ?? {}),
-        Handle: handleType,
-      }),
-    );
 
-    if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor, activeProfile));
-    }
-  };
+    const plannedHeight = preview.plan.find(({ attributeId }) => attributeId === "Height")?.value;
+    commandHeightRef.current = typeof plannedHeight === "number" ? plannedHeight : null;
 
-  const restoreHandleType = async (
-    handleType: string | undefined,
-    previousDimensions: { width: number | null; height: number | null; depth: number | null },
-  ) => {
-    if (!handleType) return;
+    const result = await confirmAttributeValue(preview);
 
-    dispatch(
-      setSelectedProductConfig({
-        ...(selectedProductConfig ?? {}),
-        Handle: handleType,
-      }),
-    );
-
-    if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor, activeProfile));
+    if (result.status !== "applied" && result.status !== "partial") {
+      commandHeightRef.current = null;
     }
 
-    dispatch(setSelectedDimensions(previousDimensions));
-
-    const dimConfig: { Height?: number; Depth?: number } = {};
-    if (typeof previousDimensions.height === "number") {
-      dimConfig.Height = previousDimensions.height;
-    }
-    if (typeof previousDimensions.depth === "number") {
-      dimConfig.Depth = previousDimensions.depth;
-    }
-
-    if (selectedProducts.length && Object.keys(dimConfig).length > 0) {
-      await setConfigBatch({}, dimConfig);
-      selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-    }
-  };
-
-  const closePendingHandleChange = async (isConfirmed = false) => {
-    if (!pendingHandleChange) return;
-
-    const { previous, next, previousDimensions } = pendingHandleChange;
-    setPendingHandleChange(null);
-
-    if (isConfirmed || previous === next) return;
-
-    await restoreHandleType(previous, previousDimensions);
+    showHandleChangeResult(result);
   };
 
   const handleSetHandleType = async (handleType: string) => {
@@ -522,16 +525,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
 
         if (ossIdsForLock.length > 0 && leavingNonGroove) {
-          setPendingOssHandleChange({
-            next: handleType,
-            previous: previousHandle,
-            previousDimensions: {
-              width: selectedDimensions.width,
-              height: selectedDimensions.height,
-              depth: selectedDimensions.depth,
-            },
-            ossIds: ossIdsForLock,
-          });
+          setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock });
           return;
         }
 
@@ -549,32 +543,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
     const ossIds = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
-      setPendingOssHandleChange({
-        next: handleType,
-        previous: previousHandle,
-        previousDimensions: {
-          width: selectedDimensions.width,
-          height: selectedDimensions.height,
-          depth: selectedDimensions.depth,
-        },
-        ossIds,
-      });
+      setPendingOssHandleChange({ next: handleType, ossIds });
       return;
     }
 
-    await applyHandleType(handleType);
-
-    if (selectedProducts.length > 0) {
-      setPendingHandleChange({
-        next: handleType,
-        previous: previousHandle,
-        previousDimensions: {
-          width: selectedDimensions.width,
-          height: selectedDimensions.height,
-          depth: selectedDimensions.depth,
-        },
-      });
-    }
+    await requestHandleChange(handleType);
   };
 
   const closePendingOssHandleChange = () => {
@@ -583,7 +556,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const confirmPendingOssHandleChange = async () => {
     if (!pendingOssHandleChange) return;
-    const { next, previous, previousDimensions, ossIds } = pendingOssHandleChange;
+    const { next, ossIds } = pendingOssHandleChange;
     setPendingOssHandleChange(null);
 
     for (const ossId of ossIds) {
@@ -591,15 +564,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       dispatch(removeProductId(ossId));
     }
 
-    await applyHandleType(next);
-
-    if (selectedProducts.length - ossIds.length > 0) {
-      setPendingHandleChange({
-        next,
-        previous,
-        previousDimensions,
-      });
-    }
+    await requestHandleChange(next);
   };
 
   useEffect(() => {
@@ -609,13 +574,34 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
+    // A height the command service just applied is already in the scene.
+    if (commandHeightRef.current !== null && commandHeightRef.current === selectedDimensions.height) {
+      commandHeightRef.current = null;
+      return;
+    }
+
+    // Selecting another cabinet copies its actual size into the selection. That is not a change
+    // to send: it would give every cabinet the selected one's height and depth (I04).
+    const state = getCommandState();
+    const hasSize = (dimensions: ReturnType<typeof getCabinetDimensionsByRuntimeId>) =>
+      dimensions?.height === selectedDimensions.height && dimensions?.depth === selectedDimensions.depth;
+
+    if (hasSize(getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state)))) return;
+
+    // Opening the sidebar re-runs this effect; when every cabinet already has this size there is nothing to send.
+    const placedCabinets = getCabinetEntries(state);
+    if (
+      placedCabinets.length > 0 &&
+      placedCabinets.every(({ runtimeId }) => hasSize(getCabinetDimensionsByRuntimeId(state, runtimeId)))
+    ) {
+      return;
+    }
+
     const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
     setConfigBatch({}, dimConfig);
 
     selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
-
-  const prevHandleRef = useRef<string | undefined>(undefined);
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
@@ -631,17 +617,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     }
   }, [dispatch, selectedProductConfig, handlesDisabled, activeProfile]);
 
-  // Sync handle to PlayCanvas when it changes (e.g. auto-reset due to rule change)
-  useEffect(() => {
-    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
-    const prevHandle = prevHandleRef.current;
-    prevHandleRef.current = currentHandle;
-
-    if (!currentHandle || currentHandle === prevHandle) return;
-    if (!selectedProducts.length) return;
-
-    setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor, activeProfile));
-  }, [handleGrooveColor, selectedProductConfig?.Handle, selectedProducts, activeProfile]);
+  // A handle changed by the rules reaches the scene through the handle listener in
+  // optionsListener.ts; a user choice goes through the command service above.
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
@@ -839,23 +816,23 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         </div>
       </PopupCenterContent>
 
-      <PopupCenterContent isOpening={pendingHandleChange !== null} onClose={() => void closePendingHandleChange()}>
+      <PopupCenterContent isOpening={pendingHandlePreview !== null} onClose={closePendingHandlePreview}>
         <div className={s.confirmPopup}>
           <div className={s.confirmHeader}>
-            <div className={s.confirmTitle}>Handle Style Updated</div>
-            <div className={s.confirmClose} onClick={() => void closePendingHandleChange()}>
+            <div className={s.confirmTitle}>Update Handle Style?</div>
+            <div className={s.confirmClose} onClick={closePendingHandlePreview}>
               <CloseBtnIcon />
             </div>
           </div>
           <div className={s.confirmContent}>
-            <p>The handle style has been updated for all drawer cabinets.</p>
+            <p>{pendingHandlePreview?.reasons[0]?.reason}</p>
           </div>
           <div className={s.confirmFooter}>
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <BaseButton variant="ghost" onClick={() => void closePendingHandleChange()} fullWidth={true}>
+              <BaseButton variant="ghost" onClick={closePendingHandlePreview} fullWidth={true}>
                 Cancel
               </BaseButton>
-              <BaseButton onClick={() => void closePendingHandleChange(true)} fullWidth={true}>
+              <BaseButton onClick={() => void confirmPendingHandlePreview()} fullWidth={true}>
                 Confirm
               </BaseButton>
             </div>

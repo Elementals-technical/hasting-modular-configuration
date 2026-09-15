@@ -31,6 +31,12 @@ import {
   getPlacedDividers,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
+import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  getDimensionsByCabinet,
+} from "@/entities/configuration/model/store/selectors";
 import {
   buildProductSku,
   buildCountertopSkuIfComplete,
@@ -125,12 +131,16 @@ export function usePriceCalculation() {
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
+  // Actual size of each cabinet read from the scene (I04), so no cabinet borrows the selected one's.
+  const cabinetEntries = useAppSelector(getCabinetEntries);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const productIds = useAppSelector(getSelectedProducts);
 
   const cabinetColor = useAppSelector(getCabinetColor);
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const handleGrooveColorSku = useAppSelector(getHandleGrooveColorSku);
 
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -227,7 +237,7 @@ export function usePriceCalculation() {
           normalizeProductConfigSnapshot({
             id,
             raw: raw as Record<string, unknown>,
-            selectedDimensions,
+            recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, id),
           }),
         );
       } catch (err) {
@@ -244,6 +254,8 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    cabinetEntries,
+    dimensionsByCabinet,
   ]);
 
   useEffect(() => {
@@ -366,7 +378,7 @@ export function usePriceCalculation() {
     const resolvedVesselColor = vesselColor;
     const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const allowedVesselMaterialTokens = vesselTypeForTokens
-      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens) ?? [])
+      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
       : [];
     const vesselPreferredMaterialTokens =
       allowedVesselMaterialTokens.length > 0
@@ -390,9 +402,11 @@ export function usePriceCalculation() {
     const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
     const effectiveCountertopMaterialSku =
       resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
+    const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
     const isSyntesiCountertop =
-      isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku) ||
-      normalizeMaterialToken(resolvedSinkType ?? "").includes("syntesi");
+      syntesiMaterial !== null &&
+      (isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku, activeProfile) ||
+        normalizeMaterialToken(resolvedSinkType ?? "").includes(normalizeMaterialToken(syntesiMaterial)));
     const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
     const resolveNameFromRaw = (value: string) => {
       const lastDash = value.lastIndexOf("-");
@@ -578,8 +592,14 @@ export function usePriceCalculation() {
           handle: (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null,
           pattern: drawerPanelFluting || null,
           width: preset.Width ?? null,
-          height: selectedDimensions.height ?? preset.Height ?? null,
-          depth: selectedDimensions.depth ?? preset.Depth ?? null,
+          height:
+            resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[idx])?.height ??
+            preset.Height ??
+            null,
+          depth:
+            resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[idx])?.depth ??
+            preset.Depth ??
+            null,
           cab: cabMaterialSku
             ? {
                 materialSku: cabMaterialSku,
@@ -786,7 +806,7 @@ export function usePriceCalculation() {
           productId: productIds[index] ?? null,
           width: p.Width ?? null,
           height: p.Height ?? null,
-          depth: selectedDimensions.depth ?? p.Depth ?? null,
+          depth: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[index])?.depth ?? p.Depth ?? null,
           sinkType: shouldUsePresetSinkType ? (p.sinkType ?? resolvedSinkType) : resolvedSinkType,
         })),
         ...sceneConfigsInSceneOrder.map((cfg) => ({
@@ -1038,6 +1058,7 @@ export function usePriceCalculation() {
       bookMatching,
       materialSku: resolveCabinetMaterialSku(cabinetColor),
       cabinets: bookMatchingCabinets,
+      profile: activeProfile,
     });
 
     if (bookMatchingInfo.applies && bookMatchingInfo.sku) {
@@ -1068,6 +1089,8 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    cabinetEntries,
+    dimensionsByCabinet,
     selectedProductConfig,
     cabinetColor,
     cabinetColorSku,
@@ -1096,6 +1119,7 @@ export function usePriceCalculation() {
     resolveCabinetType,
     countertopRules,
     grainDirection,
+    activeProfile,
   ]);
 
   // ── Stable key for the SKU list (avoid effect re-runs on same content) ─
@@ -1218,5 +1242,7 @@ export function usePriceCalculation() {
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
+    cabinetEntries,
+    dimensionsByCabinet,
   ]);
 }

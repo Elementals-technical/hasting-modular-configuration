@@ -1,5 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 
+import type { RootState } from "@/app/store";
+
 import {
   bookMatchingRule,
   flutingRule,
@@ -27,14 +29,24 @@ import { resolveCountertopCabinetCompositionConstraint } from "@/features/config
 
 export { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 
+/** The rules read their lists and limits from the active collection's profile. */
+const getActiveProfile = (state: RootState) => state.rootStateUI.product.activeProfile;
+
 export const selectGrainDirectionState = createSelector(
-  [getCabinetColorMaterial, getCabinetColorFinish],
-  (material, finish) => grainDirectionRule({ material, finish }),
+  [getCabinetColorMaterial, getCabinetColorFinish, getActiveProfile],
+  (material, finish, profile) => grainDirectionRule({ material, finish }, profile),
 );
 
 export const selectBookMatchingState = createSelector(
-  [getGrainDirection, getSelectedProducts, getProductsPresets, getHasBootstrappedCabinetBuilder, getPlacedCabinetStyles],
-  (grainDirection, productIds, productsPresets, hasBootstrappedCabinetBuilder, placedCabinetStyles) => {
+  [
+    getGrainDirection,
+    getSelectedProducts,
+    getProductsPresets,
+    getHasBootstrappedCabinetBuilder,
+    getPlacedCabinetStyles,
+    getActiveProfile,
+  ],
+  (grainDirection, productIds, productsPresets, hasBootstrappedCabinetBuilder, placedCabinetStyles, profile) => {
     const cabinets =
       productIds.length > 0 || hasBootstrappedCabinetBuilder
         ? productIds.map((productId) => ({
@@ -46,53 +58,64 @@ export const selectBookMatchingState = createSelector(
             drawers: preset.Drawers ?? null,
           }));
 
-    return bookMatchingRule({
-      grainDirection,
-      cabinets,
-    });
+    return bookMatchingRule(
+      {
+        grainDirection,
+        cabinets,
+      },
+      profile,
+    );
   },
 );
 
 export const selectFlutingState = createSelector(
-  [getActiveCabinetType, getCabinetColorMaterial],
-  (activeCabinetType, cabinetMaterial) => {
+  [getActiveCabinetType, getCabinetColorMaterial, getActiveProfile],
+  (activeCabinetType, cabinetMaterial, profile) => {
     console.log("[Fluting] inputs", {
       cabinetType: activeCabinetType,
       material: cabinetMaterial,
     });
-    return flutingRule({
-      targetPart: "CABINET",
-      cabinetType: activeCabinetType,
-      material: cabinetMaterial,
-    });
+    return flutingRule(
+      {
+        targetPart: "CABINET",
+        cabinetType: activeCabinetType,
+        material: cabinetMaterial,
+      },
+      profile,
+    );
   },
 );
 
 export const selectSidePanelSpecs = createSelector(
-  [getSidePanelsOption, getSelectedDimensions],
-  (sidePanels, dimensions) =>
-    sidePanelSpecRule({ sidePanels, cabinetHeight: dimensions.height, cabinetDepth: dimensions.depth }),
+  [getSidePanelsOption, getSelectedDimensions, getActiveProfile],
+  (sidePanels, dimensions, profile) =>
+    sidePanelSpecRule({ sidePanels, cabinetHeight: dimensions.height, cabinetDepth: dimensions.depth }, profile),
 );
 
 export const selectCountertopAdjustedLength = createSelector(
-  [getSidePanelsOption, getSelectedDimensions],
-  (sidePanels, dimensions) => sidePanelCountertopLengthRule({ sidePanels, vanityLength: dimensions.width }),
+  [getSidePanelsOption, getSelectedDimensions, getActiveProfile],
+  (sidePanels, dimensions, profile) =>
+    sidePanelCountertopLengthRule({ sidePanels, vanityLength: dimensions.width }, profile),
 );
 
 export const selectCountertopCabinetCompositionConstraint = createSelector(
-  [getCountertopColorSku, getSelectedProducts],
-  (countertopColorSku, selectedProducts) =>
+  [getCountertopColorSku, getSelectedProducts, getActiveProfile],
+  (countertopColorSku, selectedProducts, profile) =>
     resolveCountertopCabinetCompositionConstraint({
       materialTokens: getCountertopMaterialTokensBySku(countertopColorSku),
       cabinetCount: selectedProducts.length,
+      profile,
     }),
 );
 
 export const selectSyntesiConstraint = createSelector(
-  [getSidePanelsOption, getCountertopColorSku],
-  (sidePanels, countertopColorSku) =>
-    syntesiSidePanelRule({
-      sidePanels,
-      countertopMaterial: getCountertopMaterialTokensBySku(countertopColorSku)[0] ?? null,
-    }),
+  [getSidePanelsOption, getCountertopColorSku, getActiveProfile],
+  (sidePanels, countertopColorSku, profile) =>
+    syntesiSidePanelRule(
+      {
+        sidePanels,
+        countertopMaterial: getCountertopMaterialTokensBySku(countertopColorSku)[0] ?? null,
+      },
+      profile,
+    ),
 );

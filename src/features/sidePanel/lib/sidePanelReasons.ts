@@ -1,3 +1,5 @@
+import type { ProductProfile } from "@/entities/collection";
+import { selectMessage, selectRuleData } from "@/entities/collection";
 import type { SidePanelAvailabilityResult } from "@/features/configurator-rule-core/options/types";
 import { cmToInches } from "@/shared/lib/sku/cmToInches";
 import {
@@ -19,9 +21,8 @@ import {
  * apply guard pick it up automatically.
  */
 
-/** Exact cabinet-only vanity length (cm) at which side panels are hard-blocked. */
-export const SIDE_PANEL_LENGTH_BLOCK_CM = 340;
-/** Tolerance for the 340cm comparison (floating-point safety). */
+export const REASON_SIDE_PANEL_EXACT_LENGTH = "sidePanel.exactLengthBlocked";
+/** Tolerance for the exact-length comparison (floating-point safety). */
 const LENGTH_BLOCK_EPSILON = 0.01;
 
 export const SIDE_PANEL_SELECT_END_HINT = "Select an end cabinet to add side panels.";
@@ -37,6 +38,8 @@ export type SidePanelReasonCtx = {
   cabinetOnlyLength: number | null;
   /** Availability already aggregates Syntesi / OS-both / OSS-both / mixed-both. */
   availability: SidePanelAvailabilityResult;
+  /** Active collection profile; holds the exact blocked length and the reason texts. */
+  profile: ProductProfile | null;
 };
 
 export type SidePanelBlockId = "length-340" | "availability";
@@ -170,13 +173,25 @@ const SIDE_PANEL_NOTICE_RULES: readonly SidePanelNoticeRule[] = [
   },
 ];
 
-export const formatSidePanelLength340Reason = (): string =>
-  `Side panels are not available when total vanity length is exactly ${SIDE_PANEL_LENGTH_BLOCK_CM} cm (${cmToInches(
-    SIDE_PANEL_LENGTH_BLOCK_CM,
-  )}").`;
+/** The exact cabinet-only length (cm) at which the collection blocks side panels, if any. */
+const selectExactBlockedLength = (profile: ProductProfile | null): number | undefined =>
+  selectRuleData(profile, "sidePanels")?.exactBlockedCabinetLengthCm;
 
-export const isSidePanelLengthBlocked = (cabinetOnlyLength: number | null): boolean =>
-  cabinetOnlyLength !== null && Math.abs(cabinetOnlyLength - SIDE_PANEL_LENGTH_BLOCK_CM) < LENGTH_BLOCK_EPSILON;
+export const formatSidePanelLength340Reason = (profile: ProductProfile | null): string => {
+  const lengthCm = selectExactBlockedLength(profile);
+  if (lengthCm === undefined) return "";
+
+  return selectMessage(profile, REASON_SIDE_PANEL_EXACT_LENGTH, { lengthCm, lengthIn: cmToInches(lengthCm) });
+};
+
+export const isSidePanelLengthBlocked = (cabinetOnlyLength: number | null, profile: ProductProfile | null): boolean => {
+  const lengthCm = selectExactBlockedLength(profile);
+  return (
+    lengthCm !== undefined &&
+    cabinetOnlyLength !== null &&
+    Math.abs(cabinetOnlyLength - lengthCm) < LENGTH_BLOCK_EPSILON
+  );
+};
 
 /**
  * BLOCK reasons — when any matches, the options grid is hidden and the
@@ -188,8 +203,8 @@ export const SIDE_PANEL_BLOCK_REASONS: readonly SidePanelBlockReason[] = [
   {
     id: "length-340",
     priority: 10,
-    predicate: (ctx) => isSidePanelLengthBlocked(ctx.cabinetOnlyLength),
-    message: () => formatSidePanelLength340Reason(),
+    predicate: (ctx) => isSidePanelLengthBlocked(ctx.cabinetOnlyLength, ctx.profile),
+    message: (ctx) => formatSidePanelLength340Reason(ctx.profile),
   },
   {
     id: "availability",

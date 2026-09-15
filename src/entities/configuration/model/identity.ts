@@ -1,4 +1,4 @@
-import type { CabinetEntry, StableCabinetKey } from "./types";
+import type { CabinetDimensions, CabinetEntry, StableCabinetKey } from "./types";
 
 /**
  * Stable identity and order of the products in a composition.
@@ -22,6 +22,22 @@ export const findByStableKey = (entries: readonly CabinetEntry[], stableKey: Sta
 
 export const resolveStableKey = (entries: readonly CabinetEntry[], runtimeId: string): StableCabinetKey | null =>
   findByRuntimeId(entries, runtimeId)?.stableKey ?? null;
+
+/**
+ * The recorded actual size of the product with this runtime id. Null when the product is
+ * unknown or has not been read yet: a caller falls back to that product's own data, never
+ * to another product's size.
+ */
+export const resolveCabinetDimensions = (
+  entries: readonly CabinetEntry[],
+  dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>,
+  runtimeId: string | null | undefined,
+): CabinetDimensions | null => {
+  if (!runtimeId) return null;
+
+  const stableKey = resolveStableKey(entries, runtimeId);
+  return stableKey ? (dimensionsByCabinet[stableKey] ?? null) : null;
+};
 
 export type RegisterCabinetsResult = {
   entries: CabinetEntry[];

@@ -7,11 +7,12 @@
  */
 
 import type { AppDispatch } from "@/app/store";
+import type { ProductProfile } from "@/entities/collection";
+import { selectRuleData } from "@/entities/collection";
 import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
 import { mapCabinetTypeToGroup } from "../model/selectors";
-import { mapSidePanelDrawersToHandleType } from "./sidePanelEdgeCompatibility";
-import { sidePanelAvailabilityRule } from "./sidePanelRules";
+import { mapSidePanelDrawersToHandleType, sidePanelAvailabilityRule } from "./sidePanelRules";
 
 export type SidePanelSide = "left" | "right";
 export type SidePanelStatus = "active" | "none" | "auto-removed";
@@ -86,8 +87,8 @@ const getPresetEdges = (presetProducts: PresetSidePanelProduct[], productIds?: s
   },
 ];
 
-const isSidePanelEligiblePresetEdge = (product: PresetSidePanelProduct | undefined) =>
-  mapCabinetTypeToGroup(product?.name ?? null) === "SBSC";
+const isSidePanelEligiblePresetEdge = (product: PresetSidePanelProduct | undefined, profile: ProductProfile | null) =>
+  mapCabinetTypeToGroup(product?.name ?? null, profile) === "SBSC";
 
 const dispatchPresetEdgeStatuses = (
   dispatch: AppDispatch,
@@ -225,6 +226,7 @@ export async function autoRemoveBoth(dispatch: AppDispatch, cabinetCount?: numbe
  */
 export async function reapplySidePanelsForPreset(
   dispatch: AppDispatch,
+  profile: ProductProfile | null,
   currentGroove: string,
   presetProducts: PresetSidePanelProduct[],
   cabinetCount?: number,
@@ -232,11 +234,13 @@ export async function reapplySidePanelsForPreset(
 ) {
   if (!currentGroove || currentGroove === "None" || !isGrooveType(currentGroove)) return;
   if (!presetProducts.length) return;
+  // Without the collection's side panel data the new edges cannot be judged; keep the scene as it is.
+  if (!selectRuleData(profile, "sidePanels")) return;
 
   const count = cabinetCount ?? presetProducts.length;
   const scopedProductIds = normalizeProductIds(productIds);
   const edges = getPresetEdges(presetProducts, scopedProductIds);
-  const eligibleEdges = edges.filter(({ product }) => isSidePanelEligiblePresetEdge(product));
+  const eligibleEdges = edges.filter(({ product }) => isSidePanelEligiblePresetEdge(product, profile));
   const eligible = eligibleEdges[0]?.product;
 
   // Always clear stale physical panels before mapping the saved groove onto the
@@ -249,11 +253,14 @@ export async function reapplySidePanelsForPreset(
     return;
   }
 
-  const availability = sidePanelAvailabilityRule({
-    height: eligible.Height ?? null,
-    handleType: mapSidePanelDrawersToHandleType(eligible.Drawers),
-    cabinetType: "SBSC",
-  });
+  const availability = sidePanelAvailabilityRule(
+    {
+      height: eligible.Height ?? null,
+      handleType: mapSidePanelDrawersToHandleType(eligible.Drawers, profile),
+      cabinetType: "SBSC",
+    },
+    profile,
+  );
 
   const groove = resolveGroove(availability.allowed as Set<string>, currentGroove, eligible.Handle ?? null);
 

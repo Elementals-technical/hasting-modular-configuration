@@ -11,6 +11,8 @@ export type GrainDirectionRuleResult = {
   available: boolean;
   options: OptionState<string>[];
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
 };
 
 export type BookMatchingRuleInput = {
@@ -21,6 +23,8 @@ export type BookMatchingRuleInput = {
 export type BookMatchingRuleResult = {
   enabled: boolean;
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
 };
 
 export type FlutingRuleInput = {
@@ -33,6 +37,8 @@ export type FlutingRuleResult = {
   available: boolean;
   options: OptionState<string>[];
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
 };
 
 export type SidePanelSpecInput = {
@@ -90,7 +96,8 @@ export type SidePanelReasonCode =
   | "mixed-open-side-shelf"
   | "select-edge-cabinet"
   | "exceeds-max-length"
-  | "unsupported-groove";
+  | "unsupported-groove"
+  | "not-in-collection";
 
 export type SidePanelAvailabilityResult = {
   allowed: Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">;

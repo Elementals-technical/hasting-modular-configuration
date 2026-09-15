@@ -123,6 +123,11 @@
       ]
     },
     {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Cabinet Color"
+    },
+    {
       "attributeId": "HandleGrooveColor",
       "scope": "cabinet",
       "resetValue": "None",
@@ -179,6 +184,16 @@
         { "value": "5.125", "label": "5.1\"", "order": 60 },
         { "value": "5.5", "label": "5.5\"", "order": 70 }
       ]
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Countertop Color"
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Vessels"
     },
     {
       "attributeId": "sinkType",
@@ -269,12 +284,18 @@
       "attributeId": "TowelBarOption",
       "scope": "global",
       "defaultValue": "None",
+      "noneValue": "None",
       "options": [
         { "value": "None", "label": "None", "order": 10 },
         { "value": "Left", "label": "Left", "order": 20 },
         { "value": "Right", "label": "Right", "order": 30 },
         { "value": "Both", "label": "Both", "order": 40 }
       ]
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "scope": "global",
+      "optionsSource": "configurator:Towel Bar Color"
     },
     {
       "attributeId": "FaucetHolesAmount",
@@ -353,11 +374,16 @@
         }
       }
     },
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
     "grainDirection": {
       "eligibleMaterials": ["Essenze", "HPL", "3D"],
       "excludedFinishesByMaterial": {
         "HPL": ["TKP", "TKQ", "TKN"],
         "3D": ["10B", "10F", "1A1", "1A2", "1A3", "1A4", "1A5", "1PE"]
+      },
+      "excludedFinishLabelsByMaterial": {
+        "HPL": "TKP, TKQ, TKN (Cepp Stone, Rox Black, Brera Brown)",
+        "3D": "10B, 10F, 1A1, 1A2, 1A3, 1A4, 1A5, 1PE (Colortech Bianco, Colortech Grigio fume, Cemento Cenere, Cemento Tortora, Cemento Creta, Cemento Oltremare, Cemento Ghiaccio, Pelle Pecari Tortora)"
       }
     },
     "fluting": {
@@ -376,6 +402,36 @@
       "restrictedIntegratedMaterialTokens": ["tekormud", "tekorund", "sstm", "solidsurface", "ssocr", "sst1c", "sst1d"],
       "restrictedIntegratedBasinKeys": ["oly55", "oly56", "orion"],
       "excludedMaterialFilterTokens": ["lacqueredmt", "lacqueredgl"]
+    },
+    "vesselCompatibility": {
+      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"],
+      "allowedMaterialsByStyle": {
+        "Vessel_Blade11": ["ceramic"],
+        "Vessel_Blade18": ["ceramic"],
+        "Vessel_UrbanModo": ["solidsurface", "hpl", "porcelain"],
+        "Vessel_UrbanMorris": ["tekorlux", "sstkr", "tal", "tam"],
+        "Vessel_Aquarius": ["tekorlux", "sstkr", "tal", "tam"]
+      },
+      "allowedColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "solidsurface": ["T1C", "T1D"],
+          "hpl": ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"]
+        },
+        "Vessel_UrbanMorris": {
+          "tekorlux": ["TAL", "TAM"]
+        }
+      },
+      "unavailableColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "porcelain": ["TQ2"]
+        }
+      },
+      "defaultFinishByStyle": {
+        "Vessel_UrbanModo": {
+          "materialTokens": ["solidsurface", "ocritech", "ssocr", "sst1c"],
+          "colorCodes": ["T1C"]
+        }
+      }
     },
     "syntesi": {
       "material": "Syntesi",
@@ -407,6 +463,15 @@
         "56": "56H"
       },
       "blockedCabinetTypes": ["OS", "OSS"],
+      "cabinetGroups": {
+        "OSS": ["Side-Shelf", "OSS"],
+        "OS": ["Open-Shelf", "OS"],
+        "SBSC": ["Sink-Base", "Sink-Cabinet", "Side-Cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1D", "1DWID", "1", "1+inner"],
+        "2D": ["2D", "2"]
+      },
       "exactBlockedCabinetLengthCm": 340,
       "countertopLengthIncrementCm": 2,
       "defaultQuantityUnlessHeightTypeLow": 2,
@@ -431,7 +496,7 @@
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
     "grain.selectDirection": "Select grain direction first.",
-    "grain.horizontalNeedsAdjacentCabinets": "Horizontal grain requires at least 2 adjacent drawer cabinets.",
+    "grain.horizontalNeedsAdjacentCabinets": "Horizontal grain requires at least {count} adjacent drawer cabinets.",
     "grain.verticalRequiresTwoDrawers": "Vertical book matching is only available for 2 drawer cabinet styles.",
     "grain.bookMatchingUnavailable": "Book matching is not available.",
     "fluting.sidePanelUnavailable": "Fluting is not available for side panels.",
@@ -444,7 +509,20 @@
     "divider.noSelection": "Select a Divider option before placing it.",
     "divider.slotMismatch": "Selected Divider does not match this placement slot. Choose the matching Divider option.",
     "divider.cannotPlace": "Selected Divider does not fit here. Choose another available option.",
-    "divider.noContext": "Open a drawer before placing a Divider."
+    "divider.noContext": "Open a drawer before placing a Divider.",
+    "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
+    "grain.notAvailable": "Grain direction is not available for the selected cabinet material.",
+    "drawers.handleChanged": "The handle changes to one that fits the selected drawers.",
+    "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed.",
+    "fluting.notInCollection": "Fluting is not available in this collection.",
+    "grain.notInCollection": "Grain direction is not available in this collection.",
+    "grain.requiresEligibleMaterial": "Grain direction is only available for {materials} materials.",
+    "grain.materialNotEligible": "Grain direction is available only for {materials} materials.",
+    "grain.finishExcluded": "Grain direction is not available for {material} material finishes: {finishes}.",
+    "bookMatching.notInCollection": "Book matching is not available in this collection.",
+    "sidePanel.notInCollection": "Side panels are not available in this collection.",
+    "sidePanel.exactLengthBlocked": "Side panels are not available when total vanity length is exactly {lengthCm} cm ({lengthIn}\").",
+    "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Side-Shelf cabinets are positioned at both ends."
   },
   "excludedFromThisProfile": {
     "uiStepsAndSections": "Owned by B in ui.json.",

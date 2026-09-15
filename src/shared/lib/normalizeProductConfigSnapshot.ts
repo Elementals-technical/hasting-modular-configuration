@@ -1,3 +1,4 @@
+import type { CabinetDimensions } from "@/entities/configuration";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 
 export type NormalizedProductConfigSnapshot = {
@@ -23,11 +24,8 @@ export type NormalizedProductConfigSnapshot = {
 type NormalizeProductConfigParams = {
   id: string;
   raw: Record<string, unknown>;
-  selectedDimensions: {
-    width: number | null;
-    height: number | null;
-    depth: number | null;
-  };
+  /** The size last read from the scene for this product (I04); null when not read yet. */
+  recordedDimensions: CabinetDimensions | null;
 };
 
 const readDimValue = (map?: Record<string, string>) => {
@@ -43,7 +41,7 @@ const readDimValue = (map?: Record<string, string>) => {
 export const normalizeProductConfigSnapshot = ({
   id,
   raw,
-  selectedDimensions,
+  recordedDimensions,
 }: NormalizeProductConfigParams): NormalizedProductConfigSnapshot => {
   const dimensionTool = getDimensionTool();
   const dimensionData = dimensionTool?.getDimensionData?.(id) ?? null;
@@ -65,9 +63,11 @@ export const normalizeProductConfigSnapshot = ({
     productType: typeof raw.productType === "string" ? raw.productType : null,
     type: typeof raw.type === "string" ? raw.type : null,
     entityName: typeof raw.entityName === "string" ? raw.entityName : null,
-    Width: (typeof raw.Width === "number" ? raw.Width : null) ?? toolWidth,
-    Height: selectedDimensions.height ?? toolHeight ?? (typeof raw.Height === "number" ? raw.Height : null),
-    Depth: selectedDimensions.depth ?? toolDepth ?? (typeof raw.Depth === "number" ? raw.Depth : null),
+    // Each product keeps its own size: its scene config, its dimension label, then the size last
+    // recorded for it. The selected product's size is never borrowed.
+    Width: (typeof raw.Width === "number" ? raw.Width : null) ?? toolWidth ?? recordedDimensions?.width ?? null,
+    Height: (typeof raw.Height === "number" ? raw.Height : null) ?? toolHeight ?? recordedDimensions?.height ?? null,
+    Depth: (typeof raw.Depth === "number" ? raw.Depth : null) ?? toolDepth ?? recordedDimensions?.depth ?? null,
     Thickness: typeof raw.Thickness === "string" ? raw.Thickness : null,
     Drawers: typeof raw.Drawers === "string" ? raw.Drawers : null,
     Handle: typeof raw.Handle === "string" ? raw.Handle : null,

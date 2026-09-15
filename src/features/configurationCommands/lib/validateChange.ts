@@ -1,5 +1,5 @@
 import type { ProductProfile } from "@/entities/collection";
-import { selectAttribute, selectMessage, selectOptions } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectMessage, selectOptions } from "@/entities/collection";
 import type { AttributeValue } from "@/entities/configuration";
 
 import type { AttributeChange, ChangeBlockedReason, ChangeErrorCode } from "../model/types";
@@ -62,7 +62,12 @@ export const validateChange = (change: AttributeChange, profile: ProductProfile 
 
   if (options.length > 0) {
     const value = asString(change.value);
-    const isMember = value !== null && options.some((option) => option.value === value);
+    // A declared alias is a member too ("2.375" is Thickness "2.4"). The direct check stays
+    // first because an empty string is a legitimate member that normalization rejects.
+    const isMember =
+      value !== null &&
+      (options.some((option) => option.value === value) ||
+        normalizeOptionValue(profile, change.attributeId, value) !== null);
 
     if (!isMember) {
       return {

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import type { ProductProfile } from "@/entities/collection";
+import { parseThicknessValue } from "@/features/configurator-rule-core/countertop/parse";
 
 import { REASON_VALUE_NOT_IN_CATALOG, validateChange } from "../lib/validateChange";
 import type { AttributeChange } from "../model/types";
@@ -60,6 +62,35 @@ describe("validateChange", () => {
     );
 
     expect(verdict).toEqual({ ok: true });
+  });
+
+  it("accepts a value through an alias the catalog declares", () => {
+    const thickness = (value: string) =>
+      validateChange({ attributeId: "Thickness", value, scope: "countertop" }, profile);
+
+    expect(thickness("0.375")).toEqual({ ok: true });
+    expect(thickness("2.375")).toEqual({ ok: true });
+    // The table spelling never reaches state: pages store the parsed decimal.
+    expect(thickness("3/8")).toMatchObject({ ok: false, kind: "blocked", reasonCode: REASON_VALUE_NOT_IN_CATALOG });
+  });
+
+  it("accepts every thickness the countertop table produces in state", () => {
+    const rawValues = Array.from(JSON.stringify(datatable438).matchAll(/"top_thicknesses":"([^"]*)"/g), (match) =>
+      match[1].split("|"),
+    ).flat();
+    // Pages and rules store String(parseThicknessValue(raw)), e.g. "2-3/8" -> "2.4".
+    const stateValues = Array.from(new Set(rawValues.map((raw) => String(parseThicknessValue(raw)))));
+
+    expect(stateValues.length).toBeGreaterThan(0);
+    for (const value of stateValues) {
+      expect(validateChange({ attributeId: "Thickness", value, scope: "countertop" }, profile), value).toEqual({
+        ok: true,
+      });
+    }
+  });
+
+  it("keeps an empty string a catalog member", () => {
+    expect(validateChange({ attributeId: "BookMatching", value: "", scope: "global" }, profile)).toEqual({ ok: true });
   });
 
   it("accepts a synthetic handle that exists only in a fixture profile", () => {

@@ -3,64 +3,50 @@ import {
   resolveCountertopFallbackTexture,
   resolveCountertopNeedsLightBorder,
 } from "@/entities/countertop";
+import type { ProductProfile, SyntesiFinishTransform, SyntesiRuleData } from "@/entities/collection";
+import { selectRuleData } from "@/entities/collection";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 import { normalizeMaterialToken } from "./parse";
 import type { CountertopMatrixRule } from "./types";
 
-export const SYNTESI_MATERIAL = "Syntesi";
-export const SYNTESI_MATERIAL_SKU = "SSSYN";
+/**
+ * Syntesi countertop options. The material, its SKU token, the finishes it is offered in and
+ * the swatches those finishes borrow come from `ruleData.syntesi` of the active collection; a
+ * collection without that section offers no Syntesi.
+ */
 
 type CountertopOptionWithSource = ProductOptionData & {
   sourceGroup?: string;
 };
 
-type SyntesiFinishConfig = {
-  finish: string;
-  sourceFinish: string;
-  title: string;
-  value: string;
-  configValue: string;
+export const isSyntesiCountertopMaterialSku = (
+  value: string | null | undefined,
+  profile: ProductProfile | null,
+): boolean => {
+  const syntesi = selectRuleData(profile, "syntesi");
+  if (!syntesi) return false;
+
+  const token = normalizeMaterialToken(value ?? "");
+  return (
+    token === normalizeMaterialToken(syntesi.material) || token === normalizeMaterialToken(syntesi.materialSkuToken)
+  );
 };
 
-const SYNTESI_FINISH_CONFIGS: SyntesiFinishConfig[] = [
-  {
-    finish: "TAN",
-    sourceFinish: "TAL",
-    title: "Bianco Gloss TAN",
-    value: "Bianco Gloss TAN",
-    configValue: "Bianco Gloss TAL",
-  },
-  {
-    finish: "TAP",
-    sourceFinish: "TAM",
-    title: "Bianco Matte TAP",
-    value: "Bianco Matte TAP",
-    configValue: "Bianco Matte TAM",
-  },
-];
-
-const SOURCE_MATERIAL_TOKENS = new Set(["tekorlux", "sstkr", "tal", "tam"]);
-const SYNTESI_MATERIAL_SKU_TOKENS = new Set([
-  normalizeMaterialToken(SYNTESI_MATERIAL),
-  normalizeMaterialToken(SYNTESI_MATERIAL_SKU),
-]);
-const SYNTESI_UI_VALUE_BY_COLOR_KEY = new Map(
-  SYNTESI_FINISH_CONFIGS.flatMap((config) => [
-    [normalizeMaterialToken(config.title), config.value],
-    [normalizeMaterialToken(config.value), config.value],
-    [normalizeMaterialToken(config.configValue), config.value],
-  ]),
-);
-
-export const isSyntesiCountertopMaterialSku = (value?: string | null): boolean =>
-  SYNTESI_MATERIAL_SKU_TOKENS.has(normalizeMaterialToken(value ?? ""));
-
-export const findSyntesiCountertopUiValue = (value?: string | null): string | null => {
+/** UI value of a Syntesi finish from any of its spellings (label, value, scene value). */
+export const findSyntesiCountertopUiValue = (
+  value: string | null | undefined,
+  profile: ProductProfile | null,
+): string | null => {
+  const syntesi = selectRuleData(profile, "syntesi");
   const normalized = normalizeMaterialToken(value ?? "");
-  if (!normalized) return null;
+  if (!syntesi || !normalized) return null;
 
-  return SYNTESI_UI_VALUE_BY_COLOR_KEY.get(normalized) ?? null;
+  const finish = syntesi.finishTransforms.find(({ label, value: uiValue, runtimeValue }) =>
+    [label, uiValue, runtimeValue].some((candidate) => normalizeMaterialToken(candidate) === normalized),
+  );
+
+  return finish?.value ?? null;
 };
 
 const getOptionCodeCandidates = (option: ProductOptionData): string[] => [
@@ -81,26 +67,29 @@ const hasMaterialToken = (option: ProductOptionData, token: string): boolean => 
   return getOptionMaterialTokens(option).some((material) => material === normalizedToken);
 };
 
-const hasSyntesiOption = (options: ProductOptionData[]): boolean =>
-  options.some((option) => hasMaterialToken(option, SYNTESI_MATERIAL));
+const hasSyntesiOption = (options: ProductOptionData[], material: string): boolean =>
+  options.some((option) => hasMaterialToken(option, material));
 
-const hasSyntesiRule = (rules: CountertopMatrixRule[]): boolean =>
-  rules.some((rule) => normalizeMaterialToken(rule.material) === normalizeMaterialToken(SYNTESI_MATERIAL));
+const hasSyntesiRule = (rules: CountertopMatrixRule[], material: string): boolean =>
+  rules.some((rule) => normalizeMaterialToken(rule.material) === normalizeMaterialToken(material));
 
-const getAllowedSyntesiFinishConfigs = (rules: CountertopMatrixRule[]): SyntesiFinishConfig[] => {
+const getAllowedSyntesiFinishes = (
+  rules: CountertopMatrixRule[],
+  syntesi: SyntesiRuleData,
+): SyntesiFinishTransform[] => {
   const ruleFinishes = new Set<string>();
 
   rules.forEach((rule) => {
-    if (normalizeMaterialToken(rule.material) !== normalizeMaterialToken(SYNTESI_MATERIAL)) return;
+    if (normalizeMaterialToken(rule.material) !== normalizeMaterialToken(syntesi.material)) return;
     rule.allowedFinishes.forEach((finish) => {
       const normalized = finish.trim().toUpperCase();
       if (normalized) ruleFinishes.add(normalized);
     });
   });
 
-  if (ruleFinishes.size === 0) return SYNTESI_FINISH_CONFIGS;
+  if (ruleFinishes.size === 0) return syntesi.finishTransforms;
 
-  return SYNTESI_FINISH_CONFIGS.filter((config) => ruleFinishes.has(config.finish));
+  return syntesi.finishTransforms.filter((finish) => ruleFinishes.has(finish.finish));
 };
 
 const matchesSourceFinish = (option: ProductOptionData, sourceFinish: string): boolean =>
@@ -112,36 +101,41 @@ const matchesSourceFinish = (option: ProductOptionData, sourceFinish: string): b
     return tokens.includes(sourceFinish);
   });
 
-const findSourceSwatch = (options: ProductOptionData[], config: SyntesiFinishConfig): ProductOptionData | null => {
-  const sourceOptions = options.filter((option) => matchesSourceFinish(option, config.sourceFinish));
-  const tekorluxSource = sourceOptions.find((option) =>
-    getOptionMaterialTokens(option).some((token) => SOURCE_MATERIAL_TOKENS.has(token)),
+const findSourceSwatch = (
+  options: ProductOptionData[],
+  finish: SyntesiFinishTransform,
+  sourceMaterialTokens: readonly string[],
+): ProductOptionData | null => {
+  const sourceOptions = options.filter((option) => matchesSourceFinish(option, finish.sourceFinish));
+  const materialSource = sourceOptions.find((option) =>
+    getOptionMaterialTokens(option).some((token) => sourceMaterialTokens.includes(token)),
   );
 
-  return tekorluxSource ?? sourceOptions[0] ?? null;
+  return materialSource ?? sourceOptions[0] ?? null;
 };
 
 const buildSyntesiOption = (
   source: ProductOptionData | null,
-  config: SyntesiFinishConfig,
+  finish: SyntesiFinishTransform,
+  syntesi: SyntesiRuleData,
 ): CountertopOptionWithSource => {
-  const sourceVariantName = source?.metadata?.value ?? source?.name ?? source?.title ?? `Bianco ${config.sourceFinish}`;
+  const sourceVariantName = source?.metadata?.value ?? source?.name ?? source?.title ?? `Bianco ${finish.sourceFinish}`;
   const fallbackHex = resolveCountertopFallbackHex(sourceVariantName);
   const fallbackImage = resolveCountertopFallbackTexture(sourceVariantName);
 
   return {
-    id: `syntesi-countertop-${config.finish}`,
-    title: config.title,
-    name: config.value,
+    id: `syntesi-countertop-${finish.finish}`,
+    title: finish.label,
+    name: finish.value,
     sourceGroup: "countertop color",
-    desc: SYNTESI_MATERIAL,
+    desc: syntesi.material,
     isShortDesc: false,
     metadata: {
       image: source?.metadata?.image ?? fallbackImage,
-      value: config.value,
-      configValue: config.configValue,
-      sku: SYNTESI_MATERIAL_SKU,
-      materials: [SYNTESI_MATERIAL],
+      value: finish.value,
+      configValue: finish.runtimeValue,
+      sku: syntesi.materialSkuToken,
+      materials: [syntesi.material],
       colors: source?.metadata?.colors?.length ? source.metadata.colors : ["White"],
       looks: source?.metadata?.looks ?? [],
       hex: source?.metadata?.hex ?? fallbackHex,
@@ -153,15 +147,17 @@ const buildSyntesiOption = (
 export const appendSyntesiCountertopOptions = (
   options: ProductOptionData[],
   rules: CountertopMatrixRule[],
+  profile: ProductProfile | null,
 ): CountertopOptionWithSource[] => {
-  const visibleOptions = options;
+  const syntesi = selectRuleData(profile, "syntesi");
 
-  if (!hasSyntesiRule(rules)) return visibleOptions;
-  if (hasSyntesiOption(visibleOptions)) return visibleOptions;
+  if (!syntesi) return options;
+  if (!hasSyntesiRule(rules, syntesi.material)) return options;
+  if (hasSyntesiOption(options, syntesi.material)) return options;
 
-  const syntesiOptions = getAllowedSyntesiFinishConfigs(rules).map((config) =>
-    buildSyntesiOption(findSourceSwatch(options, config), config),
+  const syntesiOptions = getAllowedSyntesiFinishes(rules, syntesi).map((finish) =>
+    buildSyntesiOption(findSourceSwatch(options, finish, syntesi.sourceMaterialTokens), finish, syntesi),
   );
 
-  return [...visibleOptions, ...syntesiOptions];
+  return [...options, ...syntesiOptions];
 };

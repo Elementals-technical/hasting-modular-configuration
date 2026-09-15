@@ -4,10 +4,15 @@ import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
-import type { ValueTarget } from "@/entities/configuration";
+import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
-import { REASON_GROOVE_NOT_SUPPORTED, buildChangePlan } from "../lib/buildChangePlan";
+import {
+  REASON_GROOVE_NOT_SUPPORTED,
+  REASON_HANDLE_CHANGED_FOR_DRAWERS,
+  REASON_TOWEL_BAR_COLOR_CLEARED,
+  buildChangePlan,
+} from "../lib/buildChangePlan";
 
 const profile = ushProfile;
 
@@ -146,6 +151,135 @@ describe("buildChangePlan", () => {
     if (!result.ok) return;
 
     expect(result.plan).toHaveLength(1);
+  });
+
+  describe("drawers", () => {
+    const openShelfRow = {
+      cabinet_type: "Open-Shelf",
+      widths_cm: "40",
+      depths_cm: "46",
+      heights_cm: "50|53|56",
+      drawer_configs: "",
+      handles_allowed: "",
+      supports_height: "50|53|56",
+      is_open: "TRUE",
+    };
+    const compositionCatalog = buildCabinetCatalogFromMatrix(
+      { rows: [matrix.rows[0], openShelfRow] } as unknown as ProductDatatable,
+      profile,
+    );
+    const cabinets: CabinetEntry[] = [
+      { stableKey: "cab-1", runtimeId: "Sink-Base-60-a", index: 0 },
+      { stableKey: "cab-2", runtimeId: "Open-Shelf-40-b", index: 1 },
+      { stableKey: "cab-3", runtimeId: "Sink-Base-80-c", index: 2 },
+    ];
+
+    const drawersPlan = (value: string, selection: Partial<Selection>, handleGrooveColor: string | null = null) =>
+      buildChangePlan({
+        attributeId: "Drawers",
+        value,
+        target: cabinetTarget,
+        // The builder's current pick is an open shelf; the drawers are judged for the addressed cabinet.
+        selection: { ...baseSelection, cabinetType: "Open-Shelf", ...selection },
+        selectedProductIds: cabinets.map(({ runtimeId }) => runtimeId),
+        catalog: compositionCatalog,
+        profile,
+        handleGrooveColor,
+        cabinets,
+      });
+
+    it("switches every drawer cabinet and skips open cabinets", () => {
+      const result = drawersPlan("2", { drawers: "1", handle: "handle_urban_topcut", height: 53 });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.plan.filter((entry) => entry.attributeId === "Drawers")).toEqual([
+        { attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-1" }, value: "2", origin: "requested" },
+        { attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-3" }, value: "2", origin: "requested" },
+      ]);
+      // Upper groove forces 56 at two drawers; the handle itself stays.
+      expect(result.plan).toContainEqual(expect.objectContaining({ attributeId: "Height", value: 56 }));
+      expect(result.plan.some((entry) => entry.attributeId === "Handle")).toBe(false);
+    });
+
+    it("replaces a handle the new drawers do not allow, with that handle's height and groove reset", () => {
+      const result = drawersPlan("1", { drawers: "2", handle: "handle_urban_botcut", height: 56 }, "Pulpis Chiaro TKH");
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.plan.slice(2)).toEqual([
+        {
+          attributeId: "Handle",
+          target: cabinetTarget,
+          value: "handle_pto",
+          origin: "dependency",
+          reasonCode: REASON_HANDLE_CHANGED_FOR_DRAWERS,
+        },
+        expect.objectContaining({ attributeId: "Height", value: 50, origin: "dependency" }),
+        expect.objectContaining({
+          attributeId: "HandleGrooveColor",
+          value: "",
+          reasonCode: REASON_GROOVE_NOT_SUPPORTED,
+        }),
+      ]);
+    });
+
+    it("addresses only the requested cabinet when no placed cabinet is recognised", () => {
+      const result = buildChangePlan({
+        attributeId: "Drawers",
+        value: "2",
+        target: cabinetTarget,
+        selection: baseSelection,
+        selectedProductIds: [],
+        catalog,
+        profile,
+        handleGrooveColor: null,
+        cabinets: [{ stableKey: "cab-1", runtimeId: "runtime-a", index: 0 }],
+      });
+
+      expect(result.ok ? result.plan.filter((entry) => entry.attributeId === "Drawers") : []).toHaveLength(1);
+    });
+  });
+
+  describe("towel bar", () => {
+    const towelBarPlan = (value: string, towelBarColor: string | null) =>
+      buildChangePlan({
+        attributeId: "TowelBarOption",
+        value,
+        target: { scope: "global" },
+        selection: baseSelection,
+        selectedProductIds: [],
+        catalog,
+        profile,
+        handleGrooveColor: null,
+        towelBarColor,
+      });
+
+    it("clears the colour when the towel bar is removed", () => {
+      expect(towelBarPlan("None", "Chrome")).toEqual({
+        ok: true,
+        plan: [
+          { attributeId: "TowelBarOption", target: { scope: "global" }, value: "None", origin: "requested" },
+          {
+            attributeId: "TowelBarColor",
+            target: { scope: "global" },
+            value: "",
+            origin: "dependency",
+            reasonCode: REASON_TOWEL_BAR_COLOR_CLEARED,
+          },
+        ],
+      });
+    });
+
+    it.each([
+      ["removing it without a colour", "None", ""],
+      ["moving it to another side", "Left", "Chrome"],
+    ])("keeps the set to the option when %s", (_label, value, towelBarColor) => {
+      // toMatchObject compares array length, so a dependency added to the set fails here.
+      expect(towelBarPlan(value, towelBarColor)).toMatchObject({ ok: true, plan: [{ attributeId: "TowelBarOption" }] });
+    });
   });
 
   it("drives a synthetic handle through the same evaluator", () => {

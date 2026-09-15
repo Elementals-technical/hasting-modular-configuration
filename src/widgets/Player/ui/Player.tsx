@@ -23,7 +23,7 @@ import quickEditorStep from "@/shared/assets/images/png/popup/Step_3.png";
 import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { useSaveCurrentConfiguration } from "@/features/saveConfiguration";
+import { RESTORE_INCOMPLETE_SAVE_MESSAGE, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
 
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 
@@ -72,8 +72,9 @@ export function Player({
       const result = await saveCurrentConfiguration();
 
       if (!result.ok) {
-        console.warn("[Configurations] No products to save");
-        setShareValue("No products to save");
+        const message = result.reason === "restore-incomplete" ? RESTORE_INCOMPLETE_SAVE_MESSAGE : "No products to save";
+        console.warn(`[Configurations] ${message}`);
+        setShareValue(message);
         setIsShareOpening(true);
         return;
       }

@@ -1,6 +1,6 @@
 import type { RuntimeBindingFailureReason, RuntimeFlow } from "@/entities/collection";
 
-import type { AttributeValue, StableCabinetKey, ValueTarget } from "./types";
+import type { AttributeValue, CabinetDimensions, StableCabinetKey, ValueTarget } from "./types";
 
 /**
  * runtimePort — the one boundary between C and the PlayCanvas scene.
@@ -77,4 +77,89 @@ export type ConfigurationRuntimePort = {
   /** Whether the scene can take commands now. */
   isReady(): boolean;
   apply<T extends RuntimeChange>(changes: readonly T[], context: RuntimeContext): Promise<RuntimeApplyResult<T>>;
+};
+
+/** The actual size of one product, keyed by the id the scene knows. */
+export type SceneCabinetState = {
+  runtimeId: string;
+  dimensions: CabinetDimensions;
+};
+
+/**
+ * What the scene actually holds (I04):
+ * - ready: `order` is the composition order of every product the scene has; `cabinets` has
+ *   one entry per requested product the scene has, never a size borrowed from another one;
+ * - not-ready: nothing could be read, so C keeps what it recorded before.
+ */
+export type SceneStateResult =
+  | { status: "ready"; order: string[]; cabinets: SceneCabinetState[] }
+  | { status: "not-ready" };
+
+/**
+ * Reads the actual result of the scene. The scene fires no events of its own for sizes or
+ * order, so C reads after the actions that change them; I never writes Redux.
+ */
+export type ConfigurationSceneReader = {
+  read(runtimeIds: readonly string[]): Promise<SceneStateResult>;
+};
+
+/** One product to rebuild, as saved: its old id, its type and its full config. */
+export type SceneRestoreProduct = {
+  /** The id the product had when it was saved; the result maps it to the new runtime id. */
+  sourceId: string;
+  productType: string;
+  /** Null when the saved payload has no config for the product. */
+  config: Record<string, unknown> | null;
+};
+
+/** The composition to rebuild, in composition order. */
+export type SceneRestoreRequest = {
+  products: readonly SceneRestoreProduct[];
+};
+
+export type SceneRestoreIssueCode =
+  | "empty-composition"
+  | "duplicate-source"
+  | "invalid-config"
+  | "unknown-product-type"
+  | "bindings-unavailable";
+
+/** A reason found before the scene is touched; any issue keeps the scene as it is. */
+export type SceneRestoreIssue = {
+  code: SceneRestoreIssueCode;
+  sourceId?: string;
+  message: string;
+};
+
+export type SceneRestoreMatch = {
+  sourceId: string;
+  runtimeId: string;
+};
+
+export type SceneRestoreFailure = {
+  sourceId: string;
+  code: "not-created" | "config-rejected" | "order-mismatch" | "scene-error";
+  message: string;
+};
+
+/**
+ * Outcome of rebuilding the scene (I05):
+ * - not-ready / rejected: nothing was removed, the scene is untouched;
+ * - restored: every product was created and configured in order;
+ * - partial: the scene was cleared and only part of the composition came back. `matches`
+ *   lists what exists now, so C can record it and treat the state as inconsistent.
+ */
+export type SceneRestoreResult =
+  | { status: "not-ready" }
+  | { status: "rejected"; issues: SceneRestoreIssue[] }
+  | { status: "restored"; matches: SceneRestoreMatch[]; scene: SceneStateResult }
+  | { status: "partial"; matches: SceneRestoreMatch[]; failed: SceneRestoreFailure[]; scene: SceneStateResult };
+
+/**
+ * Rebuilds a composition. C decides the collection and checks the payload first; the
+ * restorer checks what only the runtime knows before its first destructive call.
+ */
+export type ConfigurationSceneRestorer = {
+  preflight(request: SceneRestoreRequest): SceneRestoreIssue[];
+  restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
 };

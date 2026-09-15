@@ -50,6 +50,18 @@ const getSceneBatchApi = (): SceneBatchApi | null => {
   return api.setConfigBatch as SceneBatchApi;
 };
 
+type SceneComposition = { getOrderProductIds?: () => unknown };
+type SceneCompositionManager = { getActiveComposition?: () => unknown };
+type SceneConfigApi = (productId: string) => unknown;
+
+const getConfiguratorApi = (): Record<string, unknown> | null => {
+  const host = window as unknown as PlayCanvasHost;
+  const contentWindow = host.containerRef?.current?.contentWindow;
+  if (!isRecord(contentWindow)) return null;
+
+  return isRecord(contentWindow.ConfiguratorAPI) ? contentWindow.ConfiguratorAPI : null;
+};
+
 /**
  * Ready once PlayCanvasIntegration has bridged the iframe (playCanvasReady) and the
  * batch API exists. The flag is reset when the iframe reloads.
@@ -124,5 +136,143 @@ export const applySceneConfig = (selector: SceneSelector, patch: SceneConfigPatc
         code: "scene-error",
         message: error instanceof Error ? error.message : String(error),
       };
+    }
+  });
+
+export type SceneProductsRead =
+  | { status: "ready"; order: string[]; configs: Record<string, Record<string, unknown>> }
+  | { status: "not-ready" };
+
+/**
+ * Composition order as the scene holds it, or null without an active composition.
+ * Unlike getOrderedProductIds, a miss is never replaced with a fallback list.
+ */
+const readSceneOrder = (): string[] | null => {
+  const config = getConfiguratorApi()?.config;
+  const manager = isRecord(config) ? (config.compositionManager as SceneCompositionManager | undefined) : undefined;
+  if (!isRecord(manager) || typeof manager.getActiveComposition !== "function") return null;
+
+  const composition = manager.getActiveComposition() as SceneComposition | undefined;
+  if (!isRecord(composition) || typeof composition.getOrderProductIds !== "function") return null;
+
+  const orderMap = composition.getOrderProductIds();
+  if (!isRecord(orderMap)) return null;
+
+  const position = (productId: string) => {
+    const value = orderMap[productId];
+    return typeof value === "number" ? value : 0;
+  };
+
+  return Object.keys(orderMap).sort((a, b) => position(a) - position(b));
+};
+
+/**
+ * Reads the order and the config of the given products. Queued like the commands, so it
+ * sees every batch sent before it. A product the scene has no config for is left out.
+ */
+export const readSceneProducts = (productIds: readonly string[]): Promise<SceneProductsRead> =>
+  runInBatchQueue(async (): Promise<SceneProductsRead> => {
+    const api = getConfiguratorApi();
+    const getConfig = api?.getConfig;
+    if (!isSceneReady() || typeof getConfig !== "function") return { status: "not-ready" };
+
+    const order = readSceneOrder();
+    if (!order) return { status: "not-ready" };
+
+    const configs: Record<string, Record<string, unknown>> = {};
+
+    for (const productId of productIds) {
+      try {
+        const config = await (getConfig as SceneConfigApi)(productId);
+        if (isRecord(config)) configs[productId] = config;
+      } catch {
+        // A product the scene cannot answer for gets no size rather than another one's.
+      }
+    }
+
+    return { status: "ready", order, configs };
+  });
+
+/** Answer of one scene operation used to rebuild a composition. */
+export type SceneOperationResult =
+  | { status: "applied" }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string };
+
+export type SceneAddProductResult =
+  | { status: "applied"; runtimeId: string }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string };
+
+type SceneApiFunction = (...args: unknown[]) => unknown;
+
+const toSceneError = (error: unknown) => ({
+  status: "failed" as const,
+  code: "scene-error" as const,
+  message: error instanceof Error ? error.message : String(error),
+});
+
+/**
+ * Runs one ConfiguratorAPI method through the batch queue, read at run time because the
+ * iframe may have reloaded while the call waited. Null when the scene is not ready.
+ */
+const runSceneOperation = <T>(
+  method: string,
+  run: (call: (...args: unknown[]) => Promise<unknown>) => Promise<T>,
+): Promise<T | { status: "not-ready" }> =>
+  runInBatchQueue(async () => {
+    installConfiguratorApiLogger();
+
+    const api = getConfiguratorApi();
+    const fn = api?.[method];
+    if (!api || typeof fn !== "function" || !isSceneReady()) return { status: "not-ready" as const };
+
+    return run(async (...args) => (fn as SceneApiFunction).apply(api, args));
+  });
+
+/** Removes every product. Destructive: callers check their input before calling it. */
+export const clearSceneProducts = (): Promise<SceneOperationResult> =>
+  runSceneOperation("removeAllProduct", async (call): Promise<SceneOperationResult> => {
+    try {
+      await call();
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Appends a product on the right and returns its runtime id. */
+export const addSceneProduct = (productType: string, config: Record<string, unknown>): Promise<SceneAddProductResult> =>
+  runSceneOperation("addProduct", async (call): Promise<SceneAddProductResult> => {
+    try {
+      const runtimeId = await call(productType, config);
+
+      if (typeof runtimeId !== "string" || !runtimeId) {
+        return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
+      }
+
+      return { status: "applied", runtimeId };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Replaces a product's config. The scene answers false when the product does not exist. */
+export const setSceneProductConfig = (
+  runtimeId: string,
+  config: Record<string, unknown>,
+): Promise<SceneOperationResult> =>
+  runSceneOperation("setConfig", async (call): Promise<SceneOperationResult> => {
+    try {
+      const result = await call(runtimeId, config);
+
+      if (result === false || result === null) {
+        return { status: "failed", code: "product-not-found", message: `The scene has no product ${runtimeId}.` };
+      }
+
+      updateDimensionDataForProduct(runtimeId, config);
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
     }
   });
