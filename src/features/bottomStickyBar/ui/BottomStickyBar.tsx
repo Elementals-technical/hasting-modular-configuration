@@ -4,11 +4,10 @@ import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import s from "./BottomStickyBar.module.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
-import { type PropsWithChildren, useEffect, useState, useSyncExternalStore } from "react";
+import { type PropsWithChildren, useEffect, useState } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { getActiveSkus, getPriceLoading, getPriceStatus, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
-import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
@@ -42,8 +41,6 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const isPriceLoading = useAppSelector(getPriceLoading);
   const priceStatus = useAppSelector(getPriceStatus);
   const isSummaryPage = location.pathname.includes("/summary");
-  const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
-  const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
   const [isNavigatingToQuote, setIsNavigatingToQuote] = useState(false);
   const [isHowToBuyOpen, setIsHowToBuyOpen] = useState(false);
@@ -54,9 +51,10 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const { createCurrentConfigurationLink } = useCurrentConfigurationLink();
   const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
   const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
-  const isDisplayedPriceLoading = isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number");
+  // One total everywhere, the Summary pages included (D02).
+  const isDisplayedPriceLoading = isPriceLoading || priceStatus === "loading";
   const fullPriceLabel =
-    priceStatus === "unavailable" ? "Price unavailable" : activeSkus.length ? formatPrice(displayedTotal) : "$0.00";
+    priceStatus === "unavailable" ? "Price unavailable" : activeSkus.length ? formatPrice(priceTotal) : "$0.00";
   // Some lines have no price: the total leaves them out and must not read as complete.
   const isPriceIncomplete = !isDisplayedPriceLoading && priceStatus === "partial";
 

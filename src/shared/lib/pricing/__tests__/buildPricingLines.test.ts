@@ -123,6 +123,20 @@ describe("buildPricingLines", () => {
     expect(lines.filter(({ group }) => group === "faucetHoles").every(({ sku }) => sku.startsWith("CT-UR"))).toBe(true);
   });
 
+  it.each(["0", "2"])("orders a vessel cutout per sink base with %s faucet holes", (faucetHolesAmount) => {
+    const lines = buildPricingLines(
+      pricingInput({
+        countertopStyle: "vessel",
+        countertopColorSku: "SSTKR",
+        sinkType: "Vessel_UrbanModo",
+        faucetHolesAmount,
+      }),
+    );
+
+    expect(lines.filter(({ group }) => group === "holeCut").map(({ quantity }) => quantity)).toEqual([2]);
+    expect(lines.filter(({ group }) => group === "faucetHoles").every(({ quantity }) => quantity === 1)).toBe(true);
+  });
+
   it("adds a towel bar per side", () => {
     const lines = buildPricingLines(pricingInput({ towelBarOption: "Both", towelBarColor: "Carbone 43 MT" }));
 

@@ -594,10 +594,12 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
       });
       return;
     }
-    const repeatCount = index === 1 && resolvedSinkType ? sinkBaseCountForPricing : 1;
+    const group = countertopLineGroup(line, index);
+    // A basin and a vessel cutout (HCUT) are ordered per sink base; the top and the faucet holes once.
+    const repeatCount = group === "holeCut" || (group === "basin" && resolvedSinkType) ? sinkBaseCountForPricing : 1;
     add({
       id: `countertop:${index}`,
-      group: countertopLineGroup(line, index),
+      group,
       sku: line,
       quantity: repeatCount,
       ...(index === 0 && totalCountertopWidth != null ? { widthCm: totalCountertopWidth } : {}),
