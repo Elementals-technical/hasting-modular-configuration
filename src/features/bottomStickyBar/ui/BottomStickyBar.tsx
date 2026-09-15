@@ -140,14 +140,16 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
       <div className={s.bottomBar}>
         <div className={s.total}>
           <span className={s.total_text}>Total List Price</span>
-          <span className={s.priceValue} aria-label={isDisplayedPriceLoading ? undefined : fullPriceLabel}>
-            {isDisplayedPriceLoading ? (
-              <span className={s.priceSpinner} />
-            ) : (
-              fullPriceLabel
-            )}
+          <span className={s.priceBlock}>
+            <span className={s.priceValue} aria-label={isDisplayedPriceLoading ? undefined : fullPriceLabel}>
+              {isDisplayedPriceLoading ? (
+                <span className={s.priceSpinner} />
+              ) : (
+                fullPriceLabel
+              )}
+            </span>
+            {isPriceIncomplete && <span className={s.priceIncomplete}>Incomplete price</span>}
           </span>
-          {isPriceIncomplete && <span className={s.total_text}>Incomplete price</span>}
           <span className={s.showroom_link}>
             <Link
               to="#"
