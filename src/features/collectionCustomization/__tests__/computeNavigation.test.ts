@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { CustomizationSchema } from "@/entities/collection";
+import { validateCustomizationSchema, type CustomizationSchema } from "@/entities/collection";
 
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
 import { computeNavigation, resolveEntryStep } from "../lib/computeNavigation";
-import { validateCustomizationSchema } from "../lib/validateCustomizationSchema";
 
 const validated = validateCustomizationSchema(uiJson);
 if (!validated.ok) throw new Error("fixture ui.json failed validation");

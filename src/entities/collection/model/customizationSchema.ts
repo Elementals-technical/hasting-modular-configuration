@@ -44,10 +44,12 @@ export type CustomizationSchema = {
   sections: Record<string, CustomizationSectionDefinition>;
 };
 
+export type FieldOptionState = OptionState<string> & { image?: string };
+
 export type FieldRuntimeState = {
   attributeId: string;
   value: AttributeValue;
-  options: OptionState<string>[];
+  options: FieldOptionState[];
   visible: boolean;
   enabled: boolean;
   disabledReason?: string;

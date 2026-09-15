@@ -4,10 +4,15 @@ import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
-import { optionsMockData3, optionsMockData4 } from "@/pages/prebuilt/cabinet/constants";
+import { drawerPanelFlutingOptionImages, grainDirectionOptionImages } from "@/pages/prebuilt/cabinet/constants";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
+import {
+  FieldControl,
+  useCustomizationSectionFields,
+  type ResolvedCustomizationField,
+} from "@/features/collectionCustomization";
 
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
@@ -610,6 +615,61 @@ export const CabinetPage = () => {
     dispatch(openSwatchOrder("Cabinet Color"));
   };
 
+  const drawerPanelFields = useCustomizationSectionFields("drawer-panel");
+  const grainDirectionFields = useCustomizationSectionFields("grain-direction");
+
+  // Unknown attributeId renders nothing.
+  const renderCustomizationField = ({ definition, field }: ResolvedCustomizationField) => {
+    if (definition.attributeId === "DrawerPanelFluting") {
+      return (
+        <FieldControl
+          key={definition.attributeId}
+          control={definition.control}
+          field={{
+            ...field,
+            options: field.options.map((option) => ({ ...option, image: drawerPanelFlutingOptionImages[option.value] })),
+          }}
+          onChange={handleChangeDrawerPanelFluting}
+        />
+      );
+    }
+
+    if (definition.attributeId === "GrainDirection") {
+      return (
+        <FieldControl
+          key={definition.attributeId}
+          control={definition.control}
+          field={{
+            ...field,
+            options: field.options.map((option) => ({ ...option, image: grainDirectionOptionImages[option.value] })),
+          }}
+          onChange={handleChangeGrainDirection}
+        />
+      );
+    }
+
+    if (definition.attributeId === "BookMatching") {
+      return (
+        <div
+          key={definition.attributeId}
+          className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
+          data-tooltip={bookMatchingTooltip}
+          aria-label={bookMatchingTooltip}
+        >
+          <FieldControl
+            control={definition.control}
+            field={field}
+            onChange={(value) => handleToggleBookMatching(value === "enabled")}
+            label="Book Matching"
+            className={`${s.checkboxOption} ${!field.enabled ? s.checkboxOptionDisabled : ""}`}
+          />
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   const ACCORDIONS: AccordionConfig[] = [
     {
       id: "cabinet-color",
@@ -673,12 +733,8 @@ export const CabinetPage = () => {
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
-      content: flutingState.available ? (
-        <ProductOptionsGrid
-          data={optionsMockData3}
-          handleAdd={handleChangeDrawerPanelFluting}
-          activeValue={activeDrawerPanelFluting}
-        />
+      content: flutingState.available && drawerPanelFields.length > 0 ? (
+        <>{drawerPanelFields.map(renderCustomizationField)}</>
       ) : (
         <div className={s.disabledMessage}>{flutingState.reason ?? "Not available."}</div>
       ),
@@ -686,28 +742,9 @@ export const CabinetPage = () => {
     {
       id: "grain-direction",
       title: "Grain Direction",
-      content: grainDirectionState.available ? (
+      content: grainDirectionState.available && grainDirectionFields.length > 0 ? (
         <>
-          <ProductOptionsGrid
-            data={optionsMockData4}
-            handleAdd={handleChangeGrainDirection}
-            activeValue={activeGrainDirection}
-          />
-          <div
-            className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
-            data-tooltip={bookMatchingTooltip}
-            aria-label={bookMatchingTooltip}
-          >
-            <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
-              <input
-                type="checkbox"
-                disabled={!bookMatchingState.enabled}
-                checked={activeBookMatching === "enabled"}
-                onChange={(event) => handleToggleBookMatching(event.target.checked)}
-              />
-              <span>Book Matching</span>
-            </label>
-          </div>
+          {grainDirectionFields.map(renderCustomizationField)}
           <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
         </>
       ) : (

@@ -101,7 +101,7 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useGetConfiguratorQuery } from "@/entities";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
-import { selectOptions } from "@/entities/collection";
+import { selectOptions, useActiveCollection } from "@/entities/collection";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -361,6 +361,8 @@ export const PlayCanvasIntegration = ({
 
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const activeCollection = useActiveCollection();
+  const customizationSchema = activeCollection.status === "ready" ? activeCollection.data.catalog.customization ?? null : null;
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -2549,6 +2551,7 @@ export const PlayCanvasIntegration = ({
       flow,
       currentPath: location.pathname,
       previousPath,
+      schema: customizationSchema,
     });
 
     if (transition.transition === "backtrack" && !quickEditorNotification.hasSeen) {
@@ -2558,6 +2561,7 @@ export const PlayCanvasIntegration = ({
   }, [
     isCustomPage,
     location.pathname,
+    customizationSchema,
     quickEditorNotification.hasSeen,
     quickEditorNotification,
     quickEditorNotification.markEligible,
