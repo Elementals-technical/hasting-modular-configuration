@@ -64,19 +64,11 @@ import {
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
-  buildProductSku,
-  buildCountertopSkuIfComplete,
-  buildVesselSku,
   resolveVesselDimensionTokens,
   formatVesselDimensionLabel,
   vesselHeightCmMap,
-  buildTowelBarSku,
   TOWEL_BAR_DEFAULTS,
-  buildSidePanelSku,
   SIDE_PANEL_WIDTH_CM,
-  buildDividerSku,
-  buildOpenShelfSku,
-  buildOpenSideShelfSku,
   extractColorCode,
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,
@@ -90,6 +82,7 @@ import {
   resolveCountertopMaterialSkuFromColorCode,
   resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
+import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import {
   useGetCountertopDatatableQuery,
@@ -655,6 +648,7 @@ export const CustomSummaryPage = () => {
     [],
   );
 
+  const skuBuilders = useSkuBuilders();
   const summarySections: SummarySection[] = useMemo(() => {
     const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
     const resolveCabinetMaterialSku = (swatchValue?: string | null) => {
@@ -764,7 +758,7 @@ export const CustomSummaryPage = () => {
 
       let sku: string;
       if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
-        sku = buildOpenShelfSku({
+        sku = skuBuilders.buildOpenShelfSku({
           width: width ?? null,
           height: height ?? null,
           depth: depth ?? null,
@@ -778,7 +772,7 @@ export const CustomSummaryPage = () => {
           orderedProductIds: orderedCabinetProductIds,
           fallbackIndex: index,
         });
-        sku = buildOpenSideShelfSku({
+        sku = skuBuilders.buildOpenSideShelfSku({
           side,
           width: width ?? null,
           height: height ?? null,
@@ -788,7 +782,7 @@ export const CustomSummaryPage = () => {
           grainDirection: grainSku,
         });
       } else {
-        sku = buildProductSku({
+        sku = skuBuilders.buildProductSku({
           cabinetType: productCabinetType ? productCabinetType.replace(/[\s_]+/g, "-") : productCabinetType,
           drawers: typeof config.Drawers === "string" ? config.Drawers : null,
           handle: typeof config.Handle === "string" ? config.Handle : null,
@@ -868,7 +862,7 @@ export const CustomSummaryPage = () => {
 
           let sku: string;
           if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
-            sku = buildOpenShelfSku({
+            sku = skuBuilders.buildOpenShelfSku({
               width: preset.Width ?? null,
               height: preset.Height ?? null,
               depth: preset.Depth ?? null,
@@ -878,7 +872,7 @@ export const CustomSummaryPage = () => {
             });
           } else if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
             const side = resolveOpenSideShelfSide({ fallbackIndex: index });
-            sku = buildOpenSideShelfSku({
+            sku = skuBuilders.buildOpenSideShelfSku({
               side,
               width: preset.Width ?? null,
               height: preset.Height ?? null,
@@ -888,7 +882,7 @@ export const CustomSummaryPage = () => {
               grainDirection: grainSku,
             });
           } else {
-            sku = buildProductSku({
+            sku = skuBuilders.buildProductSku({
               cabinetType: normalizedPresetType ?? activeCabinetType,
               drawers: preset.Drawers ?? null,
               handle: resolvedHandle,
@@ -951,7 +945,7 @@ export const CustomSummaryPage = () => {
         const cabinetMaterialSku = resolveCabinetMaterialSku(cabinetColor);
         const handlePricingMaterialSku = resolveHandleGrooveMaterialSku(cabinetMaterialSku);
 
-        const sku = buildProductSku({
+        const sku = skuBuilders.buildProductSku({
           cabinetType: activeCabinetType,
           drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
           handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
@@ -1257,6 +1251,7 @@ export const CustomSummaryPage = () => {
       materialSku: resolveCabinetMaterialSku(cabinetColor),
       cabinets: bookMatchingCabinets,
       profile: activeProfile,
+      skuProfile: skuBuilders.profile,
     });
 
     const bookMatchingItem: SummaryItem | null =
@@ -1310,7 +1305,7 @@ export const CustomSummaryPage = () => {
         : (selectedDimensions.width ?? 0);
     const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
-    const countertopSkuLines = buildCountertopSkuIfComplete({
+    const countertopSkuLines = skuBuilders.buildCountertopSkuIfComplete({
       style: countertopStyle || null,
       width: totalCountertopWidth,
       depth: selectedDimensions.depth,
@@ -1322,7 +1317,7 @@ export const CustomSummaryPage = () => {
     });
     const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const vesselSku = vesselType
-      ? buildVesselSku({
+      ? skuBuilders.buildVesselSku({
           vesselType,
           width: totalCountertopWidth,
           height: vesselHeightCmMap[vesselType] ?? null,
@@ -1361,7 +1356,7 @@ export const CustomSummaryPage = () => {
       if (isIntegratedBasinLine && sinkBaseEntries.length > 0) {
         return sinkBaseEntries.map((entry, index) => {
           const basinLine =
-            buildCountertopSkuIfComplete({
+            skuBuilders.buildCountertopSkuIfComplete({
               style: countertopStyle || null,
               width: totalCountertopWidth,
               depth: selectedDimensions.depth,
@@ -1468,7 +1463,7 @@ export const CustomSummaryPage = () => {
         return activePlacedDividers.map((divider, index) => {
           const style = typeToStyleMap[divider.type];
           const sku = style
-            ? buildDividerSku({
+            ? skuBuilders.buildDividerSku({
                 dividerStyle: style,
                 cabinetDepth: dividerDepthByCabinetId.get(divider.cabinetId) ?? null,
               })
@@ -1498,7 +1493,7 @@ export const CustomSummaryPage = () => {
 
     const towelBarRightSku =
       hasTowel && hasRight
-        ? buildTowelBarSku({
+        ? skuBuilders.buildTowelBarSku({
             side: "R",
             width: TOWEL_BAR_DEFAULTS.width,
             height: TOWEL_BAR_DEFAULTS.height,
@@ -1510,7 +1505,7 @@ export const CustomSummaryPage = () => {
 
     const towelBarLeftSku =
       hasTowel && hasLeft
-        ? buildTowelBarSku({
+        ? skuBuilders.buildTowelBarSku({
             side: "L",
             width: TOWEL_BAR_DEFAULTS.width,
             height: TOWEL_BAR_DEFAULTS.height,
@@ -1535,7 +1530,7 @@ export const CustomSummaryPage = () => {
 
       const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
       const sidePanelCabinetMaterialSku = resolveCabinetMaterialSku();
-      const spSku = buildSidePanelSku({
+      const spSku = skuBuilders.buildSidePanelSku({
         panelType: sidePanelsOption,
         width: SIDE_PANEL_WIDTH_CM,
         height: dims.height,
@@ -1733,6 +1728,7 @@ export const CustomSummaryPage = () => {
         : []),
     ];
   }, [
+    skuBuilders,
     activeCabinetType,
     cabinetColor,
     cabinetColorSku,
@@ -1782,10 +1778,10 @@ export const CustomSummaryPage = () => {
       .filter((item) => item.sku && item.copyable)
       .map((item) => ({
         sku: item.sku,
-        skuInches: convertSkuToInchesForSummary(item.sku!),
+        skuInches: convertSkuToInchesForSummary(item.sku!, skuBuilders.profile),
         description: item.description ?? {},
       }));
-  }, [summarySections]);
+  }, [skuBuilders.profile, summarySections]);
 
   const summaryTotal = useMemo(
     () =>

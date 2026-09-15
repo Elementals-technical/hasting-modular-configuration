@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { type PropsWithChildren, useEffect, useState, useSyncExternalStore } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
+import { getActiveSkus, getPriceLoading, getPriceStatus, getPriceTotal } from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
@@ -40,6 +40,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const priceTotal = useAppSelector(getPriceTotal);
   const activeSkus = useAppSelector(getActiveSkus);
   const isPriceLoading = useAppSelector(getPriceLoading);
+  const priceStatus = useAppSelector(getPriceStatus);
   const isSummaryPage = location.pathname.includes("/summary");
   const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
   const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
@@ -54,7 +55,10 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
   const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
   const isDisplayedPriceLoading = isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number");
-  const fullPriceLabel = activeSkus.length ? formatPrice(displayedTotal) : "$0.00";
+  const fullPriceLabel =
+    priceStatus === "unavailable" ? "Price unavailable" : activeSkus.length ? formatPrice(displayedTotal) : "$0.00";
+  // Some lines have no price: the total leaves them out and must not read as complete.
+  const isPriceIncomplete = !isDisplayedPriceLoading && priceStatus === "partial";
 
   const nextStep = navigation?.nextStep ?? undefined;
   const previousStep = navigation?.previousStep ?? undefined;
@@ -143,6 +147,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
               fullPriceLabel
             )}
           </span>
+          {isPriceIncomplete && <span className={s.total_text}>Incomplete price</span>}
           <span className={s.showroom_link}>
             <Link
               to="#"

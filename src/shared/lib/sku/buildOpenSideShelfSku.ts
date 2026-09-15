@@ -1,4 +1,5 @@
 import { cmToInches } from "./cmToInches";
+import type { SkuProfile } from "./skuProfile";
 import { toSkuDepth } from "./toSkuDepth";
 
 export type OpenSideShelfSkuInput = {
@@ -29,13 +30,13 @@ const FALLBACK = "X";
  *   VAN-UROSS-L-15W-50H-50D-CAB-LACM-TKH
  *   VAN-UROSS-R-15W-50H-46D-CAB-HPL-FE
  */
-export function buildOpenSideShelfSku(input: OpenSideShelfSkuInput): string {
+export function buildOpenSideShelfSku(profile: SkuProfile, input: OpenSideShelfSkuInput): string {
   const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
   const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
   const normalizedDepth = input.depth != null ? toSkuDepth(input.depth) : null;
   const d = normalizedDepth != null ? `${cmToInches(normalizedDepth)}D` : `${FALLBACK}D`;
 
-  let sku = `VAN-UROSS-${input.side}-${w}-${h}-${d}`;
+  let sku = `VAN-${profile.series.openSideShelf}-${input.side}-${w}-${h}-${d}`;
 
   const mat = input.cabinetMaterialSku?.trim();
   if (mat) {

@@ -1,4 +1,6 @@
 import type { RootState } from "@/app/store";
+import type { PricingLine } from "@/shared/lib/pricing/types";
+import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
 
@@ -114,6 +116,15 @@ export const getPriceTotal = (state: RootState) => state.rootStateUI.priceStore.
 export const getActiveSkus = (state: RootState) => state.rootStateUI.priceStore.activeSkus;
 
 export const getPriceLoading = (state: RootState) => state.rootStateUI.priceStore.isLoading;
+
+const NO_PRICING_LINES: PricingLine[] = [];
+const NO_PRICE_ENTRIES: Record<string, SkuPriceEntry> = {};
+
+export const getPricingLines = (state: RootState) => state.rootStateUI.priceStore.lines ?? NO_PRICING_LINES;
+
+export const getPriceEntries = (state: RootState) => state.rootStateUI.priceStore.entries ?? NO_PRICE_ENTRIES;
+
+export const getPriceStatus = (state: RootState): PriceStatus => derivePriceStatus(state.rootStateUI.priceStore);
 
 // For attention popup in the prebuilt path.
 export const getHasPrebuiltSelections = (state: RootState) => {
