@@ -19,6 +19,11 @@ import {
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
 import { hasCapability } from "@/entities/collection";
+import {
+  FieldControl,
+  useCustomizationSectionFields,
+  type ResolvedCustomizationField,
+} from "@/features/collectionCustomization";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   getConfiguratorVariantOverrides,
@@ -27,7 +32,7 @@ import {
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import { deriveBookMatchingAvailability } from "@/shared/lib/bookMatching";
 
-import { optionsMockData3, optionsMockData4 } from "./constants";
+import { drawerPanelFlutingOptionImages, grainDirectionOptionImages } from "./constants";
 
 import s from "./CustomCabinetColorsPage.module.scss";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -646,13 +651,60 @@ export const CustomCabinetColorsPage = () => {
     dispatch(openSwatchOrder("Cabinet Color"));
   };
 
-  // useEffect(() => {
-  //   if (!isPlayCanvasReady || !activeGrainDirection) return;
+  const drawerPanelFields = useCustomizationSectionFields("drawer-panel-custom");
+  const grainDirectionFields = useCustomizationSectionFields("grain-direction-custom");
 
-  //   setConfigBatch(selectedProducts, {
-  //     GrainDirection: activeGrainDirection,
-  //   });
-  // }, [activeGrainDirection, isPlayCanvasReady, selectedProducts]);
+  // Unknown attributeId renders nothing.
+  const renderCustomizationField = ({ definition, field }: ResolvedCustomizationField) => {
+    if (definition.attributeId === "DrawerPanelFluting") {
+      return (
+        <FieldControl
+          key={definition.attributeId}
+          control={definition.control}
+          field={{
+            ...field,
+            options: field.options.map((option) => ({ ...option, image: drawerPanelFlutingOptionImages[option.value] })),
+          }}
+          onChange={handleChangeDrawerPanelFluting}
+        />
+      );
+    }
+
+    if (definition.attributeId === "GrainDirection") {
+      return (
+        <FieldControl
+          key={definition.attributeId}
+          control={definition.control}
+          field={{
+            ...field,
+            options: field.options.map((option) => ({ ...option, image: grainDirectionOptionImages[option.value] })),
+          }}
+          onChange={handleChangeGrainDirection}
+        />
+      );
+    }
+
+    if (definition.attributeId === "BookMatching") {
+      return (
+        <div
+          key={definition.attributeId}
+          className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
+          data-tooltip={bookMatchingTooltip}
+          aria-label={bookMatchingTooltip}
+        >
+          <FieldControl
+            control={definition.control}
+            field={field}
+            onChange={(value) => handleToggleBookMatching(value === "enabled")}
+            label="Book Matching"
+            className={`${s.checkboxOption} ${!field.enabled ? s.checkboxOptionDisabled : ""}`}
+          />
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   const ACCORDIONS: AccordionConfig[] = [
     {
@@ -721,12 +773,8 @@ export const CustomCabinetColorsPage = () => {
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
-      content: flutingState.available ? (
-        <ProductOptionsGrid
-          data={optionsMockData3}
-          handleAdd={handleChangeDrawerPanelFluting}
-          activeValue={activeDrawerPanelFluting}
-        />
+      content: flutingState.available && drawerPanelFields.length > 0 ? (
+        <>{drawerPanelFields.map(renderCustomizationField)}</>
       ) : (
         <div className={s.disabledMessage}>{flutingState.reason ?? "Not available."}</div>
       ),
@@ -734,28 +782,9 @@ export const CustomCabinetColorsPage = () => {
     {
       id: "grain-direction",
       title: "Grain Direction",
-      content: grainDirectionState.available ? (
+      content: grainDirectionState.available && grainDirectionFields.length > 0 ? (
         <>
-          <ProductOptionsGrid
-            data={optionsMockData4}
-            handleAdd={handleChangeGrainDirection}
-            activeValue={activeGrainDirection}
-          />
-          <div
-            className={bookMatchingTooltip ? s.checkboxOptionTooltip : undefined}
-            data-tooltip={bookMatchingTooltip}
-            aria-label={bookMatchingTooltip}
-          >
-            <label className={`${s.checkboxOption} ${!bookMatchingState.enabled ? s.checkboxOptionDisabled : ""}`}>
-              <input
-                type="checkbox"
-                disabled={!bookMatchingState.enabled}
-                checked={activeBookMatching === "enabled"}
-                onChange={(event) => handleToggleBookMatching(event.target.checked)}
-              />
-              <span>Book Matching</span>
-            </label>
-          </div>
+          {grainDirectionFields.map(renderCustomizationField)}
           <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
         </>
       ) : (

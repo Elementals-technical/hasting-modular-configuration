@@ -121,6 +121,7 @@ export type {
   CustomizationSchemaDiagnosticCode,
   CustomizationSectionDefinition,
   CustomizationStepDefinition,
+  FieldOptionState,
   FieldRuntimeState,
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";

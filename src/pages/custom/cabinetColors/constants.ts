@@ -59,50 +59,15 @@ export const optionsMockData2 = [
   },
 ];
 
-export const optionsMockData3 = [
-  {
-    id: 3001,
-    title: "None",
-    isShortDesc: false,
-    metadata: { value: "None" },
-  },
-  {
-    id: 3002,
-    title: "Fluting Vertical A",
-    isShortDesc: false,
-    metadata: { value: "FlutingVerticalA", image: flutingVerticalA },
-  },
-  {
-    id: 3003,
-    title: "Fluting Vertical B",
-    isShortDesc: false,
-    metadata: { value: "FlutingVerticalB", image: flutingVerticalB },
-  },
-  {
-    id: 3004,
-    title: "Fluting Horizontal A",
-    isShortDesc: false,
-    metadata: { value: "FlutingHorizontalA", image: flutingHorizontalA },
-  },
-  {
-    id: 3005,
-    title: "Fluting Horizontal B",
-    isShortDesc: false,
-    metadata: { value: "FlutingHorizontalB", image: flutingHorizontalB },
-  },
-];
+/** Local presentation assets for schema-driven fields; the schema itself carries no image paths. */
+export const drawerPanelFlutingOptionImages: Record<string, string> = {
+  FlutingVerticalA: flutingVerticalA,
+  FlutingVerticalB: flutingVerticalB,
+  FlutingHorizontalA: flutingHorizontalA,
+  FlutingHorizontalB: flutingHorizontalB,
+};
 
-export const optionsMockData4 = [
-  {
-    id: 4001,
-    title: "Horizontal",
-    isShortDesc: false,
-    metadata: { value: "GrainHorizontal", image: grainHorizontal },
-  },
-  {
-    id: 4002,
-    title: "Vertical",
-    isShortDesc: false,
-    metadata: { value: "GrainVertical", image: grainVertical },
-  },
-];
+export const grainDirectionOptionImages: Record<string, string> = {
+  GrainHorizontal: grainHorizontal,
+  GrainVertical: grainVertical,
+};
