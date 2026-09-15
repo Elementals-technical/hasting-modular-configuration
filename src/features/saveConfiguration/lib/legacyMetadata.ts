@@ -204,3 +204,33 @@ export const readSavedCollectionId = (metadata: Record<string, unknown> | undefi
 
   return null;
 };
+
+export type SavedCollectionIdentity =
+  | { kind: "absent" }
+  | { kind: "invalid"; raw: unknown }
+  | { kind: "id"; collectionId: string };
+
+/**
+ * Collection identity of a saved payload as restore reads it (CONTRACTS §4).
+ *
+ * A payload without the field anywhere was saved before collections existed: legacy USH. A
+ * field that is present but null or empty is a blocking error, never a silent USH.
+ */
+export const readSavedCollectionIdentity = (
+  metadata: Record<string, unknown> | undefined | null,
+): SavedCollectionIdentity => {
+  if (!isRecord(metadata)) return { kind: "absent" };
+
+  const fragment = isRecord(metadata.configuration) ? metadata.configuration : null;
+  const recordedIn = [metadata, fragment].filter(
+    (source): source is Record<string, unknown> => source !== null && Object.hasOwn(source, "collectionId"),
+  );
+
+  if (recordedIn.length === 0) return { kind: "absent" };
+
+  const collectionId = recordedIn
+    .map((source) => source.collectionId)
+    .find((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  return collectionId ? { kind: "id", collectionId } : { kind: "invalid", raw: recordedIn[0].collectionId };
+};

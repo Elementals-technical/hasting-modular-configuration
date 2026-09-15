@@ -19,8 +19,11 @@ export const REASON_DEPENDENT_HEIGHT = "handle.requiredHeight";
 export const REASON_GROOVE_NOT_SUPPORTED = "handle.grooveColorCleared";
 export const REASON_HANDLE_CHANGED_FOR_DRAWERS = "drawers.handleChanged";
 export const REASON_TOWEL_BAR_COLOR_CLEARED = "towelBar.colorCleared";
+export const REASON_GROOVE_FOLLOWS_CABINET_COLOR = "cabinetColor.grooveFollows";
 
 export type BuildChangePlanArgs = {
+  /** Current cabinet colour, to decide whether the groove colour follows a new one. */
+  cabinetColor?: string | null;
   attributeId: string;
   value: string;
   target: ValueTarget;
@@ -118,6 +121,7 @@ export const buildChangePlan = ({
   catalog,
   profile,
   handleGrooveColor,
+  cabinetColor,
   towelBarColor,
   cabinets = [],
 }: BuildChangePlanArgs): BuildChangePlanResult => {
@@ -130,6 +134,21 @@ export const buildChangePlan = ({
     value,
     origin: "requested",
   }));
+
+  // A groove in the cabinet colour follows the cabinet to its new colour, as the colour pages do.
+  if (attributeId === "CabinetColor") {
+    if (cabinetColor && handleGrooveColor === cabinetColor) {
+      plan.push({
+        attributeId: "HandleGrooveColor",
+        target: { scope: "cabinet", cabinetId: cabinets[0]?.stableKey ?? "" },
+        value,
+        origin: "dependency",
+        reasonCode: REASON_GROOVE_FOLLOWS_CABINET_COLOR,
+      });
+    }
+
+    return { ok: true, plan };
+  }
 
   // Removing the towel bar clears its colour, as the accessory pages do.
   if (attributeId === "TowelBarOption") {

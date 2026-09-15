@@ -76,7 +76,7 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     owner: "redux",
     persistedIn: "none",
     hasProfileAttribute: false,
-    note: "drives grain/fluting availability but is not saved — re-derived from CabinetColor on restore",
+    note: "drives grain/fluting availability but is not saved — re-derived from CabinetColor on restore; the command service derives it from ruleData.cabinetColorTraits when it records CabinetColor, the colour pages still write it until B06",
   }),
   CabinetColorFinish: productOption("CabinetColorFinish", {
     scope: "global",

@@ -16,15 +16,10 @@ export { cmToInches } from "./cmToInches";
 export { toSkuDepth } from "./toSkuDepth";
 export { extractColorCode } from "./extractColorCode";
 export { resolveCabinetPricingMaterialSku, resolveHandleGroovePricingMaterialSku } from "./resolveCabinetPricingMaterialSku";
-export {
-  cabinetTypeSkuMap,
-  drawerSkuMap,
-  handleSkuMap,
-  patternSkuMap,
-  sidePanelSkuMap,
-  dividerSkuMap,
-  towelBarSkuMap,
-} from "./cabinetSkuMaps";
+export type { SkuProfile, SkuProfileResolution, SkuProfileUnsupportedReason, SkuSeries } from "./skuProfile";
+export { SKU_SERIES_BY_COLLECTION } from "./skuSeries";
+export { resolveSkuProfile, type SkuProfileSource } from "./resolveSkuProfile";
+export { createSkuBuilders, type SkuBuilders } from "./createSkuBuilders";
 export {
   countertopStyleSkuMap,
   countertopMaterialSkuMap,

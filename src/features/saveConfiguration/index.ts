@@ -17,6 +17,8 @@ export {
 export {
   readConfigurationFragment,
   readSavedCollectionId,
+  readSavedCollectionIdentity,
+  type SavedCollectionIdentity,
   type FragmentIssue,
   type FragmentIssueCode,
   type ReadFragmentResult,
@@ -39,6 +41,7 @@ export {
 } from "./hooks/useSaveCurrentConfiguration";
 export { collectSceneConfiguration, type SceneConfiguration } from "./lib/collectSceneConfiguration";
 export { RESTORE_INCOMPLETE_SAVE_MESSAGE, isRestoreBlockingSave } from "./lib/restoreSaveGuard";
+export { getSaveFailureMessage } from "./lib/saveFailureMessage";
 export {
   COLLECTION_ID_QUERY_PARAM,
   CONFIGURATION_ID_QUERY_PARAM,

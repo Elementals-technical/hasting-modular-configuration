@@ -17,7 +17,3 @@ export { createSceneRestorer, resolveSceneProductType } from "./lib/createSceneR
 export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRestorer";
 export { createTestSceneRestorer } from "./lib/testSceneRestorer";
 export type { TestSceneRestorer } from "./lib/testSceneRestorer";
-
-// TODO(A07): temporary runtime-bindings loader.
-export { getLoadedRuntimeBindings, loadRuntimeBindings, resetRuntimeBindingsCache } from "./lib/runtimeBindingsCache";
-export { RuntimeBindingsBridge } from "./ui/RuntimeBindingsBridge";

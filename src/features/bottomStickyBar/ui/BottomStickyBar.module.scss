@@ -81,6 +81,14 @@
   animation: price-spin 0.9s linear infinite;
 }
 
+.priceBlock {
+  display: inline-flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  justify-content: center;
+  min-width: 0;
+}
+
 .priceValue {
   display: inline-flex;
   align-items: center;
@@ -181,6 +189,11 @@
     }
   }
 
+  .priceIncomplete {
+    font-size: 10px;
+    line-height: 12px;
+  }
+
   .bottomBar > div {
     padding: 10px 8px;
     height: 54px;
@@ -189,6 +202,10 @@
   .backButton {
     width: 34px;
     height: 34px;
+  }
+
+  .priceBlock {
+    flex-shrink: 1;
   }
 
   .priceValue {
@@ -257,6 +274,14 @@
 }
 
 .total_text {
+  white-space: nowrap;
+}
+
+/* Under the total, so the bar keeps its width. */
+.priceIncomplete {
+  color: #a85a3d;
+  font-size: 11px;
+  line-height: 13px;
   white-space: nowrap;
 }
 

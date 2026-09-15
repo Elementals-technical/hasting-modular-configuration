@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useSaveConfigurationMutation } from "@/entities";
-import { getRestoreState } from "@/entities/configuration/model/store/selectors";
+import { getActiveCollectionId, getRestoreState } from "@/entities/configuration/model/store/selectors";
 import {
   getHasSubmittedCart,
   getIsAutofillEnabled,
@@ -85,7 +85,7 @@ export const useBuildConfigurationRequest = () => {
 
 export type SaveCurrentConfigurationResult =
   | { ok: true; id: string; url: string; request: ConfigurationSaveRequest }
-  | { ok: false; reason: "no-products" | "missing-id" | "restore-incomplete" };
+  | { ok: false; reason: "no-products" | "no-collection" | "missing-id" | "restore-incomplete" };
 
 export type SaveCurrentConfigurationOptions = BuildConfigurationRequestOptions;
 
@@ -93,10 +93,13 @@ export const useSaveCurrentConfiguration = () => {
   const buildRequest = useBuildConfigurationRequest();
   const [saveConfiguration] = useSaveConfigurationMutation();
   const restoreStatus = useAppSelector(getRestoreState).status;
+  const collectionId = useAppSelector(getActiveCollectionId);
 
   return useCallback(
     async (options: SaveCurrentConfigurationOptions = {}): Promise<SaveCurrentConfigurationResult> => {
       if (isRestoreBlockingSave(restoreStatus)) return { ok: false, reason: "restore-incomplete" };
+      // A configuration saved without its collection could never be restored (CONTRACTS §4).
+      if (!collectionId) return { ok: false, reason: "no-collection" };
 
       const request = await buildRequest(options);
 
@@ -116,7 +119,7 @@ export const useSaveCurrentConfiguration = () => {
         request,
       };
     },
-    [buildRequest, restoreStatus, saveConfiguration],
+    [buildRequest, collectionId, restoreStatus, saveConfiguration],
   );
 };
 

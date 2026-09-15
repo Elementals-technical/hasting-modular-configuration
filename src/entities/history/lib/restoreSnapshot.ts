@@ -1,13 +1,13 @@
 import type { AppDispatch, RootState } from "@/app/store";
 import type { ConfigurationSceneRestorer, SceneRestoreRequest, SceneRestoreResult } from "@/entities/configuration";
-import { getActiveCollectionId, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import type { RuntimeBindingSet } from "@/entities/collection";
+import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { dropValuesForCabinet, restoreCabinets } from "@/entities/configuration/model/store/slice";
 import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { restoreSidePanelState } from "@/features/sidePanel";
 import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
-import { getLoadedRuntimeBindings } from "@/features/playCanvasAdapter/lib/runtimeBindingsCache";
 import {
   resolveRuntimeProductType,
   withRuntimeProductType,
@@ -28,6 +28,8 @@ function mapConfigToDrawerValue(value: unknown): string | null {
 export type RestoreSnapshotDeps = {
   dispatch: AppDispatch;
   getState: () => RootState;
+  /** Runtime bindings of the active collection, for the default restorer's preflight. */
+  getBindings: () => RuntimeBindingSet | null;
   /** Tests pass a stand-in; the app rebuilds the scene through the PlayCanvas adapter. */
   restorer?: ConfigurationSceneRestorer;
 };
@@ -40,14 +42,6 @@ export const buildSnapshotRestoreRequest = (snapshot: SceneSnapshot): SceneResto
   }),
 });
 
-const createDefaultRestorer = (getState: () => RootState): ConfigurationSceneRestorer =>
-  createSceneRestorer({
-    getBindings: () => {
-      const collectionId = getActiveCollectionId(getState());
-      return collectionId ? getLoadedRuntimeBindings(collectionId) : null;
-    },
-  });
-
 /**
  * Rebuilds the scene from a history snapshot and records what the scene actually holds.
  *
@@ -56,7 +50,7 @@ const createDefaultRestorer = (getState: () => RootState): ConfigurationSceneRes
  */
 export async function restoreSnapshot(
   snapshot: SceneSnapshot,
-  { dispatch, getState, restorer = createDefaultRestorer(getState) }: RestoreSnapshotDeps,
+  { dispatch, getState, getBindings, restorer = createSceneRestorer({ getBindings }) }: RestoreSnapshotDeps,
 ): Promise<SceneRestoreResult> {
   const result = await restorer.restore(buildSnapshotRestoreRequest(snapshot));
   if (result.status === "not-ready" || result.status === "rejected") return result;
