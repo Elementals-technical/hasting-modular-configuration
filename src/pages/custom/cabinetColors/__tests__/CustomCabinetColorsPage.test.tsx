@@ -5,8 +5,19 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { getHandleGrooveColor, getProductsPresets } from "@/entities/product/model/store/selectors";
-import { reset, restoreProductState } from "@/entities/product/model/store/slice";
+import {
+  getBookMatching,
+  getDrawerPanelFluting,
+  getGrainDirection,
+  getHandleGrooveColor,
+  getProductsPresets,
+} from "@/entities/product/model/store/selectors";
+import {
+  reset,
+  restoreProductState,
+  setCabinetColorMaterial,
+  setGrainDirection,
+} from "@/entities/product/model/store/slice";
 
 import { CustomCabinetColorsPage } from "../index";
 
@@ -154,6 +165,52 @@ vi.mock("@/features/swatchOrder", async (importOriginal) => {
   };
 });
 
+vi.mock("@/features/collectionCustomization", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/collectionCustomization")>();
+
+  const SECTION_FIELDS: Record<string, ReturnType<typeof actual.useCustomizationSectionFields>> = {
+    "drawer-panel-custom": [
+      {
+        definition: { attributeId: "DrawerPanelFluting", control: "options-grid" },
+        field: {
+          attributeId: "DrawerPanelFluting",
+          value: "",
+          options: [{ value: "FlutingVerticalA", label: "FlutingVerticalA", enabled: true }],
+          visible: true,
+          enabled: true,
+        },
+      },
+    ],
+    "grain-direction-custom": [
+      {
+        definition: { attributeId: "GrainDirection", control: "options-grid" },
+        field: {
+          attributeId: "GrainDirection",
+          value: "",
+          options: [{ value: "GrainVertical", label: "GrainVertical", enabled: true }],
+          visible: true,
+          enabled: true,
+        },
+      },
+      {
+        definition: { attributeId: "BookMatching", control: "checkbox" },
+        field: {
+          attributeId: "BookMatching",
+          value: "",
+          options: [],
+          visible: true,
+          enabled: true,
+        },
+      },
+    ],
+  };
+
+  return {
+    ...actual,
+    useCustomizationSectionFields: (sectionId: string) => SECTION_FIELDS[sectionId] ?? [],
+  };
+});
+
 vi.mock("@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid", () => ({
   ProductOptionsGrid: ({
     data,
@@ -288,5 +345,55 @@ describe("CustomCabinetColorsPage", () => {
       CabinetColor: "New Cabinet Color",
       HandleGrooveColor: "Explicit Groove Color",
     });
+  });
+
+  it("updates the scene and state when selecting a drawer panel fluting option", async () => {
+    store.dispatch(setCabinetColorMaterial("LACM"));
+    renderPage();
+    setConfigBatchMock.mockClear();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "FlutingVerticalA" }));
+    });
+
+    expect(setConfigBatchMock).toHaveBeenCalledWith(["Sink-Base-runtime"], { DrawerPanelFluting: "FlutingVerticalA" });
+    expect(getDrawerPanelFluting(store.getState() as RootState)).toBe("FlutingVerticalA");
+  });
+
+  it("updates the scene and state when selecting a grain direction option", async () => {
+    store.dispatch(setCabinetColorMaterial("Essenze"));
+    renderPage();
+    setConfigBatchMock.mockClear();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "GrainVertical" }));
+    });
+
+    expect(setConfigBatchMock).toHaveBeenCalledWith(["Sink-Base-runtime"], { GrainDirection: "GrainVertical" });
+    expect(getGrainDirection(store.getState() as RootState)).toBe("GrainVertical");
+  });
+
+  it("toggles book matching from the schema-resolved field, alongside grain direction in the same section", async () => {
+    store.dispatch(setCabinetColorMaterial("Essenze"));
+    // needs 2 adjacent drawer cabinets + a grain direction, or the page's own effect clears it back
+    store.dispatch(
+      restoreProductState({
+        productIds: ["Sink-Base-1-runtime", "Sink-Base-2-runtime"],
+        productOptions: store.getState().rootStateUI.product.productOptions,
+        activeCabinetType: "Sink-Base",
+        selectedDimensions: { width: 60, height: 53, depth: 50.5 },
+        selectedProductConfig: null,
+        productsPresets: [],
+      }),
+    );
+    store.dispatch(setGrainDirection("GrainHorizontal"));
+
+    renderPage();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("checkbox"));
+    });
+
+    expect(getBookMatching(store.getState() as RootState)).toBe("enabled");
   });
 });

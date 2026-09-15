@@ -2,8 +2,8 @@ import { NavLink } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
 import { close, toggle } from "@/features/sidebar/model/store/slice";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 
-import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight.tsx";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
@@ -17,7 +17,8 @@ type SideNavigationProps = {
 };
 
 export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
-  const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
+  const navigation = useCollectionNavigation(flow);
+  const steps = navigation?.steps ?? [];
 
   const dispatch = useAppDispatch();
   const isSidebarOpen = useAppSelector(getIsOpenSidebar);
@@ -51,7 +52,7 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
 
       <ul className={s.navList}>
         {steps.map((step) => (
-          <li key={step.id}>
+          <li key={step.stepId}>
             <NavLink
               to={step.path}
               className={({ isActive }) => `${s.navItem} ${isActive ? s.active : ""}`.trim()}
