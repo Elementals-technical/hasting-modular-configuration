@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "profileVersion": "0.1.0-draft",
+  "status": "draft-from-product-map",
+  "collectionId": "urban-low-height",
+  "label": "Urban Low Height",
+  "provenance": {
+    "source": "analysis/products-data/Urban Low Height/docs/URBAN-LOW-HEIGHT-PRODUCT-MAP-UA.md",
+    "auditedAt": "2026-09-09",
+    "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it."
+  },
+  "sourceRefs": {
+    "configuratorId": 4,
+    "countertopMatrixTableId": 438,
+    "cabinetMatrixTableId": 439
+  },
+  "defaults": {},
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 10,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet with a basin (URLH-SB)"
+        },
+        {
+          "value": "Side-Cabinet",
+          "label": "Side Cabinet",
+          "order": 20,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Storage cabinet without a basin (URLH-SC)"
+        },
+        {
+          "value": "Open-Shelf",
+          "label": "Open Shelf",
+          "order": 30,
+          "category": "open-cabinet",
+          "legacyDescription": "Open module with one shelf (UROS)"
+        },
+        {
+          "value": "Open-Side-Shelf",
+          "label": "Open Side Shelf",
+          "order": 40,
+          "category": "open-cabinet",
+          "legacyDescription": "End module, left or right (UROSS)"
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 10,
+          "aliases": ["1D", "1DW"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Handle",
+      "scope": "cabinet",
+      "initialValue": "",
+      "options": [
+        {
+          "value": "handle_urban_topcut",
+          "label": "Upper Groove",
+          "order": 10,
+          "capabilities": {
+            "supportsGrooveColor": true
+          }
+        },
+        {
+          "value": "handle_pto",
+          "label": "Push to open",
+          "order": 20,
+          "capabilities": {
+            "supportsGrooveColor": false
+          }
+        }
+      ]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "options": [
+        { "value": "38", "label": "38 cm", "order": 10 },
+        { "value": "35", "label": "35 cm", "order": 20 },
+        { "value": "28", "label": "28 cm", "order": 30 },
+        { "value": "25", "label": "25 cm", "order": 40 }
+      ]
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "scope": "cabinet",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10, "aliases": ["X"] },
+        { "value": "FlutingVerticalA", "label": "Vertical Asymmetrical", "order": 20, "aliases": ["CVA"] },
+        { "value": "FlutingVerticalB", "label": "Vertical Symmetrical", "order": 30, "aliases": ["CVB"] },
+        { "value": "FlutingHorizontalA", "label": "Horizontal Asymmetrical", "order": 40, "aliases": ["CHA"] },
+        { "value": "FlutingHorizontalB", "label": "Horizontal Symmetrical", "order": 50, "aliases": ["CHB"] }
+      ]
+    },
+    {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Cabinet Color"
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Countertop Color"
+    }
+  ],
+  "ruleData": {
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 439,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {
+          "handle_urban_topcut": "handle_urban_topcut_forced_height_cm",
+          "handle_pto": "handle_pto_forced_height_cm"
+        },
+        "requiresDrawersByHandle": {}
+      }
+    }
+  },
+  "messages": {
+    "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
+    "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
+    "handle.requiredHeight": "Required for selected handle",
+    "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle"
+  },
+  "excludedFromThisProfile": {
+    "handleGrooveColor": "The HDL segment of the SKU has no stable structure in the source (product map §5).",
+    "basinAndCountertopOptions": "Basin styles and countertop thickness are known as display names only; scene tokens and rules are not confirmed (§11, §12).",
+    "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",
+    "composition": "Module counts, maximum composition length, mixing of handles, heights and depths are not described (§1, §2, §14)."
+  }
+}

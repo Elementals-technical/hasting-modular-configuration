@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import productionRegistry from "../../../../public/collections/registry.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classUi from "../../../../public/collections/class/ui.json";
@@ -22,6 +23,7 @@ const abortSignal = new AbortController().signal;
 const fetchJson = vi.fn(async (url: string) => {
   const sources: Record<string, unknown> = {
     [`${collectionsRootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
+    [`${collectionsRootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
     [`${collectionsRootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
@@ -69,7 +71,8 @@ describe("partial production collection packages", () => {
       { id: "model", label: "Urban Low Height Models", path: "/prebuilt/model" },
     ]);
     expect(data.catalog.presets).toBeUndefined();
-    expect(data.catalog.productProfile).toBeUndefined();
+    // The profile carries only the confirmed product facts; the rest of the package is still missing.
+    expect(data.catalog.productProfile?.collectionId).toBe("urban-low-height");
     expect(data.catalog.runtimeBindings).toBeUndefined();
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
     expect(data.sources.local).toMatchObject({ ui: { collectionId: "urban-low-height" } });
