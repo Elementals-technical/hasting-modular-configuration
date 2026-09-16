@@ -3,6 +3,12 @@ export { buildPricingLines } from "./buildPricingLines";
 export { buildColorSkuMaps } from "./buildColorSkuMaps";
 export { expandLineSkus } from "./pricingLines";
 export {
+  resolvePriceFromResponse,
+  resolvePriceRequest,
+  type PriceRequest,
+  type PriceRequestInput,
+} from "./priceRequests";
+export {
   appendUncoveredLines,
   formatSummaryPrice,
   resolveSummaryLinePrice,
