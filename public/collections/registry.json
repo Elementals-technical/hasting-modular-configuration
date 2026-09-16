@@ -8,6 +8,10 @@
     {
       "id": "urban-low-height",
       "manifest": "urban-low-height/manifest.json"
+    },
+    {
+      "id": "class",
+      "manifest": "class/manifest.json"
     }
   ]
 }

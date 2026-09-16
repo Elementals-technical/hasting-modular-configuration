@@ -18,4 +18,17 @@ describe("ProductModelsGrid", () => {
 
     expect(screen.getByText("No preset compositions available for Urban Low Height")).toBeTruthy();
   });
+
+  it("renders the Class empty message", () => {
+    render(
+      <ProductModelsGrid
+        data={[]}
+        handleAddPreset={vi.fn()}
+        handleCustomizePreset={vi.fn()}
+        emptyMessage="No preset compositions available for Class"
+      />,
+    );
+
+    expect(screen.getByText("No preset compositions available for Class")).toBeTruthy();
+  });
 });

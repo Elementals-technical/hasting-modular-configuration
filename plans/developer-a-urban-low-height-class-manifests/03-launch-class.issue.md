@@ -4,16 +4,15 @@ Register Class as an independently loadable partial collection through the same 
 
 ## Acceptance criteria
 
-- [ ] The production registry contains `class` while Urban Standard Height remains the default.
-- [ ] Class has its own folder, valid manifest, and valid customization schema.
-- [ ] The manifest declares Configurator `4`, Countertop DataTable `438`, and Cabinet DataTable `439` and does not declare presets, ProductProfile, SKU mappings, or runtime bindings.
-- [ ] The loader reaches `ready` with source overrides and calls the three approved remote sources exactly once.
-- [ ] The loaded result contains Class identity and customization without copied USH local data.
-- [ ] `/prebuilt?collectionId=class` resolves to the collection-defined entry route, retains the query parameter, and renders a collection-specific identity or empty state.
-- [ ] The handoff records `Class-side-cabinet`, its supported dimensions, `InnerDrawer`, color fields, and cabinet-ID lifecycle as supplied facts for later runtime work.
-- [ ] Relevant tests, TypeScript validation, and changed-file lint pass.
+- [x] The production registry contains `class` while Urban Standard Height remains the default.
+- [x] Class has its own folder, valid manifest, and valid customization schema.
+- [x] The manifest declares Configurator `4`, Countertop DataTable `438`, and Cabinet DataTable `439` and does not declare presets, ProductProfile, SKU mappings, or runtime bindings.
+- [x] The loader reaches `ready` with frozen remote fixtures and calls the three approved remote sources exactly once.
+- [x] The loaded result contains Class identity and customization without copied USH local data.
+- [x] `/prebuilt?collectionId=class` resolves to the collection-defined entry route, retains the query parameter, and renders a collection-specific identity or empty state.
+- [x] The handoff records `Class-side-cabinet`, its supported dimensions, `InnerDrawer`, color fields, and cabinet-ID lifecycle as supplied facts for later runtime work.
+- [x] Relevant tests, TypeScript validation, and changed-file lint pass.
 
 ## Blocked by
 
 - Blocked by #plans/developer-a-urban-low-height-class-manifests/01-safe-partial-runtime.issue.md
-

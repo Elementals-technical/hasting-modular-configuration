@@ -4,6 +4,8 @@ import productionRegistry from "../../../../public/collections/registry.json";
 import productionManifest from "../../../../public/collections/urban-standard-height/manifest.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
+import classManifestDocument from "../../../../public/collections/class/manifest.json";
+import classUi from "../../../../public/collections/class/ui.json";
 
 import { withCollectionId } from "../lib/collectionUrl";
 import { resolveCollectionImageUrl, resolveCollectionJsonUrl } from "../lib/paths";
@@ -20,6 +22,7 @@ describe("collection contracts", () => {
     expect(registry.collections).toEqual([
       { id: "urban-standard-height", manifest: "urban-standard-height/manifest.json" },
       { id: "urban-low-height", manifest: "urban-low-height/manifest.json" },
+      { id: "class", manifest: "class/manifest.json" },
     ]);
 
     const manifest = validateCollectionManifest(
@@ -52,6 +55,22 @@ describe("collection contracts", () => {
       cabinetTable: { id: 439 },
     });
     expect(urbanLowHeightUi.collectionId).toBe("urban-low-height");
+
+    const classManifest = validateCollectionManifest(
+      classManifestDocument,
+      "class",
+      "https://app.test/collections/class/manifest.json",
+      rootUrl,
+    );
+    expect(classManifest.defaults).toEqual({});
+    expect(classManifest.local).toEqual({ ui: "ui.json" });
+    expect(classManifest.defaultPresetId).toBeUndefined();
+    expect(classManifest.remote).toEqual({
+      configurator: { id: 4, view: "full", serialize: true },
+      countertopTable: { id: 438 },
+      cabinetTable: { id: 439 },
+    });
+    expect(classUi.collectionId).toBe("class");
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {
