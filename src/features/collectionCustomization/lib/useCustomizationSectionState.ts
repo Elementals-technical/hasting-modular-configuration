@@ -26,12 +26,10 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
 };
 
 export const useCustomizationSectionFields = (sectionId: string): ResolvedCustomizationField[] => {
-  const activeCollection = useActiveCollection();
+  const schema = useActiveCollection((collection) => collection.catalog.customization ?? null);
   const profile = useAppSelector(getActiveProductProfile);
   const productOptions = useAppSelector((state) => state.rootStateUI.product.productOptions);
   const availabilityResults = useFieldAvailabilityResults();
-
-  const schema = activeCollection.status === "ready" ? (activeCollection.data.catalog.customization ?? null) : null;
 
   return resolveSectionFields(schema, sectionId, profile, productOptions, availabilityResults);
 };

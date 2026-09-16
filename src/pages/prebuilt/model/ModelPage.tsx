@@ -214,8 +214,7 @@ export const ModelPage = () => {
   }, []);
 
   const presets = useCollectionPresets();
-  const defaultPresetId =
-    activeCollection.status === "ready" ? Number(activeCollection.data.manifest.defaultPresetId) : NaN;
+  const defaultPresetId = Number(activeCollection.manifest.defaultPresetId);
   const defaultPreset = presets.find((preset) => preset.id === defaultPresetId) ?? presets[0] ?? null;
 
   const filteredData = useMemo(() => {
@@ -1122,7 +1121,7 @@ export const ModelPage = () => {
               createModelBtn={<CreateModelBtn />}
               activePresetId={activePresetId}
               emptyMessage={`No preset compositions available for ${
-                activeCollection.status === "ready" ? activeCollection.data.manifest.label : "this collection"
+                activeCollection.manifest.label
               }`}
             />
           </div>

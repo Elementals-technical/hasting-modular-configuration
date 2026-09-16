@@ -33,12 +33,12 @@ import datatable439 from "./fixtures/remote/datatable-439.json";
 
 import type { CollectionRuntimeDependencies } from "../model/types";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
-import { useActiveCollection } from "../ui/activeCollectionContext";
+import { useActiveCollectionState } from "../ui/activeCollectionContext";
 
 const rootUrl = "https://app.test/collections/";
 
 const Consumer = () => {
-  const collection = useActiveCollection();
+  const collection = useActiveCollectionState();
   const id = "collectionId" in collection ? collection.collectionId : "";
 
   return (

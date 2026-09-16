@@ -4,15 +4,15 @@ Complete the ready-only contract migration across production UI, navigation, res
 
 ## Acceptance criteria
 
-- [ ] UI pages and navigation/customization hooks consume ready collection data without collection lifecycle checks.
-- [ ] Restore consumers obtain the ready collection identity and optional runtime bindings without lifecycle fallbacks.
-- [ ] PlayCanvas integration consumes ready collection data or selectors without lifecycle fallbacks.
-- [ ] Infrastructure checks remain only in the provider, readiness gate, lifecycle bridges, and their tests.
-- [ ] Unrelated status unions, including scene readiness, remain unchanged.
-- [ ] The final public `useActiveCollection` supports full-data and selector forms and no temporary migration export remains.
-- [ ] Consumer tests use ready-data providers when lifecycle behavior is outside their responsibility.
-- [ ] A repository search confirms that production consumers no longer inspect active-collection status outside the approved infrastructure boundary.
-- [ ] Focused tests, TypeScript validation, and linting pass.
+- [x] UI pages and navigation/customization hooks consume ready collection data without collection lifecycle checks.
+- [x] Restore consumers obtain the ready collection identity and optional runtime bindings without lifecycle fallbacks.
+- [x] PlayCanvas integration consumes ready collection data or selectors without lifecycle fallbacks.
+- [x] Infrastructure checks remain only in the provider, readiness gate, lifecycle bridges, and their tests.
+- [x] Unrelated status unions, including scene readiness, remain unchanged.
+- [x] The final public `useActiveCollection` supports full-data and selector forms and no temporary migration export remains.
+- [x] Consumer tests use ready-data providers when lifecycle behavior is outside their responsibility.
+- [x] A repository search confirms that production consumers no longer inspect active-collection status outside the approved infrastructure boundary.
+- [x] Focused tests, TypeScript validation, and linting pass.
 
 ## Blocked by
 

@@ -9,7 +9,7 @@ import {
   ActiveCollectionContext,
   ActiveCollectionSessionContext,
   type ActiveCollectionSession,
-  useReadyActiveCollection,
+  useActiveCollection,
 } from "../ui/activeCollectionContext";
 import { CollectionReadinessGate } from "../ui/CollectionReadinessGate";
 
@@ -63,8 +63,8 @@ const renderGate = (
   );
 
 const ReadyConsumer = () => {
-  const collection = useReadyActiveCollection();
-  const configurator = useReadyActiveCollection((active) => active.catalog.configurator);
+  const collection = useActiveCollection();
+  const configurator = useActiveCollection((active) => active.catalog.configurator);
 
   return (
     <output data-testid="ready-data">
@@ -257,11 +257,16 @@ describe("CollectionReadinessGate", () => {
 
   it("reports a composition error when ready access is used outside the gate", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const preventUnhandledReport = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener("error", preventUnhandledReport);
 
-    expect(() => render(<ReadyConsumer />)).toThrowError(
-      "useReadyActiveCollection must be used within CollectionReadinessGate",
-    );
-
-    consoleError.mockRestore();
+    try {
+      expect(() => render(<ReadyConsumer />)).toThrowError(
+        "useActiveCollection must be used within CollectionReadinessGate",
+      );
+    } finally {
+      window.removeEventListener("error", preventUnhandledReport);
+      consoleError.mockRestore();
+    }
   });
 });

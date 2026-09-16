@@ -13,11 +13,6 @@ export type ActiveCollectionSession = {
 
 export const ActiveCollectionSessionContext = createContext<ActiveCollectionSession | null>(null);
 
-/** @deprecated Product consumers migrate to the ready-only hook in the final integration slice. */
-export const useActiveCollection = (): ActiveCollectionState => {
-  return useActiveCollectionState();
-};
-
 export const useActiveCollectionState = (): ActiveCollectionState => {
   const state = useContext(ActiveCollectionContext);
   if (!state) throw new Error("useActiveCollectionState must be used within ActiveCollectionProvider");
@@ -30,14 +25,14 @@ export const useActiveCollectionSession = (): ActiveCollectionSession => {
   return session;
 };
 
-export function useReadyActiveCollection(): ReadyCollectionData;
-export function useReadyActiveCollection<Selected>(selector: (collection: ReadyCollectionData) => Selected): Selected;
-export function useReadyActiveCollection<Selected>(
+export function useActiveCollection(): ReadyCollectionData;
+export function useActiveCollection<Selected>(selector: (collection: ReadyCollectionData) => Selected): Selected;
+export function useActiveCollection<Selected>(
   selector?: (collection: ReadyCollectionData) => Selected,
 ): ReadyCollectionData | Selected {
   const collection = useContext(ReadyCollectionContext);
   if (!collection) {
-    throw new Error("useReadyActiveCollection must be used within CollectionReadinessGate");
+    throw new Error("useActiveCollection must be used within CollectionReadinessGate");
   }
 
   return selector ? selector(collection) : collection;

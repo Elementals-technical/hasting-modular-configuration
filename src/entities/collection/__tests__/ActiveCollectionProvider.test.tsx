@@ -40,7 +40,7 @@ import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
 
-import { useActiveCollection, useActiveCollectionSession } from "../ui/activeCollectionContext";
+import { useActiveCollectionSession, useActiveCollectionState } from "../ui/activeCollectionContext";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
 import type { CollectionRuntimeDependencies, RemoteCollectionLoader } from "../model/types";
 
@@ -107,7 +107,7 @@ const makeDependencies = (
 });
 
 const CollectionConsumer = () => {
-  const state = useActiveCollection();
+  const state = useActiveCollectionState();
   const session = useActiveCollectionSession();
   const navigate = useNavigate();
   const detail =

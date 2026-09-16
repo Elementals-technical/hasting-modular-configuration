@@ -361,8 +361,7 @@ export const PlayCanvasIntegration = ({
 
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
-  const activeCollection = useActiveCollection();
-  const customizationSchema = activeCollection.status === "ready" ? activeCollection.data.catalog.customization ?? null : null;
+  const customizationSchema = useActiveCollection((collection) => collection.catalog.customization ?? null);
   const location = useLocation();
   const navigate = useNavigate();
 

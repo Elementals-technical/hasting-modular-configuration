@@ -28,8 +28,8 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
   const collection = useActiveCollection();
-  const collectionId = collection.status === "ready" ? collection.data.id : null;
-  const runtimeBindings = collection.status === "ready" ? (collection.data.catalog.runtimeBindings ?? null) : null;
+  const collectionId = collection.id;
+  const runtimeBindings = collection.catalog.runtimeBindings ?? null;
   const [loadConfiguration] = useLazyRestoreConfigurationQuery();
 
   // The page callback changes with the page's state; the restore calls the latest one.
