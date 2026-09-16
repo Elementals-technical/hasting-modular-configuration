@@ -66,6 +66,20 @@ export type LoadedCollectionData = {
   };
 };
 
+/**
+ * Collection data accepted by the product shell. A collection package may omit a
+ * configurator source, but the Hastings configurator cannot mount without its
+ * normalized option catalog.
+ */
+export type ReadyCollectionData = Omit<LoadedCollectionData, "catalog"> & {
+  catalog: LoadedCollectionData["catalog"] & {
+    configurator: ConfiguratorGroupCatalog;
+  };
+};
+
+export const isReadyCollectionData = (data: LoadedCollectionData): data is ReadyCollectionData =>
+  data.catalog.configurator !== undefined;
+
 export type ActiveCollectionState =
   | { status: "resolving" }
   | { status: "loading"; collectionId: string }

@@ -21,6 +21,7 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
   const location = useLocation();
   const dispatch = useAppDispatch();
   const requestSequence = useRef(0);
+  const [sessionCollectionId] = useState(() => new URLSearchParams(location.search).get("collectionId"));
   const remote = useMemo(() => createRtkCollectionRemoteLoader(dispatch), [dispatch]);
   const runtimeDependencies = useMemo<CollectionRuntimeDependencies>(() => {
     if (dependencies) return dependencies;
@@ -48,12 +49,11 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
         const registry = await loadCollectionRegistry(runtimeDependencies, abortController.signal);
         if (!isLatest()) return;
 
-        const urlCollectionId = new URLSearchParams(location.search).get("collectionId");
-        const resolution = resolveCollection({ registry, urlCollectionId });
+        const resolution = resolveCollection({ registry, urlCollectionId: sessionCollectionId });
         if (!resolution.ok) {
           setState({
             status: "error",
-            collectionId: urlCollectionId === null ? undefined : urlCollectionId,
+            collectionId: sessionCollectionId === null ? undefined : sessionCollectionId,
             error: resolution.error,
           });
           return;
@@ -64,12 +64,13 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
         const data = await loadResolvedCollection(resolution, runtimeDependencies, abortController.signal);
         if (isLatest()) setState({ status: "ready", collectionId: resolution.collectionId, data });
       } catch (error) {
-        if (isLatest()) setState({ status: "error", collectionId: activeCollectionId, error: toCollectionError(error) });
+        if (isLatest())
+          setState({ status: "error", collectionId: activeCollectionId, error: toCollectionError(error) });
       }
     })();
 
     return () => abortController.abort();
-  }, [location.search, runtimeDependencies]);
+  }, [runtimeDependencies, sessionCollectionId]);
 
   return <ActiveCollectionContext.Provider value={state}>{children}</ActiveCollectionContext.Provider>;
 };

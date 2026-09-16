@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { CollectionStateBridge, getActiveCollectionId, getActiveProductProfile } from "@/entities/configuration";
-import { getLoadedRuntimeBindings, RuntimeBindingsBridge } from "@/features/playCanvasAdapter";
+import { CollectionStateBridge } from "@/entities/configuration";
+import { RuntimeBindingsBridge } from "@/features/playCanvasAdapter";
 
 import productionRegistry from "../../../../public/collections/registry.json";
 import productionManifest from "../../../../public/collections/urban-standard-height/manifest.json";
@@ -137,6 +137,7 @@ const CollectionConsumer = () => {
       <button onClick={() => navigate("/?collectionId=class")}>class</button>
       <button onClick={() => navigate("/")}>default</button>
       <button onClick={() => navigate("/?collectionId=")}>empty</button>
+      <button onClick={() => navigate("/?collectionId=fixture-ui&configId=123")}>config</button>
       <button onClick={() => navigate("/?collectionId=unknown")}>unknown</button>
     </div>
   );
@@ -193,65 +194,22 @@ describe("ActiveCollectionProvider", () => {
     expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
   });
 
-  it("switches USH to both partial collections and back to the default without leaking local data", async () => {
-    const { router } = renderProvider(
-      "/?collectionId=urban-standard-height",
+  it.each([
+    ["urban-low-height", "Urban Low Height Models"],
+    ["class", "Class Models"],
+  ])("loads the initial %s session without requiring optional local catalogs", async (collectionId, detail) => {
+    renderProvider(
+      "/?collectionId=" + collectionId,
       makeDependencies(undefined, productionRemote, productionRegistry),
       true,
     );
 
     await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
+      expect(screen.getByTestId("collection-state").textContent).toBe("ready:" + collectionId + ":" + detail),
     );
-    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height"));
-    expect(getActiveProductProfile(store.getState())?.collectionId).toBe("urban-standard-height");
-    expect(getLoadedRuntimeBindings("urban-standard-height")?.collectionId).toBe("urban-standard-height");
-
-    fireEvent.click(screen.getByRole("button", { name: "urban-low-height" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("ready:urban-low-height:Urban Low Height Models"),
-    );
-    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-low-height"));
-    expect(router.state.location.search).toBe("?collectionId=urban-low-height");
-    expect(getActiveProductProfile(store.getState())).toBeNull();
-    expect(getLoadedRuntimeBindings("urban-standard-height")).toBeNull();
-    expect(getLoadedRuntimeBindings("urban-low-height")).toBeNull();
     expect(screen.getByTestId("collection-local-data").textContent).toBe(
       '{"defaults":{},"presets":null,"productProfile":null,"runtimeBindings":null,"cabinetSkuMappings":null}',
     );
-    expect(store.getState().rootStateUI.product.productOptions.CabinetColor).toBe("");
-    expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe("");
-
-    fireEvent.click(screen.getByRole("button", { name: "class" }));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:class:Class Models"));
-    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("class"));
-    expect(router.state.location.search).toBe("?collectionId=class");
-    expect(getActiveProductProfile(store.getState())).toBeNull();
-    expect(getLoadedRuntimeBindings("class")).toBeNull();
-    expect(screen.getByTestId("collection-local-data").textContent).toBe(
-      '{"defaults":{},"presets":null,"productProfile":null,"runtimeBindings":null,"cabinetSkuMappings":null}',
-    );
-    expect(store.getState().rootStateUI.product.productOptions.CabinetColor).toBe("");
-    expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe("");
-
-    fireEvent.click(screen.getByRole("button", { name: "default" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
-    );
-    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height"));
-    expect(router.state.location.search).toBe("");
-    expect(getActiveProductProfile(store.getState())?.collectionId).toBe("urban-standard-height");
-    expect(getLoadedRuntimeBindings("urban-standard-height")?.collectionId).toBe("urban-standard-height");
-
-    expect(productionRemote.loadConfigurator).toHaveBeenCalledTimes(4);
-    expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(
-      { id: 4, view: "full", serialize: true },
-      expect.any(AbortSignal),
-    );
-    expect(productionRemote.loadCountertopTable).toHaveBeenCalledTimes(4);
-    expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(438, expect.any(AbortSignal));
-    expect(productionRemote.loadCabinetTable).toHaveBeenCalledTimes(4);
-    expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
   });
 
   it("serves fixture-ui through the public hook while always rendering its child", async () => {
@@ -265,50 +223,16 @@ describe("ActiveCollectionProvider", () => {
     expect(remote.loadCabinetTable).not.toHaveBeenCalled();
   });
 
-  it.each(["empty", "unknown"])("replaces ready data with the latest %s URL error", async (target) => {
+  it("keeps the initial collection loaded when unrelated search parameters change", async () => {
     renderProvider("/?collectionId=fixture-ui", makeDependencies());
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui"));
-    fireEvent.click(screen.getByRole("button", { name: target }));
-    const expectedCode = target === "empty" ? "invalid-collection-id" : "unknown-collection";
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe(
-        `error:${target === "empty" ? "" : "unknown"}:${expectedCode}`,
-      ),
-    );
-  });
 
-  it.each(["success", "failure"])("ignores a late %s from the previous URL", async (outcome) => {
-    let resolveOld: ((value: unknown) => void) | undefined;
-    let rejectOld: ((reason: unknown) => void) | undefined;
-    const oldManifest = new Promise<unknown>((resolve, reject) => {
-      resolveOld = resolve;
-      rejectOld = reject;
-    });
-    const fetchJson = vi.fn(async (url: string) => {
-      if (url === `${rootUrl}fixture-ui/manifest.json`) return oldManifest;
-      if (url in localValues) return localValues[url];
-      throw new Error(`Unexpected local request: ${url}`);
-    });
-    renderProvider("/?collectionId=fixture-ui", makeDependencies(fetchJson));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("loading:fixture-ui:"));
+    fireEvent.click(screen.getByRole("button", { name: "config" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
-    await act(async () => {
-      if (outcome === "success") resolveOld?.(fixtureUiManifest);
-      else rejectOld?.(new Error("late failure"));
-      await Promise.resolve();
-    });
-    expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish");
-  });
-
-  it("switches one hook consumer between USH and fixture-rules catalogs", async () => {
-    renderProvider("/?collectionId=urban-standard-height", makeDependencies(undefined, productionRemote));
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
-    );
-    fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
+    expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui");
+    expect(remote.loadConfigurator).not.toHaveBeenCalled();
+    expect(remote.loadCountertopTable).not.toHaveBeenCalled();
+    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
   });
 
   it("publishes an error when a declared source fails", async () => {

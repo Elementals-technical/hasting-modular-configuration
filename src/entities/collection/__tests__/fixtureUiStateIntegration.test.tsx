@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
@@ -39,13 +39,11 @@ const rootUrl = "https://app.test/collections/";
 
 const Consumer = () => {
   const collection = useActiveCollection();
-  const navigate = useNavigate();
   const id = "collectionId" in collection ? collection.collectionId : "";
 
   return (
     <>
       <output data-testid="collection-state">{`${collection.status}:${id ?? ""}`}</output>
-      <button onClick={() => navigate("/?collectionId=fixture-ui")}>fixture-ui</button>
     </>
   );
 };
@@ -59,7 +57,7 @@ beforeEach(() => {
 });
 
 describe("fixture-ui provider and state integration", () => {
-  it("switches from USH to the complete local fixture without retaining USH data or making another remote request", async () => {
+  it("loads the complete local fixture without importing USH state or making a remote request", async () => {
     const values: Record<string, unknown> = {
       [`${rootUrl}urban-standard-height/manifest.json`]: productionManifest,
       [`${rootUrl}urban-standard-height/navigation.json`]: productionNavigation,
@@ -104,7 +102,7 @@ describe("fixture-ui provider and state integration", () => {
           ),
         },
       ],
-      { initialEntries: ["/?collectionId=urban-standard-height"] },
+      { initialEntries: ["/?collectionId=fixture-ui"] },
     );
 
     render(
@@ -113,19 +111,14 @@ describe("fixture-ui provider and state integration", () => {
       </Provider>,
     );
 
-    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height"));
-    expect(getCabinetCatalog(store.getState()).typeCabinetRules).not.toEqual([]);
-
-    fireEvent.click(screen.getByRole("button", { name: "fixture-ui" }));
-
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-ui"));
     expect(getActiveCollectionId(store.getState())).toBe("fixture-ui");
     expect(getActiveProductProfile(store.getState())?.collectionId).toBe("fixture-ui");
     expect(store.getState().rootStateUI.product.productOptions.CabinetColor).toBe("Fixture Blue");
     expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe("Fixture Copper");
     expect(getCabinetCatalog(store.getState()).typeCabinetRules).toEqual([]);
-    expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-    expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
+    expect(remote.loadConfigurator).not.toHaveBeenCalled();
+    expect(remote.loadCountertopTable).not.toHaveBeenCalled();
+    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
   });
 });

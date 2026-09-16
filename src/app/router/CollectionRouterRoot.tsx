@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import { ActiveCollectionProvider } from "@/entities/collection";
+import { ActiveCollectionProvider, CollectionReadinessGate } from "@/entities/collection";
 import { CollectionStateBridge } from "@/entities/configuration";
 import { RuntimeBindingsBridge } from "@/features/playCanvasAdapter";
 
@@ -10,6 +10,8 @@ export const CollectionRouterRoot = () => (
     <CollectionStateBridge />
     {/* Publishes the active collection's validated bindings for non-React scene services. */}
     <RuntimeBindingsBridge />
-    <Outlet />
+    <CollectionReadinessGate>
+      <Outlet />
+    </CollectionReadinessGate>
   </ActiveCollectionProvider>
 );

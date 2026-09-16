@@ -8,52 +8,46 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 
 import type { CollectionRuntimeDependencies } from "../model/types";
-import { useActiveCollection } from "../ui/activeCollectionContext";
+import { useActiveCollectionState } from "../ui/activeCollectionContext";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
 
 const registryUrl = "https://app.test/collections/registry.json";
 const rootUrl = "https://app.test/collections/";
 const registry = {
   defaultCollectionId: "slow-collection",
-  collections: [
-    { id: "slow-collection", manifest: "slow-collection/manifest.json" },
-    { id: "latest-collection", manifest: "latest-collection/manifest.json" },
-  ],
+  collections: [{ id: "slow-collection", manifest: "slow-collection/manifest.json" }],
 };
 
 const Consumer = () => {
-  const state = useActiveCollection();
+  const state = useActiveCollectionState();
   const navigate = useNavigate();
   const id = "collectionId" in state ? state.collectionId : "";
+
   return (
     <>
-      <output data-testid="state">{`${state.status}:${id ?? ""}`}</output>
-      <button onClick={() => navigate("/?collectionId=latest-collection")}>navigate</button>
+      <output data-testid="state">{state.status + ":" + (id ?? "")}</output>
+      <button onClick={() => navigate("/?collectionId=slow-collection&configId=13507")}>update query</button>
     </>
   );
 };
 
 afterEach(cleanup);
 
-describe("ActiveCollectionProvider navigation races", () => {
-  it.each(["success", "failure"])("ignores a stale %s after collectionId changes", async (outcome) => {
-    let resolveSlow: ((value: unknown) => void) | undefined;
-    let rejectSlow: ((reason: unknown) => void) | undefined;
-    const slowManifest = new Promise<unknown>((resolve, reject) => {
-      resolveSlow = resolve;
-      rejectSlow = reject;
+describe("ActiveCollectionProvider fixed session", () => {
+  it("does not restart an in-flight load for an unrelated query-string change", async () => {
+    let resolveManifest: ((value: unknown) => void) | undefined;
+    const slowManifest = new Promise<unknown>((resolve) => {
+      resolveManifest = resolve;
+    });
+    const fetchJson = vi.fn(async (url: string) => {
+      if (url === rootUrl + "slow-collection/manifest.json") return slowManifest;
+      throw new Error("Unexpected request: " + url);
     });
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
       collectionsRootUrl: rootUrl,
       registry,
-      fetchJson: vi.fn(async (url) => {
-        if (url === `${rootUrl}slow-collection/manifest.json`) return slowManifest;
-        if (url === `${rootUrl}latest-collection/manifest.json`) {
-          return { id: "latest-collection", label: "Latest", defaults: {} };
-        }
-        throw new Error(`Unexpected request: ${url}`);
-      }),
+      fetchJson,
       remote: {
         loadConfigurator: vi.fn(async () => Promise.reject(new Error("Unexpected remote request"))),
         loadCountertopTable: vi.fn(async () => Promise.reject(new Error("Unexpected remote request"))),
@@ -80,17 +74,15 @@ describe("ActiveCollectionProvider navigation races", () => {
     );
 
     await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("loading:slow-collection"));
-    fireEvent.click(screen.getByRole("button", { name: "navigate" }));
-    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready:latest-collection"));
+    fireEvent.click(screen.getByRole("button", { name: "update query" }));
+    expect(fetchJson).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      if (outcome === "success") {
-        resolveSlow?.({ id: "slow-collection", label: "Slow", defaults: {} });
-      } else {
-        rejectSlow?.(new Error("late failure"));
-      }
+      resolveManifest?.({ id: "slow-collection", label: "Slow", defaults: {} });
       await Promise.resolve();
     });
-    expect(screen.getByTestId("state").textContent).toBe("ready:latest-collection");
+
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready:slow-collection"));
+    expect(fetchJson).toHaveBeenCalledTimes(1);
   });
 });

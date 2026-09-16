@@ -1,0 +1,45 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  box-sizing: border-box;
+
+  color: #282828;
+  background: #f8f8f8;
+}
+
+.spinner {
+  display: inline-flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner svg {
+  width: 100%;
+  height: 100%;
+  animation: collection-loader-spin 1.5s linear infinite;
+}
+
+.message {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+@keyframes collection-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
