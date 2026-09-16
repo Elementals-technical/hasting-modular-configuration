@@ -102,7 +102,12 @@ describe("restoreSavedConfiguration", () => {
       { stableKey: "cab-7", runtimeId: "new-Sink-Cabinet-bbb222", index: 1 },
     ]);
     expect(getAttributeValue(store.getState(), "TestFinish", { scope: "cabinet", cabinetId: "cab-7" })).toBe("Matte");
-    expect(getRestoreState(store.getState())).toEqual({ configId: CONFIG_ID, status: "restored", message: null });
+    expect(getRestoreState(store.getState())).toEqual({
+      configId: CONFIG_ID,
+      status: "restored",
+      reason: null,
+      message: null,
+    });
     expect(store.getState().rootStateUI.history.past).toHaveLength(1);
     expect(store.getState().rootStateUI.history.isRestoring).toBe(false);
   });
@@ -120,21 +125,44 @@ describe("restoreSavedConfiguration", () => {
   });
 
   it.each([
-    ["a payload without product configs", { ...savedRecord(), configuration: null }],
+    ["a payload without product configs", { ...savedRecord(), configuration: null }, "invalid"],
     [
       "a configuration of another collection",
       { ...savedRecord(), metadata: { ...savedRecord().metadata, collectionId: "mako" } },
+      "collection",
     ],
-  ])("fails on %s without touching the scene", async (_, record) => {
+    [
+      "a configuration that names an empty collection",
+      {
+        ...savedRecord(),
+        metadata: {
+          ...savedRecord().metadata,
+          collectionId: null,
+          configuration: { ...(savedRecord().metadata.configuration as object), collectionId: "" },
+        },
+      },
+      "collection",
+    ],
+  ])("fails on %s without touching the scene", async (_, record, reason) => {
     const { scene, applyPage, restore } = setUp(record as unknown as ConfigurationRecord);
 
     const result = await restore();
 
-    expect(result.status).toBe("failed");
+    expect(result).toMatchObject({ status: "failed", reason });
     expect(scene.requests).toEqual([]);
     expect(applyPage).not.toHaveBeenCalled();
-    expect(getRestoreState(store.getState()).status).toBe("failed");
+    expect(getRestoreState(store.getState())).toMatchObject({ status: "failed", reason });
     expect(isRestoreBlockingSave(getRestoreState(store.getState()).status)).toBe(true);
+  });
+
+  it("reports a saved configuration that could not be loaded as not found", async () => {
+    const { scene, loadRecord, restore } = setUp();
+    loadRecord.mockRejectedValueOnce(new Error("404"));
+
+    const result = await restore();
+
+    expect(result).toMatchObject({ status: "failed", reason: "not-found" });
+    expect(scene.requests).toEqual([]);
   });
 
   it("fails without changes when the restorer rejects the composition", async () => {
@@ -143,7 +171,7 @@ describe("restoreSavedConfiguration", () => {
 
     const result = await restore();
 
-    expect(result).toEqual({ status: "failed", message: "no scene type" });
+    expect(result).toEqual({ status: "failed", reason: "scene", message: "no scene type" });
     expect(applyPage).not.toHaveBeenCalled();
     expect(store.getState().rootStateUI.history.past).toEqual([]);
   });
@@ -177,7 +205,11 @@ describe("restoreSavedConfiguration", () => {
     expect(result.status).toBe("partial");
     expect(getCabinetEntries(store.getState())).toEqual([{ stableKey: "cab-7", runtimeId: "new-bbb222", index: 0 }]);
     expect(getAttributeValue(store.getState(), "TestFinish", { scope: "cabinet", cabinetId: "cab-4" })).toBeUndefined();
-    expect(getRestoreState(store.getState())).toMatchObject({ status: "partial", message: "no asset" });
+    expect(getRestoreState(store.getState())).toMatchObject({
+      status: "partial",
+      reason: "partial",
+      message: "no asset",
+    });
     expect(isRestoreBlockingSave("partial")).toBe(true);
 
     store.dispatch(addProductId("Sink-Base-user01"));

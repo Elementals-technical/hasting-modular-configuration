@@ -18,12 +18,7 @@ import {
   setSelectedProductConfig,
   switchAllCabinetsDrawerStyle,
 } from "@/entities/product/model/store/slice";
-import {
-  getBookMatching,
-  getDrawerPanelFluting,
-  getGrainDirection,
-  getSelectedProducts,
-} from "@/entities/product/model/store/selectors";
+import { getBookMatching, getDrawerPanelFluting, getGrainDirection } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
   selectFlutingState,
@@ -91,13 +86,11 @@ optionsListenerMiddleware.startListening({
     if (!hasActiveProfile(state)) return;
     const grainState = selectGrainDirectionState(state);
     const currentGrain = getGrainDirection(state);
-    const selectedProducts = getSelectedProducts(state);
 
+    // State only: the scene is cleared through the command service by useAvailabilityResets.
     if (!grainState.available && currentGrain) {
       listenerApi.dispatch(setGrainDirection(""));
       listenerApi.dispatch(setBookMatching(""));
-      const ids = selectedProducts.length ? selectedProducts : {};
-      await setConfigBatch(ids, { GrainDirection: "" });
     }
   },
 });

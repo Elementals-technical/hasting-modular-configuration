@@ -114,6 +114,8 @@ const CollectionConsumer = () => {
       <button onClick={() => navigate("/?collectionId=urban-standard-height")}>ush</button>
       <button onClick={() => navigate("/?collectionId=")}>empty</button>
       <button onClick={() => navigate("/?collectionId=unknown")}>unknown</button>
+      <button onClick={() => navigate("/step?collectionId=fixture-ui&accordion=cabinet-style")}>accordion</button>
+      <button onClick={() => navigate("/step")}>no-id</button>
     </div>
   );
 };
@@ -173,6 +175,53 @@ describe("ActiveCollectionProvider", () => {
     expect(remote.loadConfigurator).not.toHaveBeenCalled();
     expect(remote.loadCountertopTable).not.toHaveBeenCalled();
     expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+  });
+
+  it("keeps the ready collection when navigation changes other query params or drops the default id", async () => {
+    const fetchJson = vi.fn(async (url: string) => {
+      if (!(url in localValues)) throw new Error(`Unexpected local request: ${url}`);
+      return localValues[url];
+    });
+    const statuses: string[] = [];
+    const StatusRecorder = () => {
+      const state = useActiveCollection();
+      statuses.push(state.status);
+      return null;
+    };
+    const router = createMemoryRouter(
+      [
+        {
+          path: "*",
+          element: (
+            <ActiveCollectionProvider dependencies={makeDependencies(fetchJson)}>
+              <StatusRecorder />
+              <CollectionConsumer />
+            </ActiveCollectionProvider>
+          ),
+        },
+      ],
+      { initialEntries: ["/?collectionId=fixture-ui&configId=13507"] },
+    );
+    render(
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>,
+    );
+    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui"));
+    const manifestLoads = () => fetchJson.mock.calls.filter(([url]) => url.endsWith("fixture-ui/manifest.json")).length;
+    expect(manifestLoads()).toBe(1);
+    statuses.length = 0;
+
+    fireEvent.click(screen.getByRole("button", { name: "accordion" }));
+    await act(async () => Promise.resolve());
+    // fixture-ui is the registry default, so dropping the id selects the same collection.
+    fireEvent.click(screen.getByRole("button", { name: "no-id" }));
+    await act(async () => Promise.resolve());
+
+    expect(router.state.location.search).toBe("");
+    expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui");
+    expect(statuses.every((status) => status === "ready")).toBe(true);
+    expect(manifestLoads()).toBe(1);
   });
 
   it.each(["empty", "unknown"])("replaces ready data with the latest %s URL error", async (target) => {

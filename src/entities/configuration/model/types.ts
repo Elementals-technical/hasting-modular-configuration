@@ -78,10 +78,22 @@ export type ConfigurationState = {
  */
 export type RestoreStatus = "idle" | "restoring" | "restored" | "partial" | "failed";
 
+/**
+ * Why a restore did not come back whole:
+ * - not-found: the saved configuration could not be loaded;
+ * - collection: its collection is missing, empty, another one, or failed to load;
+ * - invalid: the saved payload failed the checks;
+ * - scene: the scene could not be rebuilt;
+ * - partial: the scene came back only in part.
+ */
+export type RestoreFailureReason = "not-found" | "collection" | "invalid" | "scene" | "partial";
+
 export type RestoreState = {
   configId: string | null;
   status: RestoreStatus;
-  /** What went wrong, for partial and failed. */
+  /** Why it failed, for partial and failed; shown to the user. */
+  reason: RestoreFailureReason | null;
+  /** What went wrong, for partial and failed; for diagnostics. */
   message: string | null;
 };
 

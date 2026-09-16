@@ -1,10 +1,15 @@
 import type { AppDispatch, RootState } from "@/app/store";
 import { LEGACY_COLLECTION_ID } from "@/entities/collection";
 import { finishRestore, getActiveCollectionId, isRestoreInFlightOrDone, startRestore } from "@/entities/configuration";
-import type { ConfigurationRecord, ConfigurationSceneRestorer, SceneRestoreMatch } from "@/entities/configuration";
+import type {
+  ConfigurationRecord,
+  ConfigurationSceneRestorer,
+  RestoreFailureReason,
+  SceneRestoreMatch,
+} from "@/entities/configuration";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { clearHistory, pushSnapshot, setHistoryRestoring } from "@/entities/history/model/store/slice";
-import { readSavedCollectionId } from "@/features/saveConfiguration";
+import { readSavedCollectionIdentity } from "@/features/saveConfiguration";
 
 import { applyRestoredIdentity } from "./applyRestoredIdentity";
 import { buildRestorePlan, type RestorePlan } from "./buildRestorePlan";
@@ -19,7 +24,7 @@ import { buildRestorePlan, type RestorePlan } from "./buildRestorePlan";
  *    add-ons, then the saved stable keys and per-cabinet values come back.
  * 4. The history starts over from the restored configuration.
  *
- * The status in the store says how it ended; Save refuses an incomplete restore.
+ * The status in the store says how it ended and why; Save refuses an incomplete restore.
  */
 
 export type RestoreSavedConfigurationDeps = {
@@ -33,7 +38,7 @@ export type RestoreSavedConfigurationDeps = {
 
 export type RestoreSavedConfigurationResult =
   | { status: "skipped" }
-  | { status: "failed"; message: string }
+  | { status: "failed"; reason: RestoreFailureReason; message: string }
   | { status: "restored" | "partial"; plan: RestorePlan; matches: SceneRestoreMatch[] };
 
 const joinMessages = (issues: readonly { message: string }[]): string => issues.map(({ message }) => message).join(" ");
@@ -50,10 +55,10 @@ export const restoreSavedConfiguration = async (
   // Once the scene was rebuilt, a later error leaves it changed: that is reported as partial.
   let sceneChanged = false;
 
-  const fail = (message: string): RestoreSavedConfigurationResult => {
-    dispatch(finishRestore({ status: sceneChanged ? "partial" : "failed", message }));
+  const fail = (reason: RestoreFailureReason, message: string): RestoreSavedConfigurationResult => {
+    dispatch(finishRestore({ status: sceneChanged ? "partial" : "failed", reason, message }));
     console.error(`[Restore] ${configId}: ${message}`);
-    return { status: "failed", message };
+    return { status: "failed", reason, message };
   };
 
   try {
@@ -61,21 +66,29 @@ export const restoreSavedConfiguration = async (
     try {
       record = await loadRecord(configId);
     } catch {
-      return fail("The saved configuration could not be loaded.");
+      return fail("not-found", "The saved configuration could not be loaded.");
     }
 
-    const savedCollectionId = readSavedCollectionId(record.metadata) ?? LEGACY_COLLECTION_ID;
+    const savedCollection = readSavedCollectionIdentity(record.metadata);
+    if (savedCollection.kind === "invalid") {
+      return fail("collection", "The saved configuration names an empty collection.");
+    }
+
+    const savedCollectionId = savedCollection.kind === "id" ? savedCollection.collectionId : LEGACY_COLLECTION_ID;
     const activeCollectionId = getActiveCollectionId(getState());
     if (savedCollectionId !== activeCollectionId) {
-      return fail(`The configuration belongs to "${savedCollectionId}", not to "${activeCollectionId ?? "none"}".`);
+      return fail(
+        "collection",
+        `The configuration belongs to "${savedCollectionId}", not to "${activeCollectionId ?? "none"}".`,
+      );
     }
 
     const built = buildRestorePlan(configId, record);
-    if (!built.ok) return fail(joinMessages(built.issues));
+    if (!built.ok) return fail("invalid", joinMessages(built.issues));
 
     const scene = await restorer.restore({ products: built.plan.products });
-    if (scene.status === "not-ready") return fail("The scene is not ready.");
-    if (scene.status === "rejected") return fail(joinMessages(scene.issues));
+    if (scene.status === "not-ready") return fail("scene", "The scene is not ready.");
+    if (scene.status === "rejected") return fail("scene", joinMessages(scene.issues));
 
     sceneChanged = true;
     await applyPage(built.plan, scene.matches);
@@ -86,7 +99,11 @@ export const restoreSavedConfiguration = async (
     }
 
     dispatch(
-      finishRestore({ status: scene.status, message: scene.status === "partial" ? joinMessages(scene.failed) : null }),
+      finishRestore(
+        scene.status === "partial"
+          ? { status: "partial", reason: "partial", message: joinMessages(scene.failed) }
+          : { status: "restored", reason: null, message: null },
+      ),
     );
 
     // History ignores snapshots while restoring; the restored configuration is its first entry.
@@ -96,7 +113,7 @@ export const restoreSavedConfiguration = async (
 
     return { status: scene.status, plan: built.plan, matches: scene.matches };
   } catch (error) {
-    return fail(error instanceof Error ? error.message : String(error));
+    return fail("scene", error instanceof Error ? error.message : String(error));
   } finally {
     dispatch(setHistoryRestoring(false));
   }

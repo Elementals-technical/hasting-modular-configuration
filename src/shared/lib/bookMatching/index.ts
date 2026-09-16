@@ -1,5 +1,5 @@
 import type { ProductProfile } from "@/entities/collection";
-import { buildBookMatchingSku, type BookMatchingSkuInput } from "@/shared/lib/sku";
+import { buildBookMatchingSku, type BookMatchingSkuInput, type SkuProfile } from "@/shared/lib/sku";
 
 /**
  * Book matching availability and charge.
@@ -210,12 +210,15 @@ export const deriveBookMatchingChargeInfo = ({
   materialSku,
   cabinets,
   profile,
+  skuProfile = null,
 }: {
   grainDirection?: string | null;
   bookMatching?: string | null;
   materialSku?: string | null;
   cabinets: readonly BookMatchingCabinetInput[];
   profile: ProductProfile | null;
+  /** SKU profile of the active collection; without one the charge has no SKU. */
+  skuProfile?: SkuProfile | null;
 }): BookMatchingChargeInfo => {
   const params = profile?.ruleData.bookMatching;
   const availability = deriveBookMatchingAvailability({
@@ -233,12 +236,13 @@ export const deriveBookMatchingChargeInfo = ({
   const eligibleCabinetCount = chargeableCabinets.length;
   const parsedDrawerQty = chargeableCabinets.reduce((sum, cabinet) => sum + parseDrawerCount(cabinet.drawers), 0);
   const drawerQty = availability.available ? parsedDrawerQty || eligibleCabinetCount : 0;
-  const sku = availability.direction
-    ? buildBookMatchingSku({
-        direction: availability.direction,
-        materialSku,
-      })
-    : null;
+  const sku =
+    availability.direction && skuProfile
+      ? buildBookMatchingSku(skuProfile, {
+          direction: availability.direction,
+          materialSku,
+        })
+      : null;
 
   return {
     eligibleCabinetCount,

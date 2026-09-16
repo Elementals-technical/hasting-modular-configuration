@@ -208,6 +208,19 @@ export type VesselCompatibilityRuleData = {
 };
 
 /**
+ * How a cabinet colour of the configurator is read into the material and finish the fluting
+ * and grain rules check. The configurator carries neither as a field of its own.
+ */
+export type CabinetColorTraitsRuleData = {
+  /** Variant SKU, compared trimmed and upper-cased -> material token ("ESS" -> "Essenze"). */
+  materialBySku: Record<string, string>;
+  /** Material tokens preferred among the option's own material labels when the SKU is not mapped. */
+  knownMaterials: string[];
+  /** Finish codes found as whole words in the colour name, its label or its option name. */
+  finishCodes: string[];
+};
+
+/**
  * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
@@ -226,6 +239,7 @@ export type ProfileRuleData = {
   countertopFallbacks?: CountertopFallbacksRuleData;
   materialNormalization?: MaterialNormalizationRuleData;
   vesselCompatibility?: VesselCompatibilityRuleData;
+  cabinetColorTraits?: CabinetColorTraitsRuleData;
 };
 
 /** Stable reason codes -> legacy English fallback. B owns display and translation. */
