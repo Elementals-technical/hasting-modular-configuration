@@ -4,11 +4,11 @@ Allow a registered collection that intentionally omits runtime bindings to load 
 
 ## Acceptance criteria
 
-- [ ] The runtime bridge does not construct or fetch a bindings URL independently of the active collection manifest.
-- [ ] A ready collection without runtime bindings causes no failed bindings request and exposes no bindings to the runtime port.
-- [ ] Urban Standard Height still publishes its validated runtime bindings to the production runtime port path.
-- [ ] Switching from a collection with bindings to one without bindings clears the previously loaded table.
-- [ ] Relevant tests, TypeScript validation, and changed-file lint pass.
+- [x] The runtime bridge does not construct or fetch a bindings URL independently of the active collection manifest.
+- [x] A ready collection without runtime bindings causes no failed bindings request and exposes no bindings to the runtime port.
+- [x] Urban Standard Height still publishes its validated runtime bindings to the production runtime port path.
+- [x] Switching from a collection with bindings to one without bindings clears the previously loaded table.
+- [x] Relevant tests, TypeScript validation, and changed-file lint pass.
 
 ## Blocked by
 

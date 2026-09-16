@@ -6,7 +6,6 @@ import { useActiveCollection } from "@/entities/collection";
 import { useLazyRestoreConfigurationQuery } from "@/entities/configuration";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
-import { getLoadedRuntimeBindings, loadRuntimeBindings } from "@/features/playCanvasAdapter/lib/runtimeBindingsCache";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
@@ -30,6 +29,7 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   const canvasReady = usePlayCanvasReady();
   const collection = useActiveCollection();
   const collectionId = collection.status === "ready" ? collection.data.id : null;
+  const runtimeBindings = collection.status === "ready" ? (collection.data.catalog.runtimeBindings ?? null) : null;
   const [loadConfiguration] = useLazyRestoreConfigurationQuery();
 
   // The page callback changes with the page's state; the restore calls the latest one.
@@ -42,16 +42,13 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
     if (!configId || !canvasReady || !collectionId) return;
 
     void (async () => {
-      // Preflight checks product types against the collection's bindings, so they must be loaded.
-      await loadRuntimeBindings(collectionId);
-
       await restoreSavedConfiguration(configId, {
         dispatch,
         getState: store.getState,
         loadRecord: (id) => loadConfiguration(id).unwrap(),
-        restorer: createSceneRestorer({ getBindings: () => getLoadedRuntimeBindings(collectionId) }),
+        restorer: createSceneRestorer({ getBindings: () => runtimeBindings }),
         applyPage: (plan, matches) => applyPageRef.current(plan, matches),
       });
     })();
-  }, [canvasReady, collectionId, configId, dispatch, loadConfiguration, store]);
+  }, [canvasReady, collectionId, configId, dispatch, loadConfiguration, runtimeBindings, store]);
 };

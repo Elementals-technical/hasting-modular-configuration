@@ -18,6 +18,10 @@ export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRes
 export { createTestSceneRestorer } from "./lib/testSceneRestorer";
 export type { TestSceneRestorer } from "./lib/testSceneRestorer";
 
-// TODO(A07): temporary runtime-bindings loader.
-export { getLoadedRuntimeBindings, loadRuntimeBindings, resetRuntimeBindingsCache } from "./lib/runtimeBindingsCache";
+// Validated active bindings for non-React scene services.
+export {
+  getLoadedRuntimeBindings,
+  replaceLoadedRuntimeBindings,
+  resetRuntimeBindingsCache,
+} from "./lib/runtimeBindingsCache";
 export { RuntimeBindingsBridge } from "./ui/RuntimeBindingsBridge";

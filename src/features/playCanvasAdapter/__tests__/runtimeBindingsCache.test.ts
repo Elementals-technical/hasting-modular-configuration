@@ -1,44 +1,40 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { parseRuntimeBindings } from "@/entities/collection";
 
 import ushRuntimeBindingsDocument from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 
-import { getLoadedRuntimeBindings, loadRuntimeBindings, resetRuntimeBindingsCache } from "../lib/runtimeBindingsCache";
+import {
+  getLoadedRuntimeBindings,
+  replaceLoadedRuntimeBindings,
+  resetRuntimeBindingsCache,
+} from "../lib/runtimeBindingsCache";
 
-const ORIGIN = "https://app.test";
-
-describe("runtimeBindingsCache (temporary, until A07)", () => {
+describe("runtimeBindingsCache", () => {
   beforeEach(() => {
     resetRuntimeBindingsCache();
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  it("publishes the validated table supplied by the active collection", () => {
+    const parsed = parseRuntimeBindings(ushRuntimeBindingsDocument);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    replaceLoadedRuntimeBindings("urban-standard-height", parsed.bindings);
+
+    expect(getLoadedRuntimeBindings("urban-standard-height")).toBe(parsed.bindings);
+    expect(getLoadedRuntimeBindings("class")).toBeNull();
   });
 
-  it("loads the collection's table from its folder once", async () => {
-    const fetchJson = vi.fn(async () => ushRuntimeBindingsDocument);
+  it("clears the previous table when the next collection declares no bindings", () => {
+    const parsed = parseRuntimeBindings(ushRuntimeBindingsDocument);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
 
-    const first = await loadRuntimeBindings("urban-standard-height", fetchJson, ORIGIN);
-    await loadRuntimeBindings("urban-standard-height", fetchJson, ORIGIN);
-
-    expect(first?.collectionId).toBe("urban-standard-height");
-    expect(getLoadedRuntimeBindings("urban-standard-height")).toBe(first);
-    expect(fetchJson).toHaveBeenCalledTimes(1);
-    expect(fetchJson).toHaveBeenCalledWith(
-      `${ORIGIN}/collections/urban-standard-height/runtime-bindings.json`,
-      expect.any(AbortSignal),
-    );
-  });
-
-  it("gives no table for a broken document or one of another collection, and retries later", async () => {
-    const broken = vi.fn(async () => ({ collectionId: "urban-standard-height" }));
-    expect(await loadRuntimeBindings("urban-standard-height", broken, ORIGIN)).toBeNull();
-
-    const foreign = vi.fn(async () => ({ ...ushRuntimeBindingsDocument, collectionId: "mako" }));
-    expect(await loadRuntimeBindings("urban-standard-height", foreign, ORIGIN)).toBeNull();
+    replaceLoadedRuntimeBindings("urban-standard-height", parsed.bindings);
+    replaceLoadedRuntimeBindings("class", null);
 
     expect(getLoadedRuntimeBindings("urban-standard-height")).toBeNull();
-    expect(foreign).toHaveBeenCalledTimes(1);
+    expect(getLoadedRuntimeBindings("class")).toBeNull();
   });
 });

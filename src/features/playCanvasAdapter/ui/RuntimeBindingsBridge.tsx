@@ -2,19 +2,20 @@ import { useEffect } from "react";
 
 import { useActiveCollection } from "@/entities/collection";
 
-import { loadRuntimeBindings } from "../lib/runtimeBindingsCache";
+import { replaceLoadedRuntimeBindings } from "../lib/runtimeBindingsCache";
 
 /**
- * TODO(A07): loads the active collection's runtime bindings for the scene adapter.
- * Renders nothing. Remove together with runtimeBindingsCache once A's loader exposes them.
+ * Publishes the active collection's already validated runtime bindings to scene services
+ * that cannot read React context. It never constructs a collection URL or fetches data.
  */
 export const RuntimeBindingsBridge = () => {
   const collection = useActiveCollection();
-  const collectionId = collection.status === "ready" ? collection.data.id : null;
+  const data = collection.status === "ready" ? collection.data : null;
 
   useEffect(() => {
-    if (collectionId) void loadRuntimeBindings(collectionId);
-  }, [collectionId]);
+    replaceLoadedRuntimeBindings(data?.id ?? null, data?.catalog.runtimeBindings ?? null);
+    return () => replaceLoadedRuntimeBindings(null, null);
+  }, [data]);
 
   return null;
 };
