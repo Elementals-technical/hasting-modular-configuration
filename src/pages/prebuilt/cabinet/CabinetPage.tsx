@@ -23,7 +23,6 @@ import {
   setCabinetColorFinish,
   setCabinetColorMaterial,
   setBookMatching,
-  setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
   setHandleGrooveColorSku,
@@ -58,7 +57,8 @@ import {
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { useGetConfiguratorQuery } from "@/entities";
 import { hasCapability } from "@/entities/collection";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import { useChangeAttribute } from "@/features/configurationCommands";
 import {
   getConfiguratorVariantOverrides,
   isHiddenConfiguratorDisplayValue,
@@ -77,6 +77,7 @@ export const CabinetPage = () => {
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
   const saveSnapshot = useHistorySnapshot();
+  const { change: changeAttributeValue, getState: getCommandState } = useChangeAttribute();
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCabinetColor = useAppSelector(getCabinetColor);
@@ -580,26 +581,18 @@ export const CabinetPage = () => {
 
   const handleChangeDrawerPanelFluting = async (value: string) => {
     if (!value) return;
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+    if (!cabinetId) return;
     await saveSnapshot();
-    await setConfigBatch(
-      {},
-      {
-        DrawerPanelFluting: value,
-      },
-    );
-    dispatch(setDrawerPanelFluting(value));
+    await changeAttributeValue({ attributeId: "DrawerPanelFluting", value, scope: "cabinet", cabinetId });
   };
 
   const handleChangeGrainDirection = async (value: string) => {
     if (!value) return;
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+    if (!cabinetId) return;
     await saveSnapshot();
-    await setConfigBatch(
-      {},
-      {
-        GrainDirection: value,
-      },
-    );
-    dispatch(setGrainDirection(value));
+    await changeAttributeValue({ attributeId: "GrainDirection", value, scope: "cabinet", cabinetId });
   };
 
   const handleToggleBookMatching = (checked: boolean) => {

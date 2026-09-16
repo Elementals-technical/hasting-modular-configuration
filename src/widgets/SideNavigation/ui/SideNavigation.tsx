@@ -1,8 +1,8 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
 import { close, toggle } from "@/features/sidebar/model/store/slice";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { useCollectionNavigation, withPreservedCollectionId } from "@/features/collectionCustomization";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight.tsx";
@@ -19,6 +19,7 @@ type SideNavigationProps = {
 export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
   const navigation = useCollectionNavigation(flow);
   const steps = navigation?.steps ?? [];
+  const location = useLocation();
 
   const dispatch = useAppDispatch();
   const isSidebarOpen = useAppSelector(getIsOpenSidebar);
@@ -54,7 +55,7 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
         {steps.map((step) => (
           <li key={step.stepId}>
             <NavLink
-              to={step.path}
+              to={withPreservedCollectionId(step.path, location.search)}
               className={({ isActive }) => `${s.navItem} ${isActive ? s.active : ""}`.trim()}
               onClick={() => {
                 closeDrawerInteraction();

@@ -2,11 +2,16 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 
 import s from "./BottomStickyBar.module.scss";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { Link, useLocation } from "react-router-dom";
+import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { type PropsWithChildren, useEffect, useState } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { getActiveSkus, getPriceLoading, getPriceStatus, getPriceTotal } from "@/entities/product/model/store/selectors";
+import {
+  getActiveSkus,
+  getPriceLoading,
+  getPriceStatus,
+  getPriceTotal,
+} from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
@@ -33,7 +38,7 @@ const isMobileQuoteButtonVisible = () =>
 
 export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useStepNavigate();
   const navigation = useCollectionNavigation(flow ?? "prebuilt");
 
   const priceTotal = useAppSelector(getPriceTotal);
@@ -140,11 +145,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
           <span className={s.total_text}>Total List Price</span>
           <span className={s.priceBlock}>
             <span className={s.priceValue} aria-label={isDisplayedPriceLoading ? undefined : fullPriceLabel}>
-              {isDisplayedPriceLoading ? (
-                <span className={s.priceSpinner} />
-              ) : (
-                fullPriceLabel
-              )}
+              {isDisplayedPriceLoading ? <span className={s.priceSpinner} /> : fullPriceLabel}
             </span>
             {isPriceIncomplete && <span className={s.priceIncomplete}>Incomplete price</span>}
           </span>

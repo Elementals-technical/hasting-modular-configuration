@@ -8,7 +8,7 @@ import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBa
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { useCollectionNavigation, withPreservedCollectionId } from "@/features/collectionCustomization";
 import { setIsDrawerOpen } from "@/entities/product/model/store/slice";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 
@@ -50,7 +50,11 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
   return (
     <div className={s.configSidebar} data-flow={flow}>
       {summaryStep && !isSummaryPage && (
-        <Link className={s.summaryViewBtn} to={summaryStep.path} onClick={closeDrawerInteraction}>
+        <Link
+          className={s.summaryViewBtn}
+          to={withPreservedCollectionId(summaryStep.path, location.search)}
+          onClick={closeDrawerInteraction}
+        >
           <span>Summary View</span>
           <span aria-hidden="true">→</span>
         </Link>

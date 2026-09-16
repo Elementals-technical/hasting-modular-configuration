@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
-import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -96,6 +95,7 @@ import {
   selectEffectiveFallback,
   selectOptionsByCapability,
   useActiveCollection,
+  useCollectionPresets,
 } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
@@ -246,6 +246,11 @@ export const CabinetBuilderPage = () => {
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
+  // The cabinet matrix arrives with the active collection: the page no longer knows the
+  // table id, and a collection that is still loading yields no catalog rather than an
+  // empty one.
+  const activeCollection = useActiveCollection();
+  const presets = useCollectionPresets();
 
   const { pathname, search, key: locationKey } = useLocation();
   const navigate = useNavigate();
@@ -265,8 +270,8 @@ export const CabinetBuilderPage = () => {
   }, [searchParams]);
   const presetFromUrl = useMemo(() => {
     if (presetIdFromUrl === null) return null;
-    return productMockData.find((item) => item.id === presetIdFromUrl) ?? null;
-  }, [presetIdFromUrl]);
+    return presets.find((preset) => preset.id === presetIdFromUrl) ?? null;
+  }, [presetIdFromUrl, presets]);
   const customPresetBootstrapKey = presetFromUrl ? String(presetFromUrl.id) : null;
 
   const activeCabinetType = useAppSelector(getActiveCabinetType);
@@ -296,10 +301,6 @@ export const CabinetBuilderPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
 
-  // The cabinet matrix arrives with the active collection: the page no longer knows the
-  // table id, and a collection that is still loading yields no catalog rather than an
-  // empty one.
-  const activeCollection = useActiveCollection();
   const isMatrixLoading = activeCollection.status === "resolving" || activeCollection.status === "loading";
 
   const saveSnapshot = useHistorySnapshot();

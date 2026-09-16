@@ -22,6 +22,7 @@ import {
 import { ROUTES } from "@/shared";
 import { SummaryPage } from "@/pages/prebuilt/summary/SummaryPage";
 import { CollectionRouterRoot } from "./CollectionRouterRoot";
+import { FlowEntryRedirect } from "./FlowEntryRedirect";
 
 export const routerConfig = createBrowserRouter([
   {
@@ -33,12 +34,12 @@ export const routerConfig = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="prebuilt/model" replace />,
+            element: <Navigate to="prebuilt" replace />,
           },
           {
             path: ROUTES.PREBUILT.slice(1),
             children: [
-              { index: true, element: <Navigate to="model" replace /> },
+              { index: true, element: <FlowEntryRedirect flow="prebuilt" /> },
               {
                 path: "model",
                 element: <ModelPage />,
@@ -49,12 +50,13 @@ export const routerConfig = createBrowserRouter([
               { path: "accessories", element: <AccessoriesPage /> },
               { path: "faucet-holes", element: <FaucetPage /> },
               { path: "summary", element: <SummaryPage /> },
+              { path: "*", element: <FlowEntryRedirect flow="prebuilt" /> },
             ],
           },
           {
             path: ROUTES.CUSTOM.slice(1),
             children: [
-              { index: true, element: <Navigate to="cabinet-builder" replace /> },
+              { index: true, element: <FlowEntryRedirect flow="custom" /> },
               { path: "cabinet-builder", element: <CabinetBuilderPage /> },
               { path: "cabinet-builder/details/style", element: <CabinetStyleDetailsPage /> },
               { path: "cabinet-colors", element: <CustomCabinetColorsPage /> },
@@ -62,6 +64,7 @@ export const routerConfig = createBrowserRouter([
               { path: "accessories", element: <CustomAccessoriesPage /> },
               { path: "faucet-holes", element: <CustomFaucetHolesPage /> },
               { path: "summary", element: <CustomSummaryPage /> },
+              { path: "*", element: <FlowEntryRedirect flow="custom" /> },
             ],
           },
         ],
