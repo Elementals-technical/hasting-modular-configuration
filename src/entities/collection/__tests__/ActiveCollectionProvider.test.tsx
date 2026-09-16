@@ -7,7 +7,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import { CollectionStateBridge } from "@/entities/configuration";
-import { RuntimeBindingsBridge } from "@/features/playCanvasAdapter";
 
 import productionRegistry from "../../../../public/collections/registry.json";
 import productionManifest from "../../../../public/collections/urban-standard-height/manifest.json";
@@ -153,7 +152,6 @@ const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDep
         element: (
           <ActiveCollectionProvider dependencies={dependencies}>
             {includeBridges && <CollectionStateBridge />}
-            {includeBridges && <RuntimeBindingsBridge />}
             <CollectionConsumer />
           </ActiveCollectionProvider>
         ),

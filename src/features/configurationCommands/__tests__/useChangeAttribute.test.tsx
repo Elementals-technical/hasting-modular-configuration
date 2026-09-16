@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { ReadyCollectionContext } from "@/entities/collection";
 import { resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -21,6 +22,7 @@ import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 
 import { useChangeAttribute } from "../hooks/useChangeAttribute";
 import type { ChangeResult } from "../model/types";
+import { readyCollectionFixture } from "./readyCollectionFixture";
 
 const matrix = {
   rows: [
@@ -42,9 +44,11 @@ const matrix = {
 
 const renderOnRoute = (path: string, runtime = createTestRuntimePort()) => {
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <Provider store={store}>
-      <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>
-    </Provider>
+    <ReadyCollectionContext.Provider value={readyCollectionFixture}>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>
+      </Provider>
+    </ReadyCollectionContext.Provider>
   );
 
   return { runtime, ...renderHook(() => useChangeAttribute({ runtime: runtime.port }), { wrapper }) };

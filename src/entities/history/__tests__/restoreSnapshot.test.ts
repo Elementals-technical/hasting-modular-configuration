@@ -59,7 +59,12 @@ describe("history snapshot restore", () => {
     const snapshot = await captureSnapshot(getState);
     const { restorer, requests } = createTestSceneRestorer();
 
-    const result = await restoreSnapshot(snapshot, { dispatch: store.dispatch, getState, restorer });
+    const result = await restoreSnapshot(snapshot, {
+      dispatch: store.dispatch,
+      getState,
+      getBindings: () => null,
+      restorer,
+    });
 
     expect(result.status).toBe("restored");
     expect(requests[0].products.map(({ sourceId, config }) => [sourceId, config?.Width])).toEqual([
@@ -80,7 +85,12 @@ describe("history snapshot restore", () => {
     const { restorer, setIssues } = createTestSceneRestorer();
     setIssues([{ code: "invalid-config", sourceId: "rt-a", message: "no config" }]);
 
-    const result = await restoreSnapshot(snapshot, { dispatch: store.dispatch, getState, restorer });
+    const result = await restoreSnapshot(snapshot, {
+      dispatch: store.dispatch,
+      getState,
+      getBindings: () => null,
+      restorer,
+    });
 
     expect(result.status).toBe("rejected");
     expect(store.getState().rootStateUI.product.productIds).toEqual(["rt-a", "rt-b"]);
@@ -98,7 +108,12 @@ describe("history snapshot restore", () => {
       scene: { status: "ready", order: ["new-rt-b"], cabinets: [] },
     });
 
-    const result = await restoreSnapshot(snapshot, { dispatch: store.dispatch, getState, restorer });
+    const result = await restoreSnapshot(snapshot, {
+      dispatch: store.dispatch,
+      getState,
+      getBindings: () => null,
+      restorer,
+    });
 
     expect(result.status).toBe("partial");
     expect(store.getState().rootStateUI.product.productIds).toEqual(["new-rt-b"]);

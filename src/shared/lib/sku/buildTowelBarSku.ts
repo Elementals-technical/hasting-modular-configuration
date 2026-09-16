@@ -1,4 +1,5 @@
 import { cmToInches } from "./cmToInches";
+import type { SkuProfile } from "./skuProfile";
 
 export type TowelBarSkuInput = {
   /** "L" (left) or "R" (right) */
@@ -14,7 +15,6 @@ export type TowelBarSkuInput = {
 
 const FALLBACK = "X";
 const CATEGORY = "VAN";
-const SERIES = "URTWLBR";
 
 /** Side config codes */
 const sideConfigMap: Record<string, string> = {
@@ -45,7 +45,7 @@ export const TOWEL_BAR_DEFAULTS = { width: 40, height: 3.5, depth: 5 } as const;
  * VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT
  * VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT
  */
-export function buildTowelBarSku(input: TowelBarSkuInput): string | null {
+export function buildTowelBarSku(profile: SkuProfile, input: TowelBarSkuInput): string | null {
   const mat = input.materialSku?.trim();
   if (!mat) return null;
   const color = normalizeTowelBarColorCode(input.colorCode);
@@ -57,6 +57,6 @@ export function buildTowelBarSku(input: TowelBarSkuInput): string | null {
   const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
 
   return color
-    ? `${CATEGORY}-${SERIES}-${config}-${w}-${h}-${d}-${mat}-${color}`
-    : `${CATEGORY}-${SERIES}-${config}-${w}-${h}-${d}-${mat}`;
+    ? `${CATEGORY}-${profile.series.towelBar}-${config}-${w}-${h}-${d}-${mat}-${color}`
+    : `${CATEGORY}-${profile.series.towelBar}-${config}-${w}-${h}-${d}-${mat}`;
 }

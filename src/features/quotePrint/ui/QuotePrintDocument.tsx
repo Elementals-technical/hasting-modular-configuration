@@ -33,6 +33,8 @@ type QuotePrintDocumentProps = {
   generatedDate: string;
   configurationLink: string;
   configurationId?: string | null;
+  /** The order total; the item prices are summed only when it is not given. */
+  totalPrice?: number;
 };
 
 const EMPTY_PREVIEW_IMAGE =
@@ -552,13 +554,16 @@ export const QuotePrintDocument = ({
   generatedDate,
   configurationLink,
   configurationId,
+  totalPrice: orderTotalPrice,
 }: QuotePrintDocumentProps) => {
   const previewImageSrc = previewImage || EMPTY_PREVIEW_IMAGE;
   const displayConfigurationId = configurationId || resolveQuoteConfigurationIdFromUrl(configurationLink);
-  const totalPrice = summarySections.reduce((acc, section) => {
-    const sectionSum = section.items.reduce((sum, item) => sum + parsePriceValue(item.price), 0);
-    return acc + sectionSum;
-  }, 0);
+  const totalPrice =
+    orderTotalPrice ??
+    summarySections.reduce((acc, section) => {
+      const sectionSum = section.items.reduce((sum, item) => sum + parsePriceValue(item.price), 0);
+      return acc + sectionSum;
+    }, 0);
   const specPages = buildSpecPages(summarySections);
 
   return (

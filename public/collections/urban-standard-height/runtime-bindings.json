@@ -73,10 +73,11 @@
       },
       "values": {
         "kind": "identity",
-        "sceneKey": "DrawerPanelFluting"
+        "sceneKey": "DrawerPanelFluting",
+        "emptyValue": "None"
       },
       "order": 50,
-      "note": "Prebuilt sends to every product ({}, CabinetPage.tsx); custom only to the placed cabinets (productIds via getSelectedProducts, custom/cabinetColors). \"None\" clears it."
+      "note": "Prebuilt sends to every product ({}, CabinetPage.tsx); custom only to the placed cabinets (productIds via getSelectedProducts, custom/cabinetColors). \"None\" clears it; state stores a cleared fluting as \"\" (optionsListener.ts), which the pages send as \"None\"."
     },
     {
       "attributeId": "GrainDirection",

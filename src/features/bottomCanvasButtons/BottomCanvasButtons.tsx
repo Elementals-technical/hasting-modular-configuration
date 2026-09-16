@@ -21,7 +21,7 @@ import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
-import { RESTORE_INCOMPLETE_SAVE_MESSAGE, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
+import { getSaveFailureMessage, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -37,6 +37,7 @@ import {
 import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
+import { useActiveCollection } from "@/entities/collection";
 import type { SceneRestoreResult } from "@/entities/configuration";
 import { store, type RootState } from "@/app/store";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
@@ -87,6 +88,7 @@ export const BottomCanvasButtons = () => {
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
   // const cabinetCatalog = useAppSelector(getCabinetCatalog);
+  const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
@@ -147,6 +149,7 @@ export const BottomCanvasButtons = () => {
       const result = await restoreSnapshot(lastPastSnapshot, {
         dispatch,
         getState: () => store.getState() as RootState,
+        getBindings: () => runtimeBindings,
       });
       if (!isSceneRebuilt("[History] Undo", result)) return;
       dispatch(undo(currentSnapshot));
@@ -172,6 +175,7 @@ export const BottomCanvasButtons = () => {
       const result = await restoreSnapshot(lastFutureSnapshot, {
         dispatch,
         getState: () => store.getState() as RootState,
+        getBindings: () => runtimeBindings,
       });
       if (!isSceneRebuilt("[History] Redo", result)) return;
       dispatch(redo(currentSnapshot));
@@ -251,7 +255,7 @@ export const BottomCanvasButtons = () => {
       const result = await saveCurrentConfiguration();
 
       if (!result.ok) {
-        const message = result.reason === "restore-incomplete" ? RESTORE_INCOMPLETE_SAVE_MESSAGE : "No products to save";
+        const message = getSaveFailureMessage(result.reason);
         console.warn(`[Configurations] ${message}`);
 
         setShareValue(message);

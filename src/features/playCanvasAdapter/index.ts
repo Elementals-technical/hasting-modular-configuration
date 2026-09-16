@@ -17,11 +17,3 @@ export { createSceneRestorer, resolveSceneProductType } from "./lib/createSceneR
 export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRestorer";
 export { createTestSceneRestorer } from "./lib/testSceneRestorer";
 export type { TestSceneRestorer } from "./lib/testSceneRestorer";
-
-// Validated active bindings for non-React scene services.
-export {
-  getLoadedRuntimeBindings,
-  replaceLoadedRuntimeBindings,
-  resetRuntimeBindingsCache,
-} from "./lib/runtimeBindingsCache";
-export { RuntimeBindingsBridge } from "./ui/RuntimeBindingsBridge";

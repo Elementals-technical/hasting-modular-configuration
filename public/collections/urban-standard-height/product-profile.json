@@ -149,6 +149,7 @@
     {
       "attributeId": "GrainDirection",
       "scope": "cabinet",
+      "initialValue": "",
       "options": [
         { "value": "GrainHorizontal", "label": "Horizontal", "order": 10 },
         { "value": "GrainVertical", "label": "Vertical", "order": 20 }
@@ -375,6 +376,11 @@
       }
     },
     "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "cabinetColorTraits": {
+      "materialBySku": { "ESS": "Essenze", "HPL": "HPL", "3D": "3D", "LACM": "LACM", "LACG": "LACG", "ST": "ST", "BM": "BM" },
+      "knownMaterials": ["Essenze", "HPL", "3D"],
+      "finishCodes": ["TKP", "TKQ", "TKN", "10B", "10F", "10G", "10N", "1PE", "1A1", "1A2", "1A3", "1A4", "1A5"]
+    },
     "grainDirection": {
       "eligibleMaterials": ["Essenze", "HPL", "3D"],
       "excludedFinishesByMaterial": {

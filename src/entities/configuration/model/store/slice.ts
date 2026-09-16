@@ -8,6 +8,7 @@ import type {
   CabinetEntry,
   ConfigurationSnapshot,
   ConfigurationState,
+  RestoreFailureReason,
   RestoreStatus,
   StableCabinetKey,
   ValueTarget,
@@ -40,7 +41,7 @@ const initialState: ConfigurationState = {
   nextCabinetSeq: 1,
   dimensionsByCabinet: {},
   valuesByAttributeId: {},
-  restore: { configId: null, status: "idle", message: null },
+  restore: { configId: null, status: "idle", reason: null, message: null },
 };
 
 const configurationSlice = createSlice({
@@ -178,12 +179,21 @@ const configurationSlice = createSlice({
     },
 
     startRestore(state, action: PayloadAction<string>) {
-      state.restore = { configId: action.payload, status: "restoring", message: null };
+      state.restore = { configId: action.payload, status: "restoring", reason: null, message: null };
+    },
+
+    /** A restore that could not start, e.g. because its collection failed to load. */
+    failRestore(state, action: PayloadAction<{ configId: string; reason: RestoreFailureReason; message: string }>) {
+      state.restore = { ...action.payload, status: "failed" };
     },
 
     finishRestore(
       state,
-      action: PayloadAction<{ status: Extract<RestoreStatus, "restored" | "partial" | "failed">; message: string | null }>,
+      action: PayloadAction<{
+        status: Extract<RestoreStatus, "restored" | "partial" | "failed">;
+        reason: RestoreFailureReason | null;
+        message: string | null;
+      }>,
     ) {
       state.restore = { ...state.restore, ...action.payload };
     },
@@ -206,6 +216,7 @@ export const {
   restoreConfigurationFragment,
   resetConfiguration,
   startRestore,
+  failRestore,
   finishRestore,
   clearRestore,
 } = configurationSlice.actions;

@@ -22,7 +22,7 @@ const isSamePlan = (a: readonly PlannedChange[], b: readonly PlannedChange[]): b
 
 export const confirmAttributeChange = async (
   preview: ChangePreview,
-  { getState, dispatch, runtime, flow }: ChangeAttributeDeps,
+  { getState, dispatch, runtime, flow, configurator }: ChangeAttributeDeps,
 ): Promise<ChangeResult> => {
   const state = getState();
   const evaluation = evaluateChange(preview.change, state);
@@ -37,5 +37,12 @@ export const confirmAttributeChange = async (
     };
   }
 
-  return applyPlan(evaluation.plan, { state, dispatch, runtime, flow, collectionId: evaluation.collectionId });
+  return applyPlan(evaluation.plan, {
+    state,
+    dispatch,
+    runtime,
+    flow,
+    collectionId: evaluation.collectionId,
+    configurator,
+  });
 };

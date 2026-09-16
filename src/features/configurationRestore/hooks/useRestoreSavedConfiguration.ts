@@ -27,9 +27,7 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   const store = useStore<RootState>();
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
-  const collection = useActiveCollection();
-  const collectionId = collection.id;
-  const runtimeBindings = collection.catalog.runtimeBindings ?? null;
+  const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
   const [loadConfiguration] = useLazyRestoreConfigurationQuery();
 
   // The page callback changes with the page's state; the restore calls the latest one.
@@ -39,16 +37,14 @@ export const useRestoreSavedConfiguration = ({ configId, applyPage }: UseRestore
   }, [applyPage]);
 
   useEffect(() => {
-    if (!configId || !canvasReady || !collectionId) return;
+    if (!configId || !canvasReady) return;
 
-    void (async () => {
-      await restoreSavedConfiguration(configId, {
-        dispatch,
-        getState: store.getState,
-        loadRecord: (id) => loadConfiguration(id).unwrap(),
-        restorer: createSceneRestorer({ getBindings: () => runtimeBindings }),
-        applyPage: (plan, matches) => applyPageRef.current(plan, matches),
-      });
-    })();
-  }, [canvasReady, collectionId, configId, dispatch, loadConfiguration, runtimeBindings, store]);
+    void restoreSavedConfiguration(configId, {
+      dispatch,
+      getState: store.getState,
+      loadRecord: (id) => loadConfiguration(id).unwrap(),
+      restorer: createSceneRestorer({ getBindings: () => runtimeBindings }),
+      applyPage: (plan, matches) => applyPageRef.current(plan, matches),
+    });
+  }, [canvasReady, configId, dispatch, loadConfiguration, runtimeBindings, store]);
 };

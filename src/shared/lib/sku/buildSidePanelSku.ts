@@ -1,4 +1,5 @@
 import { cmToInches } from "./cmToInches";
+import type { SkuProfile } from "./skuProfile";
 import { toSkuDepth } from "./toSkuDepth";
 
 export type SidePanelSkuInput = {
@@ -22,7 +23,6 @@ export type SidePanelSkuInput = {
 
 const FALLBACK = "X";
 const CATEGORY = "VAN";
-const SERIES = "URSP";
 
 /** Side-panel groove type → pricing code for the URSP SKU */
 const sidePanelPricingMap: Record<string, string> = {
@@ -43,7 +43,7 @@ export const SIDE_PANEL_WIDTH_CM = 1;
  * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-CAB-LACM-90-HDL-LACM-DD
  * (1cm wide, 53cm tall, 50cm deep, cabinet LACM/90, handle groove LACM/DD)
  */
-export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
+export function buildSidePanelSku(profile: SkuProfile, input: SidePanelSkuInput): string | null {
   if (!input.panelType || input.panelType === "None") return null;
 
   const code = sidePanelPricingMap[input.panelType] ?? FALLBACK;
@@ -76,5 +76,5 @@ export function buildSidePanelSku(input: SidePanelSkuInput): string | null {
 
   const elementsSuffix = triplets.length ? `-${triplets.join("-")}` : "";
 
-  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}${elementsSuffix}`;
+  return `${CATEGORY}-${profile.series.sidePanel}-${code}-${w}-${h}-${d}${elementsSuffix}`;
 }

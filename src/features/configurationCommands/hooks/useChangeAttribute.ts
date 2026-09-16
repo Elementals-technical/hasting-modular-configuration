@@ -3,10 +3,10 @@ import { useStore } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import type { RootState } from "@/app/store";
+import { useActiveCollection } from "@/entities/collection";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfigurationRuntimePort } from "@/entities/configuration";
-import { getActiveCollectionId } from "@/entities/configuration/model/store/selectors";
-import { createPlayCanvasRuntimePort, getLoadedRuntimeBindings } from "@/features/playCanvasAdapter";
+import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
 import { changeAttribute, type ChangeAttributeDeps } from "../lib/changeAttribute";
@@ -29,20 +29,17 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
   const { pathname } = useLocation();
   const flow: RuntimeFlow = pathname.includes("/custom") ? "custom" : "prebuilt";
 
+  const collection = useActiveCollection();
+  const bindings = collection.catalog.runtimeBindings ?? null;
+  const configurator = collection.catalog.configurator;
+
   const runtime = useMemo(
-    () =>
-      runtimeOverride ??
-      createPlayCanvasRuntimePort({
-        getBindings: () => {
-          const collectionId = getActiveCollectionId(store.getState());
-          return collectionId ? getLoadedRuntimeBindings(collectionId) : null;
-        },
-      }),
-    [runtimeOverride, store],
+    () => runtimeOverride ?? createPlayCanvasRuntimePort({ getBindings: () => bindings }),
+    [bindings, runtimeOverride],
   );
 
   return useMemo(() => {
-    const deps: ChangeAttributeDeps = { getState: store.getState, dispatch, runtime, flow };
+    const deps: ChangeAttributeDeps = { getState: store.getState, dispatch, runtime, flow, configurator };
 
     return {
       change: (change: AttributeChange): Promise<ChangeResult> => changeAttribute(change, deps),
@@ -50,5 +47,5 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
       /** Current state, for reading what a change should address at the moment it is made. */
       getState: store.getState,
     };
-  }, [dispatch, flow, runtime, store]);
+  }, [configurator, dispatch, flow, runtime, store]);
 };

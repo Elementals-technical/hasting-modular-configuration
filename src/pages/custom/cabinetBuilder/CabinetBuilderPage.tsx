@@ -247,7 +247,7 @@ export const CabinetBuilderPage = () => {
   const canvasReady = usePlayCanvasReady();
   const presets = useCollectionPresets();
 
-  const { pathname, key: locationKey } = useLocation();
+  const { pathname, search, key: locationKey } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
@@ -1399,10 +1399,12 @@ export const CabinetBuilderPage = () => {
       }
 
       if (restorePath) {
-        navigate(restorePath);
+        // Only the path changes: a changed query makes the collection provider reload the
+        // collection, and the bridge would reset the options restored above.
+        navigate({ pathname: restorePath, search });
       }
     },
-    [dispatch, navigate, resolveCabinetTypeId],
+    [dispatch, navigate, resolveCabinetTypeId, search],
   );
 
   // A configuration opened by id replaces the builder bootstrap: the preset and empty-builder

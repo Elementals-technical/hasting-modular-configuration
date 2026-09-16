@@ -1,92 +1,23 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import {
-  getActiveCabinetType,
-  getSelectedDimensions,
-  getSelectedProductConfig,
-  getSelectedProducts,
-  getCabinetColor,
-  getCabinetColorSku,
-  getHandleGrooveColor,
-  getHandleGrooveColorSku,
-  getActiveCountertopColor,
-  getCountertopColorSku,
-  getVesselColor,
-  getActiveCountertopThickness,
-  getCountertopStyle,
-  getSinkType,
-  getDrawerPanelFluting,
-  getGrainDirection,
-  getBookMatching,
-  getHasBootstrappedCabinetBuilder,
-  getProductsPresets,
-  getTowelBarOption,
-  getTowelBarColor,
-  getFaucetHolesAmount,
-  getSidePanelsOption,
-  getSidePanelLeftStatus,
-  getSidePanelRightStatus,
-  getCabinetCatalog,
-  getPlacedDividers,
-  getPlacedCabinetStyles,
-} from "@/entities/product/model/store/selectors";
-import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
-import {
-  getActiveProductProfile,
-  getCabinetEntries,
-  getDimensionsByCabinet,
-} from "@/entities/configuration/model/store/selectors";
-import {
-  buildProductSku,
-  buildCountertopSkuIfComplete,
-  buildVesselSku,
-  vesselHeightCmMap,
-  buildTowelBarSku,
-  buildSidePanelSku,
-  buildDividerSku,
-  buildOpenShelfSku,
-  buildOpenSideShelfSku,
-  TOWEL_BAR_DEFAULTS,
-  SIDE_PANEL_WIDTH_CM,
-  extractColorCode,
-  getCountertopMaterialTokensBySku,
-  getCountertopMaterialTokensFromBasinType,
-  buildCountertopColorSkuCandidates,
-  resolveDefaultBasinByCountertopColor,
-  resolveCountertopColorSkuFromCandidates,
-  resolveCountertopColorCodeFromCandidates,
-  resolveCabinetPricingMaterialSku,
-  resolveHandleGroovePricingMaterialSku,
-  resolveCountertopMaterialSkuFromBasinType,
-  resolveCountertopMaterialSkuFromColorCode,
-  resolveOpenSideShelfSide,
-} from "@/shared/lib/sku";
-import { useActiveCollection } from "@/entities/collection";
-import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
-import { calcTotalCountertopWidthCm, isCountertopTopDynamicCandidate } from "@/entities/countertop";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { isCountertopTopDynamicCandidate } from "@/entities/countertop";
 import { useLazyGetCountertopTopPriceBySkuQuery, type CountertopSkuPriceResponse } from "@/entities/countertop/api";
-import {
-  getAllowedVesselMaterialTokens,
-  isSyntesiCountertopMaterialSku,
-  normalizeMaterialToken,
-  resolveDefaultThicknessFromRules,
-  useCountertopRules,
-} from "@/features/configurator-rule-core/countertop";
 import {
   useLazyGetProductPriceBySkuQuery,
   useLazyGetProductPriceBySkuV2ResolveQuery,
   type ProductSkuPriceResponse,
 } from "@/entities/product/api";
-import { setActiveSkus, setPriceLoading, setSkuPrices } from "@/entities/product/model/store/priceStore";
-import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
-  normalizeProductConfigSnapshot,
-  type NormalizedProductConfigSnapshot,
-} from "@/shared/lib/normalizeProductConfigSnapshot";
-import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
-import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
+  setPriceLoading,
+  setPricingLines,
+  setPricingUnavailable,
+  setSkuPriceEntries,
+  setSkusLoading,
+  type SkuPriceEntry,
+} from "@/entities/product/model/store/priceStore";
+import { usePricingInput } from "@/shared/hooks/usePricingInput";
+import { buildPricingLines, expandLineSkus } from "@/shared/lib/pricing";
 
 // ── Price response helpers ──────────────────────────────
 
@@ -110,1057 +41,94 @@ const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
   return null;
 };
 
-// ── Types ────────────────────────────────────────────────
-
 // ── Hook ────────────────────────────────────────────────
 
 const DEBOUNCE_MS = 300;
 const LOG_PREFIX = "[SKU/Price]";
-const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
-const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
-const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
+/**
+ * Builds the order lines of the active configuration and prices them (D02).
+ *
+ * Mounted once in the configurator sidebar. The lines come from `buildPricingLines`; each SKU
+ * is requested once however many pieces use it, and every answer is recorded — a price, a
+ * missing price or an error — so the UI can tell a complete total from an incomplete one.
+ */
 export function usePriceCalculation() {
   const dispatch = useAppDispatch();
   const [triggerPriceBySku] = useLazyGetProductPriceBySkuQuery();
   const [triggerPriceBySkuV2Resolve] = useLazyGetProductPriceBySkuV2ResolveQuery();
   const [triggerCountertopTopPriceBySku] = useLazyGetCountertopTopPriceBySkuQuery();
-  const countertopWidthCmRef = useRef<number | null>(null);
+  const { input, canCalculate, refreshSceneConfigs } = usePricingInput();
+  const { skuBuilders } = input;
 
-  // ── Read all relevant state ───────────────────────────
-
-  const activeCabinetType = useAppSelector(getActiveCabinetType);
-  const selectedDimensions = useAppSelector(getSelectedDimensions);
-  // Actual size of each cabinet read from the scene (I04), so no cabinet borrows the selected one's.
-  const cabinetEntries = useAppSelector(getCabinetEntries);
-  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
-  const selectedProductConfig = useAppSelector(getSelectedProductConfig);
-  const productIds = useAppSelector(getSelectedProducts);
-
-  const cabinetColor = useAppSelector(getCabinetColor);
-  const cabinetColorSku = useAppSelector(getCabinetColorSku);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
-  const activeProfile = useAppSelector(getActiveProductProfile);
-  const handleGrooveColorSku = useAppSelector(getHandleGrooveColorSku);
-
-  const countertopColor = useAppSelector(getActiveCountertopColor);
-  const countertopColorSku = useAppSelector(getCountertopColorSku);
-  const vesselColor = useAppSelector(getVesselColor);
-  const countertopThickness = useAppSelector(getActiveCountertopThickness);
-  const countertopStyle = useAppSelector(getCountertopStyle);
-  const sinkType = useAppSelector(getSinkType);
-
-  const productsPresets = useAppSelector(getProductsPresets);
-  const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
-
-  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-
-  const grainDirection = useAppSelector(getGrainDirection);
-  const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
-  const bookMatching = useAppSelector(getBookMatching);
-
-  const towelBarOption = useAppSelector(getTowelBarOption);
-  const towelBarColor = useAppSelector(getTowelBarColor);
-
-  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-
-  const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
-  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const placedDividers = useAppSelector(getPlacedDividers);
-  const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
-  const activePlacedDividers = placedDividers;
-
-  const cabinetCatalog = useAppSelector(getCabinetCatalog);
-
-  /** Resolve a PlayCanvas product name (e.g. "SinkBase60") → catalog code ("Sink-Base") */
-  const resolveCabinetType = useCallback(
-    (productName: string | null): string | null => {
-      if (!productName) return null;
-      const normalized = normalizeCabinetToken(productName);
-      const match = cabinetCatalog.typeCabinetRules.find((rule) =>
-        normalized.includes(normalizeCabinetToken(rule.code)),
-      );
-      return match?.code ?? null;
-    },
-    [cabinetCatalog.typeCabinetRules],
-  );
-
-  // ── Fetch configs for all products on scene (custom path) ─
-
-  const [sceneConfigs, setSceneConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
-  const productIdsKey = productIds.join("|");
-
-  const fetchSceneConfigs = useCallback(async () => {
-    console.log(LOG_PREFIX, "fetchSceneConfigs called", {
-      productIds,
-      presetsCount: productsPresets.length,
-      hasBootstrappedCabinetBuilder,
-    });
-
-    // When presets exist the bootstrap phase calls addProductId for each preset product first.
-    // Only products whose index is >= presetsCount are truly "extra" (added via sidebar).
-    // Special cases:
-    //  - On the prebuilt page productIds can be empty before PlayCanvas preset ids are synced — keep preset path.
-    //  - In Custom Mode, once productIds has been populated by bootstrap and then drops
-    //    below presetsCount (user deleted a preset product), fall back to fetching ALL
-    //    productIds — the preset-based slicing assumption no longer holds.
-    const presetsDesynced =
-      productsPresets.length > 0 && productIds.length > 0 && productIds.length < productsPresets.length;
-    const idsToFetch = hasBootstrappedCabinetBuilder
-      ? productIds
-      : presetsDesynced || productsPresets.length === 0
-        ? productIds
-        : productIds.slice(productsPresets.length);
-
-    if (idsToFetch.length === 0) {
-      console.log(
-        LOG_PREFIX,
-        "fetchSceneConfigs skipped:",
-        productsPresets.length > 0 && !hasBootstrappedCabinetBuilder
-          ? "using presets, no extra products"
-          : "no productIds",
-      );
-      setSceneConfigs([]);
-      return;
-    }
-
-    const configs: NormalizedProductConfigSnapshot[] = [];
-
-    for (const id of idsToFetch) {
-      try {
-        const raw = await getConfig(id);
-
-        if (!raw) continue;
-
-        configs.push(
-          normalizeProductConfigSnapshot({
-            id,
-            raw: raw as Record<string, unknown>,
-            recordedDimensions: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, id),
-          }),
-        );
-      } catch (err) {
-        console.warn(LOG_PREFIX, "Failed to get config for product", id, err);
-      }
-    }
-
-    setSceneConfigs(configs);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    productIdsKey,
-    productsPresets.length,
-    hasBootstrappedCabinetBuilder,
-    selectedDimensions.width,
-    selectedDimensions.height,
-    selectedDimensions.depth,
-    cabinetEntries,
-    dimensionsByCabinet,
-  ]);
-
+  // A collection without an SKU profile gets no SKUs and no price requests (D01).
   useEffect(() => {
-    fetchSceneConfigs();
-  }, [fetchSceneConfigs]);
-
-  // ── colorSkuByName from the ready active-collection catalog ─
-
-  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
-  const countertopRules = useCountertopRules();
-
-  const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
-    const groups = configuratorGroups;
-    const buildMapForProxy = (proxyName: string) => {
-      const map = new Map<string, string>();
-      groups
-        .filter((group) => group.proxyName === proxyName)
-        .forEach((group) => {
-          group.options.forEach((option) => {
-            option.variants?.forEach((variant) => {
-              if (!variant.enabled) return;
-              const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-              const overrides = getConfiguratorVariantOverrides({ proxyName, variant });
-              const value = overrides.value || (meta.value as string) || variant.name;
-              const sku = (meta.sku as string) || "";
-              if (value && sku) map.set(value, sku);
-            });
-          });
-        });
-      return map;
-    };
-
-    return {
-      cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
-      handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
-      countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
-    };
-  }, [configuratorGroups]);
-
-  // ── Guard: minimum data required ──────────────────────
-
-  const hasSceneConfigs = sceneConfigs.length > 0;
-  const shouldUsePresets = shouldUsePresetProducts({
-    productsPresetsCount: productsPresets.length,
-    productIdsCount: productIds.length,
-    sceneConfigsCount: sceneConfigs.length,
-    hasBootstrappedCabinetBuilder,
-  });
-
-  const canCalculate = shouldUsePresets
-    ? true
-    : hasSceneConfigs
-      ? true
-      : productIds.length === 0 && selectedDimensions.width !== null;
-
-  // ── Build all current SKUs ────────────────────────────
-
-  const currentSkus = useMemo(() => {
-    if (!canCalculate) return [];
-
-    const skus: string[] = [];
-    const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-    const firstPreset = productsPresets[0];
-    const resolveCabinetMaterialSku = (swatchValue?: string | null) => {
-      const materialSku =
-        (swatchValue ? cabinetColorSkuByName.get(swatchValue) : null) ||
-        cabinetColorSku ||
-        cabinetColorSkuByName.get(cabinetColor) ||
-        null;
-
-      return resolveCabinetPricingMaterialSku({
-        colorName: swatchValue ?? cabinetColor,
-        materialSku,
-      });
-    };
-    const resolveMaterialColorCode = (colorValue: string | null | undefined, materialSku: string | null) =>
-      extractColorCode(colorValue, { materialSku });
-    const resolveHandleGrooveMaterialSku = (cabinetMaterialSku: string | null) =>
-      resolveHandleGroovePricingMaterialSku({
-        cabinetMaterialSku,
-        colorName: handleGrooveColor,
-        materialSku: handleMaterialSku,
-      });
-    const shouldUsePresetCountertopColor =
-      shouldUsePresets && countertopColor === DEFAULT_COUNTERTOP_COLOR && Boolean(firstPreset?.CountertopColor);
-    const shouldUsePresetSinkType =
-      shouldUsePresets && sinkType === DEFAULT_SINK_TYPE && Boolean(firstPreset?.sinkType);
-    const resolvedCountertopColor = shouldUsePresetCountertopColor
-      ? (firstPreset?.CountertopColor as string)
-      : countertopColor;
-    const colorDrivenDefaultBasin = resolveDefaultBasinByCountertopColor(resolvedCountertopColor);
-    const resolvedSinkType =
-      shouldUsePresetSinkType && colorDrivenDefaultBasin
-        ? colorDrivenDefaultBasin
-        : shouldUsePresetSinkType
-          ? (firstPreset?.sinkType as string)
-          : sinkType || null;
-    const preferredCountertopMaterialTokens = [
-      ...getCountertopMaterialTokensBySku(countertopColorSku),
-      ...getCountertopMaterialTokensFromBasinType(resolvedSinkType),
-    ];
-    const resolvedCountertopMaterialSku =
-      countertopColorSku ||
-      resolveCountertopColorSkuFromCandidates({
-        value: resolvedCountertopColor,
-        candidatesByValue: countertopColorSkuCandidatesByValue,
-        preferredMaterialTokens: preferredCountertopMaterialTokens,
-      }) ||
-      resolveCountertopColorSkuFromCandidates({
-        value: countertopColor,
-        candidatesByValue: countertopColorSkuCandidatesByValue,
-        preferredMaterialTokens: preferredCountertopMaterialTokens,
-      }) ||
-      resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
-      null;
-    const resolvedVesselColor = vesselColor;
-    const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
-    const allowedVesselMaterialTokens = vesselTypeForTokens
-      ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
-      : [];
-    const vesselPreferredMaterialTokens =
-      allowedVesselMaterialTokens.length > 0
-        ? allowedVesselMaterialTokens
-        : [...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku), ...preferredCountertopMaterialTokens];
-    const resolvedVesselColorCode = resolvedVesselColor
-      ? resolveCountertopColorCodeFromCandidates({
-          value: resolvedVesselColor,
-          candidatesByValue: countertopColorSkuCandidatesByValue,
-          preferredMaterialTokens: vesselPreferredMaterialTokens,
-        })
-      : null;
-    const resolvedVesselMaterialSku = resolvedVesselColor
-      ? (resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
-        resolveCountertopColorSkuFromCandidates({
-          value: resolvedVesselColor,
-          candidatesByValue: countertopColorSkuCandidatesByValue,
-          preferredMaterialTokens: vesselPreferredMaterialTokens,
-        }))
-      : null;
-    const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
-    const effectiveCountertopMaterialSku =
-      resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
-    const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
-    const isSyntesiCountertop =
-      syntesiMaterial !== null &&
-      (isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku, activeProfile) ||
-        normalizeMaterialToken(resolvedSinkType ?? "").includes(normalizeMaterialToken(syntesiMaterial)));
-    const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
-    const resolveNameFromRaw = (value: string) => {
-      const lastDash = value.lastIndexOf("-");
-      if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
-      return value;
-    };
-    const isSinkBaseName = (value: string | null | undefined) => {
-      if (!value) return false;
-      const normalized = normalizeCabinetToken(value);
-      return normalized.includes("sink-base") || normalized.includes("sinkbase");
-    };
-    const sinkBaseCountForPricing = Math.max(
-      1,
-      shouldUsePresets
-        ? productsPresets.filter((preset) => isSinkBaseName(preset.name ?? null)).length +
-            sceneConfigs.filter((cfg) =>
-              isSinkBaseName(
-                cfg.ProductType ??
-                  cfg.productType ??
-                  (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
-                  (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
-                  cfg.name,
-              ),
-            ).length
-        : sceneConfigs.length > 0
-          ? sceneConfigs.filter((cfg) =>
-              isSinkBaseName(
-                cfg.ProductType ??
-                  cfg.productType ??
-                  (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
-                  (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
-                  cfg.name,
-              ),
-            ).length
-          : isSinkBaseName(
-                typeof selectedProductConfig?.name === "string"
-                  ? selectedProductConfig.name
-                  : typeof activeCabinetType === "string"
-                    ? activeCabinetType
-                    : null,
-              )
-            ? 1
-            : 0,
-    );
-    const sinkBaseEntriesForPricing = shouldUsePresets
-      ? [
-          ...productsPresets
-            .filter((preset) => isSinkBaseName(preset.name ?? null))
-            .map((preset, index) => ({
-              id: `preset-${index}`,
-              sinkType: shouldUsePresetSinkType ? (preset.sinkType ?? resolvedSinkType) : resolvedSinkType,
-            })),
-          ...sceneConfigs.flatMap((cfg, index) => {
-            const rawName =
-              cfg.ProductType ??
-              cfg.productType ??
-              (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
-              (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
-              cfg.name;
-            if (!isSinkBaseName(rawName)) return [];
-            return [
-              {
-                id: `config-${index}`,
-                sinkType: cfg.sinkType ?? resolvedSinkType,
-              },
-            ];
-          }),
-        ]
-      : sceneConfigs.length > 0
-        ? sceneConfigs.flatMap((cfg, index) => {
-            const rawName =
-              cfg.ProductType ??
-              cfg.productType ??
-              (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
-              (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
-              cfg.name;
-            if (!isSinkBaseName(rawName)) return [];
-            return [
-              {
-                id: `config-${index}`,
-                sinkType: cfg.sinkType ?? resolvedSinkType,
-              },
-            ];
-          })
-        : isSinkBaseName(
-              typeof selectedProductConfig?.name === "string"
-                ? selectedProductConfig.name
-                : typeof activeCabinetType === "string"
-                  ? activeCabinetType
-                  : null,
-            )
-          ? [{ id: "fallback-0", sinkType: resolvedSinkType }]
-          : [];
-    const materialForThicknessRules =
-      resolvedCountertopMaterialSku || resolveCountertopMaterialSkuFromBasinType(resolvedSinkType);
-    const matrixDefaultThickness = resolveDefaultThicknessFromRules({
-      rules: countertopRules,
-      activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
-      width:
-        selectedDimensions.width ??
-        (productsPresets.length > 0 ? (productsPresets[0]?.Width ?? null) : null) ??
-        sceneConfigs[0]?.Width ??
-        null,
-      depth:
-        selectedDimensions.depth ??
-        (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
-        sceneConfigs[0]?.Depth ??
-        null,
-      activeCountertopStyle: countertopStyle || null,
-    });
-    const resolvedCountertopThickness =
-      countertopThickness || sceneConfigs[0]?.Thickness || matrixDefaultThickness || null;
-
-    // 1) Product SKU(s) — Resolver 1
-    const selectedProductDrawerStyle =
-      typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null;
-    const getPlacedDrawerStyle = (id?: string | null) => (id ? (placedCabinetStyles[id] ?? null) : null);
-    const getConfigDrawerStyle = (cfg: NormalizedProductConfigSnapshot) =>
-      cfg.Drawers ?? getPlacedDrawerStyle(cfg.id) ?? getPlacedDrawerStyle(cfg._productId) ?? selectedProductDrawerStyle;
-    const orderedProductIds = getOrderedProductIds(productIds);
-    const orderedCabinetProductIds = orderedProductIds.filter((id) => productIds.includes(id));
-    const productOrder = new Map(
-      (orderedProductIds.length ? orderedProductIds : productIds).map((id, index) => [id, index]),
-    );
-    const sortBySceneOrder = (left: NormalizedProductConfigSnapshot, right: NormalizedProductConfigSnapshot) =>
-      (productOrder.get(left.id) ?? productOrder.get(left._productId) ?? Number.MAX_SAFE_INTEGER) -
-      (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
-    const sceneConfigsInSceneOrder = [...sceneConfigs].sort(sortBySceneOrder);
-
-    if (shouldUsePresets) {
-      // Prebuilt path: iterate presets
-      productsPresets.forEach((preset, idx) => {
-        const name = preset.name ?? "";
-        const normalizedPresetName = normalizeCabinetToken(name);
-        const normalizedPresetType = name ? name.replace(/[\s_]+/g, "-") : "";
-
-        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (normalizedPresetName.includes("open-shelf") || normalizedPresetName.includes("openshelf")) {
-          const swatchValue = preset.CabinetColor ?? cabinetColor;
-          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-          const sku = buildOpenShelfSku({
-            width: preset.Width ?? null,
-            height: preset.Height ?? null,
-            depth: preset.Depth ?? null,
-            cabinetMaterialSku,
-            cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
-            grainDirection: grainSku,
-          });
-
-          skus.push(sku);
-          return;
-        }
-
-        // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (normalizedPresetName.includes("side-shelf") || normalizedPresetName.includes("sideshelf")) {
-          const side = resolveOpenSideShelfSide({ fallbackIndex: idx });
-          const swatchValue = preset.CabinetColor ?? cabinetColor;
-          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-          const sku = buildOpenSideShelfSku({
-            side,
-            width: preset.Width ?? null,
-            height: preset.Height ?? null,
-            depth: preset.Depth ?? null,
-            cabinetMaterialSku,
-            cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
-            grainDirection: grainSku,
-          });
-
-          skus.push(sku);
-          return;
-        }
-
-        // Standard cabinet → VAN-URSTD-{type}/...
-        // preset.name is already a catalog key ("Sink-Base", "Side-Cabinet", etc.)
-        const resolvedType = normalizedPresetType || resolveCabinetType(name || null) || activeCabinetType;
-
-        const swatchValue = preset.CabinetColor ?? cabinetColor;
-        const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
-        const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
-        const sku = buildProductSku({
-          cabinetType: resolvedType,
-          drawers: preset.Drawers ?? null,
-          handle: (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null,
-          pattern: drawerPanelFluting || null,
-          width: preset.Width ?? null,
-          height:
-            resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[idx])?.height ??
-            preset.Height ??
-            null,
-          depth:
-            resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[idx])?.depth ??
-            preset.Depth ??
-            null,
-          cab: cabMaterialSku
-            ? {
-                materialSku: cabMaterialSku,
-                colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku),
-                grainDirection: grainSku,
-              }
-            : null,
-          hdl: hdlMaterialSku
-            ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
-            : null,
-          msp: null,
-          bkpl: null,
-        });
-
-        skus.push(sku);
-      });
-
-      // Extra products added on top of presets (e.g. via sidebar in prebuilt mode)
-      sceneConfigs.forEach((cfg, idx) => {
-        const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
-        const normalizedName = normalizeCabinetToken(cfg.name ?? cfg.id ?? "");
-
-        if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
-          const swatchValue = cfg.CabinetColor ?? cabinetColor;
-          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-          skus.push(
-            buildOpenShelfSku({
-              width: cfg.Width,
-              height: cfg.Height,
-              depth: cfg.Depth,
-              cabinetMaterialSku,
-              cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
-              grainDirection: grainSku,
-            }),
-          );
-          return;
-        }
-
-        if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-          const side = resolveOpenSideShelfSide({
-            productIds: [cfg.id, cfg._productId],
-            orderedProductIds: orderedCabinetProductIds,
-            fallbackIndex: idx,
-          });
-          const swatchValue = cfg.CabinetColor ?? cabinetColor;
-          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-          skus.push(
-            buildOpenSideShelfSku({
-              side,
-              width: cfg.Width,
-              height: cfg.Height,
-              depth: cfg.Depth,
-              cabinetMaterialSku,
-              cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
-              grainDirection: grainSku,
-            }),
-          );
-          return;
-        }
-
-        const swatchValue = cfg.CabinetColor ?? cabinetColor;
-        const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
-        const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
-        const sku = buildProductSku({
-          cabinetType: resolvedType,
-          drawers: cfg.Drawers,
-          handle: (selectedProductConfig?.Handle as string | undefined) || cfg.Handle || null,
-          pattern: drawerPanelFluting || null,
-          width: cfg.Width,
-          height: cfg.Height,
-          depth: cfg.Depth,
-          cab: cabMaterialSku
-            ? {
-                materialSku: cabMaterialSku,
-                colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku),
-                grainDirection: grainSku,
-              }
-            : null,
-          hdl: hdlMaterialSku
-            ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
-            : null,
-          msp: null,
-          bkpl: null,
-        });
-        skus.push(sku);
-      });
-    } else if (sceneConfigs.length > 0) {
-      // Custom path: iterate all products from PlayCanvas
-      sceneConfigs.forEach((cfg, idx) => {
-        const resolvedType = resolveCabinetType(cfg.name) ?? resolveCabinetType(cfg.id) ?? activeCabinetType;
-        const normalizedName = normalizeCabinetToken(cfg.name ?? cfg.id ?? "");
-        const swatchValue = cfg.CabinetColor ?? cabinetColor;
-
-        // Open Shelf → VAN-UROS-2S-{W}W-{H}H-{D}D-CAB-{mat}-{color}
-        if (normalizedName.includes("open-shelf") || normalizedName.includes("openshelf")) {
-          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-          const sku = buildOpenShelfSku({
-            width: cfg.Width,
-            height: cfg.Height,
-            depth: cfg.Depth,
-            cabinetMaterialSku,
-            cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
-            grainDirection: grainSku,
-          });
-
-          skus.push(sku);
-          return;
-        }
-
-        // Open Side Shelf → VAN-UROSS-{L|R}-{W}W-{H}H-{D}D
-        if (normalizedName.includes("side-shelf") || normalizedName.includes("sideshelf")) {
-          const side = resolveOpenSideShelfSide({
-            productIds: [cfg.id, cfg._productId],
-            orderedProductIds: orderedCabinetProductIds,
-            fallbackIndex: idx,
-          });
-          const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
-          const sku = buildOpenSideShelfSku({
-            side,
-            width: cfg.Width,
-            height: cfg.Height,
-            depth: cfg.Depth,
-            cabinetMaterialSku,
-            cabinetColorCode: resolveMaterialColorCode(swatchValue, cabinetMaterialSku),
-            grainDirection: grainSku,
-          });
-
-          skus.push(sku);
-          return;
-        }
-
-        const cabMaterialSku = resolveCabinetMaterialSku(swatchValue);
-        const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
-        const sku = buildProductSku({
-          cabinetType: resolvedType,
-          drawers: cfg.Drawers,
-          handle: cfg.Handle,
-          pattern: drawerPanelFluting || null,
-          width: cfg.Width,
-          height: cfg.Height,
-          depth: cfg.Depth,
-          cab: cabMaterialSku
-            ? {
-                materialSku: cabMaterialSku,
-                colorCode: resolveMaterialColorCode(swatchValue, cabMaterialSku),
-                grainDirection: grainSku,
-              }
-            : null,
-          hdl: hdlMaterialSku
-            ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
-            : null,
-          msp: null,
-          bkpl: null,
-        });
-
-        skus.push(sku);
-      });
-    } else {
-      // Fallback: single product from selectedProductConfig
-      const cabMaterialSku = resolveCabinetMaterialSku(cabinetColor);
-      const hdlMaterialSku = resolveHandleGrooveMaterialSku(cabMaterialSku);
-      const cabinetSku = buildProductSku({
-        cabinetType: activeCabinetType,
-        drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-        handle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
-        pattern: drawerPanelFluting || null,
-        width: selectedDimensions.width,
-        height: selectedDimensions.height,
-        depth: selectedDimensions.depth,
-        cab: cabMaterialSku
-          ? {
-              materialSku: cabMaterialSku,
-              colorCode: resolveMaterialColorCode(cabinetColor, cabMaterialSku),
-              grainDirection: grainSku,
-            }
-          : null,
-        hdl: hdlMaterialSku
-          ? { materialSku: hdlMaterialSku, colorCode: resolveMaterialColorCode(handleGrooveColor, hdlMaterialSku) }
-          : null,
-        msp: null,
-        bkpl: null,
-      });
-
-      skus.push(cabinetSku);
+    if (skuBuilders.status === "unsupported" && skuBuilders.reason !== "no-collection") {
+      console.warn(LOG_PREFIX, "SKUs are unavailable for this collection:", skuBuilders.reason);
     }
+  }, [skuBuilders.reason, skuBuilders.status]);
 
-    // ── Collect per-product dimension sets for resolvers 2-4 ──
-    // Prebuilt: each preset has its own W/H/D + sinkType
-    // Custom:   each sceneConfig has its own W/H/D (sinkType global)
-    // Fallback: single selectedDimensions
-    type ProductDims = {
-      productId: string | null;
-      width: number | null;
-      height: number | null;
-      depth: number | null;
-      sinkType: string | null;
-    };
-    let productDimsList: ProductDims[];
-    let bookMatchingCabinets: BookMatchingCabinetInput[];
+  // ── Build the order lines ─────────────────────────────
 
-    if (shouldUsePresets) {
-      productDimsList = [
-        ...productsPresets.map((p, index) => ({
-          productId: productIds[index] ?? null,
-          width: p.Width ?? null,
-          height: p.Height ?? null,
-          depth: resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, productIds[index])?.depth ?? p.Depth ?? null,
-          sinkType: shouldUsePresetSinkType ? (p.sinkType ?? resolvedSinkType) : resolvedSinkType,
-        })),
-        ...sceneConfigsInSceneOrder.map((cfg) => ({
-          productId: cfg.id ?? cfg._productId,
-          width: cfg.Width,
-          height: cfg.Height,
-          depth: cfg.Depth,
-          sinkType: resolvedSinkType,
-        })),
-      ];
-      bookMatchingCabinets = [
-        ...productsPresets.map((preset) => ({
-          name: preset.name,
-          drawers: preset.Drawers ?? null,
-        })),
-        ...sceneConfigsInSceneOrder.map((cfg) => ({
-          name:
-            cfg.ProductType ??
-            cfg.productType ??
-            (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
-            (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
-            cfg.name,
-          drawers: getConfigDrawerStyle(cfg),
-        })),
-      ];
-    } else if (sceneConfigs.length > 0) {
-      productDimsList = sceneConfigs.map((cfg) => ({
-        productId: cfg.id ?? cfg._productId,
-        width: cfg.Width,
-        height: cfg.Height,
-        depth: cfg.Depth,
-        sinkType: resolvedSinkType,
-      }));
-      bookMatchingCabinets = sceneConfigsInSceneOrder.map((cfg) => ({
-        name:
-          cfg.ProductType ??
-          cfg.productType ??
-          (cfg.entityName ? resolveNameFromRaw(cfg.entityName) : null) ??
-          (cfg._productId ? resolveNameFromRaw(cfg._productId) : null) ??
-          cfg.name,
-        drawers: getConfigDrawerStyle(cfg),
-      }));
-    } else {
-      productDimsList = [
-        {
-          productId: productIds[0] ?? null,
-          width: selectedDimensions.width,
-          height: selectedDimensions.height,
-          depth: selectedDimensions.depth,
-          sinkType: resolvedSinkType,
-        },
-      ];
-      bookMatchingCabinets = [
-        {
-          name:
-            typeof selectedProductConfig?.name === "string"
-              ? selectedProductConfig.name
-              : typeof activeCabinetType === "string"
-                ? activeCabinetType
-                : null,
-          drawers: typeof selectedProductConfig?.Drawers === "string" ? selectedProductConfig.Drawers : null,
-        },
-      ];
-    }
+  const lines = useMemo(() => (canCalculate ? buildPricingLines(input) : []), [canCalculate, input]);
+  const currentSkus = useMemo(() => expandLineSkus(lines), [lines]);
 
-    // 2) Countertop SKUs — Resolver 2
-    // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
-    const cabinetWidthSum = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0);
-    const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
+  // ── Stable key for the lines (avoid effect re-runs on same content) ─
 
-    const aggregateCountertopInput = {
-      style: countertopStyle || null,
-      width: totalCountertopWidth,
-      depth: selectedDimensions.depth,
-      thickness: resolvedCountertopThickness,
-      basinType: resolvedSinkType,
-      faucetHolesAmount: faucetHolesAmount || null,
-      countertopMaterialSku: effectiveCountertopMaterialSku,
-      countertopColorCode: effectiveCountertopColorCode,
-    };
-    const aggregateCountertopLines = buildCountertopSkuIfComplete(aggregateCountertopInput);
-    countertopWidthCmRef.current = aggregateCountertopLines.length > 0 ? totalCountertopWidth : null;
-    const aggregateCountertopSkuSet = new Set(aggregateCountertopLines);
-    aggregateCountertopLines.forEach((line, index) => {
-      const isIntegratedBasinSkuLine = index === 1 && !isVesselCountertop;
-      if (isIntegratedBasinSkuLine && isSyntesiCountertop) return;
-
-      if (isIntegratedBasinSkuLine && sinkBaseEntriesForPricing.length > 0) {
-        sinkBaseEntriesForPricing.forEach((entry) => {
-          const basinLine =
-            buildCountertopSkuIfComplete({
-              style: countertopStyle || null,
-              width: totalCountertopWidth,
-              depth: selectedDimensions.depth,
-              thickness: resolvedCountertopThickness,
-              basinType: entry.sinkType || null,
-              faucetHolesAmount: faucetHolesAmount || null,
-              countertopMaterialSku: effectiveCountertopMaterialSku,
-              countertopColorCode: effectiveCountertopColorCode,
-            })[1] ?? line;
-          skus.push(basinLine);
-        });
-        return;
-      }
-      const repeatCount = index === 1 && resolvedSinkType ? sinkBaseCountForPricing : 1;
-      for (let i = 0; i < repeatCount; i++) {
-        skus.push(line);
-      }
-    });
-
-    // Always keep a default faucet-holes pricing SKU in the pool (including "0"),
-    // with dynamic material resolved from basin/material context.
-    const faucetHolesQty = (faucetHolesAmount ?? "").trim() || "0";
-    const faucetMaterialSku =
-      resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ??
-      resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ??
-      effectiveCountertopMaterialSku ??
-      "HPL";
-    const defaultFaucetSku = `CT-UR${faucetMaterialSku}-FAHO/${faucetHolesQty}`;
-    if (!aggregateCountertopSkuSet.has(defaultFaucetSku)) {
-      skus.push(defaultFaucetSku);
-    }
-
-    // Do not add per-product countertop lines to active pricing SKUs.
-    // They duplicate the aggregate countertop pricing line and inflate totals
-    // (e.g. counting both CT-UR...INTG-70.9W and CT-UR...INTG-23.6W).
-
-    // 2b) Vessel basin SKU — Resolver 2b (when sinkType is a vessel type)
-    const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
-    if (vesselType) {
-      const vesselSku = buildVesselSku({
-        vesselType,
-        width: totalCountertopWidth,
-        height: vesselHeightCmMap[vesselType] ?? null,
-        depth: selectedDimensions.depth,
-        materialSku: resolvedVesselMaterialSku,
-        colorCode: resolvedVesselColorCode,
-      });
-      for (let i = 0; i < sinkBaseCountForPricing; i++) {
-        console.log(LOG_PREFIX, `Resolver 2b (Vessel #${i + 1}):`, vesselSku);
-        skus.push(vesselSku);
-      }
-    }
-
-    // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
-    const hasTowel = towelBarOption && towelBarOption !== "None";
-    const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
-    const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
-
-    if (hasTowel && hasRight) {
-      const sku = buildTowelBarSku({
-        side: "R",
-        width: TOWEL_BAR_DEFAULTS.width,
-        height: TOWEL_BAR_DEFAULTS.height,
-        depth: TOWEL_BAR_DEFAULTS.depth,
-        materialSku: "LACM",
-        colorCode: towelBarColor || null,
-      });
-      if (sku) {
-        skus.push(sku);
-      }
-    }
-
-    if (hasTowel && hasLeft) {
-      const sku = buildTowelBarSku({
-        side: "L",
-        width: TOWEL_BAR_DEFAULTS.width,
-        height: TOWEL_BAR_DEFAULTS.height,
-        depth: TOWEL_BAR_DEFAULTS.depth,
-        materialSku: "LACM",
-        colorCode: towelBarColor || null,
-      });
-      if (sku) {
-        skus.push(sku);
-      }
-    }
-
-    // 4) Accessories SKUs — Resolver 4 (Side panels per product + Dividers global)
-
-    // Side panels — one SKU per active side (single-panel pricing)
-    if (sidePanelsOption && sidePanelsOption !== "" && sidePanelsOption !== "None") {
-      const inferSidePanelMaterialSku = (colorValue?: string | null): string | null => {
-        if (!colorValue) return null;
-        const upper = colorValue.trim().toUpperCase();
-        if (!upper) return null;
-        if (/\bTK[A-Z0-9]+\b/.test(upper)) return "HPL";
-        if (/\b(10B|10F|10G|10N|1PE|1A[1-5])\b/.test(upper)) return "3D";
-        if (/\bGL\b/.test(upper)) return "LACG";
-        if (/\bMT\b/.test(upper)) return "LACM";
-        return null;
-      };
-      const sidePanelCabinetColor = shouldUsePresets
-        ? (productsPresets.find((preset) => typeof preset.CabinetColor === "string" && preset.CabinetColor)
-            ?.CabinetColor ??
-          sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor ??
-          cabinetColor)
-        : (sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor ??
-          cabinetColor);
-      const activeSides = [sidePanelLeft === "active", sidePanelRight === "active"];
-      const activeSideCount = activeSides.filter(Boolean).length;
-      if (activeSideCount > 0) {
-        const dims = productDimsList[0] ?? { height: null, depth: null };
-        const sidePanelCabinetMaterialSku =
-          resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor);
-        const spSku = buildSidePanelSku({
-          panelType: sidePanelsOption,
-          width: SIDE_PANEL_WIDTH_CM,
-          height: dims.height,
-          depth: dims.depth,
-          cabMaterialSku: sidePanelCabinetMaterialSku,
-          cabColorCode: resolveMaterialColorCode(sidePanelCabinetColor, sidePanelCabinetMaterialSku),
-          hdlMaterialSku: handleMaterialSku,
-          hdlColorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
-        });
-        if (spSku) {
-          for (let i = 0; i < activeSideCount; i++) {
-            skus.push(spSku);
-          }
-        }
-      }
-    }
-
-    // Dividers are priced only from actual per-slot placements.
-    // DividersStyle is just the currently selected placement tool.
-    const resolveDividerDepth = (cabinetId: string): number | null =>
-      productDimsList.find((dims) => dims.productId === cabinetId)?.depth ?? null;
-
-    if (activePlacedDividers.length > 0) {
-      const typeToStyle: Record<"A" | "B" | "C", "Option A" | "Option B" | "Option C"> = {
-        A: "Option A",
-        B: "Option B",
-        C: "Option C",
-      };
-
-      activePlacedDividers.forEach((divider, index) => {
-        const style = typeToStyle[divider.type];
-        const divSku = style
-          ? buildDividerSku({ dividerStyle: style, cabinetDepth: resolveDividerDepth(divider.cabinetId) })
-          : null;
-        if (!divSku) return;
-        console.log(LOG_PREFIX, `Resolver 4 (Divider #${index + 1}):`, divSku, divider);
-        skus.push(divSku);
-      });
-    }
-
-    // 5) Book matching SKU — pricing modifier (per drawer)
-    const bookMatchingInfo = deriveBookMatchingChargeInfo({
-      grainDirection,
-      bookMatching,
-      materialSku: resolveCabinetMaterialSku(cabinetColor),
-      cabinets: bookMatchingCabinets,
-      profile: activeProfile,
-    });
-
-    if (bookMatchingInfo.applies && bookMatchingInfo.sku) {
-      console.log(
-        LOG_PREFIX,
-        "Resolver 5 (Book Matching):",
-        bookMatchingInfo.sku,
-        "× drawers:",
-        bookMatchingInfo.drawerQty,
-        {
-          eligibleCabinetCount: bookMatchingInfo.eligibleCabinetCount,
-        },
-      );
-      for (let i = 0; i < bookMatchingInfo.drawerQty; i++) {
-        skus.push(bookMatchingInfo.sku);
-      }
-    }
-
-    console.log(LOG_PREFIX, "All SKUs:", skus);
-    return skus;
-  }, [
-    canCalculate,
-    shouldUsePresets,
-    productIds,
-    productsPresets,
-    sceneConfigs,
-    activeCabinetType,
-    selectedDimensions.width,
-    selectedDimensions.height,
-    selectedDimensions.depth,
-    cabinetEntries,
-    dimensionsByCabinet,
-    selectedProductConfig,
-    cabinetColor,
-    cabinetColorSku,
-    handleGrooveColor,
-    handleGrooveColorSku,
-    countertopColor,
-    countertopColorSku,
-    vesselColor,
-    countertopThickness,
-    countertopStyle,
-    grainSku,
-    bookMatching,
-    sinkType,
-    drawerPanelFluting,
-    towelBarOption,
-    towelBarColor,
-    faucetHolesAmount,
-    sidePanelsOption,
-    sidePanelLeft,
-    sidePanelRight,
-    activePlacedDividers,
-    placedCabinetStyles,
-    cabinetColorSkuByName,
-    handleGrooveColorSkuByName,
-    countertopColorSkuCandidatesByValue,
-    resolveCabinetType,
-    countertopRules,
-    grainDirection,
-    activeProfile,
-  ]);
-
-  // ── Stable key for the SKU list (avoid effect re-runs on same content) ─
-
-  const skuKey = currentSkus.join("|");
+  const linesKey = lines.map(({ id, sku, quantity }) => `${id}=${sku}*${quantity}`).join("|");
+  const countertopPrefix = skuBuilders.profile?.series.countertopPrefix ?? null;
+  // Book matching is priced through the v2 resolver; recognised by the collection series, not a USH literal.
+  const bookMatchingSkuPrefix = skuBuilders.profile ? `VAN-${skuBuilders.profile.series.bookMatching}-` : null;
+  const widthCmBySku = useMemo(
+    () => new Map(lines.flatMap(({ sku, widthCm }) => (widthCm != null ? [[sku, widthCm] as const] : []))),
+    [lines],
+  );
 
   // ── Fetch prices for new/changed SKUs ─────────────────
 
   const fetchedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!canCalculate || !currentSkus.length) {
-      dispatch(setActiveSkus([]));
+    if (skuBuilders.status !== "ready") {
+      dispatch(setPricingUnavailable());
+      return;
+    }
+
+    if (!canCalculate || !lines.length) {
+      dispatch(setPricingLines([]));
       dispatch(setPriceLoading(false));
       return;
     }
 
-    dispatch(setActiveSkus(currentSkus));
+    dispatch(setPricingLines(lines));
 
-    const pending = currentSkus.filter((sku) => !fetchedRef.current.has(sku));
+    const pending = [...new Set(currentSkus.filter((sku) => !fetchedRef.current.has(sku)))];
     if (!pending.length) {
       dispatch(setPriceLoading(false));
       return;
     }
     dispatch(setPriceLoading(true));
+    dispatch(setSkusLoading(pending));
 
     const timer = setTimeout(() => {
-      let cancelled = false;
-
       // Mark immediately to prevent duplicate fetches
       pending.forEach((sku) => fetchedRef.current.add(sku));
 
       const loadPrices = async () => {
-        const next: Record<string, number> = {};
+        const next: Record<string, SkuPriceEntry> = {};
 
         try {
           await Promise.all(
-            [...new Set(pending)].map(async (sku) => {
+            pending.map(async (sku) => {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
-                const countertopWidthCm = countertopWidthCmRef.current;
-                const isDynamicCountertopTopSku = isCountertopTopDynamicCandidate(sku, countertopWidthCm);
+                const countertopWidthCm = widthCmBySku.get(sku) ?? null;
+                const isDynamicCountertopTopSku =
+                  countertopPrefix !== null &&
+                  isCountertopTopDynamicCandidate(sku, countertopWidthCm, countertopPrefix);
                 const isVesselSku = sku.startsWith("VES-");
-                const isBookMatchingSku = sku.startsWith("VAN-URBMG-");
+                const isBookMatchingSku = bookMatchingSkuPrefix !== null && sku.startsWith(bookMatchingSkuPrefix);
 
                 let data: ProductSkuPriceResponse | CountertopSkuPriceResponse;
 
@@ -1178,67 +146,74 @@ export function usePriceCalculation() {
                 console.log(LOG_PREFIX, "Response for", sku, "→", data);
 
                 const price = resolvePriceFromResponse(data);
-                if (typeof price === "number") next[sku] = price;
+                next[sku] = typeof price === "number" ? { status: "ready", value: price } : { status: "missing" };
               } catch (err) {
                 console.warn(LOG_PREFIX, "Price fetch failed for", sku, err);
+                next[sku] = { status: "error", message: err instanceof Error ? err.message : "Price request failed" };
               }
             }),
           );
         } finally {
-          if (!cancelled) dispatch(setPriceLoading(false));
+          dispatch(setPriceLoading(false));
         }
 
-        if (!cancelled && Object.keys(next).length) {
-          console.log(LOG_PREFIX, "Resolved prices:", next);
-          dispatch(setSkuPrices(next));
-        }
+        console.log(LOG_PREFIX, "Resolved prices:", next);
+        dispatch(setSkuPriceEntries(next));
       };
 
       loadPrices();
-
-      return () => {
-        cancelled = true;
-      };
-    }, DEBOUNCE_MS);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skuKey, canCalculate, dispatch, triggerPriceBySku, triggerPriceBySkuV2Resolve, triggerCountertopTopPriceBySku]);
-
-  // ── Re-fetch scene configs when product options change ─
-  // (user changed color, handle, etc. → configs on PlayCanvas are updated)
-
-  useEffect(() => {
-    const hasExtraProducts = shouldUsePresets ? productIds.length > productsPresets.length : productIds.length > 0;
-    if (!hasExtraProducts) return;
-
-    const timer = setTimeout(() => {
-      // Clear price cache so new SKUs get fetched
-      fetchedRef.current.clear();
-      fetchSceneConfigs();
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    cabinetColor,
-    cabinetColorSku,
-    handleGrooveColor,
-    handleGrooveColorSku,
-    countertopColor,
-    countertopColorSku,
-    countertopStyle,
-    countertopThickness,
-    vesselColor,
-    sinkType,
-    faucetHolesAmount,
-    selectedProductConfig?.Handle,
-    selectedProductConfig?.Drawers,
-    drawerPanelFluting,
-    selectedDimensions.width,
-    selectedDimensions.height,
-    selectedDimensions.depth,
-    cabinetEntries,
-    dimensionsByCabinet,
+    linesKey,
+    canCalculate,
+    skuBuilders.status,
+    bookMatchingSkuPrefix,
+    countertopPrefix,
+    dispatch,
+    triggerPriceBySku,
+    triggerPriceBySkuV2Resolve,
+    triggerCountertopTopPriceBySku,
+  ]);
+
+  // ── Re-fetch scene configs when product options change ─
+  // (user changed color, handle, etc. → configs on PlayCanvas are updated)
+
+  useEffect(() => {
+    const hasExtraProducts = input.shouldUsePresets
+      ? input.productIds.length > input.productsPresets.length
+      : input.productIds.length > 0;
+    if (!hasExtraProducts) return;
+
+    const timer = setTimeout(() => {
+      // Clear price cache so new SKUs get fetched
+      fetchedRef.current.clear();
+      refreshSceneConfigs();
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    input.cabinetColor,
+    input.cabinetColorSku,
+    input.handleGrooveColor,
+    input.handleGrooveColorSku,
+    input.countertopColor,
+    input.countertopColorSku,
+    input.countertopStyle,
+    input.countertopThickness,
+    input.vesselColor,
+    input.sinkType,
+    input.faucetHolesAmount,
+    input.selectedProductConfig?.Handle,
+    input.selectedProductConfig?.Drawers,
+    input.drawerPanelFluting,
+    input.selectedDimensions.width,
+    input.selectedDimensions.height,
+    input.selectedDimensions.depth,
+    input.cabinetEntries,
+    input.dimensionsByCabinet,
   ]);
 }

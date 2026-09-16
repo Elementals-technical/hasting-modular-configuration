@@ -2,6 +2,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration";
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 
@@ -22,11 +23,13 @@ export type ApplyPlanDeps = {
   runtime: ConfigurationRuntimePort;
   flow: RuntimeFlow;
   collectionId: string;
+  /** Configurator sections of the active collection, for the material and finish of a colour. */
+  configurator?: ConfiguratorGroupCatalog | null;
 };
 
 export const applyPlan = async (
   plan: PlannedChange[],
-  { state, dispatch, runtime, flow, collectionId }: ApplyPlanDeps,
+  { state, dispatch, runtime, flow, collectionId, configurator }: ApplyPlanDeps,
 ): Promise<ChangeResult> => {
   const cabinets = getCabinetEntries(state);
 
@@ -66,6 +69,8 @@ export const applyPlan = async (
     selectedProductConfig: state.rootStateUI.product.selectedProductConfig ?? null,
     resolveRuntimeId,
     profile: getActiveProductProfile(state),
+    configurator: configurator ?? null,
+    productsPresets: state.rootStateUI.product.productsPresets,
   };
 
   // Only what the runtime actually applied is recorded. A change the scene rejected must

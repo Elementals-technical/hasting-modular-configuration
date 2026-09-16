@@ -8,4 +8,5 @@ export { restoreSavedConfiguration } from "./lib/restoreSavedConfiguration";
 export type { RestoreSavedConfigurationDeps, RestoreSavedConfigurationResult } from "./lib/restoreSavedConfiguration";
 
 export { useRestoreSavedConfiguration } from "./hooks/useRestoreSavedConfiguration";
+export { RestoreFailurePopup } from "./ui/RestoreFailurePopup";
 export type { UseRestoreSavedConfigurationOptions } from "./hooks/useRestoreSavedConfiguration";
