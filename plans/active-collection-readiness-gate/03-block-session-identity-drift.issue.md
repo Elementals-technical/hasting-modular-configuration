@@ -4,13 +4,13 @@ Protect an active configurator session from client-side collection identity drif
 
 ## Acceptance criteria
 
-- [ ] An explicit startup identity must remain present with the same value throughout the session.
-- [ ] An implicit-default startup identity must remain absent throughout the session.
-- [ ] Adding, removing, emptying, or changing `collectionId` blocks the configurator without hot-switching collection data.
-- [ ] The mismatch screen explains that collection identity cannot change during an active session.
-- [ ] Restart configurator performs full-page navigation using the current URL.
-- [ ] Unrelated query-parameter and pathname changes remain supported and do not trigger a mismatch.
-- [ ] Focused tests, TypeScript validation, and linting pass.
+- [x] An explicit startup identity must remain present with the same value throughout the session.
+- [x] An implicit-default startup identity must remain absent throughout the session.
+- [x] Adding, removing, emptying, or changing `collectionId` blocks the configurator without hot-switching collection data.
+- [x] The mismatch screen explains that collection identity cannot change during an active session.
+- [x] Restart configurator performs full-page navigation using the current URL.
+- [x] Unrelated query-parameter and pathname changes remain supported and do not trigger a mismatch.
+- [x] Focused tests, TypeScript validation, and linting pass.
 
 ## Blocked by
 

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ActiveCollectionState, LoadedCollectionData } from "../model/types";
@@ -40,22 +41,25 @@ const renderGate = (
   options: {
     session?: ActiveCollectionSession;
     navigateTo?: (url: string) => void;
+    initialEntry?: string;
   } = {},
 ) =>
   render(
-    <ActiveCollectionSessionContext.Provider
-      value={
-        options.session ?? {
-          requestedCollectionId: "test-collection",
-          defaultCollectionId: "test-collection",
-          retry: vi.fn(),
+    <MemoryRouter initialEntries={[options.initialEntry ?? "/?collectionId=test-collection"]}>
+      <ActiveCollectionSessionContext.Provider
+        value={
+          options.session ?? {
+            requestedCollectionId: "test-collection",
+            defaultCollectionId: "test-collection",
+            retry: vi.fn(),
+          }
         }
-      }
-    >
-      <ActiveCollectionContext.Provider value={state}>
-        <CollectionReadinessGate navigateTo={options.navigateTo}>{child}</CollectionReadinessGate>
-      </ActiveCollectionContext.Provider>
-    </ActiveCollectionSessionContext.Provider>,
+      >
+        <ActiveCollectionContext.Provider value={state}>
+          <CollectionReadinessGate navigateTo={options.navigateTo}>{child}</CollectionReadinessGate>
+        </ActiveCollectionContext.Provider>
+      </ActiveCollectionSessionContext.Provider>
+    </MemoryRouter>,
   );
 
 const ReadyConsumer = () => {
@@ -139,11 +143,6 @@ describe("CollectionReadinessGate", () => {
   });
 
   it("opens a known different default as a new session and preserves other URL data", () => {
-    window.history.replaceState(
-      null,
-      "",
-      "/custom/countertop?collectionId=unknown&configId=13507&hostUrl=%2Fquote#details",
-    );
     const navigateTo = vi.fn();
 
     renderGate(
@@ -160,6 +159,7 @@ describe("CollectionReadinessGate", () => {
           retry: vi.fn(),
         },
         navigateTo,
+        initialEntry: "/custom/countertop?collectionId=unknown&configId=13507&hostUrl=%2Fquote#details",
       },
     );
 
@@ -185,6 +185,74 @@ describe("CollectionReadinessGate", () => {
 
     expect(screen.queryByTestId("shell")).toBeNull();
     expect(screen.getByText("This collection does not provide the configurator data required to start.")).toBeTruthy();
+  });
+
+  it.each([
+    {
+      name: "removes an explicit identity",
+      requestedCollectionId: "class",
+      initialEntry: "/custom/countertop",
+    },
+    {
+      name: "adds identity to an implicit-default session",
+      requestedCollectionId: null,
+      initialEntry: "/custom/countertop?collectionId=class",
+    },
+    {
+      name: "changes an explicit identity",
+      requestedCollectionId: "class",
+      initialEntry: "/custom/countertop?collectionId=urban-standard-height",
+    },
+    {
+      name: "empties an explicit identity",
+      requestedCollectionId: "class",
+      initialEntry: "/custom/countertop?collectionId=",
+    },
+  ])("blocks the shell when client navigation $name", ({ requestedCollectionId, initialEntry }) => {
+    const navigateTo = vi.fn();
+    renderGate(
+      {
+        status: "ready",
+        collectionId: requestedCollectionId ?? "urban-standard-height",
+        data: loadedCollection(),
+      },
+      <div data-testid="shell">Configurator</div>,
+      {
+        session: {
+          requestedCollectionId,
+          defaultCollectionId: "urban-standard-height",
+          retry: vi.fn(),
+        },
+        navigateTo,
+        initialEntry,
+      },
+    );
+
+    expect(screen.queryByTestId("shell")).toBeNull();
+    expect(screen.getByText("Collection cannot be changed during an active configurator session.")).toBeTruthy();
+    screen.getByRole("button", { name: "Restart configurator" }).click();
+    expect(navigateTo).toHaveBeenCalledWith(new URL(initialEntry, window.location.origin).toString());
+  });
+
+  it("allows pathname and unrelated query changes while the startup identity stays exact", () => {
+    renderGate(
+      {
+        status: "ready",
+        collectionId: "class",
+        data: loadedCollection(),
+      },
+      <div data-testid="shell">Configurator</div>,
+      {
+        session: {
+          requestedCollectionId: "class",
+          defaultCollectionId: "urban-standard-height",
+          retry: vi.fn(),
+        },
+        initialEntry: "/custom/countertop?collectionId=class&configId=13507",
+      },
+    );
+
+    expect(screen.getByTestId("shell")).toBeTruthy();
   });
 
   it("reports a composition error when ready access is used outside the gate", () => {

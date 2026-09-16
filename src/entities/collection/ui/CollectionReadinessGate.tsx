@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 
 import { LoaderIcon } from "@/shared/assets/images/svg/LoaderIcon";
 import { BaseButton } from "@/shared/ui";
@@ -54,6 +55,20 @@ const CollectionErrorScreen = ({ collectionId, description, onRetry, onOpenDefau
   </main>
 );
 
+const SessionIdentityErrorScreen = ({ onRestart }: { onRestart: () => void }) => (
+  <main className={s.screen} role="alert">
+    <div className={s.errorCard}>
+      <h1 className={s.title}>Restart required</h1>
+      <p className={s.message}>Collection cannot be changed during an active configurator session.</p>
+      <div className={s.actions}>
+        <BaseButton type="button" onClick={onRestart}>
+          Restart configurator
+        </BaseButton>
+      </div>
+    </div>
+  </main>
+);
+
 const errorDescription = (code: string): string => {
   if (code === "unknown-collection") return "The requested collection was not found.";
   if (code === "invalid-collection-id") return "The collection link is invalid.";
@@ -70,6 +85,13 @@ export const CollectionReadinessGate = ({
 }: CollectionReadinessGateProps) => {
   const state = useActiveCollectionState();
   const session = useActiveCollectionSession();
+  const location = useLocation();
+  const currentCollectionId = new URLSearchParams(location.search).get("collectionId");
+  const currentUrl = new URL(location.pathname + location.search + location.hash, window.location.origin).toString();
+
+  if (currentCollectionId !== session.requestedCollectionId) {
+    return <SessionIdentityErrorScreen onRestart={() => navigateTo(currentUrl)} />;
+  }
 
   if (state.status === "resolving" || state.status === "loading") {
     return <CollectionLoadingScreen />;
@@ -80,7 +102,7 @@ export const CollectionReadinessGate = ({
     session.requestedCollectionId !== null &&
     session.defaultCollectionId !== undefined &&
     session.requestedCollectionId !== session.defaultCollectionId;
-  const openDefault = canOpenDefault ? () => navigateTo(removeCollectionIdFromUrl(window.location.href)) : undefined;
+  const openDefault = canOpenDefault ? () => navigateTo(removeCollectionIdFromUrl(currentUrl)) : undefined;
 
   if (state.status === "error") {
     return (
