@@ -3,7 +3,6 @@ import type {
   IMapUIData,
   IMaterialMetadata,
   IProductElementOption,
-  IThreekitConfiguration,
 } from "../model/types";
 import {
   getCountertopMaterialTokensBySku,
@@ -52,8 +51,6 @@ const pickString = (...candidates: unknown[]): string | undefined => {
 };
 
 const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
-
-type ConfiguratorGroupSource = readonly ConfiguratorAvailableOption[] | IThreekitConfiguration;
 
 type AdaptThreekitConfigOptions = {
   countertopRules?: CountertopMatrixRule[];
@@ -210,11 +207,9 @@ const appendCountertopRuleBackedSwatches = (
 };
 
 export const adaptThreekitConfig = (
-  source: ConfiguratorGroupSource | null | undefined,
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
   options: AdaptThreekitConfigOptions,
 ): IMapUIData => {
-  const groups = source && "availableOptions" in source ? source.availableOptions : source;
-
   if (!groups?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
   }

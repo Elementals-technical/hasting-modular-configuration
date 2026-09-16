@@ -90,9 +90,9 @@ import {
   resolveCountertopMaterialSkuFromColorCode,
   resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
-import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
+import { useSaveConfigurationMutation } from "@/entities";
+import { useActiveCollection } from "@/entities/collection";
 import {
-  useGetCountertopDatatableQuery,
   calcTotalCountertopWidthCm,
   formatCountertopThicknessLabel,
 } from "@/entities/countertop";
@@ -104,8 +104,8 @@ import {
   getAllowedVesselMaterialTokens,
   isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
-  parseCountertopMatrix,
   resolveDefaultThicknessFromRules,
+  useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
   adaptThreekitConfig,
@@ -487,16 +487,11 @@ export const CustomSummaryPage = () => {
     [materialLookup],
   );
 
-  const { data: cabinetColors } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
-  const { data: countertopMatrixData } = useGetCountertopDatatableQuery(438);
-  const countertopRules = useMemo(() => parseCountertopMatrix(countertopMatrixData), [countertopMatrixData]);
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const countertopRules = useCountertopRules();
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
-    const groups = cabinetColors?.availableOptions ?? [];
+    const groups = configuratorGroups;
     const buildMapForProxy = (proxyName: string) => {
       const map = new Map<string, string>();
       groups
@@ -521,7 +516,7 @@ export const CustomSummaryPage = () => {
       handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
       countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
-  }, [cabinetColors]);
+  }, [configuratorGroups]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1896,8 +1891,8 @@ export const CustomSummaryPage = () => {
   const quoteModelName = "Urban Standard Height";
 
   const swatchOrderData = useMemo(
-    () => adaptThreekitConfig(cabinetColors, { countertopRules, profile: activeProfile }),
-    [cabinetColors, countertopRules, activeProfile],
+    () => adaptThreekitConfig(configuratorGroups, { countertopRules, profile: activeProfile }),
+    [configuratorGroups, countertopRules, activeProfile],
   );
   const summaryAutofillValues = useMemo<AutofillValueRequest[]>(() => {
     const requests: AutofillValueRequest[] = [];

@@ -21,17 +21,12 @@ const MATERIAL_SKU_BY_TOKEN: Record<string, string> = {
 
 const COUNTERTOP_PROXY_NAMES = new Set(["Countertop Color", "Vessels"]);
 
-type ConfiguratorGroupSource =
-  | readonly ConfiguratorAvailableOption[]
-  | { availableOptions: readonly ConfiguratorAvailableOption[] };
 
 export const findCountertopSkuByColorName = (
-  source: ConfiguratorGroupSource | null | undefined,
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
   colorName: string,
 ): string => {
-  if (!source || !colorName) return "";
-
-  const groups = "availableOptions" in source ? source.availableOptions : source;
+  if (!groups || !colorName) return "";
 
   for (const group of groups) {
     if (!COUNTERTOP_PROXY_NAMES.has(group.proxyName)) continue;

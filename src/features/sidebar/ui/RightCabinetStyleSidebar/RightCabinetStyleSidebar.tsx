@@ -60,8 +60,7 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
-import { useGetConfiguratorQuery } from "@/entities";
-import { hasCapability, selectEffectiveFallback, selectOptions } from "@/entities/collection";
+import { hasCapability, selectEffectiveFallback, selectOptions, useActiveCollection } from "@/entities/collection";
 import {
   getActiveProductProfile,
   getCabinetDimensionsByRuntimeId,
@@ -139,11 +138,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const maxCountertopLength = lengthGuard.max;
 
   const saveSnapshot = useHistorySnapshot();
-  const { data: counterTopMaterials } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
@@ -209,9 +204,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   const countertopOptionsFromApi = useMemo(() => {
-    const availableOptions = ((counterTopMaterials as { availableOptions?: Array<Record<string, unknown>> } | undefined)
-      ?.availableOptions ?? []) as Array<Record<string, unknown>>;
-    const groups = availableOptions.filter((group) => group.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((group) => group.proxyName === "Countertop Color");
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
@@ -276,7 +269,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           });
       });
     });
-  }, [counterTopMaterials]);
+  }, [configuratorGroups]);
 
   const activeMaterialTokens = useMemo(() => {
     if (!countertopColor) return [];

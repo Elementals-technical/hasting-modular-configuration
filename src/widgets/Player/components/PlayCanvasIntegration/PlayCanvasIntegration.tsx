@@ -99,7 +99,6 @@ import {
 } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
-import { useGetConfiguratorQuery } from "@/entities";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { selectOptions, useActiveCollection } from "@/entities/collection";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
@@ -444,11 +443,7 @@ export const PlayCanvasIntegration = ({
 
   const saveSnapshot = useHistorySnapshot();
 
-  const { data: counterTopMaterials } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   const normalizeMaterialLabel = (value: string) => {
     const parts = value
@@ -734,7 +729,7 @@ export const PlayCanvasIntegration = ({
   );
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((g) => g.proxyName === "Countertop Color");
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
@@ -789,7 +784,7 @@ export const PlayCanvasIntegration = ({
           }),
       ),
     );
-  }, [counterTopMaterials, getVariantMeta]);
+  }, [configuratorGroups, getVariantMeta]);
 
   const activeMaterialTokens = useMemo(() => {
     if (!activeCountertopColor) return [];

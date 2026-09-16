@@ -62,7 +62,7 @@ import {
   resolveCountertopMaterialSkuFromColorCode,
   resolveOpenSideShelfSide,
 } from "@/shared/lib/sku";
-import { useGetConfiguratorQuery } from "@/entities";
+import { useActiveCollection } from "@/entities/collection";
 import { getConfiguratorVariantOverrides } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { calcTotalCountertopWidthCm, isCountertopTopDynamicCandidate } from "@/entities/countertop";
 import { useLazyGetCountertopTopPriceBySkuQuery, type CountertopSkuPriceResponse } from "@/entities/countertop/api";
@@ -262,17 +262,13 @@ export function usePriceCalculation() {
     fetchSceneConfigs();
   }, [fetchSceneConfigs]);
 
-  // ── colorSkuByName from configurator API (cached by RTK Query) ─
+  // ── colorSkuByName from the ready active-collection catalog ─
 
-  const { data: cabinetColors } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const countertopRules = useCountertopRules();
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
-    const groups = cabinetColors?.availableOptions ?? [];
+    const groups = configuratorGroups;
     const buildMapForProxy = (proxyName: string) => {
       const map = new Map<string, string>();
       groups
@@ -297,7 +293,7 @@ export function usePriceCalculation() {
       handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
       countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
-  }, [cabinetColors]);
+  }, [configuratorGroups]);
 
   // ── Guard: minimum data required ──────────────────────
 
