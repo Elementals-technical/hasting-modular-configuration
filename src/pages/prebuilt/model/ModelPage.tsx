@@ -1121,6 +1121,9 @@ export const ModelPage = () => {
               handleCustomizePreset={handleCustomizePreset}
               createModelBtn={<CreateModelBtn />}
               activePresetId={activePresetId}
+              emptyMessage={`No preset compositions available for ${
+                activeCollection.status === "ready" ? activeCollection.data.manifest.label : "this collection"
+              }`}
             />
           </div>
         </>

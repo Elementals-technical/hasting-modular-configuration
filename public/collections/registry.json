@@ -4,6 +4,10 @@
     {
       "id": "urban-standard-height",
       "manifest": "urban-standard-height/manifest.json"
+    },
+    {
+      "id": "urban-low-height",
+      "manifest": "urban-low-height/manifest.json"
     }
   ]
 }
