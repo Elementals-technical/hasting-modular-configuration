@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 
-import { useGetConfiguratorQuery } from "@/entities";
+import { useActiveCollection } from "@/entities/collection";
 import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/ProductSwatchesGrid";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FAUCET_HOLE_HELPER_COPY } from "@/shared/constants/faucetHoles";
@@ -45,16 +45,12 @@ export const FaucetPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
 
-  const { data: counterTopMaterials } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   const countertopRules = useCountertopRules();
   const countertopColorSkuCandidatesByValue = useMemo(
-    () => buildCountertopColorSkuCandidates(counterTopMaterials?.availableOptions),
-    [counterTopMaterials?.availableOptions],
+    () => buildCountertopColorSkuCandidates(configuratorGroups),
+    [configuratorGroups],
   );
   const faucetHoleOptions = useMemo(
     () =>

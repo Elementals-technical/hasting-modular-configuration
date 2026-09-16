@@ -55,8 +55,7 @@ import {
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
-import { useGetConfiguratorQuery } from "@/entities";
-import { hasCapability } from "@/entities/collection";
+import { hasCapability, useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
 import {
@@ -150,20 +149,16 @@ export const CabinetPage = () => {
     }
   }, [activeProfile, bookMatchingState.enabled, activeBookMatching, dispatch]);
 
-  const { data: configuratorData } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   const cabinetColorGroups = useMemo(
-    () => (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Cabinet Color"),
-    [configuratorData],
+    () => configuratorGroups.filter((g) => g.proxyName === "Cabinet Color"),
+    [configuratorGroups],
   );
 
   const grooveColorGroups = useMemo(
-    () => (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Handle Groove Color"),
-    [configuratorData],
+    () => configuratorGroups.filter((g) => g.proxyName === "Handle Groove Color"),
+    [configuratorGroups],
   );
 
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);

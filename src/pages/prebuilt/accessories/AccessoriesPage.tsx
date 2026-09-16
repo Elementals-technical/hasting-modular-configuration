@@ -79,7 +79,7 @@ import {
 } from "@/features/dividers";
 
 import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
-import { useGetConfiguratorQuery } from "@/entities";
+import { useActiveCollection } from "@/entities/collection";
 import {
   formatSidePanelsExceedMaxReason,
   useCountertopLengthGuard,
@@ -285,11 +285,7 @@ export const AccessoriesPage = () => {
     isDrawerCameraManagedRef.current = false;
   }, []);
 
-  const { data: configuratorData } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   const selectorAvailability = useAppSelector(selectSidePanelAvailability);
   const sidePanelFallbackEdgeDrawers = sidePanelEdgeState.eligibleFallbackEdgeId
@@ -456,7 +452,7 @@ export const AccessoriesPage = () => {
   }, [activeSidePanels, dispatch, sidePanelsBlockedByLength340, selectedProducts.length]);
 
   const towelBarOptionsFromApi = useMemo(() => {
-    const groups = (configuratorData?.availableOptions ?? []).filter((g) => g.proxyName === "Towel Bar Color");
+    const groups = configuratorGroups.filter((g) => g.proxyName === "Towel Bar Color");
     if (!groups.length) return [];
 
     const allowedCodes = ["0B MT", "43 MT", "M6 MT", "M7 MT", "03 MT"];
@@ -502,7 +498,7 @@ export const AccessoriesPage = () => {
           }),
       ),
     );
-  }, [configuratorData]);
+  }, [configuratorGroups]);
 
   useEffect(() => {
     if (towelSelection !== "None") return;

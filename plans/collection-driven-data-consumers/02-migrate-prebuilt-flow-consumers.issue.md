@@ -4,13 +4,13 @@ Migrate the Prebuilt Model, Cabinet, Countertop, Accessories, and Faucet flow fr
 
 ## Acceptance criteria
 
-- [ ] Every targeted Prebuilt page selects configurator groups through the ready active-collection API.
-- [ ] Prebuilt countertop rules come from the normalized collection catalog rather than DataTable `438`.
-- [ ] Model SKU resolution uses normalized collection groups.
-- [ ] Page-level loading flags for the already-loaded configurator source are removed.
-- [ ] No targeted Prebuilt file imports or calls the direct configurator or countertop DataTable query hooks.
-- [ ] Existing focused page and rule tests pass with ready collection providers.
-- [ ] TypeScript validation and changed-file linting pass.
+- [x] Every targeted Prebuilt page selects configurator groups through the ready active-collection API.
+- [x] Prebuilt countertop rules come from the normalized collection catalog rather than DataTable `438`.
+- [x] Model SKU resolution uses normalized collection groups.
+- [x] Page-level loading flags for the already-loaded configurator source are removed.
+- [x] No targeted Prebuilt file imports or calls the direct configurator or countertop DataTable query hooks.
+- [x] Existing focused page and rule tests pass with ready collection providers.
+- [x] TypeScript validation and changed-file linting pass.
 
 ## Blocked by
 
