@@ -103,6 +103,8 @@ Add focused behavior tests around group-based adapters and collection selectors,
 
 ## Further Notes
 
+Implementation status as of 2026-09-16: all five approved issues have been implemented on `feat/collection-driven-data-consumers`. The final contract and verification evidence are published in [Collection data migration status v4](../docs/collection-data-migration-status-v4.md).
+
 - The current three production manifests intentionally point to the same remote IDs. The migration is still required because shared values today do not guarantee shared values for future collections.
 - `catalog.configurator` is a normalized group catalog rather than the original API envelope. Consumers should depend on its semantic data, not reconstruct the envelope.
 - `catalog.countertops` is already parsed during collection loading. Parsing DataTable rows again inside pages would create two rule contracts and is removed.

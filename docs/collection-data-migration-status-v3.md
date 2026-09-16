@@ -2,6 +2,8 @@
 
 Цей документ продовжує [Collection data migration status v2](./collection-data-migration-status-v2.md) і [Collection data migration status v1](./collection-data-migration-status-v1.md) після впровадження єдиного readiness gate для конфігуратора. V1 залишається початковим baseline, v2 описує інтеграцію даних Developers B, C та I, а v3 є актуальним контрактом для життєвого циклу active collection і доступу production-компонентів до готових даних.
 
+Міграцію hardcoded Configurator/DataTable consumers завершено в [Collection data migration status v4](./collection-data-migration-status-v4.md).
+
 ## Що змінилося
 
 Prebuilt і Custom тепер монтуються лише після того, як колекція завантажилася, пройшла валідацію та надала `catalog.configurator`. Під час завантаження весь shell замінюється повноекранним loading-станом. Невідома колекція, помилка джерела, помилка валідації або відсутній configurator catalog показують контрольований error-стан; Player, сторінки, sidebars та їхні запити у цей момент не запускаються.
