@@ -5,7 +5,13 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { parseProductProfile } from "@/entities/collection";
+import {
+  parseProductProfile,
+  ReadyCollectionContext,
+  validateCollectionManifest,
+  type ReadyCollectionData,
+} from "@/entities/collection";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { getCabinetEntries, resetConfiguration, syncCabinets } from "@/entities/configuration";
 import {
   getBookMatching,
@@ -23,13 +29,14 @@ import {
   setGrainDirection,
 } from "@/entities/product/model/store/slice";
 
+import manifestJson from "../../../../../public/collections/urban-standard-height/manifest.json";
 import productProfileJson from "../../../../../public/collections/urban-standard-height/product-profile.json";
 
 import { CustomCabinetColorsPage } from "../index";
 
 import type { RootState } from "@/app/store";
 
-const setConfigBatchMock = vi.fn(async (_ids: unknown, _config: unknown) => null);
+const setConfigBatchMock = vi.fn<(ids: unknown, config: unknown) => Promise<null>>(async () => null);
 const saveSnapshotMock = vi.fn(async () => undefined);
 
 const changeAttributeMock = vi.fn(async (change: { attributeId: string; value: string }) => {
@@ -51,93 +58,86 @@ vi.mock("@/features/configurationCommands", async (importOriginal) => {
   };
 });
 
-vi.mock("@/entities", () => ({
-  useGetConfiguratorQuery: () => ({
-    isFetching: false,
-    data: {
-      availableOptions: [
-        {
-          id: 1,
-          proxyName: "Cabinet Color",
-          proxyType: "material",
-          enabled: true,
-          metadata: {},
-          options: [
-            {
-              id: 11,
-              name: "HPL",
-              resource: null,
-              paramString: null,
-              playcanvasString: null,
-              variants: [
-                {
-                  id: 101,
-                  name: "Old Cabinet Color",
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: {
-                    sku: "HPL",
-                    value: "Old Cabinet Color",
-                    label: "Old Cabinet Color",
-                    metadata: { Material: "HPL", Color: "Old", Look: "Matte" },
-                  },
-                },
-                {
-                  id: 102,
-                  name: "New Cabinet Color",
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: {
-                    sku: "HPL",
-                    value: "New Cabinet Color",
-                    label: "New Cabinet Color",
-                    metadata: { Material: "HPL", Color: "New", Look: "Matte" },
-                  },
-                },
-              ],
+const configuratorGroups: ConfiguratorAvailableOption[] = [
+  {
+    id: 1,
+    proxyName: "Cabinet Color",
+    proxyType: "material",
+    enabled: true,
+    metadata: {},
+    options: [
+      {
+        id: 11,
+        name: "HPL",
+        resource: null,
+        paramString: null,
+        playcanvasString: null,
+        variants: [
+          {
+            id: 101,
+            name: "Old Cabinet Color",
+            image: null,
+            enabled: true,
+            description: "",
+            metadata: {
+              sku: "HPL",
+              value: "Old Cabinet Color",
+              label: "Old Cabinet Color",
+              metadata: { Material: "HPL", Color: "Old", Look: "Matte" },
             },
-          ],
-        },
-        {
-          id: 2,
-          proxyName: "Handle Groove Color",
-          proxyType: "material",
-          enabled: true,
-          metadata: {},
-          options: [
-            {
-              id: 21,
-              name: "HPL",
-              resource: null,
-              paramString: null,
-              playcanvasString: null,
-              variants: [
-                {
-                  id: 201,
-                  name: "Old Cabinet Color",
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { sku: "HPL", value: "Old Cabinet Color", label: "Old Cabinet Color" },
-                },
-                {
-                  id: 202,
-                  name: "New Cabinet Color",
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { sku: "HPL", value: "New Cabinet Color", label: "New Cabinet Color" },
-                },
-              ],
+          },
+          {
+            id: 102,
+            name: "New Cabinet Color",
+            image: null,
+            enabled: true,
+            description: "",
+            metadata: {
+              sku: "HPL",
+              value: "New Cabinet Color",
+              label: "New Cabinet Color",
+              metadata: { Material: "HPL", Color: "New", Look: "Matte" },
             },
-          ],
-        },
-      ],
-    },
-  }),
-}));
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 2,
+    proxyName: "Handle Groove Color",
+    proxyType: "material",
+    enabled: true,
+    metadata: {},
+    options: [
+      {
+        id: 21,
+        name: "HPL",
+        resource: null,
+        paramString: null,
+        playcanvasString: null,
+        variants: [
+          {
+            id: 201,
+            name: "Old Cabinet Color",
+            image: null,
+            enabled: true,
+            description: "",
+            metadata: { sku: "HPL", value: "Old Cabinet Color", label: "Old Cabinet Color" },
+          },
+          {
+            id: 202,
+            name: "New Cabinet Color",
+            image: null,
+            enabled: true,
+            description: "",
+            metadata: { sku: "HPL", value: "New Cabinet Color", label: "New Cabinet Color" },
+          },
+        ],
+      },
+    ],
+  },
+];
 
 vi.mock("@/utils/functions/playcanvas/setConfigBatch", () => ({
   setConfigBatch: (ids: unknown, config: unknown) => setConfigBatchMock(ids, config),
@@ -260,14 +260,34 @@ vi.mock("@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid", () => ({
 const parsedProfile = parseProductProfile(productProfileJson);
 if (!parsedProfile.ok) throw new Error("fixture product-profile.json failed validation");
 const profile = parsedProfile.profile;
+const manifest = validateCollectionManifest(
+  manifestJson,
+  "urban-standard-height",
+  "https://app.test/collections/urban-standard-height/manifest.json",
+  "https://app.test/collections/",
+);
+const readyCollection: ReadyCollectionData = {
+  id: manifest.id,
+  manifest,
+  diagnostics: [],
+  sources: { local: {}, remote: {} },
+  catalog: {
+    configurator: {
+      groups: configuratorGroups,
+      groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
+    },
+  },
+};
 
 const renderPage = () =>
   render(
-    <Provider store={store}>
-      <MemoryRouter initialEntries={["/custom/cabinet-colors"]}>
-        <CustomCabinetColorsPage />
-      </MemoryRouter>
-    </Provider>,
+    <ReadyCollectionContext.Provider value={readyCollection}>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={["/custom/cabinet-colors"]}>
+          <CustomCabinetColorsPage />
+        </MemoryRouter>
+      </Provider>
+    </ReadyCollectionContext.Provider>,
   );
 
 const restoreImportedPresetState = (args?: { handleGrooveColor?: string }) => {
