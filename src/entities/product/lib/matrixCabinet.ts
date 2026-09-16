@@ -51,8 +51,7 @@ const createDrawerNormalizer = (profile: ProductProfile | null) => (value: strin
  * Fallback column mapping for the window where no profile is loaded yet.
  * The authoritative mapping is `profile.ruleData.cabinetMatrixLegacyAdapter`.
  */
-const FALLBACK_ADAPTER: CabinetMatrixLegacyAdapter = {
-  tableId: 439,
+const FALLBACK_ADAPTER: Pick<CabinetMatrixLegacyAdapter, "columns"> = {
   columns: {
     cabinetType: "cabinet_type",
     drawers: "drawer_configs",

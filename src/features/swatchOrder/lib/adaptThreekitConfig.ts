@@ -21,6 +21,7 @@ import {
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import type { ProductProfile } from "@/entities/collection";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
   appendSyntesiCountertopOptions,
   type CountertopMatrixRule,
@@ -51,6 +52,8 @@ const pickString = (...candidates: unknown[]): string | undefined => {
 };
 
 const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
+
+type ConfiguratorGroupSource = readonly ConfiguratorAvailableOption[] | IThreekitConfiguration;
 
 type AdaptThreekitConfigOptions = {
   countertopRules?: CountertopMatrixRule[];
@@ -207,17 +210,19 @@ const appendCountertopRuleBackedSwatches = (
 };
 
 export const adaptThreekitConfig = (
-  data: IThreekitConfiguration | null | undefined,
+  source: ConfiguratorGroupSource | null | undefined,
   options: AdaptThreekitConfigOptions,
 ): IMapUIData => {
-  if (!data?.availableOptions?.length) {
+  const groups = source && "availableOptions" in source ? source.availableOptions : source;
+
+  if (!groups?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
   }
 
   const productElementOptions: IProductElementOption[] = [];
   const allMaterialValues: AttributeValue[] = [];
 
-  for (const group of data.availableOptions) {
+  for (const group of groups) {
     if (!group.enabled) continue;
     if (group.proxyType !== "material") continue;
 

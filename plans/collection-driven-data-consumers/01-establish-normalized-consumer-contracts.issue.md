@@ -4,13 +4,13 @@ Establish the catalog-facing contracts used by every later migration slice. Make
 
 ## Acceptance criteria
 
-- [ ] Shared configurator adapters accept normalized collection option groups without requiring a raw endpoint envelope.
-- [ ] Countertop-rule access reads the active collection catalog and preserves safe empty behavior for an absent optional catalog.
-- [ ] Countertop SKU resolution accepts normalized collection option groups.
-- [ ] The legacy cabinet fallback contains only required column mappings and no hardcoded DataTable identity.
-- [ ] Existing manifest and ProductProfile-owned source identity remains unchanged.
-- [ ] Focused adapter, rule, and loader tests pass.
-- [ ] TypeScript validation and changed-file linting pass.
+- [x] Shared configurator adapters accept normalized collection option groups without requiring a raw endpoint envelope.
+- [x] Countertop-rule access reads the active collection catalog and preserves safe empty behavior for an absent optional catalog.
+- [x] Countertop SKU resolution accepts normalized collection option groups.
+- [x] The legacy cabinet fallback contains only required column mappings and no hardcoded DataTable identity.
+- [x] Existing manifest and ProductProfile-owned source identity remains unchanged.
+- [x] Focused adapter, rule, and loader tests pass.
+- [x] TypeScript validation and changed-file linting pass.
 
 ## Blocked by
 
