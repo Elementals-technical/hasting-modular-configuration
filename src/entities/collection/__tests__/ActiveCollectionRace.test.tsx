@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 
 import type { CollectionRuntimeDependencies } from "../model/types";
-import { useActiveCollectionState } from "../ui/activeCollectionContext";
+import { useActiveCollectionSession, useActiveCollectionState } from "../ui/activeCollectionContext";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
 
 const registryUrl = "https://app.test/collections/registry.json";
@@ -20,6 +20,7 @@ const registry = {
 
 const Consumer = () => {
   const state = useActiveCollectionState();
+  const session = useActiveCollectionSession();
   const navigate = useNavigate();
   const id = "collectionId" in state ? state.collectionId : "";
 
@@ -27,6 +28,7 @@ const Consumer = () => {
     <>
       <output data-testid="state">{state.status + ":" + (id ?? "")}</output>
       <button onClick={() => navigate("/?collectionId=slow-collection&configId=13507")}>update query</button>
+      <button onClick={session.retry}>retry</button>
     </>
   );
 };
@@ -84,5 +86,57 @@ describe("ActiveCollectionProvider fixed session", () => {
 
     await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready:slow-collection"));
     expect(fetchJson).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a stale result after retry starts a newer attempt", async () => {
+    let resolveFirst: ((value: unknown) => void) | undefined;
+    const firstManifest = new Promise<unknown>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const fetchJson = vi
+      .fn()
+      .mockImplementationOnce(async () => firstManifest)
+      .mockResolvedValueOnce({ id: "slow-collection", label: "Latest attempt", defaults: {} });
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl: rootUrl,
+      registry,
+      fetchJson,
+      remote: {
+        loadConfigurator: vi.fn(async () => Promise.reject(new Error("Unexpected remote request"))),
+        loadCountertopTable: vi.fn(async () => Promise.reject(new Error("Unexpected remote request"))),
+        loadCabinetTable: vi.fn(async () => Promise.reject(new Error("Unexpected remote request"))),
+      },
+    };
+    const router = createMemoryRouter(
+      [
+        {
+          path: "*",
+          element: (
+            <ActiveCollectionProvider dependencies={dependencies}>
+              <Consumer />
+            </ActiveCollectionProvider>
+          ),
+        },
+      ],
+      { initialEntries: ["/?collectionId=slow-collection"] },
+    );
+    render(
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("loading:slow-collection"));
+    fireEvent.click(screen.getByRole("button", { name: "retry" }));
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready:slow-collection"));
+
+    await act(async () => {
+      resolveFirst?.({ id: "slow-collection", label: "Stale attempt", defaults: {} });
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("state").textContent).toBe("ready:slow-collection");
+    expect(fetchJson).toHaveBeenCalledTimes(2);
   });
 });

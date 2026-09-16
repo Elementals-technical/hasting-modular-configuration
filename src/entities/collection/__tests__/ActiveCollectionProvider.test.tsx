@@ -40,7 +40,7 @@ import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
 
-import { useActiveCollection } from "../ui/activeCollectionContext";
+import { useActiveCollection, useActiveCollectionSession } from "../ui/activeCollectionContext";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
 import type { CollectionRuntimeDependencies, RemoteCollectionLoader } from "../model/types";
 
@@ -108,6 +108,7 @@ const makeDependencies = (
 
 const CollectionConsumer = () => {
   const state = useActiveCollection();
+  const session = useActiveCollectionSession();
   const navigate = useNavigate();
   const detail =
     state.status === "ready"
@@ -131,6 +132,7 @@ const CollectionConsumer = () => {
     <div>
       <output data-testid="collection-state">{`${state.status}:${collectionId ?? ""}:${detail ?? ""}`}</output>
       <output data-testid="collection-local-data">{localData}</output>
+      <button onClick={session.retry}>retry</button>
       <button onClick={() => navigate("/?collectionId=fixture-rules")}>rules</button>
       <button onClick={() => navigate("/?collectionId=urban-standard-height")}>ush</button>
       <button onClick={() => navigate("/?collectionId=urban-low-height")}>urban-low-height</button>
@@ -233,6 +235,31 @@ describe("ActiveCollectionProvider", () => {
     expect(remote.loadConfigurator).not.toHaveBeenCalled();
     expect(remote.loadCountertopTable).not.toHaveBeenCalled();
     expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+  });
+
+  it("retries the captured collection without changing its identity", async () => {
+    const retryingRemote: RemoteCollectionLoader = {
+      loadConfigurator: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("temporary configurator failure"))
+        .mockResolvedValue(configurator4),
+      loadCountertopTable: vi.fn(async () => datatable438),
+      loadCabinetTable: vi.fn(async () => datatable439),
+    };
+    renderProvider(
+      "/?collectionId=urban-standard-height",
+      makeDependencies(undefined, retryingRemote, productionRegistry),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toBe("error:urban-standard-height:source-load-failed"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "retry" }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
+    );
+    expect(retryingRemote.loadConfigurator).toHaveBeenCalledTimes(2);
   });
 
   it("publishes an error when a declared source fails", async () => {

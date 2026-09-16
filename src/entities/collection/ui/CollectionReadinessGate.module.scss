@@ -43,3 +43,35 @@
     transform: rotate(360deg);
   }
 }
+
+.errorCard {
+  width: min(100%, 520px);
+  padding: 32px;
+  box-sizing: border-box;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e5e6ea;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(40, 40, 40, 0.08);
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.collectionId {
+  margin: 12px 0 0;
+  color: #6a6a6a;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}

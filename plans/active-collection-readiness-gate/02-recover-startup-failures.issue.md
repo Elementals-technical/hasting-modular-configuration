@@ -4,14 +4,14 @@ Provide a complete recovery path when the initial collection cannot open the con
 
 ## Acceptance criteria
 
-- [ ] Collection errors and missing-configurator capability errors block the complete configurator shell.
-- [ ] Error copy identifies the affected collection where useful without exposing raw causes, payloads, or stack traces.
-- [ ] Retry reruns the complete collection pipeline for the same captured identity without browser reload.
-- [ ] Retry prevents duplicate attempts and stale responses cannot replace the latest result.
-- [ ] Open default collection appears only for an explicit identity that differs from a known registry default.
-- [ ] Open default collection performs full-page navigation, removes only `collectionId`, and preserves the route and all other query parameters.
-- [ ] Registry loading failures and failures of the current default do not offer a redundant default action.
-- [ ] Focused tests, TypeScript validation, and linting pass.
+- [x] Collection errors and missing-configurator capability errors block the complete configurator shell.
+- [x] Error copy identifies the affected collection where useful without exposing raw causes, payloads, or stack traces.
+- [x] Retry reruns the complete collection pipeline for the same captured identity without browser reload.
+- [x] Retry prevents duplicate attempts and stale responses cannot replace the latest result.
+- [x] Open default collection appears only for an explicit identity that differs from a known registry default.
+- [x] Open default collection performs full-page navigation, removes only `collectionId`, and preserves the route and all other query parameters.
+- [x] Registry loading failures and failures of the current default do not offer a redundant default action.
+- [x] Focused tests, TypeScript validation, and linting pass.
 
 ## Blocked by
 

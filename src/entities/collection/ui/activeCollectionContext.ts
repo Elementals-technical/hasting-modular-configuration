@@ -5,6 +5,14 @@ import type { ActiveCollectionState, ReadyCollectionData } from "../model/types"
 export const ActiveCollectionContext = createContext<ActiveCollectionState | null>(null);
 export const ReadyCollectionContext = createContext<ReadyCollectionData | null>(null);
 
+export type ActiveCollectionSession = {
+  requestedCollectionId: string | null;
+  defaultCollectionId?: string;
+  retry: () => void;
+};
+
+export const ActiveCollectionSessionContext = createContext<ActiveCollectionSession | null>(null);
+
 /** @deprecated Product consumers migrate to the ready-only hook in the final integration slice. */
 export const useActiveCollection = (): ActiveCollectionState => {
   return useActiveCollectionState();
@@ -14,6 +22,12 @@ export const useActiveCollectionState = (): ActiveCollectionState => {
   const state = useContext(ActiveCollectionContext);
   if (!state) throw new Error("useActiveCollectionState must be used within ActiveCollectionProvider");
   return state;
+};
+
+export const useActiveCollectionSession = (): ActiveCollectionSession => {
+  const session = useContext(ActiveCollectionSessionContext);
+  if (!session) throw new Error("useActiveCollectionSession must be used within ActiveCollectionProvider");
+  return session;
 };
 
 export function useReadyActiveCollection(): ReadyCollectionData;

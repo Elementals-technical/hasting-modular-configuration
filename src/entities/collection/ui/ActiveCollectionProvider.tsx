@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useAppDispatch } from "@/shared/hooks/store/redux";
@@ -10,7 +10,7 @@ import { createRtkCollectionRemoteLoader } from "../lib/rtkRemoteLoader";
 import { DEFAULT_COLLECTION_REGISTRY_URL, DEFAULT_COLLECTIONS_ROOT_URL } from "../model/constants";
 import { toCollectionError } from "../model/errors";
 import type { ActiveCollectionState, CollectionRuntimeDependencies } from "../model/types";
-import { ActiveCollectionContext } from "./activeCollectionContext";
+import { ActiveCollectionContext, ActiveCollectionSessionContext } from "./activeCollectionContext";
 
 export type ActiveCollectionProviderProps = {
   children: ReactNode;
@@ -34,6 +34,17 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
     };
   }, [dependencies, remote]);
   const [state, setState] = useState<ActiveCollectionState>({ status: "resolving" });
+  const [defaultCollectionId, setDefaultCollectionId] = useState<string>();
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const retry = useCallback(() => {
+    setState({ status: "resolving" });
+    setDefaultCollectionId(undefined);
+    setLoadAttempt((attempt) => attempt + 1);
+  }, []);
+  const session = useMemo(
+    () => ({ requestedCollectionId: sessionCollectionId, defaultCollectionId, retry }),
+    [defaultCollectionId, retry, sessionCollectionId],
+  );
 
   useEffect(() => {
     const sequence = ++requestSequence.current;
@@ -48,6 +59,7 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
       try {
         const registry = await loadCollectionRegistry(runtimeDependencies, abortController.signal);
         if (!isLatest()) return;
+        setDefaultCollectionId(registry.defaultCollectionId);
 
         const resolution = resolveCollection({ registry, urlCollectionId: sessionCollectionId });
         if (!resolution.ok) {
@@ -70,7 +82,11 @@ export const ActiveCollectionProvider = ({ children, dependencies }: ActiveColle
     })();
 
     return () => abortController.abort();
-  }, [runtimeDependencies, sessionCollectionId]);
+  }, [loadAttempt, runtimeDependencies, sessionCollectionId]);
 
-  return <ActiveCollectionContext.Provider value={state}>{children}</ActiveCollectionContext.Provider>;
+  return (
+    <ActiveCollectionSessionContext.Provider value={session}>
+      <ActiveCollectionContext.Provider value={state}>{children}</ActiveCollectionContext.Provider>
+    </ActiveCollectionSessionContext.Provider>
+  );
 };
