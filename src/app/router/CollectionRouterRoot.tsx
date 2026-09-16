@@ -8,7 +8,7 @@ export const CollectionRouterRoot = () => (
   <ActiveCollectionProvider>
     {/* Publishes the loaded collection into the store for reducers and non-React code. */}
     <CollectionStateBridge />
-    {/* TODO(A07): loads runtime-bindings.json until A's loader provides it. */}
+    {/* Publishes the active collection's validated bindings for non-React scene services. */}
     <RuntimeBindingsBridge />
     <Outlet />
   </ActiveCollectionProvider>

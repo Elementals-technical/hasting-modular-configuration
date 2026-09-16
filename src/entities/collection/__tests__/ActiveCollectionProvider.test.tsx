@@ -6,6 +6,8 @@ import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-do
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
+import { CollectionStateBridge, getActiveCollectionId, getActiveProductProfile } from "@/entities/configuration";
+import { getLoadedRuntimeBindings, RuntimeBindingsBridge } from "@/features/playCanvasAdapter";
 
 import productionRegistry from "../../../../public/collections/registry.json";
 import productionManifest from "../../../../public/collections/urban-standard-height/manifest.json";
@@ -16,6 +18,10 @@ import productionSkuMappings from "../../../../public/collections/urban-standard
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
 import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
+import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
+import classManifest from "../../../../public/collections/class/manifest.json";
+import classUi from "../../../../public/collections/class/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
@@ -62,6 +68,10 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
   [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
   [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
+  [`${rootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
+  [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
+  [`${rootUrl}class/manifest.json`]: classManifest,
+  [`${rootUrl}class/ui.json`]: classUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
@@ -106,25 +116,41 @@ const CollectionConsumer = () => {
         ? state.error.code
         : "";
   const collectionId = "collectionId" in state ? state.collectionId : undefined;
+  const localData =
+    state.status === "ready"
+      ? JSON.stringify({
+          defaults: state.data.manifest.defaults,
+          presets: state.data.catalog.presets ?? null,
+          productProfile: state.data.catalog.productProfile ?? null,
+          runtimeBindings: state.data.catalog.runtimeBindings ?? null,
+          cabinetSkuMappings: state.data.catalog.cabinetSkuMappings ?? null,
+        })
+      : "";
 
   return (
     <div>
       <output data-testid="collection-state">{`${state.status}:${collectionId ?? ""}:${detail ?? ""}`}</output>
+      <output data-testid="collection-local-data">{localData}</output>
       <button onClick={() => navigate("/?collectionId=fixture-rules")}>rules</button>
       <button onClick={() => navigate("/?collectionId=urban-standard-height")}>ush</button>
+      <button onClick={() => navigate("/?collectionId=urban-low-height")}>urban-low-height</button>
+      <button onClick={() => navigate("/?collectionId=class")}>class</button>
+      <button onClick={() => navigate("/")}>default</button>
       <button onClick={() => navigate("/?collectionId=")}>empty</button>
       <button onClick={() => navigate("/?collectionId=unknown")}>unknown</button>
     </div>
   );
 };
 
-const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDependencies) => {
+const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDependencies, includeBridges = false) => {
   const router = createMemoryRouter(
     [
       {
         path: "*",
         element: (
           <ActiveCollectionProvider dependencies={dependencies}>
+            {includeBridges && <CollectionStateBridge />}
+            {includeBridges && <RuntimeBindingsBridge />}
             <CollectionConsumer />
           </ActiveCollectionProvider>
         ),
@@ -132,11 +158,14 @@ const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDep
     ],
     { initialEntries: [initialEntry] },
   );
-  return render(
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>,
-  );
+  return {
+    renderResult: render(
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>,
+    ),
+    router,
+  };
 };
 
 afterEach(() => {
@@ -161,6 +190,67 @@ describe("ActiveCollectionProvider", () => {
       expect.any(AbortSignal),
     );
     expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(438, expect.any(AbortSignal));
+    expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
+  });
+
+  it("switches USH to both partial collections and back to the default without leaking local data", async () => {
+    const { router } = renderProvider(
+      "/?collectionId=urban-standard-height",
+      makeDependencies(undefined, productionRemote, productionRegistry),
+      true,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
+    );
+    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height"));
+    expect(getActiveProductProfile(store.getState())?.collectionId).toBe("urban-standard-height");
+    expect(getLoadedRuntimeBindings("urban-standard-height")?.collectionId).toBe("urban-standard-height");
+
+    fireEvent.click(screen.getByRole("button", { name: "urban-low-height" }));
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toBe("ready:urban-low-height:Urban Low Height Models"),
+    );
+    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-low-height"));
+    expect(router.state.location.search).toBe("?collectionId=urban-low-height");
+    expect(getActiveProductProfile(store.getState())).toBeNull();
+    expect(getLoadedRuntimeBindings("urban-standard-height")).toBeNull();
+    expect(getLoadedRuntimeBindings("urban-low-height")).toBeNull();
+    expect(screen.getByTestId("collection-local-data").textContent).toBe(
+      '{"defaults":{},"presets":null,"productProfile":null,"runtimeBindings":null,"cabinetSkuMappings":null}',
+    );
+    expect(store.getState().rootStateUI.product.productOptions.CabinetColor).toBe("");
+    expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe("");
+
+    fireEvent.click(screen.getByRole("button", { name: "class" }));
+    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:class:Class Models"));
+    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("class"));
+    expect(router.state.location.search).toBe("?collectionId=class");
+    expect(getActiveProductProfile(store.getState())).toBeNull();
+    expect(getLoadedRuntimeBindings("class")).toBeNull();
+    expect(screen.getByTestId("collection-local-data").textContent).toBe(
+      '{"defaults":{},"presets":null,"productProfile":null,"runtimeBindings":null,"cabinetSkuMappings":null}',
+    );
+    expect(store.getState().rootStateUI.product.productOptions.CabinetColor).toBe("");
+    expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe("");
+
+    fireEvent.click(screen.getByRole("button", { name: "default" }));
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
+    );
+    await waitFor(() => expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height"));
+    expect(router.state.location.search).toBe("");
+    expect(getActiveProductProfile(store.getState())?.collectionId).toBe("urban-standard-height");
+    expect(getLoadedRuntimeBindings("urban-standard-height")?.collectionId).toBe("urban-standard-height");
+
+    expect(productionRemote.loadConfigurator).toHaveBeenCalledTimes(4);
+    expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(
+      { id: 4, view: "full", serialize: true },
+      expect.any(AbortSignal),
+    );
+    expect(productionRemote.loadCountertopTable).toHaveBeenCalledTimes(4);
+    expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(438, expect.any(AbortSignal));
+    expect(productionRemote.loadCabinetTable).toHaveBeenCalledTimes(4);
     expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
   });
 
