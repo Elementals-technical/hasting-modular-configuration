@@ -12,10 +12,7 @@ import {
 
 import ushRuntimeBindingsDocument from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 
-import {
-  getLoadedRuntimeBindings,
-  resetRuntimeBindingsCache,
-} from "../lib/runtimeBindingsCache";
+import { getLoadedRuntimeBindings, resetRuntimeBindingsCache } from "../lib/runtimeBindingsCache";
 import { RuntimeBindingsBridge } from "../ui/RuntimeBindingsBridge";
 
 const readyState = (id: string, runtimeBindings?: RuntimeBindingSet): ActiveCollectionState => ({
@@ -49,12 +46,19 @@ describe("RuntimeBindingsBridge", () => {
     await waitFor(() => expect(getLoadedRuntimeBindings("urban-standard-height")).toBe(parsed.bindings));
 
     rerender(
-      <ActiveCollectionContext.Provider value={readyState("class")}>
+      <ActiveCollectionContext.Provider value={{ status: "loading", collectionId: "class" }}>
         <RuntimeBindingsBridge />
       </ActiveCollectionContext.Provider>,
     );
 
     await waitFor(() => expect(getLoadedRuntimeBindings("urban-standard-height")).toBeNull());
+    expect(getLoadedRuntimeBindings("class")).toBeNull();
+
+    rerender(
+      <ActiveCollectionContext.Provider value={readyState("class")}>
+        <RuntimeBindingsBridge />
+      </ActiveCollectionContext.Provider>,
+    );
     expect(getLoadedRuntimeBindings("class")).toBeNull();
 
     unmount();

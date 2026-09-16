@@ -130,6 +130,17 @@ describe("CollectionStateBridge", () => {
     expect(getCabinetCatalog(state).typeCabinetRules).toEqual([]);
   });
 
+  it("clears published collection data when the bridge unmounts", () => {
+    const view = renderBridge(readyState());
+    expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height");
+
+    view.unmount();
+
+    expect(getActiveCollectionId(store.getState())).toBeNull();
+    expect(getActiveProductProfile(store.getState())).toBeNull();
+    expect(getCabinetCatalog(store.getState()).typeCabinetRules).toEqual([]);
+  });
+
   it("clears ready data when the same mounted bridge receives an error", () => {
     const view = renderBridge(readyState());
     expect(getActiveCollectionId(store.getState())).toBe("urban-standard-height");

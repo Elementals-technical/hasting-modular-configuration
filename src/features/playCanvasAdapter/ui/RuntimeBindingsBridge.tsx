@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useActiveCollection } from "@/entities/collection";
+import { useActiveCollectionState } from "@/entities/collection";
 
 import { replaceLoadedRuntimeBindings } from "../lib/runtimeBindingsCache";
 
@@ -9,7 +9,7 @@ import { replaceLoadedRuntimeBindings } from "../lib/runtimeBindingsCache";
  * that cannot read React context. It never constructs a collection URL or fetches data.
  */
 export const RuntimeBindingsBridge = () => {
-  const collection = useActiveCollection();
+  const collection = useActiveCollectionState();
   const data = collection.status === "ready" ? collection.data : null;
 
   useEffect(() => {
