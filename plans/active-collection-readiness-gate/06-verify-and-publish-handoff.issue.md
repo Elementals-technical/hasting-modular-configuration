@@ -4,13 +4,13 @@ Verify the final readiness boundary through registered production collections an
 
 ## Acceptance criteria
 
-- [ ] Full relevant tests, repository TypeScript validation, linting, and production build results are recorded accurately.
-- [ ] Browser smoke verification covers implicit default USH, explicit USH, Urban Low Height, Class, unknown identity, retry, default recovery, and session identity mismatch.
-- [ ] The migration handoff explains the lifecycle-state API, ready-only selector API, shell capability requirement, and immutable session identity.
-- [ ] The handoff links to Collection data migration status v1 and preserves the distinction between data readiness and feature completeness.
-- [ ] Remaining missing presets, profiles, bindings, SKU mappings, pricing data, or browser acceptance are not reported as completed.
-- [ ] The PRD and all issue acceptance checklists reflect the implemented and validated result.
-- [ ] The final branch contains one reviewable commit per implemented issue after the planning commit.
+- [x] Full relevant tests, repository TypeScript validation, linting, and production build results are recorded accurately.
+- [x] Browser smoke verification covers implicit default USH, explicit USH, Urban Low Height, Class, unknown identity, retry, default recovery, and session identity mismatch.
+- [x] The migration handoff explains the lifecycle-state API, ready-only selector API, shell capability requirement, and immutable session identity.
+- [x] The handoff links to Collection data migration status v1 and preserves the distinction between data readiness and feature completeness.
+- [x] Remaining missing presets, profiles, bindings, SKU mappings, pricing data, or browser acceptance are not reported as completed.
+- [x] The PRD and all issue acceptance checklists reflect the implemented and validated result.
+- [x] The final branch contains one reviewable commit per implemented issue after the planning commit.
 
 ## Blocked by
 

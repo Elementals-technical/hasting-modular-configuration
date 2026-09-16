@@ -142,6 +142,8 @@ Apply the provider and readiness gate only to the Prebuilt and Custom configurat
 
 ## Further Notes
 
+Implementation status as of 2026-09-16: all six approved issues have been implemented on `feat/active-collection-readiness-gate`. The final contract and verification evidence are published in [Collection data migration status v3](../docs/collection-data-migration-status-v3.md), including browser results for every registered collection, recovery actions, and session-identity mismatch behavior.
+
 - This work intentionally moves product lifecycle policy from every consumer to one composition boundary. The general collection domain remains capable of loading partial and test packages outside that shell.
 - A collection can be valid according to its manifest and still be unsuitable for this configurator shell. The refined ready type represents suitability only after the gate's capability check.
 - The fixed-session rule aligns URL identity, loaded catalogs, Redux state, runtime bindings, and the PlayCanvas scene. Treating identity changes as an error is safer than either silently ignoring the URL or attempting a partial hot switch.
