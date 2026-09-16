@@ -10,9 +10,9 @@ export const ArrowRight: React.FC<ArrowRightI> = ({ width = "20", height = "20",
       <path
         d="M10 4.16634L15.8333 9.99967M15.8333 9.99967L10 15.833M15.8333 9.99967L4.16667 9.99968"
         stroke={stroke}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
