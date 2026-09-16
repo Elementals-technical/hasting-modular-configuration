@@ -78,15 +78,16 @@ import {
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
 } from "@/shared/lib/sku";
-import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
+import { useSaveConfigurationMutation } from "@/entities";
+import { useActiveCollection } from "@/entities/collection";
 import { usePriceResult } from "@/shared/hooks/usePriceResult";
+import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
   appendUncoveredLines,
   resolveSummaryLinePrice,
   type PricingLine,
   type SummaryPriceState,
 } from "@/shared/lib/pricing";
-import { useGetConfiguratorQuery, useSaveConfigurationMutation } from "@/entities";
 import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
 import { buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import { hashConfigurationRequest, useBuildConfigurationRequest } from "@/features/saveConfiguration";
@@ -446,15 +447,11 @@ export const SummaryPage = () => {
     [materialLookup],
   );
 
-  const { data: cabinetColors } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const countertopRules = useCountertopRules();
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
-    const groups = cabinetColors?.availableOptions ?? [];
+    const groups = configuratorGroups;
     const buildMapForProxy = (proxyName: string) => {
       const map = new Map<string, string>();
       groups
@@ -479,7 +476,7 @@ export const SummaryPage = () => {
       handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
       countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
-  }, [cabinetColors]);
+  }, [configuratorGroups]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1601,11 +1598,11 @@ export const SummaryPage = () => {
     hasSubmittedCart,
   ]);
 
-  const quoteModelName = "Urban Standard Height";
+  const quoteModelName = useActiveCollection((collection) => collection.manifest.label);
 
   const swatchOrderData = useMemo(
-    () => adaptThreekitConfig(cabinetColors, { countertopRules, profile: activeProfile }),
-    [cabinetColors, countertopRules, activeProfile],
+    () => adaptThreekitConfig(configuratorGroups, { countertopRules, profile: activeProfile }),
+    [configuratorGroups, countertopRules, activeProfile],
   );
   const summaryAutofillValues = useMemo<AutofillValueRequest[]>(() => {
     const requests: AutofillValueRequest[] = [];

@@ -1,9 +1,9 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { useStore } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import type { RootState } from "@/app/store";
-import { ActiveCollectionContext } from "@/entities/collection";
+import { useActiveCollection } from "@/entities/collection";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfigurationRuntimePort } from "@/entities/configuration";
 import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
@@ -29,11 +29,9 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
   const { pathname } = useLocation();
   const flow: RuntimeFlow = pathname.includes("/custom") ? "custom" : "prebuilt";
 
-  // The bindings arrive with the active collection. Outside its provider (a test with a
-  // stand-in runtime) there are none.
-  const collection = useContext(ActiveCollectionContext);
-  const bindings = collection?.status === "ready" ? (collection.data.catalog.runtimeBindings ?? null) : null;
-  const configurator = collection?.status === "ready" ? (collection.data.catalog.configurator ?? null) : null;
+  const collection = useActiveCollection();
+  const bindings = collection.catalog.runtimeBindings ?? null;
+  const configurator = collection.catalog.configurator;
 
   const runtime = useMemo(
     () => runtimeOverride ?? createPlayCanvasRuntimePort({ getBindings: () => bindings }),

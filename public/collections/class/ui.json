@@ -1,0 +1,23 @@
+{
+  "collectionId": "class",
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "model",
+      "steps": [{ "stepId": "model", "path": "/prebuilt/model" }]
+    },
+    "custom": {
+      "entryStepId": "cabinet-builder",
+      "steps": [{ "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" }]
+    }
+  },
+  "steps": {
+    "model": { "label": "Class Models", "kind": "preset-picker" },
+    "cabinet-builder": {
+      "label": "Class Cabinet Builder",
+      "headerPrefix": null,
+      "kind": "cabinet-builder",
+      "sectionIds": []
+    }
+  },
+  "sections": {}
+}

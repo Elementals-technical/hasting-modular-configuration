@@ -14,6 +14,7 @@ export * from "./model/errors";
 export * from "./model/schemas";
 export * from "./model/types";
 export * from "./ui/ActiveCollectionProvider";
+export * from "./ui/CollectionReadinessGate";
 export * from "./ui/activeCollectionContext";
 
 // ProductProfile — owned by C: the semantic shape of the product data and the pure

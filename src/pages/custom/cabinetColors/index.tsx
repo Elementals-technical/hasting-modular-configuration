@@ -17,8 +17,7 @@ import {
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
-import { useGetConfiguratorQuery } from "@/entities";
-import { hasCapability } from "@/entities/collection";
+import { hasCapability, useActiveCollection } from "@/entities/collection";
 import {
   FieldControl,
   useCustomizationSectionFields,
@@ -108,11 +107,7 @@ export const CustomCabinetColorsPage = () => {
   const [bookMatchingState, setBookMatchingState] = useState(selectorBookMatchingState);
   const bookMatchingTooltip = !bookMatchingState.enabled ? (bookMatchingState.reason ?? "Not available.") : undefined;
 
-  const { data: cabinetColors, isFetching: isFetchingCabinetColors } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   const toOptionalString = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
 
@@ -155,13 +150,13 @@ export const CustomCabinetColorsPage = () => {
   );
 
   const cabinetColorGroups = useMemo(
-    () => (cabinetColors?.availableOptions ?? []).filter((g) => g.proxyName === "Cabinet Color"),
-    [cabinetColors],
+    () => configuratorGroups.filter((g) => g.proxyName === "Cabinet Color"),
+    [configuratorGroups],
   );
 
   const grooveColorGroups = useMemo(
-    () => (cabinetColors?.availableOptions ?? []).filter((g) => g.proxyName === "Handle Groove Color"),
-    [cabinetColors],
+    () => configuratorGroups.filter((g) => g.proxyName === "Handle Groove Color"),
+    [configuratorGroups],
   );
 
   const buildFiltersFromGroups = useCallback(
@@ -735,7 +730,6 @@ export const CustomCabinetColorsPage = () => {
             fullModeActiveValue={activeCabinetColor}
             onFullModeSelect={handleChangeColor}
             fullModeGroupByDesc
-            fullModeLoading={isFetchingCabinetColors}
             fullModeMaterialFilterOptions={apiMaterialFilters.materials}
             fullModeColorFilterOptions={apiMaterialFilters.colors}
             fullModeLookFilterOptions={apiMaterialFilters.looks}
@@ -746,7 +740,6 @@ export const CustomCabinetColorsPage = () => {
             data={sortedBasePanelOptions}
             handleAdd={handleChangeColor}
             activeValue={activeCabinetColor}
-            isLoading={isFetchingCabinetColors}
             groupByDesc
           />
         </>
@@ -766,8 +759,7 @@ export const CustomCabinetColorsPage = () => {
                   fullModeActiveValue={activeGrooveColor}
                   onFullModeSelect={handleChangeGrooveColor}
                   fullModeGroupByDesc
-                  fullModeLoading={isFetchingCabinetColors}
-                  fullModeMaterialFilterOptions={grooveMaterialFilters.materials}
+                        fullModeMaterialFilterOptions={grooveMaterialFilters.materials}
                   fullModeColorFilterOptions={grooveMaterialFilters.colors}
                   fullModeLookFilterOptions={grooveMaterialFilters.looks}
                   fullModeTierFilterOptions={groovePriceRangeOptions}
@@ -777,8 +769,7 @@ export const CustomCabinetColorsPage = () => {
                   data={grooveColorOptions}
                   handleAdd={handleChangeGrooveColor}
                   activeValue={activeGrooveColor}
-                  isLoading={isFetchingCabinetColors}
-                  groupByDesc
+                        groupByDesc
                 />
               </>
             ),

@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
+import { CollectionStateBridge } from "@/entities/configuration";
 
 import productionRegistry from "../../../../public/collections/registry.json";
 import productionManifest from "../../../../public/collections/urban-standard-height/manifest.json";
@@ -16,6 +17,10 @@ import productionSkuMappings from "../../../../public/collections/urban-standard
 import productionProductProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
 import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
+import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
+import classManifest from "../../../../public/collections/class/manifest.json";
+import classUi from "../../../../public/collections/class/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
@@ -34,7 +39,7 @@ import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
 
-import { useActiveCollection } from "../ui/activeCollectionContext";
+import { useActiveCollectionSession, useActiveCollectionState } from "../ui/activeCollectionContext";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
 import type { CollectionRuntimeDependencies, RemoteCollectionLoader } from "../model/types";
 
@@ -62,6 +67,10 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/cabinet-sku-mappings.json`]: productionSkuMappings,
   [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
   [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
+  [`${rootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
+  [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
+  [`${rootUrl}class/manifest.json`]: classManifest,
+  [`${rootUrl}class/ui.json`]: classUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
@@ -97,7 +106,8 @@ const makeDependencies = (
 });
 
 const CollectionConsumer = () => {
-  const state = useActiveCollection();
+  const state = useActiveCollectionState();
+  const session = useActiveCollectionSession();
   const navigate = useNavigate();
   const detail =
     state.status === "ready"
@@ -106,27 +116,42 @@ const CollectionConsumer = () => {
         ? state.error.code
         : "";
   const collectionId = "collectionId" in state ? state.collectionId : undefined;
+  const localData =
+    state.status === "ready"
+      ? JSON.stringify({
+          defaults: state.data.manifest.defaults,
+          presets: state.data.catalog.presets ?? null,
+          productProfile: state.data.catalog.productProfile ?? null,
+          runtimeBindings: state.data.catalog.runtimeBindings ?? null,
+          cabinetSkuMappings: state.data.catalog.cabinetSkuMappings ?? null,
+        })
+      : "";
 
   return (
     <div>
       <output data-testid="collection-state">{`${state.status}:${collectionId ?? ""}:${detail ?? ""}`}</output>
+      <output data-testid="collection-local-data">{localData}</output>
+      <button onClick={session.retry}>retry</button>
       <button onClick={() => navigate("/?collectionId=fixture-rules")}>rules</button>
       <button onClick={() => navigate("/?collectionId=urban-standard-height")}>ush</button>
+      <button onClick={() => navigate("/?collectionId=urban-low-height")}>urban-low-height</button>
+      <button onClick={() => navigate("/?collectionId=class")}>class</button>
+      <button onClick={() => navigate("/")}>default</button>
       <button onClick={() => navigate("/?collectionId=")}>empty</button>
+      <button onClick={() => navigate("/?collectionId=fixture-ui&configId=123")}>config</button>
       <button onClick={() => navigate("/?collectionId=unknown")}>unknown</button>
-      <button onClick={() => navigate("/step?collectionId=fixture-ui&accordion=cabinet-style")}>accordion</button>
-      <button onClick={() => navigate("/step")}>no-id</button>
     </div>
   );
 };
 
-const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDependencies) => {
+const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDependencies, includeBridges = false) => {
   const router = createMemoryRouter(
     [
       {
         path: "*",
         element: (
           <ActiveCollectionProvider dependencies={dependencies}>
+            {includeBridges && <CollectionStateBridge />}
             <CollectionConsumer />
           </ActiveCollectionProvider>
         ),
@@ -134,11 +159,14 @@ const renderProvider = (initialEntry: string, dependencies: CollectionRuntimeDep
     ],
     { initialEntries: [initialEntry] },
   );
-  return render(
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>,
-  );
+  return {
+    renderResult: render(
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>,
+    ),
+    router,
+  };
 };
 
 afterEach(() => {
@@ -166,6 +194,24 @@ describe("ActiveCollectionProvider", () => {
     expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
   });
 
+  it.each([
+    ["urban-low-height", "Urban Low Height Models"],
+    ["class", "Class Models"],
+  ])("loads the initial %s session without requiring optional local catalogs", async (collectionId, detail) => {
+    renderProvider(
+      "/?collectionId=" + collectionId,
+      makeDependencies(undefined, productionRemote, productionRegistry),
+      true,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toBe("ready:" + collectionId + ":" + detail),
+    );
+    expect(screen.getByTestId("collection-local-data").textContent).toBe(
+      '{"defaults":{},"presets":null,"productProfile":null,"runtimeBindings":null,"cabinetSkuMappings":null}',
+    );
+  });
+
   it("serves fixture-ui through the public hook while always rendering its child", async () => {
     renderProvider("/?collectionId=fixture-ui", makeDependencies());
     expect(screen.getByTestId("collection-state")).toBeTruthy();
@@ -177,97 +223,41 @@ describe("ActiveCollectionProvider", () => {
     expect(remote.loadCabinetTable).not.toHaveBeenCalled();
   });
 
-  it("keeps the ready collection when navigation changes other query params or drops the default id", async () => {
-    const fetchJson = vi.fn(async (url: string) => {
-      if (!(url in localValues)) throw new Error(`Unexpected local request: ${url}`);
-      return localValues[url];
-    });
-    const statuses: string[] = [];
-    const StatusRecorder = () => {
-      const state = useActiveCollection();
-      statuses.push(state.status);
-      return null;
-    };
-    const router = createMemoryRouter(
-      [
-        {
-          path: "*",
-          element: (
-            <ActiveCollectionProvider dependencies={makeDependencies(fetchJson)}>
-              <StatusRecorder />
-              <CollectionConsumer />
-            </ActiveCollectionProvider>
-          ),
-        },
-      ],
-      { initialEntries: ["/?collectionId=fixture-ui&configId=13507"] },
-    );
-    render(
-      <Provider store={store}>
-        <RouterProvider router={router} />
-      </Provider>,
-    );
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui"));
-    const manifestLoads = () => fetchJson.mock.calls.filter(([url]) => url.endsWith("fixture-ui/manifest.json")).length;
-    expect(manifestLoads()).toBe(1);
-    statuses.length = 0;
-
-    fireEvent.click(screen.getByRole("button", { name: "accordion" }));
-    await act(async () => Promise.resolve());
-    // fixture-ui is the registry default, so dropping the id selects the same collection.
-    fireEvent.click(screen.getByRole("button", { name: "no-id" }));
-    await act(async () => Promise.resolve());
-
-    expect(router.state.location.search).toBe("");
-    expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui");
-    expect(statuses.every((status) => status === "ready")).toBe(true);
-    expect(manifestLoads()).toBe(1);
-  });
-
-  it.each(["empty", "unknown"])("replaces ready data with the latest %s URL error", async (target) => {
+  it("keeps the initial collection loaded when unrelated search parameters change", async () => {
     renderProvider("/?collectionId=fixture-ui", makeDependencies());
     await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui"));
-    fireEvent.click(screen.getByRole("button", { name: target }));
-    const expectedCode = target === "empty" ? "invalid-collection-id" : "unknown-collection";
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe(
-        `error:${target === "empty" ? "" : "unknown"}:${expectedCode}`,
-      ),
+
+    fireEvent.click(screen.getByRole("button", { name: "config" }));
+
+    expect(screen.getByTestId("collection-state").textContent).toContain("ready:fixture-ui");
+    expect(remote.loadConfigurator).not.toHaveBeenCalled();
+    expect(remote.loadCountertopTable).not.toHaveBeenCalled();
+    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+  });
+
+  it("retries the captured collection without changing its identity", async () => {
+    const retryingRemote: RemoteCollectionLoader = {
+      loadConfigurator: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("temporary configurator failure"))
+        .mockResolvedValue(configurator4),
+      loadCountertopTable: vi.fn(async () => datatable438),
+      loadCabinetTable: vi.fn(async () => datatable439),
+    };
+    renderProvider(
+      "/?collectionId=urban-standard-height",
+      makeDependencies(undefined, retryingRemote, productionRegistry),
     );
-  });
 
-  it.each(["success", "failure"])("ignores a late %s from the previous URL", async (outcome) => {
-    let resolveOld: ((value: unknown) => void) | undefined;
-    let rejectOld: ((reason: unknown) => void) | undefined;
-    const oldManifest = new Promise<unknown>((resolve, reject) => {
-      resolveOld = resolve;
-      rejectOld = reject;
-    });
-    const fetchJson = vi.fn(async (url: string) => {
-      if (url === `${rootUrl}fixture-ui/manifest.json`) return oldManifest;
-      if (url in localValues) return localValues[url];
-      throw new Error(`Unexpected local request: ${url}`);
-    });
-    renderProvider("/?collectionId=fixture-ui", makeDependencies(fetchJson));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("loading:fixture-ui:"));
+    await waitFor(() =>
+      expect(screen.getByTestId("collection-state").textContent).toBe("error:urban-standard-height:source-load-failed"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "retry" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
-    await act(async () => {
-      if (outcome === "success") resolveOld?.(fixtureUiManifest);
-      else rejectOld?.(new Error("late failure"));
-      await Promise.resolve();
-    });
-    expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish");
-  });
-
-  it("switches one hook consumer between USH and fixture-rules catalogs", async () => {
-    renderProvider("/?collectionId=urban-standard-height", makeDependencies(undefined, productionRemote));
     await waitFor(() =>
       expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
     );
-    fireEvent.click(screen.getByRole("button", { name: "rules" }));
-    await waitFor(() => expect(screen.getByTestId("collection-state").textContent).toBe("ready:fixture-rules:Finish"));
+    expect(retryingRemote.loadConfigurator).toHaveBeenCalledTimes(2);
   });
 
   it("publishes an error when a declared source fails", async () => {

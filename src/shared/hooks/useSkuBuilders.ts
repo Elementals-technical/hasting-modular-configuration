@@ -1,21 +1,16 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 
-import { ActiveCollectionContext } from "@/entities/collection";
+import { useActiveCollection } from "@/entities/collection";
 import { createSkuBuilders, resolveSkuProfile, type SkuBuilders } from "@/shared/lib/sku";
 
-/**
- * SKU builders of the active collection.
- *
- * The profile follows the loaded collection: until it is ready, and for a collection with
- * no SKU profile, the builders build nothing and `status`/`reason` say why.
- */
+/** SKU builders derived from the ready active collection's optional SKU mappings. */
 export const useSkuBuilders = (): SkuBuilders => {
-  const collection = useContext(ActiveCollectionContext);
-  const collectionId = collection?.status === "ready" ? collection.data.id : null;
-  const cabinetSkuMappings = collection?.status === "ready" ? collection.data.catalog.cabinetSkuMappings : undefined;
+  const collection = useActiveCollection();
+  const collectionId = collection.id;
+  const cabinetSkuMappings = collection.catalog.cabinetSkuMappings;
 
   return useMemo(
-    () => createSkuBuilders(resolveSkuProfile(collectionId ? { id: collectionId, cabinetSkuMappings } : null)),
+    () => createSkuBuilders(resolveSkuProfile({ id: collectionId, cabinetSkuMappings })),
     [cabinetSkuMappings, collectionId],
   );
 };

@@ -94,7 +94,6 @@ import {
   isDrawerStyleMixingRestricted,
   selectEffectiveFallback,
   selectOptionsByCapability,
-  useActiveCollection,
   useCollectionPresets,
 } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
@@ -246,10 +245,6 @@ export const CabinetBuilderPage = () => {
 
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
-  // The cabinet matrix arrives with the active collection: the page no longer knows the
-  // table id, and a collection that is still loading yields no catalog rather than an
-  // empty one.
-  const activeCollection = useActiveCollection();
   const presets = useCollectionPresets();
 
   const { pathname, search, key: locationKey } = useLocation();
@@ -301,7 +296,6 @@ export const CabinetBuilderPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
 
-  const isMatrixLoading = activeCollection.status === "resolving" || activeCollection.status === "loading";
 
   const saveSnapshot = useHistorySnapshot();
   const hasProducts = selectedProducts.length > 0;
@@ -1654,7 +1648,6 @@ export const CabinetBuilderPage = () => {
           handleAdd={handleSelectCabinetConfig}
           data={cabinetTypeOptions}
           setActiveCabinet={setActiveCabinet}
-          isLoading={isMatrixLoading}
           variant="cabinetType"
         />
       ),

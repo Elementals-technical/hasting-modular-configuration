@@ -49,9 +49,7 @@ import {
   resolveCountertopFallbackTexture,
   resolveCountertopNeedsLightBorder,
   sortCountertopOptionsByAvailability,
-  useGetCountertopDatatableQuery,
 } from "@/entities/countertop";
-import { useGetConfiguratorQuery } from "@/entities";
 import {
   buildCountertopRuleState,
   filterThicknessValuesByCountertopRules,
@@ -76,7 +74,7 @@ import {
   isVisibleVesselSinkStyle,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { selectMessage } from "@/entities/collection";
+import { selectMessage, useActiveCollection } from "@/entities/collection";
 import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
 import {
   getActiveProductProfile,
@@ -178,13 +176,7 @@ export const CountertopPage = () => {
     setActiveVesselColor(storedVesselColor);
   }, [storedVesselColor]);
 
-  const { data: counterTopMaterials, isFetching: isFetchingcounterTopMaterials } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
-
-  const { data: counterTopData } = useGetCountertopDatatableQuery(438);
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   // Remove unrelated text before ":" in the title
   const normalizeMaterialLabel = (value: string) => {
@@ -255,7 +247,7 @@ export const CountertopPage = () => {
   const countertopRules = useCountertopRules();
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter(
+    const groups = configuratorGroups.filter(
       (g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels",
     );
 
@@ -341,7 +333,7 @@ export const CountertopPage = () => {
       ),
     );
     return appendSyntesiCountertopOptions(apiOptions, countertopRules, activeProfile);
-  }, [activeProfile, counterTopMaterials, countertopRules, getVariantMeta]);
+  }, [activeProfile, configuratorGroups, countertopRules, getVariantMeta]);
 
   const isVesselApiOption = useCallback(
     (option: ProductOptionData & { sourceGroup?: string }) => option.sourceGroup === "vessels",
@@ -412,20 +404,14 @@ export const CountertopPage = () => {
   );
 
   const countertopColorSkuCandidatesByValue = useMemo(
-    () => buildCountertopColorSkuCandidates(counterTopMaterials?.availableOptions),
-    [counterTopMaterials?.availableOptions],
+    () => buildCountertopColorSkuCandidates(configuratorGroups),
+    [configuratorGroups],
   );
 
-  const matrixMaterials = useMemo(() => {
-    const set = new Set<string>();
-
-    counterTopData?.rows?.forEach((row) => {
-      const value = row.material?.trim();
-      if (value) set.add(value);
-    });
-
-    return set;
-  }, [counterTopData]);
+  const matrixMaterials = useMemo(
+    () => new Set(countertopRules.map(({ material }) => material.trim()).filter(Boolean)),
+    [countertopRules],
+  );
 
   const normalizedMatrixMaterials = useMemo(
     () => new Set(Array.from(matrixMaterials).map((value) => normalizeMaterialToken(value))),
@@ -433,7 +419,7 @@ export const CountertopPage = () => {
   );
 
   const materialFilters = useMemo(() => {
-    const groups = (counterTopMaterials?.availableOptions ?? []).filter((g) => g.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((g) => g.proxyName === "Countertop Color");
     const syntesiOptions = countertopOptions.filter((option) =>
       option.metadata?.materials?.some(
         (material) =>
@@ -507,7 +493,7 @@ export const CountertopPage = () => {
       hex: toOptions(hexSet),
     };
   }, [
-    counterTopMaterials,
+    configuratorGroups,
     countertopOptions,
     defaultMaterialFilters,
     excludedMaterialFilterTokens,
@@ -1854,7 +1840,6 @@ export const CountertopPage = () => {
             fullModeActiveValue={activeCountertopColor}
             onFullModeSelect={handleChangeCountertopColor}
             fullModeGroupByDesc
-            fullModeLoading={isFetchingcounterTopMaterials}
             fullModeMaterialFilterOptions={filteredMaterialFilters.materials}
             fullModeColorFilterOptions={displayedMaterialFilters.colors}
             fullModeLookFilterOptions={displayedMaterialFilters.looks}
@@ -1865,7 +1850,6 @@ export const CountertopPage = () => {
             data={sortedCountertopOptions}
             handleAdd={handleChangeCountertopColor}
             activeValue={activeCountertopColor}
-            isLoading={isFetchingcounterTopMaterials}
             groupByDesc
           />
         </>
@@ -1924,8 +1908,7 @@ export const CountertopPage = () => {
                   data={sortedVesselColorOptions}
                   handleAdd={handleChangeVesselColor}
                   activeValue={activeVesselColor}
-                  isLoading={isFetchingcounterTopMaterials}
-                  groupByDesc
+                        groupByDesc
                 />
               </>
             ),

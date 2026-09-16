@@ -1,0 +1,21 @@
+{
+  "id": "class",
+  "label": "Class",
+  "defaults": {},
+  "local": {
+    "ui": "ui.json"
+  },
+  "remote": {
+    "configurator": {
+      "id": 4,
+      "view": "full",
+      "serialize": true
+    },
+    "countertopTable": {
+      "id": 438
+    },
+    "cabinetTable": {
+      "id": 439
+    }
+  }
+}

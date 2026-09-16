@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { ReadyCollectionContext } from "@/entities/collection";
 import { resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -23,6 +24,7 @@ import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import { useAttributeChangeHandler } from "../hooks/useAttributeChangeHandler";
 import { useAvailabilityResets } from "../hooks/useAvailabilityResets";
 import { resolveChangeRequest } from "../lib/resolveChangeRequest";
+import { readyCollectionFixture } from "./readyCollectionFixture";
 
 const saveSnapshotMock = vi.fn(async () => undefined);
 
@@ -51,9 +53,11 @@ const matrix = {
 } as unknown as ProductDatatable;
 
 const wrapper = ({ children }: { children: ReactNode }) => (
-  <Provider store={store}>
-    <MemoryRouter initialEntries={["/custom/cabinet-colors"]}>{children}</MemoryRouter>
-  </Provider>
+  <ReadyCollectionContext.Provider value={readyCollectionFixture}>
+    <Provider store={store}>
+      <MemoryRouter initialEntries={["/custom/cabinet-colors"]}>{children}</MemoryRouter>
+    </Provider>
+  </ReadyCollectionContext.Provider>
 );
 
 beforeEach(() => {

@@ -65,7 +65,6 @@ import {
   resolvePrebuiltModelCountertopCompatibility,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { useGetConfiguratorQuery } from "@/entities";
 import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
@@ -199,7 +198,7 @@ export const ModelPage = () => {
   const activeBasinStyle = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const spGroove = useAppSelector(getSidePanelsOption);
-  const { data: configuratorData } = useGetConfiguratorQuery({ id: 4, view: "full", serialize: true });
+  const configuratorGroups = activeCollection.catalog.configurator.groups;
   const countertopRules = useCountertopRules();
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
   const [pendingModelSelection, setPendingModelSelection] = useState<PendingModelSelection | null>(null);
@@ -214,8 +213,7 @@ export const ModelPage = () => {
   }, []);
 
   const presets = useCollectionPresets();
-  const defaultPresetId =
-    activeCollection.status === "ready" ? Number(activeCollection.data.manifest.defaultPresetId) : NaN;
+  const defaultPresetId = Number(activeCollection.manifest.defaultPresetId);
   const defaultPreset = presets.find((preset) => preset.id === defaultPresetId) ?? presets[0] ?? null;
 
   const filteredData = useMemo(() => {
@@ -272,8 +270,8 @@ export const ModelPage = () => {
     [colorTransferableOverrides, countertopTransferableOverrides],
   );
   const countertopColorSkuCandidatesByValue = useMemo(
-    () => buildCountertopColorSkuCandidates(configuratorData?.availableOptions),
-    [configuratorData?.availableOptions],
+    () => buildCountertopColorSkuCandidates(configuratorGroups),
+    [configuratorGroups],
   );
   const activeCountertopMaterialTokens = useMemo(
     () =>
@@ -295,11 +293,11 @@ export const ModelPage = () => {
           candidatesByValue: countertopColorSkuCandidatesByValue,
           preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(sinkType),
         }) ??
-        findCountertopSkuByColorName(configuratorData, color) ??
+        findCountertopSkuByColorName(configuratorGroups, color) ??
         ""
       );
     },
-    [configuratorData, countertopColorSkuCandidatesByValue],
+    [configuratorGroups, countertopColorSkuCandidatesByValue],
   );
   const syncCountertopSelectionFromSceneConfig = useCallback(
     (globalConfig: PresetSceneDefaults, options?: { clearMissing?: boolean }) => {
@@ -878,7 +876,7 @@ export const ModelPage = () => {
           if (restoredCountertopColorSku) {
             dispatch(setCountertopColorSku(restoredCountertopColorSku));
           } else {
-            const sku = findCountertopSkuByColorName(configuratorData, globalConfig.CountertopColor as string);
+            const sku = findCountertopSkuByColorName(configuratorGroups, globalConfig.CountertopColor as string);
             if (sku) dispatch(setCountertopColorSku(sku));
           }
         } else if (restoredCountertopColorSku) {
@@ -948,7 +946,7 @@ export const ModelPage = () => {
       }
     },
     [
-      configuratorData,
+      configuratorGroups,
       dispatch,
       resolveCompatibleCountertopSceneConfig,
       syncCountertopSceneConfigAfterPreset,
@@ -1013,7 +1011,7 @@ export const ModelPage = () => {
   }, [
     canvasReady,
     configIdFromUrl,
-    configuratorData,
+    configuratorGroups,
     defaultPreset,
     dispatch,
     presetFromUrl,
@@ -1121,6 +1119,9 @@ export const ModelPage = () => {
               handleCustomizePreset={handleCustomizePreset}
               createModelBtn={<CreateModelBtn />}
               activePresetId={activePresetId}
+              emptyMessage={`No preset compositions available for ${
+                activeCollection.manifest.label
+              }`}
             />
           </div>
         </>

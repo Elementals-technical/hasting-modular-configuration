@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useActiveCollection } from "@/entities/collection";
+import { useActiveCollectionState } from "@/entities/collection";
 import { setActiveCollectionId } from "@/entities/configuration/model/store/slice";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
@@ -18,10 +18,18 @@ import { useAppDispatch } from "@/shared/hooks/store/redux";
  */
 export const CollectionStateBridge = () => {
   const dispatch = useAppDispatch();
-  const collection = useActiveCollection();
+  const collection = useActiveCollectionState();
 
   const isReady = collection.status === "ready";
   const data = isReady ? collection.data : null;
+
+  useEffect(
+    () => () => {
+      dispatch(setActiveCollectionId(null));
+      dispatch(replaceCollectionData({ profile: null, cabinetCatalog: null }));
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     if (!data) {

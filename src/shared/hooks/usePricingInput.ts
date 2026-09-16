@@ -1,7 +1,6 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 
-import { ActiveCollectionContext } from "@/entities/collection";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import { useActiveCollection } from "@/entities/collection";
 import {
   getActiveProductProfile,
   getCabinetEntries,
@@ -45,8 +44,6 @@ import { buildColorSkuMaps, type PricingInput } from "@/shared/lib/pricing";
 import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 
-const NO_CONFIGURATOR_GROUPS: ConfiguratorAvailableOption[] = [];
-
 /**
  * The inputs of the order lines (D02): A's collection data, C's state and the scene configs.
  *
@@ -55,11 +52,7 @@ const NO_CONFIGURATOR_GROUPS: ConfiguratorAvailableOption[] = [];
  */
 export const usePricingInput = () => {
   const skuBuilders = useSkuBuilders();
-  const collection = useContext(ActiveCollectionContext);
-  const configuratorGroups =
-    collection?.status === "ready"
-      ? (collection.data.catalog.configurator?.groups ?? NO_CONFIGURATOR_GROUPS)
-      : NO_CONFIGURATOR_GROUPS;
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const colorSkuMaps = useMemo(() => buildColorSkuMaps(configuratorGroups), [configuratorGroups]);
   const countertopRules = useCountertopRules();
   const { sceneConfigs, refresh: refreshSceneConfigs } = useSceneProductConfigs();

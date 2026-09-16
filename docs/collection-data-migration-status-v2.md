@@ -172,4 +172,4 @@ data.catalog.customization field
 
 Developer A надав одну точку завантаження UI, ProductProfile, runtime bindings, normalized catalogs і diagnostics та довів незалежність двома test-only collection packages. Цього достатньо, щоб B/C/I брали наступний вертикальний scenario без нових collection-specific imports.
 
-Продукт ще не є наскрізно collection-driven у браузері. A09 закривається лише після доказів B10, C12, I06 і D03. Mako/Class production registration залишається заблокованою відсутніми production IDs/defaults/presets/runtime/pricing inputs і не входить у цей статус.
+Продукт ще не є наскрізно collection-driven у браузері. A09 закривається лише після доказів B10, C12, I06 і D03. Mako production registration залишається заблокованою відсутніми production inputs. Class і Urban Low Height тепер зареєстровані як partial collections; точні межі готовності та відсутні дані наведені в [окремому readiness handoff](./urban-low-height-class-readiness.md).

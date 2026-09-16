@@ -1,4 +1,4 @@
-import type { Configurator } from "@/entities/configurator/api/types";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
 import { normalizeMaterialToken } from "./parse";
 
@@ -21,13 +21,14 @@ const MATERIAL_SKU_BY_TOKEN: Record<string, string> = {
 
 const COUNTERTOP_PROXY_NAMES = new Set(["Countertop Color", "Vessels"]);
 
+
 export const findCountertopSkuByColorName = (
-  configurator: Configurator | undefined,
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
   colorName: string,
 ): string => {
-  if (!configurator || !colorName) return "";
+  if (!groups || !colorName) return "";
 
-  for (const group of configurator.availableOptions) {
+  for (const group of groups) {
     if (!COUNTERTOP_PROXY_NAMES.has(group.proxyName)) continue;
 
     for (const option of group.options) {

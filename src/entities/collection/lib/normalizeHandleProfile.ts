@@ -47,7 +47,7 @@ const parseDelimitedList = (value: unknown): string[] => {
 
 export type NormalizeHandleProfileArgs = {
   rows: NormalizedMatrixRow[];
-  adapter: CabinetMatrixLegacyAdapter;
+  adapter: Pick<CabinetMatrixLegacyAdapter, "columns">;
   /**
    * Maps a legacy drawers spelling ("1D") to its canonical option value ("1").
    * Supplied by the caller from the Drawers catalog so aliases stay in one place.

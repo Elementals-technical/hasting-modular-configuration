@@ -88,9 +88,7 @@ export const BottomCanvasButtons = () => {
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
   // const cabinetCatalog = useAppSelector(getCabinetCatalog);
-  const activeCollection = useActiveCollection();
-  const runtimeBindings =
-    activeCollection.status === "ready" ? (activeCollection.data.catalog.runtimeBindings ?? null) : null;
+  const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);

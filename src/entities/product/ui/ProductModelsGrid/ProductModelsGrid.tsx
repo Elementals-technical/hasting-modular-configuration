@@ -10,6 +10,7 @@ interface ProductModelsGridI {
   handleAddPreset: (presetProducts?: PresetProduct[], presetId?: number) => void;
   handleCustomizePreset: (presetProducts?: PresetProduct[]) => void;
   activePresetId?: number | null;
+  emptyMessage?: string;
 }
 
 export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
@@ -18,6 +19,7 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
   handleAddPreset,
   handleCustomizePreset,
   activePresetId,
+  emptyMessage = "No preset compositions available for this collection",
 }) => {
   return (
     <div className={s.optionsGridWrapper}>
@@ -25,7 +27,7 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
         {createModelBtn}
 
         {!data.length ? (
-          <div className={s.message}>No preset compositions available for this collection</div>
+          <div className={s.message}>{emptyMessage}</div>
         ) : (
           data.map((preset) => {
             return (

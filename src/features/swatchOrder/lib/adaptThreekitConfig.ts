@@ -3,7 +3,6 @@ import type {
   IMapUIData,
   IMaterialMetadata,
   IProductElementOption,
-  IThreekitConfiguration,
 } from "../model/types";
 import {
   getCountertopMaterialTokensBySku,
@@ -21,6 +20,7 @@ import {
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 import type { ProductProfile } from "@/entities/collection";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
   appendSyntesiCountertopOptions,
   type CountertopMatrixRule,
@@ -207,17 +207,17 @@ const appendCountertopRuleBackedSwatches = (
 };
 
 export const adaptThreekitConfig = (
-  data: IThreekitConfiguration | null | undefined,
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
   options: AdaptThreekitConfigOptions,
 ): IMapUIData => {
-  if (!data?.availableOptions?.length) {
+  if (!groups?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
   }
 
   const productElementOptions: IProductElementOption[] = [];
   const allMaterialValues: AttributeValue[] = [];
 
-  for (const group of data.availableOptions) {
+  for (const group of groups) {
     if (!group.enabled) continue;
     if (group.proxyType !== "material") continue;
 

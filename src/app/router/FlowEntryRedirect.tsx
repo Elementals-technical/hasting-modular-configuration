@@ -9,12 +9,9 @@ const FALLBACK_PATH: Record<CustomizationFlowId, string> = {
 };
 
 export const FlowEntryRedirect = ({ flow }: { flow: CustomizationFlowId }) => {
-  const activeCollection = useActiveCollection();
+  const schema = useActiveCollection((collection) => collection.catalog.customization);
   const location = useLocation();
 
-  if (activeCollection.status !== "ready") return null;
-
-  const schema = activeCollection.data.catalog.customization;
   const entry = schema ? resolveEntryStep(schema, flow) : null;
 
   return <Navigate to={withPreservedCollectionId(entry?.path ?? FALLBACK_PATH[flow], location.search)} replace />;

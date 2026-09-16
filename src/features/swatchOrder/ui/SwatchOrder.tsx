@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useGetConfiguratorQuery } from "@/entities";
+import { useActiveCollection } from "@/entities/collection";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 import { useMount } from "@/shared/ui/Popups/hooks/useMount";
@@ -29,7 +29,7 @@ import {
   getIsSwatchOrderOpen,
   getSelectedMaterials,
 } from "../model/store/selectors";
-import type { AttributeValue, IProductElementOption, IThreekitConfiguration } from "../model/types";
+import type { AttributeValue, IProductElementOption } from "../model/types";
 import { Filters } from "./Filters/Filters";
 import { MaterialList } from "./MaterialList/MaterialList";
 import { SwatchesList } from "./SwatchesList/SwatchesList";
@@ -247,19 +247,15 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
   const { mounted } = useMount({ opened: isOpen, animationDurationMs: ANIMATION_MS });
   const countertopRules = useCountertopRules({ skip: !isOpen });
 
-  const { data, isFetching } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
   const mapped = useMemo(
     () =>
-      adaptThreekitConfig(data as unknown as IThreekitConfiguration | undefined, {
+      adaptThreekitConfig(configuratorGroups, {
         countertopRules,
         profile: activeProfile,
       }),
-    [data, countertopRules, activeProfile],
+    [configuratorGroups, countertopRules, activeProfile],
   );
   const autofillMaterials = useMemo(
     () =>
@@ -504,11 +500,7 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
                   <Filters />
                 </div>
 
-                {isFetching && !mapped.allMaterialValues.length ? (
-                  <div className={s.loading}>Loading swatches…</div>
-                ) : (
-                  <MaterialList onSelectMaterial={onSelectMaterial} />
-                )}
+                <MaterialList onSelectMaterial={onSelectMaterial} />
 
                 <SwatchesList />
               </>
