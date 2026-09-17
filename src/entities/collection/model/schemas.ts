@@ -113,6 +113,7 @@ const productStyleSchema = z.enum([
   "double_basin",
   "asymmetrical",
   "open_shelving",
+  "multi_level",
 ]);
 
 const presetProductSchema = z
