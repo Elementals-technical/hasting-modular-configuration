@@ -22,6 +22,7 @@ import urbanLowHeightPresets from "../../../../public/collections/urban-low-heig
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
+import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
@@ -74,6 +75,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
   [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
   [`${rootUrl}class/manifest.json`]: classManifest,
+  [`${rootUrl}class/product-profile.json`]: classProductProfile,
   [`${rootUrl}class/ui.json`]: classUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
@@ -200,7 +202,7 @@ describe("ActiveCollectionProvider", () => {
 
   it.each([
     ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59],
-    ["class", "Class Models", null, null],
+    ["class", "Class Models", "class", null],
   ])(
     "loads the initial %s session without requiring optional local catalogs",
     async (collectionId, detail, profileCollectionId, presetCount) => {
@@ -218,7 +220,7 @@ describe("ActiveCollectionProvider", () => {
         presets: unknown[] | null;
       };
 
-      // The optional catalogs stay absent; Urban Low Height already ships its product profile and models.
+      // The optional catalogs stay absent; both collections ship a product profile, Urban Low Height also its models.
       expect(localData).toMatchObject({ defaults: {}, runtimeBindings: null, cabinetSkuMappings: null });
       expect(localData.presets?.length ?? null).toBe(presetCount);
       expect(localData.productProfile?.collectionId ?? null).toBe(profileCollectionId);

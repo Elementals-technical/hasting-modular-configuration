@@ -6,6 +6,7 @@ import urbanLowHeightPresets from "../../../../public/collections/urban-low-heig
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
+import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
 
 import configurator4 from "./fixtures/remote/configurator-4.json";
@@ -28,6 +29,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
     [`${collectionsRootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
+    [`${collectionsRootUrl}class/product-profile.json`]: classProductProfile,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
   };
 
@@ -114,7 +116,8 @@ describe("partial production collection packages", () => {
       { id: "model", label: "Class Models", path: "/prebuilt/model" },
     ]);
     expect(data.catalog.presets).toBeUndefined();
-    expect(data.catalog.productProfile).toBeUndefined();
+    // The profile carries only what the Class documents confirm; the rest of the package is still missing.
+    expect(data.catalog.productProfile?.collectionId).toBe("class");
     expect(data.catalog.runtimeBindings).toBeUndefined();
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
     expect(data.sources.local).toMatchObject({ ui: { collectionId: "class" } });
