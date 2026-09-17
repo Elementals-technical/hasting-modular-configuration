@@ -72,7 +72,7 @@
           "label": "Upper Groove",
           "order": 10,
           "capabilities": {
-            "supportsGrooveColor": true
+            "supportsGrooveColor": false
           }
         },
         {
@@ -102,10 +102,10 @@
       "noneValue": "None",
       "options": [
         { "value": "None", "label": "None", "order": 10, "aliases": ["X"] },
-        { "value": "FlutingVerticalA", "label": "Vertical Asymmetrical", "order": 20, "aliases": ["CVA"] },
-        { "value": "FlutingVerticalB", "label": "Vertical Symmetrical", "order": 30, "aliases": ["CVB"] },
-        { "value": "FlutingHorizontalA", "label": "Horizontal Asymmetrical", "order": 40, "aliases": ["CHA"] },
-        { "value": "FlutingHorizontalB", "label": "Horizontal Symmetrical", "order": 50, "aliases": ["CHB"] }
+        { "value": "FlutingVerticalA", "label": "Vertical A", "order": 20, "aliases": ["CVA"] },
+        { "value": "FlutingVerticalB", "label": "Vertical B", "order": 30, "aliases": ["CVB"] },
+        { "value": "FlutingHorizontalA", "label": "Horizontal A", "order": 40, "aliases": ["CHA"] },
+        { "value": "FlutingHorizontalB", "label": "Horizontal B", "order": 50, "aliases": ["CHB"] }
       ]
     },
     {
@@ -133,16 +133,39 @@
         },
         "requiresDrawersByHandle": {}
       }
+    },
+    "fluting": {
+      "eligibleMaterialAliases": ["LACM", "LACQUER MATTE", "LACQUERED MATTE", "LACQUERED MT", "LACQUER MT"],
+      "forbiddenTargetParts": []
+    },
+    "cabinetColorTraits": {
+      "materialBySku": {
+        "3D": "3D",
+        "LACM": "LACM",
+        "LACG": "LACG",
+        "ST": "ST",
+        "BM": "BM",
+        "HPL": "HPL",
+        "ESS": "Essenze"
+      },
+      "knownMaterials": ["3D", "LACM", "LACG", "ST", "BM", "HPL", "Essenze"],
+      "finishCodes": []
     }
   },
   "messages": {
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.requiredHeight": "Required for selected handle",
-    "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle"
+    "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
+    "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
+    "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
+    "fluting.notInCollection": "Fluting is not available in this collection."
   },
   "excludedFromThisProfile": {
-    "handleGrooveColor": "The HDL segment of the SKU has no stable structure in the source (product map §5).",
+    "handleGrooveColor": "The HDL segment of the SKU has no stable structure, so no handle declares a groove colour (product map §5, §15.4).",
+    "handleHeightCoupling": "Confirmed: Upper Groove gives 38/28 cm, Push-to-Open gives 35/25 cm (§2). It is read from the cabinet table, and table 439 has no Urban Low Height rows yet.",
+    "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
+    "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
     "basinAndCountertopOptions": "Basin styles and countertop thickness are known as display names only; scene tokens and rules are not confirmed (§11, §12).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",
     "composition": "Module counts, maximum composition length, mixing of handles, heights and depths are not described (§1, §2, §14)."
