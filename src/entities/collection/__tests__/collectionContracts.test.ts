@@ -67,7 +67,11 @@ describe("collection contracts", () => {
       rootUrl,
     );
     expect(classManifest.defaults).toEqual({});
-    expect(classManifest.local).toEqual({ ui: "ui.json", productProfile: "product-profile.json" });
+    expect(classManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+    });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
