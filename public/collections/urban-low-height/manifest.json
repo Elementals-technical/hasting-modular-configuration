@@ -3,7 +3,8 @@
   "label": "Urban Low Height",
   "defaults": {},
   "local": {
-    "ui": "ui.json"
+    "ui": "ui.json",
+    "productProfile": "product-profile.json"
   },
   "remote": {
     "configurator": {

@@ -1,0 +1,371 @@
+{
+  "scenario": "custom-composition-80",
+  "recordedAt": "2026-09-16",
+  "answers": {
+    "VAN-URSTD-SB/1DW/UG/X-31.5W-20.9H-19.7D-CAB-3D-1C1": {
+      "price": 2423,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "URSTD",
+        "modelTokens": [
+          "SB",
+          "1DW",
+          "UG",
+          "X"
+        ],
+        "sizes": {
+          "width": 31.5,
+          "height": 20.9,
+          "depth": 19.7
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "3D",
+            "color": "1C1"
+          }
+        ],
+        "baseSku": "VAN-URSTD-SB/1DW/UG/X-31.5W-20.9H-19.7D",
+        "originalSku": "VAN-URSTD-SB/1DW/UG/X-31.5W-20.9H-19.7D-CAB-3D-1C1",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "3D",
+                "color": "1C1"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-URSTD-SB/1DW/UG/X-31.5W-20.9H-19.7D"
+      },
+      "error": null
+    },
+    "VAN-UROS-2S-15.7W-20.9H-19.7D-CAB-3D-1C1": {
+      "price": 729,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "UROS",
+        "modelTokens": [
+          "2S"
+        ],
+        "sizes": {
+          "width": 15.7,
+          "height": 20.9,
+          "depth": 19.7
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "3D",
+            "color": "1C1"
+          }
+        ],
+        "baseSku": "VAN-UROS-2S-15.7W-20.9H-19.7D",
+        "originalSku": "VAN-UROS-2S-15.7W-20.9H-19.7D-CAB-3D-1C1",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "3D",
+                "color": "1C1"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-UROS-2S-19.7W-22H-19.7D"
+      },
+      "error": null
+    },
+    "CT-URSSTKR-INTG-79.5W-.5H-19.9D-SSTKR-FF": {
+      "price": 3847,
+      "resolver": "CT/price_per_unit",
+      "parsed": {
+        "category": "CT",
+        "product": "URSSTKR",
+        "modelTokens": [
+          "INTG"
+        ],
+        "sizes": {
+          "width": 79.5,
+          "height": 0.5,
+          "depth": 19.9
+        },
+        "materials": [
+          {
+            "material": "SSTKR",
+            "color": "FF"
+          }
+        ],
+        "baseSku": "CT-URSSTKR-INTG-79.5W-.5H-19.9D",
+        "originalSku": "CT-URSSTKR-INTG-79.5W-.5H-19.9D-SSTKR-FF",
+        "widthCm": 202
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "price_per_unit",
+        "datatableId": 529,
+        "pricePerCm": 19.042,
+        "widthInches": 79.5,
+        "widthCm": 202,
+        "widthCmSource": "explicit",
+        "material": "SSTKR",
+        "colorCode": "FF"
+      },
+      "error": null
+    },
+    "CT-URSSTKR-RECT-.5H-SSTKR-FF": {
+      "price": 2700,
+      "resolver": "CT/basin",
+      "parsed": {
+        "category": "CT",
+        "product": "URSSTKR",
+        "modelTokens": [
+          "RECT"
+        ],
+        "sizes": {
+          "height": 0.5
+        },
+        "materials": [
+          {
+            "material": "SSTKR",
+            "color": "FF"
+          }
+        ],
+        "baseSku": "CT-URSSTKR-RECT-.5H",
+        "originalSku": "CT-URSSTKR-RECT-.5H-SSTKR-FF"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "basin",
+        "datatableId": 497,
+        "material": "SSTKR",
+        "colorCode": "FF",
+        "basinStyle": "RECT",
+        "heightInches": 0.5
+      },
+      "error": null
+    },
+    "CT-URSSTKR-FAHO/0": {
+      "price": 0,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "URSSTKR",
+        "modelTokens": [
+          "FAHO",
+          "0"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-URSSTKR-FAHO/0",
+        "originalSku": "CT-URSSTKR-FAHO/0"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-URSSTKR-FAHO/0"
+      },
+      "error": null
+    },
+    "VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT": {
+      "price": 380,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "URTWLBR",
+        "modelTokens": [
+          "STB",
+          "R"
+        ],
+        "sizes": {
+          "width": 15.7,
+          "height": 1.4,
+          "depth": 2
+        },
+        "materials": [
+          {
+            "material": "LACM",
+            "color": "43 MT"
+          }
+        ],
+        "baseSku": "VAN-URTWLBR-STB/R-15.7W-1.4H-2D",
+        "originalSku": "VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT"
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-URTWLBR-STB/R-15.7W-1.4H-2D"
+      },
+      "error": null
+    },
+    "VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT": {
+      "price": 380,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "URTWLBR",
+        "modelTokens": [
+          "STB",
+          "L"
+        ],
+        "sizes": {
+          "width": 15.7,
+          "height": 1.4,
+          "depth": 2
+        },
+        "materials": [
+          {
+            "material": "LACM",
+            "color": "43 MT"
+          }
+        ],
+        "baseSku": "VAN-URTWLBR-STB/L-15.7W-1.4H-2D",
+        "originalSku": "VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT"
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-URTWLBR-STB/L-15.7W-1.4H-2D"
+      },
+      "error": null
+    },
+    "VAN-URSP-0G-.4W-20.9H-19.7D-CAB-3D-1C1": {
+      "price": 135.5,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "URSP",
+        "modelTokens": [
+          "0G"
+        ],
+        "sizes": {
+          "width": 0.4,
+          "height": 20.9,
+          "depth": 19.7
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "3D",
+            "color": "1C1"
+          }
+        ],
+        "baseSku": "VAN-URSP-0G-.4W-20.9H-19.7D",
+        "originalSku": "VAN-URSP-0G-.4W-20.9H-19.7D-CAB-3D-1C1",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "3D",
+                "color": "1C1"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-URSP-0G-.4W-20.9H-19.7D"
+      },
+      "error": null
+    },
+    "VAN-URDIV-A-5.3W-2.4H-15D": {
+      "price": 220,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "URDIV",
+        "modelTokens": [
+          "A"
+        ],
+        "sizes": {
+          "width": 5.3,
+          "height": 2.4,
+          "depth": 15
+        },
+        "materials": [],
+        "baseSku": "VAN-URDIV-A-5.3W-2.4H-15D",
+        "originalSku": "VAN-URDIV-A-5.3W-2.4H-15D"
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-URDIV-A-5.3W-2.4H-15D"
+      },
+      "error": null
+    }
+  }
+}

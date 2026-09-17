@@ -1,90 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
-import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { deriveBookMatchingChargeInfo } from "@/shared/lib/bookMatching";
-import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 import { createSkuBuilders } from "@/shared/lib/sku";
 import { ushSkuProfile } from "@/shared/lib/sku/__tests__/ushSkuProfileFixture";
 
-import { buildColorSkuMaps } from "../buildColorSkuMaps";
 import { buildPricingLines } from "../buildPricingLines";
 import { expandLineSkus } from "../pricingLines";
-import type { PricingInput } from "../types";
+import { cabinet, pricingInput } from "./fixtures/pricingScenarios";
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => undefined);
 });
 
-const cabinet = (
-  id: string,
-  overrides: Partial<NormalizedProductConfigSnapshot> = {},
-): NormalizedProductConfigSnapshot => ({
-  id,
-  _productId: id,
-  category: null,
-  name: "Sink-Base",
-  ProductType: "Sink-Base",
-  productType: null,
-  type: null,
-  entityName: null,
-  Width: 60,
-  Height: 53,
-  Depth: 50.5,
-  Thickness: null,
-  Drawers: "1D",
-  Handle: "handle_urban_topcut",
-  CabinetColor: null,
-  CountertopColor: null,
-  sinkType: null,
-  ...overrides,
-});
-
 const PRODUCT_IDS = ["Sink-Base-aaaaaa", "Sink-Base-bbbbbb"];
-
-const pricingInput = (overrides: Partial<PricingInput> = {}): PricingInput => ({
-  skuBuilders: createSkuBuilders({ status: "ready", profile: ushSkuProfile }),
-  activeProfile: ushProfile,
-  colorSkuMaps: buildColorSkuMaps(configurator4.availableOptions as unknown as ConfiguratorAvailableOption[]),
-  countertopRules: [],
-  cabinetCatalog: {
-    typeCabinetRules: [{ code: "Sink-Base", widths: [60, 80], depths: [50.5], heights: [53], drawers: ["1", "2"] }],
-  },
-  shouldUsePresets: false,
-  productIds: PRODUCT_IDS,
-  orderedProductIds: PRODUCT_IDS,
-  productsPresets: [],
-  sceneConfigs: PRODUCT_IDS.map((id) => cabinet(id)),
-  cabinetEntries: [],
-  dimensionsByCabinet: {},
-  activeCabinetType: "Sink-Base",
-  selectedDimensions: { width: 60, height: 53, depth: 50.5 },
-  selectedProductConfig: null,
-  placedDividers: [],
-  placedCabinetStyles: {},
-  cabinetColor: "Castagno chiaro 1C1",
-  cabinetColorSku: "",
-  handleGrooveColor: "",
-  handleGrooveColorSku: "",
-  countertopColor: "Cacao Orinoco FF MT",
-  countertopColorSku: "",
-  vesselColor: "",
-  countertopThickness: "0.5",
-  countertopStyle: "integrated",
-  sinkType: "Top_Tekorlux_Rectangular",
-  drawerPanelFluting: "",
-  grainDirection: "",
-  bookMatching: "",
-  towelBarOption: "None",
-  towelBarColor: "",
-  faucetHolesAmount: "0",
-  sidePanelsOption: "",
-  sidePanelLeft: "none",
-  sidePanelRight: "none",
-  ...overrides,
-});
 
 describe("buildPricingLines", () => {
   it("keeps two identical cabinets as two pieces, each with its own line", () => {

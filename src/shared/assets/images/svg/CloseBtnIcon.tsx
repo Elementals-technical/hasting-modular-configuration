@@ -10,9 +10,9 @@ export const CloseBtnIcon: React.FC<CloseBtnIconI> = ({ width = "30", height = "
       <path
         d="M20 10L10 20M10 10L20 20"
         stroke="#282828"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
