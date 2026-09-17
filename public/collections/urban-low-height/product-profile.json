@@ -150,6 +150,13 @@
       },
       "knownMaterials": ["3D", "LACM", "LACG", "ST", "BM", "HPL", "Essenze"],
       "finishCodes": []
+    },
+    "countertopFallbacks": {
+      "needsConfirmation": true,
+      "restrictedIntegratedDepthsCm": [],
+      "restrictedIntegratedMaterialTokens": [],
+      "restrictedIntegratedBasinKeys": [],
+      "excludedMaterialFilterTokens": ["tekorlux", "tekormud", "glassmt", "glassgl", "lacqueredmt", "lacqueredgl"]
     }
   },
   "messages": {
@@ -166,7 +173,9 @@
     "handleHeightCoupling": "Confirmed: Upper Groove gives 38/28 cm, Push-to-Open gives 35/25 cm (§2). It is read from the cabinet table, and table 439 has no Urban Low Height rows yet.",
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
-    "basinAndCountertopOptions": "Basin styles and countertop thickness are known as display names only; scene tokens and rules are not confirmed (§11, §12).",
+    "basinAndCountertopOptions": "Basin styles and countertop thickness are known as display names only; scene tokens and rules are not confirmed (§11, §12). Table 438 has no Urban Low Height basins.",
+    "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
+    "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",
     "composition": "Module counts, maximum composition length, mixing of handles, heights and depths are not described (§1, §2, §14)."
   }

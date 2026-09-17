@@ -102,8 +102,32 @@ describe("urban-low-height product profile", () => {
 
   it("declares only the rule sections the product map confirms", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual(
-      ["cabinetColorTraits", "cabinetMatrixLegacyAdapter", "fluting"].sort(),
+      ["cabinetColorTraits", "cabinetMatrixLegacyAdapter", "countertopFallbacks", "fluting"].sort(),
     );
+  });
+
+  it("hides the countertop materials of configurator 4 that Urban Low Height does not offer (§11)", () => {
+    const countertop = profile().ruleData.countertopFallbacks;
+
+    // Tekorlux and Glass colours carry "Lacquered MT/GL" as their material, so both names are excluded.
+    expect(countertop?.excludedMaterialFilterTokens).toEqual([
+      "tekorlux",
+      "tekormud",
+      "glassmt",
+      "glassgl",
+      "lacqueredmt",
+      "lacqueredgl",
+    ]);
+    // Solid-Surface is kept under both configurator names until the product side names one.
+    expect(countertop?.excludedMaterialFilterTokens).not.toContain("mineralmarmo");
+    expect(countertop?.excludedMaterialFilterTokens).not.toContain("ocritech");
+    // No integrated-basin restriction is confirmed for this collection.
+    expect(countertop).toMatchObject({
+      needsConfirmation: true,
+      restrictedIntegratedDepthsCm: [],
+      restrictedIntegratedMaterialTokens: [],
+      restrictedIntegratedBasinKeys: [],
+    });
   });
 
   it("records the confirmed limits it cannot express yet", () => {
