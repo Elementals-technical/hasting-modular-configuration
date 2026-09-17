@@ -7,9 +7,9 @@ export const FullDimentionsIcon = () => {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className="lucide lucide-ruler-dimension-line-icon lucide-ruler-dimension-line"
     >
       <path d="M10 15v-3" />

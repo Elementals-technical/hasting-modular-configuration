@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { useAppDispatch } from "@/shared/hooks/store/redux";
-import { isCountertopTopDynamicCandidate } from "@/entities/countertop";
 import { useLazyGetCountertopTopPriceBySkuQuery, type CountertopSkuPriceResponse } from "@/entities/countertop/api";
 import {
   useLazyGetProductPriceBySkuQuery,
@@ -17,29 +16,7 @@ import {
   type SkuPriceEntry,
 } from "@/entities/product/model/store/priceStore";
 import { usePricingInput } from "@/shared/hooks/usePricingInput";
-import { buildPricingLines, expandLineSkus } from "@/shared/lib/pricing";
-
-// ── Price response helpers ──────────────────────────────
-
-const parsePriceValue = (value: string | number) => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  const normalized = value.replace(/[^0-9.-]+/g, "");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const resolvePriceFromResponse = (data?: Record<string, unknown>) => {
-  if (!data) return null;
-
-  const candidates = ["price", "Price", "total", "Total", "amount", "Amount", "value", "Value"];
-
-  for (const key of candidates) {
-    const value = data[key];
-    if (typeof value === "number") return parsePriceValue(value);
-    if (typeof value === "string" && value.trim()) return parsePriceValue(value);
-  }
-  return null;
-};
+import { buildPricingLines, expandLineSkus, resolvePriceFromResponse, resolvePriceRequest } from "@/shared/lib/pricing";
 
 // ── Hook ────────────────────────────────────────────────
 
@@ -123,21 +100,18 @@ export function usePriceCalculation() {
               try {
                 console.log(LOG_PREFIX, "Fetching price for:", sku);
 
-                const countertopWidthCm = widthCmBySku.get(sku) ?? null;
-                const isDynamicCountertopTopSku =
-                  countertopPrefix !== null &&
-                  isCountertopTopDynamicCandidate(sku, countertopWidthCm, countertopPrefix);
-                const isVesselSku = sku.startsWith("VES-");
-                const isBookMatchingSku = bookMatchingSkuPrefix !== null && sku.startsWith(bookMatchingSkuPrefix);
+                const request = resolvePriceRequest({
+                  sku,
+                  widthCm: widthCmBySku.get(sku),
+                  countertopPrefix,
+                  bookMatchingSkuPrefix,
+                });
 
                 let data: ProductSkuPriceResponse | CountertopSkuPriceResponse;
 
-                if (isDynamicCountertopTopSku && countertopWidthCm != null) {
-                  data = await triggerCountertopTopPriceBySku({
-                    sku,
-                    widthCm: countertopWidthCm,
-                  }).unwrap();
-                } else if (isVesselSku || isBookMatchingSku) {
+                if (request.kind === "countertopTop") {
+                  data = await triggerCountertopTopPriceBySku({ sku, widthCm: request.widthCm }).unwrap();
+                } else if (request.kind === "productV2Resolve") {
                   data = await triggerPriceBySkuV2Resolve({ sku }).unwrap();
                 } else {
                   data = await triggerPriceBySku(sku).unwrap();

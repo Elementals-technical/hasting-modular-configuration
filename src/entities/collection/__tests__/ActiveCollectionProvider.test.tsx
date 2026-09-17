@@ -18,6 +18,7 @@ import productionProductProfile from "../../../../public/collections/urban-stand
 import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classUi from "../../../../public/collections/class/ui.json";
@@ -68,6 +69,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
   [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
   [`${rootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
+  [`${rootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
   [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
   [`${rootUrl}class/manifest.json`]: classManifest,
   [`${rootUrl}class/ui.json`]: classUi,
@@ -195,22 +197,29 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it.each([
-    ["urban-low-height", "Urban Low Height Models"],
-    ["class", "Class Models"],
-  ])("loads the initial %s session without requiring optional local catalogs", async (collectionId, detail) => {
-    renderProvider(
-      "/?collectionId=" + collectionId,
-      makeDependencies(undefined, productionRemote, productionRegistry),
-      true,
-    );
+    ["urban-low-height", "Urban Low Height Models", "urban-low-height"],
+    ["class", "Class Models", null],
+  ])(
+    "loads the initial %s session without requiring optional local catalogs",
+    async (collectionId, detail, profileCollectionId) => {
+      renderProvider(
+        "/?collectionId=" + collectionId,
+        makeDependencies(undefined, productionRemote, productionRegistry),
+        true,
+      );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("ready:" + collectionId + ":" + detail),
-    );
-    expect(screen.getByTestId("collection-local-data").textContent).toBe(
-      '{"defaults":{},"presets":null,"productProfile":null,"runtimeBindings":null,"cabinetSkuMappings":null}',
-    );
-  });
+      await waitFor(() =>
+        expect(screen.getByTestId("collection-state").textContent).toBe("ready:" + collectionId + ":" + detail),
+      );
+      const localData = JSON.parse(screen.getByTestId("collection-local-data").textContent ?? "{}") as {
+        productProfile: { collectionId?: string } | null;
+      };
+
+      // The optional catalogs stay absent; Urban Low Height already ships its product profile.
+      expect(localData).toMatchObject({ defaults: {}, presets: null, runtimeBindings: null, cabinetSkuMappings: null });
+      expect(localData.productProfile?.collectionId ?? null).toBe(profileCollectionId);
+    },
+  );
 
   it("serves fixture-ui through the public hook while always rendering its child", async () => {
     renderProvider("/?collectionId=fixture-ui", makeDependencies());

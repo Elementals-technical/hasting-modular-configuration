@@ -47,7 +47,7 @@ describe("collection contracts", () => {
       rootUrl,
     );
     expect(urbanLowHeight.defaults).toEqual({});
-    expect(urbanLowHeight.local).toEqual({ ui: "ui.json" });
+    expect(urbanLowHeight.local).toEqual({ ui: "ui.json", productProfile: "product-profile.json" });
     expect(urbanLowHeight.defaultPresetId).toBeUndefined();
     expect(urbanLowHeight.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },

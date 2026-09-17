@@ -1,0 +1,188 @@
+{
+  "scenario": "custom-vessel",
+  "recordedAt": "2026-09-16",
+  "answers": {
+    "VAN-URSTD-SB/1DW/UG/X-23.6W-20.9H-19.7D-CAB-3D-1C1": {
+      "price": 2098,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "URSTD",
+        "modelTokens": [
+          "SB",
+          "1DW",
+          "UG",
+          "X"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 20.9,
+          "depth": 19.7
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "3D",
+            "color": "1C1"
+          }
+        ],
+        "baseSku": "VAN-URSTD-SB/1DW/UG/X-23.6W-20.9H-19.7D",
+        "originalSku": "VAN-URSTD-SB/1DW/UG/X-23.6W-20.9H-19.7D-CAB-3D-1C1",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "3D",
+                "color": "1C1"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-URSTD-SB/1DW/UG/X-23.6W-20.9H-19.7D"
+      },
+      "error": null
+    },
+    "CT-URSSTKR-VES-47.2W-.5H-19.9D-SSTKR-FF": {
+      "price": 2286,
+      "resolver": "CT/price_per_unit",
+      "parsed": {
+        "category": "CT",
+        "product": "URSSTKR",
+        "modelTokens": [
+          "VES"
+        ],
+        "sizes": {
+          "width": 47.2,
+          "height": 0.5,
+          "depth": 19.9
+        },
+        "materials": [
+          {
+            "material": "SSTKR",
+            "color": "FF"
+          }
+        ],
+        "baseSku": "CT-URSSTKR-VES-47.2W-.5H-19.9D",
+        "originalSku": "CT-URSSTKR-VES-47.2W-.5H-19.9D-SSTKR-FF",
+        "widthCm": 120
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "price_per_unit",
+        "datatableId": 529,
+        "pricePerCm": 19.042,
+        "widthInches": 47.2,
+        "widthCm": 120,
+        "widthCmSource": "explicit",
+        "material": "SSTKR",
+        "colorCode": "FF"
+      },
+      "error": null
+    },
+    "CT-URSSTKR-FAHO/2": {
+      "price": 0,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "URSSTKR",
+        "modelTokens": [
+          "FAHO",
+          "2"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-URSSTKR-FAHO/2",
+        "originalSku": "CT-URSSTKR-FAHO/2"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-URSSTKR-FAHO/2"
+      },
+      "error": null
+    },
+    "CT-URSSTKR-HCUT": {
+      "price": 637,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "URSSTKR",
+        "modelTokens": [
+          "HCUT"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-URSSTKR-HCUT",
+        "originalSku": "CT-URSSTKR-HCUT"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-URSSTKR-HCUT"
+      },
+      "error": null
+    },
+    "VES-URMOD-X-19.7W-5.5H-13D": {
+      "price": null,
+      "resolver": "VES/matrix",
+      "parsed": {
+        "category": "VES",
+        "product": "URMOD",
+        "modelTokens": [
+          "X"
+        ],
+        "sizes": {
+          "width": 19.7,
+          "height": 5.5,
+          "depth": 13
+        },
+        "materials": [],
+        "baseSku": "VES-URMOD-X-19.7W-5.5H-13D",
+        "originalSku": "VES-URMOD-X-19.7W-5.5H-13D"
+      },
+      "metadata": {
+        "category": "VES",
+        "datatables": {
+          "matrix": 542,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "matchedSku": "VES-URMOD-X-19.7W-5.5H-13D"
+      },
+      "error": null
+    }
+  }
+}
