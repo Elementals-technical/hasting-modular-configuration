@@ -25,6 +25,10 @@ import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoManifest from "../../../../public/collections/mako/manifest.json";
+import makoPresets from "../../../../public/collections/mako/presets.json";
+import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
+import makoUi from "../../../../public/collections/mako/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
@@ -79,6 +83,10 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}class/presets.json`]: classPresets,
   [`${rootUrl}class/product-profile.json`]: classProductProfile,
   [`${rootUrl}class/ui.json`]: classUi,
+  [`${rootUrl}mako/manifest.json`]: makoManifest,
+  [`${rootUrl}mako/presets.json`]: makoPresets,
+  [`${rootUrl}mako/product-profile.json`]: makoProductProfile,
+  [`${rootUrl}mako/ui.json`]: makoUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
@@ -205,6 +213,7 @@ describe("ActiveCollectionProvider", () => {
   it.each([
     ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59],
     ["class", "Class Models", "class", 44],
+    ["mako", "Mako Models", "mako", 42],
   ])(
     "loads the initial %s session without requiring optional local catalogs",
     async (collectionId, detail, profileCollectionId, presetCount) => {
@@ -222,7 +231,7 @@ describe("ActiveCollectionProvider", () => {
         presets: unknown[] | null;
       };
 
-      // The optional catalogs stay absent; both collections already ship a product profile and their models.
+      // The optional catalogs stay absent; these collections already ship a product profile and their models.
       expect(localData).toMatchObject({ defaults: {}, runtimeBindings: null, cabinetSkuMappings: null });
       expect(localData.presets?.length ?? null).toBe(presetCount);
       expect(localData.productProfile?.collectionId ?? null).toBe(profileCollectionId);

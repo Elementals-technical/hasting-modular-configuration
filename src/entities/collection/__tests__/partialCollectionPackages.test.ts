@@ -9,6 +9,10 @@ import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoManifest from "../../../../public/collections/mako/manifest.json";
+import makoPresets from "../../../../public/collections/mako/presets.json";
+import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
+import makoUi from "../../../../public/collections/mako/ui.json";
 
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
@@ -33,6 +37,10 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}class/presets.json`]: classPresets,
     [`${collectionsRootUrl}class/product-profile.json`]: classProductProfile,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
+    [`${collectionsRootUrl}mako/manifest.json`]: makoManifest,
+    [`${collectionsRootUrl}mako/presets.json`]: makoPresets,
+    [`${collectionsRootUrl}mako/product-profile.json`]: makoProductProfile,
+    [`${collectionsRootUrl}mako/ui.json`]: makoUi,
   };
 
   if (!(url in sources)) throw new Error(`Unexpected local request: ${url}`);
@@ -87,50 +95,57 @@ describe("partial production collection packages", () => {
     expect(data.diagnostics).toEqual([]);
   });
 
-  it("loads Class from only its declared local data and approved shared remotes", async () => {
-    const remote = makeRemote();
-    const dependencies: CollectionRuntimeDependencies = {
-      registryUrl,
-      collectionsRootUrl,
-      registry: productionRegistry,
-      fetchJson,
-      remote,
-    };
-    const registry = await loadCollectionRegistry(dependencies, abortSignal);
-    const resolution = resolveCollection({ registry, urlCollectionId: "class" });
-    expect(resolution.ok).toBe(true);
-    if (!resolution.ok) return;
+  it.each([
+    ["class", "Class", 44],
+    ["mako", "Mako", 42],
+  ])(
+    "loads %s from only its declared local data and approved shared remotes",
+    async (collectionId, label, modelCount) => {
+      const remote = makeRemote();
+      const dependencies: CollectionRuntimeDependencies = {
+        registryUrl,
+        collectionsRootUrl,
+        registry: productionRegistry,
+        fetchJson,
+        remote,
+      };
+      const registry = await loadCollectionRegistry(dependencies, abortSignal);
+      const resolution = resolveCollection({ registry, urlCollectionId: collectionId });
+      expect(resolution.ok).toBe(true);
+      if (!resolution.ok) return;
 
-    const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
+      const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
 
-    expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
-    expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
-    expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCabinetTable).toHaveBeenCalledWith(439, abortSignal);
+      expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
+      expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+      expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
+      expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
+      expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
+      expect(remote.loadCabinetTable).toHaveBeenCalledWith(439, abortSignal);
 
-    expect(data.id).toBe("class");
-    expect(data.manifest.label).toBe("Class");
-    expect(data.manifest.defaults).toEqual({});
-    expect(data.catalog.customization?.collectionId).toBe("class");
-    expect(data.catalog.navigation?.prebuilt).toEqual([
-      { id: "model", label: "Class Models", path: "/prebuilt/model" },
-    ]);
-    // The 44 models of the Master File, without their composition until the model recipes are given.
-    expect(data.catalog.presets).toHaveLength(44);
-    expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
-    // The profile carries only what the Class documents confirm; the rest of the package is still missing.
-    expect(data.catalog.productProfile?.collectionId).toBe("class");
-    expect(data.catalog.runtimeBindings).toBeUndefined();
-    expect(data.catalog.cabinetSkuMappings).toBeUndefined();
-    expect(data.sources.local).toMatchObject({ ui: { collectionId: "class" } });
-    expect(data.diagnostics).toEqual([]);
-  });
+      expect(data.id).toBe(collectionId);
+      expect(data.manifest.label).toBe(label);
+      expect(data.manifest.defaults).toEqual({});
+      expect(data.catalog.customization?.collectionId).toBe(collectionId);
+      expect(data.catalog.navigation?.prebuilt).toEqual([
+        { id: "model", label: `${label} Models`, path: "/prebuilt/model" },
+      ]);
+      // The models of the Master File, without their composition until the model recipes are given.
+      expect(data.catalog.presets).toHaveLength(modelCount);
+      expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
+      // The profile carries only what the collection documents confirm; the rest of the package is still missing.
+      expect(data.catalog.productProfile?.collectionId).toBe(collectionId);
+      expect(data.catalog.runtimeBindings).toBeUndefined();
+      expect(data.catalog.cabinetSkuMappings).toBeUndefined();
+      expect(data.sources.local).toMatchObject({ ui: { collectionId } });
+      expect(data.diagnostics).toEqual([]);
+    },
+  );
 
   it.each([
     ["urban-low-height", urbanLowHeightUi],
     ["class", classUi],
+    ["mako", makoUi],
   ])("validates the %s collection-specific UI contract", (collectionId, document) => {
     const result = validateCustomizationSchema(document);
     expect(result.ok).toBe(true);
