@@ -22,6 +22,7 @@ export const matchSavedStableKeys = (plan: RestorePlan): Map<string, string> | n
 export const toRestoredValues = (
   plan: RestorePlan,
   restoredKeys: ReadonlySet<string>,
+  restoredSinkBaseKeys: ReadonlySet<string> = restoredKeys,
 ): Record<string, ScopedValue[]> => {
   const values: Record<string, ScopedValue[]> = {};
 
@@ -29,6 +30,7 @@ export const toRestoredValues = (
     const target = parseTarget(targetKey);
     if (!target) continue;
     if ((target.scope === "cabinet" || target.scope === "drawer") && !restoredKeys.has(target.cabinetId)) continue;
+    if (target.scope === "basin" && target.sinkBaseId && !restoredSinkBaseKeys.has(target.sinkBaseId)) continue;
 
     for (const [attributeId, value] of Object.entries(byAttribute)) {
       values[attributeId] = [...(values[attributeId] ?? []), { target, value }];
@@ -56,11 +58,18 @@ export const applyRestoredIdentity = (
     const stableKey = keysBySource.get(sourceId);
     return stableKey ? [{ stableKey, runtimeId, index }] : [];
   });
+  const restoredSinkBaseKeys = new Set(
+    matches.flatMap(({ sourceId }) => {
+      const stableKey = keysBySource.get(sourceId);
+      const product = plan.products.find((candidate) => candidate.sourceId === sourceId);
+      return stableKey && product?.productType.toLowerCase().includes("sink-base") ? [stableKey] : [];
+    }),
+  );
 
   dispatch(
     restoreConfigurationFragment({
       cabinets,
-      values: toRestoredValues(plan, new Set(cabinets.map(({ stableKey }) => stableKey))),
+      values: toRestoredValues(plan, new Set(cabinets.map(({ stableKey }) => stableKey)), restoredSinkBaseKeys),
     }),
   );
 

@@ -24,8 +24,15 @@ export const resolveChangeRequest = (
   switch (scope) {
     case "global":
     case "countertop":
-    case "basin":
       return { attributeId, value, scope };
+
+    case "basin": {
+      const cabinets = getCabinetEntries(state);
+      const sinkBaseId =
+        cabinets.find(({ runtimeId }) => runtimeId.toLowerCase().includes("sink-base"))?.stableKey ??
+        (state.rootStateUI.product.activeCabinetType?.toLowerCase().includes("sink-base") ? cabinets[0]?.stableKey : undefined);
+      return sinkBaseId ? { attributeId, value, scope, sinkBaseId } : null;
+    }
 
     case "cabinet": {
       const cabinetId = getCabinetEntries(state)[0]?.stableKey;

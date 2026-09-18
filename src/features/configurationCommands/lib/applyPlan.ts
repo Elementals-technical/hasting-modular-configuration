@@ -3,7 +3,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration";
+import { getActiveProductProfile, getCabinetEntries, markRuntimeOutOfSync } from "@/entities/configuration";
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 
 import { commitPlan } from "./commitChange";
@@ -80,6 +80,10 @@ export const applyPlan = async (
   }
 
   if (runtimeResult.status === "partial") {
+    // The state now mirrors exactly what the scene accepted, but the composition no
+    // longer represents the agreed set. Save waits for I's next reader sync, restore,
+    // or reload instead of serializing that ambiguous intermediate state.
+    dispatch(markRuntimeOutOfSync());
     return {
       status: "partial",
       applied: runtimeResult.applied,

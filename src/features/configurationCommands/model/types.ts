@@ -22,7 +22,8 @@ import type {
  * widening before B writes its UI description against three.
  */
 export type AttributeChange = { attributeId: string; value: AttributeValue } & (
-  | { scope: "global" | "countertop" | "basin" }
+  | { scope: "global" | "countertop" }
+  | { scope: "basin"; sinkBaseId?: StableCabinetKey }
   | { scope: "cabinet"; cabinetId: StableCabinetKey }
   | { scope: "drawer"; cabinetId: StableCabinetKey; drawerType: DrawerType }
 );

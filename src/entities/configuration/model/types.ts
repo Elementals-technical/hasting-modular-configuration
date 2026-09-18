@@ -21,7 +21,12 @@ export type DrawerType = "Top" | "TopFull" | "Bot";
  * per-product scopes carry the stable key, never the runtime id.
  */
 export type ValueTarget =
-  | { scope: "global" | "countertop" | "basin" }
+  | { scope: "global" | "countertop" }
+  /**
+   * A legacy save can address the whole composition's basin. New writes always carry
+   * the sink-base stable key so two basins cannot overwrite one another.
+   */
+  | { scope: "basin"; sinkBaseId?: StableCabinetKey }
   | { scope: "cabinet"; cabinetId: StableCabinetKey }
   | { scope: "drawer"; cabinetId: StableCabinetKey; drawerType: DrawerType };
 
@@ -68,6 +73,12 @@ export type ConfigurationState = {
   valuesByAttributeId: Record<string, ScopedValue[]>;
   /** Service state of restoring a saved configuration (C09). */
   restore: RestoreState;
+  /** A runtime command changed only part of its agreed set; saving must wait for a scene sync. */
+  runtimeSync: RuntimeSyncState;
+};
+
+export type RuntimeSyncState = {
+  needsSync: boolean;
 };
 
 /**
@@ -106,7 +117,7 @@ export type ConfigurationSnapshot = {
   values: Record<string, ScopedValue[]>;
 };
 
-export const CONFIGURATION_SNAPSHOT_VERSION = 1;
+export const CONFIGURATION_SNAPSHOT_VERSION = 2;
 
 export const isSameTarget = (a: ValueTarget, b: ValueTarget): boolean => {
   if (a.scope !== b.scope) return false;
@@ -119,6 +130,10 @@ export const isSameTarget = (a: ValueTarget, b: ValueTarget): boolean => {
     return a.cabinetId === b.cabinetId && a.drawerType === b.drawerType;
   }
 
+  if (a.scope === "basin" && b.scope === "basin") {
+    return a.sinkBaseId === b.sinkBaseId;
+  }
+
   return true;
 };
 
@@ -126,6 +141,7 @@ export const isSameTarget = (a: ValueTarget, b: ValueTarget): boolean => {
 export const formatTarget = (target: ValueTarget): string => {
   if (target.scope === "cabinet") return `cabinet:${target.cabinetId}`;
   if (target.scope === "drawer") return `drawer:${target.cabinetId}:${target.drawerType}`;
+  if (target.scope === "basin" && target.sinkBaseId) return `basin:${target.sinkBaseId}`;
   return target.scope;
 };
 
@@ -141,6 +157,7 @@ export const parseTarget = (key: string): ValueTarget | null => {
 
   if (scope === "cabinet" && drawerType === undefined) return { scope, cabinetId };
   if (scope === "drawer" && isDrawerType(drawerType)) return { scope, cabinetId, drawerType };
+  if (scope === "basin" && drawerType === undefined) return { scope, sinkBaseId: cabinetId };
 
   return null;
 };

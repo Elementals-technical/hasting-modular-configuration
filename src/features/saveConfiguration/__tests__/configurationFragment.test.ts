@@ -87,6 +87,30 @@ describe("buildConfigurationFragment", () => {
     });
   });
 
+  it("addresses basin values to their sink-base in v2", () => {
+    store.dispatch(
+      setAttributeValue({ attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-1" }, value: "Vessel" }),
+    );
+
+    const { fragment } = selectConfigurationSavePayload(store.getState());
+
+    expect(fragment.version).toBe(2);
+    expect(fragment.values["basin:cab-1"]).toEqual({ sinkType: "Vessel" });
+    expect(readFragmentValue(fragment, "sinkType", { scope: "basin", sinkBaseId: "cab-1" })).toBe("Vessel");
+  });
+
+  it("upgrades a legacy basin fallback to the known sink-base targets", () => {
+    store.dispatch(resetConfiguration());
+    store.dispatch(syncCabinets(["Sink-Base-a", "Sink-Base-b"]));
+    store.dispatch(setAttributeValue({ attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel" }));
+
+    const { fragment } = selectConfigurationSavePayload(store.getState());
+
+    expect(fragment.values.basin).toBeUndefined();
+    expect(fragment.values["basin:cab-1"]).toEqual({ sinkType: "Vessel" });
+    expect(fragment.values["basin:cab-2"]).toEqual({ sinkType: "Vessel" });
+  });
+
   it("groups several attributes under one target", () => {
     store.dispatch(
       setAttributeValue({ attributeId: "Handle", target: { scope: "cabinet", cabinetId: "cab-1" }, value: "a" }),
