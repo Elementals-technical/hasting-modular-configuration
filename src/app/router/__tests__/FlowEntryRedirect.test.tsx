@@ -8,16 +8,10 @@ import classManifestDocument from "../../../../public/collections/class/manifest
 import classUiDocument from "../../../../public/collections/class/ui.json";
 import urbanLowHeightManifestDocument from "../../../../public/collections/urban-low-height/manifest.json";
 import urbanLowHeightUiDocument from "../../../../public/collections/urban-low-height/ui.json";
-import {
-  ReadyCollectionContext,
-  validateCollectionManifest,
-  validateCustomizationSchema,
-  type ReadyCollectionData,
-} from "@/entities/collection";
+import { ReadyCollectionContext } from "@/entities/collection";
+import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 
 import { FlowEntryRedirect } from "../FlowEntryRedirect";
-
-const rootUrl = "https://app.test/collections/";
 
 afterEach(cleanup);
 
@@ -26,35 +20,13 @@ const LocationProbe = () => {
   return <div data-testid="location">{`${location.pathname}${location.search}`}</div>;
 };
 
-const readyCollection = (collectionId: string, manifestDocument: unknown, uiDocument: unknown): ReadyCollectionData => {
-  const manifest = validateCollectionManifest(
-    manifestDocument,
-    collectionId,
-    `${rootUrl}${collectionId}/manifest.json`,
-    rootUrl,
-  );
-  const customization = validateCustomizationSchema(uiDocument);
-  if (!customization.ok) throw new Error(`Expected valid ${collectionId} UI`);
-
-  return {
-    id: collectionId,
-    manifest,
-    diagnostics: [],
-    sources: { local: { ui: customization.schema }, remote: {} },
-    catalog: {
-      customization: customization.schema,
-      configurator: { groups: [], groupsByName: {} },
-    },
-  };
-};
-
 describe("FlowEntryRedirect", () => {
   it.each([
     ["urban-low-height", urbanLowHeightManifestDocument, urbanLowHeightUiDocument],
     ["class", classManifestDocument, classUiDocument],
   ])("uses the %s entry route and preserves collection identity", async (collectionId, manifest, ui) => {
     render(
-      <ReadyCollectionContext.Provider value={readyCollection(collectionId, manifest, ui)}>
+      <ReadyCollectionContext.Provider value={buildReadyCollection(collectionId, manifest, ui)}>
         <MemoryRouter initialEntries={[`/prebuilt?collectionId=${collectionId}`]}>
           <Routes>
             <Route path="/prebuilt" element={<FlowEntryRedirect flow="prebuilt" />} />

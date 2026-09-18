@@ -1,6 +1,6 @@
 export { validateCustomizationSchema } from "@/entities/collection";
-export { computeNavigation, resolveEntryStep } from "./lib/computeNavigation";
-export { buildStepRoutes, resolveFlowForPath } from "./lib/buildStepRoutes";
+export { computeNavigation, resolveEntryStep, resolveFlowForPath } from "./lib/computeNavigation";
+export { buildStepRoutes } from "./lib/buildStepRoutes";
 export type { StepScreen, StepScreens } from "./lib/buildStepRoutes";
 export { useCollectionNavigation } from "./lib/useCollectionNavigation";
 export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigate";
