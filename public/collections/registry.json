@@ -12,6 +12,10 @@
     {
       "id": "class",
       "manifest": "class/manifest.json"
+    },
+    {
+      "id": "mako",
+      "manifest": "mako/manifest.json"
     }
   ]
 }

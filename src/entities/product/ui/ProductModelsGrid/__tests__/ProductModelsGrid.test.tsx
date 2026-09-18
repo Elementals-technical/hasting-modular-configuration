@@ -70,4 +70,17 @@ describe("ProductModelsGrid", () => {
 
     expect(screen.getByText("No preset compositions available for Class")).toBeTruthy();
   });
+
+  it("renders the Mako empty message", () => {
+    renderGrid(
+      <ProductModelsGrid
+        data={[]}
+        handleAddPreset={vi.fn()}
+        handleCustomizePreset={vi.fn()}
+        emptyMessage="No preset compositions available for Mako"
+      />,
+    );
+
+    expect(screen.getByText("No preset compositions available for Mako")).toBeTruthy();
+  });
 });

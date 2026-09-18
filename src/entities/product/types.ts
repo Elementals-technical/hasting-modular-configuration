@@ -21,7 +21,8 @@ export type ProductStyle =
   | "single_basin"
   | "double_basin"
   | "asymmetrical"
-  | "open_shelving";
+  | "open_shelving"
+  | "multi_level";
 
 export type ProductModel = {
   id: number;

@@ -6,6 +6,8 @@ import urbanLowHeightManifest from "../../../../public/collections/urban-low-hei
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifestDocument from "../../../../public/collections/class/manifest.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoManifestDocument from "../../../../public/collections/mako/manifest.json";
+import makoUi from "../../../../public/collections/mako/ui.json";
 
 import { withCollectionId } from "../lib/collectionUrl";
 import { resolveCollectionImageUrl, resolveCollectionJsonUrl } from "../lib/paths";
@@ -23,6 +25,7 @@ describe("collection contracts", () => {
       { id: "urban-standard-height", manifest: "urban-standard-height/manifest.json" },
       { id: "urban-low-height", manifest: "urban-low-height/manifest.json" },
       { id: "class", manifest: "class/manifest.json" },
+      { id: "mako", manifest: "mako/manifest.json" },
     ]);
 
     const manifest = validateCollectionManifest(
@@ -47,7 +50,11 @@ describe("collection contracts", () => {
       rootUrl,
     );
     expect(urbanLowHeight.defaults).toEqual({});
-    expect(urbanLowHeight.local).toEqual({ ui: "ui.json", productProfile: "product-profile.json" });
+    expect(urbanLowHeight.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+    });
     expect(urbanLowHeight.defaultPresetId).toBeUndefined();
     expect(urbanLowHeight.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
@@ -63,7 +70,11 @@ describe("collection contracts", () => {
       rootUrl,
     );
     expect(classManifest.defaults).toEqual({});
-    expect(classManifest.local).toEqual({ ui: "ui.json" });
+    expect(classManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+    });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
@@ -71,6 +82,26 @@ describe("collection contracts", () => {
       cabinetTable: { id: 439 },
     });
     expect(classUi.collectionId).toBe("class");
+
+    const makoManifest = validateCollectionManifest(
+      makoManifestDocument,
+      "mako",
+      "https://app.test/collections/mako/manifest.json",
+      rootUrl,
+    );
+    expect(makoManifest.defaults).toEqual({});
+    expect(makoManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+    });
+    expect(makoManifest.defaultPresetId).toBeUndefined();
+    expect(makoManifest.remote).toEqual({
+      configurator: { id: 4, view: "full", serialize: true },
+      countertopTable: { id: 438 },
+      cabinetTable: { id: 439 },
+    });
+    expect(makoUi.collectionId).toBe("mako");
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {
