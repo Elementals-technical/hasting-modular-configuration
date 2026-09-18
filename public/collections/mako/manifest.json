@@ -1,0 +1,23 @@
+{
+  "id": "mako",
+  "label": "Mako",
+  "defaults": {},
+  "local": {
+    "presets": "presets.json",
+    "ui": "ui.json",
+    "productProfile": "product-profile.json"
+  },
+  "remote": {
+    "configurator": {
+      "id": 4,
+      "view": "full",
+      "serialize": true
+    },
+    "countertopTable": {
+      "id": 438
+    },
+    "cabinetTable": {
+      "id": 439
+    }
+  }
+}

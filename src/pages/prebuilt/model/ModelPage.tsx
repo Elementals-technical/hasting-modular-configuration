@@ -1103,6 +1103,7 @@ export const ModelPage = () => {
                   { label: "Double Basin", value: "double_basin" },
                   { label: "Asymmetrical", value: "asymmetrical" },
                   { label: "Open Shelving", value: "open_shelving" },
+                  { label: "Multi-level", value: "multi_level" },
                 ]}
                 onSelect={handleStyleFilter}
               />

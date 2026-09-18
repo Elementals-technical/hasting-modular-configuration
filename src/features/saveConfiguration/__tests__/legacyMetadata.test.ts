@@ -153,4 +153,17 @@ describe("reading a damaged payload", () => {
     expect(issues).toEqual([]);
     expect(fragment.values.global).toEqual({ Height: 56, Enabled: true, Cleared: null, Name: "x" });
   });
+
+  it("reads v1's composition-wide basin fallback and rejects it in v2", () => {
+    const v1 = readConfigurationFragment({
+      configuration: { version: 1, collectionId: "c", cabinets: [], values: { basin: { sinkType: "Vessel" } } },
+    });
+    expect(readFragmentValue(v1.fragment, "sinkType", { scope: "basin" })).toBe("Vessel");
+
+    const v2 = readConfigurationFragment({
+      configuration: { version: 2, collectionId: "c", cabinets: [], values: { basin: { sinkType: "Vessel" } } },
+    });
+    expect(v2.issues.map(({ code }) => code)).toContain("fragment.invalid-values");
+    expect(v2.fragment.values).toEqual({});
+  });
 });

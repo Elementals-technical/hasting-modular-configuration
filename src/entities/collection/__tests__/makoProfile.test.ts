@@ -1,0 +1,156 @@
+import { describe, expect, it } from "vitest";
+
+import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
+import makoManifest from "../../../../public/collections/mako/manifest.json";
+
+import { parseProductProfile } from "../lib/parseProductProfile";
+import { isDrawerStyleMixingRestricted, selectOptionValues } from "../lib/productProfileSelectors";
+
+/**
+ * The Mako product profile carries only what the Mako documents confirm: the WebGL Logic, the Mako price
+ * workbook, the GB rules and the Master File. Where the Master File conflicts with the product map, the map wins.
+ *
+ * Mako is neither Urban nor Class: G57/G50 handles with their own colour, legs with their own colour, no
+ * inner-drawer style and thin countertops only. This test also guards against those values leaking in.
+ */
+
+const parsed = parseProductProfile(makoProfileDocument);
+
+const profile = () => {
+  if (!parsed.ok) throw new Error(`profile failed validation: ${JSON.stringify(parsed.diagnostics)}`);
+  return parsed.profile;
+};
+
+const attribute = (attributeId: string) =>
+  profile().attributes.find((candidate) => candidate.attributeId === attributeId);
+
+const categoryCounts = (attributeId: string) =>
+  (attribute(attributeId)?.options ?? []).reduce<Record<string, number>>((counts, { category }) => {
+    const key = category ?? "";
+    return { ...counts, [key]: (counts[key] ?? 0) + 1 };
+  }, {});
+
+describe("mako product profile", () => {
+  it("is valid without diagnostics", () => {
+    // On failure the diagnostics are the message: the assertion shows what the profile got wrong.
+    expect(parsed.ok ? [] : parsed.diagnostics).toEqual([]);
+    expect(profile().collectionId).toBe("mako");
+  });
+
+  it("is loaded by the collection manifest", () => {
+    expect(makoManifest.local.productProfile).toBe("product-profile.json");
+  });
+
+  it("declares Sink Base and Side Cabinet only (map section 1)", () => {
+    expect(selectOptionValues(profile(), "CabinetType")).toEqual(["Sink-Base", "Sink-Cabinet"]);
+  });
+
+  it("has one- and two-drawer styles with their heights, and no inner drawer (section 2)", () => {
+    expect(selectOptionValues(profile(), "Drawers")).toEqual(["1", "2"]);
+    expect(JSON.stringify(attribute("Drawers"))).not.toContain("1DWID");
+    expect(selectOptionValues(profile(), "Height")).toEqual(["26", "52"]);
+  });
+
+  it("offers the G57 and G50 handles without a groove colour (section 4)", () => {
+    expect(selectOptionValues(profile(), "Handle")).toEqual(["G57", "G50"]);
+    expect(attribute("Handle")?.options?.map(({ capabilities }) => capabilities?.supportsGrooveColor)).toEqual([
+      false,
+      false,
+    ]);
+  });
+
+  it("lists the Master File colour catalogs, grouped by material", () => {
+    expect(categoryCounts("CabinetColor")).toEqual({ "Lacquered MT": 20, "Lacquered GL": 20 });
+    expect(categoryCounts("HandleColor")).toEqual({ Metal: 2, "Lacquered MT": 20 });
+    expect(categoryCounts("LegColor")).toEqual({ Metal: 2, "Lacquered MT": 20 });
+    expect(categoryCounts("CountertopColor")).toEqual({
+      "Solid Surface": 1,
+      HPL: 14,
+      Porcelain: 15,
+      "Glass MT": 20,
+      "Glass GL": 20,
+    });
+  });
+
+  it("keeps the Mako glass keys without the Class G prefix and the stone labels apart", () => {
+    const values = selectOptionValues(profile(), "CountertopColor");
+    const porcelain = attribute("CountertopColor")?.options?.find(({ value }) => value === "CALACATTA BLACK 338");
+
+    expect(values).toContain("Grigio Argento 403 MT");
+    expect(values).not.toContain("GGrigio Argento 403 MT");
+    expect(porcelain?.label).toBe("Calacatta Black 338");
+  });
+
+  it("leaves out what the thin-only rule excludes and what the Master File lacks (sections 7, 9)", () => {
+    expect(selectOptionValues(profile(), "CountertopColor")).not.toContain("Matte White 8cm");
+    expect(selectOptionValues(profile(), "sinkType")).not.toContain("VA023");
+    expect(selectOptionValues(profile(), "sinkType")).not.toContain("VA030");
+  });
+
+  it("has nine integrated basins and the three vessel styles", () => {
+    const basins = attribute("sinkType")?.options ?? [];
+
+    expect(basins.filter(({ category }) => category === "integrated").map(({ value }) => value)).toEqual([
+      "LB440",
+      "LB175",
+      "LB575",
+      "LB856",
+      "VA024",
+      "LV890",
+      "LV892",
+      "VA002",
+      "VA005",
+    ]);
+    expect(basins.filter(({ category }) => category === "vessel").map(({ value }) => value)).toEqual([
+      "Iris",
+      "Frame",
+      "Plaza",
+    ]);
+  });
+
+  it("has the confirmed countertop, faucet and divider options", () => {
+    expect(selectOptionValues(profile(), "CountertopStyle")).toEqual(["integrated", "vessel"]);
+    expect(selectOptionValues(profile(), "FaucetHolesAmount")).toEqual(["0", "1", "2", "3"]);
+    expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
+  });
+
+  it("inherits no Urban or Class value", () => {
+    const document = JSON.stringify(makoProfileDocument);
+
+    expect(document).not.toContain("handle_urban");
+    expect(document).not.toContain("Open-Shelf");
+    expect(attribute("CabinetSideColor")).toBeUndefined();
+    expect(attribute("FrameColor")).toBeUndefined();
+    expect(selectOptionValues(profile(), "Height")).not.toContain("40");
+  });
+
+  it("declares only the drawer style groups as a rule section", () => {
+    expect(Object.keys(profile().ruleData).sort()).toEqual(["cabinetMatrixLegacyAdapter", "drawerStyleGroups"]);
+  });
+
+  it("records the confirmed rules it cannot express yet", () => {
+    expect(Object.keys(makoProfileDocument.excludedFromThisProfile)).toEqual(
+      expect.arrayContaining([
+        "sourceRefs",
+        "matteWhite8cm",
+        "va023",
+        "va030",
+        "legsOnlyForTwoDrawers",
+        "compositionLimits",
+        "floating",
+      ]),
+    );
+  });
+});
+
+describe("mako drawer style mixing (section 2)", () => {
+  it("keeps one-drawer and two-drawer cabinets apart", () => {
+    expect(isDrawerStyleMixingRestricted(profile(), ["1DW"], "2DW")).toBe(true);
+    expect(isDrawerStyleMixingRestricted(profile(), ["2DW"], "1DW")).toBe(true);
+  });
+
+  it("lets cabinets of the same style be combined", () => {
+    expect(isDrawerStyleMixingRestricted(profile(), ["1DW"], "1DW")).toBe(false);
+    expect(isDrawerStyleMixingRestricted(profile(), ["2DW"], "2DW")).toBe(false);
+  });
+});

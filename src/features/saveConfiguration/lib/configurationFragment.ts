@@ -11,7 +11,7 @@ import { formatTarget } from "@/entities/configuration";
  * moved every reader onto this fragment.
  */
 
-export const CONFIGURATION_FRAGMENT_VERSION = 1;
+export const CONFIGURATION_FRAGMENT_VERSION = 2;
 
 /** Product identity as saved: the stable key plus its place in the composition. */
 export type SavedCabinet = {
@@ -22,7 +22,7 @@ export type SavedCabinet = {
 /**
  * Values grouped by target key.
  *
- * The key is the serialized `ValueTarget` — "global", "cabinet:cab-1",
+ * The key is the serialized `ValueTarget` — "global", "basin:cab-1", "cabinet:cab-1",
  * "drawer:cab-1:Top" — so `cabinet-1:Height` never merges with `cabinet-2:Height`.
  */
 export type SavedValuesByTarget = Record<string, Record<string, AttributeValue>>;
@@ -41,8 +41,20 @@ export const buildConfigurationFragment = (snapshot: ConfigurationSnapshot): Con
 
   for (const [attributeId, scopedValues] of Object.entries(snapshot.values)) {
     for (const scoped of scopedValues) {
-      const key = formatTarget(scoped.target);
-      values[key] = { ...(values[key] ?? {}), [attributeId]: scoped.value };
+      // v1 had one composition-wide basin. When it is re-saved as v2, materialize
+      // that fallback for every known sink-base instead of emitting the legacy `basin`
+      // key again. A keyed basin keeps its exact owner.
+      const targets =
+        scoped.target.scope === "basin" && !scoped.target.sinkBaseId
+          ? snapshot.cabinets
+              .filter(({ runtimeId }) => runtimeId.toLowerCase().includes("sink-base"))
+              .map(({ stableKey }) => ({ scope: "basin" as const, sinkBaseId: stableKey }))
+          : [scoped.target];
+
+      for (const target of targets) {
+        const key = formatTarget(target);
+        values[key] = { ...(values[key] ?? {}), [attributeId]: scoped.value };
+      }
     }
   }
 

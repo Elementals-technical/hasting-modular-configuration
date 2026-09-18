@@ -20,8 +20,19 @@ export const resolveTarget = (
   switch (change.scope) {
     case "global":
     case "countertop":
-    case "basin":
       return { ok: true, target: { scope: change.scope } };
+
+    case "basin": {
+      if (!change.sinkBaseId) return { ok: true, target: { scope: "basin" } };
+      const sinkBase = findByStableKey(cabinets, change.sinkBaseId);
+      if (!sinkBase) {
+        return { ok: false, message: `unknown sink base "${change.sinkBaseId}"` };
+      }
+      if (!sinkBase.runtimeId.toLowerCase().includes("sink-base")) {
+        return { ok: false, message: `cabinet "${change.sinkBaseId}" is not a sink base` };
+      }
+      return { ok: true, target: { scope: "basin", sinkBaseId: change.sinkBaseId } };
+    }
 
     case "cabinet": {
       if (!findByStableKey(cabinets, change.cabinetId)) {

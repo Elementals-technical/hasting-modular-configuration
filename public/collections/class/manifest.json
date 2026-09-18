@@ -3,7 +3,9 @@
   "label": "Class",
   "defaults": {},
   "local": {
-    "ui": "ui.json"
+    "presets": "presets.json",
+    "ui": "ui.json",
+    "productProfile": "product-profile.json"
   },
   "remote": {
     "configurator": {

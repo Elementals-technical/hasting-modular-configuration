@@ -6,6 +6,7 @@ import type { ProductProfile } from "@/entities/collection";
 import {
   getAttributeValue,
   getCabinetEntries,
+  getRuntimeSyncState,
   resetConfiguration,
   setActiveCollectionId,
   syncCabinets,
@@ -227,6 +228,8 @@ describe("changeAttribute", () => {
     // What the scene did apply is recorded.
     expect(dispatched).toContain("product/commitRuleSelection");
     expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_pto");
+    expect(getAttributeValue(store.getState(), "Handle", { scope: "cabinet", cabinetId: "cab-1" })).toBe("handle_pto");
+    expect(getRuntimeSyncState(store.getState()).needsSync).toBe(true);
 
     // The refused height is not written, and the reducer does not derive it on its own:
     // the command is the only owner of the value (C06).
@@ -289,6 +292,9 @@ describe("changeAttribute for values outside the rule selection", () => {
 
     expect(applied.status).toBe("applied");
     expect(productOptions().DrawerPanelFluting).toBe("FlutingVerticalA");
+    expect(
+      getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: "cab-1" }),
+    ).toBe("FlutingVerticalA");
   });
 
   it("always allows clearing fluting", async () => {

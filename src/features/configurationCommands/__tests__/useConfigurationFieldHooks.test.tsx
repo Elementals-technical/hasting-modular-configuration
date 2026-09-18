@@ -86,6 +86,12 @@ describe("resolveChangeRequest", () => {
       scope: "cabinet",
       cabinetId: "cab-1",
     });
+    expect(resolveChangeRequest(store.getState(), "sinkType", "Top_Tekorlux_Rectangular")).toEqual({
+      attributeId: "sinkType",
+      value: "Top_Tekorlux_Rectangular",
+      scope: "basin",
+      sinkBaseId: "cab-1",
+    });
   });
 
   it("cannot address a cabinet value without cabinets, or an unknown attribute", () => {

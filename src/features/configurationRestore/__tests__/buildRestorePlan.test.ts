@@ -105,4 +105,15 @@ describe("buildRestorePlan", () => {
       plan: { warnings: [{ code: "fragment.newer-version" }] },
     });
   });
+
+  it("rejects malformed v2 values before any scene restore can start", () => {
+    const record = savedRecord();
+    record.metadata.configuration = {
+      ...(record.metadata.configuration as object),
+      version: 2,
+      values: { basin: { sinkType: "Vessel" } },
+    };
+
+    expect(issueCodes(buildRestorePlan("13507", record))).toEqual(["fragment.invalid-values"]);
+  });
 });

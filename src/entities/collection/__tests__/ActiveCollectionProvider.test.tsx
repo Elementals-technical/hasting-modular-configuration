@@ -18,10 +18,17 @@ import productionProductProfile from "../../../../public/collections/urban-stand
 import productionRuntimeBindings from "../../../../public/collections/urban-standard-height/runtime-bindings.json";
 import productionUi from "../../../../public/collections/urban-standard-height/ui.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
+import classPresets from "../../../../public/collections/class/presets.json";
+import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoManifest from "../../../../public/collections/mako/manifest.json";
+import makoPresets from "../../../../public/collections/mako/presets.json";
+import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
+import makoUi from "../../../../public/collections/mako/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
 import fixtureUiManifest from "./fixtures/collections/fixture-ui/manifest.json";
 import fixtureUiNavigation from "./fixtures/collections/fixture-ui/navigation.json";
@@ -69,10 +76,17 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
   [`${rootUrl}urban-standard-height/runtime-bindings.json`]: productionRuntimeBindings,
   [`${rootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
+  [`${rootUrl}urban-low-height/presets.json`]: urbanLowHeightPresets,
   [`${rootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
   [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
   [`${rootUrl}class/manifest.json`]: classManifest,
+  [`${rootUrl}class/presets.json`]: classPresets,
+  [`${rootUrl}class/product-profile.json`]: classProductProfile,
   [`${rootUrl}class/ui.json`]: classUi,
+  [`${rootUrl}mako/manifest.json`]: makoManifest,
+  [`${rootUrl}mako/presets.json`]: makoPresets,
+  [`${rootUrl}mako/product-profile.json`]: makoProductProfile,
+  [`${rootUrl}mako/ui.json`]: makoUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
   [`${rootUrl}fixture-ui/navigation.json`]: fixtureUiNavigation,
   [`${rootUrl}fixture-ui/presets.json`]: fixtureUiPresets,
@@ -197,11 +211,12 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it.each([
-    ["urban-low-height", "Urban Low Height Models", "urban-low-height"],
-    ["class", "Class Models", null],
+    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59],
+    ["class", "Class Models", "class", 44],
+    ["mako", "Mako Models", "mako", 42],
   ])(
     "loads the initial %s session without requiring optional local catalogs",
-    async (collectionId, detail, profileCollectionId) => {
+    async (collectionId, detail, profileCollectionId, presetCount) => {
       renderProvider(
         "/?collectionId=" + collectionId,
         makeDependencies(undefined, productionRemote, productionRegistry),
@@ -213,10 +228,12 @@ describe("ActiveCollectionProvider", () => {
       );
       const localData = JSON.parse(screen.getByTestId("collection-local-data").textContent ?? "{}") as {
         productProfile: { collectionId?: string } | null;
+        presets: unknown[] | null;
       };
 
-      // The optional catalogs stay absent; Urban Low Height already ships its product profile.
-      expect(localData).toMatchObject({ defaults: {}, presets: null, runtimeBindings: null, cabinetSkuMappings: null });
+      // The optional catalogs stay absent; these collections already ship a product profile and their models.
+      expect(localData).toMatchObject({ defaults: {}, runtimeBindings: null, cabinetSkuMappings: null });
+      expect(localData.presets?.length ?? null).toBe(presetCount);
       expect(localData.productProfile?.collectionId ?? null).toBe(profileCollectionId);
     },
   );

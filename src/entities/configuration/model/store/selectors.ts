@@ -17,6 +17,9 @@ export const getConfigurationState = (state: RootState) => state.rootStateUI.con
 
 export const getRestoreState = (state: RootState): RestoreState => state.rootStateUI.configuration.restore;
 
+export const getRuntimeSyncState = (state: RootState): ConfigurationState["runtimeSync"] =>
+  state.rootStateUI.configuration.runtimeSync;
+
 /** Whether this configuration is being restored or already came back, so it must not start again. */
 export const isRestoreInFlightOrDone = (state: RootState, configId: string): boolean => {
   const { configId: restoringId, status } = getRestoreState(state);
