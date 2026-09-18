@@ -41,11 +41,9 @@ import {
   getCabinetColor,
   getCabinetColorMaterial,
   getBookMatching,
-  getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
   getPlacedCabinetStyles,
-  getProductsPresets,
   getSelectedProductConfig,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
@@ -54,21 +52,15 @@ import {
   selectFlutingState,
   selectGrainDirectionState,
 } from "@/entities/product/model/store/derivedSelectors";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import {
-  addProductPreset,
-  setCabinetColor,
   setCabinetColorSku,
   setCabinetColorMaterial,
   setCabinetColorFinish,
   setBookMatching,
-  setGrainDirection,
-  setHandleGrooveColor,
   setHandleGrooveColorSku,
-  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
@@ -87,10 +79,8 @@ export const CustomCabinetColorsPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
-  const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
-  const productsPresets = useAppSelector(getProductsPresets);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   // Groove-color availability comes from the option capability, not a list of handle ids.
   const isUrbanHandleSelected = hasCapability(
@@ -454,70 +444,18 @@ export const CustomCabinetColorsPage = () => {
   const handleChangeColor = async (colorName: string) => {
     if (!colorName) return;
     await saveSnapshot();
-
-    const shouldSyncHandleGrooveColor = Boolean(activeCabinetColor) && activeGrooveColor === activeCabinetColor;
-    const configPatch: Record<string, string> = {
-      CabinetColor: colorName,
-    };
-
-    if (shouldSyncHandleGrooveColor) {
-      configPatch.HandleGrooveColor = colorName;
-    }
-
-    await setConfigBatch({}, configPatch);
-
-    if (productsPresets.length) {
-      dispatch(
-        addProductPreset(
-          productsPresets.map((preset) => ({
-            ...preset,
-            CabinetColor: colorName,
-            ...(shouldSyncHandleGrooveColor ? { HandleGrooveColor: colorName } : {}),
-          })),
-        ),
-      );
-    }
-
-    dispatch(setCabinetColor(colorName));
+    const result = await changeAttributeValue({ attributeId: "CabinetColor", value: colorName, scope: "global" });
+    if (result.status !== "applied") return;
     dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
-
-    if (shouldSyncHandleGrooveColor) {
-      dispatch(
-        setSelectedProductConfig({
-          ...selectedProductConfig,
-          HandleGrooveColor: colorName,
-        }),
-      );
-      dispatch(setHandleGrooveColor(colorName));
-      dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
-    }
-
-    const option = findOptionByColorName(colorName);
-    const materialToken = resolveMaterialToken(option);
-    const finishToken = extractFinishToken(`${colorName} ${option?.title ?? ""} ${option?.desc ?? ""}`);
-
-    dispatch(setCabinetColorMaterial(materialToken));
-    dispatch(setCabinetColorFinish(finishToken));
   };
 
   const handleChangeGrooveColor = async (colorName: string) => {
     if (!colorName) return;
     await saveSnapshot();
-
-    await setConfigBatch(
-      {},
-      {
-        HandleGrooveColor: colorName,
-      },
-    );
-
-    dispatch(
-      setSelectedProductConfig({
-        ...selectedProductConfig,
-        HandleGrooveColor: colorName,
-      }),
-    );
-    dispatch(setHandleGrooveColor(colorName));
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+    if (!cabinetId) return;
+    const result = await changeAttributeValue({ attributeId: "HandleGrooveColor", value: colorName, scope: "cabinet", cabinetId });
+    if (result.status !== "applied") return;
     dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
   };
 
@@ -541,18 +479,6 @@ export const CustomCabinetColorsPage = () => {
     dispatch(setBookMatching(checked ? "enabled" : ""));
   };
 
-  // Fill all products.
-  useEffect(() => {
-    if (!isPlayCanvasReady || !activeCabinetColor) return;
-
-    setConfigBatch(
-      {},
-      {
-        CabinetColor: activeCabinetColor,
-      },
-    );
-  }, [activeCabinetColor, isPlayCanvasReady, selectedProducts]);
-
   // Hydrate material/finish from the default (or already-selected) cabinet color
   // so grain direction / fluting / book-matching rules work on first render.
   useEffect(() => {
@@ -575,43 +501,6 @@ export const CustomCabinetColorsPage = () => {
     findOptionByColorName,
     resolveMaterialToken,
     extractFinishToken,
-    dispatch,
-  ]);
-
-  useEffect(() => {
-    if (!isPlayCanvasReady || !activeGrooveColor) return;
-
-    setConfigBatch(selectedProducts, {
-      HandleGrooveColor: activeGrooveColor,
-    });
-  }, [activeGrooveColor, isPlayCanvasReady, selectedProducts]);
-
-  useEffect(() => {
-    if (!isPlayCanvasReady) return;
-
-    if (!flutingState.available && !activeDrawerPanelFluting) {
-      setConfigBatch(selectedProducts, {
-        DrawerPanelFluting: "None",
-      });
-    }
-  }, [flutingState.available, activeDrawerPanelFluting, isPlayCanvasReady, selectedProducts]);
-
-  useEffect(() => {
-    // Until the collection loads every rule reads as unavailable, so nothing is cleared before it.
-    if (!isPlayCanvasReady || !activeProfile) return;
-
-    if (!grainDirectionState.available && activeGrainDirection) {
-      setConfigBatch(selectedProducts, {
-        GrainDirection: "",
-      });
-      dispatch(setGrainDirection(""));
-    }
-  }, [
-    activeProfile,
-    grainDirectionState.available,
-    activeGrainDirection,
-    isPlayCanvasReady,
-    selectedProducts,
     dispatch,
   ]);
 

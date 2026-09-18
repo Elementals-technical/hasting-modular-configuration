@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 
 import { useActiveCollection, type CustomizationFlowId } from "@/entities/collection";
-import { resolveEntryStep, withPreservedCollectionId } from "@/features/collectionCustomization";
+import { resolveEntryStep, withPreservedEntrySearch } from "@/features/collectionCustomization";
 
 const FALLBACK_PATH: Record<CustomizationFlowId, string> = {
   prebuilt: "/prebuilt/model",
@@ -14,5 +14,5 @@ export const FlowEntryRedirect = ({ flow }: { flow: CustomizationFlowId }) => {
 
   const entry = schema ? resolveEntryStep(schema, flow) : null;
 
-  return <Navigate to={withPreservedCollectionId(entry?.path ?? FALLBACK_PATH[flow], location.search)} replace />;
+  return <Navigate to={withPreservedEntrySearch(entry?.path ?? FALLBACK_PATH[flow], location.search)} replace />;
 };

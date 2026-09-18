@@ -71,4 +71,24 @@ describe("FlowEntryRedirect", () => {
       expect(screen.getByTestId("location").textContent).toBe(`/prebuilt/model?collectionId=${collectionId}`),
     );
   });
+
+  // A restore link opens the flow entry, and the page restores from the configId in the URL.
+  it("carries the rest of the entry query to the first step", async () => {
+    render(
+      <ReadyCollectionContext.Provider value={readyCollection("class", classManifestDocument, classUiDocument)}>
+        <MemoryRouter initialEntries={["/prebuilt?configId=13507&collectionId=class&hostUrl=%2Fprebuilt%2Fmodel"]}>
+          <Routes>
+            <Route path="/prebuilt" element={<FlowEntryRedirect flow="prebuilt" />} />
+            <Route path="/prebuilt/model" element={<LocationProbe />} />
+          </Routes>
+        </MemoryRouter>
+      </ReadyCollectionContext.Provider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("location").textContent).toBe(
+        "/prebuilt/model?configId=13507&collectionId=class&hostUrl=%2Fprebuilt%2Fmodel",
+      ),
+    );
+  });
 });

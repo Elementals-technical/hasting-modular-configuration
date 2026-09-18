@@ -3,7 +3,7 @@ import type { ListenerMiddlewareInstance } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
-import { recordSceneState, restoreCabinets } from "@/entities/configuration/model/store/slice";
+import { recordSceneState, requestSceneStateSync, restoreCabinets } from "@/entities/configuration/model/store/slice";
 import type { ConfigurationSceneReader } from "@/entities/configuration";
 import {
   addProductId,
@@ -37,6 +37,7 @@ export const isSceneStateTrigger = isAnyOf(
   syncSelectedDimensionsFromScene,
   commitRuleSelection,
   restoreCabinets,
+  requestSceneStateSync,
 );
 
 /**

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { RuntimeBindingSet } from "@/entities/collection";
 import type { ConfigurationSceneReader, SceneRestoreRequest } from "@/entities/configuration";
-import type { SceneAddProductResult, SceneOperationResult } from "@/utils/functions/playcanvas/sceneBridge";
+import type { SceneOperationResult, ScenePresetResult } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createSceneRestorer } from "../lib/createSceneRestorer";
 import type { SceneRestoreBridge } from "../lib/createSceneRestorer";
@@ -22,23 +22,18 @@ type FakeScene = SceneRestoreBridge & {
   ready: boolean;
   calls: string[];
   placed: string[];
-  /** Answers of addProduct by call index; unlisted calls create the product. */
-  addAnswers: Map<number, SceneAddProductResult>;
-  configAnswers: Map<string, SceneOperationResult>;
+  presetAnswer: ScenePresetResult | null;
   clearAnswer: SceneOperationResult;
   /** Order the scene reports instead of the creation order. */
   reportedOrder: string[] | null;
 };
 
 const createFakeScene = (): FakeScene => {
-  let addCount = 0;
-
   const scene: FakeScene = {
     ready: true,
     calls: [],
     placed: [],
-    addAnswers: new Map(),
-    configAnswers: new Map(),
+    presetAnswer: null,
     clearAnswer: { status: "applied" },
     reportedOrder: null,
     isReady: () => scene.ready,
@@ -47,21 +42,15 @@ const createFakeScene = (): FakeScene => {
       scene.placed = [];
       return scene.clearAnswer;
     },
-    async addProduct(productType, config) {
-      const index = addCount;
-      addCount += 1;
-      scene.calls.push(`add:${productType}:${String(config.Width)}`);
+    async presetProducts(products) {
+      scene.calls.push(`preset:${products.map(({ name, Width }) => `${name}:${String(Width)}`).join(",")}`);
+      if (scene.presetAnswer) {
+        if (scene.presetAnswer.status === "applied") scene.placed = [...scene.presetAnswer.runtimeIds];
+        return scene.presetAnswer;
+      }
 
-      const answer = scene.addAnswers.get(index);
-      if (answer) return answer;
-
-      const runtimeId = `${productType}-rt${index}`;
-      scene.placed.push(runtimeId);
-      return { status: "applied", runtimeId };
-    },
-    async setConfig(runtimeId, config) {
-      scene.calls.push(`config:${runtimeId}:${String(config.Width)}`);
-      return scene.configAnswers.get(runtimeId) ?? { status: "applied" };
+      scene.placed = products.map(({ name }, index) => `${name}-rt${index}`);
+      return { status: "applied", runtimeIds: [...scene.placed] };
     },
   };
 
@@ -131,18 +120,12 @@ describe("createSceneRestorer preflight", () => {
 });
 
 describe("createSceneRestorer restore", () => {
-  it("clears once and rebuilds in order, each cabinet with its own config, mapping old ids to new", async () => {
+  it("clears once and rebuilds with the native preset API, mapping old ids to new", async () => {
     const { scene, restorer } = setUp();
 
     const result = await restorer.restore(TWO_CABINETS);
 
-    expect(scene.calls).toEqual([
-      "clear",
-      "add:Sink-Base:60",
-      "config:Sink-Base-rt0:60",
-      "add:Sink-Cabinet:80",
-      "config:Sink-Cabinet-rt1:80",
-    ]);
+    expect(scene.calls).toEqual(["clear", "preset:Sink-Base:60,Sink-Cabinet:80"]);
     expect(result).toMatchObject({
       status: "restored",
       matches: [
@@ -152,28 +135,35 @@ describe("createSceneRestorer restore", () => {
     });
   });
 
-  it("keeps rebuilding after a product the scene did not create and reports it", async () => {
+  it("reports every product when the preset API rejects the rebuild", async () => {
     const { scene, restorer } = setUp();
-    scene.addAnswers.set(0, { status: "failed", code: "scene-rejected", message: "no asset" });
+    scene.presetAnswer = { status: "failed", code: "scene-rejected", message: "no asset" };
 
     const result = await restorer.restore(TWO_CABINETS);
 
     expect(result).toMatchObject({
       status: "partial",
-      matches: [{ sourceId: "Sink-Cabinet-old2", runtimeId: "Sink-Cabinet-rt1" }],
-      failed: [{ sourceId: "Sink-Base-old1", code: "not-created" }],
+      matches: [],
+      failed: [
+        { sourceId: "Sink-Base-old1", code: "not-created" },
+        { sourceId: "Sink-Cabinet-old2", code: "not-created" },
+      ],
     });
   });
 
-  it("reports a config the scene refused", async () => {
+  it("reports products the preset API did not return", async () => {
     const { scene, restorer } = setUp();
-    scene.configAnswers.set("Sink-Cabinet-rt1", { status: "failed", code: "product-not-found", message: "gone" });
+    scene.presetAnswer = { status: "applied", runtimeIds: ["Sink-Base-rt0"] };
 
     const result = await restorer.restore(TWO_CABINETS);
 
     expect(result).toMatchObject({
       status: "partial",
-      failed: [{ sourceId: "Sink-Cabinet-old2", code: "config-rejected" }],
+      matches: [],
+      failed: [
+        { sourceId: "Sink-Base-old1", code: "not-created" },
+        { sourceId: "Sink-Cabinet-old2", code: "not-created" },
+      ],
     });
   });
 

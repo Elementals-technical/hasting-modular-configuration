@@ -2,6 +2,8 @@ export { validateCustomizationSchema } from "@/entities/collection";
 export { computeNavigation, resolveEntryStep } from "./lib/computeNavigation";
 export { useCollectionNavigation } from "./lib/useCollectionNavigation";
 export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigate";
+export { useCollectionNavigate } from "./lib/useCollectionNavigate";
+export { withPreservedEntrySearch } from "./lib/withPreservedEntrySearch";
 export { resolveSectionFields } from "./lib/resolveSectionState";
 export { useCustomizationSectionFields } from "./lib/useCustomizationSectionState";
 export { FieldControl } from "./ui/FieldControl";

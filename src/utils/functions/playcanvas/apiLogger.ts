@@ -19,6 +19,15 @@ export const clearConfiguratorApiLogs = () => {
   window.__configuratorApiLogs = [];
 };
 
+/** The iframe replaces its API object when it reloads, so its wrapper must too. */
+export const resetConfiguratorApiLogger = () => {
+  if (typeof window === "undefined") return;
+
+  window.__configuratorApiLoggerInstalled = false;
+  clearConfiguratorApiLogs();
+  window.__clearConfiguratorApiLogs = clearConfiguratorApiLogs;
+};
+
 const MAX_LOG_ENTRIES = 1000;
 
 // Noisy read-only / high-frequency methods that flood the log without adding

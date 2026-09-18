@@ -33,12 +33,9 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import {
   setActiveBasinStyle,
-  setActiveCountertopColor,
-  setActiveCountertopThickness,
   setCountertopStyle,
   setCountertopColorSku,
   setVesselColor,
@@ -103,6 +100,7 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { openSwatchOrder } from "@/features/swatchOrder";
 import { normalizeProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
+import { useChangeAttribute } from "@/features/configurationCommands";
 
 const COUNTERTOP_OPTION = "Counertops materials";
 const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
@@ -138,6 +136,7 @@ export const CustomCountertopPage = () => {
 
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
+  const { change: changeAttributeValue } = useChangeAttribute();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -154,6 +153,7 @@ export const CustomCountertopPage = () => {
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const cabinetEntries = useAppSelector(getCabinetEntries);
+  const sinkBaseCabinetId = cabinetEntries.find(({ runtimeId }) => runtimeId.toLowerCase().includes("sink-base"))?.stableKey;
   const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
@@ -1480,16 +1480,8 @@ export const CustomCountertopPage = () => {
 
     console.log("Countertop Color", colorName);
 
-    const playCanvasColorName = metadata?.configValue ?? colorName;
-
-    const countertopColorConfig = {
-      CountertopColor: playCanvasColorName,
-    };
-
-    await setConfigBatch({}, countertopColorConfig);
-    await setConfigBatch(getCountertopProductBatchSelector(), countertopColorConfig);
-
-    dispatch(setActiveCountertopColor(colorName));
+    const result = await changeAttributeValue({ attributeId: "CountertopColor", value: colorName, scope: "countertop" });
+    if (result.status !== "applied") return;
     dispatch(setCountertopColorSku(metadata?.sku ?? findSkuByColorName(colorName)));
   };
 
@@ -1500,9 +1492,10 @@ export const CustomCountertopPage = () => {
 
     await saveSnapshot();
 
-    await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: colorName });
+    if (!sinkBaseCabinetId) return;
+    const result = await changeAttributeValue({ attributeId: "VesselColor", value: colorName, scope: "basin", sinkBaseId: sinkBaseCabinetId });
+    if (result.status !== "applied") return;
     setActiveVesselColor(colorName);
-    dispatch(setVesselColor(colorName));
   };
 
   const applyBasinStyleByDependencies = useCallback(
@@ -1633,16 +1626,10 @@ export const CustomCountertopPage = () => {
       await saveSnapshot();
       console.log("thickness", thickness);
 
-      setConfigBatch(
-        {},
-        {
-          Thickness: thickness,
-        },
-      );
-
-      dispatch(setActiveCountertopThickness(thickness));
+      const result = await changeAttributeValue({ attributeId: "Thickness", value: thickness, scope: "countertop" });
+      if (result.status !== "applied") return;
     },
-    [dispatch, saveSnapshot],
+    [changeAttributeValue, saveSnapshot],
   );
 
   useEffect(() => {

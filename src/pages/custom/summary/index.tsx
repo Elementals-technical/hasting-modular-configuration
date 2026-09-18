@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
@@ -145,6 +145,7 @@ import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
 import s from "./SummaryPage.module.scss";
+import { useCollectionNavigate } from "@/features/collectionCustomization";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
@@ -268,7 +269,7 @@ const normalizeSidePanelSummaryDepth = (value: number | null): number | null => 
 
 export const CustomSummaryPage = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const location = useLocation();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [quotePreviewImage, setQuotePreviewImage] = useState<string>("");

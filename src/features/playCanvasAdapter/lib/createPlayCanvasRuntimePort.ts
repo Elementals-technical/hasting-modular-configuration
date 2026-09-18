@@ -8,7 +8,7 @@ import type {
   RuntimeContext,
   UnsupportedRuntimeChange,
 } from "@/entities/configuration";
-import { applySceneConfig, isSceneReady } from "@/utils/functions/playcanvas/sceneBridge";
+import { applySceneConfig, isSceneReady, setSceneProductConfig } from "@/utils/functions/playcanvas/sceneBridge";
 import type { SceneCallResult, SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { resolveSceneSelector } from "./resolveSceneSelector";
@@ -30,6 +30,12 @@ import { resolveSceneSelector } from "./resolveSceneSelector";
 export type SceneBridge = {
   isReady(): boolean;
   apply(selector: SceneSelector, patch: ScenePatch): Promise<SceneCallResult>;
+  /**
+   * Width is a scene layout operation: the legacy scene requires its per-product
+   * `setConfig(id, patch)` API, not a one-product batch. Optional so existing test
+   * bridges retain the generic batch fallback.
+   */
+  applyProduct?(runtimeId: string, patch: ScenePatch): Promise<SceneCallResult>;
 };
 
 export type PlayCanvasRuntimePortDeps = {
@@ -57,7 +63,15 @@ type SceneCommand<T extends RuntimeChange> = {
 
 type StepFailure = Pick<FailedRuntimeChange, "code" | "message">;
 
-const defaultScene: SceneBridge = { isReady: isSceneReady, apply: applySceneConfig };
+const defaultScene: SceneBridge = {
+  isReady: isSceneReady,
+  apply: applySceneConfig,
+  async applyProduct(runtimeId, patch) {
+    const result = await setSceneProductConfig(runtimeId, patch);
+    if (result.status === "applied") return { status: "applied", updatedIds: [runtimeId] };
+    return result;
+  },
+};
 
 const sortedEntries = (record: object) => Object.entries(record).sort(([a], [b]) => a.localeCompare(b));
 
@@ -168,7 +182,16 @@ export const createPlayCanvasRuntimePort = ({
       for (const step of command.steps) {
         if (sent.has(step.key)) continue;
 
-        const result = await scene.apply(step.selector, step.patch);
+        // Width must preserve the scene's established direct-product resize path.
+        // Other bindings deliberately remain batched so their result can be checked
+        // against every addressed cabinet.
+        const productId =
+          command.change.attributeId === "Width" && step.selector.productIds?.length === 1
+            ? step.selector.productIds[0]
+            : null;
+        const result = productId && scene.applyProduct
+          ? await scene.applyProduct(productId, step.patch)
+          : await scene.apply(step.selector, step.patch);
 
         if (result.status === "not-ready") {
           // Nothing reached the scene yet: the whole set is simply not ready.

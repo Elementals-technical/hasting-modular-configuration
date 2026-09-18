@@ -28,6 +28,7 @@ import {
   setSidePanelSideStatus,
   setSidePanelsOption,
   setSelectedProductConfig,
+  setSelectedDimensions,
   setTowelBarColor,
   setTowelBarOption,
   setVesselColor,
@@ -65,6 +66,10 @@ const asText = (change: PlannedChange): string => String(change.value ?? "");
 
 /** Pricing and derived fields can be carried by runtime data, but are never semantic C state. */
 const recordSemanticChange = (change: PlannedChange): UnknownAction | null => {
+  // Dimensions are persisted in each product's scene config. The selected dimensions
+  // below are a UI projection; I04 replaces them with the scene's actual values.
+  if (change.attributeId === "Width" || change.attributeId === "Depth" || change.attributeId === "Height") return null;
+
   const owner = getAttributeOwnership(change.attributeId)?.owner;
   if (owner === "pricing" || owner === "derived") return null;
 
@@ -145,6 +150,8 @@ const COMMITTERS: Record<string, Committer> = {
   DividersStyle: (change) => [setDividersStyle(asText(change))],
   FaucetHolesAmount: (change) => [setFaucetHolesAmount(asText(change))],
   FaucetHolesSpacing: (change) => [setFaucetHolesSpacing(asText(change))],
+  Width: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ width: change.value })] : []),
+  Depth: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ depth: change.value })] : []),
 };
 
 /** Colours a preset carries, so Customize starts from the colours the user chose. */

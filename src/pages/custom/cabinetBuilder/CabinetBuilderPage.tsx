@@ -110,7 +110,7 @@ import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selector
 import { cabinetTypeMetadataByCode, drawerMetaByValue } from "./constants";
 import { DrawerStyleConflictPopup } from "./DrawerStyleConflictPopup";
 import s from "./CabinetBuilderPage.module.scss";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
@@ -127,6 +127,7 @@ import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/
 import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
+import { useCollectionNavigate } from "@/features/collectionCustomization";
 
 type AccordionConfig = {
   id: string;
@@ -248,7 +249,7 @@ export const CabinetBuilderPage = () => {
   const presets = useCollectionPresets();
 
   const { pathname, search, key: locationKey } = useLocation();
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
   const isInteractiveTutorialRoute =

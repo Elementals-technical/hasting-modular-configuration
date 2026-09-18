@@ -104,6 +104,12 @@ const configurationSlice = createSlice({
       state.runtimeSync.needsSync = false;
     },
 
+    /**
+     * An explicit request to run after a runtime command.  The reducer deliberately
+     * keeps no state: the listener is the owner of the asynchronous scene read.
+     */
+    requestSceneStateSync() {},
+
     /** Restores saved identity by pairing saved keys with freshly created runtime ids. */
     restoreCabinets(state, action: PayloadAction<{ stableKeys: StableCabinetKey[]; runtimeIds: string[] }>) {
       const { stableKeys, runtimeIds } = action.payload;
@@ -152,8 +158,10 @@ const configurationSlice = createSlice({
       for (const [attributeId, values] of Object.entries(state.valuesByAttributeId)) {
         const next = values.filter(
           (entry) =>
-            !((entry.target.scope === "cabinet" || entry.target.scope === "drawer") &&
-              entry.target.cabinetId === cabinetId),
+            !(
+              (entry.target.scope === "cabinet" || entry.target.scope === "drawer") &&
+              entry.target.cabinetId === cabinetId
+            ),
         );
 
         if (next.length === 0) {
@@ -221,6 +229,7 @@ export const {
   syncCabinets,
   syncCabinetOrder,
   recordSceneState,
+  requestSceneStateSync,
   restoreCabinets,
   setAttributeValue,
   clearAttributeValue,

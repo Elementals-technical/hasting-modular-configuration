@@ -21,12 +21,15 @@ import {
   getProductsPresets,
 } from "@/entities/product/model/store/selectors";
 import {
+  addProductPreset,
   reset,
   restoreProductState,
+  setCabinetColor,
   setActiveProfile,
   setCabinetColorMaterial,
   setDrawerPanelFluting,
   setGrainDirection,
+  setHandleGrooveColor,
 } from "@/entities/product/model/store/slice";
 
 import manifestJson from "../../../../../public/collections/urban-standard-height/manifest.json";
@@ -40,6 +43,23 @@ const setConfigBatchMock = vi.fn<(ids: unknown, config: unknown) => Promise<null
 const saveSnapshotMock = vi.fn(async () => undefined);
 
 const changeAttributeMock = vi.fn(async (change: { attributeId: string; value: string }) => {
+  if (change.attributeId === "CabinetColor") {
+    const previous = store.getState().rootStateUI.product.productOptions.CabinetColor;
+    const groove = store.getState().rootStateUI.product.productOptions.HandleGrooveColor;
+    store.dispatch(setCabinetColor(change.value));
+    const follows = Boolean(previous) && groove === previous;
+    if (follows) store.dispatch(setHandleGrooveColor(change.value));
+    store.dispatch(
+      addProductPreset(
+        store.getState().rootStateUI.product.productsPresets.map((preset) => ({
+          ...preset,
+          CabinetColor: change.value,
+          ...(follows ? { HandleGrooveColor: change.value } : {}),
+        })),
+      ),
+    );
+  }
+  if (change.attributeId === "HandleGrooveColor") store.dispatch(setHandleGrooveColor(change.value));
   if (change.attributeId === "DrawerPanelFluting") store.dispatch(setDrawerPanelFluting(change.value));
   if (change.attributeId === "GrainDirection") store.dispatch(setGrainDirection(change.value));
   return { status: "applied" as const, plan: [] };
@@ -356,13 +376,7 @@ describe("CustomCabinetColorsPage", () => {
       fireEvent.click(screen.getAllByRole("button", { name: "New Cabinet Color" })[0]);
     });
 
-    expect(setConfigBatchMock).toHaveBeenCalledWith(
-      {},
-      {
-        CabinetColor: "New Cabinet Color",
-        HandleGrooveColor: "New Cabinet Color",
-      },
-    );
+    expect(changeAttributeMock).toHaveBeenCalledWith(expect.objectContaining({ attributeId: "CabinetColor", value: "New Cabinet Color" }));
 
     const state = store.getState() as RootState;
     expect(getHandleGrooveColor(state)).toBe("New Cabinet Color");
@@ -386,12 +400,7 @@ describe("CustomCabinetColorsPage", () => {
       fireEvent.click(screen.getAllByRole("button", { name: "New Cabinet Color" })[0]);
     });
 
-    expect(setConfigBatchMock).toHaveBeenCalledWith(
-      {},
-      {
-        CabinetColor: "New Cabinet Color",
-      },
-    );
+    expect(changeAttributeMock).toHaveBeenCalledWith(expect.objectContaining({ attributeId: "CabinetColor", value: "New Cabinet Color" }));
 
     const state = store.getState() as RootState;
     expect(getHandleGrooveColor(state)).toBe("Explicit Groove Color");

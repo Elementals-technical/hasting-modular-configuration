@@ -17,16 +17,13 @@ import {
 import s from "./CabinetPage.module.scss";
 import type { AccordionConfig } from "@/shared/constants/types";
 import {
-  addProductPreset,
   setCabinetColor,
   setCabinetColorSku,
   setCabinetColorFinish,
   setCabinetColorMaterial,
   setBookMatching,
   setGrainDirection,
-  setHandleGrooveColor,
   setHandleGrooveColorSku,
-  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
@@ -523,54 +520,19 @@ export const CabinetPage = () => {
     if (!colorName) return;
     await saveSnapshot();
 
-    await setConfigBatch({}, { CabinetColor: colorName });
-
-    if (presetsProducts.length) {
-      dispatch(
-        addProductPreset(
-          presetsProducts.map((preset) => ({
-            ...preset,
-            CabinetColor: colorName,
-          })),
-        ),
-      );
-    }
-
-    dispatch(setCabinetColor(colorName));
+    const result = await changeAttributeValue({ attributeId: "CabinetColor", value: colorName, scope: "global" });
+    if (result.status !== "applied") return;
     dispatch(setCabinetColorSku(findSkuByColorName(colorName)));
-
-    const option = findOptionByColorName(colorName);
-    const materialToken = resolveMaterialToken(option);
-    const finishToken = extractFinishToken(`${colorName} ${option?.title ?? ""} ${option?.desc ?? ""}`);
-
-    dispatch(setCabinetColorMaterial(materialToken));
-    dispatch(setCabinetColorFinish(finishToken));
   };
 
   const handleChangeGrooveColor = async (colorName: string) => {
     if (!colorName) return;
     await saveSnapshot();
 
-    await setConfigBatch({}, { HandleGrooveColor: colorName });
-
-    if (presetsProducts.length) {
-      dispatch(
-        addProductPreset(
-          presetsProducts.map((preset) => ({
-            ...preset,
-            HandleGrooveColor: colorName,
-          })),
-        ),
-      );
-    }
-
-    dispatch(
-      setSelectedProductConfig({
-        ...selectedProductConfig,
-        HandleGrooveColor: colorName,
-      }),
-    );
-    dispatch(setHandleGrooveColor(colorName));
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+    if (!cabinetId) return;
+    const result = await changeAttributeValue({ attributeId: "HandleGrooveColor", value: colorName, scope: "cabinet", cabinetId });
+    if (result.status !== "applied") return;
     dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
   };
 

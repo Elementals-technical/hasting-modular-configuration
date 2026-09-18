@@ -12,6 +12,8 @@ import {
 import { ROUTES } from "@/shared";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
+import { resolveRestoreNavigation } from "./lib/resolveRestoreNavigation";
+
 const RESTORE_TARGET = {
   prebuilt: ROUTES.PREBUILT,
   custom: ROUTES.CUSTOM,
@@ -25,6 +27,9 @@ const resolveRestoreTarget = (sourcePath: unknown): string => {
 
   return RESTORE_TARGET.prebuilt;
 };
+
+/** A restore that changes the collection starts a new session, so it reloads the app. */
+const reloadInto = (url: string) => window.location.assign(url);
 
 export const RestoreConfigurationPage = () => {
   const location = useLocation();
@@ -57,17 +62,20 @@ export const RestoreConfigurationPage = () => {
         const result = await restoreConfiguration(configId).unwrap();
         if (isCancelled) return;
 
-        navigate(
-          {
-            pathname: resolveRestoreTarget(result?.metadata?.path),
-            search: buildConfigurationRestoreSearch({
-              configId,
-              hostUrl,
-              collectionId: readSavedCollectionId(result?.metadata),
-            }),
-          },
-          { replace: true },
-        );
+        const savedCollectionId = readSavedCollectionId(result?.metadata);
+        const pathname = resolveRestoreTarget(result?.metadata?.path);
+        const search = buildConfigurationRestoreSearch({ configId, hostUrl, collectionId: savedCollectionId });
+        const navigation = resolveRestoreNavigation({
+          sessionCollectionId: searchParams.get("collectionId"),
+          savedCollectionId,
+        });
+
+        if (navigation.kind === "reload") {
+          reloadInto(`${pathname}${search}`);
+          return;
+        }
+
+        navigate({ pathname, search }, { replace: true });
       } catch (error) {
         console.error("[Restore] Failed to resolve configuration route", error);
         if (isCancelled) return;
@@ -87,7 +95,7 @@ export const RestoreConfigurationPage = () => {
     return () => {
       isCancelled = true;
     };
-  }, [configId, dispatch, hostUrl, navigate, restoreConfiguration]);
+  }, [configId, dispatch, hostUrl, navigate, restoreConfiguration, searchParams]);
 
   return null;
 };

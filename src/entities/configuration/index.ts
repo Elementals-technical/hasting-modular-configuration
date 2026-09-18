@@ -73,6 +73,7 @@ export {
   finishRestore,
   markRuntimeOutOfSync,
   recordSceneState,
+  requestSceneStateSync,
   startRestore,
   resetConfiguration,
   restoreCabinets,

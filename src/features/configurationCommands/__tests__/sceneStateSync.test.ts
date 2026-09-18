@@ -7,7 +7,7 @@ import {
   getCabinetEntries,
   getDimensionsByCabinet,
 } from "@/entities/configuration/model/store/selectors";
-import { restoreCabinets, syncCabinets } from "@/entities/configuration/model/store/slice";
+import { requestSceneStateSync, restoreCabinets, syncCabinets } from "@/entities/configuration/model/store/slice";
 import {
   setSelectedProductConfig,
   swapProductIds,
@@ -38,6 +38,7 @@ describe("isSceneStateTrigger", () => {
   it("matches the actions after which the scene's sizes or order may differ", () => {
     expect(isSceneStateTrigger(swapProductIds({ idA: "rt-a", idB: "rt-b" }))).toBe(true);
     expect(isSceneStateTrigger(syncSelectedDimensionsFromScene({ width: 80 }))).toBe(true);
+    expect(isSceneStateTrigger(requestSceneStateSync())).toBe(true);
     expect(isSceneStateTrigger(setSelectedProductConfig(null))).toBe(false);
     expect(isSceneStateTrigger(syncCabinets(["rt-a"]))).toBe(false);
   });
@@ -100,5 +101,16 @@ describe("scene state sync", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(scene.calls).toEqual([]);
+  });
+
+  it("reads explicitly after a command even when no legacy page reducer fires", async () => {
+    const { scene, store } = setUp();
+    scene.setScene(["rt-a"], { "rt-a": LOW });
+    store.dispatch(syncCabinets(["rt-a"]));
+
+    store.dispatch(requestSceneStateSync());
+
+    await vi.waitFor(() => expect(getCabinetDimensions(store.getState(), "cab-1")).toEqual(LOW));
+    expect(scene.calls).toEqual([["rt-a"]]);
   });
 });

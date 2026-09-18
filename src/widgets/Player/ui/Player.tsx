@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
@@ -31,6 +31,7 @@ import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
 
 import s from "./Player.module.scss";
 import { QuoteIcon } from "@/shared/assets/images/svg/QuoteIcon";
+import { useCollectionNavigate } from "@/features/collectionCustomization";
 
 type PlayerProps = {
   isCanvasFullMode?: boolean;
@@ -52,7 +53,7 @@ export function Player({
 }: PlayerProps = {}) {
   const location = useLocation();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
 
@@ -408,10 +409,7 @@ export function Player({
         <StepNavigationBar title={activeStep} flow={pathname.includes("/custom") ? "custom" : "prebuilt"} />
       </div>
 
-      <PlayCanvasIntegration
-        isCanvasFullMode={isCanvasFullMode}
-        onCanvasFullModeClose={handleCanvasFullModeClose}
-      />
+      <PlayCanvasIntegration isCanvasFullMode={isCanvasFullMode} onCanvasFullModeClose={handleCanvasFullModeClose} />
 
       {onCanvasFullModeChange && (
         <button

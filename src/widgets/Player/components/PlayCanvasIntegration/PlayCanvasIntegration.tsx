@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import { NestedDropdown, type DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 import { MobileNestedMenu } from "@/shared/ui/NestedDropdown/MobileNestedMenu";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
+import { useStore } from "react-redux";
+
+import type { RootState } from "@/app/store";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductId,
@@ -29,11 +32,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import { swapProducts } from "@/utils/functions/playcanvas/swapProducts.ts";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
-import {
-  getSelectTool,
-  type SelectionAction,
-  type SelectionInfo,
-} from "@/utils/functions/playcanvas/getSelectTool";
+import { getSelectTool, type SelectionAction, type SelectionInfo } from "@/utils/functions/playcanvas/getSelectTool";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
@@ -99,7 +98,7 @@ import {
 } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
-import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
 import { selectOptions, useActiveCollection } from "@/entities/collection";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
@@ -121,7 +120,7 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType, withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
-import { useChangeAttribute } from "@/features/configurationCommands";
+import { useChangeAttribute, useChangeDimension } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
@@ -133,6 +132,7 @@ import {
   setInSceneQuickEditorNotificationSeen,
   useInSceneQuickEditorNotification,
 } from "@/features/inSceneQuickEditorNotification";
+import { useCollectionNavigate } from "@/features/collectionCustomization";
 import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
 import {
   canExecuteSetConfigSelectionAction,
@@ -362,7 +362,9 @@ export const PlayCanvasIntegration = ({
   const activeProfile = useAppSelector(getActiveProductProfile);
   const customizationSchema = useActiveCollection((collection) => collection.catalog.customization ?? null);
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
+  const changeDimension = useChangeDimension();
+  const store = useStore<RootState>();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
   const isCustomPage = location.pathname.startsWith("/custom");
@@ -408,7 +410,7 @@ export const PlayCanvasIntegration = ({
     return (
       Boolean(
         ownerFullscreenElement &&
-          (ownerFullscreenElement === iframeElement || ownerFullscreenElement.contains(iframeElement)),
+        (ownerFullscreenElement === iframeElement || ownerFullscreenElement.contains(iframeElement)),
       ) ||
       Boolean(iframeFullscreenElement) ||
       isViewportSizedIframe
@@ -498,7 +500,12 @@ export const PlayCanvasIntegration = ({
       "";
     const normalizedDrawers = drawersRaw.trim().toUpperCase();
 
-    if (normalizedDrawers === "1D" || normalizedDrawers === "2D" || normalizedDrawers === "1DWID" || normalizedDrawers === "1+INNER") {
+    if (
+      normalizedDrawers === "1D" ||
+      normalizedDrawers === "2D" ||
+      normalizedDrawers === "1DWID" ||
+      normalizedDrawers === "1+INNER"
+    ) {
       return true;
     }
 
@@ -1220,8 +1227,7 @@ export const PlayCanvasIntegration = ({
         cleanupPlayerPlusButtonStyles = null;
         stopPolling();
         activeDocument = nextDocument;
-        bridgeEstablished =
-          bridgedDocumentRef.current === nextDocument && Boolean((window as any).playCanvasReady);
+        bridgeEstablished = bridgedDocumentRef.current === nextDocument && Boolean((window as any).playCanvasReady);
         readyDispatched = bridgeEstablished;
 
         if (!bridgeEstablished) {
@@ -1338,11 +1344,21 @@ export const PlayCanvasIntegration = ({
       try {
         await saveSnapshot();
         const restoreTargets = await clearDividersForWidthResize([cabinetId]);
-        await setConfig(cabinetId, { Width: width });
+
+        // The command owns the scene call and the recorded width: it addresses the cabinet by
+        // its stable key, so a scene that rejects the resize leaves no width in state.
+        const stableKey = getStableKeyForRuntimeId(store.getState(), cabinetId);
+        const result = stableKey
+          ? await changeDimension({ attributeId: "Width", value: width, scope: "cabinet", cabinetId: stableKey })
+          : await setConfig(cabinetId, { Width: width }).then(() => {
+              dispatch(setSelectedDimensions({ width }));
+              return { status: "applied" } as const;
+            });
+        if (result.status !== "applied") return;
+
         sanitizePlayCanvasMeshInstances();
         await syncCountertopConfig();
 
-        dispatch(setSelectedDimensions({ width }));
         await waitForNextAnimationFrame();
         dispatchDividerResizeRestore(restoreTargets, "width");
       } catch (error) {
@@ -1351,7 +1367,16 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [selectedSceneProduct, saveSnapshot, clearDividersForWidthResize, syncCountertopConfig, dispatch, dispatchDividerResizeRestore],
+    [
+      selectedSceneProduct,
+      saveSnapshot,
+      clearDividersForWidthResize,
+      syncCountertopConfig,
+      dispatch,
+      dispatchDividerResizeRestore,
+      changeDimension,
+      store,
+    ],
   );
 
   const applySetDepth = useCallback(
@@ -1363,11 +1388,12 @@ export const PlayCanvasIntegration = ({
       try {
         await saveSnapshot();
         const preservedDividerConfigs = await preserveCabinetDividerConfigs(productIds);
-        await setConfigBatch({}, { Depth: depth });
+        const result = await changeDimension({ attributeId: "Depth", value: depth, scope: "global" });
+        if (result.status !== "applied") return;
+
         await restoreCabinetDividerConfigs(preservedDividerConfigs);
         sanitizePlayCanvasMeshInstances();
 
-        dispatch(setSelectedDimensions({ depth }));
         await waitForNextAnimationFrame();
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set depth", error);
@@ -1375,7 +1401,7 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, depthOptions, saveSnapshot, dispatch],
+    [productIds, depthOptions, saveSnapshot, changeDimension],
   );
 
   const requestDividerResize = useCallback(
@@ -2162,7 +2188,14 @@ export const PlayCanvasIntegration = ({
 
     navigate(ROUTES.CUSTOM);
     closeCanvasFullMode();
-  }, [closeCanvasFullMode, customizeModePromptAction, customizeModePromptDeleteTarget, dispatch, navigate, productsPresets]);
+  }, [
+    closeCanvasFullMode,
+    customizeModePromptAction,
+    customizeModePromptDeleteTarget,
+    dispatch,
+    navigate,
+    productsPresets,
+  ]);
 
   const handleOpenCabinetStyle = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-style");
@@ -2225,8 +2258,7 @@ export const PlayCanvasIntegration = ({
       if (drawerInfo.hasOccupiedDividers) {
         const indicator = document.createElement("div");
         const indicatorIconSize = isMobileTabletWidget ? 12 : 16;
-        indicator.innerHTML =
-          `<svg xmlns="http://www.w3.org/2000/svg" width="${indicatorIconSize}" height="${indicatorIconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${indicatorIconSize}" height="${indicatorIconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         indicator.style.background = "#262b31";
         indicator.style.color = "#fff";
         indicator.style.borderRadius = "999px";
@@ -2281,7 +2313,9 @@ export const PlayCanvasIntegration = ({
                 showIconDividerSlots?: (
                   cabinetId: string,
                   drawerType: "Top" | "TopFull" | "Bot",
-                  options?: boolean | { show?: boolean; selectedDividerType?: "A" | "B" | "C" | null; debugRequestId?: string },
+                  options?:
+                    | boolean
+                    | { show?: boolean; selectedDividerType?: "A" | "B" | "C" | null; debugRequestId?: string },
                 ) => unknown;
               };
             }
@@ -2303,9 +2337,7 @@ export const PlayCanvasIntegration = ({
           const iframeDocument = containerRef.current?.contentWindow?.document;
           if (!iframeDocument) return;
 
-          const nodes = iframeDocument.querySelectorAll(
-            ".divider-slot-btn, .divider-slot-add, .divider-slot-occupied",
-          );
+          const nodes = iframeDocument.querySelectorAll(".divider-slot-btn, .divider-slot-add, .divider-slot-occupied");
           nodes.forEach((node) => {
             const el = node as HTMLElement;
             el.style.display = "none";
@@ -3131,7 +3163,11 @@ export const PlayCanvasIntegration = ({
   }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
-    dispatch(setCountertopStyle(isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated"));
+    dispatch(
+      setCountertopStyle(
+        isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated",
+      ),
+    );
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
     closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
@@ -3250,7 +3286,9 @@ export const PlayCanvasIntegration = ({
     vesselBasinSelectionInfo?.actions,
   ]);
 
-  const isCountertopBasinDropdown = Boolean(vesselBasinSelectionInfo && !isVesselBasinSelectionInfo(vesselBasinSelectionInfo));
+  const isCountertopBasinDropdown = Boolean(
+    vesselBasinSelectionInfo && !isVesselBasinSelectionInfo(vesselBasinSelectionInfo),
+  );
   const activeDropdownItems = vesselBasinSelectionInfo
     ? isCountertopBasinDropdown
       ? countertopPopoverItems
@@ -3416,8 +3454,8 @@ export const PlayCanvasIntegration = ({
           </div>
 
           <div style={{ padding: "16px 24px", fontSize: "15px", lineHeight: 1.5 }}>
-            Changing the cabinet width clears configured drawer dividers. You will need to set them up again for the
-            new size.
+            Changing the cabinet width clears configured drawer dividers. You will need to set them up again for the new
+            size.
           </div>
 
           <div
