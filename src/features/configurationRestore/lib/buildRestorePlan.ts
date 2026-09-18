@@ -108,7 +108,8 @@ export const buildRestorePlan = (configId: string, record: ConfigurationRecord):
   for (const issue of fragmentIssues) {
     // A payload saved before the fragment is expected; it is read from `uiState`.
     if (issue.code === "fragment.missing") continue;
-    (BLOCKING_FRAGMENT_ISSUES.has(issue.code) ? issues : warnings).push(issue);
+    const isStrictV2 = fragment.version >= 2 && (issue.code === "fragment.invalid-cabinets" || issue.code === "fragment.invalid-values");
+    (BLOCKING_FRAGMENT_ISSUES.has(issue.code) || isStrictV2 ? issues : warnings).push(issue);
   }
 
   if (issues.length > 0) return { ok: false, issues };

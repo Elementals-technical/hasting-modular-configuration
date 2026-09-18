@@ -42,6 +42,7 @@ const initialState: ConfigurationState = {
   dimensionsByCabinet: {},
   valuesByAttributeId: {},
   restore: { configId: null, status: "idle", reason: null, message: null },
+  runtimeSync: { needsSync: false },
 };
 
 const configurationSlice = createSlice({
@@ -98,6 +99,9 @@ const configurationSlice = createSlice({
 
         if (!unchanged) state.dimensionsByCabinet[stableKey] = { ...dimensions };
       }
+
+      // A successful reader pass is the synchronization point after a partial command.
+      state.runtimeSync.needsSync = false;
     },
 
     /** Restores saved identity by pairing saved keys with freshly created runtime ids. */
@@ -201,6 +205,14 @@ const configurationSlice = createSlice({
     clearRestore(state) {
       state.restore = initialState.restore;
     },
+
+    markRuntimeOutOfSync(state) {
+      state.runtimeSync.needsSync = true;
+    },
+
+    clearRuntimeOutOfSync(state) {
+      state.runtimeSync.needsSync = false;
+    },
   },
 });
 
@@ -219,6 +231,8 @@ export const {
   failRestore,
   finishRestore,
   clearRestore,
+  markRuntimeOutOfSync,
+  clearRuntimeOutOfSync,
 } = configurationSlice.actions;
 
 export const configurationReducer = configurationSlice.reducer;

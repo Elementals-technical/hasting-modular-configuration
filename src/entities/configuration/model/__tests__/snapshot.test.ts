@@ -125,7 +125,7 @@ describe("configuration snapshot", () => {
     const snapshot = getConfigurationSnapshot(store.getState());
 
     expect(snapshot.collectionId).toBe("urban-standard-height");
-    expect(snapshot.version).toBe(1);
+    expect(snapshot.version).toBe(2);
     expect(snapshot.cabinets.map((entry) => entry.stableKey)).toEqual(["cab-1", "cab-2"]);
     expect(snapshot.values.Handle).toEqual([{ target: { scope: "cabinet", cabinetId: "cab-2" }, value: "x" }]);
   });

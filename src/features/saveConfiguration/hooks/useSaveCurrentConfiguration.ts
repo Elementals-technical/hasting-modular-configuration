@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useSaveConfigurationMutation } from "@/entities";
-import { getActiveCollectionId, getRestoreState } from "@/entities/configuration/model/store/selectors";
+import { getActiveCollectionId, getRestoreState, getRuntimeSyncState } from "@/entities/configuration/model/store/selectors";
 import {
   getHasSubmittedCart,
   getIsAutofillEnabled,
@@ -93,11 +93,12 @@ export const useSaveCurrentConfiguration = () => {
   const buildRequest = useBuildConfigurationRequest();
   const [saveConfiguration] = useSaveConfigurationMutation();
   const restoreStatus = useAppSelector(getRestoreState).status;
+  const needsRuntimeSync = useAppSelector(getRuntimeSyncState).needsSync;
   const collectionId = useAppSelector(getActiveCollectionId);
 
   return useCallback(
     async (options: SaveCurrentConfigurationOptions = {}): Promise<SaveCurrentConfigurationResult> => {
-      if (isRestoreBlockingSave(restoreStatus)) return { ok: false, reason: "restore-incomplete" };
+      if (isRestoreBlockingSave(restoreStatus) || needsRuntimeSync) return { ok: false, reason: "restore-incomplete" };
       // A configuration saved without its collection could never be restored (CONTRACTS §4).
       if (!collectionId) return { ok: false, reason: "no-collection" };
 
@@ -119,7 +120,7 @@ export const useSaveCurrentConfiguration = () => {
         request,
       };
     },
-    [buildRequest, collectionId, restoreStatus, saveConfiguration],
+    [buildRequest, collectionId, needsRuntimeSync, restoreStatus, saveConfiguration],
   );
 };
 

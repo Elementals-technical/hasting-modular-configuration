@@ -1,4 +1,4 @@
-import type { AttributeValue } from "@/entities/configuration";
+import { parseTarget, type AttributeValue } from "@/entities/configuration";
 
 import { CONFIGURATION_FRAGMENT_VERSION, type ConfigurationFragment, type SavedCabinet } from "./configurationFragment";
 
@@ -65,7 +65,11 @@ const readCabinets = (raw: unknown, issues: FragmentIssue[]): SavedCabinet[] => 
   });
 };
 
-const readValues = (raw: unknown, issues: FragmentIssue[]): ConfigurationFragment["values"] => {
+const readValues = (
+  raw: unknown,
+  issues: FragmentIssue[],
+  version: number,
+): ConfigurationFragment["values"] => {
   if (raw === undefined) return {};
 
   if (!isRecord(raw)) {
@@ -76,6 +80,17 @@ const readValues = (raw: unknown, issues: FragmentIssue[]): ConfigurationFragmen
   const values: ConfigurationFragment["values"] = {};
 
   for (const [targetKey, byAttribute] of Object.entries(raw)) {
+    if (!parseTarget(targetKey)) {
+      issues.push({ code: "fragment.invalid-values", message: `unknown value target "${targetKey}"` });
+      continue;
+    }
+
+    // `basin` used to mean the one basin in a composition. It remains valid only as
+    // a v1 compatibility fallback; new v2 writes must name their sink-base.
+    if (version >= 2 && targetKey === "basin") {
+      issues.push({ code: "fragment.invalid-values", message: "v2 basin values require a sink-base key" });
+      continue;
+    }
     if (!isRecord(byAttribute)) {
       issues.push({ code: "fragment.invalid-values", message: `values for "${targetKey}" must be an object` });
       continue;
@@ -174,10 +189,10 @@ export const readConfigurationFragment = (
 
   return {
     fragment: {
-      version: CONFIGURATION_FRAGMENT_VERSION,
+      version: version || 1,
       collectionId,
       cabinets: readCabinets(raw.cabinets, issues),
-      values: readValues(raw.values, issues),
+      values: readValues(raw.values, issues, version),
     },
     issues,
     isLegacy: false,
