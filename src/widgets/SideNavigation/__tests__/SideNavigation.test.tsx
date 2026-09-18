@@ -9,26 +9,27 @@ import { SideNavigation } from "../ui/SideNavigation";
 
 afterEach(cleanup);
 
+const renderAt = (initialPath: string) =>
+  renderWithFixtureCollection(<SideNavigation />, { collectionId: "fixture-ui", initialPath });
+
 describe("SideNavigation against a non-USH schema", () => {
   it("renders fixture-ui's own prebuilt steps, in schema order", () => {
-    renderWithFixtureCollection(<SideNavigation flow="prebuilt" />, { collectionId: "fixture-ui" });
+    renderAt("/fixture/models?collectionId=fixture-ui");
 
     const links = screen.getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(["Fixture Models", "Test Finish"]);
   });
 
-  it("renders fixture-ui's own custom step", () => {
-    renderWithFixtureCollection(<SideNavigation flow="custom" />, { collectionId: "fixture-ui" });
+  it("renders fixture-ui's own custom step once the path belongs to the custom flow", () => {
+    renderAt("/fixture/builder?collectionId=fixture-ui");
 
     const links = screen.getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(["Fixture Builder"]);
+    expect(screen.getByText("Custom")).toBeTruthy();
   });
 
   it("marks the link matching the current URL as active", () => {
-    renderWithFixtureCollection(<SideNavigation flow="prebuilt" />, {
-      collectionId: "fixture-ui",
-      initialPath: "/fixture/finish?collectionId=fixture-ui",
-    });
+    renderAt("/fixture/finish?collectionId=fixture-ui");
 
     const activeLink = screen.getByRole("link", { name: "Test Finish" });
     const inactiveLink = screen.getByRole("link", { name: "Fixture Models" });
@@ -37,7 +38,7 @@ describe("SideNavigation against a non-USH schema", () => {
   });
 
   it("preserves collectionId in every step link's href", () => {
-    renderWithFixtureCollection(<SideNavigation flow="prebuilt" />, { collectionId: "fixture-ui" });
+    renderAt("/fixture/models?collectionId=fixture-ui");
 
     const links = screen.getAllByRole("link");
     expect(links.map((link) => link.getAttribute("href"))).toEqual([

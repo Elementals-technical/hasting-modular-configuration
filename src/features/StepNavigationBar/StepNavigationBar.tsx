@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
-import { useActiveCollection } from "@/entities/collection";
-import { resolveEntryStep, useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
+import { useCollectionNavigation, useEntryStep, useStepNavigate } from "@/features/collectionCustomization";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
@@ -28,8 +27,8 @@ interface StepNavigationBarI {
 export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title }) => {
   const { pathname } = useLocation();
   const navigate = useStepNavigate();
-  const schema = useActiveCollection((collection) => collection.catalog.customization);
   const navigation = useCollectionNavigation();
+  const prebuiltEntry = useEntryStep("prebuilt");
 
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
 
@@ -45,7 +44,6 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title }) => {
   const isStepDetails = !!currentStep && pathname !== currentStep.path;
 
   const leaveCustomFlow = () => {
-    const prebuiltEntry = schema ? resolveEntryStep(schema, "prebuilt") : null;
     if (prebuiltEntry) navigate(prebuiltEntry.path);
   };
 

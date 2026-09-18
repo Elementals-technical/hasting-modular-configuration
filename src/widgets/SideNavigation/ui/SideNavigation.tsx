@@ -12,12 +12,8 @@ import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 
 import s from "./SideNavigation.module.scss";
 
-type SideNavigationProps = {
-  flow?: "prebuilt" | "custom";
-};
-
-export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
-  const navigation = useCollectionNavigation(flow);
+export const SideNavigation = () => {
+  const navigation = useCollectionNavigation();
   const steps = navigation?.steps ?? [];
   const location = useLocation();
 
@@ -48,7 +44,7 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
         }}
       >
         <ArrowRight width="25" height="25" stroke={"#333"} />
-        <div className={s.mode}>{flow === "custom" ? "Custom" : "Pre-Built"}</div>
+        <div className={s.mode}>{navigation?.flowId === "custom" ? "Custom" : "Pre-Built"}</div>
       </div>
 
       <ul className={s.navList}>

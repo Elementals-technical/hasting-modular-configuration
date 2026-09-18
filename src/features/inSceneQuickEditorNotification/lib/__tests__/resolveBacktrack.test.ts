@@ -1,19 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { validateCustomizationSchema } from "@/entities/collection";
 import fixtureUiUi from "@/entities/collection/__tests__/fixtures/collections/fixture-ui/ui.json";
+import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
 
 import { resolveInSceneQuickEditorNotificationBacktrack } from "../resolveBacktrack";
 
-const parse = (uiDocument: unknown) => {
-  const result = validateCustomizationSchema(uiDocument);
-  if (!result.ok) throw new Error("Expected a valid UI schema");
-  return result.schema;
-};
-
 describe("resolveInSceneQuickEditorNotificationBacktrack against a non-USH schema", () => {
   it("reads the flow's own step order from the schema, not a hardcoded map", () => {
-    const schema = parse(fixtureUiUi);
+    const schema = readCustomizationSchema(fixtureUiUi);
 
     const forward = resolveInSceneQuickEditorNotificationBacktrack({
       flow: "prebuilt",
@@ -46,7 +40,7 @@ describe("resolveInSceneQuickEditorNotificationBacktrack against a non-USH schem
         },
       },
     };
-    const schema = parse(reorderedUi);
+    const schema = readCustomizationSchema(reorderedUi);
 
     const result = resolveInSceneQuickEditorNotificationBacktrack({
       flow: "prebuilt",
@@ -59,7 +53,7 @@ describe("resolveInSceneQuickEditorNotificationBacktrack against a non-USH schem
   });
 
   it("treats a path outside the flow's declared steps as outside-flow", () => {
-    const schema = parse(fixtureUiUi);
+    const schema = readCustomizationSchema(fixtureUiUi);
 
     const result = resolveInSceneQuickEditorNotificationBacktrack({
       flow: "prebuilt",

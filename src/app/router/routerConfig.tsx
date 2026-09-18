@@ -30,8 +30,4 @@ export const routerConfig = createBrowserRouter([
     path: ROUTES.AR_DOWNLOAD,
     element: <ArDownloadPage />,
   },
-  {
-    path: ROUTES.NOT_FOUND,
-    element: <Navigate to={ROUTES.HOME} replace />,
-  },
 ]);

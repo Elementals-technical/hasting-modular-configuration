@@ -134,7 +134,7 @@ export const HomePage = () => {
     <div className={s.homePageWrap}>
       <div className={`${s.content} ${isSummary ? s.summaryLayout : ""} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
-          <SideNavigation flow={flow} />
+          <SideNavigation />
         </div>
 
         <Player
@@ -144,7 +144,7 @@ export const HomePage = () => {
           onInteractiveTutorialClose={shouldOpenInitialInteractiveTutorial ? handleClose : undefined}
         />
 
-        <ConfiguratorSidebar flow={flow}>
+        <ConfiguratorSidebar>
           <Outlet />
         </ConfiguratorSidebar>
       </div>

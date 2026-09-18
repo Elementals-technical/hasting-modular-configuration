@@ -3,6 +3,7 @@ export { computeNavigation, resolveEntryStep, resolveFlowForPath } from "./lib/c
 export { buildStepRoutes } from "./lib/buildStepRoutes";
 export type { StepScreen, StepScreens } from "./lib/buildStepRoutes";
 export { useCollectionNavigation } from "./lib/useCollectionNavigation";
+export { useEntryStep } from "./lib/useEntryStep";
 export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigate";
 export { resolveSectionFields } from "./lib/resolveSectionState";
 export { useCustomizationSectionFields } from "./lib/useCustomizationSectionState";

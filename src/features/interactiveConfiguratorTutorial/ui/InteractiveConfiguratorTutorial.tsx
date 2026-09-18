@@ -11,6 +11,8 @@ import {
 } from "react-joyride";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useActiveCollection } from "@/entities/collection";
+import { useCollectionNavigation, useEntryStep } from "@/features/collectionCustomization";
 import { BaseButton, ROUTES } from "@/shared";
 import { ArrowInteractive } from "@/shared/assets/images/svg/ArrowInteractive";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
@@ -24,6 +26,7 @@ import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS,
   getInteractiveConfiguratorTutorialTargetSelector,
 } from "../model/targets";
+import { filterSupportedTutorialSteps } from "../lib/filterSupportedTutorialSteps";
 import { getPlayCanvasPlusButtonViewportRect } from "../lib/getPlayCanvasPlusButtonViewportRect";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
@@ -507,6 +510,9 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const schema = useActiveCollection((collection) => collection.catalog.customization ?? null);
+  const flowId = useCollectionNavigation()?.flowId;
+  const prebuiltEntry = useEntryStep("prebuilt");
   const [isCompactLayout, setIsCompactLayout] = useState(getIsCompactTutorialLayout);
   const [createYourOwnTargetRect, setCreateYourOwnTargetRect] = useState<ViewportRect | null>(null);
   const [modeSwitcherTargetRect, setModeSwitcherTargetRect] = useState<ViewportRect | null>(null);
@@ -515,9 +521,14 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
   const [activeStepId, setActiveStepId] = useState<InteractiveConfiguratorTutorialStep["id"] | null>(null);
   const sceneCabinetRequestCounterRef = useRef(0);
 
+  const tutorialSteps = useMemo(
+    () => filterSupportedTutorialSteps(INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS, schema),
+    [schema],
+  );
+
   const activeStep = useMemo<InteractiveConfiguratorTutorialStep | undefined>(
-    () => INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS.find((step) => step.id === activeStepId),
-    [activeStepId],
+    () => tutorialSteps.find((step) => step.id === activeStepId),
+    [activeStepId, tutorialSteps],
   );
 
   useEffect(() => {
@@ -541,9 +552,9 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
     setPrebuiltModelsGridTargetRect(null);
     setVisibleButtons(false);
     dispatch(setOpenStyleSidebar(false));
-    navigate(DEFAULT_START_ROUTE, { replace: true });
+    navigate(prebuiltEntry?.path ?? DEFAULT_START_ROUTE, { replace: true });
     onClose();
-  }, [dispatch, navigate, onClose]);
+  }, [dispatch, navigate, onClose, prebuiltEntry]);
 
   const ensureTutorialSceneCabinet = useCallback(() => {
     sceneCabinetRequestCounterRef.current += 1;
@@ -587,10 +598,7 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
       setActiveStepId(step.id);
 
       if (step.route && `${location.pathname}${location.search}` !== step.route) {
-        if (
-          step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType &&
-          !location.pathname.startsWith(ROUTES.CUSTOM)
-        ) {
+        if (step.id === INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customCabinetType && flowId !== "custom") {
           dispatchInteractiveConfiguratorTutorialEnterCustomMode(step.route);
         } else {
           navigate(step.route);
@@ -665,16 +673,16 @@ export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: Interactive
         return;
       }
     },
-    [dispatch, ensureTutorialSceneCabinet, isCompactLayout, location.pathname, location.search, navigate],
+    [dispatch, ensureTutorialSceneCabinet, flowId, isCompactLayout, location.pathname, location.search, navigate],
   );
 
   const joyrideSteps = useMemo(
     () =>
-      INTERACTIVE_CONFIGURATOR_TUTORIAL_STEPS.map((step) => ({
+      tutorialSteps.map((step) => ({
         ...mapTutorialStepToJoyrideStep(step, isCompactLayout),
         before: () => prepareTutorialStep(step),
       })),
-    [isCompactLayout, prepareTutorialStep],
+    [isCompactLayout, prepareTutorialStep, tutorialSteps],
   );
 
   const handleJoyrideEvent = useCallback(

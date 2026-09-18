@@ -69,7 +69,7 @@ describe("USH through the shared navigation/presets path", () => {
   });
 
   it("renders USH's 6 prebuilt step labels through the real SideNavigation widget", () => {
-    renderUsh(<SideNavigation flow="prebuilt" />);
+    renderUsh(<SideNavigation />, "/prebuilt/model?collectionId=urban-standard-height");
 
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(6);

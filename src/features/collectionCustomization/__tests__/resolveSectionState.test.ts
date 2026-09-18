@@ -1,18 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { parseProductProfile, validateCustomizationSchema } from "@/entities/collection";
+import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
+import { ushProfile as profile } from "@/entities/collection/__tests__/ushProfileFixture";
 
-import productProfileJson from "../../../../public/collections/urban-standard-height/product-profile.json";
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
 import { resolveSectionFields } from "../lib/resolveSectionState";
 
-const validatedSchema = validateCustomizationSchema(uiJson);
-if (!validatedSchema.ok) throw new Error("fixture ui.json failed validation");
-const schema = validatedSchema.schema;
-
-const parsedProfile = parseProductProfile(productProfileJson);
-if (!parsedProfile.ok) throw new Error("fixture product-profile.json failed validation");
-const profile = parsedProfile.profile;
+const schema = readCustomizationSchema(uiJson);
 
 describe("resolveSectionFields", () => {
   it("reads the field list for a section straight from the schema", () => {

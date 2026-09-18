@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { validateCustomizationSchema, type CustomizationSchema } from "@/entities/collection";
+import type { CustomizationSchema } from "@/entities/collection";
+import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
 
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
 import { computeNavigation, resolveEntryStep, resolveFlowForPath } from "../lib/computeNavigation";
 
-const validated = validateCustomizationSchema(uiJson);
-if (!validated.ok) throw new Error("fixture ui.json failed validation");
-const schema = validated.schema;
+const schema = readCustomizationSchema(uiJson);
 
 describe("computeNavigation", () => {
   it("matches a nested route to its parent step", () => {

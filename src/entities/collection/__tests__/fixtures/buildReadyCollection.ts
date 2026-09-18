@@ -2,9 +2,10 @@ import {
   deriveCollectionNavigation,
   presetsSchema,
   validateCollectionManifest,
-  validateCustomizationSchema,
   type ReadyCollectionData,
 } from "@/entities/collection";
+
+import { readCustomizationSchema } from "./readCustomizationSchema";
 
 const rootUrl = "https://app.test/collections/";
 
@@ -20,19 +21,16 @@ export const buildReadyCollection = (
     `${rootUrl}${collectionId}/manifest.json`,
     rootUrl,
   );
-  const customization = validateCustomizationSchema(uiDocument);
-  if (!customization.ok) {
-    throw new Error(`Expected a valid ${collectionId} UI schema, got diagnostics: ${JSON.stringify(customization)}`);
-  }
+  const customization = readCustomizationSchema(uiDocument);
 
   return {
     id: collectionId,
     manifest,
     diagnostics: [],
-    sources: { local: { ui: customization.schema }, remote: {} },
+    sources: { local: { ui: customization }, remote: {} },
     catalog: {
-      customization: customization.schema,
-      navigation: deriveCollectionNavigation(customization.schema),
+      customization,
+      navigation: deriveCollectionNavigation(customization),
       presets: presetsDocument ? presetsSchema.parse(presetsDocument) : undefined,
       configurator: { groups: [], groupsByName: {} },
     },
