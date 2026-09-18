@@ -83,7 +83,7 @@ import {
   isVisibleVesselSinkStyle,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { selectMessage, useActiveCollection } from "@/entities/collection";
+import { selectAttribute, selectMessage, selectMessageOr, useActiveCollection } from "@/entities/collection";
 import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
 import {
   getActiveProductProfile,
@@ -103,10 +103,17 @@ import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modul
 import { useChangeAttribute } from "@/features/configurationCommands";
 
 const COUNTERTOP_OPTION = "Counertops materials";
-const MATERIAL_FILTER_DISABLED_REASON = "Not available for current cabinet size on scene";
-const MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON = "Not available for current total cabinets width on scene";
-const MATERIAL_FILTER_DEPTH_DISABLED_REASON = "Not available for current cabinet depth";
-const MATERIAL_FILTER_WIDTH_DISABLED_REASON = "Not available for current cabinet width";
+/** Reason codes of the collection; the English text below is the fallback while a collection has none. */
+const REASON_MATERIAL_SIZE = "countertop.materialNotAvailableForSize";
+const REASON_MATERIAL_TOTAL_WIDTH = "countertop.materialNotAvailableForTotalWidth";
+const REASON_MATERIAL_DEPTH = "countertop.materialNotAvailableForDepth";
+const REASON_MATERIAL_WIDTH = "countertop.materialNotAvailableForWidth";
+const REASON_MATERIAL_SELECTION = "countertop.materialNotAvailableForSelection";
+const FALLBACK_MATERIAL_SIZE = "Not available for current cabinet size on scene";
+const FALLBACK_MATERIAL_TOTAL_WIDTH = "Not available for current total cabinets width on scene";
+const FALLBACK_MATERIAL_DEPTH = "Not available for current cabinet depth";
+const FALLBACK_MATERIAL_WIDTH = "Not available for current cabinet width";
+const FALLBACK_MATERIAL_SELECTION = "Not available for selected cabinet width/depth/thickness on scene";
 const NO_EXCLUDED_MATERIAL_FILTERS: readonly string[] = [];
 /** Material filters the collection hides from the countertop step (`ruleData.countertopFallbacks`). */
 const isExcludedCountertopMaterialFilter = (value: string, excludedTokens: readonly string[]) =>
@@ -139,9 +146,34 @@ export const CustomCountertopPage = () => {
   const { change: changeAttributeValue } = useChangeAttribute();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeThickness = useAppSelector(getActiveCountertopThickness);
+
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const activeProfile = useAppSelector(getActiveProductProfile);
+
+  // Texts of the active collection, with the page's previous English as the fallback (DEV-08).
+  const MATERIAL_FILTER_DISABLED_REASON = selectMessageOr(activeProfile, REASON_MATERIAL_SIZE, FALLBACK_MATERIAL_SIZE);
+  const MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON = selectMessageOr(
+    activeProfile,
+    REASON_MATERIAL_TOTAL_WIDTH,
+    FALLBACK_MATERIAL_TOTAL_WIDTH,
+  );
+  const MATERIAL_FILTER_DEPTH_DISABLED_REASON = selectMessageOr(
+    activeProfile,
+    REASON_MATERIAL_DEPTH,
+    FALLBACK_MATERIAL_DEPTH,
+  );
+  const MATERIAL_FILTER_WIDTH_DISABLED_REASON = selectMessageOr(
+    activeProfile,
+    REASON_MATERIAL_WIDTH,
+    FALLBACK_MATERIAL_WIDTH,
+  );
+  const MATERIAL_FILTER_SELECTION_DISABLED_REASON = selectMessageOr(
+    activeProfile,
+    REASON_MATERIAL_SELECTION,
+    FALLBACK_MATERIAL_SELECTION,
+  );
+
   const excludedMaterialFilterTokens =
     activeProfile?.ruleData.countertopFallbacks?.excludedMaterialFilterTokens ?? NO_EXCLUDED_MATERIAL_FILTERS;
   const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
@@ -153,7 +185,9 @@ export const CustomCountertopPage = () => {
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const cabinetEntries = useAppSelector(getCabinetEntries);
-  const sinkBaseCabinetId = cabinetEntries.find(({ runtimeId }) => runtimeId.toLowerCase().includes("sink-base"))?.stableKey;
+  const sinkBaseCabinetId = cabinetEntries.find(({ runtimeId }) =>
+    runtimeId.toLowerCase().includes("sink-base"),
+  )?.stableKey;
   const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
@@ -242,9 +276,7 @@ export const CustomCountertopPage = () => {
   const countertopRules = useCountertopRules();
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = configuratorGroups.filter(
-      (g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels",
-    );
+    const groups = configuratorGroups.filter((g) => g.proxyName === "Countertop Color" || g.proxyName === "Vessels");
 
     if (!groups.length) return appendSyntesiCountertopOptions([], countertopRules, activeProfile);
 
@@ -877,20 +909,27 @@ export const CustomCountertopPage = () => {
       const evaluation = evaluateMaterialOptionCompatibility(option);
       if (evaluation.isCompatible) return undefined;
       if (evaluation.failedBy === "total") {
-        return "Not available for current total cabinets width on scene";
+        return MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON;
       }
       if (evaluation.failedBy === "depth") {
-        return "Not available for current cabinet depth";
+        return MATERIAL_FILTER_DEPTH_DISABLED_REASON;
       }
       if (evaluation.failedBy === "selected") {
-        return "Not available for current cabinet width";
+        return MATERIAL_FILTER_WIDTH_DISABLED_REASON;
       }
       if (evaluation.failedBy === "composition") {
         return syntesiSingleCabinetReason;
       }
-      return "Not available for selected cabinet width/depth/thickness on scene";
+      return MATERIAL_FILTER_SELECTION_DISABLED_REASON;
     },
-    [evaluateMaterialOptionCompatibility, syntesiSingleCabinetReason],
+    [
+      evaluateMaterialOptionCompatibility,
+      syntesiSingleCabinetReason,
+      MATERIAL_FILTER_DEPTH_DISABLED_REASON,
+      MATERIAL_FILTER_SELECTION_DISABLED_REASON,
+      MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON,
+      MATERIAL_FILTER_WIDTH_DISABLED_REASON,
+    ],
   );
 
   const hasAnyCompatibleOptionForMaterialFilter = useCallback(
@@ -972,6 +1011,10 @@ export const CustomCountertopPage = () => {
       sceneTotalWidth,
       scopedCountertopOptions,
       syntesiSingleCabinetReason,
+      MATERIAL_FILTER_DEPTH_DISABLED_REASON,
+      MATERIAL_FILTER_DISABLED_REASON,
+      MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON,
+      MATERIAL_FILTER_WIDTH_DISABLED_REASON,
     ],
   );
 
@@ -1016,7 +1059,14 @@ export const CustomCountertopPage = () => {
     };
 
     return (filteredMaterialFilters.materials as MaterialFilterOption[]).map((option) => annotate(option));
-  }, [filteredMaterialFilters.materials, getMaterialFilterDisabledReason, hasAnyCompatibleOptionForMaterialFilter]);
+  }, [
+    filteredMaterialFilters.materials,
+    getMaterialFilterDisabledReason,
+    hasAnyCompatibleOptionForMaterialFilter,
+    MATERIAL_FILTER_DEPTH_DISABLED_REASON,
+    MATERIAL_FILTER_DISABLED_REASON,
+    MATERIAL_FILTER_TOTAL_WIDTH_DISABLED_REASON,
+  ]);
 
   const filteredCountertopOptions = useMemo(() => {
     const filteredByUiBase = filterOptionsByMaterialSelection(scopedCountertopOptions, {
@@ -1242,7 +1292,7 @@ export const CustomCountertopPage = () => {
         return `Not available for current sink base width. Allowed widths: ${formattedAllowed}.`;
       }
 
-      return "Not available for selected cabinet width/depth/thickness on scene";
+      return MATERIAL_FILTER_SELECTION_DISABLED_REASON;
     };
 
     const integratedOptions = optionsMockData3.flatMap((option) => {
@@ -1320,6 +1370,7 @@ export const CustomCountertopPage = () => {
     sceneTotalWidth,
     selectedDimensions.width,
     sinkBaseDims.width,
+    MATERIAL_FILTER_SELECTION_DISABLED_REASON,
   ]);
   const availableBasinOptions = useMemo(
     () => filteredBasinOptions.filter((option) => option.isAvailable !== false),
@@ -1480,7 +1531,11 @@ export const CustomCountertopPage = () => {
 
     console.log("Countertop Color", colorName);
 
-    const result = await changeAttributeValue({ attributeId: "CountertopColor", value: colorName, scope: "countertop" });
+    const result = await changeAttributeValue({
+      attributeId: "CountertopColor",
+      value: colorName,
+      scope: "countertop",
+    });
     if (result.status !== "applied") return;
     dispatch(setCountertopColorSku(metadata?.sku ?? findSkuByColorName(colorName)));
   };
@@ -1493,7 +1548,12 @@ export const CustomCountertopPage = () => {
     await saveSnapshot();
 
     if (!sinkBaseCabinetId) return;
-    const result = await changeAttributeValue({ attributeId: "VesselColor", value: colorName, scope: "basin", sinkBaseId: sinkBaseCabinetId });
+    const result = await changeAttributeValue({
+      attributeId: "VesselColor",
+      value: colorName,
+      scope: "basin",
+      sinkBaseId: sinkBaseCabinetId,
+    });
     if (result.status !== "applied") return;
     setActiveVesselColor(colorName);
   };
@@ -1575,6 +1635,24 @@ export const CustomCountertopPage = () => {
     ],
   );
 
+  /**
+   * The vessel cutout: the scene keeps a token where state keeps "no basin chosen".
+   * The token is the profile's noneValue for sinkType, so the page does not spell it out.
+   */
+  const applyVesselCutout = useCallback(async () => {
+    const noneValue = selectAttribute(activeProfile, "sinkType")?.noneValue;
+    if (!noneValue || !sinkBaseCabinetId) return false;
+
+    const result = await changeAttributeValue({
+      attributeId: "sinkType",
+      value: noneValue,
+      scope: "basin",
+      sinkBaseId: sinkBaseCabinetId,
+    });
+
+    return result.status === "applied";
+  }, [activeProfile, changeAttributeValue, sinkBaseCabinetId]);
+
   const handleAddbasinStyle = async (basinStyle: string) => {
     const selectedOption = filteredBasinOptions.find((option) => (option.name ?? option.title) === basinStyle);
     if (selectedOption?.isAvailable === false) return;
@@ -1585,8 +1663,7 @@ export const CustomCountertopPage = () => {
       if ((activeCountertopStyle ?? "").trim().toLowerCase() !== "vessel") {
         dispatch(setCountertopStyle("Vessel"));
       }
-      await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
-      dispatch(setActiveBasinStyle(""));
+      await applyVesselCutout();
       return;
     }
     if (basinStyle.startsWith("Vessel_")) {
@@ -1595,8 +1672,7 @@ export const CustomCountertopPage = () => {
       }
       // Toggle: clicking the already-selected vessel reverts to empty cutout
       if (activeBasinStyle === basinStyle) {
-        await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
-        dispatch(setActiveBasinStyle(""));
+        await applyVesselCutout();
         return;
       }
       await setConfigBatch(selectedProducts, { sinkType: basinStyle });
@@ -1896,7 +1972,7 @@ export const CustomCountertopPage = () => {
                   data={sortedVesselColorOptions}
                   handleAdd={handleChangeVesselColor}
                   activeValue={activeVesselColor}
-                        groupByDesc
+                  groupByDesc
                 />
               </>
             ),

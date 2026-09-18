@@ -1,7 +1,7 @@
 import type { ProductProfile } from "@/entities/collection";
 import { selectRuleData } from "@/entities/collection";
 
-import { getMaterialAliases, normalizeMaterialToken } from "./parse";
+import { getMaterialAliases, normalizeMaterialToken, selectMaterialAliasTable, type MaterialAliasTable } from "./parse";
 
 /**
  * Which countertop materials and colours a vessel basin accepts, and which vessel styles are
@@ -61,7 +61,7 @@ export const getAllowedVesselMaterialTokens = (
 
   return new Set(
     allowedTokens
-      .flatMap((token) => getMaterialAliases(token))
+      .flatMap((token) => getMaterialAliases(token, selectMaterialAliasTable(profile)))
       .map((token) => normalizeMaterialToken(token))
       .filter(Boolean),
   );
@@ -81,7 +81,7 @@ const getDefaultVesselFinishPreference = (
 
   const materialTokens = new Set(
     rawPreference.materialTokens
-      .flatMap((token) => getMaterialAliases(token))
+      .flatMap((token) => getMaterialAliases(token, selectMaterialAliasTable(profile)))
       .map((token) => normalizeMaterialToken(token))
       .filter(Boolean),
   );
@@ -94,7 +94,8 @@ const getDefaultVesselFinishPreference = (
 
 const getMaterialColorCodeRules = (
   ruleMap: Record<string, Record<string, string[]>> | undefined,
-  vesselStyle?: string | null,
+  vesselStyle: string | null | undefined,
+  aliasTable: MaterialAliasTable,
 ): VesselMaterialColorCodeRule[] => {
   if (!isVesselSinkStyle(vesselStyle)) return [];
 
@@ -104,7 +105,7 @@ const getMaterialColorCodeRules = (
   return Object.entries(rawRules)
     .map(([materialToken, colorCodes]) => {
       const materialTokens = new Set(
-        getMaterialAliases(materialToken)
+        getMaterialAliases(materialToken, aliasTable)
           .map((token) => normalizeMaterialToken(token))
           .filter(Boolean),
       );
@@ -131,7 +132,7 @@ export const isPreferredVesselFinish = ({
 
   const candidateMaterialTokens = new Set<string>();
   materialTokens.forEach((token) => {
-    getMaterialAliases(token)
+    getMaterialAliases(token, selectMaterialAliasTable(profile))
       .map((alias) => normalizeMaterialToken(alias))
       .filter(Boolean)
       .forEach((alias) => candidateMaterialTokens.add(alias));
@@ -165,7 +166,7 @@ export const isMaterialCompatibleWithVesselStyle = ({
   const materialCandidateTokens = new Set<string>();
   const candidateTokens = new Set<string>();
   materialTokens.forEach((token) => {
-    getMaterialAliases(token)
+    getMaterialAliases(token, selectMaterialAliasTable(profile))
       .map((alias) => normalizeMaterialToken(alias))
       .filter(Boolean)
       .forEach((alias) => {
@@ -187,9 +188,11 @@ export const isMaterialCompatibleWithVesselStyle = ({
 
   const compatibility = selectVesselCompatibility(profile);
 
+  const aliasTable = selectMaterialAliasTable(profile);
   const unavailableMaterialColorCodeRules = getMaterialColorCodeRules(
     compatibility?.unavailableColorCodesByStyle,
     vesselStyle,
+    aliasTable,
   );
   if (
     normalizedColorCode &&
@@ -200,7 +203,11 @@ export const isMaterialCompatibleWithVesselStyle = ({
     return false;
   }
 
-  const materialColorCodeRules = getMaterialColorCodeRules(compatibility?.allowedColorCodesByStyle, vesselStyle);
+  const materialColorCodeRules = getMaterialColorCodeRules(
+    compatibility?.allowedColorCodesByStyle,
+    vesselStyle,
+    aliasTable,
+  );
   if (!materialColorCodeRules.length) return true;
 
   const hasMaterialColorCodeRule = materialColorCodeRules.some((rule) => materialMatchesRule(rule));

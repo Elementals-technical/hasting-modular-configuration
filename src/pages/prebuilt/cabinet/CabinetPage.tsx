@@ -22,10 +22,8 @@ import {
   setCabinetColorFinish,
   setCabinetColorMaterial,
   setBookMatching,
-  setGrainDirection,
   setHandleGrooveColorSku,
 } from "@/entities/product/model/store/slice";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -33,8 +31,6 @@ import {
   getCabinetColor,
   getBookMatching,
   getCabinetColorMaterial,
-  getDrawerPanelFluting,
-  getGrainDirection,
   getHandleGrooveColor,
   getProductsPresets,
   getSelectedProductConfig,
@@ -54,7 +50,7 @@ import {
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { hasCapability, useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
-import { useChangeAttribute } from "@/features/configurationCommands";
+import { resolveColorTraits, useChangeAttribute } from "@/features/configurationCommands";
 import {
   getConfiguratorVariantOverrides,
   isHiddenConfiguratorDisplayValue,
@@ -78,8 +74,6 @@ export const CabinetPage = () => {
   const presetsProducts = useAppSelector(getProductsPresets);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const activeGrooveColor = useAppSelector(getHandleGrooveColor);
-  const activeDrawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const activeGrainDirection = useAppSelector(getGrainDirection);
   const activeBookMatching = useAppSelector(getBookMatching);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
 
@@ -116,29 +110,9 @@ export const CabinetPage = () => {
     );
   }, [selectorFlutingState, selectedSceneProduct, presetsProducts, cabinetMaterial, activeProfile]);
 
-  useEffect(() => {
-    if (!flutingState.available && !activeDrawerPanelFluting) {
-      setConfigBatch(
-        {},
-        {
-          DrawerPanelFluting: "None",
-        },
-      );
-    }
-  }, [flutingState.available, activeDrawerPanelFluting]);
-
-  // Until the collection loads every rule reads as unavailable, so nothing is cleared before it.
-  useEffect(() => {
-    if (activeProfile && !grainDirectionState.available && activeGrainDirection) {
-      setConfigBatch(
-        {},
-        {
-          GrainDirection: "",
-        },
-      );
-      dispatch(setGrainDirection(""));
-    }
-  }, [activeProfile, grainDirectionState.available, activeGrainDirection, dispatch]);
+  // Fluting and grain are cleared in the scene by useAvailabilityResets, mounted once for both
+  // flows: it sends the reset through the command service, so the runtime binding decides what a
+  // cleared value is and one place sends it.
 
   useEffect(() => {
     if (activeProfile && !bookMatchingState.enabled && activeBookMatching) {
@@ -146,7 +120,8 @@ export const CabinetPage = () => {
     }
   }, [activeProfile, bookMatchingState.enabled, activeBookMatching, dispatch]);
 
-  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const configurator = useActiveCollection((collection) => collection.catalog.configurator);
+  const configuratorGroups = configurator.groups;
 
   const cabinetColorGroups = useMemo(
     () => configuratorGroups.filter((g) => g.proxyName === "Cabinet Color"),
@@ -372,28 +347,6 @@ export const CabinetPage = () => {
     [basePanelOptions],
   );
 
-  const resolveMaterialToken = useCallback((option?: { metadata?: { materials?: string[]; sku?: string } }) => {
-    const sku = option?.metadata?.sku?.trim().toUpperCase();
-    if (sku === "ESS") return "Essenze";
-    if (sku === "HPL") return "HPL";
-    if (sku === "3D") return "3D";
-    if (sku === "LACM") return "LACM";
-    if (sku === "LACG") return "LACG";
-    if (sku === "ST") return "ST";
-    if (sku === "BM") return "BM";
-
-    const materials = option?.metadata?.materials ?? [];
-    const known = ["Essenze", "HPL", "3D"];
-    const preferred = materials.filter((token) => token !== "Cabinet Color");
-
-    return preferred.find((token) => known.includes(token)) ?? preferred[0] ?? materials[0] ?? "";
-  }, []);
-
-  const extractFinishToken = useCallback((value: string) => {
-    const match = value.match(/\b(TKP|TKQ|TKN|10B|10F|10G|10N|1PE|1A1|1A2|1A3|1A4|1A5)\b/);
-    return match?.[1] ?? "";
-  }, []);
-
   // Hydrate cabinet color + material/finish from the loaded preset so grain
   // direction / fluting / book-matching rules reflect the preset's actual
   // material (not the global store default) before the user picks a color.
@@ -409,8 +362,10 @@ export const CabinetPage = () => {
     const option = findOptionByColorName(targetColor);
     if (!option) return;
 
-    const materialToken = resolveMaterialToken(option);
-    const finishToken = extractFinishToken(`${targetColor} ${option?.title ?? ""} ${option?.desc ?? ""}`);
+    // The collection's colour traits decide the material and finish, as the colour command does.
+    const traits = resolveColorTraits(targetColor, configurator, activeProfile);
+    const materialToken = traits?.material ?? "";
+    const finishToken = traits?.finish ?? "";
 
     if (presetColor && presetColor !== activeCabinetColor) {
       dispatch(setCabinetColor(presetColor));
@@ -430,8 +385,8 @@ export const CabinetPage = () => {
     basePanelOptions,
     findOptionByColorName,
     findSkuByColorName,
-    resolveMaterialToken,
-    extractFinishToken,
+    configurator,
+    activeProfile,
     dispatch,
   ]);
 
@@ -531,7 +486,12 @@ export const CabinetPage = () => {
 
     const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
     if (!cabinetId) return;
-    const result = await changeAttributeValue({ attributeId: "HandleGrooveColor", value: colorName, scope: "cabinet", cabinetId });
+    const result = await changeAttributeValue({
+      attributeId: "HandleGrooveColor",
+      value: colorName,
+      scope: "cabinet",
+      cabinetId,
+    });
     if (result.status !== "applied") return;
     dispatch(setHandleGrooveColorSku(findSkuByColorName(colorName)));
   };
@@ -577,7 +537,10 @@ export const CabinetPage = () => {
           control={definition.control}
           field={{
             ...field,
-            options: field.options.map((option) => ({ ...option, image: drawerPanelFlutingOptionImages[option.value] })),
+            options: field.options.map((option) => ({
+              ...option,
+              image: drawerPanelFlutingOptionImages[option.value],
+            })),
           }}
           onChange={handleChangeDrawerPanelFluting}
         />
@@ -683,23 +646,25 @@ export const CabinetPage = () => {
     {
       id: "drawer-panel",
       title: "Drawer Panel Fluting",
-      content: flutingState.available && drawerPanelFields.length > 0 ? (
-        <>{drawerPanelFields.map(renderCustomizationField)}</>
-      ) : (
-        <div className={s.disabledMessage}>{flutingState.reason ?? "Not available."}</div>
-      ),
+      content:
+        flutingState.available && drawerPanelFields.length > 0 ? (
+          <>{drawerPanelFields.map(renderCustomizationField)}</>
+        ) : (
+          <div className={s.disabledMessage}>{flutingState.reason ?? "Not available."}</div>
+        ),
     },
     {
       id: "grain-direction",
       title: "Grain Direction",
-      content: grainDirectionState.available && grainDirectionFields.length > 0 ? (
-        <>
-          {grainDirectionFields.map(renderCustomizationField)}
-          <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
-        </>
-      ) : (
-        <div className={s.disabledMessage}>{grainDirectionState.reason ?? "Not available."}</div>
-      ),
+      content:
+        grainDirectionState.available && grainDirectionFields.length > 0 ? (
+          <>
+            {grainDirectionFields.map(renderCustomizationField)}
+            <div className={s.checkboxHelper}>Create an exclusive, uninterrupted look and bookmatch your pattern</div>
+          </>
+        ) : (
+          <div className={s.disabledMessage}>{grainDirectionState.reason ?? "Not available."}</div>
+        ),
     },
   ];
 

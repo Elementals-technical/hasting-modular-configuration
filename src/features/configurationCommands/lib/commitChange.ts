@@ -1,7 +1,7 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { ProductProfile } from "@/entities/collection";
-import { selectLegacySpelling } from "@/entities/collection";
+import { selectAttribute, selectLegacySpelling } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getAttributeOwnership, setAttributeValue } from "@/entities/configuration";
 import {
@@ -129,7 +129,14 @@ const COMMITTERS: Record<string, Committer> = {
   Thickness: (change) => [setActiveCountertopThickness(asText(change))],
   CountertopColor: (change) => [setActiveCountertopColor(asText(change))],
   CountertopStyle: (change) => [setCountertopStyle(asText(change))],
-  sinkType: (change) => [setActiveBasinStyle(asText(change))],
+  // The scene keeps the cutout token of a vessel where state keeps "no basin chosen". The
+  // profile names that token as the attribute's noneValue, so no page spells it out.
+  sinkType: (change, context) => {
+    const value = asText(change);
+    const noneValue = selectAttribute(context.profile, "sinkType")?.noneValue;
+
+    return [setActiveBasinStyle(noneValue !== undefined && value === noneValue ? "" : value)];
+  },
   VesselColor: (change) => [setVesselColor(asText(change))],
   BookMatching: (change) => [setBookMatching(asText(change))],
   SidePanels: (change) => [setSidePanelsOption(asText(change))],

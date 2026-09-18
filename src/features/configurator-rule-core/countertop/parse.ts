@@ -1,8 +1,15 @@
+import { selectRuleData, type ProductProfile } from "@/entities/collection";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
 
 import type { CountertopMatrixRule } from "./types";
 
-const MATERIAL_ALIASES: Record<string, string[]> = {
+/**
+ * Legacy material aliases of USH, equal to `ruleData.materialNormalization.aliases` of its profile.
+ * Rules that have the profile pass the collection's table; this one serves the callers that do not
+ * pass a profile yet (pages, pricing) and a collection that declares no table. A test keeps the two
+ * equal until those callers move to the profile (DEV-06).
+ */
+export const LEGACY_MATERIAL_ALIASES: Readonly<Record<string, readonly string[]>> = {
   tekorund: ["tekormud", "sstm"],
   tekormud: ["tekorund", "sstm"],
   glass: ["glassmt", "glassgl"],
@@ -34,12 +41,17 @@ const BASIN_PREFIX_MARKERS = Array.from(
   new Set([
     "hplfenix",
     "hpl",
-    ...Object.keys(MATERIAL_ALIASES).filter((token) => token.length >= 5),
+    ...Object.keys(LEGACY_MATERIAL_ALIASES).filter((token) => token.length >= 5),
   ]),
 ).sort((left, right) => right.length - left.length);
 const BASIN_SUFFIX_MARKERS = ["gres"];
 const BASIN_MATERIAL_SCOPE_MARKERS = Array.from(
-  new Set(["hplfenix", "hpl", ...Object.keys(MATERIAL_ALIASES), ...Object.values(MATERIAL_ALIASES).flat()]),
+  new Set([
+    "hplfenix",
+    "hpl",
+    ...Object.keys(LEGACY_MATERIAL_ALIASES),
+    ...Object.values(LEGACY_MATERIAL_ALIASES).flat(),
+  ]),
 ).sort((left, right) => right.length - left.length);
 
 const normalizeToken = (value: string) =>
@@ -100,14 +112,27 @@ export const normalizeFaucetHoleToken = (value: string): string => {
   return digitsOnly.length > 0 ? digitsOnly : normalized;
 };
 
-export const getMaterialAliases = (material: string): string[] => {
+export type MaterialAliasTable = Readonly<Record<string, readonly string[]>>;
+
+export const getMaterialAliases = (
+  material: string,
+  aliasTable: MaterialAliasTable = LEGACY_MATERIAL_ALIASES,
+): string[] => {
   const normalized = normalizeMaterialToken(material);
-  const aliases = MATERIAL_ALIASES[normalized];
+  const aliases = aliasTable[normalized];
   return aliases ? [normalized, ...aliases] : [normalized];
 };
 
-export const materialMatchesRule = (optionMaterial: string, ruleMaterial: string): boolean => {
-  const aliases = getMaterialAliases(optionMaterial);
+/** The collection's material alias table, or the legacy one while the collection declares none. */
+export const selectMaterialAliasTable = (profile: ProductProfile | null): MaterialAliasTable =>
+  selectRuleData(profile, "materialNormalization")?.aliases ?? LEGACY_MATERIAL_ALIASES;
+
+export const materialMatchesRule = (
+  optionMaterial: string,
+  ruleMaterial: string,
+  aliasTable: MaterialAliasTable = LEGACY_MATERIAL_ALIASES,
+): boolean => {
+  const aliases = getMaterialAliases(optionMaterial, aliasTable);
   const normalizedRule = normalizeMaterialToken(ruleMaterial);
   return aliases.includes(normalizedRule);
 };

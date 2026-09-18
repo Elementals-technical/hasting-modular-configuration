@@ -18,7 +18,6 @@ import {
   resetProducts,
   setActiveBasinStyle,
   setActiveCabinetType,
-  setActiveCountertopThickness,
   setCountertopStyle,
   setPlacedCabinetStyle,
   setSelectedDimensions,
@@ -364,6 +363,11 @@ export const PlayCanvasIntegration = ({
   const location = useLocation();
   const navigate = useCollectionNavigate();
   const changeDimension = useChangeDimension();
+  const {
+    change: changeAttributeValue,
+    confirm: confirmAttributeValue,
+    getState: getCommandState,
+  } = useChangeAttribute();
   const store = useStore<RootState>();
 
   const isPrebuilt = location.pathname.startsWith("/prebuilt");
@@ -830,10 +834,10 @@ export const PlayCanvasIntegration = ({
     });
 
     if (defaultThickness) {
-      dispatch(setActiveCountertopThickness(defaultThickness));
-      setConfigBatch({}, { Thickness: defaultThickness });
+      void changeAttributeValue({ attributeId: "Thickness", value: defaultThickness, scope: "countertop" });
     }
   }, [
+    changeAttributeValue,
     activeCountertopThickness,
     activeMaterialTokens,
     countertopRules,
@@ -1533,11 +1537,6 @@ export const PlayCanvasIntegration = ({
     return () => clearTimeout(timer);
   }, [sidePanelsOption, sidePanelLeft, sidePanelRight, syncCountertopConfig]);
 
-  const {
-    change: changeAttributeValue,
-    confirm: confirmAttributeValue,
-    getState: getCommandState,
-  } = useChangeAttribute();
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
 
   const reportHandleChangeResult = useCallback((result: ChangeResult) => {
@@ -3110,15 +3109,19 @@ export const PlayCanvasIntegration = ({
       if (!selectedSceneProduct || !thickness) return;
       await saveSnapshot();
 
-      await setConfigBatch({}, { Thickness: thickness });
-      dispatch(setActiveCountertopThickness(`${thickness}`));
+      const result = await changeAttributeValue({
+        attributeId: "Thickness",
+        value: `${thickness}`,
+        scope: "countertop",
+      });
+      if (result.status !== "applied") return;
 
       getSelectTool()?.deselectAll();
       setVesselBasinSelectionInfo(null);
       setDropdownState((prev) => ({ ...prev, visible: false }));
       setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
     },
-    [dispatch, saveSnapshot, selectedSceneProduct],
+    [changeAttributeValue, saveSnapshot, selectedSceneProduct],
   );
 
   const handleOpenCountertopColor = useCallback(() => {
