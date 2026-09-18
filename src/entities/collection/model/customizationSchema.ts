@@ -1,11 +1,28 @@
 import type { AttributeValue } from "@/entities/configuration";
 import type { OptionState } from "@/features/configurator-rule-core/cabinetBuilder";
 
-export type CustomizationFlowId = "prebuilt" | "custom";
+export const CUSTOMIZATION_FLOW_IDS = ["prebuilt", "custom"] as const;
+
+export type CustomizationFlowId = (typeof CUSTOMIZATION_FLOW_IDS)[number];
+
+export const CUSTOMIZATION_SCREEN_IDS = [
+  "prebuilt-cabinet",
+  "prebuilt-countertop",
+  "prebuilt-accessories",
+  "prebuilt-faucet-holes",
+  "custom-cabinet-colors",
+  "custom-countertop",
+  "custom-accessories",
+  "custom-faucet-holes",
+  "custom-summary",
+] as const;
+
+export type CustomizationScreenId = (typeof CUSTOMIZATION_SCREEN_IDS)[number];
 
 export type CustomizationFlowStepRef = {
   stepId: string;
   path: string;
+  screen?: CustomizationScreenId;
 };
 
 export type CustomizationFlow = {
@@ -63,6 +80,7 @@ export type CustomizationSchemaDiagnosticCode =
   | "unknown-step-id"
   | "duplicate-route"
   | "unsupported-kind"
+  | "unsupported-screen"
   | "unknown-section-id"
   | "unsupported-control";
 

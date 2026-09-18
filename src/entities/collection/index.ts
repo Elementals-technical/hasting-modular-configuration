@@ -134,6 +134,7 @@ export type {
   CustomizationFlow,
   CustomizationFlowId,
   CustomizationFlowStepRef,
+  CustomizationScreenId,
   CustomizationScreenKind,
   CustomizationSchema,
   CustomizationSchemaDiagnostic,
@@ -144,5 +145,6 @@ export type {
   FieldRuntimeState,
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
+export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS } from "./model/customizationSchema";
 
 export { useCollectionPresets } from "./lib/useCollectionPresets";

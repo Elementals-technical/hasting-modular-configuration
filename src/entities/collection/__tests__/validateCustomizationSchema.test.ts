@@ -11,7 +11,10 @@ describe("validateCustomizationSchema", () => {
   });
 
   it("rejects an unknown entryStepId", () => {
-    const broken = { ...uiJson, flows: { ...uiJson.flows, prebuilt: { ...uiJson.flows.prebuilt, entryStepId: "ghost" } } };
+    const broken = {
+      ...uiJson,
+      flows: { ...uiJson.flows, prebuilt: { ...uiJson.flows.prebuilt, entryStepId: "ghost" } },
+    };
 
     const result = validateCustomizationSchema(broken);
 
@@ -25,7 +28,10 @@ describe("validateCustomizationSchema", () => {
       ...uiJson,
       flows: {
         ...uiJson.flows,
-        prebuilt: { ...uiJson.flows.prebuilt, steps: [...uiJson.flows.prebuilt.steps, { stepId: "ghost", path: "/prebuilt/ghost" }] },
+        prebuilt: {
+          ...uiJson.flows.prebuilt,
+          steps: [...uiJson.flows.prebuilt.steps, { stepId: "ghost", path: "/prebuilt/ghost" }],
+        },
       },
     };
 
@@ -41,7 +47,10 @@ describe("validateCustomizationSchema", () => {
       ...uiJson,
       flows: {
         ...uiJson.flows,
-        prebuilt: { ...uiJson.flows.prebuilt, steps: [...uiJson.flows.prebuilt.steps, { stepId: "model", path: "/prebuilt/model" }] },
+        prebuilt: {
+          ...uiJson.flows.prebuilt,
+          steps: [...uiJson.flows.prebuilt.steps, { stepId: "model", path: "/prebuilt/model" }],
+        },
       },
     };
 
@@ -62,8 +71,30 @@ describe("validateCustomizationSchema", () => {
     expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-kind" }));
   });
 
+  it("rejects a screen binding the router does not know", () => {
+    const broken = {
+      ...uiJson,
+      flows: {
+        ...uiJson.flows,
+        prebuilt: {
+          ...uiJson.flows.prebuilt,
+          steps: [{ stepId: "model", path: "/prebuilt/model", screen: "prebuilt-wizard" }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-screen" }));
+  });
+
   it("rejects a sectionId that is not defined in sections", () => {
-    const broken = { ...uiJson, steps: { ...uiJson.steps, cabinet: { ...uiJson.steps.cabinet, sectionIds: ["ghost-section"] } } };
+    const broken = {
+      ...uiJson,
+      steps: { ...uiJson.steps, cabinet: { ...uiJson.steps.cabinet, sectionIds: ["ghost-section"] } },
+    };
 
     const result = validateCustomizationSchema(broken);
 

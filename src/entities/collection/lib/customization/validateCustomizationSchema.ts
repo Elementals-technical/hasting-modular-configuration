@@ -1,14 +1,16 @@
-import type {
-  CustomizationSchema,
-  CustomizationSchemaDiagnostic,
-  ValidateCustomizationSchemaResult,
+import {
+  CUSTOMIZATION_FLOW_IDS,
+  CUSTOMIZATION_SCREEN_IDS,
+  type CustomizationSchema,
+  type CustomizationSchemaDiagnostic,
+  type ValidateCustomizationSchemaResult,
 } from "../../model/customizationSchema";
 
 type UnknownRecord = Record<string, unknown>;
 
-const VALID_FLOW_IDS = ["prebuilt", "custom"] as const;
 const VALID_KINDS = new Set(["preset-picker", "cabinet-builder", "fields", "summary"]);
 const VALID_CONTROLS = new Set(["swatches", "options-grid", "checkbox"]);
+const VALID_SCREENS = new Set<string>(CUSTOMIZATION_SCREEN_IDS);
 
 const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -16,7 +18,7 @@ const isRecord = (value: unknown): value is UnknownRecord =>
 const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
 
 const validateFlows = (flows: UnknownRecord, steps: UnknownRecord, diagnostics: CustomizationSchemaDiagnostic[]) => {
-  for (const flowId of VALID_FLOW_IDS) {
+  for (const flowId of CUSTOMIZATION_FLOW_IDS) {
     const flow = flows[flowId];
 
     if (!isRecord(flow) || !isNonEmptyString(flow.entryStepId) || !Array.isArray(flow.steps)) {
@@ -53,6 +55,14 @@ const validateFlows = (flows: UnknownRecord, steps: UnknownRecord, diagnostics: 
           code: "unknown-step-id",
           dataPath: `flows.${flowId}.steps[${index}].stepId`,
           message: `stepId "${ref.stepId}" is not defined in steps`,
+        });
+      }
+
+      if (ref.screen !== undefined && (typeof ref.screen !== "string" || !VALID_SCREENS.has(ref.screen))) {
+        diagnostics.push({
+          code: "unsupported-screen",
+          dataPath: `flows.${flowId}.steps[${index}].screen`,
+          message: `"${String(ref.screen)}" is not a supported screen`,
         });
       }
 
