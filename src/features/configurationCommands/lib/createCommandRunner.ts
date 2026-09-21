@@ -4,11 +4,27 @@ import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getActiveRuntimeBindings } from "@/entities/configuration";
-import type { ConfigurationRuntimePort } from "@/entities/configuration";
-import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
+import type {
+  ConfigurationCompositionPort,
+  ConfigurationRuntimePort,
+  ConfigurationSidePanelPort,
+} from "@/entities/configuration";
+import { createCompositionPort, createPlayCanvasRuntimePort, createSidePanelPort } from "@/features/playCanvasAdapter";
 
 import { changeAttribute, type ChangeAttributeDeps } from "./changeAttribute";
 import { changeDimension } from "./changeDimension";
+import {
+  addCabinet,
+  applyPreset,
+  clearComposition,
+  removeCabinets,
+  swapCabinets,
+  type AddCabinetRequest,
+  type ApplyPresetRequest,
+  type ClearCompositionRequest,
+  type CompositionDeps,
+  type CompositionResult,
+} from "./composition";
 import { confirmAttributeChange } from "./confirmAttributeChange";
 import { replayValues, type ReplayRequest, type ReplayResult } from "./replayValues";
 import type { AttributeChange, ChangePreview, ChangeResult, DimensionChange } from "../model/types";
@@ -28,6 +44,10 @@ export type CommandRunnerDeps = {
   getFlow: () => RuntimeFlow;
   /** Tests pass a stand-in; by default the PlayCanvas adapter over the store's bindings. */
   runtime?: ConfigurationRuntimePort;
+  /** Tests pass a stand-in; by default the PlayCanvas adapter over the store's bindings. */
+  composition?: ConfigurationCompositionPort;
+  /** Tests pass a stand-in; by default the PlayCanvas adapter. */
+  sidePanels?: ConfigurationSidePanelPort;
   /** Configurator sections of the active collection, for the material and finish of a colour. */
   configurator?: ConfiguratorGroupCatalog | null;
 };
@@ -38,6 +58,14 @@ export type CommandRunner = {
   changeDimension: (change: DimensionChange) => Promise<ChangeResult>;
   /** Shows values the configuration already holds on the scene again (undo, restore). */
   replay: (request: ReplayRequest) => Promise<ReplayResult>;
+  /** Places, removes and moves products, and clears the scene. */
+  composition: {
+    applyPreset: (request: ApplyPresetRequest) => Promise<CompositionResult>;
+    addCabinet: (request: AddCabinetRequest) => Promise<CompositionResult>;
+    removeCabinets: (runtimeIds: readonly string[]) => Promise<CompositionResult>;
+    swapCabinets: (runtimeIdA: string, runtimeIdB: string) => Promise<CompositionResult>;
+    clear: (request: ClearCompositionRequest) => Promise<CompositionResult>;
+  };
   /** Current state, for reading what a change should address at the moment it is made. */
   getState: () => RootState;
 };
@@ -47,15 +75,25 @@ export const createCommandRunner = ({
   dispatch,
   getFlow,
   runtime = createPlayCanvasRuntimePort({ getBindings: () => getActiveRuntimeBindings(getState()) }),
+  composition = createCompositionPort({ getBindings: () => getActiveRuntimeBindings(getState()) }),
+  sidePanels = createSidePanelPort(),
   configurator = null,
 }: CommandRunnerDeps): CommandRunner => {
   const deps = (): ChangeAttributeDeps => ({ getState, dispatch, runtime, flow: getFlow(), configurator });
+  const compositionDeps = (): CompositionDeps => ({ ...deps(), composition, sidePanels });
 
   return {
     change: (change) => changeAttribute(change, deps()),
     confirm: (preview) => confirmAttributeChange(preview, deps()),
     changeDimension: (change) => changeDimension(change, deps()),
     replay: (request) => replayValues(request, deps()),
+    composition: {
+      applyPreset: (request) => applyPreset(request, compositionDeps()),
+      addCabinet: (request) => addCabinet(request, compositionDeps()),
+      removeCabinets: (runtimeIds) => removeCabinets(runtimeIds, compositionDeps()),
+      swapCabinets: (runtimeIdA, runtimeIdB) => swapCabinets(runtimeIdA, runtimeIdB, compositionDeps()),
+      clear: (request) => clearComposition(request, compositionDeps()),
+    },
     getState,
   };
 };

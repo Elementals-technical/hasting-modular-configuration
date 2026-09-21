@@ -16,6 +16,15 @@ export { confirmAttributeChange } from "./lib/confirmAttributeChange";
 export { changeDimension } from "./lib/changeDimension";
 export type { ChangeDimensionDeps } from "./lib/changeDimension";
 export { replayValues } from "./lib/replayValues";
+export { addCabinet, applyPreset, clearComposition, removeCabinets, swapCabinets } from "./lib/composition";
+export type {
+  AddCabinetRequest,
+  ApplyPresetRequest,
+  ClearCompositionRequest,
+  CompositionDeps,
+  CompositionErrorCode,
+  CompositionResult,
+} from "./lib/composition";
 export { changeSidePanels } from "./lib/changeSidePanels";
 export type {
   SidePanelChange,

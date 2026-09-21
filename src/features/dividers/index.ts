@@ -1,6 +1,8 @@
 export * from "./model";
 
 export {
+  applyDividerZones,
+  clearDividerZones,
   createDividerRuntimeAdapter,
   getActiveDrawerRuntimeContext,
   getSharedDividerRuntimeAdapter,
@@ -8,6 +10,8 @@ export {
 } from "./adapter";
 export type {
   ActiveDrawerRuntimeContext,
+  DividerDrawer,
+  DividerZones,
   DividerContextChangeEvent,
   DividerContextChangeListener,
   DividerRuntimeAdapter,

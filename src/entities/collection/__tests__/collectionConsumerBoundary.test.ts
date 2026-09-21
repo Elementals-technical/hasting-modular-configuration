@@ -154,6 +154,14 @@ const COMMITTED_SETTERS = [
 
 const directStateWrites = [new RegExp(`\\bdispatch\\(\\s*(?:${COMMITTED_SETTERS.join("|")})\\(`, "g")];
 
+/** The composition the scene holds is recorded by the composition commands alone (C06). */
+const compositionWrites = [/\brecordComposition\s*\(/g];
+const COMPOSITION_WRITE_OWNERS = [
+  "/src/features/configurationCommands/lib/composition.ts",
+  // The reducer itself.
+  "/src/entities/product/model/store/slice.ts",
+];
+
 /** The command's own writer, and restore/undo that record a whole snapshot at once. */
 const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChange.ts"];
 
@@ -296,6 +304,15 @@ describe("active collection consumer boundary", () => {
     );
 
     expect(writers).toEqual(expectedCounts(PENDING_DIRECT_STATE_WRITERS));
+  });
+
+  it("records the composition only in the composition commands", () => {
+    const writers = countByFile(
+      productionSources.filter(([path]) => !COMPOSITION_WRITE_OWNERS.includes(path)),
+      compositionWrites,
+    );
+
+    expect(writers).toEqual({});
   });
 
   it("counts every action creator the command commits", () => {
