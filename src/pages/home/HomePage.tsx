@@ -3,6 +3,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
+import { useCollectionNavigation } from "@/features/collectionCustomization";
+
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { SwatchOrder } from "@/features/swatchOrder";
 import { RestoreFailurePopup } from "@/features/configurationRestore";
@@ -34,26 +36,28 @@ export const HomePage = () => {
   const [isCanvasFullMode, setIsCanvasFullMode] = useState(false);
 
   const { pathname, search } = useLocation();
-  const flow: "prebuilt" | "custom" = pathname.includes("/custom") ? "custom" : "prebuilt";
+  const navigation = useCollectionNavigation();
+  const flow = navigation?.flowId ?? "prebuilt";
+  const isPresetPicker = navigation?.currentStep?.kind === "preset-picker";
+  const isSummary = navigation?.isSummary ?? false;
 
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
   useAvailabilityResets();
 
   // restore default preset when navigate from custom route.
-  const prevPathRef = useRef(pathname);
+  const prevFlowRef = useRef(flow);
   const summaryEntryCameraStateRef = useRef<OrbitCameraState | null>(null);
   const summaryExitRestoreCleanupRef = useRef<(() => void) | null>(null);
-  const wasSummaryRef = useRef(pathname.endsWith("/summary"));
+  const wasSummaryRef = useRef(isSummary);
   const hostUrlInitializedRef = useRef(false);
 
   useLayoutEffect(() => {
     summaryExitRestoreCleanupRef.current?.();
     summaryExitRestoreCleanupRef.current = null;
 
-    const prevPath = prevPathRef.current;
+    const prevFlow = prevFlowRef.current;
     const wasSummary = wasSummaryRef.current;
-    const isSummary = pathname.endsWith("/summary");
 
     if (!wasSummary && isSummary) {
       summaryEntryCameraStateRef.current = captureOrbitCameraState();
@@ -89,14 +93,14 @@ export const HomePage = () => {
       summaryEntryCameraStateRef.current = null;
     }
 
-    if (prevPath.startsWith("/custom") && pathname.startsWith("/prebuilt/model")) {
+    if (prevFlow === "custom" && flow === "prebuilt" && isPresetPicker) {
       sessionStorage.setItem("prebuiltModelInitialized", "0");
       dispatch(reset());
     }
 
-    prevPathRef.current = pathname;
+    prevFlowRef.current = flow;
     wasSummaryRef.current = isSummary;
-  }, [dispatch, pathname]);
+  }, [dispatch, flow, isPresetPicker, isSummary, pathname]);
 
   useEffect(
     () => () => {
@@ -124,14 +128,13 @@ export const HomePage = () => {
     setShouldShowInitialBuildInfo(false);
   };
 
-  const isSummary = pathname.endsWith("/summary");
   const shouldOpenInitialInteractiveTutorial = shouldShowInitialBuildInfo && flow !== "custom";
 
   return (
     <div className={s.homePageWrap}>
       <div className={`${s.content} ${isSummary ? s.summaryLayout : ""} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
-          <SideNavigation flow={flow} />
+          <SideNavigation />
         </div>
 
         <Player
@@ -141,7 +144,7 @@ export const HomePage = () => {
           onInteractiveTutorialClose={shouldOpenInitialInteractiveTutorial ? handleClose : undefined}
         />
 
-        <ConfiguratorSidebar flow={flow}>
+        <ConfiguratorSidebar>
           <Outlet />
         </ConfiguratorSidebar>
       </div>

@@ -24,7 +24,9 @@ describe("useCollectionNavigation against a non-USH schema", () => {
   it("builds the custom flow's own single-step list", () => {
     renderWithFixtureCollection(<NavigationProbe flow="custom" />, { collectionId: "fixture-ui" });
 
-    expect(readNavigation().steps).toEqual([{ stepId: "fixture-builder", label: "Fixture Builder", path: "/fixture/builder" }]);
+    expect(readNavigation().steps).toEqual([
+      { stepId: "fixture-builder", label: "Fixture Builder", path: "/fixture/builder" },
+    ]);
   });
 
   it("matches the current step from the URL and computes prev/next", () => {
@@ -105,5 +107,40 @@ describe("useCollectionNavigation against a non-USH schema", () => {
     expect(navigation.currentStepId).toBe("finish");
     expect(navigation.previousStepId).toBeNull();
     expect(navigation.nextStepId).toBeNull();
+  });
+});
+
+describe("useCollectionNavigation without a flow resolves it from the schema's own paths", () => {
+  it("picks the custom flow for a path that only the custom flow declares", () => {
+    renderWithFixtureCollection(<NavigationProbe />, {
+      collectionId: "fixture-ui",
+      initialPath: "/fixture/builder?collectionId=fixture-ui",
+    });
+
+    const navigation = readNavigation();
+    expect(navigation.flowId).toBe("custom");
+    expect(navigation.currentStepId).toBe("fixture-builder");
+  });
+
+  it("picks the prebuilt flow for a prebuilt path with the same first segment", () => {
+    renderWithFixtureCollection(<NavigationProbe />, {
+      collectionId: "fixture-ui",
+      initialPath: "/fixture/finish?collectionId=fixture-ui",
+    });
+
+    const navigation = readNavigation();
+    expect(navigation.flowId).toBe("prebuilt");
+    expect(navigation.currentStepId).toBe("fixture-finish");
+  });
+
+  it("falls back to prebuilt with no current step for a path outside every flow", () => {
+    renderWithFixtureCollection(<NavigationProbe />, {
+      collectionId: "fixture-ui",
+      initialPath: "/elsewhere?collectionId=fixture-ui",
+    });
+
+    const navigation = readNavigation();
+    expect(navigation.flowId).toBe("prebuilt");
+    expect(navigation.currentStepId).toBeNull();
   });
 });

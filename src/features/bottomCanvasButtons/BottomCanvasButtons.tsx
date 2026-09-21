@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 
 import { BaseButton } from "@/shared";
 import { ZoomInIcon } from "@/shared/assets/images/svg/ZoomInIcon";
@@ -77,8 +77,6 @@ export const BottomCanvasButtons = () => {
   const [isOpening, setIsOpening] = useState(false);
   const [QRValue, setQRValue] = useState("");
   const [isArGenerating, setIsArGenerating] = useState(false);
-
-  const { pathname } = useLocation();
 
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
@@ -188,8 +186,7 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  // const isCustomRoute = pathname.includes("/custom");
-  const isSummaryPage = pathname.includes("/summary");
+  const isSummaryPage = useCollectionNavigation()?.isSummary ?? false;
 
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 

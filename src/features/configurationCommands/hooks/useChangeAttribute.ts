@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useStore } from "react-redux";
-import { useLocation } from "react-router-dom";
 
 import type { RootState } from "@/app/store";
 import { useActiveCollection } from "@/entities/collection";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfigurationRuntimePort } from "@/entities/configuration";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
@@ -26,8 +26,7 @@ export type UseChangeAttributeOptions = {
 export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttributeOptions = {}) => {
   const store = useStore<RootState>();
   const dispatch = useAppDispatch();
-  const { pathname } = useLocation();
-  const flow: RuntimeFlow = pathname.includes("/custom") ? "custom" : "prebuilt";
+  const flow: RuntimeFlow = useCollectionNavigation()?.flowId ?? "prebuilt";
 
   const collection = useActiveCollection();
   const bindings = collection.catalog.runtimeBindings ?? null;

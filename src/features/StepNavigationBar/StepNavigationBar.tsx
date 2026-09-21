@@ -1,8 +1,8 @@
-import { useLocation, useMatch } from "react-router-dom";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
-import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
+import { useCollectionNavigation, useEntryStep, useStepNavigate } from "@/features/collectionCustomization";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
@@ -22,13 +22,13 @@ import { getIsOpenSidebar } from "../sidebar/model/store/selectors";
 
 interface StepNavigationBarI {
   title: string | null;
-  flow?: "prebuilt" | "custom";
 }
 
-export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow }) => {
-  const location = useLocation();
+export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title }) => {
+  const { pathname } = useLocation();
   const navigate = useStepNavigate();
-  const navigation = useCollectionNavigation(flow ?? "prebuilt");
+  const navigation = useCollectionNavigation();
+  const prebuiltEntry = useEntryStep("prebuilt");
 
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
 
@@ -37,32 +37,36 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
   const isSidebarOpen = useAppSelector(getIsOpenSidebar);
   const hasProducts = selectedProducts.length > 0;
 
-  const isModelDetails = !!useMatch("/prebuilt/model/:modelId");
-
+  const currentStep = navigation?.currentStep ?? null;
   const prevStep = navigation?.previousStep ?? undefined;
   const nextStep = navigation?.nextStep ?? undefined;
+  const isSummary = navigation?.isSummary ?? false;
+  const isStepDetails = !!currentStep && pathname !== currentStep.path;
+
+  const leaveCustomFlow = () => {
+    if (prebuiltEntry) navigate(prebuiltEntry.path);
+  };
 
   const handleNavigate = () => {
     closeDrawerInteraction();
 
-    if (location.pathname.startsWith("/custom/cabinet-builder")) {
+    if (currentStep?.kind === "cabinet-builder") {
       if (hasProducts) {
         setIsAttentionPopupOpen(true);
         return;
       }
 
-      navigate("/prebuilt/model");
+      leaveCustomFlow();
+      return;
+    }
+
+    if (isStepDetails) {
+      navigate(currentStep.path);
       return;
     }
 
     if (prevStep) {
       navigate(prevStep.path);
-      return;
-    }
-
-    if (isModelDetails) {
-      navigate("/prebuilt/model");
-      return;
     }
   };
 
@@ -82,7 +86,7 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
 
-    navigate("/prebuilt/model");
+    leaveCustomFlow();
   };
 
   return (
@@ -95,7 +99,7 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
           <ArrowLeft />
         </div>
 
-        {nextStep ? (
+        {!isSummary ? (
           <div
             className={s.stepNavigationBar_title}
             onMouseDown={(e) => e.stopPropagation()}

@@ -1,14 +1,12 @@
-import type { CustomizationFlowId, CustomizationSchema } from "../../model/customizationSchema";
+import { CUSTOMIZATION_FLOW_IDS, type CustomizationSchema } from "../../model/customizationSchema";
 import type { CollectionNavigation } from "../../model/schemas";
-
-const FLOW_IDS: CustomizationFlowId[] = ["prebuilt", "custom"];
 
 const compatibilityId = (stepId: string): string =>
   stepId.endsWith("-custom") ? stepId.slice(0, -"-custom".length) : stepId;
 
 export const deriveCollectionNavigation = (schema: CustomizationSchema): CollectionNavigation =>
   Object.fromEntries(
-    FLOW_IDS.map((flowId) => [
+    CUSTOMIZATION_FLOW_IDS.map((flowId) => [
       flowId,
       schema.flows[flowId].steps.map(({ stepId, path }) => {
         const definition = schema.steps[stepId];
@@ -26,7 +24,7 @@ export const findNavigationMismatch = (
   expected: CollectionNavigation,
   actual: CollectionNavigation,
 ): string | undefined => {
-  for (const flowId of FLOW_IDS) {
+  for (const flowId of CUSTOMIZATION_FLOW_IDS) {
     if (expected[flowId].length !== actual[flowId].length) return `${flowId}.length`;
 
     for (const [index, expectedStep] of expected[flowId].entries()) {

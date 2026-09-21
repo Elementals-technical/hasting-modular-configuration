@@ -6,14 +6,8 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
-import {
-  ReadyCollectionContext,
-  presetsSchema,
-  useCollectionPresets,
-  validateCollectionManifest,
-  validateCustomizationSchema,
-  type ReadyCollectionData,
-} from "@/entities/collection";
+import { ReadyCollectionContext, useCollectionPresets } from "@/entities/collection";
+import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { SideNavigation } from "@/widgets/SideNavigation/ui/SideNavigation";
 
 import ushManifest from "../../../../public/collections/urban-standard-height/manifest.json";
@@ -23,30 +17,7 @@ import ushUi from "../../../../public/collections/urban-standard-height/ui.json"
 import { NavigationProbe } from "./testUtils/NavigationProbe";
 import { readNavigation } from "./testUtils/readNavigation";
 
-const rootUrl = "https://app.test/collections/";
-
-const readyUsh: ReadyCollectionData = (() => {
-  const manifest = validateCollectionManifest(
-    ushManifest,
-    "urban-standard-height",
-    `${rootUrl}urban-standard-height/manifest.json`,
-    rootUrl,
-  );
-  const customization = validateCustomizationSchema(ushUi);
-  if (!customization.ok) throw new Error("Expected USH's own ui.json to be a valid schema");
-
-  return {
-    id: "urban-standard-height",
-    manifest,
-    diagnostics: [],
-    sources: { local: { ui: customization.schema }, remote: {} },
-    catalog: {
-      customization: customization.schema,
-      presets: presetsSchema.parse(ushPresets),
-      configurator: { groups: [], groupsByName: {} },
-    },
-  };
-})();
+const readyUsh = buildReadyCollection("urban-standard-height", ushManifest, ushUi, ushPresets);
 
 const renderUsh = (children: React.ReactNode, initialPath = "/?collectionId=urban-standard-height") =>
   render(
@@ -98,7 +69,7 @@ describe("USH through the shared navigation/presets path", () => {
   });
 
   it("renders USH's 6 prebuilt step labels through the real SideNavigation widget", () => {
-    renderUsh(<SideNavigation flow="prebuilt" />);
+    renderUsh(<SideNavigation />, "/prebuilt/model?collectionId=urban-standard-height");
 
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(6);

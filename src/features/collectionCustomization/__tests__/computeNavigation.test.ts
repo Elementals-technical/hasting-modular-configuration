@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { validateCustomizationSchema, type CustomizationSchema } from "@/entities/collection";
+import type { CustomizationSchema } from "@/entities/collection";
+import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
 
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
-import { computeNavigation, resolveEntryStep } from "../lib/computeNavigation";
+import { computeNavigation, resolveEntryStep, resolveFlowForPath } from "../lib/computeNavigation";
 
-const validated = validateCustomizationSchema(uiJson);
-if (!validated.ok) throw new Error("fixture ui.json failed validation");
-const schema = validated.schema;
+const schema = readCustomizationSchema(uiJson);
 
 describe("computeNavigation", () => {
   it("matches a nested route to its parent step", () => {
@@ -83,5 +82,20 @@ describe("resolveEntryStep", () => {
 
     expect(step?.stepId).toBe("cabinet-builder");
     expect(step?.path).toBe("/custom/cabinet-builder");
+  });
+});
+
+describe("resolveFlowForPath", () => {
+  it("picks the flow that declares the step at the path", () => {
+    expect(resolveFlowForPath(schema, "/custom/summary")).toBe("custom");
+    expect(resolveFlowForPath(schema, "/prebuilt/model/12")).toBe("prebuilt");
+  });
+
+  it("falls back to the flow sharing the first path segment for an unknown path", () => {
+    expect(resolveFlowForPath(schema, "/custom/nowhere")).toBe("custom");
+  });
+
+  it("falls back to prebuilt for a path outside every flow", () => {
+    expect(resolveFlowForPath(schema, "/elsewhere")).toBe("prebuilt");
   });
 });

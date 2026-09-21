@@ -5,10 +5,10 @@
       "entryStepId": "model",
       "steps": [
         { "stepId": "model", "path": "/prebuilt/model" },
-        { "stepId": "cabinet", "path": "/prebuilt/color" },
-        { "stepId": "countertop", "path": "/prebuilt/countertop" },
-        { "stepId": "accessories", "path": "/prebuilt/accessories" },
-        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
+        { "stepId": "cabinet", "path": "/prebuilt/color", "screen": "prebuilt-cabinet" },
+        { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "prebuilt-countertop" },
+        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "prebuilt-accessories" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes", "screen": "prebuilt-faucet-holes" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
       ]
     },
@@ -16,11 +16,11 @@
       "entryStepId": "cabinet-builder",
       "steps": [
         { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
-        { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors" },
-        { "stepId": "countertop-custom", "path": "/custom/countertop" },
-        { "stepId": "accessories-custom", "path": "/custom/accessories" },
-        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
-        { "stepId": "summary", "path": "/custom/summary" }
+        { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors", "screen": "custom-cabinet-colors" },
+        { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "custom-countertop" },
+        { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "custom-accessories" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes", "screen": "custom-faucet-holes" },
+        { "stepId": "summary", "path": "/custom/summary", "screen": "custom-summary" }
       ]
     }
   },

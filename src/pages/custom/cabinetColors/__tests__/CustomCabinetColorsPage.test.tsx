@@ -5,177 +5,46 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import {
-  parseProductProfile,
-  ReadyCollectionContext,
-  validateCollectionManifest,
-  type ReadyCollectionData,
-} from "@/entities/collection";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
-import { getCabinetEntries, resetConfiguration, syncCabinets } from "@/entities/configuration";
+import { ReadyCollectionContext } from "@/entities/collection";
+import { configuratorColorGroups } from "@/entities/collection/__tests__/fixtures/configuratorColorGroups";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { resetConfiguration, syncCabinets } from "@/entities/configuration";
 import {
   getBookMatching,
+  getCabinetColor,
+  getCabinetColorSku,
   getDrawerPanelFluting,
   getGrainDirection,
   getHandleGrooveColor,
-  getProductsPresets,
 } from "@/entities/product/model/store/selectors";
 import {
-  addProductPreset,
   reset,
   restoreProductState,
-  setCabinetColor,
   setActiveProfile,
+  setCabinetColor,
   setCabinetColorMaterial,
   setDrawerPanelFluting,
   setGrainDirection,
   setHandleGrooveColor,
 } from "@/entities/product/model/store/slice";
-
-import manifestJson from "../../../../../public/collections/urban-standard-height/manifest.json";
-import productProfileJson from "../../../../../public/collections/urban-standard-height/product-profile.json";
+import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
 
 import { CustomCabinetColorsPage } from "../index";
 
-import type { RootState } from "@/app/store";
-
-const setConfigBatchMock = vi.fn<(ids: unknown, config: unknown) => Promise<null>>(async () => null);
-const saveSnapshotMock = vi.fn(async () => undefined);
-
-const changeAttributeMock = vi.fn(async (change: { attributeId: string; value: string }) => {
-  if (change.attributeId === "CabinetColor") {
-    const previous = store.getState().rootStateUI.product.productOptions.CabinetColor;
-    const groove = store.getState().rootStateUI.product.productOptions.HandleGrooveColor;
-    store.dispatch(setCabinetColor(change.value));
-    const follows = Boolean(previous) && groove === previous;
-    if (follows) store.dispatch(setHandleGrooveColor(change.value));
-    store.dispatch(
-      addProductPreset(
-        store.getState().rootStateUI.product.productsPresets.map((preset) => ({
-          ...preset,
-          CabinetColor: change.value,
-          ...(follows ? { HandleGrooveColor: change.value } : {}),
-        })),
-      ),
-    );
-  }
-  if (change.attributeId === "HandleGrooveColor") store.dispatch(setHandleGrooveColor(change.value));
-  if (change.attributeId === "DrawerPanelFluting") store.dispatch(setDrawerPanelFluting(change.value));
-  if (change.attributeId === "GrainDirection") store.dispatch(setGrainDirection(change.value));
+const onChangeMock = vi.fn(async (attributeId: string, value: string) => {
+  if (attributeId === "CabinetColor") store.dispatch(setCabinetColor(value));
+  if (attributeId === "HandleGrooveColor") store.dispatch(setHandleGrooveColor(value));
+  if (attributeId === "DrawerPanelFluting") store.dispatch(setDrawerPanelFluting(value));
+  if (attributeId === "GrainDirection") store.dispatch(setGrainDirection(value));
   return { status: "applied" as const, plan: [] };
 });
 
-vi.mock("@/features/configurationCommands", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/configurationCommands")>();
-
-  return {
-    ...actual,
-    useChangeAttribute: () => ({
-      change: changeAttributeMock,
-      confirm: vi.fn(),
-      getState: () => store.getState(),
-    }),
-  };
-});
-
-const configuratorGroups: ConfiguratorAvailableOption[] = [
-  {
-    id: 1,
-    proxyName: "Cabinet Color",
-    proxyType: "material",
-    enabled: true,
-    metadata: {},
-    options: [
-      {
-        id: 11,
-        name: "HPL",
-        resource: null,
-        paramString: null,
-        playcanvasString: null,
-        variants: [
-          {
-            id: 101,
-            name: "Old Cabinet Color",
-            image: null,
-            enabled: true,
-            description: "",
-            metadata: {
-              sku: "HPL",
-              value: "Old Cabinet Color",
-              label: "Old Cabinet Color",
-              metadata: { Material: "HPL", Color: "Old", Look: "Matte" },
-            },
-          },
-          {
-            id: 102,
-            name: "New Cabinet Color",
-            image: null,
-            enabled: true,
-            description: "",
-            metadata: {
-              sku: "HPL",
-              value: "New Cabinet Color",
-              label: "New Cabinet Color",
-              metadata: { Material: "HPL", Color: "New", Look: "Matte" },
-            },
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    proxyName: "Handle Groove Color",
-    proxyType: "material",
-    enabled: true,
-    metadata: {},
-    options: [
-      {
-        id: 21,
-        name: "HPL",
-        resource: null,
-        paramString: null,
-        playcanvasString: null,
-        variants: [
-          {
-            id: 201,
-            name: "Old Cabinet Color",
-            image: null,
-            enabled: true,
-            description: "",
-            metadata: { sku: "HPL", value: "Old Cabinet Color", label: "Old Cabinet Color" },
-          },
-          {
-            id: 202,
-            name: "New Cabinet Color",
-            image: null,
-            enabled: true,
-            description: "",
-            metadata: { sku: "HPL", value: "New Cabinet Color", label: "New Cabinet Color" },
-          },
-        ],
-      },
-    ],
-  },
-];
-
 vi.mock("@/utils/functions/playcanvas/setConfigBatch", () => ({
-  setConfigBatch: (ids: unknown, config: unknown) => setConfigBatchMock(ids, config),
-}));
-
-vi.mock("@/entities/history/lib/useHistorySnapshot", () => ({
-  useHistorySnapshot: () => saveSnapshotMock,
+  setConfigBatch: async () => null,
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({
   usePlayCanvasReady: () => true,
-}));
-
-vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
-  ConfiguratorAccordionGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ConfiguratorAccordionItem: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <section aria-label={title}>{children}</section>
-  ),
 }));
 
 vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport", () => ({
@@ -189,6 +58,28 @@ vi.mock("@/shared/ui/Accordion/useSyncedAccordionValue", () => ({
   }),
 }));
 
+vi.mock("@/features/configurationCommands", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/configurationCommands")>();
+
+  return {
+    ...actual,
+    useAttributeChangeHandler: (attributeId: string) => ({
+      onChange: (value: string) => onChangeMock(attributeId, value),
+      preview: null,
+      notice: null,
+      onConfirm: vi.fn(),
+      onCancel: vi.fn(),
+    }),
+  };
+});
+
+vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
+  ConfiguratorAccordionGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ConfiguratorAccordionItem: ({ children, title }: { children: React.ReactNode; title: string }) => (
+    <section aria-label={title}>{children}</section>
+  ),
+}));
+
 vi.mock("@/shared/ui/Filter/FilterRow", () => ({
   FilterRow: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
@@ -200,61 +91,6 @@ vi.mock("@/features/filters/ui/filterItem/FilterItem", () => ({
 vi.mock("@/shared/ui/ViewModePanel/ViewModePanel", () => ({
   ViewModePanel: () => null,
 }));
-
-vi.mock("@/features/swatchOrder", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/swatchOrder")>();
-
-  return {
-    ...actual,
-    openSwatchOrder: (payload: string) => ({ type: "swatchOrder/openSwatchOrder", payload }),
-  };
-});
-
-vi.mock("@/features/collectionCustomization", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/collectionCustomization")>();
-
-  const SECTION_FIELDS: Record<string, ReturnType<typeof actual.useCustomizationSectionFields>> = {
-    "drawer-panel-custom": [
-      {
-        definition: { attributeId: "DrawerPanelFluting", control: "options-grid" },
-        field: {
-          attributeId: "DrawerPanelFluting",
-          value: "",
-          options: [{ value: "FlutingVerticalA", label: "FlutingVerticalA", enabled: true }],
-          visible: true,
-          enabled: true,
-        },
-      },
-    ],
-    "grain-direction-custom": [
-      {
-        definition: { attributeId: "GrainDirection", control: "options-grid" },
-        field: {
-          attributeId: "GrainDirection",
-          value: "",
-          options: [{ value: "GrainVertical", label: "GrainVertical", enabled: true }],
-          visible: true,
-          enabled: true,
-        },
-      },
-      {
-        definition: { attributeId: "BookMatching", control: "checkbox" },
-        field: {
-          attributeId: "BookMatching",
-          value: "",
-          options: [],
-          visible: true,
-          enabled: true,
-        },
-      },
-    ],
-  };
-
-  return {
-    ...actual,
-    useCustomizationSectionFields: (sectionId: string) => SECTION_FIELDS[sectionId] ?? [],
-  };
-});
 
 vi.mock("@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid", () => ({
   ProductOptionsGrid: ({
@@ -277,27 +113,12 @@ vi.mock("@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid", () => ({
   ),
 }));
 
-const parsedProfile = parseProductProfile(productProfileJson);
-if (!parsedProfile.ok) throw new Error("fixture product-profile.json failed validation");
-const profile = parsedProfile.profile;
-const manifest = validateCollectionManifest(
-  manifestJson,
-  "urban-standard-height",
-  "https://app.test/collections/urban-standard-height/manifest.json",
-  "https://app.test/collections/",
-);
-const readyCollection: ReadyCollectionData = {
-  id: manifest.id,
-  manifest,
-  diagnostics: [],
-  sources: { local: {}, remote: {} },
-  catalog: {
-    configurator: {
-      groups: configuratorGroups,
-      groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
-    },
-  },
+const readyCollection = {
+  ...readyCollectionFixture,
+  catalog: { ...readyCollectionFixture.catalog, configurator: configuratorColorGroups },
 };
+
+const sectionTitles = () => screen.queryAllByRole("region").map((region) => region.getAttribute("aria-label"));
 
 const renderPage = () =>
   render(
@@ -310,9 +131,8 @@ const renderPage = () =>
     </ReadyCollectionContext.Provider>,
   );
 
-const restoreImportedPresetState = (args?: { handleGrooveColor?: string }) => {
+const restoreImportedPresetState = (handle = "handle_urban_topcut") => {
   const baseOptions = store.getState().rootStateUI.product.productOptions;
-  const handleGrooveColor = args?.handleGrooveColor ?? "Old Cabinet Color";
 
   store.dispatch(
     restoreProductState({
@@ -320,33 +140,22 @@ const restoreImportedPresetState = (args?: { handleGrooveColor?: string }) => {
       productOptions: {
         ...baseOptions,
         CabinetColor: "Old Cabinet Color",
-        HandleGrooveColor: handleGrooveColor,
-        Handle: "handle_urban_topcut",
+        HandleGrooveColor: "Old Cabinet Color",
+        Handle: handle,
       },
       activeCabinetType: "Sink-Base",
       selectedDimensions: { width: 60, height: 53, depth: 50.5 },
       selectedProductConfig: {
         name: "Sink-Base",
         CabinetColor: "Old Cabinet Color",
-        HandleGrooveColor: handleGrooveColor,
-        Handle: "handle_urban_topcut",
+        HandleGrooveColor: "Old Cabinet Color",
+        Handle: handle,
         Width: 60,
         Height: 53,
         Depth: 50.5,
         Drawers: "1D",
       },
-      productsPresets: [
-        {
-          name: "Sink-Base",
-          CabinetColor: "Old Cabinet Color",
-          HandleGrooveColor: handleGrooveColor,
-          Handle: "handle_urban_topcut",
-          Width: 60,
-          Height: 53,
-          Depth: 50.5,
-          Drawers: "1D",
-        },
-      ],
+      productsPresets: [],
     }),
   );
   store.dispatch(syncCabinets(["Sink-Base-runtime"]));
@@ -356,96 +165,83 @@ describe("CustomCabinetColorsPage", () => {
   beforeEach(() => {
     store.dispatch(reset());
     store.dispatch(resetConfiguration());
-    store.dispatch(setActiveProfile(profile));
+    store.dispatch(setActiveProfile(ushProfile));
     restoreImportedPresetState();
-    setConfigBatchMock.mockClear();
-    saveSnapshotMock.mockClear();
-    changeAttributeMock.mockClear();
+    onChangeMock.mockClear();
   });
 
-  afterEach(() => {
-    cleanup();
-    vi.clearAllMocks();
-  });
+  afterEach(cleanup);
 
-  it("keeps auto-derived handle groove color in sync when changing cabinet color after preset import", async () => {
+  it("renders the step's sections in ui.json order, with the groove section only for a groove-capable handle", () => {
     renderPage();
-    setConfigBatchMock.mockClear();
+    expect(sectionTitles()).toEqual([
+      "Cabinet Color",
+      "Handle Groove Color (Optional)",
+      "Drawer Panel Fluting",
+      "Grain Direction",
+    ]);
+
+    cleanup();
+    restoreImportedPresetState("handle_pto");
+    renderPage();
+    expect(sectionTitles()).toEqual(["Cabinet Color", "Drawer Panel Fluting", "Grain Direction"]);
+  });
+
+  it("offers the configurator colours of the profile's optionsSource, with None first for the groove", () => {
+    renderPage();
+
+    const buttonsIn = (name: string) =>
+      [...screen.getByRole("region", { name }).querySelectorAll("button")].map((button) => button.textContent);
+
+    expect(buttonsIn("Cabinet Color")).toEqual(["New Cabinet Color", "Old Cabinet Color"]);
+    expect(buttonsIn("Handle Groove Color (Optional)")).toEqual(["New Cabinet Color", "None", "Old Cabinet Color"]);
+  });
+
+  it("changes the cabinet colour through the shared handler and records the colour's SKU", async () => {
+    renderPage();
 
     await act(async () => {
       fireEvent.click(screen.getAllByRole("button", { name: "New Cabinet Color" })[0]);
     });
 
-    expect(changeAttributeMock).toHaveBeenCalledWith(expect.objectContaining({ attributeId: "CabinetColor", value: "New Cabinet Color" }));
-
-    const state = store.getState() as RootState;
-    expect(getHandleGrooveColor(state)).toBe("New Cabinet Color");
-    expect(getProductsPresets(state)[0]).toMatchObject({
-      CabinetColor: "New Cabinet Color",
-      HandleGrooveColor: "New Cabinet Color",
-    });
+    expect(onChangeMock).toHaveBeenCalledWith("CabinetColor", "New Cabinet Color");
+    expect(getCabinetColor(store.getState())).toBe("New Cabinet Color");
+    expect(getCabinetColorSku(store.getState())).toBe("HPL");
   });
 
-  it("does not overwrite an explicitly different handle groove color", async () => {
-    cleanup();
-    store.dispatch(reset());
-    store.dispatch(resetConfiguration());
-    restoreImportedPresetState({ handleGrooveColor: "Explicit Groove Color" });
-    setConfigBatchMock.mockClear();
-
+  it("changes the groove colour through the shared handler", async () => {
     renderPage();
-    setConfigBatchMock.mockClear();
 
     await act(async () => {
-      fireEvent.click(screen.getAllByRole("button", { name: "New Cabinet Color" })[0]);
+      fireEvent.click(screen.getByRole("button", { name: "None" }));
     });
 
-    expect(changeAttributeMock).toHaveBeenCalledWith(expect.objectContaining({ attributeId: "CabinetColor", value: "New Cabinet Color" }));
-
-    const state = store.getState() as RootState;
-    expect(getHandleGrooveColor(state)).toBe("Explicit Groove Color");
-    expect(getProductsPresets(state)[0]).toMatchObject({
-      CabinetColor: "New Cabinet Color",
-      HandleGrooveColor: "Explicit Groove Color",
-    });
+    expect(onChangeMock).toHaveBeenCalledWith("HandleGrooveColor", "None");
+    expect(getHandleGrooveColor(store.getState())).toBe("None");
   });
 
-  it("updates the scene and state when selecting a drawer panel fluting option", async () => {
+  it("changes the drawer panel fluting through the shared handler", async () => {
     store.dispatch(setCabinetColorMaterial("LACM"));
     renderPage();
-
-    const cabinetId = getCabinetEntries(store.getState())[0]?.stableKey;
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "FlutingVerticalA" }));
     });
 
-    expect(changeAttributeMock).toHaveBeenCalledWith({
-      attributeId: "DrawerPanelFluting",
-      value: "FlutingVerticalA",
-      scope: "cabinet",
-      cabinetId,
-    });
-    expect(getDrawerPanelFluting(store.getState() as RootState)).toBe("FlutingVerticalA");
+    expect(onChangeMock).toHaveBeenCalledWith("DrawerPanelFluting", "FlutingVerticalA");
+    expect(getDrawerPanelFluting(store.getState())).toBe("FlutingVerticalA");
   });
 
-  it("updates the scene and state when selecting a grain direction option", async () => {
+  it("changes the grain direction through the shared handler", async () => {
     store.dispatch(setCabinetColorMaterial("Essenze"));
     renderPage();
-
-    const cabinetId = getCabinetEntries(store.getState())[0]?.stableKey;
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "GrainVertical" }));
     });
 
-    expect(changeAttributeMock).toHaveBeenCalledWith({
-      attributeId: "GrainDirection",
-      value: "GrainVertical",
-      scope: "cabinet",
-      cabinetId,
-    });
-    expect(getGrainDirection(store.getState() as RootState)).toBe("GrainVertical");
+    expect(onChangeMock).toHaveBeenCalledWith("GrainDirection", "GrainVertical");
+    expect(getGrainDirection(store.getState())).toBe("GrainVertical");
   });
 
   it("toggles book matching from the schema-resolved field, alongside grain direction in the same section", async () => {
@@ -469,6 +265,6 @@ describe("CustomCabinetColorsPage", () => {
       fireEvent.click(screen.getByRole("checkbox"));
     });
 
-    expect(getBookMatching(store.getState() as RootState)).toBe("enabled");
+    expect(getBookMatching(store.getState())).toBe("enabled");
   });
 });

@@ -12,7 +12,7 @@ afterEach(cleanup);
 
 describe("ConfiguratorSidebar header against a non-USH schema", () => {
   it("derives the step header from the schema's own step label, not a hardcoded string", async () => {
-    renderWithFixtureCollection(<ConfiguratorSidebar flow="prebuilt">content</ConfiguratorSidebar>, {
+    renderWithFixtureCollection(<ConfiguratorSidebar>content</ConfiguratorSidebar>, {
       collectionId: "fixture-ui",
       initialPath: "/fixture/models?collectionId=fixture-ui",
     });
@@ -29,7 +29,7 @@ describe("ConfiguratorSidebar header against a non-USH schema", () => {
       },
     };
 
-    renderWithFixtureCollection(<ConfiguratorSidebar flow="prebuilt">content</ConfiguratorSidebar>, {
+    renderWithFixtureCollection(<ConfiguratorSidebar>content</ConfiguratorSidebar>, {
       collectionId: "fixture-ui",
       initialPath: "/fixture/models?collectionId=fixture-ui",
       uiDocument: mutatedUi,

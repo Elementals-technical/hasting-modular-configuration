@@ -21,7 +21,7 @@ import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 import { useActiveCollection, useCollectionPresets } from "@/entities/collection";
-import { useStepNavigate } from "@/features/collectionCustomization";
+import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -182,7 +182,8 @@ export const ModelPage = () => {
   }, [activeProfile]);
   const navigate = useStepNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const detailMatch = useMatch("/prebuilt/model/:modelId");
+  const modelStepPath = useCollectionNavigation()?.currentStep?.path ?? "/prebuilt/model";
+  const detailMatch = useMatch(`${modelStepPath}/:modelId`);
   const detailModelId = detailMatch?.params.modelId;
   const isDetail = !!detailMatch;
   const isDefinedProductsRef = useRef(false);

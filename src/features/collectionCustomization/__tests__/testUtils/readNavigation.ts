@@ -1,6 +1,9 @@
 import { screen } from "@testing-library/react";
 
-export type ProbedNavigation = {
+import type { CustomizationFlowId } from "@/entities/collection";
+
+type ProbedNavigation = {
+  flowId: CustomizationFlowId;
   steps: { stepId: string; label: string; path: string }[];
   currentStepId: string | null;
   previousStepId: string | null;

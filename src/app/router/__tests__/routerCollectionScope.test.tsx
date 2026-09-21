@@ -35,8 +35,8 @@ vi.mock("../CollectionRouterRoot", () => ({
   ),
 }));
 
-vi.mock("../FlowEntryRedirect", () => ({
-  FlowEntryRedirect: () => <div>flow redirect</div>,
+vi.mock("../CollectionStepRoutes", () => ({
+  CollectionStepRoutes: () => <div>step routes</div>,
 }));
 
 import { routerConfig } from "../routerConfig";
@@ -63,6 +63,6 @@ describe("collection router scope", () => {
       await routerConfig.navigate("/prebuilt/model?collectionId=urban-standard-height");
     });
     await waitFor(() => expect(screen.getByTestId("collection-root")).toBeTruthy());
-    expect(screen.getByText("model")).toBeTruthy();
+    expect(screen.getByText("step routes")).toBeTruthy();
   });
 });

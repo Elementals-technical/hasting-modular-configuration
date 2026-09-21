@@ -1,18 +1,5 @@
 import manifestDocument from "../../../../public/collections/urban-standard-height/manifest.json";
-import { validateCollectionManifest, type ReadyCollectionData } from "@/entities/collection";
+import uiDocument from "../../../../public/collections/urban-standard-height/ui.json";
+import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 
-const rootUrl = "https://app.test/collections/";
-const manifest = validateCollectionManifest(
-  manifestDocument,
-  "urban-standard-height",
-  `${rootUrl}urban-standard-height/manifest.json`,
-  rootUrl,
-);
-
-export const readyCollectionFixture: ReadyCollectionData = {
-  id: manifest.id,
-  manifest,
-  diagnostics: [],
-  sources: { local: {}, remote: {} },
-  catalog: { configurator: { groups: [], groupsByName: {} } },
-};
+export const readyCollectionFixture = buildReadyCollection("urban-standard-height", manifestDocument, uiDocument);

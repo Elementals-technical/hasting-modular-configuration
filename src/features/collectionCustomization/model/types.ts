@@ -21,4 +21,5 @@ export type NavigationResult = {
   previousStep: NavigationStep | null;
   nextStep: NavigationStep | null;
   summaryStep: NavigationStep | null;
+  isSummary: boolean;
 };

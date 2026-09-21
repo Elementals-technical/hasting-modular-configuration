@@ -1,18 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { parseProductProfile, validateCustomizationSchema } from "@/entities/collection";
+import { configuratorColorGroups } from "@/entities/collection/__tests__/fixtures/configuratorColorGroups";
+import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
+import { ushProfile as profile } from "@/entities/collection/__tests__/ushProfileFixture";
 
-import productProfileJson from "../../../../public/collections/urban-standard-height/product-profile.json";
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
 import { resolveSectionFields } from "../lib/resolveSectionState";
 
-const validatedSchema = validateCustomizationSchema(uiJson);
-if (!validatedSchema.ok) throw new Error("fixture ui.json failed validation");
-const schema = validatedSchema.schema;
-
-const parsedProfile = parseProductProfile(productProfileJson);
-if (!parsedProfile.ok) throw new Error("fixture product-profile.json failed validation");
-const profile = parsedProfile.profile;
+const schema = readCustomizationSchema(uiJson);
 
 describe("resolveSectionFields", () => {
   it("reads the field list for a section straight from the schema", () => {
@@ -80,12 +75,62 @@ describe("resolveSectionFields", () => {
     expect(resolved.map(({ definition }) => definition.attributeId)).toEqual(["GrainDirection", "BookMatching"]);
   });
 
-  it("leaves options empty for a field that names an external optionsRef", () => {
+  it("leaves options empty for an optionsRef field while the configurator is not loaded", () => {
     const resolved = resolveSectionFields(schema, "cabinet-color-custom", profile, {}, {});
     const cabinetColor = resolved.find(({ definition }) => definition.attributeId === "CabinetColor");
 
     expect(cabinetColor?.definition.optionsRef).toBe("CabinetColor");
     expect(cabinetColor?.field.options).toEqual([]);
+  });
+
+  it("resolves an optionsRef field from the configurator section the profile names in optionsSource", () => {
+    const resolved = resolveSectionFields(schema, "cabinet-color-custom", profile, {}, {}, configuratorColorGroups);
+    const options = resolved[0]?.field.options ?? [];
+
+    expect(options.map((option) => option.value)).toEqual(["Old Cabinet Color", "New Cabinet Color"]);
+    expect(options[0]?.desc).toBe("HPL");
+    expect(options[0]?.traits).toMatchObject({
+      sku: "HPL",
+      materials: ["Cabinet Color", "HPL"],
+      colors: ["Old Cabinet Color"],
+    });
+  });
+
+  it("adds the profile's reset value as the first option of a clearable optionsRef field", () => {
+    const resolved = resolveSectionFields(schema, "groove-color", profile, {}, {}, configuratorColorGroups);
+
+    expect(resolved[0]?.field.options.map((option) => option.value)).toEqual([
+      "None",
+      "Old Cabinet Color",
+      "New Cabinet Color",
+    ]);
+  });
+
+  it("keeps only the options listed in allowedValues enabled and carries the reason on the rest", () => {
+    const resolved = resolveSectionFields(
+      schema,
+      "side-panels",
+      profile,
+      {},
+      { "SidePanels.available": { available: true, reason: "Too long.", allowedValues: ["None", "NoG"] } },
+    );
+    const options = resolved[0]?.field.options ?? [];
+
+    expect(options.filter((option) => option.enabled).map((option) => option.value)).toEqual(["None", "NoG"]);
+    expect(options.find((option) => option.value === "UpperG")?.reason).toBe("Too long.");
+  });
+
+  it("hides a field whose availability result says it is not visible", () => {
+    const resolved = resolveSectionFields(
+      schema,
+      "groove-color",
+      profile,
+      {},
+      { "Handle.supportsGrooveColor": { available: false, visible: false } },
+      configuratorColorGroups,
+    );
+
+    expect(resolved[0]?.field.visible).toBe(false);
   });
 
   it("returns no fields for an unknown or missing section", () => {

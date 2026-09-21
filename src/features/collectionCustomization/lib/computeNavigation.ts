@@ -1,4 +1,4 @@
-import type { CustomizationFlowId, CustomizationSchema } from "@/entities/collection";
+import { CUSTOMIZATION_FLOW_IDS, type CustomizationFlowId, type CustomizationSchema } from "@/entities/collection";
 
 import type { NavigationResult, NavigationStep } from "../model/types";
 
@@ -47,7 +47,21 @@ export const computeNavigation = (
     previousStep: currentIndex > 0 ? steps[currentIndex - 1] : null,
     nextStep: currentIndex >= 0 && currentIndex < steps.length - 1 ? steps[currentIndex + 1] : null,
     summaryStep: steps.find((step) => step.kind === "summary") ?? null,
+    isSummary: currentStep?.kind === "summary",
   };
+};
+
+export const toRelativePath = (path: string): string => path.replace(/^\//, "");
+
+const firstSegment = (path: string): string => toRelativePath(path).split("/")[0];
+
+export const resolveFlowForPath = (schema: CustomizationSchema, pathname: string): CustomizationFlowId => {
+  const stepsOf = (flowId: CustomizationFlowId) => schema.flows[flowId].steps;
+  const ownsPath = (flowId: CustomizationFlowId) => stepsOf(flowId).some((ref) => matchesPath(pathname, ref.path));
+  const sharesSegment = (flowId: CustomizationFlowId) =>
+    stepsOf(flowId).some((ref) => firstSegment(ref.path) === firstSegment(pathname));
+
+  return CUSTOMIZATION_FLOW_IDS.find(ownsPath) ?? CUSTOMIZATION_FLOW_IDS.find(sharesSegment) ?? "prebuilt";
 };
 
 export const resolveEntryStep = (schema: CustomizationSchema, flowId: CustomizationFlowId): NavigationStep | null => {

@@ -99,6 +99,7 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
 import { selectOptions, useActiveCollection } from "@/entities/collection";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -370,11 +371,12 @@ export const PlayCanvasIntegration = ({
   } = useChangeAttribute();
   const store = useStore<RootState>();
 
-  const isPrebuilt = location.pathname.startsWith("/prebuilt");
-  const isCustomPage = location.pathname.startsWith("/custom");
-  const isCabinetBuilderPage = location.pathname.includes("/custom/cabinet-builder");
+  const navigation = useCollectionNavigation();
+  const isCustomPage = navigation?.flowId === "custom";
+  const isPrebuilt = !isCustomPage;
+  const isCabinetBuilderPage = navigation?.currentStep?.kind === "cabinet-builder";
   const isAccessoriesPage = location.pathname.endsWith("/accessories");
-  const isSummaryPage = location.pathname.includes("/summary");
+  const isSummaryPage = navigation?.isSummary ?? false;
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
   const quickEditorNotification = useInSceneQuickEditorNotification({
