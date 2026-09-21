@@ -83,6 +83,9 @@ describe("partial production collection packages", () => {
     expect(data.catalog.customization?.collectionId).toBe("urban-low-height");
     expect(data.catalog.navigation?.prebuilt).toEqual([
       { id: "model", label: "Urban Low Height Models", path: "/prebuilt/model" },
+      { id: "color", label: "Color", path: "/prebuilt/color" },
+      { id: "countertop", label: "Countertop", path: "/prebuilt/countertop" },
+      { id: "summary", label: "Summary", path: "/prebuilt/summary" },
     ]);
     // The 59 models of the master file, without their composition until the BOM is confirmed.
     expect(data.catalog.presets).toHaveLength(59);
@@ -129,6 +132,10 @@ describe("partial production collection packages", () => {
       expect(data.catalog.customization?.collectionId).toBe(collectionId);
       expect(data.catalog.navigation?.prebuilt).toEqual([
         { id: "model", label: `${label} Models`, path: "/prebuilt/model" },
+        { id: "color", label: "Color", path: "/prebuilt/color" },
+        { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
+        { id: "faucet-holes", label: "Faucet Details", path: "/prebuilt/faucet-holes" },
+        { id: "summary", label: "Summary", path: "/prebuilt/summary" },
       ]);
       // The models of the Master File, without their composition until the model recipes are given.
       expect(data.catalog.presets).toHaveLength(modelCount);
