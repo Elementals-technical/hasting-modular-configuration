@@ -7,6 +7,22 @@
         {
           "stepId": "model",
           "path": "/prebuilt/model"
+        },
+        {
+          "stepId": "color",
+          "path": "/prebuilt/color"
+        },
+        {
+          "stepId": "countertop",
+          "path": "/prebuilt/countertop"
+        },
+        {
+          "stepId": "faucet-holes",
+          "path": "/prebuilt/faucet-holes"
+        },
+        {
+          "stepId": "summary",
+          "path": "/prebuilt/summary"
         }
       ]
     },
@@ -16,6 +32,22 @@
         {
           "stepId": "cabinet-builder",
           "path": "/custom/cabinet-builder"
+        },
+        {
+          "stepId": "color",
+          "path": "/custom/color"
+        },
+        {
+          "stepId": "countertop",
+          "path": "/custom/countertop"
+        },
+        {
+          "stepId": "faucet-holes",
+          "path": "/custom/faucet-holes"
+        },
+        {
+          "stepId": "summary",
+          "path": "/custom/summary"
         }
       ]
     }
@@ -29,8 +61,113 @@
       "label": "Mako Cabinet Builder",
       "headerPrefix": null,
       "kind": "cabinet-builder",
-      "sectionIds": []
+      "sectionIds": ["cabinet-type", "cabinet-style"]
+    },
+    "color": {
+      "label": "Color",
+      "kind": "fields",
+      "sectionIds": ["cabinet-color", "handle-color", "leg-color"]
+    },
+    "countertop": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": ["countertop-color", "countertop-style", "basin-style"]
+    },
+    "faucet-holes": {
+      "label": "Faucet Details",
+      "kind": "fields",
+      "sectionIds": ["faucet-holes-amount"]
+    },
+    "summary": {
+      "label": "Summary",
+      "kind": "summary"
     }
   },
-  "sections": {}
+  "sections": {
+    "cabinet-type": {
+      "label": "Cabinet Type",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CabinetType",
+          "control": "options-grid"
+        }
+      ]
+    },
+    "cabinet-style": {
+      "label": "Cabinet Style",
+      "fields": [
+        {
+          "attributeId": "Drawers",
+          "control": "options-grid"
+        }
+      ]
+    },
+    "cabinet-color": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CabinetColor",
+          "control": "swatches"
+        }
+      ]
+    },
+    "handle-color": {
+      "label": "Handle Color",
+      "fields": [
+        {
+          "attributeId": "HandleColor",
+          "control": "swatches"
+        }
+      ]
+    },
+    "leg-color": {
+      "label": "Leg Color",
+      "fields": [
+        {
+          "attributeId": "LegColor",
+          "control": "swatches"
+        }
+      ]
+    },
+    "countertop-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CountertopColor",
+          "control": "swatches"
+        }
+      ]
+    },
+    "countertop-style": {
+      "label": "Countertop Style",
+      "fields": [
+        {
+          "attributeId": "CountertopStyle",
+          "control": "options-grid"
+        }
+      ]
+    },
+    "basin-style": {
+      "label": "Basin Style",
+      "fields": [
+        {
+          "attributeId": "sinkType",
+          "control": "options-grid"
+        }
+      ]
+    },
+    "faucet-holes-amount": {
+      "label": "Faucet Holes",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches"
+        }
+      ]
+    }
+  }
 }
