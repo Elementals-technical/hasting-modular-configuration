@@ -21,6 +21,7 @@ import {
   reset,
   restoreProductState,
   setActiveProfile,
+  setBookMatching,
   setCabinetColor,
   setCabinetColorMaterial,
   setDrawerPanelFluting,
@@ -36,6 +37,7 @@ const onChangeMock = vi.fn(async (attributeId: string, value: string) => {
   if (attributeId === "HandleGrooveColor") store.dispatch(setHandleGrooveColor(value));
   if (attributeId === "DrawerPanelFluting") store.dispatch(setDrawerPanelFluting(value));
   if (attributeId === "GrainDirection") store.dispatch(setGrainDirection(value));
+  if (attributeId === "BookMatching") store.dispatch(setBookMatching(value));
   return { status: "applied" as const, plan: [] };
 });
 
@@ -246,7 +248,7 @@ describe("CustomCabinetColorsPage", () => {
 
   it("toggles book matching from the schema-resolved field, alongside grain direction in the same section", async () => {
     store.dispatch(setCabinetColorMaterial("Essenze"));
-    // needs 2 adjacent drawer cabinets + a grain direction, or the page's own effect clears it back
+    // the checkbox is enabled only for 2 adjacent drawer cabinets with a grain direction
     store.dispatch(
       restoreProductState({
         productIds: ["Sink-Base-1-runtime", "Sink-Base-2-runtime"],
@@ -265,6 +267,7 @@ describe("CustomCabinetColorsPage", () => {
       fireEvent.click(screen.getByRole("checkbox"));
     });
 
+    expect(onChangeMock).toHaveBeenCalledWith("BookMatching", "enabled");
     expect(getBookMatching(store.getState())).toBe("enabled");
   });
 });

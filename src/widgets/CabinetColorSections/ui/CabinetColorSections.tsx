@@ -4,14 +4,12 @@ import { useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import {
-  getBookMatching,
   getCabinetColor,
   getCabinetColorFinish,
   getCabinetColorMaterial,
   getProductsPresets,
 } from "@/entities/product/model/store/selectors";
 import {
-  setBookMatching,
   setCabinetColor,
   setCabinetColorFinish,
   setCabinetColorMaterial,
@@ -63,7 +61,7 @@ const unavailable = (key: string, reason?: string) => (
   </div>
 );
 
-/** Color step sections for both flows. SKU stays here until D02, book matching until DEV-05. */
+/** Color step sections for both flows. SKU stays here until D02. */
 export const useCabinetColorSections = ({
   stepId,
   flow,
@@ -75,7 +73,6 @@ export const useCabinetColorSections = ({
   const configurator = useActiveCollection((collection) => collection.catalog.configurator);
   const cabinetMaterial = useAppSelector(getCabinetColorMaterial);
   const cabinetFinish = useAppSelector(getCabinetColorFinish);
-  const activeBookMatching = useAppSelector(getBookMatching);
   const activeCabinetColor = useAppSelector(getCabinetColor);
   const presets = useAppSelector(getProductsPresets);
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
@@ -84,6 +81,7 @@ export const useCabinetColorSections = ({
   const grooveColor = useAttributeChangeHandler("HandleGrooveColor");
   const fluting = useAttributeChangeHandler("DrawerPanelFluting");
   const grainDirection = useAttributeChangeHandler("GrainDirection");
+  const bookMatching = useAttributeChangeHandler("BookMatching");
 
   const cabinetColorOptions: FieldOptionState[] = useMemo(
     () =>
@@ -128,10 +126,6 @@ export const useCabinetColorSections = ({
     presets,
     skuOf,
   ]);
-
-  useEffect(() => {
-    if (activeProfile && !bookMatchingState.enabled && activeBookMatching) dispatch(setBookMatching(""));
-  }, [activeProfile, bookMatchingState.enabled, activeBookMatching, dispatch]);
 
   const handleChangeColor = async (colorName: string) => {
     const result = await cabinetColor.onChange(colorName);
@@ -221,7 +215,7 @@ export const useCabinetColorSections = ({
               <FieldControl
                 control={definition.control}
                 field={field}
-                onChange={(value) => dispatch(setBookMatching(value))}
+                onChange={bookMatching.onChange}
                 label="Book Matching"
                 className={`${s.checkboxOption} ${!field.enabled ? s.checkboxOptionDisabled : ""}`}
               />

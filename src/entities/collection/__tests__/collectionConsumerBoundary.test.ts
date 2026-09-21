@@ -34,6 +34,8 @@ const directSceneCalls = [
   /\bsetProductByParams\s*\(/g,
   /\bremoveProduct\s*\(/g,
   /\bclearPlacedDividersInScene\s*\(/g,
+  /\bresetSidePanels\s*\(/g,
+  /\bswapProducts\s*\(/g,
 ];
 
 /** The scene wrappers themselves and the adapters that are allowed to use them (I02). */
@@ -83,7 +85,7 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
   },
   "/src/pages/prebuilt/model/ModelPage.tsx": {
     owner: "C",
-    count: 12,
+    count: 14,
     reason: "C06 phase 7: composition commands; phase 6: restore replay; then B08",
   },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
@@ -93,8 +95,8 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
   },
   "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
     owner: "I",
-    count: 13,
-    reason: "C06 phases 2-5, 7: towel bar and side panel removal, countertop follow-up, vessel action, duplicate",
+    count: 14,
+    reason: "C06 phases 2-5, 7: towel bar and side panel removal, countertop follow-up, vessel action, duplicate, swap",
   },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
@@ -106,14 +108,9 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 2,
     reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
   },
-  "/src/features/bottomCanvasButtons/BottomCanvasButtons.tsx": {
-    owner: "B",
-    count: 8,
-    reason: "commented-out reset and preset code only; deleting it clears the file",
-  },
   "/src/features/StepNavigationBar/StepNavigationBar.tsx": {
     owner: "C",
-    count: 2,
+    count: 3,
     reason: "C06 phase 7: clear the composition when leaving the flow",
   },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
@@ -128,7 +125,7 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
   },
   "/src/entities/product/ui/createModelBtn/CreateModelBtn.tsx": {
     owner: "C",
-    count: 1,
+    count: 2,
     reason: "C06 phase 7: clear the composition",
   },
   "/src/app/store/optionsListener.ts": { owner: "C", count: 1, reason: "C06 phase 6: handle sync from state to scene" },
@@ -176,16 +173,6 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
 const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
-  "/src/app/store/optionsListener.ts": {
-    owner: "C",
-    count: 6,
-    reason: "C06 phase 1: grain and book matching resets through useAvailabilityResets",
-  },
-  "/src/features/bottomCanvasButtons/BottomCanvasButtons.tsx": {
-    owner: "B",
-    count: 1,
-    reason: "commented-out code only; deleting it clears the file",
-  },
   "/src/features/sidePanel/lib/sidePanelService.ts": {
     owner: "C",
     count: 17,
@@ -199,12 +186,12 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
     count: 3,
-    reason: "C06 phases 1, 5: dividers and LED through the command",
+    reason: "C06 phase 5: dividers option and style through the command",
   },
   "/src/pages/custom/accessories/index.tsx": {
     owner: "B",
     count: 3,
-    reason: "C06 phases 1, 5: dividers and LED through the command",
+    reason: "C06 phase 5: dividers option and style through the command",
   },
   "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
     owner: "B",
@@ -215,16 +202,6 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     owner: "B",
     count: 10,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
-  },
-  "/src/pages/prebuilt/faucet/index.tsx": {
-    owner: "B",
-    count: 2,
-    reason: "C06 phase 1: faucet holes through useAttributeChangeHandler",
-  },
-  "/src/pages/custom/faucetHoles/index.tsx": {
-    owner: "B",
-    count: 2,
-    reason: "C06 phase 1: faucet holes through useAttributeChangeHandler",
   },
   "/src/pages/prebuilt/model/ModelPage.tsx": {
     owner: "C",
@@ -238,8 +215,8 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
   },
   "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
     owner: "B",
-    count: 5,
-    reason: "C06 phase 1: book matching toggle and reset, preset colour sync",
+    count: 3,
+    reason: "C06 phase 7: the preset colour with its material and finish recorded by applyPreset",
   },
   "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
     owner: "I",
