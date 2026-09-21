@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "mako",
+  "status": "partial",
+  "sources": [
+    "Mako Vanities - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Curation, CabinetPricing, CountertopPricing, Basin StylePricing; accessories refer to the Class workbook",
+    "Countertop | Basin Styles Rules Logic - GB",
+    "pricing-v2/resolve answers for every SKU form, checked 2026-09-18"
+  ],
+  "cabinet": {
+    "series": "MAKOV",
+    "configBlock": [
+      { "attributeId": "CabinetType", "codes": { "Sink-Base": "SB", "Sink-Cabinet": "SC" } },
+      { "attributeId": "Drawers", "codes": { "1": "1DW", "2": "2DW" } },
+      { "attributeId": "Handle", "codes": { "G57": "G57", "G50": "G50" } }
+    ],
+    "elements": [
+      { "code": "CAB", "attributeId": "CabinetColor" },
+      { "code": "HDL", "attributeId": "HandleColor" }
+    ]
+  },
+  "colors": {
+    "materialByCategory": {
+      "Lacquered MT": "LACM",
+      "Lacquered GL": "LACG",
+      "Metal": "MTL"
+    },
+    "codeByValue": { "Silver": "SLV" }
+  },
+  "countertop": {
+    "series": "GB",
+    "styles": { "integrated": "INTG", "vessel": "VES" },
+    "depthIn": "20.7",
+    "materialByColorCategory": {
+      "Solid Surface": "SSTL",
+      "HPL": "HPL",
+      "Porcelain": "POR",
+      "Glass MT": "GLSM",
+      "Glass GL": "GLSG"
+    },
+    "materialByBasin": { "VA030": "SSTEX" },
+    "thicknessByMaterial": {
+      "SSTL": ".5",
+      "SSTM": ".5",
+      "SSTEX": ".5",
+      "POR": ".8",
+      "GLSG": ".5",
+      "GLSM": ".5",
+      "HPL": ".5"
+    }
+  },
+  "dividers": {
+    "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
+    "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
+  },
+  "gaps": [
+    {
+      "group": "legs",
+      "blocksTotal": true,
+      "owner": "product",
+      "reason": "Legs are priced as VAN-MAKOV-LEG ($1,340 matte lacquer, $745 metal), but how many a cabinet or composition takes, and whether the price is per leg, pair or set, is not confirmed.",
+      "appliesWhen": { "attributeId": "LegColor" }
+    },
+    {
+      "group": "vessel",
+      "blocksTotal": true,
+      "owner": "product",
+      "reason": "Iris, Frame and Plaza have no SKU or price yet; the vessel cutout of each sink base is priced.",
+      "appliesWhen": { "attributeId": "CountertopStyle", "values": ["vessel"] }
+    },
+    {
+      "group": "solidSurfaceGroup",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "A Solid Surface colour does not say whether it is Technolite, Technomood or Texturizzato. It is priced as SSTL, which costs the same per cm as SSTM and SSTEX, unless the basin decides the material.",
+      "appliesWhen": { "attributeId": "CountertopColor", "categories": ["Solid Surface"] }
+    },
+    {
+      "group": "divider",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Organizers are priced once per drawer that has a divider style; whether $170 / $150 is the price of one organizer is not confirmed.",
+      "appliesWhen": { "attributeId": "DividersStyle" }
+    }
+  ]
+}

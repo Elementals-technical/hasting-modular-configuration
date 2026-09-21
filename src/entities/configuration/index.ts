@@ -92,6 +92,7 @@ export {
   getCabinetDimensions,
   getCabinetDimensionsByRuntimeId,
   getDimensionsByCabinet,
+  getValuesByAttributeId,
   getRestoreState,
   getRuntimeSyncState,
   isRestoreInFlightOrDone,

@@ -43,6 +43,8 @@ export type PriceRequestInput = {
   countertopPrefix: string | null;
   /** `VAN-<bookMatching series>-`, from the same profile. */
   bookMatchingSkuPrefix: string | null;
+  /** The line is priced per cm of `widthCm`: the top of a collection priced from its SKU profile. */
+  pricedPerCm?: boolean;
 };
 
 export const resolvePriceRequest = ({
@@ -50,7 +52,10 @@ export const resolvePriceRequest = ({
   widthCm,
   countertopPrefix,
   bookMatchingSkuPrefix,
+  pricedPerCm = false,
 }: PriceRequestInput): PriceRequest => {
+  if (pricedPerCm && widthCm != null) return { kind: "countertopTop", widthCm };
+
   if (widthCm != null && countertopPrefix !== null && isCountertopTopDynamicCandidate(sku, widthCm, countertopPrefix)) {
     return { kind: "countertopTop", widthCm };
   }

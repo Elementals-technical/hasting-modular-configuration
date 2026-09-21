@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "class",
+  "status": "partial",
+  "sources": [
+    "Class Vanities - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Curation, CabinetPricing, CountertopPricing, Basin StylePricing, AccessoriesPricing",
+    "Countertop | Basin Styles Rules Logic - GB",
+    "pricing-v2/resolve answers for every SKU form, checked 2026-09-18"
+  ],
+  "cabinet": {
+    "series": "CLSV",
+    "configBlock": [
+      { "attributeId": "CabinetType", "codes": { "Sink-Base": "SB", "Sink-Cabinet": "SC" } },
+      { "attributeId": "Drawers", "codes": { "1": "1DW", "2": "2DW", "1+inner": "1DWID" } }
+    ],
+    "elements": [
+      {
+        "code": "CABF",
+        "attributeId": "CabinetColor",
+        "materialSuffix": { "attributeId": "FrameColor", "byValue": { "Nero 433 MT": "B" }, "otherwise": "C" }
+      },
+      { "code": "CABS", "attributeId": "CabinetSideColor" },
+      { "code": "FRM", "attributeId": "FrameColor" }
+    ]
+  },
+  "colors": {
+    "materialByCategory": {
+      "Lacquered MT": "LACM",
+      "Lacquered GL": "LACG",
+      "Smoke Glass": "SGLS",
+      "Porcelain": "POR",
+      "Glass MT": "GLSM",
+      "Glass GL": "GLSG",
+      "Laminates": "LAM"
+    },
+    "codeByValue": { "Fume": "SG" }
+  },
+  "countertop": {
+    "series": "GB",
+    "styles": { "integrated": "INTG", "vessel": "VES" },
+    "depthIn": "20.7",
+    "materialByColorCategory": {
+      "Solid Surface": "SSTL",
+      "HPL": "HPL",
+      "Porcelain": "POR",
+      "Glass MT": "GLSM",
+      "Glass GL": "GLSG"
+    },
+    "materialByBasin": { "VA030": "SSTEX", "VA023": "SSTMT" },
+    "thicknessByMaterial": {
+      "SSTL": ".5",
+      "SSTM": ".5",
+      "SSTEX": ".5",
+      "SSTMT": "3.1",
+      "POR": ".8",
+      "GLSG": ".5",
+      "GLSM": ".5",
+      "HPL": ".5"
+    },
+    "bracket": { "sku": "CT-GB-BRKT", "quantity": 2, "thicknesses": ["3.1", "4", "4.7"] }
+  },
+  "dividers": {
+    "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
+    "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
+  },
+  "gaps": [
+    {
+      "group": "vessel",
+      "blocksTotal": true,
+      "owner": "product",
+      "reason": "Iris, Frame and Plaza have no SKU or price yet; the vessel cutout of each sink base is priced.",
+      "appliesWhen": { "attributeId": "CountertopStyle", "values": ["vessel"] }
+    },
+    {
+      "group": "solidSurfaceGroup",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "A Solid Surface colour does not say whether it is Technolite, Technomood or Texturizzato. It is priced as SSTL, which costs the same per cm as SSTM and SSTEX, unless the basin decides the material.",
+      "appliesWhen": { "attributeId": "CountertopColor", "categories": ["Solid Surface"] }
+    },
+    {
+      "group": "divider",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Organizers are priced once per drawer that has a divider style; whether $170 / $150 is the price of one organizer is not confirmed.",
+      "appliesWhen": { "attributeId": "DividersStyle" }
+    },
+    {
+      "group": "thickTop",
+      "blocksTotal": false,
+      "owner": "product, C/A",
+      "reason": "Class sells thick tops (Solid Surface and Porcelain 4.7, HPL 4), but the profile has no thickness choice yet, so tops are priced thin. Porcelain thin is 3/4 in the catalog and 0.8 in the SKU."
+    },
+    {
+      "group": "bracket",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Every thick top takes two CT-GB-BRKT; the count for a composition with more than one top is not confirmed."
+    }
+  ]
+}

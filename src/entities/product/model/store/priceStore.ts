@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { expandLineSkus } from "@/shared/lib/pricing/pricingLines";
-import type { PricingLine } from "@/shared/lib/pricing/types";
+import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 
 /** What is known about the price of one SKU. */
 export type SkuPriceEntry =
@@ -13,8 +13,8 @@ export type SkuPriceEntry =
 
 /**
  * Price of the whole order.
- * `unavailable`: the collection has no SKU profile. `partial`: some lines have no price —
- * the total leaves them out and must not be shown as complete.
+ * `unavailable`: the collection has no SKU profile. `partial`: some lines have no price, or the
+ * order uses a part the collection has not confirmed — the total must not be shown as complete.
  */
 export type PriceStatus = "idle" | "unavailable" | "loading" | "ready" | "partial";
 
@@ -27,6 +27,8 @@ type PriceState = {
   lines: PricingLine[];
   entries: Record<string, SkuPriceEntry>;
   isUnavailable: boolean;
+  /** Unconfirmed parts the current order uses (D04). */
+  gaps: PricingGap[];
 };
 
 const calculateTotal = (prices: Record<string, number>, activeSkus: string[]) =>
@@ -40,6 +42,7 @@ const initialState: PriceState = {
   lines: [],
   entries: {},
   isUnavailable: false,
+  gaps: [],
 };
 
 export const derivePriceStatus = ({
@@ -47,14 +50,17 @@ export const derivePriceStatus = ({
   isLoading,
   lines = [],
   entries = {},
-}: Pick<PriceState, "isUnavailable" | "isLoading" | "lines" | "entries">): PriceStatus => {
+  gaps = [],
+}: Pick<PriceState, "isUnavailable" | "isLoading" | "lines" | "entries"> &
+  Partial<Pick<PriceState, "gaps">>): PriceStatus => {
   if (isUnavailable) return "unavailable";
   if (lines.length === 0) return "idle";
 
   const statuses = lines.map(({ sku }) => entries[sku]?.status);
   if (isLoading || statuses.some((status) => status === undefined || status === "loading")) return "loading";
 
-  return statuses.every((status) => status === "ready") ? "ready" : "partial";
+  const isComplete = statuses.every((status) => status === "ready") && !gaps.some(({ blocksTotal }) => blocksTotal);
+  return isComplete ? "ready" : "partial";
 };
 
 const priceStoreSlice = createSlice({
@@ -72,8 +78,12 @@ const priceStoreSlice = createSlice({
       state.isUnavailable = false;
       state.total = calculateTotal(state.skuPrices, state.activeSkus);
     },
+    setPricingGaps(state, action: PayloadAction<PricingGap[]>) {
+      state.gaps = action.payload;
+    },
     /** The active collection cannot be priced: no lines, no total. */
     setPricingUnavailable(state) {
+      state.gaps = [];
       state.lines = [];
       state.activeSkus = [];
       state.total = 0;
@@ -119,6 +129,7 @@ const priceStoreSlice = createSlice({
 export const {
   setActiveSkus,
   setPricingLines,
+  setPricingGaps,
   setPricingUnavailable,
   setSkusLoading,
   setSkuPriceEntries,

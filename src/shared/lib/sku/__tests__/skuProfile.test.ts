@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import makoSkuProfileDocument from "../../../../../public/collections/mako/sku-profile.json";
 import ushCabinetSkuMappings from "../../../../../public/collections/urban-standard-height/cabinet-sku-mappings.json";
+
+import { collectionSkuProfileSchema } from "@/entities/collection";
 
 import { createSkuBuilders } from "../createSkuBuilders";
 import { resolveSkuProfile } from "../resolveSkuProfile";
@@ -112,5 +115,20 @@ describe("createSkuBuilders", () => {
     expect(builders).toMatchObject({ status: "unsupported", reason: "no-sku-series", profile: null });
     expect(built).toEqual(["", "", "", "", null, null, null, "", [], [], ""]);
     expect(JSON.stringify(built)).not.toContain("UR");
+  });
+
+  it("hands a collection with its own SKU profile to the collection pricing, never to the USH builders (D04)", () => {
+    const skuProfile = collectionSkuProfileSchema.parse(makoSkuProfileDocument);
+    const builders = createSkuBuilders(
+      resolveSkuProfile({ id: "mako", cabinetSkuMappings: ushCabinetSkuMappings, skuProfile }),
+    );
+
+    expect(builders).toMatchObject({
+      status: "collection",
+      reason: null,
+      profile: null,
+      collectionProfile: skuProfile,
+    });
+    expect(buildAll(builders)).toEqual(["", "", "", "", null, null, null, "", [], [], ""]);
   });
 });

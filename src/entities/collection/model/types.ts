@@ -13,6 +13,7 @@ import type { CollectionError } from "./errors";
 import type {
   CabinetSkuMappings,
   CollectionManifest,
+  CollectionSkuProfile,
   CollectionNavigation,
   CollectionPreset,
   CollectionRegistry,
@@ -24,6 +25,7 @@ export type LocalCollectionSources = {
   presets?: CollectionPreset[];
   staticOptions?: CollectionStaticOptions;
   cabinetSkuMappings?: CabinetSkuMappings;
+  skuProfile?: CollectionSkuProfile;
   productProfile?: ProductProfile;
   ui?: CustomizationSchema;
   runtimeBindings?: RuntimeBindingSet;
@@ -53,6 +55,7 @@ export type LoadedCollectionData = {
     presets?: CollectionPreset[];
     staticOptions?: CollectionStaticOptions;
     cabinetSkuMappings?: CabinetSkuMappings;
+    skuProfile?: CollectionSkuProfile;
     /**
      * Product data driving the rules. `cabinets` below is normalized against it, so an
      * option added here reaches the rules without a code change.

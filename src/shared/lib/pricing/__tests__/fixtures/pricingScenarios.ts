@@ -60,6 +60,7 @@ export const pricingInput = (overrides: Partial<PricingInput> = {}): PricingInpu
   sceneConfigs: SINK_BASE_IDS.map((id) => cabinet(id)),
   cabinetEntries: [],
   dimensionsByCabinet: {},
+  configurationValues: {},
   activeCabinetType: "Sink-Base",
   selectedDimensions: { width: 60, height: 53, depth: 50.5 },
   selectedProductConfig: null,

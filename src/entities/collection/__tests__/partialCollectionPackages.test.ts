@@ -8,10 +8,12 @@ import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
+import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
+import makoSkuProfile from "../../../../public/collections/mako/sku-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
 
 import configurator4 from "./fixtures/remote/configurator-4.json";
@@ -36,10 +38,12 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
     [`${collectionsRootUrl}class/presets.json`]: classPresets,
     [`${collectionsRootUrl}class/product-profile.json`]: classProductProfile,
+    [`${collectionsRootUrl}class/sku-profile.json`]: classSkuProfile,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
     [`${collectionsRootUrl}mako/manifest.json`]: makoManifest,
     [`${collectionsRootUrl}mako/presets.json`]: makoPresets,
     [`${collectionsRootUrl}mako/product-profile.json`]: makoProductProfile,
+    [`${collectionsRootUrl}mako/sku-profile.json`]: makoSkuProfile,
     [`${collectionsRootUrl}mako/ui.json`]: makoUi,
   };
 
@@ -137,6 +141,8 @@ describe("partial production collection packages", () => {
       expect(data.catalog.productProfile?.collectionId).toBe(collectionId);
       expect(data.catalog.runtimeBindings).toBeUndefined();
       expect(data.catalog.cabinetSkuMappings).toBeUndefined();
+      // Priced from its own SKU words (D04), not the USH cabinet mappings.
+      expect(data.catalog.skuProfile?.collectionId).toBe(collectionId);
       expect(data.sources.local).toMatchObject({ ui: { collectionId } });
       expect(data.diagnostics).toEqual([]);
     },

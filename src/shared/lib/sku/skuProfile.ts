@@ -1,4 +1,4 @@
-import type { CabinetSkuMappings } from "@/entities/collection/model/schemas";
+import type { CabinetSkuMappings, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
 /**
  * How the active collection spells its pricing SKUs (D01).
@@ -40,4 +40,6 @@ export type SkuProfileUnsupportedReason =
 
 export type SkuProfileResolution =
   | { status: "ready"; profile: SkuProfile }
+  /** The collection spells its SKUs in its own `sku-profile.json` (D04); the USH builders stay idle. */
+  | { status: "collection"; collectionProfile: CollectionSkuProfile }
   | { status: "unsupported"; collectionId: string | null; reason: SkuProfileUnsupportedReason };
