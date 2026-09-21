@@ -3,7 +3,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { clearRestore, dropValuesForCabinet, syncCabinets } from "@/entities/configuration/model/store/slice";
-import { commitRuleSelection } from "@/entities/product/model/store/slice";
+import { commitRuleSelection, restoreProductState } from "@/entities/product/model/store/slice";
 
 /**
  * Decisions of the listeners that keep C's state in step with the composition. Pure, so
@@ -46,14 +46,15 @@ export const resolveRestoreStatusReset = (previous: RootState, current: RootStat
  *
  * Replaces the "sync handle to PlayCanvas" effects that the style sidebar and the player
  * each ran, so a rule-driven handle change reaches the scene once. A handle recorded by
- * the command service is skipped: its runtime port has already sent it.
+ * the command service is skipped: its runtime port has already sent it. So is an undo: it
+ * rebuilt every product from a config that already carries the handle.
  */
 export const resolveHandleSceneSync = (
   action: UnknownAction,
   previous: RootState,
   current: RootState,
 ): string | null => {
-  if (commitRuleSelection.match(action)) return null;
+  if (commitRuleSelection.match(action) || restoreProductState.match(action)) return null;
 
   const handle = current.rootStateUI.product.selectedProductConfig?.Handle;
 

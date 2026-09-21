@@ -10,6 +10,7 @@ import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
 import { changeAttribute, type ChangeAttributeDeps } from "./changeAttribute";
 import { changeDimension } from "./changeDimension";
 import { confirmAttributeChange } from "./confirmAttributeChange";
+import { replayValues, type ReplayRequest, type ReplayResult } from "./replayValues";
 import type { AttributeChange, ChangePreview, ChangeResult, DimensionChange } from "../model/types";
 
 /**
@@ -35,6 +36,8 @@ export type CommandRunner = {
   change: (change: AttributeChange) => Promise<ChangeResult>;
   confirm: (preview: ChangePreview) => Promise<ChangeResult>;
   changeDimension: (change: DimensionChange) => Promise<ChangeResult>;
+  /** Shows values the configuration already holds on the scene again (undo, restore). */
+  replay: (request: ReplayRequest) => Promise<ReplayResult>;
   /** Current state, for reading what a change should address at the moment it is made. */
   getState: () => RootState;
 };
@@ -52,6 +55,7 @@ export const createCommandRunner = ({
     change: (change) => changeAttribute(change, deps()),
     confirm: (preview) => confirmAttributeChange(preview, deps()),
     changeDimension: (change) => changeDimension(change, deps()),
+    replay: (request) => replayValues(request, deps()),
     getState,
   };
 };

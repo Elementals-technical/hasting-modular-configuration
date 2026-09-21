@@ -1,12 +1,9 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit";
 
 import type { RootState } from "./index";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setupSidePanelListener } from "@/features/sidePanel";
-import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   resolveCabinetSyncActions,
-  resolveHandleSceneSync,
   resolveRestoreStatusReset,
 } from "@/features/configurationCommands/lib/compositionListeners";
 import { setupSceneStateListener } from "@/features/configurationCommands/lib/sceneStateSync";
@@ -32,23 +29,6 @@ optionsListenerMiddleware.startListening({
 
 // The actual order and per-cabinet sizes are read back from the scene after they change.
 setupSceneStateListener(optionsListenerMiddleware.startListening, { reader: createSceneReader() });
-
-// A handle the state changed on its own (rules, restore, selection) reaches the scene once.
-optionsListenerMiddleware.startListening({
-  predicate: (action, current, previous) =>
-    resolveHandleSceneSync(action, previous as RootState, current as RootState) !== null,
-  effect: async (action, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const handle = resolveHandleSceneSync(action, listenerApi.getOriginalState() as RootState, state);
-    if (!handle) return;
-
-    const product = state.rootStateUI.product;
-    await setConfigBatch(
-      {},
-      buildHandleStyleConfigPatch(handle, product.productOptions.HandleGrooveColor, product.activeProfile),
-    );
-  },
-});
 
 // Side panel availability listener — delegated to SP module.
 setupSidePanelListener(optionsListenerMiddleware.startListening);

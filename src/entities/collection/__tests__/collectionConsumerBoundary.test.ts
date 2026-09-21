@@ -128,12 +128,6 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 2,
     reason: "C06 phase 7: clear the composition",
   },
-  "/src/app/store/optionsListener.ts": { owner: "C", count: 1, reason: "C06 phase 6: handle sync from state to scene" },
-  "/src/entities/history/lib/restoreSnapshot.ts": {
-    owner: "C",
-    count: 6,
-    reason: "C06 phase 6: undo and redo re-apply values through the scene adapter",
-  },
 };
 
 /** Action creators the command commits (commitChange.ts); anything else dispatching them is a second writer. */

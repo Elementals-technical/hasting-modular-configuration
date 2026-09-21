@@ -1,11 +1,15 @@
 import type { AppDispatch, RootState } from "@/app/store";
-import type { ConfigurationSceneRestorer, SceneRestoreRequest, SceneRestoreResult } from "@/entities/configuration";
+import type {
+  AttributeValue,
+  ConfigurationSceneRestorer,
+  SceneRestoreRequest,
+  SceneRestoreResult,
+} from "@/entities/configuration";
 import type { RuntimeBindingSet } from "@/entities/collection";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import { dropValuesForCabinet, restoreCabinets } from "@/entities/configuration/model/store/slice";
 import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { restoreSidePanelState } from "@/features/sidePanel";
 import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
 import {
@@ -32,6 +36,43 @@ export type RestoreSnapshotDeps = {
   getBindings: () => RuntimeBindingSet | null;
   /** Tests pass a stand-in; the app rebuilds the scene through the PlayCanvas adapter. */
   restorer?: ConfigurationSceneRestorer;
+  /**
+   * Shows the snapshot's configuration values on the rebuilt products. The command service
+   * sends them through the runtime port (C06); the state already holds them, so they are
+   * not recorded again.
+   */
+  replay: (values: Readonly<Record<string, AttributeValue>>) => Promise<unknown>;
+};
+
+/** Configuration values a product's own config may not carry, so the scene is given them again. */
+const REPLAYED_OPTIONS = [
+  "CabinetColor",
+  "CountertopColor",
+  "HandleGrooveColor",
+  "sinkType",
+  "CountertopStyle",
+  "GrainDirection",
+  "DrawerPanelFluting",
+  "Thickness",
+  "TowelBarColor",
+  "VesselColor",
+] as const;
+
+/**
+ * The values to show on the rebuilt scene. An empty value is left out, as the products keep
+ * their own; the towel bar is always sent, since it is a scene add-on no product config carries.
+ */
+export const buildSnapshotReplayValues = (snapshot: SceneSnapshot): Record<string, AttributeValue> => {
+  const options = snapshot.productOptions;
+  const values: Record<string, AttributeValue> = {};
+
+  for (const attributeId of REPLAYED_OPTIONS) {
+    const value = options[attributeId];
+    if (typeof value === "string" && value) values[attributeId] = value;
+  }
+
+  values.TowelBarOption = options.TowelBarOption || "None";
+  return values;
 };
 
 /** The products of a snapshot in composition order. A product without a config stays in, so preflight rejects it. */
@@ -50,7 +91,7 @@ export const buildSnapshotRestoreRequest = (snapshot: SceneSnapshot): SceneResto
  */
 export async function restoreSnapshot(
   snapshot: SceneSnapshot,
-  { dispatch, getState, getBindings, restorer = createSceneRestorer({ getBindings }) }: RestoreSnapshotDeps,
+  { dispatch, getState, getBindings, restorer = createSceneRestorer({ getBindings }), replay }: RestoreSnapshotDeps,
 ): Promise<SceneRestoreResult> {
   const result = await restorer.restore(buildSnapshotRestoreRequest(snapshot));
   if (result.status === "not-ready" || result.status === "rejected") return result;
@@ -120,47 +161,12 @@ export async function restoreSnapshot(
     }),
   );
 
-  // Re-apply global options to PlayCanvas since per-product getConfig may not include all settings
-  const opts = snapshot.productOptions;
-  const batchConfig: Record<string, unknown> = {};
-  if (opts.CabinetColor) batchConfig.CabinetColor = opts.CabinetColor;
-  if (opts.CountertopColor) batchConfig.CountertopColor = opts.CountertopColor;
-  if (opts.HandleGrooveColor) batchConfig.HandleGrooveColor = opts.HandleGrooveColor;
-  if (opts.sinkType) batchConfig.sinkType = opts.sinkType;
-  if (opts.CountertopStyle) batchConfig.CountertopStyle = opts.CountertopStyle;
-  if (opts.GrainDirection) batchConfig.GrainDirection = opts.GrainDirection;
-  if (opts.DrawerPanelFluting) batchConfig.DrawerPanelFluting = opts.DrawerPanelFluting;
-
-  if (newProductIds.length && Object.keys(batchConfig).length) {
-    await setConfigBatch(newProductIds, batchConfig);
-  }
-
-  if (opts.Thickness) {
-    await setConfigBatch({}, { Thickness: opts.Thickness });
-  }
-
-  // Re-apply TowelBar state to PlayCanvas.
-  // TowelBars are global scene addons (not per-product), synced via
-  // clear-then-add pattern (same as handleRemoveProducts/handleTowelBarChange).
-  const towelOption = opts.TowelBarOption;
-  await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both" });
-  if (towelOption && towelOption !== "None") {
-    await setConfigBatch({}, {
-      TowelBar: "TowelBar40_R",
-      TowelBarSide: towelOption.toLowerCase(),
-    });
-  }
-  if (opts.TowelBarColor) {
-    await setConfigBatch({}, { TowelBarColor: opts.TowelBarColor });
-  }
-
-  // Re-apply VesselColor to PlayCanvas (Sink-Base only).
-  if (opts.VesselColor) {
-    await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: opts.VesselColor });
-  }
+  // Per-product configs may not carry every configuration value, so they are shown again.
+  await replay(buildSnapshotReplayValues(snapshot));
 
   // Re-apply SidePanel state to PlayCanvas (per-side).
-  await restoreSidePanelState(opts.SidePanels, opts.SidePanelLeft, opts.SidePanelRight, newProductIds.length);
+  const { SidePanels, SidePanelLeft, SidePanelRight } = snapshot.productOptions;
+  await restoreSidePanelState(SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
 
   return result;
 }

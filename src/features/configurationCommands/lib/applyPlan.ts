@@ -11,7 +11,7 @@ import {
 } from "@/entities/configuration";
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 
-import { commitPlan } from "./commitChange";
+import { commitPlan, type CommitContext } from "./commitChange";
 import type { ChangeResult, PlannedChange } from "../model/types";
 
 /**
@@ -32,21 +32,36 @@ export type ApplyPlanDeps = {
   configurator?: ConfiguratorGroupCatalog | null;
 };
 
+/** What the adapter needs to address the scene, read from the state a set is applied to. */
+export const buildRuntimeContext = (state: RootState, collectionId: string, flow: RuntimeFlow): RuntimeContext => {
+  const cabinets = getCabinetEntries(state);
+
+  return {
+    collectionId,
+    flow,
+    resolveRuntimeId: (cabinetId) => cabinets.find((candidate) => candidate.stableKey === cabinetId)?.runtimeId ?? null,
+    cabinetRuntimeIds: cabinets.map((entry) => entry.runtimeId),
+  };
+};
+
+/** What the committers need to record a set applied to this state. */
+export const buildCommitContext = (
+  state: RootState,
+  context: RuntimeContext,
+  configurator: ConfiguratorGroupCatalog | null | undefined,
+): CommitContext => ({
+  selectedProductConfig: state.rootStateUI.product.selectedProductConfig ?? null,
+  resolveRuntimeId: context.resolveRuntimeId,
+  profile: getActiveProductProfile(state),
+  configurator: configurator ?? null,
+  productsPresets: state.rootStateUI.product.productsPresets,
+});
+
 export const applyPlan = async (
   plan: PlannedChange[],
   { state, dispatch, runtime, flow, collectionId, configurator }: ApplyPlanDeps,
 ): Promise<ChangeResult> => {
-  const cabinets = getCabinetEntries(state);
-
-  const resolveRuntimeId = (cabinetId: string): string | null =>
-    cabinets.find((candidate) => candidate.stableKey === cabinetId)?.runtimeId ?? null;
-
-  const context: RuntimeContext = {
-    collectionId,
-    flow,
-    resolveRuntimeId,
-    cabinetRuntimeIds: cabinets.map((entry) => entry.runtimeId),
-  };
+  const context = buildRuntimeContext(state, collectionId, flow);
 
   const runtimeResult = await runtime.apply(plan, context);
 
@@ -70,17 +85,9 @@ export const applyPlan = async (
       };
   }
 
-  const commitContext = {
-    selectedProductConfig: state.rootStateUI.product.selectedProductConfig ?? null,
-    resolveRuntimeId,
-    profile: getActiveProductProfile(state),
-    configurator: configurator ?? null,
-    productsPresets: state.rootStateUI.product.productsPresets,
-  };
-
   // Only what the runtime actually applied is recorded. A change the scene rejected must
   // not end up in state as if it had succeeded.
-  for (const action of commitPlan(runtimeResult.applied, commitContext)) {
+  for (const action of commitPlan(runtimeResult.applied, buildCommitContext(state, context, configurator))) {
     dispatch(action);
   }
 

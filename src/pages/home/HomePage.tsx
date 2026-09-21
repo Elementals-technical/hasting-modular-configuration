@@ -8,7 +8,7 @@ import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { SwatchOrder } from "@/features/swatchOrder";
 import { RestoreFailurePopup } from "@/features/configurationRestore";
-import { useAvailabilityResets } from "@/features/configurationCommands";
+import { useAvailabilityResets, useRuleDrivenHandleSync } from "@/features/configurationCommands";
 import { reset } from "@/entities/product/model/store/slice";
 import {
   captureOrbitCameraState,
@@ -44,6 +44,7 @@ export const HomePage = () => {
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
   useAvailabilityResets();
+  useRuleDrivenHandleSync();
 
   // restore default preset when navigate from custom route.
   const prevFlowRef = useRef(flow);

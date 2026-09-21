@@ -121,7 +121,7 @@ const COMMITTERS: Record<string, Committer> = {
   },
 
   DrawerPanelFluting: (change) => [setDrawerPanelFluting(asText(change))],
-  // The book matching listener reacts to this action and drops a value that no longer applies.
+  // useAvailabilityResets drops a book matching the new grain no longer allows.
   GrainDirection: (change) => [setGrainDirection(asText(change))],
   TowelBarOption: (change) => [setTowelBarOption(asText(change))],
   TowelBarColor: (change) => [setTowelBarColor(asText(change))],

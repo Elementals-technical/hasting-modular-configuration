@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import { getAttributeValue, getCabinetEntries, resetConfiguration, setAttributeValue } from "@/entities/configuration";
-import { addProductId, reset } from "@/entities/product/model/store/slice";
+import { addProductId, reset, setCabinetColor, setTowelBarOption } from "@/entities/product/model/store/slice";
 import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSceneRestorer";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
@@ -30,6 +30,7 @@ vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
 
 const HANDLE_FINISH = "TestFinish";
 const getState = () => store.getState();
+const replay = vi.fn(async () => undefined);
 
 const placeTwoCabinets = () => {
   store.dispatch(addProductId("rt-a"));
@@ -44,6 +45,7 @@ describe("history snapshot restore", () => {
     store.dispatch(reset());
     store.dispatch(resetConfiguration());
     vi.mocked(setConfigBatch).mockClear();
+    replay.mockClear();
   });
 
   it("records the stable key of every product", async () => {
@@ -64,6 +66,7 @@ describe("history snapshot restore", () => {
       getState,
       getBindings: () => null,
       restorer,
+      replay,
     });
 
     expect(result.status).toBe("restored");
@@ -79,6 +82,22 @@ describe("history snapshot restore", () => {
     expect(getAttributeValue(store.getState(), HANDLE_FINISH, { scope: "cabinet", cabinetId: "cab-2" })).toBe("Matte");
   });
 
+  it("shows the snapshot's values on the rebuilt scene through the command service only", async () => {
+    placeTwoCabinets();
+    store.dispatch(setCabinetColor("Pulpis Chiaro TKH"));
+    store.dispatch(setTowelBarOption("Right"));
+    const snapshot = await captureSnapshot(getState);
+    const { restorer } = createTestSceneRestorer();
+
+    await restoreSnapshot(snapshot, { dispatch: store.dispatch, getState, getBindings: () => null, restorer, replay });
+
+    expect(replay).toHaveBeenCalledTimes(1);
+    expect(replay).toHaveBeenCalledWith(
+      expect.objectContaining({ CabinetColor: "Pulpis Chiaro TKH", TowelBarOption: "Right" }),
+    );
+    expect(setConfigBatch).not.toHaveBeenCalled();
+  });
+
   it("changes neither the scene add-ons nor the state when the restorer rejects the snapshot", async () => {
     placeTwoCabinets();
     const snapshot: SceneSnapshot = { ...(await captureSnapshot(getState)), productConfigs: {} };
@@ -90,10 +109,12 @@ describe("history snapshot restore", () => {
       getState,
       getBindings: () => null,
       restorer,
+      replay,
     });
 
     expect(result.status).toBe("rejected");
     expect(store.getState().rootStateUI.product.productIds).toEqual(["rt-a", "rt-b"]);
+    expect(replay).not.toHaveBeenCalled();
     expect(setConfigBatch).not.toHaveBeenCalled();
   });
 
@@ -113,6 +134,7 @@ describe("history snapshot restore", () => {
       getState,
       getBindings: () => null,
       restorer,
+      replay,
     });
 
     expect(result.status).toBe("partial");
