@@ -13,7 +13,7 @@ export const ushSkuProfile: SkuProfile = (() => {
   const resolution = resolveSkuProfile({ id: "urban-standard-height", cabinetSkuMappings: ushCabinetSkuMappings });
 
   if (resolution.status !== "ready") {
-    throw new Error(`USH SKU profile did not resolve: ${resolution.reason}`);
+    throw new Error(`USH SKU profile did not resolve: ${resolution.status}`);
   }
 
   return resolution.profile;

@@ -11,6 +11,7 @@ import type { ProductProfile } from "../model/productProfile";
 import type { RuntimeBindingSet } from "../model/runtimeBindings";
 import {
   cabinetSkuMappingsSchema,
+  collectionSkuProfileSchema,
   configuratorSchema,
   countertopDatatableSchema,
   navigationSchema,
@@ -271,7 +272,7 @@ const loadLocalSources = async (
   const local = manifest.local;
   if (!local) return {};
 
-  const [navigation, presets, staticOptions, cabinetSkuMappings, productProfile, ui, runtimeBindings] =
+  const [navigation, presets, staticOptions, cabinetSkuMappings, skuProfile, productProfile, ui, runtimeBindings] =
     await Promise.all([
       local.navigation
         ? fetchSource(navigationSchema, local.navigation, manifestUrl, dependencies, signal, "Navigation data")
@@ -292,6 +293,9 @@ const loadLocalSources = async (
             "Cabinet SKU mappings",
           )
         : undefined,
+      local.skuProfile
+        ? fetchSource(collectionSkuProfileSchema, local.skuProfile, manifestUrl, dependencies, signal, "SKU profile")
+        : undefined,
       local.productProfile ? fetchProductProfile(local.productProfile, manifestUrl, dependencies, signal) : undefined,
       local.ui ? fetchCustomizationSchema(local.ui, manifestUrl, dependencies, signal) : undefined,
       local.runtimeBindings
@@ -309,6 +313,7 @@ const loadLocalSources = async (
     })),
     staticOptions,
     cabinetSkuMappings,
+    skuProfile,
     productProfile,
     ui,
     runtimeBindings,
@@ -368,6 +373,7 @@ export const assembleCollectionData = (
       presets: local.presets,
       staticOptions: local.staticOptions,
       cabinetSkuMappings: local.cabinetSkuMappings,
+      skuProfile: local.skuProfile,
       configurator: configuratorGroups
         ? {
             groups: configuratorGroups,

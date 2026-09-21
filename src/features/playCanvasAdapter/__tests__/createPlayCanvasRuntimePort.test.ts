@@ -10,6 +10,7 @@ import type { SceneBridge } from "../lib/createPlayCanvasRuntimePort";
 
 type FakeScene = SceneBridge & {
   calls: { selector: SceneSelector; patch: ScenePatch }[];
+  productCalls: { runtimeId: string; patch: ScenePatch }[];
   ready: boolean;
   /** Answers per call index; unlisted calls apply. */
   answers: Map<number, SceneCallResult>;
@@ -18,6 +19,7 @@ type FakeScene = SceneBridge & {
 const createFakeScene = (): FakeScene => {
   const scene: FakeScene = {
     calls: [],
+    productCalls: [],
     ready: true,
     answers: new Map(),
     isReady: () => scene.ready,
@@ -25,6 +27,10 @@ const createFakeScene = (): FakeScene => {
       const index = scene.calls.push({ selector, patch }) - 1;
       // Like the real scene: a broadcast updates every product.
       return scene.answers.get(index) ?? { status: "applied", updatedIds: selector.productIds ?? ALL_PRODUCTS };
+    },
+    async applyProduct(runtimeId, patch) {
+      scene.productCalls.push({ runtimeId, patch });
+      return { status: "applied", updatedIds: [runtimeId] };
     },
   };
   return scene;
@@ -63,6 +69,15 @@ describe("createPlayCanvasRuntimePort", () => {
 
     expect(result).toEqual({ status: "applied", applied: [drawers("2")] });
     expect(scene.calls).toEqual([{ selector: { productIds: ["rt-1"] }, patch: { Drawers: "2D" } }]);
+  });
+
+  it("keeps Width on the scene's direct-product resize API", async () => {
+    const { scene, port } = setUp();
+    const width: RuntimeChange = { attributeId: "Width", target: { scope: "cabinet", cabinetId: "cab-2" }, value: 80 };
+
+    await expect(port.apply([width], context())).resolves.toEqual({ status: "applied", applied: [width] });
+    expect(scene.productCalls).toEqual([{ runtimeId: "rt-2", patch: { Width: 80 } }]);
+    expect(scene.calls).toEqual([]);
   });
 
   it("broadcasts the height and runs the set in the planned order, one call per change", async () => {

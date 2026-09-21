@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
@@ -19,6 +19,7 @@ import { getActiveProductProfile } from "@/entities/configuration/model/store/se
 import { ROUTES } from "@/shared";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
+import { useCollectionNavigate } from "@/features/collectionCustomization";
 
 const CHARACTERISTICS = [
   "Soft-close, ergonomic drawer system",
@@ -109,7 +110,7 @@ const styleToDescription = (style?: string | null) => {
 const cmToInches = (cm: number) => Number((cm / 2.54).toFixed(1));
 
 export const CabinetStyleDetailsPage = () => {
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const [params] = useSearchParams();
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);

@@ -204,6 +204,16 @@ export type SceneAddProductResult =
   | { status: "not-ready" }
   | { status: "failed"; code: SceneCallFailureCode; message: string };
 
+export type ScenePresetProduct = {
+  name: string;
+  [key: string]: unknown;
+};
+
+export type ScenePresetResult =
+  | { status: "applied"; runtimeIds: string[] }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string };
+
 type SceneApiFunction = (...args: unknown[]) => unknown;
 
 const toSceneError = (error: unknown) => ({
@@ -252,6 +262,28 @@ export const addSceneProduct = (productType: string, config: Record<string, unkn
       }
 
       return { status: "applied", runtimeId };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/**
+ * Rebuilds a saved composition through the scene's native preset API.
+ *
+ * The scene does not promise the created ids: it may answer with them, with a shorter
+ * list, or with nothing at all. Only a thrown error means the products were not placed,
+ * so the ids are reported as far as they are known and the caller reads the scene when
+ * they are missing.
+ */
+export const presetSceneProducts = (products: readonly ScenePresetProduct[]): Promise<ScenePresetResult> =>
+  runSceneOperation("presetProducts", async (call): Promise<ScenePresetResult> => {
+    try {
+      const result = await call(products);
+      const runtimeIds = Array.isArray(result)
+        ? result.filter((entry): entry is string => typeof entry === "string")
+        : [];
+
+      return { status: "applied", runtimeIds };
     } catch (error) {
       return toSceneError(error);
     }

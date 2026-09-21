@@ -9,7 +9,7 @@ import {
   type Styles,
   type TooltipRenderProps,
 } from "react-joyride";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import { useActiveCollection } from "@/entities/collection";
 import { useCollectionNavigation, useEntryStep } from "@/features/collectionCustomization";
@@ -40,6 +40,7 @@ import {
 } from "../lib/tutorialBridge";
 
 import s from "./InteractiveConfiguratorTutorial.module.scss";
+import { useCollectionNavigate } from "@/features/collectionCustomization";
 
 type InteractiveConfiguratorTutorialProps = {
   isOpen: boolean;
@@ -507,7 +508,7 @@ const shouldBlockTargetEvent = (
 };
 
 export const InteractiveConfiguratorTutorial = ({ isOpen, onClose }: InteractiveConfiguratorTutorialProps) => {
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const schema = useActiveCollection((collection) => collection.catalog.customization ?? null);

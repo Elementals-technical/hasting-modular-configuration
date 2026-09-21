@@ -4,6 +4,7 @@ import type { PresetProduct } from "@/entities/product/types";
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
 import {
   materialMatchesRule,
+  selectMaterialAliasTable,
   matchesDepthForStyle,
   normalizeBasinKey,
   normalizeBasinToken,
@@ -168,8 +169,9 @@ const isMaterialCompatible = ({
     activeBasinStyle,
   });
 
+  const aliasTable = selectMaterialAliasTable(profile);
   const materialMatchingRules = rules.filter((rule) =>
-    activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material)),
+    activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable)),
   );
   const applicableRules = materialMatchingRules.filter((rule) =>
     matchesDepthForStyle(rule, dimensions.sinkBaseDepth, widthRuleStyle),

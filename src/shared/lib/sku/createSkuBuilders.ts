@@ -1,3 +1,5 @@
+import type { CollectionSkuProfile } from "@/entities/collection/model/schemas";
+
 import { buildBookMatchingSku, type BookMatchingSkuInput } from "./buildBookMatchingSku";
 import { buildCountertopSku, buildCountertopSkuIfComplete, type CountertopSkuInput } from "./buildCountertopSku";
 import { buildDividerSku, type DividerSkuInput } from "./buildDividerSku";
@@ -21,6 +23,8 @@ export type SkuBuilders = {
   status: SkuProfileResolution["status"];
   reason: SkuProfileUnsupportedReason | null;
   profile: SkuProfile | null;
+  /** A collection priced from its `sku-profile.json`; its lines come from `buildCollectionPricingLines`. */
+  collectionProfile: CollectionSkuProfile | null;
   buildProductSku: (input: ProductSkuInput) => string;
   buildProductBaseSku: (input: ProductSkuInput) => string;
   buildOpenShelfSku: (input: OpenShelfSkuInput) => string;
@@ -34,23 +38,38 @@ export type SkuBuilders = {
   buildVesselSku: (input: VesselSkuInput) => string;
 };
 
+const IDLE_BUILDERS: Omit<SkuBuilders, "status" | "reason" | "profile" | "collectionProfile"> = {
+  buildProductSku: () => "",
+  buildProductBaseSku: () => "",
+  buildOpenShelfSku: () => "",
+  buildOpenSideShelfSku: () => "",
+  buildSidePanelSku: () => null,
+  buildDividerSku: () => null,
+  buildTowelBarSku: () => null,
+  buildBookMatchingSku: () => "",
+  buildCountertopSku: () => [],
+  buildCountertopSkuIfComplete: () => [],
+  buildVesselSku: () => "",
+};
+
 export const createSkuBuilders = (resolution: SkuProfileResolution): SkuBuilders => {
+  if (resolution.status === "collection") {
+    return {
+      status: "collection",
+      reason: null,
+      profile: null,
+      collectionProfile: resolution.collectionProfile,
+      ...IDLE_BUILDERS,
+    };
+  }
+
   if (resolution.status === "unsupported") {
     return {
       status: "unsupported",
       reason: resolution.reason,
       profile: null,
-      buildProductSku: () => "",
-      buildProductBaseSku: () => "",
-      buildOpenShelfSku: () => "",
-      buildOpenSideShelfSku: () => "",
-      buildSidePanelSku: () => null,
-      buildDividerSku: () => null,
-      buildTowelBarSku: () => null,
-      buildBookMatchingSku: () => "",
-      buildCountertopSku: () => [],
-      buildCountertopSkuIfComplete: () => [],
-      buildVesselSku: () => "",
+      collectionProfile: null,
+      ...IDLE_BUILDERS,
     };
   }
 
@@ -60,6 +79,7 @@ export const createSkuBuilders = (resolution: SkuProfileResolution): SkuBuilders
     status: "ready",
     reason: null,
     profile,
+    collectionProfile: null,
     buildProductSku: (input) => buildProductSku(profile, input),
     buildProductBaseSku: (input) => buildProductBaseSku(profile, input),
     buildOpenShelfSku: (input) => buildOpenShelfSku(profile, input),

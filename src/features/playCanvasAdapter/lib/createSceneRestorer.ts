@@ -9,13 +9,12 @@ import type {
   SceneRestoreResult,
 } from "@/entities/configuration";
 import { normalizeRuntimeProductType, withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
-import {
-  addSceneProduct,
-  clearSceneProducts,
-  isSceneReady,
-  setSceneProductConfig,
+import { clearSceneProducts, isSceneReady, presetSceneProducts } from "@/utils/functions/playcanvas/sceneBridge";
+import type {
+  SceneOperationResult,
+  ScenePresetProduct,
+  ScenePresetResult,
 } from "@/utils/functions/playcanvas/sceneBridge";
-import type { SceneAddProductResult, SceneOperationResult } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createSceneReader } from "./createSceneReader";
 
@@ -25,9 +24,8 @@ import { createSceneReader } from "./createSceneReader";
  * 1. Preflight checks everything the runtime can know without the scene: a non-empty
  *    composition, unique source ids, a config per product and a scene type per product
  *    type. Any issue, or a scene that is not ready, leaves the scene untouched.
- * 2. The scene is cleared once, then products are added one by one on the right. addProduct
- *    returns each runtime id, which gives an exact id mapping; presetProducts silently skips
- *    a product it cannot create, so it cannot.
+ * 2. The scene is cleared once, then rebuilt through native presetProducts. This is the
+ *    same path used for ordinary model presets and returns the runtime-id mapping.
  * 3. A failed product does not stop the rest. Once the scene was cleared the result is
  *    "partial", never a failure without changes: the scene has changed and C must know it.
  * 4. The actual order is read back and compared with the order of the request.
@@ -37,8 +35,7 @@ import { createSceneReader } from "./createSceneReader";
 export type SceneRestoreBridge = {
   isReady(): boolean;
   clear(): Promise<SceneOperationResult>;
-  addProduct(productType: string, config: Record<string, unknown>): Promise<SceneAddProductResult>;
-  setConfig(runtimeId: string, config: Record<string, unknown>): Promise<SceneOperationResult>;
+  presetProducts(products: readonly ScenePresetProduct[]): Promise<ScenePresetResult>;
 };
 
 export type SceneRestorerDeps = {
@@ -51,8 +48,7 @@ export type SceneRestorerDeps = {
 const defaultScene: SceneRestoreBridge = {
   isReady: isSceneReady,
   clear: clearSceneProducts,
-  addProduct: addSceneProduct,
-  setConfig: setSceneProductConfig,
+  presetProducts: presetSceneProducts,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -73,7 +69,7 @@ export const resolveSceneProductType = (bindings: RuntimeBindingSet, productType
   return candidates.find((candidate) => sceneTypes.has(candidate)) ?? null;
 };
 
-const failedMessage = (result: SceneOperationResult | SceneAddProductResult, fallback: string): string =>
+const failedMessage = (result: SceneOperationResult | ScenePresetResult, fallback: string): string =>
   result.status === "failed" ? result.message : fallback;
 
 export const createSceneRestorer = ({
@@ -118,6 +114,12 @@ export const createSceneRestorer = ({
     return issues;
   };
 
+  /** The ids the scene holds after the rebuild, in composition order. */
+  const readPlacedIds = async (request: SceneRestoreRequest): Promise<string[]> => {
+    const state = await reader.read([]);
+    return state.status === "ready" && state.order.length === request.products.length ? [...state.order] : [];
+  };
+
   const restore = async (request: SceneRestoreRequest): Promise<SceneRestoreResult> => {
     if (!scene.isReady()) return { status: "not-ready" };
 
@@ -137,34 +139,49 @@ export const createSceneRestorer = ({
       };
     }
 
-    const matches: SceneRestoreMatch[] = [];
-    const failed: SceneRestoreFailure[] = [];
-
-    for (const { sourceId, productType, config } of request.products) {
-      // Preflight guarantees both; the checks only narrow the types.
+    const presetProducts = request.products.flatMap(({ productType, config }) => {
       const sceneType = resolveSceneProductType(bindings, productType);
-      if (!sceneType || !isRecord(config)) continue;
+      return sceneType && isRecord(config) ? [{ ...withRuntimeProductType(config, sceneType), name: sceneType }] : [];
+    });
+    const rebuilt = await scene.presetProducts(presetProducts);
 
-      const productConfig = withRuntimeProductType(config, sceneType);
-      const added = await scene.addProduct(sceneType, productConfig);
-
-      if (added.status !== "applied") {
-        const code = added.status === "not-ready" ? "scene-error" : "not-created";
-        failed.push({ sourceId, code, message: failedMessage(added, "The scene stopped being ready.") });
-        continue;
-      }
-
-      matches.push({ sourceId, runtimeId: added.runtimeId });
-
-      const configured = await scene.setConfig(added.runtimeId, productConfig);
-      if (configured.status !== "applied") {
-        failed.push({
+    if (rebuilt.status !== "applied") {
+      return {
+        status: "partial",
+        matches: [],
+        failed: request.products.map(({ sourceId }) => ({
           sourceId,
-          code: "config-rejected",
-          message: failedMessage(configured, "The scene stopped being ready."),
-        });
-      }
+          code: rebuilt.status === "not-ready" ? "scene-error" : "not-created",
+          message: failedMessage(rebuilt, "The scene stopped being ready."),
+        })),
+        scene: await reader.read([]),
+      };
     }
+
+    // The preset API does not promise the created ids, so the scene's own order is the
+    // fallback. It is used only when it holds exactly one id per saved product: a shorter
+    // order means a product was skipped, and a shifted id would rename another cabinet.
+    const placed =
+      rebuilt.runtimeIds.length === request.products.length ? rebuilt.runtimeIds : await readPlacedIds(request);
+
+    if (placed.length !== request.products.length) {
+      return {
+        status: "partial",
+        matches: [],
+        failed: request.products.map(({ sourceId }) => ({
+          sourceId,
+          code: "not-created",
+          message: `The scene rebuilt ${placed.length} of ${request.products.length} saved products.`,
+        })),
+        scene: await reader.read(placed),
+      };
+    }
+
+    const matches: SceneRestoreMatch[] = request.products.map(({ sourceId }, index) => ({
+      sourceId,
+      runtimeId: placed[index],
+    }));
+    const failed: SceneRestoreFailure[] = [];
 
     const runtimeIds = matches.map(({ runtimeId }) => runtimeId);
     const sceneState = await reader.read(runtimeIds);

@@ -66,6 +66,8 @@ export {
   selectInitialValue,
   selectLegacySpelling,
   selectMessage,
+  selectMessageOr,
+  selectBasinOptions,
   selectOption,
   selectOptionValues,
   selectOptions,

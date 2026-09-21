@@ -74,6 +74,7 @@ describe("collection contracts", () => {
       presets: "presets.json",
       ui: "ui.json",
       productProfile: "product-profile.json",
+      skuProfile: "sku-profile.json",
     });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
@@ -94,6 +95,7 @@ describe("collection contracts", () => {
       presets: "presets.json",
       ui: "ui.json",
       productProfile: "product-profile.json",
+      skuProfile: "sku-profile.json",
     });
     expect(makoManifest.defaultPresetId).toBeUndefined();
     expect(makoManifest.remote).toEqual({

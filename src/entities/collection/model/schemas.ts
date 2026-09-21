@@ -52,6 +52,8 @@ export const collectionManifestSchema = z
         presets: localJsonReferenceSchema.optional(),
         staticOptions: localJsonReferenceSchema.optional(),
         cabinetSkuMappings: localJsonReferenceSchema.optional(),
+        /** Pricing SKU words of a collection priced from data (D04). */
+        skuProfile: localJsonReferenceSchema.optional(),
         /**
          * Product data of the collection — option catalogs, capabilities, rule
          * parameters and reason codes. Validated by `parseProductProfile` rather than a
@@ -171,6 +173,98 @@ export const cabinetSkuMappingsSchema = z
   })
   .strict();
 
+/** Parts of an order whose SKU, quantity or input the collection has not confirmed (D04). */
+export const pricingGapGroupSchema = z.enum(["legs", "vessel", "solidSurfaceGroup", "divider", "thickTop", "bracket"]);
+
+/**
+ * How a collection spells its pricing SKUs, for collections whose SKU words are data (D04).
+ * USH keeps its series in code (D01); a collection with this file is priced from it alone.
+ */
+export const collectionSkuProfileSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    collectionId: collectionIdSchema,
+    /** `partial` while any group of `gaps` is open. */
+    status: z.enum(["ready", "partial"]),
+    sources: z.array(z.string()),
+    cabinet: z
+      .object({
+        series: z.string().trim().min(1),
+        /** `SB/2DW/G57`: one code per attribute, in order. */
+        configBlock: z.array(z.object({ attributeId: z.string(), codes: stringMapSchema }).strict()).min(1),
+        /** `CAB-LACM-412`: the first element carries the price. */
+        elements: z
+          .array(
+            z
+              .object({
+                code: z.string().trim().min(1),
+                attributeId: z.string(),
+                /** `LACM/B`: a suffix of the material decided by another attribute. */
+                materialSuffix: z
+                  .object({ attributeId: z.string(), byValue: stringMapSchema, otherwise: z.string() })
+                  .strict()
+                  .optional(),
+              })
+              .strict(),
+          )
+          .min(1),
+      })
+      .strict(),
+    colors: z
+      .object({
+        /** Material SKU by the profile category of a colour option (`Lacquered MT` → `LACM`). */
+        materialByCategory: stringMapSchema,
+        /** Colour codes the name does not carry as a number (`Fume` → `SG`). */
+        codeByValue: stringMapSchema,
+      })
+      .strict(),
+    countertop: z
+      .object({
+        series: z.string().trim().min(1),
+        styles: stringMapSchema,
+        depthIn: z.string().trim().min(1),
+        materialByColorCategory: stringMapSchema,
+        /** A basin that belongs to one material decides it (`VA030` → `SSTEX`). */
+        materialByBasin: stringMapSchema,
+        thicknessByMaterial: stringMapSchema,
+        bracket: z
+          .object({
+            sku: z.string().trim().min(1),
+            quantity: z.number().int().positive(),
+            thicknesses: z.array(z.string()),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict(),
+    /** One SKU per organizer, by `DividersStyle` value. */
+    dividers: stringMapSchema,
+    gaps: z.array(
+      z
+        .object({
+          group: pricingGapGroupSchema,
+          /** An order that uses the group has no complete price. */
+          blocksTotal: z.boolean(),
+          owner: z.string().trim().min(1),
+          reason: z.string().trim().min(1),
+          /**
+           * The order uses the group when the attribute has a value, one of `values` or a value of
+           * one of `categories`. Without it the gap concerns the collection, not a single order.
+           */
+          appliesWhen: z
+            .object({
+              attributeId: z.string(),
+              values: z.array(z.string()).optional(),
+              categories: z.array(z.string()).optional(),
+            })
+            .strict()
+            .optional(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+
 const configuratorVariantSchema = z
   .object({
     id: z.number(),
@@ -243,3 +337,5 @@ export type CollectionNavigation = z.infer<typeof navigationSchema>;
 export type CollectionPreset = z.infer<typeof presetsSchema>[number];
 export type CollectionStaticOptions = z.infer<typeof staticOptionsSchema>;
 export type CabinetSkuMappings = z.infer<typeof cabinetSkuMappingsSchema>;
+export type CollectionSkuProfile = z.infer<typeof collectionSkuProfileSchema>;
+export type PricingGapGroup = z.infer<typeof pricingGapGroupSchema>;

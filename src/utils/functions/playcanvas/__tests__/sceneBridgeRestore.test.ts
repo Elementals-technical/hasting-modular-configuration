@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { addSceneProduct, clearSceneProducts, setSceneProductConfig } from "../sceneBridge";
+import { addSceneProduct, clearSceneProducts, presetSceneProducts, setSceneProductConfig } from "../sceneBridge";
 
 vi.mock("../apiLogger", () => ({ installConfiguratorApiLogger: vi.fn() }));
 vi.mock("../updateDimensionData", () => ({ updateDimensionDataForProduct: vi.fn() }));
@@ -24,6 +24,7 @@ describe("scene restore operations", () => {
   it("are not ready without a scene, and call nothing", async () => {
     expect(await clearSceneProducts()).toEqual({ status: "not-ready" });
     expect(await addSceneProduct("Sink-Base", {})).toEqual({ status: "not-ready" });
+    expect(await presetSceneProducts([{ name: "Sink-Base" }])).toEqual({ status: "not-ready" });
     expect(await setSceneProductConfig("rt-a", {})).toEqual({ status: "not-ready" });
   });
 
@@ -50,6 +51,28 @@ describe("scene restore operations", () => {
 
     installScene({ addProduct: vi.fn(async () => null) });
     expect(await addSceneProduct("Sink-Base", {})).toMatchObject({ status: "failed", code: "scene-rejected" });
+  });
+
+  it("returns every runtime id created by the preset API", async () => {
+    const presetProducts = vi.fn(async () => ["Sink-Base-abc123", "Sink-Cabinet-def456"]);
+    installScene({ presetProducts });
+
+    expect(await presetSceneProducts([{ name: "Sink-Base" }, { name: "Sink-Cabinet" }])).toEqual({
+      status: "applied",
+      runtimeIds: ["Sink-Base-abc123", "Sink-Cabinet-def456"],
+    });
+
+    // The scene does not promise the ids. Only a throw means the products were not placed,
+    // so an answer without ids stays applied and the restorer reads the scene instead.
+    installScene({ presetProducts: vi.fn(async () => null) });
+    expect(await presetSceneProducts([{ name: "Sink-Base" }])).toEqual({ status: "applied", runtimeIds: [] });
+
+    installScene({
+      presetProducts: vi.fn(async () => {
+        throw new Error("no asset");
+      }),
+    });
+    expect(await presetSceneProducts([{ name: "Sink-Base" }])).toMatchObject({ status: "failed" });
   });
 
   it("tell a missing product from an applied config", async () => {

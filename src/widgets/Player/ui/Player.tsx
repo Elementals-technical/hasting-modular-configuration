@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
@@ -7,7 +7,7 @@ import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvas
 import { InteractiveConfiguratorTutorial } from "@/features/interactiveConfiguratorTutorial";
 import { IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT } from "@/features/inSceneQuickEditorNotification";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { useCollectionNavigate, useCollectionNavigation } from "@/features/collectionCustomization";
 import { openSwatchOrder } from "@/features/swatchOrder";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 
@@ -52,7 +52,7 @@ export function Player({
   onInteractiveTutorialClose,
 }: PlayerProps = {}) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
 
@@ -410,10 +410,7 @@ export function Player({
         <StepNavigationBar title={activeStep} />
       </div>
 
-      <PlayCanvasIntegration
-        isCanvasFullMode={isCanvasFullMode}
-        onCanvasFullModeClose={handleCanvasFullModeClose}
-      />
+      <PlayCanvasIntegration isCanvasFullMode={isCanvasFullMode} onCanvasFullModeClose={handleCanvasFullModeClose} />
 
       {onCanvasFullModeChange && (
         <button

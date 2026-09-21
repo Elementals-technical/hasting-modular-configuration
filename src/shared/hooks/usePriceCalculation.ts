@@ -9,6 +9,7 @@ import {
 } from "@/entities/product/api";
 import {
   setPriceLoading,
+  setPricingGaps,
   setPricingLines,
   setPricingUnavailable,
   setSkuPriceEntries,
@@ -16,7 +17,14 @@ import {
   type SkuPriceEntry,
 } from "@/entities/product/model/store/priceStore";
 import { usePricingInput } from "@/shared/hooks/usePricingInput";
-import { buildPricingLines, expandLineSkus, resolvePriceFromResponse, resolvePriceRequest } from "@/shared/lib/pricing";
+import {
+  buildCollectionPricingLines,
+  buildPricingLines,
+  expandLineSkus,
+  resolvePriceFromResponse,
+  resolvePriceRequest,
+  type CollectionPricingResult,
+} from "@/shared/lib/pricing";
 
 // ── Hook ────────────────────────────────────────────────
 
@@ -47,13 +55,29 @@ export function usePriceCalculation() {
 
   // ── Build the order lines ─────────────────────────────
 
-  const lines = useMemo(() => (canCalculate ? buildPricingLines(input) : []), [canCalculate, input]);
+  // A collection with its own SKU profile (Class, Mako) is priced from C's state, USH from its builders (D04).
+  const { lines, gaps } = useMemo<CollectionPricingResult>(() => {
+    if (!canCalculate) return { lines: [], gaps: [] };
+    return skuBuilders.collectionProfile
+      ? buildCollectionPricingLines(input)
+      : { lines: buildPricingLines(input), gaps: [] };
+  }, [canCalculate, input, skuBuilders.collectionProfile]);
   const currentSkus = useMemo(() => expandLineSkus(lines), [lines]);
 
   // ── Stable key for the lines (avoid effect re-runs on same content) ─
 
   const linesKey = lines.map(({ id, sku, quantity }) => `${id}=${sku}*${quantity}`).join("|");
   const countertopPrefix = skuBuilders.profile?.series.countertopPrefix ?? null;
+  // The top of a collection priced from its SKU profile is priced per cm of the composition.
+  const pricedPerCmSkus = useMemo(
+    () =>
+      new Set(
+        skuBuilders.collectionProfile
+          ? lines.filter(({ group, widthCm }) => group === "countertop" && widthCm != null).map(({ sku }) => sku)
+          : [],
+      ),
+    [lines, skuBuilders.collectionProfile],
+  );
   // Book matching is priced through the v2 resolver; recognised by the collection series, not a USH literal.
   const bookMatchingSkuPrefix = skuBuilders.profile ? `VAN-${skuBuilders.profile.series.bookMatching}-` : null;
   const widthCmBySku = useMemo(
@@ -65,8 +89,15 @@ export function usePriceCalculation() {
 
   const fetchedRef = useRef<Set<string>>(new Set());
 
+  // The unconfirmed parts the order uses keep the total incomplete even when every line is priced.
+  const gapsKey = gaps.map(({ group, reason }) => `${group}:${reason}`).join("|");
   useEffect(() => {
-    if (skuBuilders.status !== "ready") {
+    dispatch(setPricingGaps(gaps));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gapsKey, dispatch]);
+
+  useEffect(() => {
+    if (skuBuilders.status === "unsupported") {
       dispatch(setPricingUnavailable());
       return;
     }
@@ -105,6 +136,7 @@ export function usePriceCalculation() {
                   widthCm: widthCmBySku.get(sku),
                   countertopPrefix,
                   bookMatchingSkuPrefix,
+                  pricedPerCm: pricedPerCmSkus.has(sku),
                 });
 
                 let data: ProductSkuPriceResponse | CountertopSkuPriceResponse;

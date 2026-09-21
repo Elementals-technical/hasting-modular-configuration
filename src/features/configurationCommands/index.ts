@@ -1,5 +1,6 @@
 export type {
   AttributeChange,
+  DimensionChange,
   ChangeBlockedReason,
   ChangeErrorCode,
   ChangePreview,
@@ -12,8 +13,11 @@ export type {
 export { changeAttribute } from "./lib/changeAttribute";
 export type { ChangeAttributeDeps } from "./lib/changeAttribute";
 export { confirmAttributeChange } from "./lib/confirmAttributeChange";
+export { changeDimension } from "./lib/changeDimension";
+export type { ChangeDimensionDeps } from "./lib/changeDimension";
 export { useChangeAttribute } from "./hooks/useChangeAttribute";
 export type { UseChangeAttributeOptions } from "./hooks/useChangeAttribute";
+export { useChangeDimension } from "./hooks/useChangeDimension";
 export { useAttributeChangeHandler } from "./hooks/useAttributeChangeHandler";
 export { useAvailabilityResets } from "./hooks/useAvailabilityResets";
 export { resolveChangeRequest } from "./lib/resolveChangeRequest";

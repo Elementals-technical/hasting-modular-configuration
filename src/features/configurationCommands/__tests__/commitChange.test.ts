@@ -28,7 +28,11 @@ const commit = () => {
     { attributeId: "SidePanelRight", target: { scope: "global" }, value: "none" },
     { attributeId: "LedOption", target: { scope: "global" }, value: "Led" },
     { attributeId: "DividersOption", target: { scope: "global" }, value: "Option A" },
-    { attributeId: "DividersStyle", target: { scope: "drawer", cabinetId: "cab-2", drawerType: "Top" }, value: "Option B" },
+    {
+      attributeId: "DividersStyle",
+      target: { scope: "drawer", cabinetId: "cab-2", drawerType: "Top" },
+      value: "Option B",
+    },
   ] as const;
 
   const actions = commitPlan(
@@ -66,9 +70,29 @@ describe("commitPlan", () => {
     expect(getAttributeValue(state, "DividersStyle", { scope: "drawer", cabinetId: "cab-2", drawerType: "Top" })).toBe(
       "Option B",
     );
-    expect(Object.keys(state.rootStateUI.configuration.valuesByAttributeId).sort()).toEqual(
-      changesInCanonicalOrder,
-    );
+    expect(Object.keys(state.rootStateUI.configuration.valuesByAttributeId).sort()).toEqual(changesInCanonicalOrder);
+  });
+
+  // The scene keeps a cutout token where the legacy slice keeps "no basin chosen"; the
+  // profile names that token, so the pages no longer spell it out.
+  it("records the profile's vessel cutout as no basin, and a chosen basin as itself", () => {
+    const commitBasin = (value: string) =>
+      commitPlan(
+        [{ attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-1" }, value, origin: "requested" }],
+        {
+          selectedProductConfig: null,
+          resolveRuntimeId: () => "Sink-Base-a",
+          profile: ushProfile,
+        },
+      ).forEach((action) => store.dispatch(action));
+
+    commitBasin("Top_HPLPrisma");
+    expect(store.getState().rootStateUI.product.productOptions.sinkType).toBe("Top_HPLPrisma");
+
+    commitBasin("Vessel");
+    expect(store.getState().rootStateUI.product.productOptions.sinkType).toBe("");
+    // The addressed value stays semantic: restore re-applies the cutout the scene needs.
+    expect(getAttributeValue(store.getState(), "sinkType", { scope: "basin", sinkBaseId: "cab-1" })).toBe("Vessel");
   });
 });
 

@@ -37,6 +37,10 @@ export const getCabinetByStableKey = (state: RootState, stableKey: string): Cabi
 export const getStableKeyForRuntimeId = (state: RootState, runtimeId: string): string | null =>
   resolveStableKey(getCabinetEntries(state), runtimeId);
 
+/** Every value by attribute and address. The reference changes only when a value does. */
+export const getValuesByAttributeId = (state: RootState): ConfigurationState["valuesByAttributeId"] =>
+  state.rootStateUI.configuration.valuesByAttributeId;
+
 /** Actual sizes read from the scene, by stable key. The reference changes only when a size does. */
 export const getDimensionsByCabinet = (state: RootState): ConfigurationState["dimensionsByCabinet"] =>
   state.rootStateUI.configuration.dimensionsByCabinet;

@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { selectBookMatchingState, selectFlutingState } from "@/entities/product/model/store/derivedSelectors";
 import {
-  getCabinetColor,
   getGrainDirection,
-  getHandleGrooveColor,
   getPlacedCabinetStyles,
   getSelectedProducts,
 } from "@/entities/product/model/store/selectors";
@@ -17,7 +15,6 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useCabinetColorSections } from "@/widgets";
 
 export const CustomCabinetColorsPage = () => {
@@ -25,8 +22,6 @@ export const CustomCabinetColorsPage = () => {
   const activeProfile = useAppSelector(getActiveProductProfile);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
-  const activeCabinetColor = useAppSelector(getCabinetColor);
-  const activeGrooveColor = useAppSelector(getHandleGrooveColor);
   const activeGrainDirection = useAppSelector(getGrainDirection);
   const isPlayCanvasReady = usePlayCanvasReady();
   const selectorBookMatchingState = useAppSelector(selectBookMatchingState);
@@ -39,26 +34,6 @@ export const CustomCabinetColorsPage = () => {
     flutingState,
     bookMatchingState,
   });
-
-  // Fill all products.
-  useEffect(() => {
-    if (!isPlayCanvasReady || !activeCabinetColor) return;
-
-    setConfigBatch(
-      {},
-      {
-        CabinetColor: activeCabinetColor,
-      },
-    );
-  }, [activeCabinetColor, isPlayCanvasReady, selectedProducts]);
-
-  useEffect(() => {
-    if (!isPlayCanvasReady || !activeGrooveColor) return;
-
-    setConfigBatch(selectedProducts, {
-      HandleGrooveColor: activeGrooveColor,
-    });
-  }, [activeGrooveColor, isPlayCanvasReady, selectedProducts]);
 
   useEffect(() => {
     if (!isPlayCanvasReady || selectedProducts.length === 0) {

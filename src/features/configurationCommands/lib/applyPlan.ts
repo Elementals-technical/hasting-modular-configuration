@@ -3,7 +3,12 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import { getActiveProductProfile, getCabinetEntries, markRuntimeOutOfSync } from "@/entities/configuration";
+import {
+  getActiveProductProfile,
+  getCabinetEntries,
+  markRuntimeOutOfSync,
+  requestSceneStateSync,
+} from "@/entities/configuration";
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 
 import { commitPlan } from "./commitChange";
@@ -84,6 +89,7 @@ export const applyPlan = async (
     // longer represents the agreed set. Save waits for I's next reader sync, restore,
     // or reload instead of serializing that ambiguous intermediate state.
     dispatch(markRuntimeOutOfSync());
+    dispatch(requestSceneStateSync());
     return {
       status: "partial",
       applied: runtimeResult.applied,
@@ -92,5 +98,8 @@ export const applyPlan = async (
     };
   }
 
+  // Do not rely on a page reducer happening to fire after a command. I04 is the
+  // authoritative source for order and dimensions, including a dimension command.
+  dispatch(requestSceneStateSync());
   return { status: "applied", plan };
 };

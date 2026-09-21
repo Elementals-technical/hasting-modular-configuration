@@ -1,7 +1,7 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { ProductProfile } from "@/entities/collection";
-import { selectLegacySpelling } from "@/entities/collection";
+import { selectAttribute, selectLegacySpelling } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getAttributeOwnership, setAttributeValue } from "@/entities/configuration";
 import {
@@ -28,6 +28,7 @@ import {
   setSidePanelSideStatus,
   setSidePanelsOption,
   setSelectedProductConfig,
+  setSelectedDimensions,
   setTowelBarColor,
   setTowelBarOption,
   setVesselColor,
@@ -65,6 +66,10 @@ const asText = (change: PlannedChange): string => String(change.value ?? "");
 
 /** Pricing and derived fields can be carried by runtime data, but are never semantic C state. */
 const recordSemanticChange = (change: PlannedChange): UnknownAction | null => {
+  // Dimensions are persisted in each product's scene config. The selected dimensions
+  // below are a UI projection; I04 replaces them with the scene's actual values.
+  if (change.attributeId === "Width" || change.attributeId === "Depth" || change.attributeId === "Height") return null;
+
   const owner = getAttributeOwnership(change.attributeId)?.owner;
   if (owner === "pricing" || owner === "derived") return null;
 
@@ -124,7 +129,14 @@ const COMMITTERS: Record<string, Committer> = {
   Thickness: (change) => [setActiveCountertopThickness(asText(change))],
   CountertopColor: (change) => [setActiveCountertopColor(asText(change))],
   CountertopStyle: (change) => [setCountertopStyle(asText(change))],
-  sinkType: (change) => [setActiveBasinStyle(asText(change))],
+  // The scene keeps the cutout token of a vessel where state keeps "no basin chosen". The
+  // profile names that token as the attribute's noneValue, so no page spells it out.
+  sinkType: (change, context) => {
+    const value = asText(change);
+    const noneValue = selectAttribute(context.profile, "sinkType")?.noneValue;
+
+    return [setActiveBasinStyle(noneValue !== undefined && value === noneValue ? "" : value)];
+  },
   VesselColor: (change) => [setVesselColor(asText(change))],
   BookMatching: (change) => [setBookMatching(asText(change))],
   SidePanels: (change) => [setSidePanelsOption(asText(change))],
@@ -145,6 +157,8 @@ const COMMITTERS: Record<string, Committer> = {
   DividersStyle: (change) => [setDividersStyle(asText(change))],
   FaucetHolesAmount: (change) => [setFaucetHolesAmount(asText(change))],
   FaucetHolesSpacing: (change) => [setFaucetHolesSpacing(asText(change))],
+  Width: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ width: change.value })] : []),
+  Depth: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ depth: change.value })] : []),
 };
 
 /** Colours a preset carries, so Customize starts from the colours the user chose. */

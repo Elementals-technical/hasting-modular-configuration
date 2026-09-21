@@ -5,6 +5,7 @@ import type { CountertopMatrixRule } from "./types";
 import {
   getCountertopRuleDepthsForStyle,
   materialMatchesRule,
+  selectMaterialAliasTable,
   matchesDepthForStyle,
   normalizeBasinKey,
   normalizeMaterialToken,
@@ -241,6 +242,7 @@ export const filterDepthValuesByCountertopRules = ({
   profile,
 }: FilterDepthValuesParams & { profile: ProductProfile | null }): Array<string | number> => {
   if (!values.length) return values;
+  const aliasTable = selectMaterialAliasTable(profile);
 
   const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
   const basinLooksIntegrated =
@@ -250,7 +252,7 @@ export const filterDepthValuesByCountertopRules = ({
   const allowedDepths = new Set<number>();
   if (activeMaterialTokens.length && rules.length) {
     const matchingRules = rules.filter((rule) =>
-      activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material)),
+      activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable)),
     );
     const scopedRules =
       isIntegratedStyle && activeBasinStyle
@@ -258,7 +260,9 @@ export const filterDepthValuesByCountertopRules = ({
         : matchingRules;
 
     scopedRules.forEach((rule) => {
-      const matchesMaterial = activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+      const matchesMaterial = activeMaterialTokens.some((material) =>
+        materialMatchesRule(material, rule.material, aliasTable),
+      );
       if (!matchesMaterial) return;
 
       getCountertopRuleDepthsForStyle(rule, normalizedStyle).forEach((depth) => {

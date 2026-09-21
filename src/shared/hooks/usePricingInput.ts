@@ -5,6 +5,7 @@ import {
   getActiveProductProfile,
   getCabinetEntries,
   getDimensionsByCabinet,
+  getValuesByAttributeId,
 } from "@/entities/configuration/model/store/selectors";
 import {
   getActiveCabinetType,
@@ -64,6 +65,7 @@ export const usePricingInput = () => {
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const cabinetEntries = useAppSelector(getCabinetEntries);
   const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
+  const configurationValues = useAppSelector(getValuesByAttributeId);
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
@@ -97,11 +99,14 @@ export const usePricingInput = () => {
     hasBootstrappedCabinetBuilder,
   });
 
-  const canCalculate = shouldUsePresets
-    ? true
-    : sceneConfigs.length > 0
-      ? true
-      : productIds.length === 0 && selectedDimensions.width !== null;
+  // Nothing placed yet, but a cabinet with a size is chosen: USH prices that one cabinet.
+  const hasOnlySelectedCabinet = productIds.length === 0 && selectedDimensions.width !== null;
+
+  // A collection priced from its SKU profile reads C's cabinets (D04); USH reads its presets or the scene.
+  const canCalculate =
+    skuBuilders.status === "collection"
+      ? cabinetEntries.length > 0
+      : shouldUsePresets || sceneConfigs.length > 0 || hasOnlySelectedCabinet;
 
   const input = useMemo<PricingInput>(
     () => ({
@@ -118,6 +123,7 @@ export const usePricingInput = () => {
       sceneConfigs,
       cabinetEntries,
       dimensionsByCabinet,
+      configurationValues,
       activeCabinetType,
       selectedDimensions,
       selectedProductConfig,
@@ -155,6 +161,7 @@ export const usePricingInput = () => {
       sceneConfigs,
       cabinetEntries,
       dimensionsByCabinet,
+      configurationValues,
       activeCabinetType,
       selectedDimensions,
       selectedProductConfig,

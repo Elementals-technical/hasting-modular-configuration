@@ -1,5 +1,5 @@
 import type { RootState } from "@/app/store";
-import type { PricingLine } from "@/shared/lib/pricing/types";
+import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
@@ -119,12 +119,16 @@ export const getPriceLoading = (state: RootState) => state.rootStateUI.priceStor
 
 const NO_PRICING_LINES: PricingLine[] = [];
 const NO_PRICE_ENTRIES: Record<string, SkuPriceEntry> = {};
+const NO_PRICING_GAPS: PricingGap[] = [];
 
 export const getPricingLines = (state: RootState) => state.rootStateUI.priceStore.lines ?? NO_PRICING_LINES;
 
 export const getPriceEntries = (state: RootState) => state.rootStateUI.priceStore.entries ?? NO_PRICE_ENTRIES;
 
 export const getPriceStatus = (state: RootState): PriceStatus => derivePriceStatus(state.rootStateUI.priceStore);
+
+/** Why an incomplete total is incomplete beyond a missing price: the unconfirmed parts of the order (D04). */
+export const getPricingGaps = (state: RootState) => state.rootStateUI.priceStore.gaps ?? NO_PRICING_GAPS;
 
 // For attention popup in the prebuilt path.
 export const getHasPrebuiltSelections = (state: RootState) => {

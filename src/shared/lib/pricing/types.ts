@@ -1,6 +1,6 @@
 import type { RootState } from "@/app/store";
-import type { ProductProfile } from "@/entities/collection";
-import type { CabinetDimensions, CabinetEntry, StableCabinetKey } from "@/entities/configuration";
+import type { PricingGapGroup, ProductProfile } from "@/entities/collection";
+import type { CabinetDimensions, CabinetEntry, ScopedValue, StableCabinetKey } from "@/entities/configuration";
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
 import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 import type { CountertopColorSkuCandidatesByValue, SkuBuilders } from "@/shared/lib/sku";
@@ -20,7 +20,9 @@ export type PricingLineGroup =
   | "towelBar"
   | "sidePanel"
   | "divider"
-  | "bookMatching";
+  | "bookMatching"
+  /** Brackets of a thick countertop (collections priced from their SKU profile). */
+  | "bracket";
 
 /** One line of the order: what is priced and how many pieces of it. */
 export type PricingLine = {
@@ -34,6 +36,17 @@ export type PricingLine = {
   sourceId?: string;
   /** Actual countertop width the top line is priced for. */
   widthCm?: number;
+};
+
+/**
+ * A part of the order the collection has not confirmed (D04): no SKU, no quantity rule or no
+ * input for it. `blocksTotal` keeps the total incomplete while the order uses that part.
+ */
+export type PricingGap = {
+  group: PricingGapGroup | "input";
+  blocksTotal: boolean;
+  owner: string;
+  reason: string;
 };
 
 export type ColorSkuMaps = {
@@ -58,6 +71,8 @@ export type PricingInput = {
   sceneConfigs: readonly NormalizedProductConfigSnapshot[];
   cabinetEntries: readonly CabinetEntry[];
   dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>;
+  /** C's values by attribute and address; a collection priced from its SKU profile reads them. */
+  configurationValues: Readonly<Record<string, readonly ScopedValue[]>>;
   activeCabinetType: ProductState["activeCabinetType"];
   selectedDimensions: ProductState["selectedDimensions"];
   selectedProductConfig: ProductState["selectedProductConfig"];

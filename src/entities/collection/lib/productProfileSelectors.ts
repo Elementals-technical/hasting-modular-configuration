@@ -49,6 +49,20 @@ export const hasCapability = (
 ): boolean => selectOption(profile, attributeId, value)?.capabilities?.[capability] === true;
 
 /** Options whose capability flag matches `expected`, in catalog order. */
+/**
+ * The basins of one kind, integrated or vessel, in catalog order. The attribute's noneValue
+ * (the vessel cutout without a basin) is a scene token, not a basin, so it is left out.
+ */
+export const selectBasinOptions = (
+  profile: ProductProfile | null,
+  category: "integrated" | "vessel",
+): ProfileOption[] => {
+  const noneValue = selectAttribute(profile, "sinkType")?.noneValue;
+  return selectOptions(profile, "sinkType").filter(
+    (option) => option.category === category && option.value !== noneValue,
+  );
+};
+
 export const selectOptionsByCapability = (
   profile: ProductProfile | null,
   attributeId: string,
@@ -114,6 +128,21 @@ export const selectMessage = (profile: ProductProfile | null, reasonCode: string
   return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
     Object.hasOwn(params, name) ? String(params[name]) : placeholder,
   );
+};
+
+/**
+ * The collection's text for a reason code, or the legacy English text while a collection
+ * declares none. A page passes the wording it used to hardcode, so a collection without the
+ * message reads as before instead of showing the bare code (DEV-08).
+ */
+export const selectMessageOr = (
+  profile: ProductProfile | null,
+  reasonCode: string,
+  fallback: string,
+  params?: MessageParams,
+): string => {
+  const text = selectMessage(profile, reasonCode, params);
+  return text === reasonCode ? fallback : text;
 };
 
 /**

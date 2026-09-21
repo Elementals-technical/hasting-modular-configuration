@@ -46,8 +46,6 @@ import {
   setDividersOption,
   setDividersStyle,
   setIsDrawerOpen,
-  setTowelBarColor,
-  setTowelBarOption,
 } from "@/entities/product/model/store/slice";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
@@ -85,6 +83,7 @@ import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisible
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 import { applyGroove, autoRemoveBoth, isGrooveType } from "@/features/sidePanel";
+import { useChangeAttribute } from "@/features/configurationCommands";
 
 const DEFAULT_ACCORDION_ID = "side-panels";
 const DIVIDERS_ACCORDION_ID = "dividers";
@@ -151,6 +150,7 @@ const DIVIDER_OPEN_DRAWER_HINT_STYLE = {
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
+  const { change: changeAttributeValue } = useChangeAttribute();
   const saveSnapshot = useHistorySnapshot();
   const dividerSelection = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
@@ -777,48 +777,13 @@ export const CustomAccessoriesPage = () => {
     if (!value) return;
 
     await saveSnapshot();
-    const isNone = value === "None";
-    const side = value.toLowerCase() as "left" | "right" | "both";
-
-    // Force-remove existing towel bars first so side switches (e.g. Left -> Right)
-    // do not keep stale meshes enabled in the scene.
-    await setConfigBatch(
-      {},
-      {
-        TowelBar: "None",
-        TowelBarSide: "both",
-      },
-    );
-
-    if (!isNone) {
-      await setConfigBatch(
-        {},
-        {
-          TowelBar: "TowelBar40_R",
-          TowelBarSide: side,
-        },
-      );
-    }
-
-    if (isNone) {
-      dispatch(setTowelBarColor(""));
-    }
-
-    dispatch(setTowelBarOption(value));
+    await changeAttributeValue({ attributeId: "TowelBarOption", value, scope: "global" });
   };
 
   const handleTowelBarColorChange = async (value?: string) => {
     if (!value) return;
     await saveSnapshot();
-
-    setConfigBatch(
-      {},
-      {
-        TowelBarColor: value,
-      },
-    );
-
-    dispatch(setTowelBarColor(value));
+    await changeAttributeValue({ attributeId: "TowelBarColor", value, scope: "global" });
   };
 
   const handleAccordionChange = (value: string) => {

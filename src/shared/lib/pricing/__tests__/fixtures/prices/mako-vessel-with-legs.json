@@ -1,0 +1,269 @@
+{
+  "scenario": "mako-vessel-with-legs",
+  "recordedAt": "2026-09-18",
+  "answers": {
+    "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": {
+      "price": 3028,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "MAKOV",
+        "modelTokens": [
+          "SB",
+          "2DW",
+          "G57"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 20.5,
+          "depth": 20.5
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "LACG",
+            "color": "403"
+          },
+          {
+            "material": "HDL",
+            "color": null
+          },
+          {
+            "material": "MTL",
+            "color": "SLV"
+          }
+        ],
+        "baseSku": "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D",
+        "originalSku": "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "LACG",
+                "color": "403"
+              }
+            ]
+          },
+          {
+            "element": "HDL",
+            "materials": [
+              {
+                "material": "MTL",
+                "color": "SLV"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D"
+      },
+      "error": null
+    },
+    "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": {
+      "price": 2938,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "MAKOV",
+        "modelTokens": [
+          "SC",
+          "2DW",
+          "G50"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 20.5,
+          "depth": 20.5
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "LACG",
+            "color": "403"
+          },
+          {
+            "material": "HDL",
+            "color": null
+          },
+          {
+            "material": "MTL",
+            "color": "SLV"
+          }
+        ],
+        "baseSku": "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D",
+        "originalSku": "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "LACG",
+                "color": "403"
+              }
+            ]
+          },
+          {
+            "element": "HDL",
+            "materials": [
+              {
+                "material": "MTL",
+                "color": "SLV"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D"
+      },
+      "error": null
+    },
+    "CT-GBSSTL-VES-47.2W-.5H-20.7D": {
+      "price": 1574,
+      "resolver": "CT/price_per_unit",
+      "parsed": {
+        "category": "CT",
+        "product": "GBSSTL",
+        "modelTokens": [
+          "VES"
+        ],
+        "sizes": {
+          "width": 47.2,
+          "height": 0.5,
+          "depth": 20.7
+        },
+        "materials": [],
+        "baseSku": "CT-GBSSTL-VES-47.2W-.5H-20.7D",
+        "originalSku": "CT-GBSSTL-VES-47.2W-.5H-20.7D",
+        "widthCm": 120
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "price_per_unit",
+        "datatableId": 529,
+        "pricePerCm": 13.11,
+        "widthInches": 47.2,
+        "widthCm": 120,
+        "widthCmSource": "explicit",
+        "material": "SSTL",
+        "colorCode": null
+      },
+      "error": null
+    },
+    "CT-GBSSTL-HCUT": {
+      "price": 608,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "GBSSTL",
+        "modelTokens": [
+          "HCUT"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-GBSSTL-HCUT",
+        "originalSku": "CT-GBSSTL-HCUT"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-GBSSTL-HCUT"
+      },
+      "error": null
+    },
+    "CT-GBSSTL-FAHO/3": {
+      "price": 275,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "GBSSTL",
+        "modelTokens": [
+          "FAHO",
+          "3"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-GBSSTL-FAHO/3",
+        "originalSku": "CT-GBSSTL-FAHO/3"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-GBSSTL-FAHO/3"
+      },
+      "error": null
+    },
+    "VAN-GBDIV-OAK-3.8W-2.6H-16.9D": {
+      "price": 150,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "GBDIV",
+        "modelTokens": [
+          "OAK"
+        ],
+        "sizes": {
+          "width": 3.8,
+          "height": 2.6,
+          "depth": 16.9
+        },
+        "materials": [],
+        "baseSku": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D",
+        "originalSku": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
+      },
+      "error": null
+    }
+  }
+}
