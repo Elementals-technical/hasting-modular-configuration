@@ -4,7 +4,7 @@ import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
 import { buildMaterialLookup } from "@/shared/lib/buildMaterialLookup";
-import { buildSummaryMaterialElements } from "@/shared/lib/summaryMaterialElements";
+import { buildSummaryMaterialElements, materialSkuLabelMap } from "@/shared/lib/summaryMaterialElements";
 import { copyTextToClipboard } from "@/shared/lib/copyTextToClipboard";
 
 import { Hint } from "@/shared/ui/Hint/Hint";
@@ -80,6 +80,7 @@ import {
 } from "@/shared/lib/sku";
 import { useSaveConfigurationMutation } from "@/entities";
 import { useActiveCollection } from "@/entities/collection";
+import { useOptionLabel } from "@/features/collectionCustomization";
 import { usePriceResult } from "@/shared/hooks/usePriceResult";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
@@ -193,43 +194,6 @@ type SummarySection = {
   copyLabel?: string;
 };
 
-/** Human-readable labels for handle types */
-const handleLabelMap: Record<string, string> = {
-  handle_urban_topcut: "Upper Groove",
-  handle_urban_botcut: "Central Groove",
-  handle_pto: "Push to Open",
-};
-
-/** Human-readable labels for drawer configs */
-const drawerLabelMap: Record<string, string> = {
-  "1D": "1 Drawer",
-  "2D": "2 Drawer",
-  "1DWID": "1 Drawer with inner drawer",
-};
-
-/** Human-readable labels for material SKU codes */
-const materialSkuLabelMap: Record<string, string> = {
-  LACG: "Lacquered Gloss",
-  LACM: "Lacquered Matt",
-  FX: "Fenix",
-  HPL: "HPL",
-  POR: "Porcelain",
-  GLSM: "Glass Matt",
-  GLSG: "Glass Gloss",
-  SSMMO: "Minermalmaro",
-  SSTM: "Tekormud",
-  SSOCR: "Ocritech",
-  SSTKR: "Tekorlux",
-};
-
-/** Human-readable labels for side panel groove types */
-const sidePanelLabelMap: Record<string, string> = {
-  NoG: "No Groove",
-  UpperG: "Upper Groove",
-  CenterG: "Center Groove",
-  DoubleG: "Double Groove",
-};
-
 const SIDE_PANEL_SUMMARY_DEPTH_MAP: Record<number, number> = {
   46: 45.5,
   50.5: 50,
@@ -298,6 +262,7 @@ export const SummaryPage = () => {
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const cabinetColor = useAppSelector(getCabinetColor);
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const labelOf = useOptionLabel();
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const vesselColor = useAppSelector(getVesselColor);
@@ -585,21 +550,19 @@ export const SummaryPage = () => {
           productElement: "Cabinet",
           materialSku: opts.cabMaterialSku,
           colorCode: opts.cabColor,
-          materialSkuLabelMap,
         },
         {
           productElement: "Handle",
           materialSku: isShelfCabinet ? null : opts.hdlMaterialSku,
           colorCode: opts.hdlColor,
-          materialSkuLabelMap,
         },
       ]);
       return {
         "Product Category": "Vanity",
         Products: "Urban Standard",
-        "Cabinet Type": opts.cabinetType?.replace(/-/g, " ") ?? "Unknown",
-        "Cabinet Style": isShelfCabinet ? null : (opts.drawers ? (drawerLabelMap[opts.drawers] ?? opts.drawers) : "Unknown"),
-        "Handle Style": isShelfCabinet ? null : (opts.handle ? (handleLabelMap[opts.handle] ?? opts.handle) : "Unknown"),
+        "Cabinet Type": opts.cabinetType ? labelOf("CabinetType", opts.cabinetType) : "Unknown",
+        "Cabinet Style": isShelfCabinet ? null : opts.drawers ? labelOf("Drawers", opts.drawers) : "Unknown",
+        "Handle Style": isShelfCabinet ? null : opts.handle ? labelOf("Handle", opts.handle) : "Unknown",
         "Drawer Panel Fluting": opts.pattern || "None",
         Width: opts.width,
         Height: opts.height,
@@ -607,7 +570,7 @@ export const SummaryPage = () => {
         elements,
       };
     },
-    [],
+    [labelOf],
   );
 
   const skuBuilders = useSkuBuilders();
@@ -1252,13 +1215,11 @@ export const SummaryPage = () => {
           productElement: "Cabinet",
           materialSku: sidePanelCabinetMaterialSku,
           colorCode: sidePanelCabinetColor,
-          materialSkuLabelMap,
         },
         {
           productElement: "Handle",
           materialSku: handleMaterialSku,
           colorCode: handleGrooveColor,
-          materialSkuLabelMap,
         },
       ]);
       const sidePanelCabinetSwatch = resolveSwatch(sidePanelCabinetColor);
@@ -1272,7 +1233,7 @@ export const SummaryPage = () => {
         sidePanelSkuItems.push({
           id: `accessories-side-panel-${side}`,
           title: label,
-          subtitle: sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
+          subtitle: labelOf("SidePanels", sidePanelsOption),
           ...priceOfLines([sidePanelLine]),
           swatch: sidePanelCabinetColor
             ? {
@@ -1287,7 +1248,7 @@ export const SummaryPage = () => {
           showInfo: true,
           description: {
             "Product Category": "Side Panel",
-            "Panel Type": sidePanelLabelMap[sidePanelsOption] ?? sidePanelsOption,
+            "Panel Type": labelOf("SidePanels", sidePanelsOption),
             Side: side,
             Width: SIDE_PANEL_WIDTH_CM,
             Height: dims.height,
@@ -1300,12 +1261,10 @@ export const SummaryPage = () => {
       });
     }
 
-    const typeToStyleMap: Record<string, string> = { A: "Option A", B: "Option B", C: "Option C" };
-
     const dividerItems: SummaryItem[] = (() => {
       if (activePlacedDividers.length > 0) {
         return activePlacedDividers.map((divider, index) => {
-          const style = typeToStyleMap[divider.type];
+          const style = labelOf("DividersStyle", divider.type);
           const line = lineById(`divider:${divider.cabinetId}:${index}`);
           return {
             id: `accessories-dividers-${divider.key}-${index}`,
@@ -1454,6 +1413,7 @@ export const SummaryPage = () => {
     appendUncoveredLines(sections, pricingLines, priceOf);
     return sections;
   }, [
+    labelOf,
     skuBuilders,
     activeCabinetType,
     cabinetColor,

@@ -9,6 +9,7 @@ export { resolveSectionFields } from "./lib/resolveSectionState";
 export { useCustomizationSectionFields, useCustomizationStepSections } from "./lib/useCustomizationSectionState";
 export { buildConfiguratorOptions } from "./lib/buildConfiguratorOptions";
 export { useCountertopRuleState } from "./lib/useCountertopRuleState";
+export { selectOptionLabel, useOptionLabel } from "./lib/selectOptionLabel";
 export { FieldControl } from "./ui/FieldControl";
 export { ColorField } from "./ui/ColorField";
 export type {
