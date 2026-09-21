@@ -6,8 +6,11 @@ export { useCollectionNavigation } from "./lib/useCollectionNavigation";
 export { useEntryStep } from "./lib/useEntryStep";
 export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigate";
 export { resolveSectionFields } from "./lib/resolveSectionState";
-export { useCustomizationSectionFields } from "./lib/useCustomizationSectionState";
+export { useCustomizationSectionFields, useCustomizationStepSections } from "./lib/useCustomizationSectionState";
+export { buildConfiguratorOptions } from "./lib/buildConfiguratorOptions";
+export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { FieldControl } from "./ui/FieldControl";
+export { ColorField } from "./ui/ColorField";
 export type {
   CustomizationSchemaDiagnostic,
   CustomizationSchemaDiagnosticCode,
@@ -15,4 +18,4 @@ export type {
   NavigationStep,
   ValidateCustomizationSchemaResult,
 } from "./model/types";
-export type { ResolvedCustomizationField } from "./lib/useCustomizationSectionState";
+export type { ResolvedCustomizationField, ResolvedCustomizationSection } from "./lib/useCustomizationSectionState";

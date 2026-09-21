@@ -1,4 +1,6 @@
-import { selectOptions } from "@/entities/collection";
+import { selectAttribute, selectOptions, selectResetValue } from "@/entities/collection";
+
+import { buildConfiguratorOptions } from "./buildConfiguratorOptions";
 
 import type {
   CustomizationFieldDefinition,
@@ -7,8 +9,16 @@ import type {
   FieldRuntimeState,
   ProductProfile,
 } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 
-export type FieldAvailability = { available: boolean; reason?: string };
+export type FieldAvailability = {
+  available: boolean;
+  reason?: string;
+  /** false hides the field; a hidden field keeps its stored value. */
+  visible?: boolean;
+  /** When set, only these option values stay enabled. */
+  allowedValues?: readonly string[];
+};
 
 // Keyed by availabilityRef as spelled in ui.json.
 export type FieldAvailabilityResults = Record<string, FieldAvailability>;
@@ -35,32 +45,51 @@ const resolveFieldAvailability = (
   return results[availabilityRef] ?? { available: true };
 };
 
-// optionsRef fields (external sources) resolve with empty options for now.
+const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
+
+// An optionsRef field takes the configurator section its profile attribute names in optionsSource.
+const resolveConfiguratorOptions = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  configurator: ConfiguratorGroupCatalog | null,
+): FieldOptionState[] => {
+  const source = selectAttribute(profile, attributeId)?.optionsSource;
+  if (!source?.startsWith(CONFIGURATOR_SOURCE_PREFIX) || !configurator) return [];
+
+  const resetValue = selectResetValue(profile, attributeId);
+  const options = buildConfiguratorOptions(configurator.groupsByName[source.slice(CONFIGURATOR_SOURCE_PREFIX.length)]);
+
+  return resetValue && !options.some((option) => option.value === resetValue)
+    ? [{ value: resetValue, label: resetValue, enabled: true }, ...options]
+    : options;
+};
+
 export const resolveSectionFields = (
   schema: CustomizationSchema | null,
   sectionId: string,
   profile: ProductProfile | null,
   productOptions: Record<string, unknown>,
   availabilityResults: FieldAvailabilityResults,
+  configurator: ConfiguratorGroupCatalog | null = null,
 ): ResolvedCustomizationField[] => {
   const definitions = schema?.sections[sectionId]?.fields ?? [];
 
   return definitions.map((definition) => {
     const availability = resolveFieldAvailability(definition.availabilityRef, availabilityResults);
+    const declaredOptions: FieldOptionState[] = definition.optionsRef
+      ? resolveConfiguratorOptions(profile, definition.attributeId, configurator)
+      : selectOptions(profile, definition.attributeId).map(({ value, label }) => ({ value, label, enabled: true }));
 
-    const options: FieldOptionState[] = definition.optionsRef
-      ? []
-      : selectOptions(profile, definition.attributeId).map((option) => ({
-          value: option.value,
-          label: option.label,
-          enabled: true,
-        }));
+    const options = declaredOptions.map((option) => {
+      const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);
+      return { ...option, enabled, reason: enabled ? undefined : availability.reason };
+    });
 
     const field: FieldRuntimeState = {
       attributeId: definition.attributeId,
       value: readProductOptionValue(productOptions, definition.attributeId),
       options,
-      visible: true,
+      visible: availability.visible ?? true,
       enabled: availability.available,
       disabledReason: availability.reason,
     };

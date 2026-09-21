@@ -61,7 +61,21 @@ export type CustomizationSchema = {
   sections: Record<string, CustomizationSectionDefinition>;
 };
 
-export type FieldOptionState = OptionState<string> & { image?: string };
+/** Properties of a configurator colour the colour grid filters and prices by. */
+export type FieldOptionTraits = {
+  sku?: string;
+  materials?: string[];
+  colors?: string[];
+  looks?: string[];
+  hex?: string;
+};
+
+export type FieldOptionState = OptionState<string> & {
+  image?: string;
+  /** Group the option is shown under, e.g. the material of a colour. */
+  desc?: string;
+  traits?: FieldOptionTraits;
+};
 
 export type FieldRuntimeState = {
   attributeId: string;

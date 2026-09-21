@@ -142,6 +142,7 @@ export type {
   CustomizationSectionDefinition,
   CustomizationStepDefinition,
   FieldOptionState,
+  FieldOptionTraits,
   FieldRuntimeState,
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
