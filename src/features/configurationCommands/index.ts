@@ -15,10 +15,18 @@ export type { ChangeAttributeDeps } from "./lib/changeAttribute";
 export { confirmAttributeChange } from "./lib/confirmAttributeChange";
 export { changeDimension } from "./lib/changeDimension";
 export type { ChangeDimensionDeps } from "./lib/changeDimension";
-export { replayValues } from "./lib/replayValues";
-export { addCabinet, applyPreset, clearComposition, removeCabinets, swapCabinets } from "./lib/composition";
+export { recordValues, replayValues } from "./lib/replayValues";
+export {
+  addCabinet,
+  adoptComposition,
+  applyPreset,
+  clearComposition,
+  removeCabinets,
+  swapCabinets,
+} from "./lib/composition";
 export type {
   AddCabinetRequest,
+  AdoptCompositionRequest,
   ApplyPresetRequest,
   ClearCompositionRequest,
   CompositionDeps,
@@ -31,7 +39,14 @@ export type {
   SidePanelChangeResult,
   SidePanelStatus as SidePanelSideStatus,
 } from "./lib/changeSidePanels";
-export type { ReplayDeps, ReplayRequest, ReplayResult, ReplayValues, SkippedReplayValue } from "./lib/replayValues";
+export type {
+  RecordValuesResult,
+  ReplayDeps,
+  ReplayRequest,
+  ReplayResult,
+  ReplayValues,
+  SkippedReplayValue,
+} from "./lib/replayValues";
 export { createCommandRunner } from "./lib/createCommandRunner";
 export type { CommandRunner, CommandRunnerDeps } from "./lib/createCommandRunner";
 export { useChangeAttribute } from "./hooks/useChangeAttribute";

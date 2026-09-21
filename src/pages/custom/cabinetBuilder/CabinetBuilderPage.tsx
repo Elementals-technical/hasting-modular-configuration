@@ -26,37 +26,19 @@ import {
 
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import {
-  addProductId,
   reset,
   resetCabinetBuilderBootstrap,
   resetProducts,
   removeProductId,
-  setActiveBasinStyle,
   setActiveCabinetType,
-  setActiveCountertopColor,
   setCountertopColorSku,
-  setActiveCountertopThickness,
-  setBookMatching,
-  setCabinetColor,
-  setCountertopStyle,
-  setDividersOption,
   setDividersStyle,
-  setDrawerPanelFluting,
-  setFaucetHolesAmount,
-  setFaucetHolesSpacing,
-  setGrainDirection,
   setHasBootstrappedCabinetBuilder,
-  setHandleGrooveColor,
-  setLedOption,
   setSelectedDimensions,
   setSelectedProductConfig,
   setSelectedSceneProduct,
-  setTowelBarColor,
-  setTowelBarOption,
-  setVesselColor,
   setDrawerProduct,
   addProductPreset,
-  setPlacedCabinetStyle,
   replacePlacedDividersForCabinet,
   clearTopPlacedDividersForCabinets,
 } from "@/entities/product/model/store/slice";
@@ -513,6 +495,7 @@ export const CabinetBuilderPage = () => {
     confirm: confirmAttributeValue,
     getState: getCommandState,
     replay,
+    record,
     composition,
   } = useChangeAttribute();
 
@@ -570,10 +553,6 @@ export const CabinetBuilderPage = () => {
 
       dispatch(setDrawerProduct(name));
       dispatch(setSelectedProductConfig(config ?? null));
-
-      if (config?.sinkType) {
-        dispatch(setActiveBasinStyle(config.sinkType));
-      }
     },
     [countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts],
   );
@@ -902,9 +881,11 @@ export const CabinetBuilderPage = () => {
     bootstrappedRef.current = false;
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
-    dispatch(setCabinetColor(preservedCabinetColor));
-    dispatch(setActiveCountertopColor(preservedCountertopColor));
-    dispatch(setActiveBasinStyle(preservedSinkType));
+    record({
+      CabinetColor: preservedCabinetColor,
+      CountertopColor: preservedCountertopColor,
+      sinkType: preservedSinkType,
+    });
 
     if (canvasReady) {
       void composition.clear({ resetAddOns: false });
@@ -913,6 +894,7 @@ export const CabinetBuilderPage = () => {
     canvasReady,
     composition,
     dispatch,
+    record,
     hasPendingCabinetBuilderSelection,
     hasBootstrappedCabinetBuilder,
     pathname,
@@ -950,11 +932,13 @@ export const CabinetBuilderPage = () => {
         const presetHandleGrooveColor = firstPreset?.HandleGrooveColor ?? presetCabinetColor;
 
         dispatch(addProductPreset(presetProducts));
-        dispatch(setCabinetColor(presetCabinetColor));
-        dispatch(setActiveCountertopColor(presetCountertopColor));
-        dispatch(setActiveBasinStyle(presetSinkType));
-        dispatch(setCountertopStyle(inferCountertopStyleFromSinkType(presetSinkType)));
-        dispatch(setHandleGrooveColor(presetHandleGrooveColor));
+        record({
+          CabinetColor: presetCabinetColor,
+          CountertopColor: presetCountertopColor,
+          sinkType: presetSinkType,
+          CountertopStyle: inferCountertopStyleFromSinkType(presetSinkType),
+          HandleGrooveColor: presetHandleGrooveColor,
+        });
       } catch (error) {
         customPresetInitializedRef.current = null;
         console.error("[Custom] Failed to initialize preset entry", error);
@@ -966,15 +950,7 @@ export const CabinetBuilderPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [
-    canvasReady,
-    composition,
-    configId,
-    customPresetBootstrapKey,
-    dispatch,
-    pathname,
-    presetFromUrl,
-  ]);
+  }, [canvasReady, composition, configId, customPresetBootstrapKey, dispatch, pathname, presetFromUrl, record]);
 
   useEffect(() => {
     if (!canvasReady || !productsPresets.length || bootstrappedRef.current) return;
@@ -993,6 +969,11 @@ export const CabinetBuilderPage = () => {
         countertopColor ?? firstPreset?.CountertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
       const preferredSinkType = sinkType ?? firstPreset?.sinkType ?? CUSTOM_DEFAULT_SINK_TYPE;
       const preferredHandleGrooveColor = firstPreset?.HandleGrooveColor ?? handleGrooveColor ?? preferredCabinetColor;
+      const startingColors = {
+        CabinetColor: preferredCabinetColor,
+        CountertopColor: preferredCountertopColor,
+        HandleGrooveColor: preferredHandleGrooveColor,
+      };
 
       if (!existingIds.length) {
         const mergedPresets = productsPresets.map((preset) => ({
@@ -1006,42 +987,28 @@ export const CabinetBuilderPage = () => {
         // Placing the preset records its products and their drawer styles.
         const placed = await composition.applyPreset({
           products: mergedPresets.map((preset) => ({ productType: preset.name, config: { ...preset } })),
+          record: startingColors,
         });
         if (placed.status === "error") {
           console.warn("[Custom] The preset was not placed", placed);
           return;
         }
-
-        dispatch(setCabinetColor(preferredCabinetColor));
-        dispatch(setActiveCountertopColor(preferredCountertopColor));
-        dispatch(setHandleGrooveColor(preferredHandleGrooveColor));
       } else {
         // The scene kept the products of the preset: they are recorded as they are, then shown
         // with the colours Custom starts from.
-        existingIds.forEach((id) => dispatch(addProductId(id)));
-        existingIds.forEach((productId, index) => {
-          const drawerRawValue = mapConfigToDrawerValue(productsPresets[index]?.Drawers);
-          if (drawerRawValue) {
-            dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
-          }
+        await composition.adopt({
+          runtimeIds: existingIds,
+          products: productsPresets.map((preset) => ({ productType: preset.name, config: { ...preset } })),
+          record: startingColors,
         });
 
         const replayed = await replay({
-          send: {
-            CabinetColor: preferredCabinetColor,
-            CountertopColor: preferredCountertopColor,
-            HandleGrooveColor: preferredHandleGrooveColor,
-            ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}),
-          },
+          send: { ...startingColors, ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}) },
           record: false,
         });
         if (replayed.status !== "applied" || replayed.skipped.length > 0) {
           console.warn("[Custom] The colours did not all reach the scene", replayed);
         }
-
-        dispatch(setCabinetColor(preferredCabinetColor));
-        dispatch(setActiveCountertopColor(preferredCountertopColor));
-        dispatch(setHandleGrooveColor(preferredHandleGrooveColor));
       }
 
       if (firstPreset?.name) {
@@ -1186,9 +1153,15 @@ export const CabinetBuilderPage = () => {
 
       const presetProducts = buildPresetFromConfiguration(configuration, configIds);
 
-      dispatch(resetProducts());
       dispatch(addProductPreset(presetProducts));
-      orderedIds.forEach((productId) => dispatch(addProductId(productId)));
+      // The restorer placed these products; they are recorded as the scene holds them.
+      await composition.adopt({
+        runtimeIds: orderedIds,
+        products: configIds.map((sourceId) => {
+          const config = configuration[sourceId];
+          return { productType: sourceId, config: config && typeof config === "object" ? { ...config } : {} };
+        }),
+      });
 
       let sidePanelValue: string | undefined;
       let towelBarValue: string | undefined;
@@ -1201,14 +1174,6 @@ export const CabinetBuilderPage = () => {
 
         if (configValue && typeof configValue === "object") {
           const cfg = configValue as Record<string, unknown>;
-
-          // Populate mixing restriction state from restored config
-          if (typeof cfg.Drawers === "string") {
-            const drawerRawValue = mapConfigToDrawerValue(cfg.Drawers);
-            if (drawerRawValue) {
-              dispatch(setPlacedCabinetStyle({ id: orderedIds[i], value: drawerRawValue }));
-            }
-          }
 
           if (!sidePanelValue && typeof cfg.SidePanel === "string") {
             sidePanelValue = cfg.SidePanel;
@@ -1339,33 +1304,31 @@ export const CabinetBuilderPage = () => {
         console.warn("[Custom] The restored values did not all reach the scene", replayed);
       }
 
-      if (towelBarOption) {
-        dispatch(setTowelBarOption(towelBarOption));
-        if (towelBarOption === "None") {
-          dispatch(setTowelBarColor(""));
-        }
-      }
+      // A towel bar without a colour of its own is saved as none.
+      const towelBarColorToRecord = towelColor || (towelBarOption === "None" ? "" : undefined);
 
-      if (towelColor) {
-        dispatch(setTowelBarColor(towelColor));
-      }
-
-      if (uiCabinetColor) dispatch(setCabinetColor(uiCabinetColor));
-      if (uiHandleGrooveColor) dispatch(setHandleGrooveColor(uiHandleGrooveColor));
-      if (uiSinkType) dispatch(setActiveBasinStyle(uiSinkType));
-      if (uiCountertopColor) dispatch(setActiveCountertopColor(uiCountertopColor));
+      // The saved values become the configuration's own.
+      record({
+        ...(towelBarOption ? { TowelBarOption: towelBarOption } : {}),
+        ...(towelBarColorToRecord !== undefined ? { TowelBarColor: towelBarColorToRecord } : {}),
+        ...(uiCabinetColor ? { CabinetColor: uiCabinetColor } : {}),
+        ...(uiHandleGrooveColor ? { HandleGrooveColor: uiHandleGrooveColor } : {}),
+        ...(uiSinkType ? { sinkType: uiSinkType } : {}),
+        ...(uiCountertopColor ? { CountertopColor: uiCountertopColor } : {}),
+        ...(uiVesselColor !== undefined ? { VesselColor: uiVesselColor } : {}),
+        ...(uiCountertopThickness ? { Thickness: uiCountertopThickness } : {}),
+        ...(uiDrawerPanelFluting ? { DrawerPanelFluting: uiDrawerPanelFluting } : {}),
+        ...(uiGrainDirection ? { GrainDirection: uiGrainDirection } : {}),
+        ...(uiBookMatching !== undefined ? { BookMatching: uiBookMatching } : {}),
+        ...(uiCountertopStyle ? { CountertopStyle: uiCountertopStyle } : {}),
+        ...(uiLedOption ? { LedOption: uiLedOption } : {}),
+        ...(uiDividersOption ? { DividersOption: uiDividersOption } : {}),
+        ...(uiFaucetHolesAmount ? { FaucetHolesAmount: uiFaucetHolesAmount } : {}),
+        ...(uiFaucetHolesSpacing !== undefined ? { FaucetHolesSpacing: uiFaucetHolesSpacing } : {}),
+      });
       if (uiCountertopColorSku) dispatch(setCountertopColorSku(uiCountertopColorSku));
-      if (uiVesselColor !== undefined) dispatch(setVesselColor(uiVesselColor));
-      if (uiCountertopThickness) dispatch(setActiveCountertopThickness(uiCountertopThickness));
-      if (uiDrawerPanelFluting) dispatch(setDrawerPanelFluting(uiDrawerPanelFluting));
-      if (uiGrainDirection) dispatch(setGrainDirection(uiGrainDirection));
-      if (uiBookMatching !== undefined) dispatch(setBookMatching(uiBookMatching));
-      if (uiCountertopStyle) dispatch(setCountertopStyle(uiCountertopStyle));
-      if (uiLedOption) dispatch(setLedOption(uiLedOption));
-      if (uiDividersOption) dispatch(setDividersOption(uiDividersOption));
+      // The profile keeps the divider style per drawer; a save carries one value with no drawer to address.
       if (uiDividersStyle) dispatch(setDividersStyle(uiDividersStyle));
-      if (uiFaucetHolesAmount) dispatch(setFaucetHolesAmount(uiFaucetHolesAmount));
-      if (uiFaucetHolesSpacing !== undefined) dispatch(setFaucetHolesSpacing(uiFaucetHolesSpacing));
 
       const [firstPreset] = presetProducts;
       if (firstPreset?.name) {
@@ -1413,7 +1376,7 @@ export const CabinetBuilderPage = () => {
         navigate({ pathname: restorePath, search });
       }
     },
-    [dispatch, navigate, replay, resolveCabinetTypeId, search],
+    [composition, dispatch, navigate, record, replay, resolveCabinetTypeId, search],
   );
 
   // A configuration opened by id replaces the builder bootstrap: the preset and empty-builder
@@ -1517,6 +1480,7 @@ export const CabinetBuilderPage = () => {
         const added = await composition.addCabinet({
           product: { productType: productName, config: productConfig },
           placement: { kind: "end" },
+          record: productConfig.sinkType ? { sinkType: productConfig.sinkType } : undefined,
         });
         const productId = added.status === "error" ? null : added.placed[0];
 

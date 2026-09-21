@@ -12,6 +12,7 @@ import {
   setActiveRuntimeBindings,
   setAttributeValue,
 } from "@/entities/configuration";
+import { getCabinetColor, getVesselColor } from "@/entities/product/model/store/selectors";
 import { recordComposition, reset, setActiveProfile } from "@/entities/product/model/store/slice";
 import {
   createTestCompositionPort,
@@ -22,6 +23,7 @@ import {
 
 import {
   addCabinet,
+  adoptComposition,
   applyPreset,
   clearComposition,
   removeCabinets,
@@ -140,6 +142,44 @@ describe("composition commands", () => {
       expect(product().productIds).toEqual(["Sink-Base-9"]);
       expect(getRuntimeSyncState(store.getState()).needsSync).toBe(true);
     });
+  });
+
+  it("records the values the preset brings along, without sending them again", async () => {
+    const { runtime, deps } = setup();
+
+    await applyPreset(
+      {
+        products: [{ productType: "Sink-Base", config: { Drawers: "1D" } }],
+        record: { CabinetColor: "Ardesia DD GL" },
+      },
+      deps,
+    );
+
+    expect(getCabinetColor(store.getState())).toBe("Ardesia DD GL");
+    expect(runtime.calls).toHaveLength(0);
+  });
+
+  it("records a composition the scene already holds, without a scene call", async () => {
+    const { composition, runtime, deps } = setup();
+
+    const result = await adoptComposition(
+      {
+        runtimeIds: ["restored-a", "restored-b"],
+        products: [
+          { productType: "Sink-Base", config: { Drawers: "2D" } },
+          { productType: "Open-Shelf", config: {} },
+        ],
+        record: { VesselColor: "Bianco" },
+      },
+      deps,
+    );
+
+    expect(result).toMatchObject({ status: "applied", productIds: ["restored-a", "restored-b"] });
+    expect(product().productIds).toEqual(["restored-a", "restored-b"]);
+    expect(product().placedCabinetStyles).toEqual({ "restored-a": "2" });
+    expect(getVesselColor(store.getState())).toBe("Bianco");
+    expect(composition.calls).toHaveLength(0);
+    expect(runtime.calls).toHaveLength(0);
   });
 
   describe("addCabinet", () => {

@@ -8,6 +8,7 @@ import {
   getActiveCollectionId,
   getActiveProductProfile,
   getActiveRuntimeBindings,
+  getAttributeScope,
   getCabinetEntries,
   markRuntimeOutOfSync,
   requestSceneStateSync,
@@ -70,10 +71,11 @@ export type ReplayDeps = {
  * Where a value of the whole configuration lives. A cabinet value names the first cabinet,
  * as a field does; its binding decides which products the scene updates. A basin value names
  * no sink base, so it reaches every basin. A drawer value is per drawer and cannot be replayed
- * as one value.
+ * as one value. A value the profile does not declare, such as one a save only carries along,
+ * is addressed at the scope its ownership records.
  */
 const replayTarget = (state: RootState, profile: ProductProfile, attributeId: string): ValueTarget | null => {
-  switch (selectAttribute(profile, attributeId)?.scope) {
+  switch (selectAttribute(profile, attributeId)?.scope ?? getAttributeScope(attributeId)) {
     case "global":
       return { scope: "global" };
 
@@ -170,8 +172,12 @@ export const replayValues = async (
 
   if (record) {
     const commitContext = buildCommitContext(getState(), context, configurator);
+    // The scene got the canonical value; the state keeps the value as it was given.
+    const applied = runtimeResult.applied.map((change) =>
+      Object.hasOwn(send, change.attributeId) ? { ...change, value: send[change.attributeId] } : change,
+    );
 
-    for (const action of commitPlan([...runtimeResult.applied, ...recordChanges], commitContext)) {
+    for (const action of commitPlan([...applied, ...recordChanges], commitContext)) {
       dispatch(action);
     }
   }
@@ -189,4 +195,36 @@ export const replayValues = async (
   }
 
   return { status: "applied", applied: runtimeResult.applied, skipped };
+};
+
+export type RecordValuesResult = { recorded: PlannedChange[]; skipped: SkippedReplayValue[] };
+
+/**
+ * Records values the scene already shows, or never shows, without a scene call: what a preset,
+ * a restore or a kept composition brings along. Synchronous, so a page that resets its state and
+ * records these values in the same step never renders the reset in between.
+ */
+export const recordValues = (
+  values: ReplayValues,
+  { getState, dispatch, flow, configurator }: Omit<ReplayDeps, "runtime">,
+): RecordValuesResult => {
+  const state = getState();
+  const profile = getActiveProductProfile(state);
+  const skipped: SkippedReplayValue[] = [];
+
+  if (!profile) {
+    return {
+      recorded: [],
+      skipped: Object.entries(values).map(([attributeId, value]) => ({ attributeId, value, reason: "no-target" })),
+    };
+  }
+
+  const changes = toChanges(state, profile, values, (_, value) => value, skipped);
+  const context = buildRuntimeContext(state, getActiveCollectionId(state) ?? profile.collectionId, flow);
+
+  for (const action of commitPlan(changes, buildCommitContext(state, context, configurator))) {
+    dispatch(action);
+  }
+
+  return { recorded: changes, skipped };
 };

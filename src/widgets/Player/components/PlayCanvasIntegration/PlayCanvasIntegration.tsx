@@ -13,13 +13,10 @@ import {
   replacePlacedDividersForCabinet,
   resetCabinetBuilderBootstrap,
   resetProducts,
-  setActiveBasinStyle,
   setActiveCabinetType,
-  setCountertopStyle,
   setSelectedProductConfig,
   setSelectedSceneProduct,
   syncSelectedDimensionsFromScene as syncSelectedDimensionsFromSceneAction,
-  setVesselColor,
 } from "@/entities/product/model/store/slice";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool, type SelectionAction, type SelectionInfo } from "@/utils/functions/playcanvas/getSelectTool";
@@ -361,6 +358,7 @@ export const PlayCanvasIntegration = ({
     confirm: confirmAttributeValue,
     getState: getCommandState,
     replay,
+    record,
     composition,
   } = useChangeAttribute();
   const store = useStore<RootState>();
@@ -1733,32 +1731,21 @@ export const PlayCanvasIntegration = ({
         getSelectTool()?.deselectAll();
         await waitForNextAnimationFrame();
         // USH shows one basin for the whole configuration, so the scene's choice for this basin is
-        // shown on every sink base, as the basin fields do.
-        const replayed = await replay({
-          send: Object.fromEntries(
-            (["sinkType", "VesselColor"] as const).flatMap((key) =>
-              typeof actionConfig[key] === "string" ? [[key, actionConfig[key] as string]] : [],
-            ),
+        // shown on every sink base, as the basin fields do, and recorded as the configuration's.
+        // Choosing the vessel cutout makes the countertop a vessel one.
+        const send = Object.fromEntries(
+          (["sinkType", "VesselColor"] as const).flatMap((key) =>
+            typeof actionConfig[key] === "string" ? [[key, actionConfig[key] as string]] : [],
           ),
-          record: false,
+        );
+        const replayed = await replay({
+          send,
+          recordOnly:
+            send.sinkType === VESSEL_PLACEHOLDER_SINK_TYPE ? { CountertopStyle: VESSEL_PLACEHOLDER_SINK_TYPE } : {},
+          record: true,
         });
         if (replayed.status !== "applied" || replayed.skipped.length > 0) {
           console.warn("[PlayCanvasIntegration] The basin choice did not reach the scene", replayed);
-        }
-
-        const nextSinkType = actionConfig.sinkType;
-        if (typeof nextSinkType === "string") {
-          if (nextSinkType === VESSEL_PLACEHOLDER_SINK_TYPE) {
-            dispatch(setCountertopStyle(VESSEL_PLACEHOLDER_SINK_TYPE));
-            dispatch(setActiveBasinStyle(""));
-          } else {
-            dispatch(setActiveBasinStyle(nextSinkType));
-          }
-        }
-
-        const nextVesselColor = actionConfig.VesselColor;
-        if (typeof nextVesselColor === "string") {
-          dispatch(setVesselColor(nextVesselColor));
         }
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to execute Vessel Basin action", error);
@@ -1767,7 +1754,7 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [dispatch, replay, saveSnapshot],
+    [replay, saveSnapshot],
   );
 
   const resolveProductTypeFromId = useCallback((productId: string, config?: Record<string, unknown>) => {
@@ -3177,17 +3164,18 @@ export const PlayCanvasIntegration = ({
   }, [closeCanvasFullMode, isPrebuilt, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
-    dispatch(
-      setCountertopStyle(
-        isVesselBasinSelectionInfo(vesselBasinSelectionInfo) ? VESSEL_PLACEHOLDER_SINK_TYPE : "integrated",
-      ),
-    );
+    // The basin list opens for the countertop style of the basin picked in 3D.
+    record({
+      CountertopStyle: isVesselBasinSelectionInfo(vesselBasinSelectionInfo)
+        ? VESSEL_PLACEHOLDER_SINK_TYPE
+        : "integrated",
+    });
     navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
     closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, dispatch, isPrebuilt, navigate, vesselBasinSelectionInfo]);
+  }, [closeCanvasFullMode, isPrebuilt, navigate, record, vesselBasinSelectionInfo]);
 
   const handleEmptySceneRedirect = useCallback(() => {
     navigate("/custom/cabinet-builder?accordion=cabinet-type");

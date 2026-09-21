@@ -15,18 +15,27 @@ import { changeAttribute, type ChangeAttributeDeps } from "./changeAttribute";
 import { changeDimension } from "./changeDimension";
 import {
   addCabinet,
+  adoptComposition,
   applyPreset,
   clearComposition,
   removeCabinets,
   swapCabinets,
   type AddCabinetRequest,
+  type AdoptCompositionRequest,
   type ApplyPresetRequest,
   type ClearCompositionRequest,
   type CompositionDeps,
   type CompositionResult,
 } from "./composition";
 import { confirmAttributeChange } from "./confirmAttributeChange";
-import { replayValues, type ReplayRequest, type ReplayResult } from "./replayValues";
+import {
+  recordValues,
+  replayValues,
+  type RecordValuesResult,
+  type ReplayRequest,
+  type ReplayResult,
+  type ReplayValues,
+} from "./replayValues";
 import type { AttributeChange, ChangePreview, ChangeResult, DimensionChange } from "../model/types";
 
 /**
@@ -58,6 +67,8 @@ export type CommandRunner = {
   changeDimension: (change: DimensionChange) => Promise<ChangeResult>;
   /** Shows values the configuration already holds on the scene again (undo, restore). */
   replay: (request: ReplayRequest) => Promise<ReplayResult>;
+  /** Records values the scene already shows, or never shows, without a scene call. */
+  record: (values: ReplayValues) => RecordValuesResult;
   /** Places, removes and moves products, and clears the scene. */
   composition: {
     applyPreset: (request: ApplyPresetRequest) => Promise<CompositionResult>;
@@ -65,6 +76,8 @@ export type CommandRunner = {
     removeCabinets: (runtimeIds: readonly string[]) => Promise<CompositionResult>;
     swapCabinets: (runtimeIdA: string, runtimeIdB: string) => Promise<CompositionResult>;
     clear: (request: ClearCompositionRequest) => Promise<CompositionResult>;
+    /** Records a composition the scene already holds, without a scene call. */
+    adopt: (request: AdoptCompositionRequest) => Promise<CompositionResult>;
   };
   /** Current state, for reading what a change should address at the moment it is made. */
   getState: () => RootState;
@@ -87,12 +100,14 @@ export const createCommandRunner = ({
     confirm: (preview) => confirmAttributeChange(preview, deps()),
     changeDimension: (change) => changeDimension(change, deps()),
     replay: (request) => replayValues(request, deps()),
+    record: (values) => recordValues(values, deps()),
     composition: {
       applyPreset: (request) => applyPreset(request, compositionDeps()),
       addCabinet: (request) => addCabinet(request, compositionDeps()),
       removeCabinets: (runtimeIds) => removeCabinets(runtimeIds, compositionDeps()),
       swapCabinets: (runtimeIdA, runtimeIdB) => swapCabinets(runtimeIdA, runtimeIdB, compositionDeps()),
       clear: (request) => clearComposition(request, compositionDeps()),
+      adopt: (request) => adoptComposition(request, compositionDeps()),
     },
     getState,
   };

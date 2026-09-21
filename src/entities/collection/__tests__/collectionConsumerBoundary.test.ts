@@ -170,25 +170,15 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     count: 10,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/prebuilt/model/ModelPage.tsx": {
-    owner: "C",
-    count: 26,
-    reason: "C06 phase 7: preset values recorded by applyPreset; phase 6: values a restore records",
-  },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
     owner: "C",
-    count: 35,
-    reason: "C06 phase 7: bootstrap colours, a preset the scene kept; phase 6: values a restore records",
+    count: 1,
+    reason: "a saved divider style has no drawer to address: the profile keeps DividersStyle per drawer",
   },
   "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
     owner: "B",
     count: 3,
     reason: "C06 phase 7: the preset colour with its material and finish recorded by applyPreset",
-  },
-  "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
-    owner: "I",
-    count: 5,
-    reason: "C06 phase 3: basin and vessel values the scene's basin action records",
   },
 };
 

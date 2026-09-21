@@ -10,11 +10,17 @@ import {
   setActiveRuntimeBindings,
   syncCabinets,
 } from "@/entities/configuration";
-import { getBookMatching, getCabinetColor } from "@/entities/product/model/store/selectors";
+import {
+  getBookMatching,
+  getCabinetColor,
+  getCountertopStyle,
+  getDividersStyle,
+  getFaucetHolesSpacing,
+} from "@/entities/product/model/store/selectors";
 import { reset, setActiveProfile } from "@/entities/product/model/store/slice";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 
-import { replayValues, type ReplayDeps } from "../lib/replayValues";
+import { recordValues, replayValues, type ReplayDeps } from "../lib/replayValues";
 
 const depsWith = (runtime: ReplayDeps["runtime"]): ReplayDeps => ({
   getState: () => store.getState(),
@@ -121,4 +127,46 @@ describe("replayValues", () => {
     expect(getCabinetColor(store.getState())).toBe("Ardesia DD GL");
     expect(getRuntimeSyncState(store.getState()).needsSync).toBe(true);
   });
+
+  it("records a value as it was given while the scene gets the canonical one", async () => {
+    const runtime = createTestRuntimePort();
+
+    await replayValues({ send: { CountertopStyle: "Vessel" }, record: true }, depsWith(runtime.port));
+
+    expect(runtime.calls[0][0]).toMatchObject({ attributeId: "CountertopStyle", value: "vessel" });
+    expect(getCountertopStyle(store.getState())).toBe("Vessel");
+  });
 });
+
+describe("recordValues", () => {
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(setActiveCollectionId("urban-standard-height"));
+    store.dispatch(syncCabinets(["runtime-a"]));
+  });
+
+  it("records values at once, without the scene", () => {
+    const result = recordValues(
+      { CabinetColor: "Ardesia DD GL", FaucetHolesSpacing: "8in" },
+      { getState: () => store.getState(), dispatch: (action) => store.dispatch(action), flow: "custom" },
+    );
+
+    expect(result.skipped).toEqual([]);
+    expect(getCabinetColor(store.getState())).toBe("Ardesia DD GL");
+    // Not a profile attribute: it is addressed at the scope its ownership records.
+    expect(getFaucetHolesSpacing(store.getState())).toBe("8in");
+  });
+
+  it("skips a value kept per drawer, which one value cannot address", () => {
+    const result = recordValues(
+      { DividersStyle: "A" },
+      { getState: () => store.getState(), dispatch: (action) => store.dispatch(action), flow: "custom" },
+    );
+
+    expect(result.skipped).toEqual([{ attributeId: "DividersStyle", value: "A", reason: "no-target" }]);
+    expect(getDividersStyle(store.getState())).not.toBe("A");
+  });
+});
+

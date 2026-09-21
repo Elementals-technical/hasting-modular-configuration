@@ -21,7 +21,7 @@ import type {
 } from "@/entities/configuration";
 import { recordComposition } from "@/entities/product/model/store/slice";
 
-import { replayValues, type ReplayValues } from "./replayValues";
+import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
 
 /**
@@ -67,6 +67,8 @@ export type ApplyPresetRequest = {
   shared?: ReplayValues;
   /** Values sent once the products are placed, for the parts placing does not reach. */
   afterPlacement?: ReplayValues;
+  /** Values the configuration takes with the preset; the products already carry them. */
+  record?: ReplayValues;
 };
 
 export type AddCabinetRequest = {
@@ -74,6 +76,17 @@ export type AddCabinetRequest = {
   placement: SceneCompositionPlacement;
   /** Values sent once the cabinet is placed, e.g. the basin colour of a new sink base. */
   afterPlacement?: ReplayValues;
+  /** Values the configuration takes with the cabinet; its config already carries them. */
+  record?: ReplayValues;
+};
+
+export type AdoptCompositionRequest = {
+  /** The products the scene holds, in composition order. */
+  runtimeIds: readonly string[];
+  /** Their configs, in the same order, for their drawer styles. */
+  products: readonly SceneCompositionProduct[];
+  /** Values the configuration takes with them. */
+  record?: ReplayValues;
 };
 
 export type ClearCompositionRequest = {
@@ -152,15 +165,23 @@ const recordResult = (
   return { status: "applied", productIds, placed: result.placed };
 };
 
-/** Sends the values placing does not reach. A value the scene refused holds Save like a partial change. */
-const sendAfterPlacement = async (
+/**
+ * Records the values that come with the composition, then sends the values placing does not
+ * reach. A value the scene refused holds Save like a partial change.
+ */
+const settleValues = async (
   deps: CompositionDeps,
   recorded: CompositionResult,
-  values: ReplayValues | undefined,
+  { afterPlacement, record }: { afterPlacement?: ReplayValues; record?: ReplayValues },
 ): Promise<CompositionResult> => {
-  if (!values || recorded.status !== "applied") return recorded;
+  if (recorded.status === "error") return recorded;
 
-  const replayed = await replayValues({ send: values, record: false }, deps);
+  // Values the products already carry are only recorded; no scene call is made for them.
+  if (record) recordValues(record, deps);
+
+  if (!afterPlacement || recorded.status !== "applied") return recorded;
+
+  const replayed = await replayValues({ send: afterPlacement, record: false }, deps);
   if (replayed.status === "applied") return recorded;
 
   deps.dispatch(markRuntimeOutOfSync());
@@ -174,7 +195,7 @@ const sendAfterPlacement = async (
 };
 
 export const applyPreset = async (
-  { products, shared = {}, afterPlacement }: ApplyPresetRequest,
+  { products, shared = {}, afterPlacement, record }: ApplyPresetRequest,
   deps: CompositionDeps,
 ): Promise<CompositionResult> => {
   const state = deps.getState();
@@ -197,11 +218,11 @@ export const applyPreset = async (
     drawerStyles(profile, result.placed, products),
   );
 
-  return sendAfterPlacement(deps, recorded, afterPlacement);
+  return settleValues(deps, recorded, { afterPlacement, record });
 };
 
 export const addCabinet = async (
-  { product, placement, afterPlacement }: AddCabinetRequest,
+  { product, placement, afterPlacement, record }: AddCabinetRequest,
   deps: CompositionDeps,
 ): Promise<CompositionResult> => {
   const result = await deps.composition.add(product, placement);
@@ -222,7 +243,7 @@ export const addCabinet = async (
     runtimeId && style ? { [runtimeId]: style } : {},
   );
 
-  return sendAfterPlacement(deps, recorded, afterPlacement);
+  return settleValues(deps, recorded, { afterPlacement, record });
 };
 
 export const removeCabinets = async (
@@ -295,4 +316,25 @@ export const clearComposition = async (
   if (!isSceneChange(result)) return stoppedResult(result);
 
   return recordResult(deps, result, [], {});
+};
+
+/**
+ * Records a composition the scene already holds, e.g. products a restore placed or products that
+ * stayed when Prebuilt opened Custom. Nothing is sent to the scene.
+ */
+export const adoptComposition = async (
+  { runtimeIds, products, record }: AdoptCompositionRequest,
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  const profile = getActiveProductProfile(deps.getState());
+  const placed = [...runtimeIds];
+  const scene: SceneStateResult = { status: "ready", order: placed, cabinets: [] };
+  const recorded = recordResult(
+    deps,
+    { status: "applied", placed, scene },
+    placed,
+    drawerStyles(profile, placed, products),
+  );
+
+  return settleValues(deps, recorded, { record });
 };
