@@ -10,6 +10,7 @@ export { useCustomizationSectionFields, useCustomizationStepSections } from "./l
 export { buildConfiguratorOptions } from "./lib/buildConfiguratorOptions";
 export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { FieldControl } from "./ui/FieldControl";
+export { ColorField } from "./ui/ColorField";
 export type {
   CustomizationSchemaDiagnostic,
   CustomizationSchemaDiagnosticCode,
