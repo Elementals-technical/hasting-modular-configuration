@@ -83,11 +83,6 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 7,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
-    owner: "I",
-    count: 14,
-    reason: "C06 phases 2-5, 7: towel bar and side panel removal, countertop follow-up, vessel action, duplicate, swap",
-  },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
     count: 2,
@@ -192,8 +187,8 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
   },
   "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
     owner: "I",
-    count: 8,
-    reason: "C06 phases 2, 3, 7: towel bar removal, vessel action, duplicate",
+    count: 5,
+    reason: "C06 phase 3: basin and vessel values the scene's basin action records",
   },
 };
 
