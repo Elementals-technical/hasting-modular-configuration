@@ -44,8 +44,6 @@ import {
   setPlacedCabinetStyle,
   replacePlacedDividersForCabinet,
   setSelectedDimensions,
-  setSidePanelsOption,
-  setSidePanelSideStatus,
   setVesselColor,
 } from "@/entities/product/model/store/slice";
 import {
@@ -77,7 +75,12 @@ import type { SceneRestoreMatch } from "@/entities/configuration";
 import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
-import { isGrooveType, reapplySidePanelsForPreset, restoreSidePanelState } from "@/features/sidePanel";
+import {
+  isGrooveType,
+  reapplySidePanelsForPreset,
+  restoreSidePanelState,
+  type SidePanelStatus,
+} from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
@@ -918,17 +921,16 @@ export const ModelPage = () => {
         const restoredSidePanelRight =
           typeof uiStateValues?.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
         if (restoredSidePanels && isGrooveType(restoredSidePanels) && effectivePresets.length) {
+          const leftStatus = (restoredSidePanelLeft ?? "active") as SidePanelStatus;
+          const rightStatus = (restoredSidePanelRight ?? "active") as SidePanelStatus;
           await restoreSidePanelState(
+            dispatch,
             restoredSidePanels,
             restoredSidePanelLeft,
             restoredSidePanelRight,
             effectivePresets.length,
+            { panels: restoredSidePanels, left: leftStatus, right: rightStatus },
           );
-          dispatch(setSidePanelsOption(restoredSidePanels));
-          const leftStatus = restoredSidePanelLeft ?? "active";
-          const rightStatus = restoredSidePanelRight ?? "active";
-          dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus as "active" | "none" | "auto-removed" }));
-          dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus as "active" | "none" | "auto-removed" }));
           await enforceSidePanelEligibility(
             dispatch,
             activeProfileRef.current,

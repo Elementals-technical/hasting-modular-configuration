@@ -123,7 +123,6 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
-import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
@@ -1385,10 +1384,11 @@ export const CabinetBuilderPage = () => {
       if (sidePanel && isGrooveType(sidePanel)) {
         const leftStatus = resolveSidePanelStatus(uiSidePanelLeft, "active");
         const rightStatus = resolveSidePanelStatus(uiSidePanelRight, "active");
-        await restoreSidePanelState(sidePanel, leftStatus, rightStatus, orderedIds.length);
-        dispatch(setSidePanelsOption(sidePanel));
-        dispatch(setSidePanelSideStatus({ side: "left", status: leftStatus }));
-        dispatch(setSidePanelSideStatus({ side: "right", status: rightStatus }));
+        await restoreSidePanelState(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length, {
+          panels: sidePanel,
+          left: leftStatus,
+          right: rightStatus,
+        });
         await enforceSidePanelEligibility(
           dispatch,
           getActiveProductProfile(store.getState()),

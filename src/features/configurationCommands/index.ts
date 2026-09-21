@@ -16,6 +16,12 @@ export { confirmAttributeChange } from "./lib/confirmAttributeChange";
 export { changeDimension } from "./lib/changeDimension";
 export type { ChangeDimensionDeps } from "./lib/changeDimension";
 export { replayValues } from "./lib/replayValues";
+export { changeSidePanels } from "./lib/changeSidePanels";
+export type {
+  SidePanelChange,
+  SidePanelChangeResult,
+  SidePanelStatus as SidePanelSideStatus,
+} from "./lib/changeSidePanels";
 export type { ReplayDeps, ReplayRequest, ReplayResult, ReplayValues, SkippedReplayValue } from "./lib/replayValues";
 export { createCommandRunner } from "./lib/createCommandRunner";
 export type { CommandRunner, CommandRunnerDeps } from "./lib/createCommandRunner";

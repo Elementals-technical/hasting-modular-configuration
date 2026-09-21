@@ -163,3 +163,23 @@ export type ConfigurationSceneRestorer = {
   preflight(request: SceneRestoreRequest): SceneRestoreIssue[];
   restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
 };
+
+/** One side panel type on one side of the composition. "None" removes the panel. */
+export type SidePanelPlacement = {
+  panel: string;
+  side: "left" | "right" | "both";
+};
+
+export type SidePanelApplyResult =
+  | { status: "applied" }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string }
+  | { status: "partial"; message: string };
+
+/**
+ * The side panels of the composition. The scene takes a panel type together with its side, so
+ * a panel is one placement rather than one value of a binding. A single cabinet is both edges.
+ */
+export type ConfigurationSidePanelPort = {
+  apply(placements: readonly SidePanelPlacement[], cabinetCount?: number): Promise<SidePanelApplyResult>;
+};

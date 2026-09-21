@@ -166,7 +166,7 @@ export async function restoreSnapshot(
 
   // Re-apply SidePanel state to PlayCanvas (per-side).
   const { SidePanels, SidePanelLeft, SidePanelRight } = snapshot.productOptions;
-  await restoreSidePanelState(SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
+  await restoreSidePanelState(dispatch, SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
 
   return result;
 }

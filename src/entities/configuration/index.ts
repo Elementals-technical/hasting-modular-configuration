@@ -24,6 +24,9 @@ export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget, parseTarget
 export type {
   ConfigurationRuntimePort,
   ConfigurationSceneReader,
+  ConfigurationSidePanelPort,
+  SidePanelApplyResult,
+  SidePanelPlacement,
   FailedRuntimeChange,
   RuntimeApplyResult,
   RuntimeChange,

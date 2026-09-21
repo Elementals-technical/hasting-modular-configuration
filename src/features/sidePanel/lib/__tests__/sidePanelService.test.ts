@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const sidePanelMocks = vi.hoisted(() => ({
-  setSidePanel: vi.fn<(type: string, side: "left" | "right" | "both", cabinetCount?: number) => Promise<void>>(),
+import type { SceneCallResult, SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
+
+const sceneMocks = vi.hoisted(() => ({
+  applySceneConfig: vi.fn<(selector: SceneSelector, patch: Record<string, unknown>) => Promise<SceneCallResult>>(
+    async () => ({ status: "applied", updatedIds: null }),
+  ),
 }));
 
-vi.mock("@/utils/functions/playcanvas/sidePanels", () => ({
-  setSidePanel: sidePanelMocks.setSidePanel,
+vi.mock("@/utils/functions/playcanvas/sceneBridge", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/utils/functions/playcanvas/sceneBridge")>()),
+  isSceneReady: () => true,
+  applySceneConfig: sceneMocks.applySceneConfig,
 }));
 
 import { store } from "@/app/store";
@@ -19,10 +25,13 @@ import {
 
 import { applyGrooveToActiveSides, reapplySidePanelsForPreset, restoreSidePanelState } from "../sidePanelService";
 
+/** The panels the scene was sent, one [panel, side] pair per call. */
+const sentPanels = () =>
+  sceneMocks.applySceneConfig.mock.calls.map(([, patch]) => [patch.SidePanel, patch.SidePanelSide]);
+
 describe("sidePanelService", () => {
   beforeEach(() => {
-    sidePanelMocks.setSidePanel.mockReset();
-    sidePanelMocks.setSidePanel.mockResolvedValue(undefined);
+    sceneMocks.applySceneConfig.mockClear();
     store.dispatch(reset());
   });
 
@@ -33,9 +42,10 @@ describe("sidePanelService", () => {
 
     await applyGrooveToActiveSides(store.dispatch, "None", "active", "active", 2);
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "left", 2);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "None", "right", 2);
+    expect(sentPanels()).toEqual([
+      ["None", "left"],
+      ["None", "right"],
+    ]);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("None");
@@ -50,8 +60,7 @@ describe("sidePanelService", () => {
 
     await applyGrooveToActiveSides(store.dispatch, "None", "active", "none", 2);
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("None", "left", 2);
+    expect(sentPanels()).toEqual([["None", "left"]]);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("None");
@@ -66,8 +75,7 @@ describe("sidePanelService", () => {
 
     await applyGrooveToActiveSides(store.dispatch, "CenterG", "active", "auto-removed", 2);
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("CenterG", "left", 2);
+    expect(sentPanels()).toEqual([["CenterG", "left"]]);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("CenterG");
@@ -76,19 +84,20 @@ describe("sidePanelService", () => {
   });
 
   it("restores both active side panels explicitly for multi-cabinet scenes", async () => {
-    await restoreSidePanelState("DoubleG", "active", "active", 3);
+    await restoreSidePanelState(store.dispatch, "DoubleG", "active", "active", 3);
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(3);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "left", 3);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(3, "DoubleG", "right", 3);
+    expect(sentPanels()).toEqual([
+      ["None", "left"],
+      ["None", "right"],
+      ["DoubleG", "left"],
+      ["DoubleG", "right"],
+    ]);
   });
 
   it("restores both active side panels with a single both-side call for single-cabinet scenes", async () => {
-    await restoreSidePanelState("DoubleG", "active", "active", 1);
+    await restoreSidePanelState(store.dispatch, "DoubleG", "active", "active", 1);
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("DoubleG", "both", 1);
+    expect(sentPanels()).toEqual([["DoubleG", "both"]]);
   });
 
   it("marks a preset edge Open Shelf side as auto-removed while keeping the eligible side active", async () => {
@@ -109,9 +118,11 @@ describe("sidePanelService", () => {
       ["open-shelf-left", "sink-cabinet-center", "sink-base-right"],
     );
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "right", 3);
+    expect(sentPanels()).toEqual([
+      ["None", "left"],
+      ["None", "right"],
+      ["DoubleG", "right"],
+    ]);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("DoubleG");
@@ -137,9 +148,11 @@ describe("sidePanelService", () => {
       ["sink-base-left", "sink-cabinet-center", "open-shelf-right"],
     );
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(2);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(1, "None", "both", 3);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenNthCalledWith(2, "DoubleG", "left", 3);
+    expect(sentPanels()).toEqual([
+      ["None", "left"],
+      ["None", "right"],
+      ["DoubleG", "left"],
+    ]);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("DoubleG");
@@ -165,12 +178,53 @@ describe("sidePanelService", () => {
       ["open-shelf-left", "sink-base-center", "side-shelf-right"],
     );
 
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledTimes(1);
-    expect(sidePanelMocks.setSidePanel).toHaveBeenCalledWith("None", "both", 3);
+    expect(sentPanels()).toEqual([
+      ["None", "left"],
+      ["None", "right"],
+    ]);
 
     const state = store.getState();
     expect(getSidePanelsOption(state)).toBe("UpperG");
     expect(getSidePanelLeftStatus(state)).toBe("auto-removed");
     expect(getSidePanelRightStatus(state)).toBe("auto-removed");
+  });
+});
+
+describe("sidePanelService through the command", () => {
+  beforeEach(() => {
+    sceneMocks.applySceneConfig.mockClear();
+    store.dispatch(reset());
+  });
+
+  it("records nothing when the scene did not take the panel", async () => {
+    store.dispatch(setSidePanelsOption("UpperG"));
+    store.dispatch(setSidePanelSideStatus({ side: "left", status: "active" }));
+    sceneMocks.applySceneConfig.mockResolvedValueOnce({
+      status: "failed",
+      code: "scene-rejected",
+      message: "no panel",
+    });
+
+    await applyGrooveToActiveSides(store.dispatch, "CenterG", "active", "none", 2);
+
+    expect(getSidePanelsOption(store.getState())).toBe("UpperG");
+  });
+
+  it("records the restored values with the panels when asked", async () => {
+    await restoreSidePanelState(store.dispatch, "DoubleG", "active", "none", 2, {
+      panels: "DoubleG",
+      left: "active",
+      right: "none",
+    });
+
+    const state = store.getState();
+    expect(sentPanels()).toEqual([
+      ["None", "left"],
+      ["None", "right"],
+      ["DoubleG", "left"],
+    ]);
+    expect(getSidePanelsOption(state)).toBe("DoubleG");
+    expect(getSidePanelLeftStatus(state)).toBe("active");
+    expect(getSidePanelRightStatus(state)).toBe("none");
   });
 });

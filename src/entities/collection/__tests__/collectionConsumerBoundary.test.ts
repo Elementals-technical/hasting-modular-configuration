@@ -118,11 +118,6 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 5,
     reason: "C06 phase 4: depth through changeDimension; phase 7: add and remove a cabinet",
   },
-  "/src/features/sidePanel/lib/sidePanelService.ts": {
-    owner: "I",
-    count: 15,
-    reason: "C06 phase 5: side panel scene operation in the adapter; the service becomes a planner",
-  },
   "/src/entities/product/ui/createModelBtn/CreateModelBtn.tsx": {
     owner: "C",
     count: 2,
@@ -167,11 +162,6 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
 const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
-  "/src/features/sidePanel/lib/sidePanelService.ts": {
-    owner: "C",
-    count: 17,
-    reason: "C06 phase 5: the service plans side panel changes, the command records them",
-  },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "C",
     count: 1,
@@ -199,12 +189,12 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
   },
   "/src/pages/prebuilt/model/ModelPage.tsx": {
     owner: "C",
-    count: 29,
+    count: 26,
     reason: "C06 phase 7: preset values recorded by applyPreset; phase 6: restore replay",
   },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
     owner: "C",
-    count: 39,
+    count: 36,
     reason: "C06 phase 7: bootstrap, preset and added cabinets; phase 6: restore replay",
   },
   "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {

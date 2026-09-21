@@ -17,3 +17,8 @@ export { createSceneRestorer, resolveSceneProductType } from "./lib/createSceneR
 export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRestorer";
 export { createTestSceneRestorer } from "./lib/testSceneRestorer";
 export type { TestSceneRestorer } from "./lib/testSceneRestorer";
+
+export { createSidePanelPort } from "./lib/createSidePanelPort";
+export type { SidePanelPortDeps } from "./lib/createSidePanelPort";
+export { createTestSidePanelPort } from "./lib/testSidePanelPort";
+export type { TestSidePanelPort } from "./lib/testSidePanelPort";
