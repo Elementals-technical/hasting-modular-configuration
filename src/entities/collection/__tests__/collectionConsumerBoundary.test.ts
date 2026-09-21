@@ -25,71 +25,203 @@ const hardcodedSourceIds = [
 
 /** Calls that reach the scene directly, bypassing the command path and its state record. */
 const directSceneCalls = [
-  /\bsetConfigBatch\s*\(/,
-  /\bsetConfig\s*\(/,
-  /\baddPreset\s*\(/,
-  /\baddProduct\s*\(/,
-  /\bremoveAllProducts\s*\(/,
+  /\bsetConfigBatch\s*\(/g,
+  /\bsetConfig\s*\(/g,
+  /\baddPreset\s*\(/g,
+  /\baddProduct\s*\(/g,
+  /\bremoveAllProducts\s*\(/g,
+  /\bsetSidePanel\s*\(/g,
+  /\bsetProductByParams\s*\(/g,
+  /\bremoveProduct\s*\(/g,
+  /\bclearPlacedDividersInScene\s*\(/g,
+  /\bresetSidePanels\s*\(/g,
+  /\bswapProducts\s*\(/g,
 ];
 
-/** The scene wrappers themselves and the adapter that is allowed to use them (I02). */
+/** The scene wrappers themselves and the adapters that are allowed to use them (I02). */
 const SCENE_INFRASTRUCTURE = [
   "/src/utils/functions/playcanvas/",
   "/src/features/playCanvasAdapter/",
+  "/src/features/dividers/adapter/",
   "/src/entities/collection/model/runtimeBindings.ts",
 ];
 
 /** Who removes a residue (B pages, C state and commands, I scene), and what it waits for (DEV-10). */
 type Residue = { owner: "B" | "C" | "I"; reason: string };
 
+/** A residue counted per file, so a file on the list cannot take a new call either. */
+type CountedResidue = Residue & { count: number };
+
+const countMatches = (source: string, patterns: RegExp[]) =>
+  patterns.reduce((sum, pattern) => sum + (source.match(pattern)?.length ?? 0), 0);
+
+/** Files with at least one match, and how many. */
+const countByFile = (sources: [string, string][], patterns: RegExp[]) =>
+  Object.fromEntries(
+    sources.flatMap(([path, source]) => {
+      const count = countMatches(source, patterns);
+      return count > 0 ? [[path, count]] : [];
+    }),
+  );
+
+const expectedCounts = (list: Record<string, CountedResidue>) =>
+  Object.fromEntries(Object.entries(list).map(([path, { count }]) => [path, count]));
+
 /**
- * Consumers that still call the scene directly, with who removes each call.
- * A file leaves the list when its calls go; a new direct call in a file that is already
- * clean fails the test. The list only shrinks (DEV-10).
+ * Consumers that still call the scene directly, with who removes each call (C06).
+ * The count is exact: a new call fails the test, and a removed one must lower the number,
+ * so the list only shrinks (DEV-10).
  */
-const PENDING_DIRECT_SCENE_CALLERS: Record<string, Residue> = {
+const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
   "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
     owner: "B",
-    reason: "B06: basin, vessel colour and countertop fields to the existing commands",
+    count: 7,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
   "/src/pages/custom/countertop/index.tsx": {
     owner: "B",
-    reason: "B06: basin, vessel colour and countertop fields to the existing commands",
+    count: 7,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
   "/src/pages/prebuilt/model/ModelPage.tsx": {
     owner: "C",
-    reason: "composition command: apply a preset, clear the scene; then B08",
+    count: 14,
+    reason: "C06 phase 7: composition commands; phase 6: restore replay; then B08",
   },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
     owner: "C",
-    reason: "composition command: add a product, apply a preset; then B09",
+    count: 15,
+    reason: "C06 phase 7: composition commands; phase 4: drawer dividers and height; phase 6: restore replay",
   },
   "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
     owner: "I",
-    reason: "scene widget: countertop follow-up, duplicate, towel bar removal, divider reset; divider bindings",
+    count: 14,
+    reason: "C06 phases 2-5, 7: towel bar and side panel removal, countertop follow-up, vessel action, duplicate, swap",
   },
-  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": { owner: "B", reason: "B06: towel bar field to its command" },
-  "/src/pages/custom/accessories/index.tsx": { owner: "B", reason: "B06: towel bar field to its command" },
-  "/src/features/bottomCanvasButtons/BottomCanvasButtons.tsx": {
+  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
-    reason: "commented-out reset and preset code only; deleting it clears the file",
+    count: 2,
+    reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
+  },
+  "/src/pages/custom/accessories/index.tsx": {
+    owner: "B",
+    count: 2,
+    reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
   },
   "/src/features/StepNavigationBar/StepNavigationBar.tsx": {
     owner: "C",
-    reason: "composition command: clear the scene when leaving the flow; side panel reset needs I bindings",
+    count: 3,
+    reason: "C06 phase 7: clear the composition when leaving the flow",
   },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "B",
-    reason: "B06: dimensions and vessel colour to changeDimension and the existing commands",
+    count: 5,
+    reason: "C06 phase 4: depth through changeDimension; phase 7: add and remove a cabinet",
+  },
+  "/src/features/sidePanel/lib/sidePanelService.ts": {
+    owner: "I",
+    count: 15,
+    reason: "C06 phase 5: side panel scene operation in the adapter; the service becomes a planner",
   },
   "/src/entities/product/ui/createModelBtn/CreateModelBtn.tsx": {
     owner: "C",
-    reason: "composition command: clear the scene",
+    count: 2,
+    reason: "C06 phase 7: clear the composition",
   },
-  "/src/app/store/optionsListener.ts": { owner: "C", reason: "C06: handle sync from state to scene" },
+  "/src/app/store/optionsListener.ts": { owner: "C", count: 1, reason: "C06 phase 6: handle sync from state to scene" },
   "/src/entities/history/lib/restoreSnapshot.ts": {
     owner: "C",
-    reason: "DEV-09: undo and redo through the restore path",
+    count: 6,
+    reason: "C06 phase 6: undo and redo re-apply values through the scene adapter",
+  },
+};
+
+/** Action creators the command commits (commitChange.ts); anything else dispatching them is a second writer. */
+const COMMITTED_SETTERS = [
+  "commitRuleSelection",
+  "setActiveCountertopThickness",
+  "setActiveBasinStyle",
+  "setActiveCountertopColor",
+  "setBookMatching",
+  "setCabinetColor",
+  "setCabinetColorFinish",
+  "setCabinetColorMaterial",
+  "setCountertopStyle",
+  "setDividersOption",
+  "setDividersStyle",
+  "setDrawerPanelFluting",
+  "setFaucetHolesAmount",
+  "setFaucetHolesSpacing",
+  "setGrainDirection",
+  "setHandleGrooveColor",
+  "setLedOption",
+  "setPlacedCabinetStyle",
+  "setSidePanelSideStatus",
+  "setSidePanelsOption",
+  "setTowelBarColor",
+  "setTowelBarOption",
+  "setVesselColor",
+];
+
+const directStateWrites = [new RegExp(`\\bdispatch\\(\\s*(?:${COMMITTED_SETTERS.join("|")})\\(`, "g")];
+
+/** The command's own writer, and restore/undo that record a whole snapshot at once. */
+const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChange.ts"];
+
+/**
+ * Consumers that still write a value the command owns, next to the command or instead of it
+ * (C06: one writer per value). Same exact-count rule as the scene callers.
+ */
+const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
+  "/src/features/sidePanel/lib/sidePanelService.ts": {
+    owner: "C",
+    count: 17,
+    reason: "C06 phase 5: the service plans side panel changes, the command records them",
+  },
+  "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
+    owner: "C",
+    count: 1,
+    reason: "C06 phase 7: drawers of an added cabinet recorded by the composition command",
+  },
+  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
+    owner: "B",
+    count: 3,
+    reason: "C06 phase 5: dividers option and style through the command",
+  },
+  "/src/pages/custom/accessories/index.tsx": {
+    owner: "B",
+    count: 3,
+    reason: "C06 phase 5: dividers option and style through the command",
+  },
+  "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
+    owner: "B",
+    count: 10,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/pages/custom/countertop/index.tsx": {
+    owner: "B",
+    count: 10,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/pages/prebuilt/model/ModelPage.tsx": {
+    owner: "C",
+    count: 29,
+    reason: "C06 phase 7: preset values recorded by applyPreset; phase 6: restore replay",
+  },
+  "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
+    owner: "C",
+    count: 39,
+    reason: "C06 phase 7: bootstrap, preset and added cabinets; phase 6: restore replay",
+  },
+  "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
+    owner: "B",
+    count: 3,
+    reason: "C06 phase 7: the preset colour with its material and finish recorded by applyPreset",
+  },
+  "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
+    owner: "I",
+    count: 8,
+    reason: "C06 phases 2, 3, 7: towel bar removal, vessel action, duplicate",
   },
 };
 
@@ -164,21 +296,35 @@ describe("active collection consumer boundary", () => {
     expect(findOffenders(hardcodedSourceIds)).toEqual([]);
   });
 
-  it("adds no direct scene call outside the wrappers and the files still waiting for a wave", () => {
-    const callers = productionSources
-      .filter(([path]) => !SCENE_INFRASTRUCTURE.some((allowed) => path.startsWith(allowed)))
-      .filter(([, source]) => directSceneCalls.some((pattern) => pattern.test(source)))
-      .map(([path]) => path);
+  it("calls the scene directly only in the wrappers and, exactly as counted, in the files still waiting", () => {
+    const callers = countByFile(
+      productionSources.filter(([path]) => !SCENE_INFRASTRUCTURE.some((allowed) => path.startsWith(allowed))),
+      directSceneCalls,
+    );
 
-    expect(callers.filter((path) => !(path in PENDING_DIRECT_SCENE_CALLERS))).toEqual([]);
+    expect(callers).toEqual(expectedCounts(PENDING_DIRECT_SCENE_CALLERS));
   });
 
-  it("keeps the pending list honest: a migrated file leaves it", () => {
-    const stillCalling = productionSources
-      .filter(([, source]) => directSceneCalls.some((pattern) => pattern.test(source)))
-      .map(([path]) => path);
+  it("writes a value the command owns only in the command and, exactly as counted, in the files still waiting", () => {
+    const writers = countByFile(
+      productionSources.filter(([path]) => !STATE_WRITE_OWNERS.includes(path)),
+      directStateWrites,
+    );
 
-    expect(Object.keys(PENDING_DIRECT_SCENE_CALLERS).filter((path) => !stillCalling.includes(path))).toEqual([]);
+    expect(writers).toEqual(expectedCounts(PENDING_DIRECT_STATE_WRITERS));
+  });
+
+  it("counts every action creator the command commits", () => {
+    const commitChange = sourceModules["/src/features/configurationCommands/lib/commitChange.ts"] ?? "";
+    const imported = commitChange.match(/import \{([^}]*)\} from "@\/entities\/product\/model\/store\/slice"/)?.[1] ?? "";
+    // Selection, preset and pricing inputs are not values the command alone owns.
+    const notOwned = ["addProductPreset", "setSelectedProductConfig", "setSelectedDimensions", "setHandleGrooveColorSku"];
+    const committed = imported
+      .split(",")
+      .map((name) => name.trim())
+      .filter((name) => name && !notOwned.includes(name));
+
+    expect([...committed].sort()).toEqual([...COMMITTED_SETTERS].sort());
   });
 
   it("matches materials by the legacy alias table only in the files still waiting for the profile", () => {

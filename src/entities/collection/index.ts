@@ -99,6 +99,7 @@ export type {
   SceneValue,
   ScenePatch,
   SemanticValue,
+  StateOnlyRuntimeBinding,
   UnboundRuntimeBinding,
 } from "./model/runtimeBindings";
 
@@ -111,6 +112,7 @@ export type {
 
 export {
   findMissingBindings,
+  isStateOnlyResolution,
   resolveRuntimeBinding,
   selectRuntimeBinding,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
@@ -120,6 +122,7 @@ export type {
   RuntimeBindingFailureReason,
   RuntimeBindingRequest,
   RuntimeBindingResolution,
+  StateOnlyRuntimeResolution,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
 
 export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";

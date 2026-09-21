@@ -8,18 +8,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { ReadyCollectionContext } from "@/entities/collection";
-import { resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
+import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import {
+  finishRestore,
+  resetConfiguration,
+  setActiveCollectionId,
+  startRestore,
+  syncCabinets,
+} from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import { getBookMatching, getFaucetHolesAmount } from "@/entities/product/model/store/selectors";
 import {
   reset,
   setActiveCabinetType,
   setActiveProfile,
+  setBookMatching,
   setCabinetCatalog,
   setCabinetColorMaterial,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
-import { createTestRuntimePort } from "@/features/playCanvasAdapter";
+import { createPlayCanvasRuntimePort, createTestRuntimePort, type SceneBridge } from "@/features/playCanvasAdapter";
 
 import { useAttributeChangeHandler } from "../hooks/useAttributeChangeHandler";
 import { useAvailabilityResets } from "../hooks/useAvailabilityResets";
@@ -51,6 +60,20 @@ const matrix = {
     },
   ],
 } as unknown as ProductDatatable;
+
+/** The PlayCanvas adapter over a scene that has not loaded: whatever reaches it is recorded. */
+const createUnloadedScenePort = () => {
+  const sceneCalls: unknown[] = [];
+  const scene: SceneBridge = {
+    isReady: () => false,
+    apply: async (selector, patch) => {
+      sceneCalls.push({ selector, patch });
+      return { status: "not-ready" };
+    },
+  };
+
+  return { sceneCalls, port: createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene }) };
+};
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <ReadyCollectionContext.Provider value={readyCollectionFixture}>
@@ -140,6 +163,22 @@ describe("useAttributeChangeHandler", () => {
     expect(saveSnapshotMock).not.toHaveBeenCalled();
     expect(runtime.calls).toHaveLength(0);
   });
+
+  it("records the number of faucet holes without the scene", async () => {
+    const { sceneCalls, port } = createUnloadedScenePort();
+    const { result } = renderHook(() => useAttributeChangeHandler("FaucetHolesAmount", { runtime: port }), {
+      wrapper,
+    });
+
+    let status: string | undefined;
+    await act(async () => {
+      status = (await result.current.onChange("3")).status;
+    });
+
+    expect(status).toBe("applied");
+    expect(getFaucetHolesAmount(store.getState())).toBe("3");
+    expect(sceneCalls).toHaveLength(0);
+  });
 });
 
 describe("useAvailabilityResets", () => {
@@ -168,6 +207,33 @@ describe("useAvailabilityResets", () => {
 
     await waitFor(() => expect(runtime.calls).toHaveLength(1));
     expect(runtime.calls[0][0]).toMatchObject({ attributeId: "GrainDirection", value: "" });
+  });
+
+  it("clears book matching the rules no longer allow, without the scene", async () => {
+    store.dispatch(setBookMatching("enabled"));
+    const { sceneCalls, port } = createUnloadedScenePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: port }), { wrapper });
+
+    await waitFor(() => expect(getBookMatching(store.getState())).toBe(""));
+    expect(sceneCalls).toHaveLength(0);
+  });
+
+  it("waits for a restore to finish before clearing book matching", async () => {
+    store.dispatch(startRestore("saved-1"));
+    store.dispatch(setBookMatching("enabled"));
+    const { port } = createUnloadedScenePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: port }), { wrapper });
+    await act(async () => Promise.resolve());
+
+    expect(getBookMatching(store.getState())).toBe("enabled");
+
+    act(() => {
+      store.dispatch(finishRestore({ status: "restored", reason: null, message: null }));
+    });
+
+    await waitFor(() => expect(getBookMatching(store.getState())).toBe(""));
   });
 
   it("clears nothing before the collection loads", async () => {

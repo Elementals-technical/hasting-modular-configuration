@@ -9,9 +9,7 @@ import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
-import { changeAttribute, type ChangeAttributeDeps } from "../lib/changeAttribute";
-import { confirmAttributeChange } from "../lib/confirmAttributeChange";
-import type { AttributeChange, ChangePreview, ChangeResult } from "../model/types";
+import { createCommandRunner, type CommandRunner } from "../lib/createCommandRunner";
 
 /**
  * The command service for a page: one place that wires the store, the scene adapter and
@@ -23,7 +21,7 @@ export type UseChangeAttributeOptions = {
   runtime?: ConfigurationRuntimePort;
 };
 
-export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttributeOptions = {}) => {
+export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttributeOptions = {}): CommandRunner => {
   const store = useStore<RootState>();
   const dispatch = useAppDispatch();
   const flow: RuntimeFlow = useCollectionNavigation()?.flowId ?? "prebuilt";
@@ -32,19 +30,14 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
   const bindings = collection.catalog.runtimeBindings ?? null;
   const configurator = collection.catalog.configurator;
 
+  // The page reads the bindings from the collection context, which is ready before the store copy.
   const runtime = useMemo(
     () => runtimeOverride ?? createPlayCanvasRuntimePort({ getBindings: () => bindings }),
     [bindings, runtimeOverride],
   );
 
-  return useMemo(() => {
-    const deps: ChangeAttributeDeps = { getState: store.getState, dispatch, runtime, flow, configurator };
-
-    return {
-      change: (change: AttributeChange): Promise<ChangeResult> => changeAttribute(change, deps),
-      confirm: (preview: ChangePreview): Promise<ChangeResult> => confirmAttributeChange(preview, deps),
-      /** Current state, for reading what a change should address at the moment it is made. */
-      getState: store.getState,
-    };
-  }, [configurator, dispatch, flow, runtime, store]);
+  return useMemo(
+    () => createCommandRunner({ getState: store.getState, dispatch, getFlow: () => flow, runtime, configurator }),
+    [configurator, dispatch, flow, runtime, store],
+  );
 };

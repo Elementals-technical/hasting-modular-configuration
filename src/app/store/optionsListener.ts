@@ -1,29 +1,6 @@
-import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
+import { createListenerMiddleware } from "@reduxjs/toolkit";
 
 import type { RootState } from "./index";
-import {
-  addProductId,
-  commitRuleSelection,
-  insertProductIdRelative,
-  removeProductId,
-  resetProducts,
-  restoreProductState,
-  setPlacedCabinetStyle,
-  setBookMatching,
-  setCabinetColorFinish,
-  setCabinetColorMaterial,
-  setDrawerPanelFluting,
-  setGrainDirection,
-  setActiveCabinetType,
-  setSelectedProductConfig,
-  switchAllCabinetsDrawerStyle,
-} from "@/entities/product/model/store/slice";
-import { getBookMatching, getDrawerPanelFluting, getGrainDirection } from "@/entities/product/model/store/selectors";
-import {
-  selectBookMatchingState,
-  selectFlutingState,
-  selectGrainDirectionState,
-} from "@/entities/product/model/store/derivedSelectors";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setupSidePanelListener } from "@/features/sidePanel";
 import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
@@ -36,12 +13,6 @@ import { setupSceneStateListener } from "@/features/configurationCommands/lib/sc
 import { createSceneReader } from "@/features/playCanvasAdapter/lib/createSceneReader";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
-
-/**
- * The option rules read the active collection's profile. Before it loads every rule reads as
- * unavailable, so the listeners below must not clear a chosen value on that account.
- */
-const hasActiveProfile = (state: RootState) => state.rootStateUI.product.activeProfile !== null;
 
 // Stable cabinet keys follow the placed products.
 optionsListenerMiddleware.startListening({
@@ -76,86 +47,6 @@ optionsListenerMiddleware.startListening({
       {},
       buildHandleStyleConfigPatch(handle, product.productOptions.HandleGrooveColor, product.activeProfile),
     );
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setCabinetColorMaterial, setCabinetColorFinish),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    if (!hasActiveProfile(state)) return;
-    const grainState = selectGrainDirectionState(state);
-    const currentGrain = getGrainDirection(state);
-
-    // State only: the scene is cleared through the command service by useAvailabilityResets.
-    if (!grainState.available && currentGrain) {
-      listenerApi.dispatch(setGrainDirection(""));
-      listenerApi.dispatch(setBookMatching(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  actionCreator: setGrainDirection,
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    if (!hasActiveProfile(state)) return;
-    const bookState = selectBookMatchingState(state);
-    const currentBook = getBookMatching(state);
-
-    if (!bookState.enabled && currentBook) {
-      listenerApi.dispatch(setBookMatching(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(
-    addProductId,
-    insertProductIdRelative,
-    removeProductId,
-    resetProducts,
-    restoreProductState,
-    setPlacedCabinetStyle,
-    switchAllCabinetsDrawerStyle,
-  ),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    if (!hasActiveProfile(state)) return;
-    const bookState = selectBookMatchingState(state);
-    const currentBook = getBookMatching(state);
-
-    if (!bookState.enabled && currentBook) {
-      listenerApi.dispatch(setBookMatching(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  actionCreator: setActiveCabinetType,
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    if (!hasActiveProfile(state)) return;
-    const flutingState = selectFlutingState(state);
-    const currentFluting = getDrawerPanelFluting(state);
-
-    if (!flutingState.available && currentFluting) {
-      listenerApi.dispatch(setDrawerPanelFluting(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setCabinetColorMaterial, setSelectedProductConfig, commitRuleSelection),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    if (!hasActiveProfile(state)) return;
-    const flutingState = selectFlutingState(state);
-    const currentFluting = getDrawerPanelFluting(state);
-
-    if (!flutingState.available && currentFluting) {
-      listenerApi.dispatch(setDrawerPanelFluting(""));
-    }
   },
 });
 

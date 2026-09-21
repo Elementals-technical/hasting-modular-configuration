@@ -5,7 +5,7 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FAUCET_HOLE_HELPER_COPY } from "@/shared/constants/faucetHoles";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
   getCountertopColorSku,
@@ -17,13 +17,13 @@ import {
   getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
-import { setFaucetHolesAmount } from "@/entities/product/model/store/slice";
 import {
   buildCountertopRuleState,
   getSupportedCountertopFaucetHoles,
   normalizeFaucetHoleToken,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
+import { resolveChangeRequest, useAttributeChangeHandler, useChangeAttribute } from "@/features/configurationCommands";
 import {
   buildCountertopColorSkuCandidates,
   getCountertopMaterialTokensFromBasinType,
@@ -33,8 +33,9 @@ import {
 import s from "./FaucetPage.module.scss";
 
 export const FaucetPage = () => {
-  const dispatch = useAppDispatch();
   const faucetAmount = useAppSelector(getFaucetHolesAmount);
+  const faucetHoles = useAttributeChangeHandler("FaucetHolesAmount");
+  const { change, getState } = useChangeAttribute();
 
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
@@ -107,7 +108,7 @@ export const FaucetPage = () => {
 
   const handleFaucetAmountChange = (value: string | null) => {
     if (!value) return;
-    dispatch(setFaucetHolesAmount(value));
+    void faucetHoles.onChange(value);
   };
 
   useEffect(() => {
@@ -118,9 +119,11 @@ export const FaucetPage = () => {
     if (!currentStillValid) {
       const first = filteredFaucetHolesAmountData[0];
       const defaultAmount = String(first.title ?? first.id);
-      dispatch(setFaucetHolesAmount(defaultAmount));
+      // A default the rules pick is not a user step, so it leaves no history entry.
+      const request = resolveChangeRequest(getState(), "FaucetHolesAmount", defaultAmount);
+      if (request) void change(request);
     }
-  }, [dispatch, faucetAmount, filteredFaucetHolesAmountData]);
+  }, [change, faucetAmount, filteredFaucetHolesAmountData, getState]);
 
   const ACCORDIONS: AccordionConfig[] = [
     {

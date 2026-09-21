@@ -1,4 +1,4 @@
-import { resolveRuntimeBinding } from "@/entities/collection";
+import { isStateOnlyResolution, resolveRuntimeBinding } from "@/entities/collection";
 import type { RuntimeBindingSet, RuntimeTarget, ScenePatch } from "@/entities/collection";
 import type {
   ConfigurationRuntimePort,
@@ -24,6 +24,8 @@ import { resolveSceneSelector } from "./resolveSceneSelector";
  *    only when every step is. An identical step is sent once per set.
  * 4. The first failure stops the set. Once any step reached the scene the result is
  *    "partial", never "failed": the scene has changed and C must know it.
+ * 5. A "state-only" value takes no step. It counts as applied with the scene part of its
+ *    set, and a set of nothing else is applied without the scene.
  */
 
 /** The scene side of the adapter. Tests pass a fake; the app uses sceneBridge. */
@@ -121,11 +123,19 @@ export const createPlayCanvasRuntimePort = ({
   async apply<T extends RuntimeChange>(changes: readonly T[], context: RuntimeContext): Promise<RuntimeApplyResult<T>> {
     if (changes.length === 0) return { status: "applied", applied: [] };
 
+    const bindings = getBindings();
+    const hasBindings = bindings !== null && bindings.collectionId === context.collectionId;
+
+    // A value the scene never shows needs no scene, so it is recorded even before the scene loads.
+    const isRecordOnly = (change: T) =>
+      hasBindings &&
+      isStateOnlyResolution(resolveRuntimeBinding(bindings, change.attributeId, change.value, context.flow));
+
+    if (changes.every(isRecordOnly)) return { status: "applied", applied: [...changes] };
+
     if (!scene.isReady()) return { status: "not-ready" };
 
-    const bindings = getBindings();
-
-    if (!bindings || bindings.collectionId !== context.collectionId) {
+    if (!hasBindings) {
       return {
         status: "unsupported",
         unsupported: changes.map((change) => ({
@@ -140,12 +150,18 @@ export const createPlayCanvasRuntimePort = ({
     const unsupported: UnsupportedRuntimeChange<T>[] = [];
     const unaddressable: FailedRuntimeChange<T>[] = [];
     const commands: SceneCommand<T>[] = [];
+    const recorded: T[] = [];
 
     changes.forEach((change, index) => {
       const resolution = resolveRuntimeBinding(bindings, change.attributeId, change.value, context.flow);
 
       if (!resolution.ok) {
         unsupported.push({ change, reason: resolution.reason, detail: resolution.detail });
+        return;
+      }
+
+      if (isStateOnlyResolution(resolution)) {
+        recorded.push(change);
         return;
       }
 
@@ -225,9 +241,12 @@ export const createPlayCanvasRuntimePort = ({
 
       const failed = [{ change: command.change, ...failure }, ...notAttempted(commands.slice(position + 1))];
 
-      return sceneChanged ? { status: "partial", applied, failed } : { status: "failed", failed };
+      // Recorded values go with what the scene accepted; a set that changed nothing records nothing.
+      return sceneChanged
+        ? { status: "partial", applied: [...applied, ...recorded], failed }
+        : { status: "failed", failed };
     }
 
-    return { status: "applied", applied };
+    return { status: "applied", applied: [...applied, ...recorded] };
   },
 });

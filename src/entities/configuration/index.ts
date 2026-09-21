@@ -79,6 +79,7 @@ export {
   restoreCabinets,
   restoreConfigurationFragment,
   setActiveCollectionId,
+  setActiveRuntimeBindings,
   setAttributeValue,
   syncCabinetOrder,
   syncCabinets,
@@ -87,6 +88,7 @@ export {
 export {
   getActiveCollectionId,
   getActiveProductProfile,
+  getActiveRuntimeBindings,
   getAttributeValue,
   getCabinetByStableKey,
   getCabinetDimensions,

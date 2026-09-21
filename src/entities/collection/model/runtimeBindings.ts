@@ -5,6 +5,7 @@
  * manifest, read through parseRuntimeBindings.
  *
  * Missing translations are recorded as "unbound" with a reason instead of being guessed.
+ * A value the scene never shows is "state-only": it is recorded without a scene call.
  */
 
 export type SceneValue = string | number;
@@ -82,7 +83,19 @@ export type UnboundRuntimeBinding = {
   reason: string;
 };
 
-export type RuntimeBinding = BoundRuntimeBinding | UnboundRuntimeBinding;
+/**
+ * A value the scene has no key for and never shows, e.g. the faucet holes count. The
+ * command records it without a scene call. Unlike "unbound", this is a decision that
+ * nothing needs to be sent, not a translation still missing.
+ */
+export type StateOnlyRuntimeBinding = {
+  attributeId: string;
+  status: "state-only";
+  /** Why the scene does not need the value. */
+  reason: string;
+};
+
+export type RuntimeBinding = BoundRuntimeBinding | UnboundRuntimeBinding | StateOnlyRuntimeBinding;
 
 export type RuntimeBindingSet = {
   schemaVersion: number;

@@ -85,7 +85,6 @@ export const BottomCanvasButtons = () => {
 
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
-  // const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
 
   const canUndo = useAppSelector(getCanUndo);
@@ -93,7 +92,6 @@ export const BottomCanvasButtons = () => {
   const lastPastSnapshot = useAppSelector(getLastPastSnapshot);
   const lastFutureSnapshot = useAppSelector(getLastFutureSnapshot);
 
-  // const saveSnapshot = useHistorySnapshot();
   const [isRestoring, setIsRestoring] = useState(false);
 
   const deactivateFullDimensions = () => {
@@ -190,63 +188,6 @@ export const BottomCanvasButtons = () => {
 
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
-  // const resetCustomBuilderScene = async () => {
-  //   await saveSnapshot();
-  //   removeAllProducts();
-  //   dispatch(resetProducts());
-
-  //   const defaultRule =
-  //     cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ?? cabinetCatalog.typeCabinetRules[0];
-  //   if (!defaultRule) return;
-
-  //   const defaultProductName = defaultRule?.code ?? "Sink-Base";
-  //   const defaultProductConfig: addProductConfigI = {
-  //     Height: defaultRule?.heights[defaultRule.heights.length - 1] ?? 56,
-  //     Depth: defaultRule?.depths[0] ?? 46,
-  //     CabinetColor: "Ardesia DD GL",
-  //     Width: defaultRule?.widths[0] ?? 60,
-  //     sinkType: defaultRule?.hasSink ? "Top_HPLPrisma" : undefined,
-  //     CountertopColor: "Cacao Orinoco FF MT",
-  //     HandleGrooveColor: "Blu Pavone A6 MT",
-  //   };
-
-  //   dispatch(setActiveCabinetType(defaultRule.code));
-
-  //   const productId = await addProduct(defaultProductName, defaultProductConfig);
-
-  //   dispatch(setDrawerProduct(defaultProductName));
-  //   dispatch(setSelectedProductConfig(defaultProductConfig));
-  //   dispatch(
-  //     setSelectedDimensions({
-  //       width: defaultProductConfig.Width,
-  //       height: defaultProductConfig.Height,
-  //       depth: defaultProductConfig.Depth,
-  //     }),
-  //   );
-
-  //   if (defaultProductConfig.sinkType) {
-  //     dispatch(setActiveBasinStyle(defaultProductConfig.sinkType));
-  //   }
-
-  //   if (productId) {
-  //     dispatch(addProductId(productId));
-  //   }
-  // };
-
-  // const resetPrebuiltScene = async () => {
-  //   await saveSnapshot();
-  //   removeAllProducts();
-  //   dispatch(resetPrebuiltProducts());
-
-  //   try {
-  //     await addPreset(productMockData[0].presetProducts);
-
-  //     dispatch(addProductPreset(productMockData[0].presetProducts));
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const handleSaveConfiguration = async () => {
     try {
       const result = await saveCurrentConfiguration();
@@ -337,84 +278,6 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  // const handleRestoreConfiguration = async () => {
-  //   try {
-  //     const result = await restore(5).unwrap();
-
-  //     // Set default path in which the configuration will be restored.
-  //     const path = result?.metadata?.path;
-  //     if (typeof path === "string" && path.startsWith("/")) {
-  //       navigate(path);
-  //     }
-
-  //     const configuration = result?.configuration || {};
-  //     const presetProducts = buildPresetFromConfiguration(configuration);
-
-  //     console.log(":presetProducts", presetProducts);
-
-  //     dispatch(resetProducts());
-  //     removeAllProducts();
-
-  //     const createdIds = await addPreset(presetProducts);
-  //     dispatch(addProductPreset(presetProducts));
-
-  //     // @ts-ignore
-  //     const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
-  //     orderedIds.forEach((id) => dispatch(addProductId(id)));
-
-  //     const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
-  //       const key = item.name;
-  //       if (!acc[key]) acc[key] = [];
-  //       acc[key].push(item);
-  //       return acc;
-  //     }, {});
-
-  //     Object.entries(groupByName).forEach(([name, items]) => {
-  //       const [first] = items;
-  //       if (!first) return;
-
-  //       if (name.startsWith("Top_")) {
-  //         if (first.CountertopColor) {
-  //           setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
-  //         }
-  //         return;
-  //       }
-
-  //       const config: Record<string, unknown> = {};
-  //       if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
-  //       if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
-  //       if (first.sinkType) config.sinkType = first.sinkType;
-  //       if (first.Drawers) config.Drawers = first.Drawers;
-
-  //       if (Object.keys(config).length) {
-  //         setConfigBatch({ productType: name }, config);
-  //       }
-  //     });
-
-  //     const [firstPreset] = presetProducts;
-  //     if (firstPreset?.name) {
-  //       dispatch(setDrawerProduct(firstPreset.name));
-  //     }
-
-  //     dispatch(setSelectedProductConfig(firstPreset ?? null));
-
-  //     const nextDimensions: Partial<{
-  //       width: number;
-  //       height: number;
-  //       depth: number;
-  //     }> = {};
-  //     if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
-  //     if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
-  //     if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
-
-  //     if (Object.keys(nextDimensions).length) {
-  //       dispatch(setSelectedDimensions(nextDimensions));
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
   return (
     <>
       <div className={s.bottomCanvasButtons}>
@@ -483,19 +346,6 @@ export const BottomCanvasButtons = () => {
             <BaseButton variant="ghost" className={s.tooltip} data-tooltip="Image" onClick={() => downloadSceneImage()}>
               <DownloadImageIcon />
             </BaseButton>
-
-            {/* <BaseButton
-              variant="ghost"
-              onClick={() => {
-                if (isCustomRoute) {
-                  resetCustomBuilderScene();
-                } else {
-                  resetPrebuiltScene();
-                }
-              }}
-            >
-              <RotateIcon />
-            </BaseButton> */}
 
             <BaseButton
               variant="ghost"
