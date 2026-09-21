@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import type { RuntimeBindingSet } from "@/entities/collection";
 import type {
   SceneAddProductResult,
   SceneOperationResult,
@@ -64,11 +66,11 @@ const createFakeScene = (answers: Answers = {}) => {
   };
 };
 
-const createPort = (answers?: Answers) => {
+const createPort = (answers?: Answers, bindings: RuntimeBindingSet = ushRuntimeBindings) => {
   const fake = createFakeScene(answers);
   const reader = createTestSceneReader();
   const port = createCompositionPort({
-    getBindings: () => ushRuntimeBindings,
+    getBindings: () => bindings,
     scene: fake.scene,
     reader: reader.reader,
   });
@@ -153,6 +155,63 @@ describe("createCompositionPort", () => {
     expect(calls).toEqual([
       ["insert", "Sink-Base", "cab-a", "left"],
       ["setConfig", "Sink-Base-inserted", { Width: 60, ProductType: "Sink-Base", productType: "Sink-Base" }],
+    ]);
+  });
+
+  it("places a Mako cabinet as the Mako scene product, with the keys the Mako scene reads", async () => {
+    const { port, calls } = createPort(undefined, makoRuntimeBindings);
+
+    await port.add(
+      {
+        productType: "Sink-Base",
+        config: { Width: 80, Height: 56, Depth: 52, Handle: "G50", Drawers: "2", sinkType: "LB440" },
+      },
+      { kind: "end" },
+    );
+
+    expect(calls).toEqual([
+      [
+        "add",
+        "Mako-sink-cabinet",
+        {
+          Width: 80,
+          Height: 52,
+          Depth: 52,
+          HandleStyle: "G50",
+          Drawers: "2D",
+          ShowLegs: "Disable",
+          ProductType: "Mako-sink-cabinet",
+          productType: "Mako-sink-cabinet",
+        },
+      ],
+    ]);
+  });
+
+  it("places a Mako preset, a side cabinet on legs in the cabinet colour", async () => {
+    const { port, calls } = createPort(undefined, makoRuntimeBindings);
+
+    await port.replace({
+      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "None" } }],
+      flow: "prebuilt",
+    });
+
+    expect(calls).toEqual([
+      [
+        "preset",
+        [
+          {
+            Width: 40,
+            Drawers: "2D",
+            Height: 52,
+            ShowLegs: "Enable",
+            LegColor: "None",
+            ProductType: "Mako-side-cabinet",
+            productType: "Mako-side-cabinet",
+            name: "Mako-side-cabinet",
+          },
+        ],
+        undefined,
+      ],
     ]);
   });
 

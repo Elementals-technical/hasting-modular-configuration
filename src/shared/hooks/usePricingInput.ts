@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useActiveCollection } from "@/entities/collection";
 import {
   getActiveProductProfile,
+  getActiveRuntimeBindings,
   getCabinetEntries,
   getDimensionsByCabinet,
   getValuesByAttributeId,
@@ -59,6 +60,7 @@ export const usePricingInput = () => {
   const { sceneConfigs, refresh: refreshSceneConfigs } = useSceneProductConfigs();
 
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const productIds = useAppSelector(getSelectedProducts);
   const productsPresets = useAppSelector(getProductsPresets);
@@ -112,6 +114,7 @@ export const usePricingInput = () => {
     () => ({
       skuBuilders,
       activeProfile,
+      runtimeBindings,
       colorSkuMaps,
       countertopRules,
       cabinetCatalog,
@@ -152,6 +155,7 @@ export const usePricingInput = () => {
     [
       skuBuilders,
       activeProfile,
+      runtimeBindings,
       colorSkuMaps,
       countertopRules,
       cabinetCatalog,

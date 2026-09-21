@@ -72,11 +72,16 @@ import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/
 import {
   hasCapability,
   isDrawerStyleMixingRestricted,
+  selectDefaultValue,
   selectEffectiveFallback,
   selectOptionsByCapability,
   useCollectionPresets,
 } from "@/entities/collection";
-import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import {
+  getActiveProductProfile,
+  getActiveRuntimeBindings,
+  getCabinetEntries,
+} from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
 import { ensureCabinetHeights, restoreCountertopConfigs } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
@@ -117,9 +122,6 @@ type AccordionConfig = {
 const CABINET_TYPE_ID = "cabinet-type";
 const CABINET_STYLE_ID = "cabinet-style";
 const defaultValue = CABINET_TYPE_ID;
-const CUSTOM_DEFAULT_CABINET_COLOR = "Pulpis Chiaro TKH";
-const CUSTOM_DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
-const CUSTOM_DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 
 const ENABLE_AUTO_ADD_FIRST_PRODUCT = false;
 
@@ -270,6 +272,16 @@ export const CabinetBuilderPage = () => {
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const activeProfile = useAppSelector(getActiveProductProfile);
+  // What the builder starts from when nothing is chosen: the active collection's own values, so a
+  // collection without one (Mako) does not start with, and carry into Prebuilt, the Urban colours.
+  const collectionDefaults = useMemo(
+    () => ({
+      CabinetColor: selectDefaultValue(activeProfile, "CabinetColor"),
+      CountertopColor: selectDefaultValue(activeProfile, "CountertopColor"),
+      sinkType: selectDefaultValue(activeProfile, "sinkType"),
+    }),
+    [activeProfile],
+  );
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -680,6 +692,7 @@ export const CabinetBuilderPage = () => {
     await ensureCabinetHeights({
       runtimeIds: cabinetIdsToUpdate,
       height: appliedHeight,
+      bindings: getActiveRuntimeBindings(getCommandState()),
       patch: {
         Drawers: mappedValue,
         ...(handleConfig ?? {}),
@@ -874,9 +887,9 @@ export const CabinetBuilderPage = () => {
     if (hasBootstrappedCabinetBuilder) return;
     if (hasPendingCabinetBuilderSelection) return;
 
-    const preservedCabinetColor = cabinetColor?.trim() ? cabinetColor : CUSTOM_DEFAULT_CABINET_COLOR;
-    const preservedCountertopColor = countertopColor?.trim() ? countertopColor : CUSTOM_DEFAULT_COUNTERTOP_COLOR;
-    const preservedSinkType = sinkType?.trim() ? sinkType : CUSTOM_DEFAULT_SINK_TYPE;
+    const preservedCabinetColor = cabinetColor?.trim() ? cabinetColor : collectionDefaults.CabinetColor;
+    const preservedCountertopColor = countertopColor?.trim() ? countertopColor : collectionDefaults.CountertopColor;
+    const preservedSinkType = sinkType?.trim() ? sinkType : collectionDefaults.sinkType;
 
     bootstrappedRef.current = false;
     dispatch(reset());
@@ -892,6 +905,7 @@ export const CabinetBuilderPage = () => {
     }
   }, [
     canvasReady,
+    collectionDefaults,
     composition,
     dispatch,
     record,
@@ -926,9 +940,9 @@ export const CabinetBuilderPage = () => {
 
         const presetProducts = presetFromUrl.presetProducts;
         const [firstPreset] = presetProducts;
-        const presetCabinetColor = firstPreset?.CabinetColor ?? CUSTOM_DEFAULT_CABINET_COLOR;
-        const presetCountertopColor = firstPreset?.CountertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
-        const presetSinkType = firstPreset?.sinkType ?? CUSTOM_DEFAULT_SINK_TYPE;
+        const presetCabinetColor = firstPreset?.CabinetColor ?? collectionDefaults.CabinetColor;
+        const presetCountertopColor = firstPreset?.CountertopColor ?? collectionDefaults.CountertopColor;
+        const presetSinkType = firstPreset?.sinkType ?? collectionDefaults.sinkType;
         const presetHandleGrooveColor = firstPreset?.HandleGrooveColor ?? presetCabinetColor;
 
         dispatch(addProductPreset(presetProducts));
@@ -950,7 +964,17 @@ export const CabinetBuilderPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [canvasReady, composition, configId, customPresetBootstrapKey, dispatch, pathname, presetFromUrl, record]);
+  }, [
+    canvasReady,
+    collectionDefaults,
+    composition,
+    configId,
+    customPresetBootstrapKey,
+    dispatch,
+    pathname,
+    presetFromUrl,
+    record,
+  ]);
 
   useEffect(() => {
     if (!canvasReady || !productsPresets.length || bootstrappedRef.current) return;
@@ -964,10 +988,10 @@ export const CabinetBuilderPage = () => {
       dispatch(resetProducts());
       const existingIds = getOrderedProductIds();
       const [firstPreset] = productsPresets;
-      const preferredCabinetColor = firstPreset?.CabinetColor ?? cabinetColor ?? CUSTOM_DEFAULT_CABINET_COLOR;
+      const preferredCabinetColor = firstPreset?.CabinetColor ?? cabinetColor ?? collectionDefaults.CabinetColor;
       const preferredCountertopColor =
-        countertopColor ?? firstPreset?.CountertopColor ?? CUSTOM_DEFAULT_COUNTERTOP_COLOR;
-      const preferredSinkType = sinkType ?? firstPreset?.sinkType ?? CUSTOM_DEFAULT_SINK_TYPE;
+        countertopColor ?? firstPreset?.CountertopColor ?? collectionDefaults.CountertopColor;
+      const preferredSinkType = sinkType ?? firstPreset?.sinkType ?? collectionDefaults.sinkType;
       const preferredHandleGrooveColor = firstPreset?.HandleGrooveColor ?? handleGrooveColor ?? preferredCabinetColor;
       const startingColors = {
         CabinetColor: preferredCabinetColor,
@@ -1036,6 +1060,7 @@ export const CabinetBuilderPage = () => {
     run();
   }, [
     canvasReady,
+    collectionDefaults,
     composition,
     dispatch,
     hasBootstrappedCabinetBuilder,

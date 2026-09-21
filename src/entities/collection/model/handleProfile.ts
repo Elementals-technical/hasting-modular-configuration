@@ -10,7 +10,8 @@
 /** One "cabinet type + handle + drawers -> required height" row. */
 export type HandleHeightConstraint = {
   cabinetType: string;
-  handleId: string;
+  /** Null when the height applies whatever the handle. */
+  handleId: string | null;
   drawers: string;
   forcedHeightCm: number;
 };
@@ -20,6 +21,8 @@ export type CabinetHandleRelations = {
   cabinetType: string;
   /** handleId -> drawers value -> forced height in cm. */
   forcedHeightByHandle: Record<string, Record<string, number>>;
+  /** drawers value -> forced height in cm whatever the handle; a handle's own entry wins. */
+  forcedHeightByDrawers: Record<string, number>;
   /** handleId -> drawers values that allow this handle. Empty/absent means "no restriction". */
   requiresDrawersByHandle: Record<string, string[]>;
 };

@@ -96,6 +96,14 @@ export type CabinetMatrixLegacyAdapter = {
     forcedHeightByHandle: Record<string, string>;
     /** handleId -> column name holding the drawers values that allow this handle. */
     requiresDrawersByHandle: Record<string, string>;
+    /**
+     * One column of forced heights for every handle: "drawers:height" applies whatever the
+     * handle, "handleId/drawers:height" to that handle only ("1:26|2:52"). A table in this
+     * shape needs no column per handle; the per-handle maps above stay for the Urban table.
+     */
+    forcedHeight?: string;
+    /** One column of the drawers each handle allows: "handleId:drawers" ("handle_urban_botcut:2"). */
+    handleDrawerConfigs?: string;
   };
 };
 

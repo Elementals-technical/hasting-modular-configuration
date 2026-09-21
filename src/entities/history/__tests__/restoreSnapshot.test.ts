@@ -7,7 +7,7 @@ import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSc
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { captureSnapshot } from "../lib/captureSnapshot";
-import { restoreSnapshot } from "../lib/restoreSnapshot";
+import { buildSnapshotRestoreRequest, restoreSnapshot } from "../lib/restoreSnapshot";
 import type { SceneSnapshot } from "../model/store/slice";
 
 vi.mock("@/utils/functions/playcanvas/setConfigBatch", () => ({
@@ -80,6 +80,22 @@ describe("history snapshot restore", () => {
       { stableKey: "cab-2", runtimeId: "new-rt-b", index: 1 },
     ]);
     expect(getAttributeValue(store.getState(), HANDLE_FINISH, { scope: "cabinet", cabinetId: "cab-2" })).toBe("Matte");
+  });
+
+  it("rebuilds Mako cabinets as the Mako products they were, with their drawer styles", async () => {
+    store.dispatch(addProductId("Mako-sink-cabinet-k3j4h5g6f"));
+    store.dispatch(addProductId("Mako-side-cabinet-a1b2c3d4e"));
+    const snapshot = await captureSnapshot(getState);
+    const { restorer } = createTestSceneRestorer();
+
+    expect(buildSnapshotRestoreRequest(snapshot).products.map(({ productType }) => productType)).toEqual([
+      "Mako-sink-cabinet",
+      "Mako-side-cabinet",
+    ]);
+
+    await restoreSnapshot(snapshot, { dispatch: store.dispatch, getState, getBindings: () => null, restorer, replay });
+
+    expect(Object.values(store.getState().rootStateUI.product.placedCabinetStyles)).toEqual(["1", "1"]);
   });
 
   it("shows the snapshot's values on the rebuilt scene through the command service only", async () => {

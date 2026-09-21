@@ -248,4 +248,25 @@ describe("parseProductProfile", () => {
       message: 'column mapping "handlesAllowed" is required',
     });
   });
+
+  it("reads the one-column-for-all-handles mappings and rejects an empty one", () => {
+    const raw = clone(ushProfile) as Record<string, unknown>;
+    const ruleData = raw.ruleData as Record<string, { columns: Record<string, unknown> }>;
+    ruleData.cabinetMatrixLegacyAdapter.columns.forcedHeight = "forced_height_cm";
+    ruleData.cabinetMatrixLegacyAdapter.columns.handleDrawerConfigs = "handle_drawer_configs";
+
+    const result = parseProductProfile(raw);
+    expect(result.ok && result.profile.ruleData.cabinetMatrixLegacyAdapter.columns).toMatchObject({
+      forcedHeight: "forced_height_cm",
+      handleDrawerConfigs: "handle_drawer_configs",
+    });
+
+    ruleData.cabinetMatrixLegacyAdapter.columns.forcedHeight = "";
+    const rejected = parseProductProfile(raw);
+    expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+      code: "adapter.missing_column",
+      dataPath: "/ruleData/cabinetMatrixLegacyAdapter/columns/forcedHeight",
+      message: 'column mapping "forcedHeight" must be a column name',
+    });
+  });
 });

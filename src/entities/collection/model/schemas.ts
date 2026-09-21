@@ -131,6 +131,8 @@ const presetProductSchema = z
     sinkType: z.string().optional(),
     CountertopColor: z.string().optional(),
     HandleGrooveColor: z.string().optional(),
+    HandleColor: z.string().optional(),
+    LegColor: z.string().optional(),
   })
   .passthrough();
 

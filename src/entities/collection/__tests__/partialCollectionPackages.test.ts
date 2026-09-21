@@ -13,6 +13,7 @@ import classUi from "../../../../public/collections/class/ui.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
+import makoRuntimeBindings from "../../../../public/collections/mako/runtime-bindings.json";
 import makoSkuProfile from "../../../../public/collections/mako/sku-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
 
@@ -43,6 +44,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}mako/manifest.json`]: makoManifest,
     [`${collectionsRootUrl}mako/presets.json`]: makoPresets,
     [`${collectionsRootUrl}mako/product-profile.json`]: makoProductProfile,
+    [`${collectionsRootUrl}mako/runtime-bindings.json`]: makoRuntimeBindings,
     [`${collectionsRootUrl}mako/sku-profile.json`]: makoSkuProfile,
     [`${collectionsRootUrl}mako/ui.json`]: makoUi,
   };
@@ -100,11 +102,13 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    ["class", "Class", 44],
-    ["mako", "Mako", 42],
+    // Class has no scene bindings and no model compositions yet; Mako places its own scene products (I)
+    // and has the composition of every model.
+    ["class", "Class", 44, undefined, false],
+    ["mako", "Mako", 42, { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" }, true],
   ])(
     "loads %s from only its declared local data and approved shared remotes",
-    async (collectionId, label, modelCount) => {
+    async (collectionId, label, modelCount, productTypes, hasCompositions) => {
       const remote = makeRemote();
       const dependencies: CollectionRuntimeDependencies = {
         registryUrl,
@@ -134,12 +138,13 @@ describe("partial production collection packages", () => {
       expect(data.catalog.navigation?.prebuilt).toEqual([
         { id: "model", label: `${label} Models`, path: "/prebuilt/model" },
       ]);
-      // The models of the Master File, without their composition until the model recipes are given.
+      // The models of the Master File, with their composition once the model recipes are given.
       expect(data.catalog.presets).toHaveLength(modelCount);
-      expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
+      expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length > 0)).toBe(hasCompositions);
+      expect(data.catalog.presets?.some(({ presetProducts }) => presetProducts.length > 0)).toBe(hasCompositions);
       // The profile carries only what the collection documents confirm; the rest of the package is still missing.
       expect(data.catalog.productProfile?.collectionId).toBe(collectionId);
-      expect(data.catalog.runtimeBindings).toBeUndefined();
+      expect(data.catalog.runtimeBindings?.productTypes).toEqual(productTypes);
       expect(data.catalog.cabinetSkuMappings).toBeUndefined();
       // Priced from its own SKU words (D04), not the USH cabinet mappings.
       expect(data.catalog.skuProfile?.collectionId).toBe(collectionId);

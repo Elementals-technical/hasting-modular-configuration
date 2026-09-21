@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   isHandleAllowedForDrawers,
   normalizeHandleProfile,
+  resolveDrawersForcedHeight,
   resolveForcedHeight,
   resolvePossibleForcedHeights,
 } from "../lib/normalizeHandleProfile";
@@ -111,7 +112,56 @@ describe("normalizeHandleProfile", () => {
     expect(relations[0]).toEqual({
       cabinetType: "Open-Shelf",
       forcedHeightByHandle: {},
+      forcedHeightByDrawers: {},
       requiresDrawersByHandle: {},
     });
+  });
+});
+
+describe("normalizeHandleProfile on a table with one column for all handles", () => {
+  const universalAdapter = {
+    columns: {
+      ...adapter.columns,
+      forcedHeightByHandle: {},
+      requiresDrawersByHandle: {},
+      forcedHeight: "forced_height_cm",
+      handleDrawerConfigs: "handle_drawer_configs",
+    },
+  };
+
+  it("reads a height the drawers require whatever the handle (Mako)", () => {
+    const { relations, constraints } = normalizeHandleProfile({
+      rows: [{ cabinet_type: "Sink-Base", forced_height_cm: "1:26|2D:52", handle_drawer_configs: "" }],
+      adapter: universalAdapter,
+      normalizeDrawers,
+    });
+
+    expect(relations[0].forcedHeightByDrawers).toEqual({ "1": 26, "2": 52 });
+    expect(relations[0].forcedHeightByHandle).toEqual({});
+    expect(resolveDrawersForcedHeight(relations[0], "1")).toBe(26);
+    // A handle has no height of its own here.
+    expect(resolveForcedHeight(relations[0], "G57", "1")).toBeNull();
+    expect(constraints).toContainEqual({ cabinetType: "Sink-Base", handleId: null, drawers: "2", forcedHeightCm: 52 });
+  });
+
+  it("reads a handle's own height and the drawers a handle allows from the same columns", () => {
+    const { relations } = normalizeHandleProfile({
+      rows: [
+        {
+          cabinet_type: "Sink-Base",
+          forced_height_cm: "handle_pto/1:50|handle_pto/2:50|handle_urban_botcut/2:53|1:40",
+          handle_drawer_configs: "handle_urban_botcut:2D|handle_x:1|handle_x:2",
+        },
+      ],
+      adapter: universalAdapter,
+      normalizeDrawers,
+    });
+
+    expect(relations[0].forcedHeightByHandle).toEqual({
+      handle_pto: { "1": 50, "2": 50 },
+      handle_urban_botcut: { "2": 53 },
+    });
+    expect(relations[0].forcedHeightByDrawers).toEqual({ "1": 40 });
+    expect(relations[0].requiresDrawersByHandle).toEqual({ handle_urban_botcut: ["2"], handle_x: ["1", "2"] });
   });
 });

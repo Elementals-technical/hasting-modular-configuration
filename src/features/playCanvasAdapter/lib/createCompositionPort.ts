@@ -1,4 +1,4 @@
-import { isStateOnlyResolution, resolveRuntimeBinding } from "@/entities/collection";
+import { isStateOnlyResolution, resolveProductConfig, resolveRuntimeBinding } from "@/entities/collection";
 import type { RuntimeBindingSet, ScenePatch } from "@/entities/collection";
 import type {
   ConfigurationCompositionPort,
@@ -8,7 +8,6 @@ import type {
   SceneCompositionResult,
   SceneRestoreIssue,
 } from "@/entities/configuration";
-import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import {
   addSceneProduct,
   clearSceneProducts,
@@ -34,7 +33,8 @@ import { resolveSceneProductType } from "./createSceneRestorer";
  *
  * 1. Everything the runtime can know without the scene is checked first: a scene type for every
  *    product type and a translation for every shared value. Any issue, or a scene that is not
- *    ready, leaves the scene untouched.
+ *    ready, leaves the scene untouched. Each product's own config is translated as it is placed
+ *    (resolveProductConfig).
  * 2. One scene operation per step, through the typed bridge and its queue, so the steps and the
  *    remaining direct calls run strictly in sequence.
  * 3. Once the scene changed, a failure is "partial", never "failed": C must know it changed.
@@ -88,10 +88,18 @@ export const createCompositionPort = ({
   scene = defaultScene,
   reader = createSceneReader(),
 }: CompositionPortDeps): ConfigurationCompositionPort => {
-  /** The product as the scene places it: its scene type, and its config naming that type. */
+  /**
+   * The product as the scene places it: its scene type, and its config translated for that scene
+   * and naming that type. A Mako handle, for one, reaches the Mako cabinet as HandleStyle.
+   */
   const toSceneProduct = (bindings: RuntimeBindingSet, { productType, config }: SceneCompositionProduct) => {
     const sceneType = resolveSceneProductType(bindings, productType);
-    return sceneType ? { sceneType, config: withRuntimeProductType(config, sceneType) } : null;
+    if (!sceneType) return null;
+
+    return {
+      sceneType,
+      config: { ...resolveProductConfig(bindings, config), ProductType: sceneType, productType: sceneType },
+    };
   };
 
   /** What the scene holds after a change: its order, and the sizes of the given products. */

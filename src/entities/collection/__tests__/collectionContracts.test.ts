@@ -96,6 +96,7 @@ describe("collection contracts", () => {
       ui: "ui.json",
       productProfile: "product-profile.json",
       skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
     });
     expect(makoManifest.defaultPresetId).toBeUndefined();
     expect(makoManifest.remote).toEqual({

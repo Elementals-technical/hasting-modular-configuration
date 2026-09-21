@@ -12,6 +12,8 @@ export type TypeCabinetRuleConfig = {
    * Replaces the per-handle `handle*ForcedHeightCm` fields, so a new handle is data only.
    */
   forcedHeightByHandle?: Record<string, Record<string, number>>;
+  /** drawers value -> forced height in cm whatever the handle; a handle's own entry wins. */
+  forcedHeightByDrawers?: Record<string, number>;
   /** handleId -> drawers values that allow this handle. Absent/empty means no restriction. */
   requiresDrawersByHandle?: Record<string, string[]>;
   supportsHeight?: number[];

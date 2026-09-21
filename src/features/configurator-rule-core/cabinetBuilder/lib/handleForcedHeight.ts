@@ -14,6 +14,7 @@ export const toHandleRelations = (rule: TypeCabinetRuleConfig | undefined): Cabi
   return {
     cabinetType: rule.code,
     forcedHeightByHandle: rule.forcedHeightByHandle ?? {},
+    forcedHeightByDrawers: rule.forcedHeightByDrawers ?? {},
     requiresDrawersByHandle: rule.requiresDrawersByHandle ?? {},
   };
 };

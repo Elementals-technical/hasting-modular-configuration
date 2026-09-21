@@ -1,4 +1,4 @@
-import { selectOption, selectOptionValues } from "@/entities/collection";
+import { resolveCabinetTypeOfRuntimeId, selectOption } from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
 import { isSameTarget, type CabinetEntry, type ScopedValue, type ValueTarget } from "@/entities/configuration";
 import {
@@ -30,14 +30,6 @@ const asText = (value: ScopedValue["value"] | undefined): string | null =>
 const valueAt = (values: Values, attributeId: string, target: ValueTarget): string | null =>
   asText(values[attributeId]?.find((entry) => isSameTarget(entry.target, target))?.value);
 
-/** The cabinet type the scene placed: the longest `CabinetType` value its runtime id starts with. */
-const cabinetTypeOf = (profile: ProductProfile | null, runtimeId: string): string | null =>
-  selectOptionValues(profile, "CabinetType")
-    .filter((value) => runtimeId.startsWith(value))
-    .sort((left, right) => right.length - left.length)[0] ?? null;
-
-const isSinkBase = (entry: CabinetEntry) => entry.runtimeId.toLowerCase().includes("sink-base");
-
 /** A gap concerns this order when the attribute it names has a value it covers. */
 const gapApplies = (
   { appliesWhen }: CollectionSkuProfile["gaps"][number],
@@ -61,6 +53,11 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   if (!skuProfile) return { lines: [], gaps: [] };
 
   const { activeProfile: profile, configurationValues: values, dimensionsByCabinet, placedCabinetStyles } = input;
+  // The cabinet type the scene placed, read through the collection's scene types (a Mako sink
+  // base is a Mako-sink-cabinet in the scene).
+  const cabinetTypeOf = (runtimeId: string) =>
+    resolveCabinetTypeOfRuntimeId(profile, input.runtimeBindings ?? null, runtimeId);
+  const isSinkBase = (entry: CabinetEntry) => cabinetTypeOf(entry.runtimeId) === "Sink-Base";
   const cabinets = [...input.cabinetEntries].sort((left, right) => left.index - right.index);
   const lines: PricingLine[] = [];
   const gaps: PricingGap[] = [];
@@ -78,7 +75,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   cabinets.forEach((entry) => {
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     const read: CollectionValueReader = (attributeId) => {
-      if (attributeId === "CabinetType") return cabinetTypeOf(profile, entry.runtimeId);
+      if (attributeId === "CabinetType") return cabinetTypeOf(entry.runtimeId);
       const own = valueAt(values, attributeId, cabinetTarget) ?? globalValue(attributeId);
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;

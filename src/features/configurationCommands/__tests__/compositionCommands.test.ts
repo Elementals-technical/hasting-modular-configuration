@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
+import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
   getAttributeValue,
@@ -208,6 +210,47 @@ describe("composition commands", () => {
       await addCabinet({ product: { productType: "Side-Shelf", config: {} }, placement: { kind: "end" } }, deps);
 
       expect(product().productIds).toEqual(["cab-a", "Side-Shelf-new-1"]);
+    });
+  });
+
+  describe("a Mako cabinet", () => {
+    beforeEach(() => {
+      store.dispatch(setActiveProfile(makoProfile));
+      store.dispatch(setActiveCollectionId("mako"));
+      store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+    });
+
+    it("reaches the port with its drawer style as the option the Mako bindings map", async () => {
+      const { composition, deps } = setup();
+
+      await addCabinet(
+        { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2D" } }, placement: { kind: "end" } },
+        deps,
+      );
+
+      expect(lastCall(composition)).toMatchObject({
+        op: "add",
+        product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2" } },
+      });
+      expect(product().placedCabinetStyles).toEqual({ "Sink-Base-new-1": "2" });
+    });
+
+    it("places a preset the same way", async () => {
+      const { composition, deps } = setup();
+
+      await applyPreset(
+        {
+          products: [
+            { productType: "Sink-Cabinet", config: { Width: 40, Drawers: "1D" } },
+            { productType: "Sink-Base", config: { Width: 60, Drawers: "1D" } },
+          ],
+        },
+        deps,
+      );
+
+      const call = lastCall(composition);
+      expect(call.op === "replace" && call.request.products.map(({ config }) => config.Drawers)).toEqual(["1", "1"]);
+      expect(Object.values(product().placedCabinetStyles)).toEqual(["1", "1"]);
     });
   });
 

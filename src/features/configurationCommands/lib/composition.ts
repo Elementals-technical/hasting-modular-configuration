@@ -2,7 +2,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 import { normalizeOptionValue } from "@/entities/collection";
-import type { ProductProfile, RuntimeFlow } from "@/entities/collection";
+import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getActiveProductProfile,
@@ -11,6 +11,7 @@ import {
   requestSceneStateSync,
 } from "@/entities/configuration";
 import type {
+  AttributeValue,
   ConfigurationCompositionPort,
   ConfigurationRuntimePort,
   ConfigurationSidePanelPort,
@@ -98,6 +99,28 @@ const productIdsOf = (state: RootState): string[] => state.rootStateUI.product.p
 
 const drawerStyleOf = (profile: ProductProfile | null, config: Record<string, unknown>): string | null =>
   normalizeOptionValue(profile, "Drawers", config.Drawers);
+
+const isAttributeValue = (value: unknown): value is AttributeValue =>
+  value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+
+/**
+ * The products with each value their collection maps in its canonical option ("2D" -> "2"), as
+ * the port looks it up; every other value stays as the product carries it.
+ */
+const toSceneProducts = (
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null,
+  products: readonly SceneCompositionProduct[],
+): SceneCompositionProduct[] =>
+  products.map(({ productType, config }) => ({
+    productType,
+    config: Object.fromEntries(
+      Object.entries(config).map(([attributeId, value]) => [
+        attributeId,
+        isAttributeValue(value) ? toSceneValue(profile, bindings, attributeId, value) : value,
+      ]),
+    ),
+  }));
 
 /** Drawer styles of the placed products; product `i` of the request became `placed[i]`. */
 const drawerStyles = (
@@ -208,7 +231,11 @@ export const applyPreset = async (
     ]),
   );
 
-  const result = await deps.composition.replace({ products, shared: sceneShared, flow: deps.flow });
+  const result = await deps.composition.replace({
+    products: toSceneProducts(profile, bindings, products),
+    shared: sceneShared,
+    flow: deps.flow,
+  });
   if (!isSceneChange(result)) return stoppedResult(result);
 
   const recorded = recordResult(
@@ -225,7 +252,9 @@ export const addCabinet = async (
   { product, placement, afterPlacement, record }: AddCabinetRequest,
   deps: CompositionDeps,
 ): Promise<CompositionResult> => {
-  const result = await deps.composition.add(product, placement);
+  const state = deps.getState();
+  const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [product]);
+  const result = await deps.composition.add(sceneProduct, placement);
   if (!isSceneChange(result)) return stoppedResult(result);
 
   const [runtimeId] = result.placed;

@@ -310,6 +310,15 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
     return null;
   }
 
+  const optional = ["forcedHeight", "handleDrawerConfigs"] as const;
+
+  for (const key of optional) {
+    if (columns[key] !== undefined && !isNonEmptyString(columns[key])) {
+      collect.add("adapter.missing_column", `${path}/columns/${key}`, `column mapping "${key}" must be a column name`);
+      return null;
+    }
+  }
+
   return {
     tableId: raw.tableId,
     columns: {
@@ -319,6 +328,8 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
       supportsHeight: columns.supportsHeight as string,
       forcedHeightByHandle: columns.forcedHeightByHandle,
       requiresDrawersByHandle: columns.requiresDrawersByHandle,
+      ...(isNonEmptyString(columns.forcedHeight) ? { forcedHeight: columns.forcedHeight } : {}),
+      ...(isNonEmptyString(columns.handleDrawerConfigs) ? { handleDrawerConfigs: columns.handleDrawerConfigs } : {}),
     },
   };
 };
