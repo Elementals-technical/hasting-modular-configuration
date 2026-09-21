@@ -22,7 +22,6 @@ import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 import { useActiveCollection, useCollectionPresets } from "@/entities/collection";
 import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
-import { addPreset } from "@/utils/functions/playcanvas/addPreset";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -30,6 +29,7 @@ import {
   addProductPreset,
   reset,
   resetCabinetBuilderBootstrap,
+  resetPrebuiltProducts,
   resetProducts,
   setActiveBasinStyle,
   setActiveCountertopColor,
@@ -65,17 +65,14 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { getCountertopProductBatchSelector } from "@/utils/functions/playcanvas/countertopProduct";
-import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 import type { SceneRestoreMatch } from "@/entities/configuration";
+import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
 import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
+  clearSidePanels,
   isGrooveType,
   reapplySidePanelsForPreset,
   restoreSidePanelState,
@@ -87,6 +84,7 @@ import { getSidePanelsOption } from "@/entities/product/model/store/selectors";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
 import { collectPlacedDividersFromConfig, pickDividerConfigPatch } from "@/utils/functions/playcanvas/dividers";
+import { applyDividerZones } from "@/features/dividers";
 import {
   buildCountertopColorSkuCandidates,
   getCountertopMaterialTokensFromBasinType,
@@ -127,8 +125,28 @@ type ApplyPresetSelectionOptions = {
   preserveCountertopSelections?: boolean;
 };
 
-const normalizeCreatedProductIds = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((productId): productId is string => typeof productId === "string") : [];
+/** The scene values of a preset as configuration values, without the ones it leaves unset. */
+const toConfigurationValues = (config: PresetSceneDefaults): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(config).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "",
+    ),
+  );
+
+/**
+ * The countertop and basin values placing a preset does not settle: each product's own config
+ * wins over the shared values, so they are shown again once the products are placed.
+ */
+const countertopValuesAfterPlacement = (config: PresetSceneDefaults): ReplayValues =>
+  toConfigurationValues({
+    sinkType: config.sinkType,
+    CountertopStyle: config.CountertopStyle,
+    CountertopColor: config.CountertopColor,
+    Thickness: config.Thickness,
+  });
+
+const toCompositionProducts = (presetProducts: PresetProduct[]) =>
+  presetProducts.map((preset) => ({ productType: preset.name, config: { ...preset } }));
 
 const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSceneDefaults => {
   if (!presetProducts?.length) return {};
@@ -184,6 +202,7 @@ export const ModelPage = () => {
     activeProfileRef.current = activeProfile;
   }, [activeProfile]);
   const navigate = useStepNavigate();
+  const { composition, replay } = useChangeAttribute();
   const [searchParams, setSearchParams] = useSearchParams();
   const modelStepPath = useCollectionNavigation()?.currentStep?.path ?? "/prebuilt/model";
   const detailMatch = useMatch(`${modelStepPath}/:modelId`);
@@ -204,7 +223,6 @@ export const ModelPage = () => {
   const spGroove = useAppSelector(getSidePanelsOption);
   const configuratorGroups = activeCollection.catalog.configurator.groups;
   const countertopRules = useCountertopRules();
-  const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
   const [pendingModelSelection, setPendingModelSelection] = useState<PendingModelSelection | null>(null);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
   const [styleFilter, setStyleFilter] = useState<ProductStyle | "all">("all");
@@ -369,15 +387,14 @@ export const ModelPage = () => {
 
   // Define Selected dimentions for the countertop logic.
   const updateSelectedDimensionsFromScene = useCallback(
-    async (presetProducts?: PresetProduct[]) => {
+    async (presetProducts?: PresetProduct[], runtimeIds: readonly string[] = []) => {
       if (!presetProducts?.length) return;
 
       const entries = await Promise.all(
-        presetProducts.map(async (preset) => {
-          const name = preset.name;
-          if (!name) return null;
-
-          const config = await getConfig(name);
+        presetProducts.map(async (preset, index) => {
+          // The scene answers for a placed product by its runtime id; without one the preset's own size is used.
+          const runtimeId = runtimeIds[index];
+          const config = runtimeId ? await getConfig(runtimeId) : null;
           const width =
             typeof config?.Width === "number" ? config.Width : typeof preset.Width === "number" ? preset.Width : null;
           const depth =
@@ -498,34 +515,6 @@ export const ModelPage = () => {
     [countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
   );
 
-  const syncCountertopSceneConfigAfterPreset = useCallback(
-    async (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]) => {
-      const sinkBaseConfig: Record<string, unknown> = {};
-      if (globalConfig.sinkType) sinkBaseConfig.sinkType = globalConfig.sinkType;
-      if (globalConfig.CountertopStyle) sinkBaseConfig.CountertopStyle = globalConfig.CountertopStyle;
-
-      if (Object.keys(sinkBaseConfig).length) {
-        await setConfigBatch({}, sinkBaseConfig);
-      }
-
-      const countertopConfig: Record<string, unknown> = {};
-      if (globalConfig.CountertopColor) countertopConfig.CountertopColor = globalConfig.CountertopColor;
-      if (globalConfig.Thickness) countertopConfig.Thickness = globalConfig.Thickness;
-
-      if (!Object.keys(countertopConfig).length) return;
-
-      const productTypes = Array.from(
-        new Set(presetProducts.map((preset) => preset.name).filter((name): name is string => Boolean(name))),
-      );
-
-      await Promise.all([
-        ...productTypes.map(() => setConfigBatch({}, countertopConfig)),
-        setConfigBatch(getCountertopProductBatchSelector(), countertopConfig),
-      ]);
-    },
-    [],
-  );
-
   const applyPresetSelection = useCallback(
     async (
       presetProducts?: PresetProduct[],
@@ -549,14 +538,17 @@ export const ModelPage = () => {
           },
           effectivePresetProducts,
         );
-        await resetSidePanels();
-        await removeAllProducts();
-        const createdIds: unknown = await addPreset(effectivePresetProducts, globalConfig);
-        await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
-        const createdProductIds = normalizeCreatedProductIds(createdIds);
-        const preferredProductIds =
-          createdProductIds.length === effectivePresetProducts.length ? createdProductIds : undefined;
-        const sceneProductIds = syncPresetProductIdsFromScene(effectivePresetProducts, preferredProductIds);
+        await clearSidePanels(dispatch);
+        const placed = await composition.applyPreset({
+          products: toCompositionProducts(effectivePresetProducts),
+          shared: toConfigurationValues(globalConfig),
+          afterPlacement: countertopValuesAfterPlacement(globalConfig),
+        });
+        if (placed.status === "error") {
+          console.warn("[Prebuilt] The preset was not placed", placed);
+          return;
+        }
+        const sceneProductIds = placed.productIds;
 
         if (effectivePresetProducts.length) {
           dispatch(addProductPreset(effectivePresetProducts));
@@ -565,7 +557,7 @@ export const ModelPage = () => {
         if (!preserveCountertopSelections) {
           resetRestrictedCountertopSelections();
         }
-        await updateSelectedDimensionsFromScene(effectivePresetProducts);
+        await updateSelectedDimensionsFromScene(effectivePresetProducts, sceneProductIds);
 
         // Re-apply side panels to match the new preset's handle/height/drawers
         if (spGroove && spGroove !== "None" && effectivePresetProducts.length) {
@@ -607,6 +599,7 @@ export const ModelPage = () => {
     },
     [
       colorTransferableOverrides,
+      composition,
       dispatch,
       resetRestrictedCountertopSelections,
       resolveCompatibleCountertopSceneConfig,
@@ -618,8 +611,6 @@ export const ModelPage = () => {
       transferableOverrides,
       updateSelectedDimensionsFromScene,
       spGroove,
-      syncCountertopSceneConfigAfterPreset,
-      syncPresetProductIdsFromScene,
     ],
   );
 
@@ -675,11 +666,6 @@ export const ModelPage = () => {
     ],
   );
 
-  const resetAccessoriesForCustomTransition = useCallback(async () => {
-    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
-    await resetSidePanels();
-  }, []);
-
   const rehydrateCountertopFromPresets = (presetProducts: PresetProduct[]) => {
     const color = presetProducts.find(
       (p) => typeof p.CountertopColor === "string" && p.CountertopColor,
@@ -705,8 +691,9 @@ export const ModelPage = () => {
       model_count: presetProducts.length,
     });
 
-    await resetAccessoriesForCustomTransition();
-    await removeAllProducts();
+    // Custom starts from the preset's products alone: the scene is cleared with its add-ons.
+    const cleared = await composition.clear({ resetAddOns: true });
+    if (cleared.status === "error") console.warn("[Prebuilt] The scene was not cleared", cleared);
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
@@ -740,6 +727,13 @@ export const ModelPage = () => {
     navigate(targetRoute);
   }, [dispatch, navigate]);
 
+  // "Create Your Own" starts Custom from an empty scene, without the preset's add-ons.
+  const handleCreateOwnComposition = useCallback(async () => {
+    const cleared = await composition.clear({ resetAddOns: true });
+    if (cleared.status === "error") console.warn("[Prebuilt] The scene was not cleared", cleared);
+    dispatch(resetPrebuiltProducts());
+  }, [composition, dispatch]);
+
   const handleNavigate = useCallback(
     (tab: "prebuilt" | "custom") => {
       if (tab !== "custom") return;
@@ -756,21 +750,6 @@ export const ModelPage = () => {
       }),
     [enterCustomMode],
   );
-
-  const handleConfirmLeave = async () => {
-    const currentPresets = productsPresets;
-
-    await resetAccessoriesForCustomTransition();
-    await removeAllProducts();
-
-    dispatch(reset());
-    dispatch(resetCabinetBuilderBootstrap());
-    if (currentPresets.length) {
-      dispatch(addProductPreset(currentPresets));
-      rehydrateCountertopFromPresets(currentPresets);
-    }
-    navigate(ROUTES.CUSTOM);
-  };
 
   const setModelRestrictionPopupOpen = useCallback((isOpening: boolean) => {
     if (!isOpening) {
@@ -830,36 +809,35 @@ export const ModelPage = () => {
           presetProducts,
         );
 
-        // addPreset gave every product these scene defaults under its own config; the restorer
-        // creates the products one by one, so only the keys a saved config lacks are sent now.
-        for (const { sourceId, runtimeId } of matches) {
-          const sourceConfig = configuration[sourceId];
-          const savedKeys = sourceConfig && typeof sourceConfig === "object" ? Object.keys(sourceConfig) : [];
-          const defaults = Object.fromEntries(Object.entries(globalConfig).filter(([key]) => !savedKeys.includes(key)));
-
-          if (Object.keys(defaults).length > 0) {
-            await setConfigBatch([runtimeId], defaults);
-          }
+        // The restorer placed the saved configs as they are. The configuration's countertop and basin
+        // are shown on them again, as placing the preset does.
+        const replayed = await replay({
+          send: {
+            ...countertopValuesAfterPlacement(globalConfig),
+            ...(restoredVesselColor !== undefined
+              ? { VesselColor: restoredVesselColor }
+              : toConfigurationValues({ VesselColor: globalConfig.VesselColor })),
+          },
+          record: false,
+        });
+        if (replayed.status !== "applied" || replayed.skipped.length > 0) {
+          console.warn("[Prebuilt] The restored values did not all reach the scene", replayed);
         }
-        await syncCountertopSceneConfigAfterPreset(globalConfig, presetProducts);
 
         // Rebuild presets from real scene configs to keep SKU-driving fields
         // (name/drawers/handle/dimensions) consistent after restore.
-        const restoredDividersByCabinet = await Promise.all(
-          sceneIds.map(async (sceneId, index) => {
-            const sourceId = productConfigIds[index];
-            const sourceConfig = sourceId ? configuration[sourceId] : null;
-            const dividerConfigPatch = pickDividerConfigPatch(sourceConfig);
+        const restoredDividersByCabinet = sceneIds.map((sceneId, index) => {
+          const sourceId = productConfigIds[index];
+          const sourceConfig = sourceId ? configuration[sourceId] : null;
 
-            if (Object.keys(dividerConfigPatch).length > 0) {
-              await setConfig(sceneId, dividerConfigPatch);
-            }
-
-            return {
-              cabinetId: sceneId,
-              dividers: collectPlacedDividersFromConfig(sceneId, sourceConfig),
-            };
-          }),
+          return {
+            cabinetId: sceneId,
+            zones: pickDividerConfigPatch(sourceConfig),
+            dividers: collectPlacedDividersFromConfig(sceneId, sourceConfig),
+          };
+        });
+        await applyDividerZones(
+          restoredDividersByCabinet.map(({ cabinetId, zones }) => ({ runtimeId: cabinetId, zones })),
         );
         const sceneConfigs = await Promise.all(sceneIds.map((id) => getConfig(id)));
         const sceneConfiguration = sceneIds.reduce<Record<string, unknown>>((acc, id, index) => {
@@ -888,14 +866,11 @@ export const ModelPage = () => {
         }
         if (restoredFaucetHolesAmount) dispatch(setFaucetHolesAmount(restoredFaucetHolesAmount));
         if (restoredFaucetHolesSpacing !== undefined) dispatch(setFaucetHolesSpacing(restoredFaucetHolesSpacing));
-        if (restoredVesselColor !== undefined) {
-          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: restoredVesselColor });
-          dispatch(setVesselColor(restoredVesselColor));
-        }
+        if (restoredVesselColor !== undefined) dispatch(setVesselColor(restoredVesselColor));
         if (restoredBookMatching !== undefined) dispatch(setBookMatching(restoredBookMatching));
         if (globalConfig.sinkType) dispatch(setActiveBasinStyle(globalConfig.sinkType as string));
         if (globalConfig.CountertopStyle) dispatch(setCountertopStyle(globalConfig.CountertopStyle as string));
-        await updateSelectedDimensionsFromScene(effectivePresets);
+        await updateSelectedDimensionsFromScene(effectivePresets, sceneIds);
 
         // Options not carried by the rebuilt presets — summary and the sidebar read
         // these from the store, so dispatch them from the saved ui state.
@@ -951,8 +926,8 @@ export const ModelPage = () => {
     [
       configuratorGroups,
       dispatch,
+      replay,
       resolveCompatibleCountertopSceneConfig,
-      syncCountertopSceneConfigAfterPreset,
       syncPresetProductIdsFromScene,
       updateSelectedDimensionsFromScene,
     ],
@@ -988,16 +963,24 @@ export const ModelPage = () => {
           },
           effectivePresetProducts,
         );
-        await addPreset(effectivePresetProducts, globalConfig);
-        await syncCountertopSceneConfigAfterPreset(globalConfig, effectivePresetProducts);
-        syncPresetProductIdsFromScene(effectivePresetProducts);
+        const placed = await composition.applyPreset({
+          products: toCompositionProducts(effectivePresetProducts),
+          shared: toConfigurationValues(globalConfig),
+          afterPlacement: countertopValuesAfterPlacement(globalConfig),
+        });
+        if (placed.status === "error") {
+          // Nothing was placed: a later run of this effect may try again.
+          isDefinedProductsRef.current = false;
+          console.warn("[Prebuilt] The preset was not placed", placed);
+          return;
+        }
 
         if (!productsPresets.length) {
           dispatch(addProductPreset(effectivePresetProducts));
           syncCountertopSelectionFromSceneConfig(globalConfig);
         }
 
-        await updateSelectedDimensionsFromScene(effectivePresetProducts);
+        await updateSelectedDimensionsFromScene(effectivePresetProducts, placed.productIds);
         sessionStorage.setItem("prebuiltModelInitialized", "1");
 
         const presetCabinetColor = effectivePresetProducts.find(
@@ -1013,6 +996,7 @@ export const ModelPage = () => {
     run();
   }, [
     canvasReady,
+    composition,
     configIdFromUrl,
     configuratorGroups,
     defaultPreset,
@@ -1023,9 +1007,7 @@ export const ModelPage = () => {
     resolveColorSceneOverrides,
     resolveCountertopSceneOverrides,
     syncCountertopSelectionFromSceneConfig,
-    syncCountertopSceneConfigAfterPreset,
     transferableOverrides,
-    syncPresetProductIdsFromScene,
     updateSelectedDimensionsFromScene,
   ]);
 
@@ -1121,7 +1103,7 @@ export const ModelPage = () => {
               data={filteredData}
               handleAddPreset={handleAddPreset}
               handleCustomizePreset={handleCustomizePreset}
-              createModelBtn={<CreateModelBtn />}
+              createModelBtn={<CreateModelBtn onCreate={handleCreateOwnComposition} />}
               activePresetId={activePresetId}
               emptyMessage={`No preset compositions available for ${
                 activeCollection.manifest.label
@@ -1132,12 +1114,6 @@ export const ModelPage = () => {
       )}
 
       <Outlet />
-
-      <AttentionPopup
-        isOpening={isAttentionPopupOpen}
-        setIsOpening={setIsAttentionPopupOpen}
-        onConfirm={handleConfirmLeave}
-      />
 
       <AttentionPopup
         isOpening={pendingModelSelection !== null}

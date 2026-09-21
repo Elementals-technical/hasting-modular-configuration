@@ -83,16 +83,6 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 7,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/prebuilt/model/ModelPage.tsx": {
-    owner: "C",
-    count: 14,
-    reason: "C06 phase 7: composition commands; phase 6: restore replay; then B08",
-  },
-  "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
-    owner: "C",
-    count: 15,
-    reason: "C06 phase 7: composition commands; phase 4: drawer dividers and height; phase 6: restore replay",
-  },
   "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
     owner: "I",
     count: 14,
@@ -108,20 +98,10 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 2,
     reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
   },
-  "/src/features/StepNavigationBar/StepNavigationBar.tsx": {
-    owner: "C",
-    count: 3,
-    reason: "C06 phase 7: clear the composition when leaving the flow",
-  },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "B",
     count: 5,
     reason: "C06 phase 4: depth through changeDimension; phase 7: add and remove a cabinet",
-  },
-  "/src/entities/product/ui/createModelBtn/CreateModelBtn.tsx": {
-    owner: "C",
-    count: 2,
-    reason: "C06 phase 7: clear the composition",
   },
 };
 
@@ -198,12 +178,12 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
   "/src/pages/prebuilt/model/ModelPage.tsx": {
     owner: "C",
     count: 26,
-    reason: "C06 phase 7: preset values recorded by applyPreset; phase 6: restore replay",
+    reason: "C06 phase 7: preset values recorded by applyPreset; phase 6: values a restore records",
   },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
     owner: "C",
-    count: 36,
-    reason: "C06 phase 7: bootstrap, preset and added cabinets; phase 6: restore replay",
+    count: 35,
+    reason: "C06 phase 7: bootstrap colours, a preset the scene kept; phase 6: values a restore records",
   },
   "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
     owner: "B",
