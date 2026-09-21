@@ -29,6 +29,9 @@ export const isRestoreInFlightOrDone = (state: RootState, configId: string): boo
 export const getActiveCollectionId = (state: RootState): string | null =>
   state.rootStateUI.configuration.collectionId;
 
+export const getActiveRuntimeBindings = (state: RootState): ConfigurationState["runtimeBindings"] =>
+  state.rootStateUI.configuration.runtimeBindings;
+
 export const getCabinetEntries = (state: RootState): CabinetEntry[] => state.rootStateUI.configuration.cabinets;
 
 export const getCabinetByStableKey = (state: RootState, stableKey: string): CabinetEntry | null =>

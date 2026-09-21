@@ -1,4 +1,4 @@
-import type { AttributeScope } from "@/entities/collection";
+import type { AttributeScope, RuntimeBindingSet } from "@/entities/collection";
 
 /**
  * Configuration state model — what the user has chosen, addressed by target.
@@ -58,6 +58,11 @@ export type CabinetDimensions = {
 export type ConfigurationState = {
   /** Active collection, supplied by A. Never inferred from a source id such as 4/438/439. */
   collectionId: string | null;
+  /**
+   * Scene bindings of the active collection, supplied with it. Held here so a command can be
+   * run where no hook reaches the collection context: listeners, restore and undo.
+   */
+  runtimeBindings: RuntimeBindingSet | null;
   cabinets: CabinetEntry[];
   /**
    * Actual size of each product, recorded from the scene (I04). Not part of the snapshot:

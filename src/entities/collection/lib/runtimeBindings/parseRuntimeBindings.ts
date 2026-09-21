@@ -229,17 +229,17 @@ const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBi
     return null;
   }
 
-  if (raw.status === "unbound") {
+  if (raw.status === "unbound" || raw.status === "state-only") {
     if (!isNonEmptyString(raw.reason)) {
-      collect.add("bindings.missing_field", `${path}/reason`, "an unbound entry must say why");
+      collect.add("bindings.missing_field", `${path}/reason`, `a ${raw.status} entry must say why`);
       return null;
     }
 
-    return { attributeId: raw.attributeId, status: "unbound", reason: raw.reason };
+    return { attributeId: raw.attributeId, status: raw.status, reason: raw.reason };
   }
 
   if (raw.status !== "bound") {
-    collect.add("binding.invalid_status", `${path}/status`, 'status must be "bound" or "unbound"');
+    collect.add("binding.invalid_status", `${path}/status`, 'status must be "bound", "unbound" or "state-only"');
     return null;
   }
 

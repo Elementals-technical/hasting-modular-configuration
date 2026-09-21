@@ -7,6 +7,7 @@ import type { ScenePatch } from "@/entities/collection";
 import { getCabinetEntries, resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import { getFaucetHolesAmount, getLedOption } from "@/entities/product/model/store/selectors";
 import {
   reset,
   setActiveCabinetType,
@@ -145,5 +146,24 @@ describe("changeAttribute through the PlayCanvas adapter", () => {
     expect(calls[0]).toEqual({ selector: { productIds: ["runtime-b"] }, patch: { Drawers: "2D" } });
     // Every command of the one action is distinct.
     expect(new Set(calls.map((call) => JSON.stringify(call))).size).toBe(calls.length);
+  });
+
+  it("records a value the scene never shows without sending anything", async () => {
+    const { scene, calls } = createRecordedScene();
+    const deps: ChangeAttributeDeps = {
+      getState: () => store.getState(),
+      dispatch: (action) => store.dispatch(action),
+      runtime: createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene }),
+      flow: "custom",
+    };
+
+    const faucetHoles = await changeAttribute({ attributeId: "FaucetHolesAmount", value: "3", scope: "countertop" }, deps);
+    const led = await changeAttribute({ attributeId: "LedOption", value: "Auto Fill", scope: "global" }, deps);
+
+    expect(faucetHoles.status).toBe("applied");
+    expect(led.status).toBe("applied");
+    expect(getFaucetHolesAmount(store.getState())).toBe("3");
+    expect(getLedOption(store.getState())).toBe("Auto Fill");
+    expect(calls).toEqual([]);
   });
 });

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useActiveCollectionState } from "@/entities/collection";
-import { setActiveCollectionId } from "@/entities/configuration/model/store/slice";
+import { setActiveCollectionId, setActiveRuntimeBindings } from "@/entities/configuration/model/store/slice";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
@@ -26,6 +26,7 @@ export const CollectionStateBridge = () => {
   useEffect(
     () => () => {
       dispatch(setActiveCollectionId(null));
+      dispatch(setActiveRuntimeBindings(null));
       dispatch(replaceCollectionData({ profile: null, cabinetCatalog: null }));
     },
     [dispatch],
@@ -34,11 +35,13 @@ export const CollectionStateBridge = () => {
   useEffect(() => {
     if (!data) {
       dispatch(setActiveCollectionId(null));
+      dispatch(setActiveRuntimeBindings(null));
       dispatch(replaceCollectionData({ profile: null, cabinetCatalog: null }));
       return;
     }
 
     dispatch(setActiveCollectionId(data.id));
+    dispatch(setActiveRuntimeBindings(data.catalog.runtimeBindings ?? null));
     dispatch(
       replaceCollectionData({
         profile: data.catalog.productProfile ?? null,

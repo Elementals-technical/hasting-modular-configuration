@@ -307,22 +307,22 @@
     },
     {
       "attributeId": "BookMatching",
-      "status": "unbound",
+      "status": "state-only",
       "reason": "Never sent to the scene; no BookMatching key in the scene export."
     },
     {
       "attributeId": "LedOption",
-      "status": "unbound",
+      "status": "state-only",
       "reason": "Never sent to the scene; no LED key in the scene export."
     },
     {
       "attributeId": "FaucetHolesAmount",
-      "status": "unbound",
+      "status": "state-only",
       "reason": "Never sent to the scene; no faucet holes key in the scene export."
     },
     {
       "attributeId": "FaucetHolesSpacing",
-      "status": "unbound",
+      "status": "state-only",
       "reason": "Never sent to the scene; no faucet holes key in the scene export."
     },
     {

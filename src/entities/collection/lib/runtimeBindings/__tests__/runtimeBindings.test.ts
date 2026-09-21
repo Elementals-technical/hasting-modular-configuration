@@ -6,7 +6,7 @@ import { validateCustomizationSchema } from "@/features/collectionCustomization"
 import ushUiDocument from "../../../../../../public/collections/urban-standard-height/ui.json";
 
 import { normalizeOptionValue } from "../../productProfileSelectors";
-import { findMissingBindings, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import { findMissingBindings, isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 import type { ProductProfile } from "../../../model/productProfile";
 import type { RuntimeBindingSet } from "../../../model/runtimeBindings";
@@ -91,7 +91,7 @@ describe("resolveRuntimeBinding", () => {
 
   it("hands out a copy, so a caller cannot edit the table", () => {
     const resolution = resolveRuntimeBinding(ushRuntimeBindings, "Drawers", "1");
-    if (!resolution.ok) throw new Error("Drawers=1 must resolve");
+    if (!resolution.ok || isStateOnlyResolution(resolution)) throw new Error("Drawers=1 must resolve");
 
     resolution.patch.Drawers = "changed";
 
@@ -103,11 +103,28 @@ describe("resolveRuntimeBinding", () => {
       ok: false,
       reason: "no-binding",
     });
-    expect(resolveRuntimeBinding(ushRuntimeBindings, "LedOption", "Auto Fill")).toMatchObject({
+    expect(resolveRuntimeBinding(ushRuntimeBindings, "SidePanels", "UpperG")).toMatchObject({
       ok: false,
       reason: "unbound",
       detail: expect.any(String),
     });
+  });
+
+  it("resolves a value the scene never shows as recorded without a scene call", () => {
+    for (const [attributeId, value] of [
+      ["LedOption", "Auto Fill"],
+      ["BookMatching", "enabled"],
+      ["FaucetHolesAmount", "3"],
+      ["FaucetHolesSpacing", "8"],
+    ]) {
+      expect(resolveRuntimeBinding(ushRuntimeBindings, attributeId, value)).toEqual({
+        ok: true,
+        attributeId,
+        stateOnly: true,
+      });
+    }
+
+    expect(findMissingBindings(ushRuntimeBindings, [{ attributeId: "LedOption", value: "None" }])).toEqual([]);
   });
 
   it("binds an attribute to a scene key with a different name", () => {

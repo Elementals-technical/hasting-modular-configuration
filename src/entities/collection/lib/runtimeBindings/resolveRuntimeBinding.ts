@@ -37,6 +37,13 @@ export type ResolvedRuntimeBinding = {
   resetBefore?: ScenePatch;
 };
 
+/** A value the collection records without a scene call. Nothing is sent for it. */
+export type StateOnlyRuntimeResolution = {
+  ok: true;
+  attributeId: string;
+  stateOnly: true;
+};
+
 export type RuntimeBindingFailure = {
   ok: false;
   attributeId: string;
@@ -46,7 +53,11 @@ export type RuntimeBindingFailure = {
   detail?: string;
 };
 
-export type RuntimeBindingResolution = ResolvedRuntimeBinding | RuntimeBindingFailure;
+export type RuntimeBindingResolution = ResolvedRuntimeBinding | StateOnlyRuntimeResolution | RuntimeBindingFailure;
+
+export const isStateOnlyResolution = (
+  resolution: RuntimeBindingResolution,
+): resolution is StateOnlyRuntimeResolution => resolution.ok && "stateOnly" in resolution;
 
 /** Anything carrying an attribute and a value; PlannedChange fits as is. */
 export type RuntimeBindingRequest = {
@@ -102,6 +113,10 @@ export const resolveRuntimeBinding = (
 
   if (binding.status === "unbound") {
     return { ok: false, attributeId, value, reason: "unbound", detail: binding.reason };
+  }
+
+  if (binding.status === "state-only") {
+    return { ok: true, attributeId, stateOnly: true };
   }
 
   const patch = toPatch(binding, value);

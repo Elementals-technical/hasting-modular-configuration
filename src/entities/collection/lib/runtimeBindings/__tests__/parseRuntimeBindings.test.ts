@@ -53,7 +53,21 @@ describe("parseRuntimeBindings", () => {
   });
 
   it("requires a reason for an unbound entry", () => {
-    expect(codesOf(withBinding({ attributeId: "LedOption", status: "unbound" }))).toEqual([
+    expect(codesOf(withBinding({ attributeId: "SidePanels", status: "unbound" }))).toEqual([
+      ["bindings.missing_field", "/bindings/0/reason"],
+    ]);
+  });
+
+  it("reads a state-only entry and requires its reason too", () => {
+    const result = parseRuntimeBindings(
+      withBinding({ attributeId: "LedOption", status: "state-only", reason: "no LED key in the scene" }),
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      bindings: { bindings: [{ attributeId: "LedOption", status: "state-only", reason: "no LED key in the scene" }] },
+    });
+    expect(codesOf(withBinding({ attributeId: "LedOption", status: "state-only" }))).toEqual([
       ["bindings.missing_field", "/bindings/0/reason"],
     ]);
   });

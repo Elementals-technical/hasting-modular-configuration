@@ -1,5 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
+import type { RuntimeBindingSet } from "@/entities/collection";
+
 import { maxSeqFromKeys, rebindSavedCabinets, reconcileOrder, registerCabinets, resolveStableKey } from "../identity";
 import type { SceneStateResult } from "../runtimePort";
 import { isSameTarget } from "../types";
@@ -37,6 +39,7 @@ const pruneDimensions = (state: ConfigurationState) => {
 
 const initialState: ConfigurationState = {
   collectionId: null,
+  runtimeBindings: null,
   cabinets: [],
   nextCabinetSeq: 1,
   dimensionsByCabinet: {},
@@ -52,6 +55,12 @@ const configurationSlice = createSlice({
     /** Set by A once the active collection resolves. */
     setActiveCollectionId(state, action: PayloadAction<string | null>) {
       state.collectionId = action.payload;
+    },
+
+    /** Set by A with the collection; null while no collection is ready. */
+    setActiveRuntimeBindings(state, action: PayloadAction<RuntimeBindingSet | null>) {
+      // Replaced whole, never edited: the table is the collection's, read-only.
+      return { ...state, runtimeBindings: action.payload };
     },
 
     /** Registers the runtime ids currently present in the scene, preserving known keys. */
@@ -187,7 +196,12 @@ const configurationSlice = createSlice({
 
     resetConfiguration(state) {
       // A reset during a restore must not erase its status.
-      return { ...initialState, collectionId: state.collectionId, restore: state.restore };
+      return {
+        ...initialState,
+        collectionId: state.collectionId,
+        runtimeBindings: state.runtimeBindings,
+        restore: state.restore,
+      };
     },
 
     startRestore(state, action: PayloadAction<string>) {
@@ -226,6 +240,7 @@ const configurationSlice = createSlice({
 
 export const {
   setActiveCollectionId,
+  setActiveRuntimeBindings,
   syncCabinets,
   syncCabinetOrder,
   recordSceneState,

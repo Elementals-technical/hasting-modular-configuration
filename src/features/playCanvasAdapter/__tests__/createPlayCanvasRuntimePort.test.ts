@@ -126,6 +126,49 @@ describe("createPlayCanvasRuntimePort", () => {
     expect(scene.calls).toHaveLength(0);
   });
 
+  it("records a value the scene never shows without a scene call, even before the scene is ready", async () => {
+    const { scene, port } = setUp();
+    scene.ready = false;
+    const faucetHoles: RuntimeChange = { attributeId: "FaucetHolesAmount", target: { scope: "countertop" }, value: "3" };
+    const led: RuntimeChange = { attributeId: "LedOption", target: { scope: "global" }, value: "Auto Fill" };
+
+    expect(await port.apply([faucetHoles, led], context())).toEqual({
+      status: "applied",
+      applied: [faucetHoles, led],
+    });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("sends only the scene part of a mixed set and records the rest with it", async () => {
+    const { scene, port } = setUp();
+    const bookMatching: RuntimeChange = { attributeId: "BookMatching", target: { scope: "global" }, value: "enabled" };
+
+    const result = await port.apply([bookMatching, drawers("2")], context());
+
+    expect(result).toEqual({ status: "applied", applied: [drawers("2"), bookMatching] });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-1"] }, patch: { Drawers: "2D" } }]);
+  });
+
+  it("records nothing when the scene part of the set failed before changing the scene", async () => {
+    const { scene, port } = setUp();
+    scene.answers.set(0, { status: "failed", code: "scene-rejected", message: "rejected" });
+    const bookMatching: RuntimeChange = { attributeId: "BookMatching", target: { scope: "global" }, value: "enabled" };
+
+    const result = await port.apply([bookMatching, drawers("2")], context());
+
+    expect(result).toMatchObject({ status: "failed", failed: [{ change: drawers("2") }] });
+  });
+
+  it("does not record a state-only value for a collection without bindings", async () => {
+    const { scene, port } = setUp();
+    const led: RuntimeChange = { attributeId: "LedOption", target: { scope: "global" }, value: "Auto Fill" };
+
+    const result = await port.apply([led], context({ collectionId: "mako" }));
+
+    expect(result).toMatchObject({ status: "unsupported", unsupported: [{ reason: "no-binding" }] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
   it("treats bindings of another collection as no bindings at all", async () => {
     const { scene, port } = setUp();
 

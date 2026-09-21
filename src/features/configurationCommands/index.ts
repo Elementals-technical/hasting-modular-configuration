@@ -15,6 +15,8 @@ export type { ChangeAttributeDeps } from "./lib/changeAttribute";
 export { confirmAttributeChange } from "./lib/confirmAttributeChange";
 export { changeDimension } from "./lib/changeDimension";
 export type { ChangeDimensionDeps } from "./lib/changeDimension";
+export { createCommandRunner } from "./lib/createCommandRunner";
+export type { CommandRunner, CommandRunnerDeps } from "./lib/createCommandRunner";
 export { useChangeAttribute } from "./hooks/useChangeAttribute";
 export type { UseChangeAttributeOptions } from "./hooks/useChangeAttribute";
 export { useChangeDimension } from "./hooks/useChangeDimension";
