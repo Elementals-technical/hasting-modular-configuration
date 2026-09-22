@@ -17,6 +17,9 @@ import {
   setSelectedProductConfig,
   setTowelBarOption,
 } from "@/entities/product/model/store/slice";
+import ushManifest from "../../../../public/collections/urban-standard-height/manifest.json";
+import ushUiDocument from "../../../../public/collections/urban-standard-height/ui.json";
+import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
 
 import { useCustomizationStepSections } from "../lib/useCustomizationSectionState";
@@ -81,6 +84,37 @@ describe("field availability from the modules that already compute it", () => {
     expect(sections[0]?.fields[0]?.field.options.map((option) => option.value)).toEqual([
       "Old Cabinet Color",
       "New Cabinet Color",
+    ]);
+  });
+
+  it("drops a section ui.json disables, keeping its neighbours and their order", () => {
+    const withDisabledSection = {
+      ...ushUiDocument,
+      sections: {
+        ...ushUiDocument.sections,
+        "groove-color": { ...ushUiDocument.sections["groove-color"], enabled: false },
+      },
+    };
+    const disabledCollection = buildReadyCollection("urban-standard-height", ushManifest, withDisabledSection);
+    const disabledWrapper = ({ children }: { children: ReactNode }) => (
+      <ReadyCollectionContext.Provider
+        value={{
+          ...disabledCollection,
+          catalog: { ...disabledCollection.catalog, configurator: configuratorColorGroups },
+        }}
+      >
+        <Provider store={store}>{children}</Provider>
+      </ReadyCollectionContext.Provider>
+    );
+
+    const sections = renderHook(() => useCustomizationStepSections("cabinet-colors"), {
+      wrapper: disabledWrapper,
+    }).result.current;
+
+    expect(sections.map((section) => section.sectionId)).toEqual([
+      "cabinet-color-custom",
+      "drawer-panel-custom",
+      "grain-direction-custom",
     ]);
   });
 });

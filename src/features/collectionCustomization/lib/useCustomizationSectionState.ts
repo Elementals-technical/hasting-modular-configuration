@@ -116,7 +116,7 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
     () =>
       (schema?.steps[stepId]?.sectionIds ?? []).flatMap((sectionId) => {
         const section = schema?.sections[sectionId];
-        if (!section) return [];
+        if (!section || section.enabled === false) return [];
 
         return [
           {

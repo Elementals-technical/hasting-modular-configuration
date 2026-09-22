@@ -17,6 +17,17 @@ const isRecord = (value: unknown): value is UnknownRecord =>
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
 
+const validateOptionalBoolean = (
+  value: unknown,
+  dataPath: string,
+  message: string,
+  diagnostics: CustomizationSchemaDiagnostic[],
+) => {
+  if (value !== undefined && typeof value !== "boolean") {
+    diagnostics.push({ code: "invalid-schema", dataPath, message });
+  }
+};
+
 const validateFlows = (flows: UnknownRecord, steps: UnknownRecord, diagnostics: CustomizationSchemaDiagnostic[]) => {
   for (const flowId of CUSTOMIZATION_FLOW_IDS) {
     const flow = flows[flowId];
@@ -110,6 +121,8 @@ const validateSteps = (steps: UnknownRecord, sections: UnknownRecord, diagnostic
       });
     }
 
+    validateOptionalBoolean(step.enabled, `steps.${stepId}.enabled`, "enabled must be a boolean", diagnostics);
+
     if (step.kind !== "fields" && step.kind !== "cabinet-builder") continue;
 
     const sectionIds = Array.isArray(step.sectionIds) ? step.sectionIds : [];
@@ -137,13 +150,13 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
       continue;
     }
 
-    if (section.defaultOpen !== undefined && typeof section.defaultOpen !== "boolean") {
-      diagnostics.push({
-        code: "invalid-schema",
-        dataPath: `sections.${sectionId}.defaultOpen`,
-        message: "defaultOpen must be a boolean",
-      });
-    }
+    validateOptionalBoolean(
+      section.defaultOpen,
+      `sections.${sectionId}.defaultOpen`,
+      "defaultOpen must be a boolean",
+      diagnostics,
+    );
+    validateOptionalBoolean(section.enabled, `sections.${sectionId}.enabled`, "enabled must be a boolean", diagnostics);
 
     section.fields.forEach((field: unknown, index: number) => {
       const path = `sections.${sectionId}.fields[${index}]`;

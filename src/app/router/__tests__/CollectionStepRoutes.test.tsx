@@ -121,6 +121,21 @@ describe("CollectionStepRoutes builds the step routes from the collection's ui.j
     expect(currentLocation()).toBe("/fixture/models?collectionId=fixture-ui");
   });
 
+  it("sends the old url of a disabled step to the flow's entry step, without removing it from the schema", async () => {
+    const withDisabledFinish = {
+      ...fixtureUiUi,
+      steps: { ...fixtureUiUi.steps, "fixture-finish": { ...fixtureUiUi.steps["fixture-finish"], enabled: false } },
+    };
+
+    renderAt(
+      "/fixture/finish?collectionId=fixture-ui",
+      buildReadyFixtureCollection("fixture-ui", { uiDocument: withDisabledFinish }),
+    );
+
+    await waitFor(() => expect(pageName()).toBe("model"));
+    expect(currentLocation()).toBe("/fixture/models?collectionId=fixture-ui");
+  });
+
   it("sends an unknown path to the entry step of the flow it belongs to", async () => {
     renderAt("/custom/nowhere?collectionId=urban-standard-height", readyUsh);
 

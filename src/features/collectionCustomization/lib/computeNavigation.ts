@@ -29,9 +29,10 @@ export const computeNavigation = (
 ): NavigationResult => {
   const flow = schema.flows[flowId];
 
-  const steps = flow.steps
-    .filter((ref) => schema.steps[ref.stepId])
-    .map((ref) => toNavigationStep(schema, ref.stepId, ref.path));
+  const steps = flow.steps.flatMap((ref) => {
+    const definition = schema.steps[ref.stepId];
+    return definition && definition.enabled !== false ? [toNavigationStep(schema, ref.stepId, ref.path)] : [];
+  });
 
   const matches = steps.filter((step) => matchesPath(pathname, step.path));
   const currentStep = matches.length

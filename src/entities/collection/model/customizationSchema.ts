@@ -33,6 +33,8 @@ export type CustomizationStepDefinition = {
   kind: CustomizationScreenKind;
   headerPrefix?: string | null;
   sectionIds?: string[];
+  /** false removes the step from navigation and routes; absent means enabled. */
+  enabled?: boolean;
 };
 
 /**
@@ -55,6 +57,8 @@ export type CustomizationSectionDefinition = {
   label: string;
   defaultOpen?: boolean;
   fields: CustomizationFieldDefinition[];
+  /** false drops the section from its step, without clearing the values of its fields. */
+  enabled?: boolean;
 };
 
 export type CustomizationSchema = {
