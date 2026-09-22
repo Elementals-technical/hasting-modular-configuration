@@ -163,7 +163,6 @@ export const useCabinetColorSections = ({
             title="Cabinet Color"
             onChange={handleChangeColor}
             onOrderSwatches={handleOrderCabinetSwatches}
-            filterClassName={s.innerRow}
           />
         );
 
@@ -175,7 +174,6 @@ export const useCabinetColorSections = ({
             title="Handle Groove Color"
             onChange={handleChangeGrooveColor}
             onOrderSwatches={handleOrderCabinetSwatches}
-            filterClassName={s.innerRow}
             sortByTitle
           />
         );

@@ -56,7 +56,7 @@ export { useAttributeChangeHandler } from "./hooks/useAttributeChangeHandler";
 export { useAvailabilityResets } from "./hooks/useAvailabilityResets";
 export { useRuleDrivenHandleSync } from "./hooks/useRuleDrivenHandleSync";
 export { resolveChangeRequest } from "./lib/resolveChangeRequest";
-export { resolveColorTraits } from "./lib/resolveColorTraits";
+export { resolveColorTraits, selectConfiguratorSection } from "./lib/resolveColorTraits";
 export type { ColorTraits } from "./lib/resolveColorTraits";
 
 export { validateChange, REASON_VALUE_NOT_IN_CATALOG } from "./lib/validateChange";

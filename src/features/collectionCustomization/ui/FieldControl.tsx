@@ -55,17 +55,22 @@ export const FieldControl = ({ control, field, onChange, label, className }: Fie
     );
   }
 
-  const checked = field.value === "enabled" || field.value === true;
+  if (control === "checkbox") {
+    const checked = field.value === "enabled" || field.value === true;
 
-  return (
-    <label className={className}>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={!field.enabled}
-        onChange={(event) => onChange(event.target.checked ? "enabled" : "")}
-      />
-      {label && <span>{label}</span>}
-    </label>
-  );
+    return (
+      <label className={className}>
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={!field.enabled}
+          onChange={(event) => onChange(event.target.checked ? "enabled" : "")}
+        />
+        {label && <span>{label}</span>}
+      </label>
+    );
+  }
+
+  // "colors" is the colour grid of its section (ColorField), with the section's swatch order.
+  return null;
 };

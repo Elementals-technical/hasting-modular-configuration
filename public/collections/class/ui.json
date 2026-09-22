@@ -109,7 +109,7 @@
       "fields": [
         {
           "attributeId": "CabinetColor",
-          "control": "swatches"
+          "control": "colors"
         }
       ]
     },
@@ -118,7 +118,7 @@
       "fields": [
         {
           "attributeId": "CabinetSideColor",
-          "control": "swatches"
+          "control": "colors"
         }
       ]
     },
@@ -127,7 +127,7 @@
       "fields": [
         {
           "attributeId": "FrameColor",
-          "control": "swatches"
+          "control": "colors"
         }
       ]
     },
@@ -137,7 +137,7 @@
       "fields": [
         {
           "attributeId": "CountertopColor",
-          "control": "swatches"
+          "control": "colors"
         }
       ]
     },
