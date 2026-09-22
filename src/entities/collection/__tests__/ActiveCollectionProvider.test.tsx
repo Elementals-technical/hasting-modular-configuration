@@ -26,6 +26,7 @@ import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoCabinetTable from "../../../../public/collections/mako/cabinet-table.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
@@ -87,6 +88,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}class/product-profile.json`]: classProductProfile,
   [`${rootUrl}class/sku-profile.json`]: classSkuProfile,
   [`${rootUrl}class/ui.json`]: classUi,
+  [`${rootUrl}mako/cabinet-table.json`]: makoCabinetTable,
   [`${rootUrl}mako/manifest.json`]: makoManifest,
   [`${rootUrl}mako/presets.json`]: makoPresets,
   [`${rootUrl}mako/product-profile.json`]: makoProductProfile,

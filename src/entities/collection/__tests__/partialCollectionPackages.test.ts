@@ -10,6 +10,7 @@ import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoCabinetTable from "../../../../public/collections/mako/cabinet-table.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
@@ -41,6 +42,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}class/product-profile.json`]: classProductProfile,
     [`${collectionsRootUrl}class/sku-profile.json`]: classSkuProfile,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
+    [`${collectionsRootUrl}mako/cabinet-table.json`]: makoCabinetTable,
     [`${collectionsRootUrl}mako/manifest.json`]: makoManifest,
     [`${collectionsRootUrl}mako/presets.json`]: makoPresets,
     [`${collectionsRootUrl}mako/product-profile.json`]: makoProductProfile,
@@ -106,12 +108,12 @@ describe("partial production collection packages", () => {
 
   it.each([
     // Class has no scene bindings and no model compositions yet; Mako places its own scene products (I)
-    // and has the composition of every model.
-    ["class", "Class", 44, undefined, false],
-    ["mako", "Mako", 42, { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" }, true],
+    // and has the composition of every model. Mako's cabinet rows are local until its table is in the API.
+    ["class", "Class", 44, undefined, false, [[439, abortSignal]]],
+    ["mako", "Mako", 42, { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" }, true, []],
   ])(
     "loads %s from only its declared local data and approved shared remotes",
-    async (collectionId, label, modelCount, productTypes, hasCompositions) => {
+    async (collectionId, label, modelCount, productTypes, hasCompositions, cabinetTableCalls) => {
       const remote = makeRemote();
       const dependencies: CollectionRuntimeDependencies = {
         registryUrl,
@@ -131,8 +133,7 @@ describe("partial production collection packages", () => {
       expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
       expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
       expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
-      expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
-      expect(remote.loadCabinetTable).toHaveBeenCalledWith(439, abortSignal);
+      expect(vi.mocked(remote.loadCabinetTable).mock.calls).toEqual(cabinetTableCalls);
 
       expect(data.id).toBe(collectionId);
       expect(data.manifest.label).toBe(label);
@@ -159,6 +160,36 @@ describe("partial production collection packages", () => {
       expect(data.diagnostics).toEqual([]);
     },
   );
+
+  it("builds the Mako cabinet builder from its own cabinet rows, not the USH table", async () => {
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl,
+      registry: productionRegistry,
+      fetchJson,
+      remote: makeRemote(),
+    };
+    const registry = await loadCollectionRegistry(dependencies, abortSignal);
+    const resolution = resolveCollection({ registry, urlCollectionId: "mako" });
+    if (!resolution.ok) throw new Error("Expected Mako to resolve");
+
+    const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
+
+    const common = {
+      depths: [52],
+      heights: [26, 52],
+      drawers: ["1", "2"],
+      isOpen: false,
+      handlesAllowed: ["G57", "G50"],
+      supportsHeight: [26, 52],
+      // The height follows the drawer style: 1 drawer is 26 cm, 2 drawers 52 cm.
+      forcedHeightByDrawers: { "1": 26, "2": 52 },
+    };
+    expect(data.catalog.cabinets?.typeCabinetRules).toEqual([
+      expect.objectContaining({ code: "Sink-Base", widths: [60, 80, 100, 120], hasSink: true, ...common }),
+      expect.objectContaining({ code: "Sink-Cabinet", widths: [40, 60, 80, 100, 120], hasSink: false, ...common }),
+    ]);
+  });
 
   it.each([
     ["urban-low-height", urbanLowHeightUi],

@@ -272,36 +272,46 @@ const loadLocalSources = async (
   const local = manifest.local;
   if (!local) return {};
 
-  const [navigation, presets, staticOptions, cabinetSkuMappings, skuProfile, productProfile, ui, runtimeBindings] =
-    await Promise.all([
-      local.navigation
-        ? fetchSource(navigationSchema, local.navigation, manifestUrl, dependencies, signal, "Navigation data")
-        : undefined,
-      local.presets
-        ? fetchSource(presetsSchema, local.presets, manifestUrl, dependencies, signal, "Preset data")
-        : undefined,
-      local.staticOptions
-        ? fetchSource(staticOptionsSchema, local.staticOptions, manifestUrl, dependencies, signal, "Static option data")
-        : undefined,
-      local.cabinetSkuMappings
-        ? fetchSource(
-            cabinetSkuMappingsSchema,
-            local.cabinetSkuMappings,
-            manifestUrl,
-            dependencies,
-            signal,
-            "Cabinet SKU mappings",
-          )
-        : undefined,
-      local.skuProfile
-        ? fetchSource(collectionSkuProfileSchema, local.skuProfile, manifestUrl, dependencies, signal, "SKU profile")
-        : undefined,
-      local.productProfile ? fetchProductProfile(local.productProfile, manifestUrl, dependencies, signal) : undefined,
-      local.ui ? fetchCustomizationSchema(local.ui, manifestUrl, dependencies, signal) : undefined,
-      local.runtimeBindings
-        ? fetchRuntimeBindings(local.runtimeBindings, manifestUrl, dependencies, signal)
-        : undefined,
-    ]);
+  const [
+    navigation,
+    presets,
+    staticOptions,
+    cabinetSkuMappings,
+    skuProfile,
+    productProfile,
+    ui,
+    runtimeBindings,
+    cabinetTable,
+  ] = await Promise.all([
+    local.navigation
+      ? fetchSource(navigationSchema, local.navigation, manifestUrl, dependencies, signal, "Navigation data")
+      : undefined,
+    local.presets
+      ? fetchSource(presetsSchema, local.presets, manifestUrl, dependencies, signal, "Preset data")
+      : undefined,
+    local.staticOptions
+      ? fetchSource(staticOptionsSchema, local.staticOptions, manifestUrl, dependencies, signal, "Static option data")
+      : undefined,
+    local.cabinetSkuMappings
+      ? fetchSource(
+          cabinetSkuMappingsSchema,
+          local.cabinetSkuMappings,
+          manifestUrl,
+          dependencies,
+          signal,
+          "Cabinet SKU mappings",
+        )
+      : undefined,
+    local.skuProfile
+      ? fetchSource(collectionSkuProfileSchema, local.skuProfile, manifestUrl, dependencies, signal, "SKU profile")
+      : undefined,
+    local.productProfile ? fetchProductProfile(local.productProfile, manifestUrl, dependencies, signal) : undefined,
+    local.ui ? fetchCustomizationSchema(local.ui, manifestUrl, dependencies, signal) : undefined,
+    local.runtimeBindings ? fetchRuntimeBindings(local.runtimeBindings, manifestUrl, dependencies, signal) : undefined,
+    local.cabinetTable
+      ? fetchSource(productDatatableSchema, local.cabinetTable, manifestUrl, dependencies, signal, "Cabinet table")
+      : undefined,
+  ]);
 
   validateCustomizationContract(manifest, navigation, ui);
 
@@ -317,6 +327,7 @@ const loadLocalSources = async (
     productProfile,
     ui,
     runtimeBindings,
+    cabinetTable,
   };
 };
 
@@ -363,6 +374,7 @@ export const assembleCollectionData = (
   diagnostics: CollectionDiagnostic[] = [],
 ): LoadedCollectionData => {
   const configuratorGroups = remote.configurator?.availableOptions;
+  const cabinetTable = local.cabinetTable ?? remote.cabinetTable;
   return {
     id: manifest.id,
     manifest,
@@ -387,9 +399,8 @@ export const assembleCollectionData = (
       // matrix comes from data, so a collection with different handles needs no code
       // change here. Without a profile the parser falls back to the hardcoded USH
       // columns, which is right for USH and silently wrong for anything else.
-      cabinets: remote.cabinetTable
-        ? buildCabinetCatalogFromMatrix(remote.cabinetTable, local.productProfile ?? null)
-        : undefined,
+      // A local table stands in for a collection whose table is not in the API yet.
+      cabinets: cabinetTable ? buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile ?? null) : undefined,
       countertops: remote.countertopTable ? parseCountertopMatrix(remote.countertopTable) : undefined,
     },
   };

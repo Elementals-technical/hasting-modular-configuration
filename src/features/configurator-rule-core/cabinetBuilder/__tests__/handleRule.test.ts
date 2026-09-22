@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import ushProfile from "../../../../../public/collections/urban-standard-height/product-profile.json";
 import classProfileDocument from "../../../../../public/collections/class/product-profile.json";
+import makoCabinetTable from "../../../../../public/collections/mako/cabinet-table.json";
 import { parseProductProfile } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
@@ -270,26 +271,8 @@ describe("a table with one forced height column for all handles", () => {
     );
 
   it("gives a Mako cabinet the height of its drawers before any handle is chosen", () => {
-    // The Mako cabinet table as it is uploaded.
-    const makoCatalog = buildCabinetCatalogFromMatrix(
-      universalTable([
-        {
-          cabinet_type: "Sink-Base",
-          widths_cm: "60|80|100|120",
-          depths_cm: "52",
-          heights_cm: "26|52",
-          drawer_configs: "1|2",
-          has_sink: "TRUE",
-          is_open: "FALSE",
-          handles_allowed: "G57|G50",
-          supports_height: "26|52",
-          forced_height_cm: "1:26|2:52",
-          handle_drawer_configs: "",
-          legs_drawer_configs: "2",
-        },
-      ]),
-      makoProfile,
-    );
+    // The Mako cabinet table the collection loads (local until it is in the API).
+    const makoCatalog = buildCabinetCatalogFromMatrix(makoCabinetTable, makoProfile);
 
     const oneDrawer = runFirst(makoProfile, makoCatalog, {
       cabinetType: "Sink-Base",
@@ -309,6 +292,14 @@ describe("a table with one forced height column for all handles", () => {
       handle: "G50",
     });
     expect(withHandle.nextSelection.height).toBe(52);
+
+    const sideCabinet = runFirst(makoProfile, makoCatalog, {
+      cabinetType: "Sink-Cabinet",
+      height: 52,
+      drawers: "1",
+      handle: "G57",
+    });
+    expect(sideCabinet.nextSelection.height).toBe(26);
   });
 
   it("gives a Class cabinet the height of its drawers, although Class has no handle", () => {

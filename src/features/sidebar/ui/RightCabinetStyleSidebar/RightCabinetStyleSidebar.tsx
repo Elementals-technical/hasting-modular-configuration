@@ -41,21 +41,17 @@ import {
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
-  addProductId,
   removeProductId,
   setHasBootstrappedCabinetBuilder,
-  setPlacedCabinetStyle,
   setSelectedDimensions,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setProductByParams } from "@/utils/functions/playcanvas/setProductByParams";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
@@ -68,7 +64,6 @@ import {
 } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
-import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
@@ -77,6 +72,8 @@ import {
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
+
+import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -145,8 +142,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
   const [isStyleSidebarTutorialStepActive, setIsStyleSidebarTutorialStepActive] = useState(false);
-  const { change: changeAttributeValue, confirm: confirmAttributeValue, getState: getCommandState } =
-    useChangeAttribute();
+  const {
+    change: changeAttributeValue,
+    confirm: confirmAttributeValue,
+    getState: getCommandState,
+    composition,
+  } = useChangeAttribute();
   /** Height the command service is applying; the dimensions effect must not send it again. */
   const commandHeightRef = useRef<number | null>(null);
   const hasModalOpen =
@@ -713,45 +714,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       }
 
       await saveSnapshot();
-      const productId = await setProductByParams(activeDrawerProduct, entityId, side);
 
+      // The collection's scene product goes beside the clicked one and is recorded there with its
+      // drawer style, as a duplicated cabinet is.
+      const added = await composition.addCabinet(
+        buildAddedCabinetRequest({
+          cabinetType: activeDrawerProduct,
+          config: productConfig,
+          width: widthForAddedCabinet,
+          sinkType,
+          countertopStyle,
+          vesselColor,
+          anchorRuntimeId: entityId,
+          side,
+        }),
+      );
+      const productId = added.status === "error" ? null : added.placed[0];
       if (!productId) return;
 
-      if (productConfig || widthForAddedCabinet !== null) {
-        const isSinkBase = activeDrawerProduct.toLowerCase().includes("sink-base");
-        const isVesselStyle = countertopStyle?.toLowerCase() === "vessel";
-        const resolvedSinkType = sinkType || (isVesselStyle ? "Vessel" : "");
-        const nextConfigBase: Record<string, unknown> =
-          isSinkBase && (resolvedSinkType || countertopStyle)
-            ? {
-                ...productConfig,
-                ...(resolvedSinkType ? { sinkType: resolvedSinkType } : {}),
-                ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}),
-              }
-            : { ...(productConfig ?? {}) };
-        const nextConfig = withRuntimeProductType(nextConfigBase, activeDrawerProduct);
-
-        if (widthForAddedCabinet !== null) {
-          nextConfig.Width = widthForAddedCabinet;
-        }
-
-        await setConfig(productId, nextConfig);
-
-        if (
-          vesselColor &&
-          typeof nextConfig.sinkType === "string" &&
-          String(nextConfig.sinkType).startsWith("Vessel")
-        ) {
-          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColor });
-        }
-      }
-
-      dispatch(addProductId(productId));
       dispatch(setHasBootstrappedCabinetBuilder(true));
-
-      const drawers = (productConfig as Record<string, unknown>)?.Drawers as string | undefined;
-      const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
-      if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
 
       // Close sidebar and reset accordion to default state
       dispatch(setOpenStyleSidebar(false));
@@ -765,6 +746,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   }, [
     isPlayCanvasReady,
     activeDrawerProduct,
+    composition,
     maxCountertopLength,
     maxAddableCabinetWidth,
     onProductAdded,

@@ -95,8 +95,8 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
   },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "B",
-    count: 5,
-    reason: "C06 phase 4: depth through changeDimension; phase 7: add and remove a cabinet",
+    count: 2,
+    reason: "C06 phase 4: depth through changeDimension; phase 7: open shelves removed through removeCabinets",
   },
 };
 
@@ -145,11 +145,6 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
 const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
-  "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
-    owner: "C",
-    count: 1,
-    reason: "C06 phase 7: drawers of an added cabinet recorded by the composition command",
-  },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
     count: 3,

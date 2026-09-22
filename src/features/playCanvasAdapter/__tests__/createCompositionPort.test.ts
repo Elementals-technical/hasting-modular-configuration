@@ -187,6 +187,34 @@ describe("createCompositionPort", () => {
     ]);
   });
 
+  it("places a Mako cabinet beside another as the Mako scene product (the builder's plus button)", async () => {
+    const { port, calls } = createPort(undefined, makoRuntimeBindings);
+
+    const result = await port.add(
+      { productType: "Sink-Cabinet", config: { Width: 40, Height: 56, Depth: 52, Handle: "G57", Drawers: "1" } },
+      { kind: "beside", anchorRuntimeId: "cab-a", side: "right" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["Mako-side-cabinet-inserted"] });
+    expect(calls).toEqual([
+      ["insert", "Mako-side-cabinet", "cab-a", "right"],
+      [
+        "setConfig",
+        "Mako-side-cabinet-inserted",
+        {
+          Width: 40,
+          Height: 26,
+          Depth: 52,
+          HandleStyle: "G57",
+          Drawers: "1D",
+          ShowLegs: "Disable",
+          ProductType: "Mako-side-cabinet",
+          productType: "Mako-side-cabinet",
+        },
+      ],
+    ]);
+  });
+
   it("places a Mako preset, a side cabinet on legs in the cabinet colour", async () => {
     const { port, calls } = createPort(undefined, makoRuntimeBindings);
 
