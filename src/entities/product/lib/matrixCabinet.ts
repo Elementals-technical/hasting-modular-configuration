@@ -105,6 +105,7 @@ export const buildCabinetCatalogFromMatrix = (
         isOpen: parseBoolean(row.is_open),
         handlesAllowed: parseDelimitedList(row[adapter.columns.handlesAllowed]),
         forcedHeightByHandle: relation?.forcedHeightByHandle ?? {},
+        forcedHeightByDrawers: relation?.forcedHeightByDrawers ?? {},
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
       },

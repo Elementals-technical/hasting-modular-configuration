@@ -9,7 +9,7 @@ import {
 type UnknownRecord = Record<string, unknown>;
 
 const VALID_KINDS = new Set(["preset-picker", "cabinet-builder", "fields", "summary"]);
-const VALID_CONTROLS = new Set(["swatches", "options-grid", "checkbox"]);
+const VALID_CONTROLS = new Set(["swatches", "options-grid", "checkbox", "colors"]);
 const VALID_SCREENS = new Set<string>(CUSTOMIZATION_SCREEN_IDS);
 
 const isRecord = (value: unknown): value is UnknownRecord =>

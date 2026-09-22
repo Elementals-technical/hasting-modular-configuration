@@ -96,12 +96,14 @@ describe("collection contracts", () => {
       ui: "ui.json",
       productProfile: "product-profile.json",
       skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
+      // Temporary: table 439 has no Mako rows, and the Mako table is not in the API yet.
+      cabinetTable: "cabinet-table.json",
     });
     expect(makoManifest.defaultPresetId).toBeUndefined();
     expect(makoManifest.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
       countertopTable: { id: 438 },
-      cabinetTable: { id: 439 },
     });
     expect(makoUi.collectionId).toBe("mako");
   });

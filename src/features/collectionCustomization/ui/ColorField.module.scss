@@ -1,0 +1,18 @@
+// The filter row of a colour grid inside an accordion section: edge to edge, one line, Price at the end.
+.filters {
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: 20px;
+
+  padding-top: 0 !important;
+
+  div {
+    button {
+      min-width: auto !important;
+    }
+
+    &:nth-child(3) {
+      flex-grow: 1;
+    }
+  }
+}

@@ -4,9 +4,13 @@ import { useStore } from "react-redux";
 import type { RootState } from "@/app/store";
 import { useActiveCollection } from "@/entities/collection";
 import type { RuntimeFlow } from "@/entities/collection";
-import type { ConfigurationRuntimePort } from "@/entities/configuration";
+import type {
+  ConfigurationCompositionPort,
+  ConfigurationRuntimePort,
+  ConfigurationSidePanelPort,
+} from "@/entities/configuration";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
-import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
+import { createCompositionPort, createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 
 import { createCommandRunner, type CommandRunner } from "../lib/createCommandRunner";
@@ -19,9 +23,17 @@ import { createCommandRunner, type CommandRunner } from "../lib/createCommandRun
 export type UseChangeAttributeOptions = {
   /** Tests pass a stand-in; the app uses the PlayCanvas adapter. */
   runtime?: ConfigurationRuntimePort;
+  /** Tests pass a stand-in; the app uses the PlayCanvas adapter. */
+  composition?: ConfigurationCompositionPort;
+  /** Tests pass a stand-in; the app uses the PlayCanvas adapter. */
+  sidePanels?: ConfigurationSidePanelPort;
 };
 
-export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttributeOptions = {}): CommandRunner => {
+export const useChangeAttribute = ({
+  runtime: runtimeOverride,
+  composition: compositionOverride,
+  sidePanels,
+}: UseChangeAttributeOptions = {}): CommandRunner => {
   const store = useStore<RootState>();
   const dispatch = useAppDispatch();
   const flow: RuntimeFlow = useCollectionNavigation()?.flowId ?? "prebuilt";
@@ -36,8 +48,22 @@ export const useChangeAttribute = ({ runtime: runtimeOverride }: UseChangeAttrib
     [bindings, runtimeOverride],
   );
 
+  const composition = useMemo(
+    () => compositionOverride ?? createCompositionPort({ getBindings: () => bindings }),
+    [bindings, compositionOverride],
+  );
+
   return useMemo(
-    () => createCommandRunner({ getState: store.getState, dispatch, getFlow: () => flow, runtime, configurator }),
-    [configurator, dispatch, flow, runtime, store],
+    () =>
+      createCommandRunner({
+        getState: store.getState,
+        dispatch,
+        getFlow: () => flow,
+        runtime,
+        composition,
+        sidePanels,
+        configurator,
+      }),
+    [composition, configurator, dispatch, flow, runtime, sidePanels, store],
   );
 };

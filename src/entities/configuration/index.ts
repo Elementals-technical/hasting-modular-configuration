@@ -22,8 +22,16 @@ export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget, parseTarget
 
 // runtimePort — owned by I: the typed boundary between C and the scene.
 export type {
+  ConfigurationCompositionPort,
   ConfigurationRuntimePort,
   ConfigurationSceneReader,
+  ConfigurationSidePanelPort,
+  SceneCompositionPlacement,
+  SceneCompositionProduct,
+  SceneCompositionReplaceRequest,
+  SceneCompositionResult,
+  SidePanelApplyResult,
+  SidePanelPlacement,
   FailedRuntimeChange,
   RuntimeApplyResult,
   RuntimeChange,

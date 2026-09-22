@@ -9,8 +9,9 @@ import type { CabinetMatrixLegacyAdapter } from "../model/productProfile";
  * Turns the legacy cabinet-matrix rows into generic handle relations.
  *
  * The handle -> column mapping comes from the profile adapter, so this function never
- * tests a handle id. Adding a fourth handle to the source is a data change:
- * one more entry in `columns.forcedHeightByHandle`, no code branch.
+ * tests a handle id. The Urban table has a column per handle (`columns.forcedHeightByHandle`);
+ * every other table has one column for all handles (`columns.forcedHeight`), where a height
+ * may name no handle at all ("1:26|2:52"). Adding a handle is a data change either way.
  *
  * Ownership: C defines the target shape and this transformation; A calls it while loading
  * the rows for the active collection (CONTRACTS §2, C-HANDLE-EXAMPLE §3).
@@ -45,6 +46,12 @@ const parseDelimitedList = (value: unknown): string[] => {
     .filter(Boolean);
 };
 
+/** "handleId<separator>drawers" -> [handleId, drawers]; an entry without the separator names no handle. */
+const splitHandleEntry = (entry: string, separator: string): [string | null, string] => {
+  const index = entry.indexOf(separator);
+  return index === -1 ? [null, entry] : [entry.slice(0, index).trim(), entry.slice(index + 1).trim()];
+};
+
 export type NormalizeHandleProfileArgs = {
   rows: NormalizedMatrixRow[];
   adapter: Pick<CabinetMatrixLegacyAdapter, "columns">;
@@ -69,36 +76,57 @@ export const normalizeHandleProfile = ({
     if (!cabinetType) continue;
 
     const forcedHeightByHandle: Record<string, Record<string, number>> = {};
+    const forcedHeightByDrawers: Record<string, number> = {};
     const requiresDrawersByHandle: Record<string, string[]> = {};
 
+    const addForcedHeight = (handleId: string | null, drawersRaw: string, forcedHeightCm: number) => {
+      const drawers = normalizeDrawers(drawersRaw);
+      if (handleId) (forcedHeightByHandle[handleId] ??= {})[drawers] = forcedHeightCm;
+      else forcedHeightByDrawers[drawers] = forcedHeightCm;
+      constraints.push({ cabinetType, handleId, drawers, forcedHeightCm });
+    };
+
+    const addAllowedDrawers = (handleId: string, drawersRaw: string) => {
+      (requiresDrawersByHandle[handleId] ??= []).push(normalizeDrawers(drawersRaw));
+    };
+
     for (const [handleId, columnName] of Object.entries(columns.forcedHeightByHandle)) {
-      const rawMapping = row[columnName]?.trim();
-      if (!rawMapping) continue;
-
-      const byDrawers: Record<string, number> = {};
-
-      for (const [drawersRaw, heightCm] of Object.entries(parseHeightMapping(rawMapping))) {
-        const drawers = normalizeDrawers(drawersRaw);
-        byDrawers[drawers] = heightCm;
-        constraints.push({ cabinetType, handleId, drawers, forcedHeightCm: heightCm });
-      }
-
-      if (Object.keys(byDrawers).length > 0) {
-        forcedHeightByHandle[handleId] = byDrawers;
+      for (const [drawers, heightCm] of Object.entries(parseHeightMapping(row[columnName] ?? ""))) {
+        addForcedHeight(handleId, drawers, heightCm);
       }
     }
 
     for (const [handleId, columnName] of Object.entries(columns.requiresDrawersByHandle)) {
-      const allowed = parseDelimitedList(row[columnName]).map(normalizeDrawers);
-      if (allowed.length > 0) {
-        requiresDrawersByHandle[handleId] = allowed;
+      for (const drawers of parseDelimitedList(row[columnName])) addAllowedDrawers(handleId, drawers);
+    }
+
+    if (columns.forcedHeight) {
+      for (const [key, heightCm] of Object.entries(parseHeightMapping(row[columns.forcedHeight] ?? ""))) {
+        const [handleId, drawers] = splitHandleEntry(key, "/");
+        addForcedHeight(handleId, drawers, heightCm);
       }
     }
 
-    relations.push({ cabinetType, forcedHeightByHandle, requiresDrawersByHandle });
+    if (columns.handleDrawerConfigs) {
+      for (const entry of parseDelimitedList(row[columns.handleDrawerConfigs])) {
+        const [handleId, drawers] = splitHandleEntry(entry, ":");
+        if (handleId && drawers) addAllowedDrawers(handleId, drawers);
+      }
+    }
+
+    relations.push({ cabinetType, forcedHeightByHandle, forcedHeightByDrawers, requiresDrawersByHandle });
   }
 
   return { relations, constraints };
+};
+
+/** The height these drawers require whatever the handle, when the source declares one. */
+export const resolveDrawersForcedHeight = (
+  relations: CabinetHandleRelations | null | undefined,
+  drawers: string | null | undefined,
+): number | null => {
+  if (!relations || !drawers) return null;
+  return relations.forcedHeightByDrawers[drawers] ?? null;
 };
 
 /** Looks up the required height without knowing which handle ids exist. */

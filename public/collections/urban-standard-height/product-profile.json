@@ -500,6 +500,7 @@
     "handle.centralGrooveRequiresDrawers": "Available only for selected drawers",
     "handle.requiredHeight": "Required for selected handle",
     "handle.defaultRequiredHeight": "Required for selected handle and all products",
+    "drawers.requiredHeight": "Required for selected drawers",
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",

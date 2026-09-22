@@ -7,10 +7,8 @@ import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPo
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/store/slice";
+import { useChangeAttribute } from "@/features/configurationCommands";
 
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { resetSidePanels } from "@/utils/functions/playcanvas/resetSidePanels";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
@@ -33,6 +31,7 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title }) => {
   const [isAttentionPopupOpen, setIsAttentionPopupOpen] = useState(false);
 
   const dispatch = useAppDispatch();
+  const { composition } = useChangeAttribute();
   const selectedProducts = useAppSelector(getSelectedProducts);
   const isSidebarOpen = useAppSelector(getIsOpenSidebar);
   const hasProducts = selectedProducts.length > 0;
@@ -79,9 +78,9 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title }) => {
   };
 
   const handleConfirmLeave = async () => {
-    await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both", TowelBarColor: "" });
-    await resetSidePanels();
-    await removeAllProducts();
+    // Leaving the flow starts over: the products and their add-ons go.
+    const cleared = await composition.clear({ resetAddOns: true });
+    if (cleared.status === "error") console.warn("[StepNavigationBar] The scene was not cleared", cleared);
 
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());

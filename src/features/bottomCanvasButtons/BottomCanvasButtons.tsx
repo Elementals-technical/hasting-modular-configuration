@@ -22,6 +22,7 @@ import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { getSaveFailureMessage, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
+import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -86,6 +87,7 @@ export const BottomCanvasButtons = () => {
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
   const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
+  const { replay } = useChangeAttribute();
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
@@ -103,6 +105,14 @@ export const BottomCanvasButtons = () => {
   };
 
   useFullDimensionsRefresh(isFullDimensionsEnabled, fullDimensionsUnit, deactivateFullDimensions);
+
+  // Undo and redo restore the state as a whole, so the values are only shown on the scene again.
+  const replaySnapshotValues = async (values: ReplayValues) => {
+    const result = await replay({ send: values, record: false });
+    if (result.status !== "applied" || result.skipped.length > 0) {
+      console.warn("[History] The scene did not take every value of the snapshot", result);
+    }
+  };
 
   const handleSelectFullDimensionsUnit = async (unit: FullDimensionsUnit) => {
     if (isFullDimensionsEnabled && activeFullDimensionsUnit === unit) {
@@ -146,6 +156,7 @@ export const BottomCanvasButtons = () => {
         dispatch,
         getState: () => store.getState() as RootState,
         getBindings: () => runtimeBindings,
+        replay: replaySnapshotValues,
       });
       if (!isSceneRebuilt("[History] Undo", result)) return;
       dispatch(undo(currentSnapshot));
@@ -172,6 +183,7 @@ export const BottomCanvasButtons = () => {
         dispatch,
         getState: () => store.getState() as RootState,
         getBindings: () => runtimeBindings,
+        replay: replaySnapshotValues,
       });
       if (!isSceneRebuilt("[History] Redo", result)) return;
       dispatch(redo(currentSnapshot));

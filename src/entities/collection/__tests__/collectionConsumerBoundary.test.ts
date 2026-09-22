@@ -83,21 +83,6 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 7,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/prebuilt/model/ModelPage.tsx": {
-    owner: "C",
-    count: 14,
-    reason: "C06 phase 7: composition commands; phase 6: restore replay; then B08",
-  },
-  "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
-    owner: "C",
-    count: 15,
-    reason: "C06 phase 7: composition commands; phase 4: drawer dividers and height; phase 6: restore replay",
-  },
-  "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
-    owner: "I",
-    count: 14,
-    reason: "C06 phases 2-5, 7: towel bar and side panel removal, countertop follow-up, vessel action, duplicate, swap",
-  },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
     count: 2,
@@ -108,31 +93,10 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 2,
     reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
   },
-  "/src/features/StepNavigationBar/StepNavigationBar.tsx": {
-    owner: "C",
-    count: 3,
-    reason: "C06 phase 7: clear the composition when leaving the flow",
-  },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "B",
-    count: 5,
-    reason: "C06 phase 4: depth through changeDimension; phase 7: add and remove a cabinet",
-  },
-  "/src/features/sidePanel/lib/sidePanelService.ts": {
-    owner: "I",
-    count: 15,
-    reason: "C06 phase 5: side panel scene operation in the adapter; the service becomes a planner",
-  },
-  "/src/entities/product/ui/createModelBtn/CreateModelBtn.tsx": {
-    owner: "C",
     count: 2,
-    reason: "C06 phase 7: clear the composition",
-  },
-  "/src/app/store/optionsListener.ts": { owner: "C", count: 1, reason: "C06 phase 6: handle sync from state to scene" },
-  "/src/entities/history/lib/restoreSnapshot.ts": {
-    owner: "C",
-    count: 6,
-    reason: "C06 phase 6: undo and redo re-apply values through the scene adapter",
+    reason: "C06 phase 4: depth through changeDimension; phase 7: open shelves removed through removeCabinets",
   },
 };
 
@@ -165,6 +129,14 @@ const COMMITTED_SETTERS = [
 
 const directStateWrites = [new RegExp(`\\bdispatch\\(\\s*(?:${COMMITTED_SETTERS.join("|")})\\(`, "g")];
 
+/** The composition the scene holds is recorded by the composition commands alone (C06). */
+const compositionWrites = [/\brecordComposition\s*\(/g];
+const COMPOSITION_WRITE_OWNERS = [
+  "/src/features/configurationCommands/lib/composition.ts",
+  // The reducer itself.
+  "/src/entities/product/model/store/slice.ts",
+];
+
 /** The command's own writer, and restore/undo that record a whole snapshot at once. */
 const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChange.ts"];
 
@@ -173,16 +145,6 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
 const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
-  "/src/features/sidePanel/lib/sidePanelService.ts": {
-    owner: "C",
-    count: 17,
-    reason: "C06 phase 5: the service plans side panel changes, the command records them",
-  },
-  "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
-    owner: "C",
-    count: 1,
-    reason: "C06 phase 7: drawers of an added cabinet recorded by the composition command",
-  },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
     owner: "B",
     count: 3,
@@ -203,25 +165,15 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     count: 10,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/prebuilt/model/ModelPage.tsx": {
-    owner: "C",
-    count: 29,
-    reason: "C06 phase 7: preset values recorded by applyPreset; phase 6: restore replay",
-  },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
     owner: "C",
-    count: 39,
-    reason: "C06 phase 7: bootstrap, preset and added cabinets; phase 6: restore replay",
+    count: 1,
+    reason: "a saved divider style has no drawer to address: the profile keeps DividersStyle per drawer",
   },
   "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
     owner: "B",
     count: 3,
     reason: "C06 phase 7: the preset colour with its material and finish recorded by applyPreset",
-  },
-  "/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx": {
-    owner: "I",
-    count: 8,
-    reason: "C06 phases 2, 3, 7: towel bar removal, vessel action, duplicate",
   },
 };
 
@@ -312,6 +264,15 @@ describe("active collection consumer boundary", () => {
     );
 
     expect(writers).toEqual(expectedCounts(PENDING_DIRECT_STATE_WRITERS));
+  });
+
+  it("records the composition only in the composition commands", () => {
+    const writers = countByFile(
+      productionSources.filter(([path]) => !COMPOSITION_WRITE_OWNERS.includes(path)),
+      compositionWrites,
+    );
+
+    expect(writers).toEqual({});
   });
 
   it("counts every action creator the command commits", () => {

@@ -26,9 +26,11 @@ import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import makoCabinetTable from "../../../../public/collections/mako/cabinet-table.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
+import makoRuntimeBindings from "../../../../public/collections/mako/runtime-bindings.json";
 import makoSkuProfile from "../../../../public/collections/mako/sku-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
 import fixtureRegistry from "./fixtures/collections/registry.json";
@@ -86,9 +88,11 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}class/product-profile.json`]: classProductProfile,
   [`${rootUrl}class/sku-profile.json`]: classSkuProfile,
   [`${rootUrl}class/ui.json`]: classUi,
+  [`${rootUrl}mako/cabinet-table.json`]: makoCabinetTable,
   [`${rootUrl}mako/manifest.json`]: makoManifest,
   [`${rootUrl}mako/presets.json`]: makoPresets,
   [`${rootUrl}mako/product-profile.json`]: makoProductProfile,
+  [`${rootUrl}mako/runtime-bindings.json`]: makoRuntimeBindings,
   [`${rootUrl}mako/sku-profile.json`]: makoSkuProfile,
   [`${rootUrl}mako/ui.json`]: makoUi,
   [`${rootUrl}fixture-ui/manifest.json`]: fixtureUiManifest,
@@ -215,12 +219,13 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it.each([
-    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59],
-    ["class", "Class Models", "class", 44],
-    ["mako", "Mako Models", "mako", 42],
+    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, null],
+    ["class", "Class Models", "class", 44, null],
+    // Mako ships its scene bindings (I).
+    ["mako", "Mako Models", "mako", 42, { collectionId: "mako" }],
   ])(
     "loads the initial %s session without requiring optional local catalogs",
-    async (collectionId, detail, profileCollectionId, presetCount) => {
+    async (collectionId, detail, profileCollectionId, presetCount, runtimeBindings) => {
       renderProvider(
         "/?collectionId=" + collectionId,
         makeDependencies(undefined, productionRemote, productionRegistry),
@@ -236,7 +241,7 @@ describe("ActiveCollectionProvider", () => {
       };
 
       // The optional catalogs stay absent; these collections already ship a product profile and their models.
-      expect(localData).toMatchObject({ defaults: {}, runtimeBindings: null, cabinetSkuMappings: null });
+      expect(localData).toMatchObject({ defaults: {}, runtimeBindings, cabinetSkuMappings: null });
       expect(localData.presets?.length ?? null).toBe(presetCount);
       expect(localData.productProfile?.collectionId ?? null).toBe(profileCollectionId);
     },

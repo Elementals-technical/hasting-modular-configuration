@@ -122,7 +122,9 @@ export type SceneRestoreIssueCode =
   | "duplicate-source"
   | "invalid-config"
   | "unknown-product-type"
-  | "bindings-unavailable";
+  | "bindings-unavailable"
+  /** A value shared by the placed products has no scene translation. */
+  | "unknown-value";
 
 /** A reason found before the scene is touched; any issue keeps the scene as it is. */
 export type SceneRestoreIssue = {
@@ -162,4 +164,75 @@ export type SceneRestoreResult =
 export type ConfigurationSceneRestorer = {
   preflight(request: SceneRestoreRequest): SceneRestoreIssue[];
   restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
+};
+
+/** A product to place: its type as the collection names it, and its own config. */
+export type SceneCompositionProduct = {
+  productType: string;
+  config: Record<string, unknown>;
+};
+
+/** Where one product goes: after the last one, or next to a placed one. */
+export type SceneCompositionPlacement =
+  | { kind: "end" }
+  | { kind: "beside"; anchorRuntimeId: string; side: "left" | "right" };
+
+/**
+ * Outcome of a change of the composition (C06):
+ * - applied: the scene holds the new composition; `placed` lists the products it created, in
+ *   composition order; `scene` is what the scene reads afterwards;
+ * - not-ready / rejected: nothing was sent, the scene is untouched;
+ * - failed: the first call failed before the scene changed;
+ * - partial: the scene changed, but not all the way. `placed` lists what exists now.
+ */
+export type SceneCompositionResult =
+  | { status: "applied"; placed: string[]; scene: SceneStateResult }
+  | { status: "not-ready" }
+  | { status: "rejected"; issues: SceneRestoreIssue[] }
+  | { status: "failed"; message: string }
+  | { status: "partial"; placed: string[]; message: string; scene: SceneStateResult };
+
+export type SceneCompositionReplaceRequest = {
+  /** The new composition, in order. */
+  products: readonly SceneCompositionProduct[];
+  /** Configuration values every product is placed with, under its own config. */
+  shared?: Readonly<Record<string, AttributeValue>>;
+  flow: RuntimeFlow;
+};
+
+/**
+ * Places, removes and reorders products. C decides what the composition becomes; the port
+ * checks what only the runtime knows (a scene type per product type, a translation per shared
+ * value) before its first call, and reports what the scene actually did.
+ */
+export type ConfigurationCompositionPort = {
+  isReady(): boolean;
+  /** Replaces the whole composition. */
+  replace(request: SceneCompositionReplaceRequest): Promise<SceneCompositionResult>;
+  /** Places one product. */
+  add(product: SceneCompositionProduct, placement: SceneCompositionPlacement): Promise<SceneCompositionResult>;
+  remove(runtimeIds: readonly string[]): Promise<SceneCompositionResult>;
+  swap(runtimeIdA: string, runtimeIdB: string): Promise<SceneCompositionResult>;
+  /** Removes every product. The composition add-ons (side panels, towel bar) stay as they are. */
+  clear(): Promise<SceneCompositionResult>;
+};
+
+/** One side panel type on one side of the composition. "None" removes the panel. */
+export type SidePanelPlacement = {
+  panel: string;
+  side: "left" | "right" | "both";
+};
+
+export type SidePanelApplyResult =
+  | { status: "applied" }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string }
+  | { status: "partial"; message: string };
+
+/**
+ * The side panels of the composition. The scene takes a panel type together with its side, so
+ * a panel is one placement rather than one value of a binding. A single cabinet is both edges.
+ */
+export type ConfigurationSidePanelPort = {
+  apply(placements: readonly SidePanelPlacement[], cabinetCount?: number): Promise<SidePanelApplyResult>;
 };

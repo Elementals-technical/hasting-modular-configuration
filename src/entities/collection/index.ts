@@ -62,6 +62,7 @@ export {
   isKnownOption,
   normalizeOptionValue,
   selectAttribute,
+  selectDefaultValue,
   selectEffectiveFallback,
   selectInitialValue,
   selectLegacySpelling,
@@ -81,6 +82,7 @@ export {
   isHandleAllowedForDrawers,
   normalizeHandleProfile,
   parseHeightMapping,
+  resolveDrawersForcedHeight,
   resolveForcedHeight,
   resolvePossibleForcedHeights,
 } from "./lib/normalizeHandleProfile";
@@ -124,6 +126,8 @@ export type {
   RuntimeBindingResolution,
   StateOnlyRuntimeResolution,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
+export { resolveProductConfig } from "./lib/runtimeBindings/resolveProductConfig";
+export { resolveCabinetTypeOfRuntimeId } from "./lib/runtimeBindings/resolveCabinetType";
 
 export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";

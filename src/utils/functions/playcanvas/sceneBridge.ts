@@ -18,7 +18,8 @@ export type SceneSelector = {
   productType?: string;
 };
 
-export type SceneConfigPatch = Record<string, string | number>;
+/** Scene keys and their values; divider zones and saved product configs carry objects. */
+export type SceneConfigPatch = Record<string, unknown>;
 
 export type SceneCallFailureCode = "product-not-found" | "scene-rejected" | "scene-error";
 
@@ -268,17 +269,22 @@ export const addSceneProduct = (productType: string, config: Record<string, unkn
   });
 
 /**
- * Rebuilds a saved composition through the scene's native preset API.
+ * Replaces the composition through the scene's native preset API. The scene clears the
+ * composition itself, then places the products in order, each with `globalConfig` under its
+ * own config.
  *
  * The scene does not promise the created ids: it may answer with them, with a shorter
  * list, or with nothing at all. Only a thrown error means the products were not placed,
  * so the ids are reported as far as they are known and the caller reads the scene when
  * they are missing.
  */
-export const presetSceneProducts = (products: readonly ScenePresetProduct[]): Promise<ScenePresetResult> =>
+export const presetSceneProducts = (
+  products: readonly ScenePresetProduct[],
+  globalConfig?: Record<string, unknown>,
+): Promise<ScenePresetResult> =>
   runSceneOperation("presetProducts", async (call): Promise<ScenePresetResult> => {
     try {
-      const result = await call(products);
+      const result = await (globalConfig ? call(products, globalConfig) : call(products));
       const runtimeIds = Array.isArray(result)
         ? result.filter((entry): entry is string => typeof entry === "string")
         : [];
@@ -303,6 +309,53 @@ export const setSceneProductConfig = (
       }
 
       updateDimensionDataForProduct(runtimeId, config);
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Places a product next to a placed one (or first, without an anchor) and returns its runtime id. */
+export const insertSceneProduct = (
+  productType: string,
+  anchorRuntimeId: string | null,
+  side: "left" | "right",
+): Promise<SceneAddProductResult> =>
+  runSceneOperation("setProductByParams", async (call): Promise<SceneAddProductResult> => {
+    try {
+      const runtimeId = await call(productType, anchorRuntimeId, side);
+
+      if (typeof runtimeId !== "string" || !runtimeId) {
+        return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
+      }
+
+      return { status: "applied", runtimeId };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Removes one product. The scene answers null when it has no such product. */
+export const removeSceneProduct = (runtimeId: string): Promise<SceneOperationResult> =>
+  runSceneOperation("removeProduct", async (call): Promise<SceneOperationResult> => {
+    try {
+      const result = await call(runtimeId);
+
+      if (result === null) {
+        return { status: "failed", code: "product-not-found", message: `The scene has no product ${runtimeId}.` };
+      }
+
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Swaps the positions of two products in the composition. */
+export const swapSceneProducts = (runtimeIdA: string, runtimeIdB: string): Promise<SceneOperationResult> =>
+  runSceneOperation("swapProducts", async (call): Promise<SceneOperationResult> => {
+    try {
+      await call(runtimeIdA, runtimeIdB);
       return { status: "applied" };
     } catch (error) {
       return toSceneError(error);

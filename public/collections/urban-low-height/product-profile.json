@@ -127,11 +127,10 @@
         "drawers": "drawer_configs",
         "handlesAllowed": "handles_allowed",
         "supportsHeight": "supports_height",
-        "forcedHeightByHandle": {
-          "handle_urban_topcut": "handle_urban_topcut_forced_height_cm",
-          "handle_pto": "handle_pto_forced_height_cm"
-        },
-        "requiresDrawersByHandle": {}
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
     "fluting": {

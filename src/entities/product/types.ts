@@ -11,6 +11,10 @@ export type PresetProduct = {
   sinkType?: string;
   CountertopColor?: string;
   HandleGrooveColor?: string;
+  /** Mako: the colour of the handles. */
+  HandleColor?: string;
+  /** Mako: the model stands on legs of this colour ("None": the cabinet colour). */
+  LegColor?: string;
 };
 
 export type ProductSize = "24_29" | "30_39" | "40_49" | "50_59" | "60_69" | "70_79" | "80_89" | "90_plus";

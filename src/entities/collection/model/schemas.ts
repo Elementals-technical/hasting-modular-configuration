@@ -65,6 +65,11 @@ export const collectionManifestSchema = z
         ui: localJsonReferenceSchema.optional(),
         /** Semantic attribute and value translations used by the scene adapter. */
         runtimeBindings: localJsonReferenceSchema.optional(),
+        /**
+         * Cabinet table rows in the same shape as the API datatable. Temporary, for a
+         * collection whose table is not published yet; excludes `remote.cabinetTable`.
+         */
+        cabinetTable: localJsonReferenceSchema.optional(),
       })
       .strict()
       .optional(),
@@ -131,6 +136,8 @@ const presetProductSchema = z
     sinkType: z.string().optional(),
     CountertopColor: z.string().optional(),
     HandleGrooveColor: z.string().optional(),
+    HandleColor: z.string().optional(),
+    LegColor: z.string().optional(),
   })
   .passthrough();
 

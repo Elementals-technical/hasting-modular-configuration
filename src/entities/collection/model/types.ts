@@ -29,6 +29,8 @@ export type LocalCollectionSources = {
   productProfile?: ProductProfile;
   ui?: CustomizationSchema;
   runtimeBindings?: RuntimeBindingSet;
+  /** Temporary stand-in for `RemoteCollectionSources.cabinetTable`, same shape. */
+  cabinetTable?: ProductDatatable;
 };
 
 export type RemoteCollectionSources = {

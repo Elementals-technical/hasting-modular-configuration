@@ -7,6 +7,7 @@ export {
   bootBothSides,
   applyGrooveToActiveSides,
   autoRemoveBoth,
+  clearSidePanels,
   restoreSidePanelState,
   reapplySidePanelsForPreset,
   resolveGroove,

@@ -1778,12 +1778,16 @@
         "handlesAllowed": "handles_allowed",
         "supportsHeight": "supports_height",
         "forcedHeightByHandle": {},
-        "requiresDrawersByHandle": {}
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
     "drawerStyleGroups": [["1", "1+inner"], ["2"]]
   },
-  "messages": {},
+  "messages": {
+    "drawers.requiredHeight": "Required for selected drawers"
+  },
   "excludedFromThisProfile": {
     "handle": "Class has no handle choice: the grip is part of the frame (CLS-WGL-003). No Handle attribute is declared.",
     "sourceRefs": "4 / 438 / 439 come from the manifest. None of them holds Class data: configurator 4 has no Class colour or basin, 438 and 439 have no Class rows. This is also why the colour catalogs are listed here instead of read from the configurator.",

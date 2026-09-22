@@ -96,7 +96,7 @@
       "fields": [
         {
           "attributeId": "CabinetColor",
-          "control": "swatches",
+          "control": "colors",
           "optionsRef": "CabinetColor"
         }
       ]
@@ -117,7 +117,7 @@
       "fields": [
         {
           "attributeId": "CountertopColor",
-          "control": "swatches",
+          "control": "colors",
           "optionsRef": "CountertopColor"
         }
       ]

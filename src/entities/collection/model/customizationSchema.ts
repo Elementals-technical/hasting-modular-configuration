@@ -39,7 +39,12 @@ export type CustomizationStepDefinition = {
   sectionIds?: string[];
 };
 
-export type CustomizationFieldControl = "swatches" | "options-grid" | "checkbox";
+/**
+ * How a field is shown: text chips, a grid of options with their pictures, a checkbox, or the
+ * colour grid of a material (pictures or colour, material filters, full mode and swatch order),
+ * as the Urban colour screens show a colour.
+ */
+export type CustomizationFieldControl = "swatches" | "options-grid" | "checkbox" | "colors";
 
 export type CustomizationFieldDefinition = {
   attributeId: string;

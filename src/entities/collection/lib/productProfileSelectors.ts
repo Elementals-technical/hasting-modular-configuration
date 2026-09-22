@@ -104,6 +104,10 @@ export const selectLegacySpelling = (profile: ProductProfile | null, attributeId
 export const selectInitialValue = (profile: ProductProfile | null, attributeId: string): string =>
   selectAttribute(profile, attributeId)?.initialValue ?? "";
 
+/** The collection's starting value (`profile.defaults`); "" when it declares none, never another collection's. */
+export const selectDefaultValue = (profile: ProductProfile | null, attributeId: string): string =>
+  profile?.defaults[attributeId] ?? "";
+
 /**
  * Value substituted while nothing is selected but a concrete value is needed for computation.
  * Deliberately separate from `initialValue`: USH starts Handle empty yet computes heights as topcut.

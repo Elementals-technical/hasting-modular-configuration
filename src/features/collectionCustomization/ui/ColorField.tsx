@@ -19,13 +19,14 @@ import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
 import type { FieldOptionState, FieldRuntimeState } from "@/entities/collection";
 
+import s from "./ColorField.module.scss";
+
 type ColorFieldProps = {
   field: FieldRuntimeState;
   title: string;
   onChange: (value: string) => void | Promise<void>;
   onOrderSwatches: () => void;
   sortByTitle?: boolean;
-  filterClassName?: string;
 };
 
 type ColorFilters = { materials: FilterOption[]; colors: FilterOption[]; looks: FilterOption[] };
@@ -54,14 +55,7 @@ const toProductOptionData = (option: FieldOptionState, index: number): ProductOp
   metadata: { ...option.traits, value: option.value, image: option.image },
 });
 
-export const ColorField = ({
-  field,
-  title,
-  onChange,
-  onOrderSwatches,
-  sortByTitle,
-  filterClassName,
-}: ColorFieldProps) => {
+export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitle }: ColorFieldProps) => {
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const options = useMemo(() => field.options.map(toProductOptionData), [field.options]);
   const filters = useMemo(() => buildColorFilters(options, title), [options, title]);
@@ -99,7 +93,7 @@ export const ColorField = ({
         fullModeLookFilterOptions={filters.looks}
         fullModeTierFilterOptions={tierOptions}
       />
-      <FilterRow className={filterClassName}>
+      <FilterRow className={s.filters}>
         <FilterItem
           label="Material"
           options={filters.materials}

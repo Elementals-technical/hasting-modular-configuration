@@ -370,6 +370,26 @@ const productSlice = createSlice({
       state.compositionVersion += 1;
       applyRulesToState(state);
     },
+    /**
+     * Records the composition the scene holds after a composition command (C06): the products in
+     * order and the drawer style of each new one. Styles and dividers of products that left the
+     * composition go with them, and the rules run once for the whole change.
+     */
+    recordComposition(
+      state,
+      action: PayloadAction<{ productIds: string[]; placedCabinetStyles?: Record<string, string> }>,
+    ) {
+      const { productIds, placedCabinetStyles = {} } = action.payload;
+      const placed = new Set(productIds);
+
+      state.productIds = [...productIds];
+      state.placedCabinetStyles = Object.fromEntries(
+        Object.entries({ ...state.placedCabinetStyles, ...placedCabinetStyles }).filter(([id]) => placed.has(id)),
+      );
+      state.placedDividers = state.placedDividers.filter((divider) => placed.has(divider.cabinetId));
+      state.compositionVersion += 1;
+      applyRulesToState(state);
+    },
     swapProductIds(state, action: PayloadAction<{ idA: string; idB: string }>) {
       const { idA, idB } = action.payload;
       const indexA = state.productIds.indexOf(idA);
@@ -793,6 +813,7 @@ export const {
   removeProductId,
   setPlacedCabinetStyle,
   swapProductIds,
+  recordComposition,
   insertProductIdRelative,
   reset,
   setActiveCabinetType,

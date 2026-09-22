@@ -1208,24 +1208,28 @@
         "handlesAllowed": "handles_allowed",
         "supportsHeight": "supports_height",
         "forcedHeightByHandle": {},
-        "requiresDrawersByHandle": {}
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
     "drawerStyleGroups": [["1"], ["2"]]
   },
-  "messages": {},
+  "messages": {
+    "drawers.requiredHeight": "Required for selected drawers"
+  },
   "excludedFromThisProfile": {
-    "sourceRefs": "4 / 438 / 439 come from the manifest. None of them holds Mako data: configurator 4 has none of the Mako palettes, 438 and 439 have no Mako rows. This is why the colour catalogs are listed here.",
+    "sourceRefs": "4 / 438 come from the manifest. Neither holds Mako data: configurator 4 has none of the Mako palettes, 438 has no Mako rows. This is why the colour catalogs are listed here. Table 439 has no Mako rows either, so the cabinet rows are in cabinet-table.json until the Mako table is in the API; cabinetMatrixTableId stays for reference.",
     "matteWhite8cm": "Listed in the Master File (L121) but Mako has thin countertops only (map section 7, D-P0184), so it is not offered.",
     "va023": "Listed in the Master File (L195) but bound to the thick 3.1\" Technomat top in GB row 14, which thin-only excludes (section 9).",
     "va030": "Confirmed for SS Texturizzato by GB row 13 and the price workbook, but absent from the Master File, so it is not offered until the product list is fixed (section 9).",
-    "legsOnlyForTwoDrawers": "Confirmed: legs exist only for 2DW (section 6, D-P0173). The profile has no availability rule for it, and the Master File does not say when Leg Color is shown (Q-MAKO-002).",
+    "legsOnlyForTwoDrawers": "Confirmed: legs exist only for 2DW (section 6, D-P0173). The profile has no availability rule for it, and the Master File does not say when Leg Color is shown (Q-MAKO-002). The scene shows the legs only with a leg colour and hides them on 1DW (runtime-bindings.json); a leg colour kept from a 2DW cabinet is not reset on 1DW yet.",
     "legsQuantityAndPrice": "Leg height 33.3 cm and prices $745 / $1,340 are known; quantity, positions and the unit of sale are not (section 6, Q-MAKO-003).",
     "handleColorByStyle": "Gold and Silver are shown for both handles, lacquered colours only for G57; lacquered G50 is neither confirmed nor forbidden (section 4).",
     "handleG50Length": "G50 comes in 20 and 36 cm; which cabinet width takes which length is not described (sections 4, 16).",
     "handleAndColorMixing": "Whether handles, handle colours, leg colours and cabinet colours must be shared by the whole composition is not described (sections 4, 5).",
-    "heightByStyle": "Confirmed: 1DW is 26 cm high, 2DW 52 cm (section 2). A cabinet table row; table 439 has no Mako rows.",
-    "widths": "Confirmed: Sink Base 60/80/100/120 cm, Side Cabinet 40/60/80/100/120 cm, depth 52 cm (section 3). Cabinet table rows.",
+    "heightByStyle": "Confirmed: 1DW is 26 cm high, 2DW 52 cm (section 2). The scene gets the height with the style (runtime-bindings.json), and the builder catalog from the cabinet table rows (cabinet-table.json, forced_height_cm 1:26|2:52).",
+    "widths": "Confirmed: Sink Base 60/80/100/120 cm, Side Cabinet 40/60/80/100/120 cm, depth 52 cm (section 3). Cabinet table rows (cabinet-table.json).",
     "compositionLimits": "Confirmed: at most 220 cm, at most two Sink Bases, cabinets abut only (section 3, D-P0161-D-P0163). Not expressible in the profile yet.",
     "thickness": "Mako has thin countertops only: 0.5\" for six material groups; Porcelain is 0.8\" in the tables but 3/4\" in the catalog (section 7). No thickness catalog is declared until the profile is confirmed.",
     "basinByMaterialAndMinWidth": "Confirmed in GB: material -> integrated basin, Sink Base at least 60 cm (sections 7, 9). Needs Mako rows in the countertop table.",

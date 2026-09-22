@@ -298,6 +298,64 @@ describe("collection loading and assembly", () => {
     expect(remote.loadCabinetTable).not.toHaveBeenCalled();
   });
 
+  const loadFixtureRulesWithManifest = (manifest: unknown) => {
+    const remote = unusedRemote();
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl: rootUrl,
+      registry: fixtureRegistry,
+      fetchJson: jsonFetcher({
+        [`${rootUrl}fixture-rules/manifest.json`]: manifest,
+        [`${rootUrl}fixture-rules/product-profile.json`]: fixtureRulesProfile,
+        [`${rootUrl}fixture-rules/runtime-bindings.json`]: fixtureRulesBindings,
+        [`${rootUrl}fixture-rules/ui.json`]: fixtureRulesUi,
+        [`${rootUrl}fixture-rules/cabinet-table.json`]: fixtureCabinetTable,
+      }),
+      remote,
+    };
+    const load = async () => {
+      const registry = await loadCollectionRegistry(dependencies, abortSignal);
+      const resolution = resolveCollection({ registry, urlCollectionId: "fixture-rules" });
+      if (!resolution.ok) throw new Error("Expected fixture-rules to resolve");
+      return loadResolvedCollection(resolution, dependencies, abortSignal);
+    };
+    return { remote, load };
+  };
+
+  it("builds the cabinet catalog from a local cabinet table without the remote table", async () => {
+    const { remote, load } = loadFixtureRulesWithManifest({
+      ...fixtureRulesManifest,
+      local: { ...fixtureRulesManifest.local, cabinetTable: "cabinet-table.json" },
+    });
+
+    const data = await load();
+
+    expect(data.sources.local.cabinetTable?.rows[0]?.fixtureExtension).toBe("retained");
+    expect(data.sources.remote.cabinetTable).toBeUndefined();
+    expect(data.catalog.cabinets?.typeCabinetRules).toEqual([
+      expect.objectContaining({ code: "Fixture-Cabinet", widths: [60], heights: [56], drawers: ["2"] }),
+    ]);
+    expect(data.diagnostics).toEqual([]);
+    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+  });
+
+  it("rejects a manifest that declares its cabinet table both locally and remotely", async () => {
+    const { remote, load } = loadFixtureRulesWithManifest({
+      ...fixtureRulesManifest,
+      local: { ...fixtureRulesManifest.local, cabinetTable: "cabinet-table.json" },
+      remote: { cabinetTable: { id: 439 } },
+    });
+
+    const error = await load().then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+
+    expect(error?.code).toBe("invalid-manifest");
+    expect(error?.message).toContain("both locally and remotely");
+    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+  });
+
   it("fails a required source without substituting USH data", async () => {
     const fetchJson = jsonFetcher({
       [`${rootUrl}urban-standard-height/manifest.json`]: productionManifest,

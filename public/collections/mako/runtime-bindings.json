@@ -1,0 +1,391 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "mako",
+  "productTypes": {
+    "Sink-Base": "Mako-sink-cabinet",
+    "Sink-Cabinet": "Mako-side-cabinet"
+  },
+  "bindings": [
+    {
+      "attributeId": "Handle",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "G57": {
+            "HandleStyle": "G57"
+          },
+          "G50": {
+            "HandleStyle": "G50"
+          }
+        }
+      },
+      "order": 20,
+      "note": "The Mako scene reads HandleStyle, not Handle. Broadcast until the sources say whether the handle may differ per cabinet (excludedFromThisProfile.handleAndColorMixing)."
+    },
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "26": {
+            "Height": 26
+          },
+          "52": {
+            "Height": 52
+          }
+        }
+      },
+      "order": 30,
+      "note": "The Mako scene takes 26 and 52 only (RuleHeightCabinetMako). Mako styles are never mixed (drawerStyleGroups), so the composition shares one height."
+    },
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Width"
+      },
+      "order": 30,
+      "note": "Number in cm, set on one cabinet. The Mako scene takes 40, 60, 80, 100 and 120 (RuleWidthCabinetMako)."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Depth"
+      },
+      "order": 30,
+      "note": "Number in cm; Mako has one depth, 52."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "1": {
+            "Drawers": "1D",
+            "Height": 26,
+            "ShowLegs": "Disable"
+          },
+          "2": {
+            "Drawers": "2D",
+            "Height": 52,
+            "ShowLegs": "Disable"
+          }
+        }
+      },
+      "order": 40,
+      "note": "The Mako scene lays out the drawers from Height: 1DW is 26 cm, 2DW 52 cm (map section 2). Sent after Height, so the style decides the height. A style starts without legs; LegColor, sent after it, shows them. Drawers keeps the legacy spelling in the scene config, where history and saved configurations read the style; the Mako scene itself ignores it."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor"
+      },
+      "order": 50,
+      "note": "Exact PlayCanvas material name. The scene has no Mako lacquer yet, so the cabinet keeps its material until the scene adds them."
+    },
+    {
+      "attributeId": "HandleColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "HandleColor"
+      },
+      "order": 50,
+      "note": "Exact PlayCanvas material name; the G50 stone inserts keep a fixed material. Not in the scene materials yet."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor"
+      },
+      "order": 50,
+      "note": "The countertop is placed at composition level; the Mako cabinets ignore the key. The Mako countertop colours are not in the scene materials yet."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "Read by the countertop, as in Urban."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "integrated": {
+            "CountertopStyle": "Integrated"
+          },
+          "vessel": {
+            "CountertopStyle": "Vessel"
+          }
+        }
+      },
+      "order": 50,
+      "note": "Sent capitalized, as for Urban."
+    },
+    {
+      "attributeId": "LegColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "": {
+            "ShowLegs": "Disable"
+          },
+          "None": {
+            "ShowLegs": "Enable",
+            "LegColor": "None"
+          },
+          "Gold": {
+            "ShowLegs": "Enable",
+            "LegColor": "Gold"
+          },
+          "Silver": {
+            "ShowLegs": "Enable",
+            "LegColor": "Silver"
+          },
+          "Grigio Argento 403 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Grigio Argento 403 MT"
+          },
+          "Nebbia 402 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Nebbia 402 MT"
+          },
+          "Seta 406 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Seta 406 MT"
+          },
+          "Moka 408 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Moka 408 MT"
+          },
+          "Ponente 418 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Ponente 418 MT"
+          },
+          "Acqua 419 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Acqua 419 MT"
+          },
+          "Salvia 415 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Salvia 415 MT"
+          },
+          "Ambra 413 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Ambra 413 MT"
+          },
+          "Latte 417 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Latte 417 MT"
+          },
+          "Fumo 401 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Fumo 401 MT"
+          },
+          "Metropoli 404 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Metropoli 404 MT"
+          },
+          "Antracite 400 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Antracite 400 MT"
+          },
+          "Nero 433 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Nero 433 MT"
+          },
+          "Sabbia 405 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Sabbia 405 MT"
+          },
+          "Agata 407 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Agata 407 MT"
+          },
+          "Creta 416 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Creta 416 MT"
+          },
+          "Zaffiro 411 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Zaffiro 411 MT"
+          },
+          "Turchese 410 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Turchese 410 MT"
+          },
+          "Asparago 414 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Asparago 414 MT"
+          },
+          "Zafferano 412 MT": {
+            "ShowLegs": "Enable",
+            "LegColor": "Zafferano 412 MT"
+          }
+        }
+      },
+      "order": 60,
+      "note": "Legs follow the leg colour: no colour hides them, a colour shows them in it. \"None\" shows them in the cabinet colour (the scene inherits CabinetColor); the models with legs use it until the product names a leg colour. Sent after Drawers, so a chosen colour shows the legs of a 2DW cabinet. Legs exist only for 2DW (map section 6); Drawers hides them on 1DW."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "state-only",
+      "reason": "The Mako cabinets have no basin sub-product in the scene; the basin is recorded for pricing only."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "state-only",
+      "reason": "The Mako cabinets have no basin sub-product in the scene; recorded only."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "state-only",
+      "reason": "Mako handles have no groove (Handle capabilities: supportsGrooveColor false). Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no BookMatching key in the scene export."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no LED key in the scene export."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The Mako scene products of each value are in productTypes."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "unbound",
+      "reason": "Not a Mako option; the Mako cabinets have no fluting in the scene."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not a Mako option; the Mako cabinets have no grain direction in the scene."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "unbound",
+      "reason": "Not a Mako option in the profile."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "unbound",
+      "reason": "Not a Mako option in the profile."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "Not a Mako option in the profile; the scene side panels are the Urban ones."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Not a Mako option in the profile."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Not a Mako option in the profile."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Mako drawers have no divider zones in the scene yet."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Mako drawers have no divider zones in the scene yet."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import {
   isHandleAllowedForDrawers,
+  resolveDrawersForcedHeight,
   resolveForcedHeight,
   resolvePossibleForcedHeights,
   selectEffectiveFallback,
@@ -17,6 +18,7 @@ import { toHandleRelations } from "./handleForcedHeight";
 const REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS = "handle.centralGrooveRequiresDrawers";
 const REASON_REQUIRED_HEIGHT = "handle.requiredHeight";
 const REASON_DEFAULT_REQUIRED_HEIGHT = "handle.defaultRequiredHeight";
+const REASON_DRAWERS_REQUIRED_HEIGHT = "drawers.requiredHeight";
 const REASON_NOT_AVAILABLE_FOR_CABINET_TYPE = "handle.notAvailableForCabinetType";
 const REASON_SELECT_DRAWERS_FOR_HEIGHT = "handle.selectDrawersForHeight";
 
@@ -151,19 +153,28 @@ export const handleRule = (
     }
   }
 
-  const forcedHeight = resolveForcedHeight(relations, effectiveHandle, selection.drawers ?? null);
+  const handleForcedHeight = resolveForcedHeight(relations, effectiveHandle, selection.drawers ?? null);
+  // A handle's own height wins; otherwise the drawers may require one whatever the handle, or with none.
+  const forcedHeight = handleForcedHeight ?? resolveDrawersForcedHeight(relations, selection.drawers ?? null);
   const forcedHeightConflictsLock =
     typeof heightLocked === "number" && typeof forcedHeight === "number" && forcedHeight !== heightLocked;
   const hasForcedHeight =
     typeof forcedHeight === "number" &&
     heightOptions.some((option) => option.value === forcedHeight && option.enabled) &&
     supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
+  const handleAllowsDrawers =
+    handleForcedHeight === null || (effectiveHandle !== null && isDrawerAllowedFor(effectiveHandle));
 
-  if (effectiveHandle && hasForcedHeight && !forcedHeightConflictsLock && isDrawerAllowedFor(effectiveHandle)) {
+  if (hasForcedHeight && !forcedHeightConflictsLock && handleAllowsDrawers) {
     // The collection's fallback handle applies to every product, so its explanation
-    // differs from an explicitly chosen handle. Both texts come from profile.messages.
+    // differs from an explicitly chosen handle; a height the drawers require names no
+    // handle. The texts come from profile.messages.
     const reasonCode =
-      effectiveHandle === declaredFallback ? REASON_DEFAULT_REQUIRED_HEIGHT : REASON_REQUIRED_HEIGHT;
+      handleForcedHeight === null
+        ? REASON_DRAWERS_REQUIRED_HEIGHT
+        : effectiveHandle === declaredFallback
+          ? REASON_DEFAULT_REQUIRED_HEIGHT
+          : REASON_REQUIRED_HEIGHT;
 
     heightOptions = constrainHeightOptions(heightOptions, forcedHeight as number, selectMessage(profile, reasonCode));
   }

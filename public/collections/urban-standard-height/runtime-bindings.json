@@ -57,7 +57,7 @@
         }
       },
       "order": 10,
-      "note": "The scene keeps the legacy spellings; ModelPage.tsx, CabinetBuilderPage.tsx, RightCabinetStyleSidebar.tsx and restoreSnapshot.ts hold the reverse."
+      "note": "The scene keeps the legacy spellings; ModelPage.tsx, CabinetBuilderPage.tsx and restoreSnapshot.ts hold the reverse."
     },
     {
       "attributeId": "DrawerPanelFluting",

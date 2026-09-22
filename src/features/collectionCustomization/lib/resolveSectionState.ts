@@ -78,7 +78,12 @@ export const resolveSectionFields = (
     const availability = resolveFieldAvailability(definition.availabilityRef, availabilityResults);
     const declaredOptions: FieldOptionState[] = definition.optionsRef
       ? resolveConfiguratorOptions(profile, definition.attributeId, configurator)
-      : selectOptions(profile, definition.attributeId).map(({ value, label }) => ({ value, label, enabled: true }));
+      : selectOptions(profile, definition.attributeId).map(({ value, label, category }) => ({
+          value,
+          label,
+          enabled: true,
+          desc: category,
+        }));
 
     const options = declaredOptions.map((option) => {
       const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);

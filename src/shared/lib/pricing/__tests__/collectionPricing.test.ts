@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
+
 import {
   derivePriceStatus,
   priceStoreReducer,
@@ -116,6 +118,21 @@ describe("Class and Mako order lines", () => {
       ["solidSurfaceGroup", false],
       ["divider", false],
     ]);
+  });
+
+  it("reads the Mako cabinets the scene placed as its Mako products", () => {
+    const { input } = COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"];
+    const sceneIds = ["Mako-sink-cabinet-k3j4h5g6f", "Mako-side-cabinet-a1b2c3d4e"];
+    const placed = buildCollectionPricingLines({
+      ...input,
+      runtimeBindings: makoRuntimeBindings,
+      cabinetEntries: input.cabinetEntries.map((entry, index) => ({ ...entry, runtimeId: sceneIds[index] })),
+    });
+    const skus = (lines: { sku: string }[]) => lines.map(({ sku }) => sku);
+
+    // The same order as with the ids the fixture gives: the sink base keeps its cutout.
+    expect(skus(placed.lines)).toEqual(skus(buildCollectionPricingLines(input).lines));
+    expect(placed.lines.find(({ group }) => group === "holeCut")).toMatchObject({ quantity: 1 });
   });
 
   it("keeps two identical cabinets as two lines", () => {

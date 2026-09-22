@@ -52,6 +52,12 @@ export const validateCollectionManifest = (
       `Collection manifest identity ${manifest.id} does not match registry identity ${expectedCollectionId}`,
     );
   }
+  if (manifest.local?.cabinetTable && manifest.remote?.cabinetTable) {
+    throw new CollectionDataError(
+      "invalid-manifest",
+      `Collection manifest ${manifest.id} declares its cabinet table both locally and remotely`,
+    );
+  }
 
   Object.values(manifest.local ?? {}).forEach((reference) => {
     if (reference) resolveCollectionJsonUrl(reference, manifestUrl, collectionsRootUrl);

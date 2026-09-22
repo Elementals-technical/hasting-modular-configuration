@@ -17,3 +17,18 @@ export { createSceneRestorer, resolveSceneProductType } from "./lib/createSceneR
 export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRestorer";
 export { createTestSceneRestorer } from "./lib/testSceneRestorer";
 export type { TestSceneRestorer } from "./lib/testSceneRestorer";
+
+export { createCompositionPort } from "./lib/createCompositionPort";
+export type { CompositionPortDeps, SceneCompositionBridge } from "./lib/createCompositionPort";
+export { createTestCompositionPort } from "./lib/testCompositionPort";
+export type { CompositionCall, TestCompositionPort } from "./lib/testCompositionPort";
+
+export { createSidePanelPort } from "./lib/createSidePanelPort";
+export type { SidePanelPortDeps } from "./lib/createSidePanelPort";
+export { createTestSidePanelPort } from "./lib/testSidePanelPort";
+export type { TestSidePanelPort } from "./lib/testSidePanelPort";
+
+export { fitCountertop, restoreCountertopConfigs } from "./lib/countertopScene";
+export type { CountertopSize } from "./lib/countertopScene";
+export { ensureCabinetHeights } from "./lib/ensureCabinetHeights";
+export type { CabinetHeightCheck } from "./lib/ensureCabinetHeights";
