@@ -308,10 +308,7 @@ export const CabinetBuilderPage = () => {
   const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
   const maxCountertopLength = lengthGuard.max;
   const remainingCountertopLength = lengthGuard.remaining;
-  const compositionExceededReason =
-    maxCountertopLength !== null
-      ? formatCompositionLengthReachedReason(maxCountertopLength)
-      : "Maximum composition length reached for the selected countertop setup.";
+  const compositionExceededReason = formatCompositionLengthReachedReason(maxCountertopLength, activeProfile);
 
   const addableCatalogWidths = useMemo(() => {
     return getUniqueCatalogWidths(cabinetCatalog);

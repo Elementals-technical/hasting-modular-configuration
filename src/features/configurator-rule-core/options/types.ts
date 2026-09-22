@@ -104,4 +104,6 @@ export type SidePanelAvailabilityResult = {
   reason?: string;
   /** Structured counterpart of `reason` for non-fragile comparisons. */
   reasonCode?: SidePanelReasonCode;
+  /** Reason code of the text, as `messages` spells it; the interface resolves it. */
+  messageCode?: string;
 };

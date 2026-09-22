@@ -508,6 +508,30 @@ describe("collection loading and assembly", () => {
     ]);
   });
 
+  it("requires ProductProfile when a collection declares a cabinet table, instead of reading it as USH", async () => {
+    const loading = loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: { cabinetTable: "cabinet-table.json" },
+      },
+      { [`${rootUrl}urban-standard-height/cabinet-table.json`]: datatable439 },
+    );
+
+    const error = await loading.then(
+      () => null,
+      (caught: unknown) => toCollectionError(caught),
+    );
+    expect(error?.cause).toEqual([
+      expect.objectContaining({
+        code: "cabinet.missing-product-profile",
+        severity: "error",
+        dataset: "productProfile",
+      }),
+    ]);
+  });
+
   it("rejects a missing required runtime binding before the collection becomes ready", async () => {
     const runtimeBindings = {
       ...productionRuntimeBindings,

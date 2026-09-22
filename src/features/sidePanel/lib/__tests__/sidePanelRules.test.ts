@@ -57,13 +57,15 @@ describe("sidePanelAvailabilityRule on the USH profile", () => {
   });
 
   it.each([
-    ["OS", "open-shelf", "Side panels are not available for use with Open Shelf cabinets."],
-    ["OSS", "side-shelf", "Side panels are not available for Side-Shelf cabinets."],
-  ] as const)("blocks %s cabinets with a reason", (cabinetType, reasonCode, reason) => {
+    ["OS", "open-shelf", "sidePanel.openShelfUnavailable", "Side panels are not available for use with Open Shelf cabinets."],
+    ["OSS", "side-shelf", "sidePanel.sideShelfUnavailable", "Side panels are not available for Side-Shelf cabinets."],
+  ] as const)("blocks %s cabinets with a reason", (cabinetType, reasonCode, messageCode, reason) => {
     expect(sidePanelAvailabilityRule({ height: 53, handleType: "1D", cabinetType }, ushProfile)).toEqual({
       allowed: new Set(),
       reason,
       reasonCode,
+      // The interface resolves this code; `reasonCode` groups the blockers for the rules.
+      messageCode,
     });
   });
 });
@@ -135,6 +137,7 @@ describe("side panel rules on other data", () => {
       allowed: new Set(),
       reason: "Side panels are not available in this collection.",
       reasonCode: "not-in-collection",
+      messageCode: "sidePanel.notInCollection",
     });
     expect(mapCabinetTypeToGroup("Sink-Base", profile)).toBeNull();
     expect(isSidePanelLengthBlocked(340, profile)).toBe(false);

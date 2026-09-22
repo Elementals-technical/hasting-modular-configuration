@@ -119,7 +119,12 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
       const leftSt = getSidePanelLeftStatus(state);
       const rightSt = getSidePanelRightStatus(state);
 
-      const newValue = resolveGroove(availability.allowed as Set<string>, currentSidePanels, handle);
+      const newValue = resolveGroove(
+        availability.allowed as Set<string>,
+        currentSidePanels,
+        handle,
+        state.rootStateUI.product.activeProfile,
+      );
 
       if (newValue === currentSidePanels && !shouldRefreshActivePanels) return;
 

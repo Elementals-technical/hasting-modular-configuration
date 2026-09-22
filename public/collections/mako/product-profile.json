@@ -1200,6 +1200,14 @@
     }
   ],
   "ruleData": {
+    "undeterminedRules": [
+      {
+        "ruleId": "MAKO-LEG-002",
+        "attributeId": "LegColor",
+        "whenCabinet": { "Drawers": ["1"] },
+        "source": "Q-MAKO-002: legs are confirmed for 2DW only; whether Leg Color applies to a 1DW cabinet is open"
+      }
+    ],
     "cabinetMatrixLegacyAdapter": {
       "tableId": 581,
       "columns": {
@@ -1216,6 +1224,10 @@
     "drawerStyleGroups": [["1"], ["2"]]
   },
   "messages": {
+    "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option is not available in this collection.",
+    "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "drawers.requiredHeight": "Required for selected drawers"
   },
   "excludedFromThisProfile": {

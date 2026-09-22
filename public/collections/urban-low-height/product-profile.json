@@ -159,6 +159,9 @@
     }
   },
   "messages": {
+    "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option is not available in this collection.",
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.requiredHeight": "Required for selected handle",

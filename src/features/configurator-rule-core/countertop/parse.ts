@@ -127,6 +127,32 @@ export const getMaterialAliases = (
 export const selectMaterialAliasTable = (profile: ProductProfile | null): MaterialAliasTable =>
   selectRuleData(profile, "materialNormalization")?.aliases ?? LEGACY_MATERIAL_ALIASES;
 
+/** USH's countertop materials that take a vessel sink, while a collection declares none of its own. */
+export const LEGACY_VESSEL_COMPATIBLE_COUNTERTOP_MATERIAL_TOKENS: readonly string[] = [
+  "hpl",
+  "porcelain",
+  "tekorlux",
+  "tal",
+  "tam",
+  "solidsurface",
+];
+
+/**
+ * Whether a countertop colour of these materials takes a vessel sink. The materials and their
+ * aliases come from `ruleData.materialNormalization` of the active collection.
+ */
+export const isVesselCompatibleCountertopMaterial = (
+  materials: readonly string[],
+  profile: ProductProfile | null,
+): boolean => {
+  const normalization = selectRuleData(profile, "materialNormalization");
+  const allowed = new Set(
+    normalization?.vesselCompatibleCountertopMaterialTokens ?? LEGACY_VESSEL_COMPATIBLE_COUNTERTOP_MATERIAL_TOKENS,
+  );
+  const aliasTable = selectMaterialAliasTable(profile);
+  return materials.some((material) => getMaterialAliases(material, aliasTable).some((alias) => allowed.has(alias)));
+};
+
 export const materialMatchesRule = (
   optionMaterial: string,
   ruleMaterial: string,
@@ -206,11 +232,12 @@ const findLeadingBasinMaterialScope = (value?: string | null): string | null => 
 export const extractCountertopBasinMaterialScopeTokens = (
   label?: string | null,
   name?: string | null,
+  aliasTable: MaterialAliasTable = LEGACY_MATERIAL_ALIASES,
 ): string[] => {
   const scope = findLeadingBasinMaterialScope(label) ?? findLeadingBasinMaterialScope(name);
   if (!scope) return [];
 
-  return getMaterialAliases(scope);
+  return getMaterialAliases(scope, aliasTable);
 };
 
 export const scopeCountertopRulesByBasinStyle = (

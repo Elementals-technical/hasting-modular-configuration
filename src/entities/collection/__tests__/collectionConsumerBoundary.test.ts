@@ -74,29 +74,32 @@ const expectedCounts = (list: Record<string, CountedResidue>) =>
  */
 const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
   "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
-    owner: "B",
-    count: 7,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+    owner: "I",
+    count: 1,
+    reason:
+      "integrated basin on the sink bases it fits by width: the sinkType binding addresses every Sink-Base, so the command cannot send it to some of them",
   },
   "/src/pages/custom/countertop/index.tsx": {
-    owner: "B",
-    count: 7,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+    owner: "I",
+    count: 1,
+    reason:
+      "integrated basin on the sink bases it fits by width: the sinkType binding addresses every Sink-Base, so the command cannot send it to some of them",
   },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
-    owner: "B",
-    count: 2,
-    reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
+    owner: "I",
+    count: 1,
+    reason: "dividers None clears the placed dividers: DividersOption is unbound, the divider adapter owns the zones",
   },
   "/src/pages/custom/accessories/index.tsx": {
-    owner: "B",
-    count: 2,
-    reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
+    owner: "I",
+    count: 1,
+    reason: "dividers None clears the placed dividers: DividersOption is unbound, the divider adapter owns the zones",
   },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
-    owner: "B",
-    count: 2,
-    reason: "C06 phase 4: depth through changeDimension; phase 7: open shelves removed through removeCabinets",
+    owner: "C",
+    count: 1,
+    reason:
+      "the size effect sends Height with Depth to every cabinet in one call; Height follows the handle rules, so splitting it needs a browser check",
   },
 };
 
@@ -146,93 +149,50 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  */
 const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
-    owner: "B",
-    count: 3,
-    reason: "C06 phase 5: dividers option and style through the command",
+    owner: "C",
+    count: 2,
+    reason: "the divider style of the picker has no drawer to address: the profile keeps DividersStyle per drawer",
   },
   "/src/pages/custom/accessories/index.tsx": {
-    owner: "B",
-    count: 3,
-    reason: "C06 phase 5: dividers option and style through the command",
+    owner: "C",
+    count: 2,
+    reason: "the divider style of the picker has no drawer to address: the profile keeps DividersStyle per drawer",
   },
   "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
-    owner: "B",
-    count: 10,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+    owner: "I",
+    count: 1,
+    reason: "records the integrated basin that the page itself sent to the sink bases it fits (see the scene call)",
   },
   "/src/pages/custom/countertop/index.tsx": {
-    owner: "B",
-    count: 10,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+    owner: "I",
+    count: 1,
+    reason: "records the integrated basin that the page itself sent to the sink bases it fits (see the scene call)",
   },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
     owner: "C",
     count: 1,
     reason: "a saved divider style has no drawer to address: the profile keeps DividersStyle per drawer",
   },
-  "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
-    owner: "B",
-    count: 3,
-    reason: "C06 phase 7: the preset colour with its material and finish recorded by applyPreset",
-  },
 };
 
 /** Material matching by the legacy alias table: a helper called without the collection's table. */
 const legacyAliasLookups = [/\bgetMaterialAliases\([^,()]+\)/, /\bmaterialMatchesRule\([^,()]+,[^,()]+\)/];
 
-/**
- * Rules match countertop materials by the collection's `ruleData.materialNormalization`
- * (DEV-06). These still fall back to the legacy table, kept equal to USH's by
- * `materialAliases.test.ts`. The rule files take the table once their callers pass the profile.
- */
-const PENDING_LEGACY_ALIAS_CALLERS: Record<string, Residue> = {
-  "/src/pages/prebuilt/countertop/CountertopPage.tsx": { owner: "B", reason: "B06: material filters of the page" },
-  "/src/pages/custom/countertop/index.tsx": { owner: "B", reason: "B06: material filters of the page" },
-  "/src/features/configurator-rule-core/countertop/basinSelection.ts": {
-    owner: "C",
-    reason: "called without a profile by the model page",
-  },
-  "/src/features/configurator-rule-core/countertop/lengthLimits.ts": {
-    owner: "C",
-    reason: "called without a profile by the scene widget and the sidebar",
-  },
-  "/src/features/configurator-rule-core/countertop/parse.ts": {
-    owner: "C",
-    reason: "basin material scope, read without a profile by basinSelection and the countertop pages",
-  },
-  "/src/features/configurator-rule-core/countertop/rules.ts": {
-    owner: "C",
-    reason: "called without a profile by pages, Summary and pricing (D)",
-  },
-  "/src/features/configurator-rule-core/countertop/sizeFilters.ts": {
-    owner: "C",
-    reason: "width filter called without a profile by the scene widget and the sidebar",
-  },
-};
 
 /**
- * Product catalogs the pages still declare themselves. The USH profile holds each one with
- * the same values and labels (`pageCatalogsMatchProfile.test.ts`); B06 replaces them with
- * `selectOptions` / `selectBasinOptions`, see docs/b06-profile-options-handoff.md.
+ * Product catalogs the countertop and accessories steps used to declare themselves (B06). They
+ * are read from the profile now (`features/collectionCustomization/lib/pageOptionCatalogs.ts`);
+ * none of these names may come back in production code.
  */
-const PENDING_PAGE_CATALOGS: Record<string, { owner: "B"; constants: string[] }> = {
-  "/src/pages/prebuilt/countertop/constants.ts": {
-    owner: "B",
-    constants: ["optionsMockData2", "optionsMockData3", "optionsMockData4"],
-  },
-  "/src/pages/custom/countertop/constants.ts": {
-    owner: "B",
-    constants: ["optionsMockData2", "optionsMockData3", "optionsMockData4"],
-  },
-  "/src/pages/prebuilt/accessories/constants.ts": {
-    owner: "B",
-    constants: ["optionsSidePanelsData", "optionsSwatchData2", "optionsSwatchDataTowel", "dividersMockData"],
-  },
-  "/src/pages/custom/accessories/constants.ts": {
-    owner: "B",
-    constants: ["optionsSidePanelsData", "optionsSwatchData2", "optionsSwatchDataTowel", "dividersMockData"],
-  },
-};
+const FORMER_PAGE_CATALOGS = [
+  "optionsMockData2",
+  "optionsMockData3",
+  "optionsMockData4",
+  "optionsSidePanelsData",
+  "optionsSwatchData2",
+  "optionsSwatchDataTowel",
+  "dividersMockData",
+];
 
 const findOffenders = (patterns: RegExp[]) =>
   productionSources.flatMap(([path, source]) =>
@@ -288,20 +248,19 @@ describe("active collection consumer boundary", () => {
     expect([...committed].sort()).toEqual([...COMMITTED_SETTERS].sort());
   });
 
-  it("matches materials by the legacy alias table only in the files still waiting for the profile", () => {
+  it("matches materials by the collection's alias table everywhere (DEV-06)", () => {
     const callers = productionSources
       .filter(([, source]) => legacyAliasLookups.some((pattern) => pattern.test(source)))
       .map(([path]) => path);
 
-    expect(callers.filter((path) => !(path in PENDING_LEGACY_ALIAS_CALLERS))).toEqual([]);
-    expect(Object.keys(PENDING_LEGACY_ALIAS_CALLERS).filter((path) => !callers.includes(path))).toEqual([]);
+    expect(callers).toEqual([]);
   });
 
-  it("keeps the page catalog list honest: a catalog the page dropped leaves it", () => {
-    const dropped = Object.entries(PENDING_PAGE_CATALOGS).flatMap(([path, { constants }]) =>
-      constants.filter((name) => !new RegExp(`\\bexport const ${name}\\b`).test(sourceModules[path] ?? "")),
+  it("declares no page product catalog: the steps read their options from the profile", () => {
+    const offenders = productionSources.flatMap(([path, source]) =>
+      FORMER_PAGE_CATALOGS.filter((name) => new RegExp(`\\b${name}\\b`).test(source)).map((name) => `${path}: ${name}`),
     );
 
-    expect(dropped).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 });

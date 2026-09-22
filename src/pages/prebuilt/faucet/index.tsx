@@ -5,6 +5,7 @@ import { ProductSwatchesGrid } from "@/entities/product/ui/ProductSwatchesGrid/P
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { FAUCET_HOLE_HELPER_COPY } from "@/shared/constants/faucetHoles";
 import type { AccordionConfig } from "@/shared/constants/types";
+import { getActiveProductProfile } from "@/entities/configuration";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopColor,
@@ -33,6 +34,7 @@ import {
 import s from "./FaucetPage.module.scss";
 
 export const FaucetPage = () => {
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const faucetAmount = useAppSelector(getFaucetHolesAmount);
   const faucetHoles = useAttributeChangeHandler("FaucetHolesAmount");
   const { change, getState } = useChangeAttribute();
@@ -81,8 +83,10 @@ export const FaucetPage = () => {
         activeCountertopStyle,
         activeBasinStyle,
         activeThickness,
+        profile: activeProfile,
       }),
     [
+      activeProfile,
       activeBasinStyle,
       activeCountertopStyle,
       activeMaterialTokens,

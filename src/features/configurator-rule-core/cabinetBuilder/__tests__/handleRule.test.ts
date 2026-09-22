@@ -117,6 +117,7 @@ describe("handleRule on profile data", () => {
     expect(result.violations).toContainEqual({
       field: "drawers",
       reason: "Select drawers to determine height for selected handle",
+      reasonCode: "handle.selectDrawersForHeight",
     });
   });
 

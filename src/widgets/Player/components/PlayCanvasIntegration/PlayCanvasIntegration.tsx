@@ -87,7 +87,7 @@ import {
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
-import { selectOptions, useActiveCollection } from "@/entities/collection";
+import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
@@ -133,6 +133,9 @@ import {
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
 const PLAYCANVAS_VERSION = "034";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
+
+/** Stable code; the text comes from the collection's `messages`. */
+const REASON_HANDLE_OPEN_CABINET = "handle.notAvailableForOpenCabinet";
 
 const GLOBAL_CAMERA_PADDING_WIDE = 2.0;
 const GLOBAL_CAMERA_PADDING_TALL = 2.6;
@@ -526,7 +529,7 @@ export const PlayCanvasIntegration = ({
 
   const handleOptions = useMemo(() => {
     const isOpenCabinet = Boolean(activeCabinetRule?.isOpen);
-    const openReason = "Not available for open cabinets";
+    const openReason = selectMessageOr(activeProfile, REASON_HANDLE_OPEN_CABINET, "Not available for open cabinets");
 
     if (dimensionOptions.handles?.length) {
       return dimensionOptions.handles.map((h) => ({
@@ -820,6 +823,8 @@ export const PlayCanvasIntegration = ({
     if (!countertopRules.length) return;
 
     const defaultThickness = resolveDefaultThicknessFromRules({
+
+      profile: activeProfile,
       rules: countertopRules,
       activeMaterialTokens,
       width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
@@ -831,6 +836,7 @@ export const PlayCanvasIntegration = ({
       void changeAttributeValue({ attributeId: "Thickness", value: defaultThickness, scope: "countertop" });
     }
   }, [
+    activeProfile,
     changeAttributeValue,
     activeCountertopThickness,
     activeMaterialTokens,
@@ -868,8 +874,10 @@ export const PlayCanvasIntegration = ({
         activeCountertopStyle: countertopStyle ?? null,
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
+        profile: activeProfile,
       }),
     [
+      activeProfile,
       activeBasinStyle,
       activeCountertopThickness,
       countertopStyle,
@@ -891,6 +899,7 @@ export const PlayCanvasIntegration = ({
   const widthOptions = useMemo(() => {
     const baseOptions = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredByRules = filterWidthValuesByCountertopRules({
+      profile: activeProfile,
       values: baseOptions,
       activeCabinetCode: activeCabinetRule?.code,
       isSinkBaseCabinet: Boolean(selectedSceneProduct?.toLowerCase().startsWith("sink-base-")),
@@ -923,6 +932,7 @@ export const PlayCanvasIntegration = ({
       return Number.isFinite(numericWidth) && numericWidth <= maxSelectableWidth + 0.01;
     });
   }, [
+    activeProfile,
     activeCabinetRule?.code,
     selectedSceneProduct,
     activeMaterialTokens,

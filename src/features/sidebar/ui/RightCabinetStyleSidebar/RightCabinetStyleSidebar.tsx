@@ -41,7 +41,6 @@ import {
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
-  removeProductId,
   setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
   setSelectedProductConfig,
@@ -54,7 +53,6 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { hasCapability, selectEffectiveFallback, selectOptions, useActiveCollection } from "@/entities/collection";
 import {
@@ -71,6 +69,7 @@ import {
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
+import { REASON_HANDLE_HEIGHT_LOCKED } from "@/features/configurator-rule-core/cabinetBuilder";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
@@ -297,6 +296,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({
+      profile: activeProfile,
       values,
       activeCabinetCode: activeCabinetRule?.code,
       isSinkBaseCabinet: activeDrawerProduct?.toLowerCase().includes("sink-base"),
@@ -319,6 +319,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return numericWidth <= maxAddableWidth + 0.01;
     });
   }, [
+    activeProfile,
     activeCabinetRule?.code,
     activeDrawerProduct,
     activeMaterialTokens,
@@ -512,7 +513,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (typeof heightLocked === "number") {
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
-      if (option?.disabled && option.reason?.startsWith("Not available for current configuration height")) {
+      if (option?.disabled && option.reasonCode === REASON_HANDLE_HEIGHT_LOCKED) {
         const ossIdsForLock = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
         const leavingNonGroove =
           !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
@@ -553,9 +554,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const { next, ossIds } = pendingOssHandleChange;
     setPendingOssHandleChange(null);
 
-    for (const ossId of ossIds) {
-      await removeProduct(ossId);
-      dispatch(removeProductId(ossId));
+    // The side shelves go through the composition command, which removes them from the scene
+    // and records what the scene kept; the handle only changes once they are gone.
+    const removed = await composition.removeCabinets(ossIds);
+    if (removed.status === "error") {
+      console.warn("[Sidebar] The side shelves were not removed", removed);
+      return;
     }
 
     await requestHandleChange(next);
@@ -664,6 +668,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!activeDrawerProduct) return;
       const availableAddWidths = filterWidthValuesByCountertopRules({
+        profile: activeProfile,
         values: dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value),
         activeCabinetCode: activeCabinetRule?.code,
         isSinkBaseCabinet: activeDrawerProduct?.toLowerCase().includes("sink-base"),
@@ -744,6 +749,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     setHandleButtonClick(onPlusClick);
   }, [
+    activeProfile,
     isPlayCanvasReady,
     activeDrawerProduct,
     composition,

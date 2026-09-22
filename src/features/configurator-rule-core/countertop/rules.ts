@@ -1,4 +1,6 @@
 import type { CountertopMatrixRule } from "./types";
+import type { MessageParams, ProductProfile } from "@/entities/collection";
+import { selectMessageOr } from "@/entities/collection";
 import { cmToInches } from "@/shared/lib/sku";
 import {
   normalizeBasinKey,
@@ -9,6 +11,7 @@ import {
   normalizeMaterialToken,
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
+  selectMaterialAliasTable,
 } from "./parse";
 
 export type CountertopRuleInput = {
@@ -21,6 +24,8 @@ export type CountertopRuleInput = {
   activeCountertopStyle?: string | null;
   activeBasinStyle: string | null;
   activeThickness: string | null;
+  /** Active collection: the reason texts come from its `messages`. */
+  profile?: ProductProfile | null;
 };
 
 export type CountertopRuleResult = {
@@ -37,17 +42,22 @@ export type CountertopRuleResult = {
 
 export type CountertopStyleKey = "integrated" | "vessel" | "undermount";
 
+/** Why an option is unavailable: a stable code with its values, and the text for it. */
+export type CountertopRuleReason = {
+  reasonCode: string;
+  reasonParams?: MessageParams;
+  disabledReason: string;
+};
+
 export type CountertopStyleAvailability = {
   isAvailable: boolean;
-  disabledReason?: string;
   maxCompatibleWidthCm: number | null;
-};
+} & Partial<CountertopRuleReason>;
 
 export type VesselSinkAvailability = {
   isAvailable: boolean;
-  disabledReason?: string;
   minSinkBaseWidthCm: number | null;
-};
+} & Partial<CountertopRuleReason>;
 
 type ResolveDefaultThicknessInput = {
   rules: CountertopMatrixRule[];
@@ -55,6 +65,8 @@ type ResolveDefaultThicknessInput = {
   depth: number | null;
   activeCountertopStyle?: string | null;
   width?: number | null;
+  /** Active collection: its `ruleData.materialNormalization` decides which materials match. */
+  profile?: ProductProfile | null;
 };
 
 type IntegratedWidthContext =
@@ -77,21 +89,124 @@ const resolveIntegratedWidthContext = (context: IntegratedWidthContext) => {
 };
 
 const STYLE_WIDTH_EPSILON = 0.01;
-const DEFAULT_STYLE_DISABLED_REASON = "Not available for selected cabinet width/depth/thickness on scene";
 
-const formatWidthCompatibilityDisabledReason = (maxWidth: number) =>
-  `Not available for current configuration width, maximum compatibility size ${maxWidth} cm (${cmToInches(maxWidth)}").`;
+export const REASON_COUNTERTOP_STYLE_UNAVAILABLE = "countertop.styleUnavailable";
+export const REASON_COUNTERTOP_MAX_COMPATIBLE_WIDTH = "countertop.maxCompatibleWidth";
+export const REASON_COUNTERTOP_TOTAL_WIDTH_ABOVE_MAX = "countertop.totalWidthAboveMax";
+export const REASON_COUNTERTOP_SINK_BASE_BELOW_MIN = "countertop.sinkBaseBelowMin";
+export const REASON_COUNTERTOP_SINK_BASE_WIDTH_NOT_ALLOWED = "countertop.sinkBaseWidthNotAllowed";
+export const REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN = "countertop.vesselSinkBaseMin";
+export const REASON_COUNTERTOP_MATERIAL_NOT_AVAILABLE_FOR_SELECTION = "countertop.materialNotAvailableForSelection";
 
-const formatMinSinkBaseDisabledReason = (currentWidth: number, minWidth: number) =>
-  `Not available for current sink base width. Current ${currentWidth} cm (${cmToInches(currentWidth)}"), minimum ${minWidth} cm (${cmToInches(minWidth)}").`;
+/**
+ * Builds a reason from its code. The text comes from the collection's `messages`; the
+ * English one is the legacy fallback for a collection that has none.
+ */
+const ruleReason = (
+  profile: ProductProfile | null | undefined,
+  reasonCode: string,
+  legacyText: string,
+  reasonParams?: MessageParams,
+): CountertopRuleReason => ({
+  reasonCode,
+  ...(reasonParams ? { reasonParams } : {}),
+  disabledReason: selectMessageOr(profile ?? null, reasonCode, legacyText, reasonParams),
+});
 
-const formatAllowedSinkBaseWidthsDisabledReason = (allowedWidths: number[]) => {
+const styleUnavailableReason = (profile: ProductProfile | null | undefined) =>
+  ruleReason(
+    profile,
+    REASON_COUNTERTOP_STYLE_UNAVAILABLE,
+    "Not available for selected cabinet width/depth/thickness on scene",
+  );
+
+const maxCompatibleWidthReason = (profile: ProductProfile | null | undefined, maxWidth: number) =>
+  ruleReason(
+    profile,
+    REASON_COUNTERTOP_MAX_COMPATIBLE_WIDTH,
+    `Not available for current configuration width, maximum compatibility size ${maxWidth} cm (${cmToInches(maxWidth)}").`,
+    { maxCm: maxWidth, maxIn: cmToInches(maxWidth) },
+  );
+
+const sinkBaseBelowMinReason = (profile: ProductProfile | null | undefined, currentWidth: number, minWidth: number) =>
+  ruleReason(
+    profile,
+    REASON_COUNTERTOP_SINK_BASE_BELOW_MIN,
+    `Not available for current sink base width. Current ${currentWidth} cm (${cmToInches(currentWidth)}"), minimum ${minWidth} cm (${cmToInches(minWidth)}").`,
+    { currentCm: currentWidth, currentIn: cmToInches(currentWidth), minCm: minWidth, minIn: cmToInches(minWidth) },
+  );
+
+const sinkBaseWidthNotAllowedReason = (profile: ProductProfile | null | undefined, allowedWidths: number[]) => {
   const formattedAllowedWidths = allowedWidths.map((value) => `${value} cm (${cmToInches(value)}")`).join(", ");
-  return `Not available for current sink base width. Allowed widths: ${formattedAllowedWidths}.`;
+  return ruleReason(
+    profile,
+    REASON_COUNTERTOP_SINK_BASE_WIDTH_NOT_ALLOWED,
+    `Not available for current sink base width. Allowed widths: ${formattedAllowedWidths}.`,
+    { allowedWidths: formattedAllowedWidths },
+  );
 };
 
-const formatVesselSinkMinWidthDisabledReason = (minWidth: number) =>
-  `Not available for selected sink base cabinet width. Minimum width required ${minWidth}cm (${cmToInches(minWidth)}")`;
+const vesselSinkBaseMinReason = (profile: ProductProfile | null | undefined, minWidth: number) =>
+  ruleReason(
+    profile,
+    REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN,
+    `Not available for selected sink base cabinet width. Minimum width required ${minWidth}cm (${cmToInches(minWidth)}")`,
+    { minCm: minWidth, minIn: cmToInches(minWidth) },
+  );
+
+const totalWidthAboveMaxReason = (profile: ProductProfile | null | undefined, currentWidth: number, maxWidth: number) =>
+  ruleReason(
+    profile,
+    REASON_COUNTERTOP_TOTAL_WIDTH_ABOVE_MAX,
+    `Not available for current total cabinets width on scene. Current ${currentWidth} cm (${cmToInches(currentWidth)}"), max ${maxWidth} cm (${cmToInches(maxWidth)}").`,
+    { currentCm: currentWidth, currentIn: cmToInches(currentWidth), maxCm: maxWidth, maxIn: cmToInches(maxWidth) },
+  );
+
+/**
+ * Why an integrated basin is unavailable for the current composition, checked in the order
+ * the countertop step shows it: total width over the basin's maximum, sink base under its
+ * minimum, sink base outside the exact sizes, and otherwise the selection as a whole.
+ */
+export const resolveIntegratedBasinUnavailableReason = ({
+  basinRules,
+  sinkBaseWidth,
+  totalWidth,
+  profile,
+}: {
+  basinRules: CountertopMatrixRule[];
+  sinkBaseWidth: number | null;
+  totalWidth: number | null;
+  profile: ProductProfile | null;
+}): CountertopRuleReason => {
+  const maxIntegrated = basinRules.map((rule) => rule.maxIntegratedCm).filter((value): value is number => value !== null);
+  if (typeof totalWidth === "number" && maxIntegrated.length > 0) {
+    const maxAllowed = Math.max(...maxIntegrated);
+    if (totalWidth > maxAllowed + STYLE_WIDTH_EPSILON) return totalWidthAboveMaxReason(profile, totalWidth, maxAllowed);
+  }
+
+  const minSinkBase = basinRules.map((rule) => rule.minSbCm).filter((value): value is number => value !== null);
+  if (typeof sinkBaseWidth === "number" && minSinkBase.length > 0) {
+    const minAllowed = Math.min(...minSinkBase);
+    if (sinkBaseWidth + STYLE_WIDTH_EPSILON < minAllowed) return sinkBaseBelowMinReason(profile, sinkBaseWidth, minAllowed);
+  }
+
+  const allowedSinkBaseWidths = Array.from(new Set(basinRules.flatMap((rule) => rule.integratedAllowedSizesOnly))).sort(
+    (left, right) => left - right,
+  );
+  if (
+    typeof sinkBaseWidth === "number" &&
+    allowedSinkBaseWidths.length > 0 &&
+    !allowedSinkBaseWidths.some((value) => Math.abs(value - sinkBaseWidth) < STYLE_WIDTH_EPSILON)
+  ) {
+    return sinkBaseWidthNotAllowedReason(profile, allowedSinkBaseWidths);
+  }
+
+  return ruleReason(
+    profile,
+    REASON_COUNTERTOP_MATERIAL_NOT_AVAILABLE_FOR_SELECTION,
+    "Not available for selected cabinet width/depth/thickness on scene",
+  );
+};
 
 export const isRuleWidthEligibleForIntegratedContext = (
   rule: CountertopMatrixRule,
@@ -152,11 +267,13 @@ export const resolveDefaultThicknessFromRules = ({
   depth,
   activeCountertopStyle,
   width = null,
+  profile,
 }: ResolveDefaultThicknessInput): string | null => {
+  const aliasTable = selectMaterialAliasTable(profile ?? null);
   const matchingRules = rules.filter((rule) => {
     if (!matchesDepthForStyle(rule, depth, activeCountertopStyle)) return false;
     if (!activeMaterialTokens.length) return true;
-    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable));
   });
 
   const activeStyle = resolveCountertopStyleKey(activeCountertopStyle);
@@ -198,6 +315,7 @@ export const buildCountertopRuleState = ({
   activeCountertopStyle,
   activeBasinStyle,
   activeThickness,
+  profile,
 }: CountertopRuleInput): CountertopRuleResult => {
   const allowedMaterials = new Set<string>();
   const allowedThicknesses = new Set<number>();
@@ -206,15 +324,16 @@ export const buildCountertopRuleState = ({
   const allowedFaucetHoles = new Set<string>();
   const allowedStyles = new Set<string>();
   const styleAvailability: Record<CountertopStyleKey, CountertopStyleAvailability> = {
-    integrated: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
-    vessel: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
-    undermount: { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON },
+    integrated: { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) },
+    vessel: { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) },
+    undermount: { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) },
   };
   let vesselSinkAvailability: VesselSinkAvailability = {
     isAvailable: true,
     minSinkBaseWidthCm: null,
   };
   const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
+  const aliasTable = selectMaterialAliasTable(profile ?? null);
   const integratedWidthContext = {
     sinkBaseWidth: sinkBaseWidth ?? width,
     totalWidth: totalWidth ?? width,
@@ -246,7 +365,7 @@ export const buildCountertopRuleState = ({
     rules.filter((rule) => {
       if (!matchesDepthForStyle(rule, depth, style)) return false;
       if (!activeMaterialTokens.length) return true;
-      return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+      return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable));
     });
 
   const matchesActiveThickness = (rule: CountertopMatrixRule): boolean => {
@@ -310,7 +429,7 @@ export const buildCountertopRuleState = ({
   const buildStyleAvailabilityState = (style: CountertopStyleKey): CountertopStyleAvailability => {
     const styleThicknessScopedRules = getThicknessScopedRulesForStyle(style);
     if (!styleThicknessScopedRules.length) {
-      return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+      return { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) };
     }
 
     if (style === "integrated") {
@@ -318,7 +437,7 @@ export const buildCountertopRuleState = ({
         (rule) => rule.maxIntegratedCm !== null || rule.minSbCm !== null || rule.integratedAllowedSizesOnly.length > 0,
       );
       if (!integratedRules.length) {
-        return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+        return { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) };
       }
 
       // Reachable rules = those whose sink-base preconditions (minSbCm, integratedAllowedSizesOnly)
@@ -371,7 +490,7 @@ export const buildCountertopRuleState = ({
         return {
           isAvailable: false,
           maxCompatibleWidthCm,
-          disabledReason: formatWidthCompatibilityDisabledReason(maxCompatibleWidthCm),
+          ...maxCompatibleWidthReason(profile, maxCompatibleWidthCm),
         };
       }
 
@@ -388,7 +507,7 @@ export const buildCountertopRuleState = ({
         return {
           isAvailable: false,
           maxCompatibleWidthCm,
-          disabledReason: formatMinSinkBaseDisabledReason(integratedWidthContext.sinkBaseWidth, minSinkBaseWidth),
+          ...sinkBaseBelowMinReason(profile, integratedWidthContext.sinkBaseWidth, minSinkBaseWidth),
         };
       }
 
@@ -405,11 +524,11 @@ export const buildCountertopRuleState = ({
         return {
           isAvailable: false,
           maxCompatibleWidthCm,
-          disabledReason: formatAllowedSinkBaseWidthsDisabledReason(allowedSinkBaseWidths),
+          ...sinkBaseWidthNotAllowedReason(profile, allowedSinkBaseWidths),
         };
       }
 
-      return { isAvailable: false, maxCompatibleWidthCm, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+      return { isAvailable: false, maxCompatibleWidthCm, ...styleUnavailableReason(profile) };
     }
 
     const maxCompatibleWidthCm = styleThicknessScopedRules
@@ -418,7 +537,7 @@ export const buildCountertopRuleState = ({
       .reduce<number | null>((currentMax, value) => (currentMax === null || value > currentMax ? value : currentMax), null);
 
     if (maxCompatibleWidthCm === null) {
-      return { isAvailable: false, maxCompatibleWidthCm: null, disabledReason: DEFAULT_STYLE_DISABLED_REASON };
+      return { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) };
     }
 
     if (styleWidth === null || styleWidth <= maxCompatibleWidthCm + STYLE_WIDTH_EPSILON) {
@@ -428,7 +547,7 @@ export const buildCountertopRuleState = ({
     return {
       isAvailable: false,
       maxCompatibleWidthCm,
-      disabledReason: formatWidthCompatibilityDisabledReason(maxCompatibleWidthCm),
+      ...maxCompatibleWidthReason(profile, maxCompatibleWidthCm),
     };
   };
 
@@ -453,7 +572,7 @@ export const buildCountertopRuleState = ({
     vesselSinkAvailability = {
       isAvailable: false,
       minSinkBaseWidthCm: vesselSinkMinWidth,
-      disabledReason: formatVesselSinkMinWidthDisabledReason(vesselSinkMinWidth),
+      ...vesselSinkBaseMinReason(profile, vesselSinkMinWidth),
     };
   } else {
     vesselSinkAvailability = {

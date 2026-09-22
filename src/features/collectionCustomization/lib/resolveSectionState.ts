@@ -14,6 +14,8 @@ import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types
 export type FieldAvailability = {
   available: boolean;
   reason?: string;
+  /** Stable code of `reason`; the interface resolves it to text. */
+  reasonCode?: string;
   /** false hides the field; a hidden field keeps its stored value. */
   visible?: boolean;
   /** When set, only these option values stay enabled. */
@@ -87,7 +89,12 @@ export const resolveSectionFields = (
 
     const options = declaredOptions.map((option) => {
       const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);
-      return { ...option, enabled, reason: enabled ? undefined : availability.reason };
+      return {
+        ...option,
+        enabled,
+        reason: enabled ? undefined : availability.reason,
+        reasonCode: enabled ? undefined : availability.reasonCode,
+      };
     });
 
     const field: FieldRuntimeState = {
@@ -97,6 +104,7 @@ export const resolveSectionFields = (
       visible: availability.visible ?? true,
       enabled: availability.available,
       disabledReason: availability.reason,
+      reasonCode: availability.reasonCode,
     };
 
     return { definition, field };

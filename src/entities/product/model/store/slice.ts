@@ -19,6 +19,7 @@ type DimensionOption = {
   value: number | string;
   disabled?: boolean;
   reason?: string;
+  reasonCode?: string;
 };
 
 type DimensionOptionGroup = {
@@ -137,6 +138,7 @@ const mapOptionState = <T extends string | number>(option: OptionState<T>): Dime
   value: option.value,
   disabled: !option.enabled,
   reason: option.reason,
+  reasonCode: option.reasonCode,
 });
 
 /**

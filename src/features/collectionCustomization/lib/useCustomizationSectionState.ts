@@ -69,11 +69,17 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
     () => ({
       "DrawerPanelFluting.available": fluting,
       "GrainDirection.available": grainDirection,
-      "BookMatching.available": { available: bookMatching.enabled, reason: bookMatching.reason },
+      "BookMatching.available": {
+        available: bookMatching.enabled,
+        reason: bookMatching.reason,
+        reasonCode: bookMatching.reasonCode,
+      },
       "Handle.supportsGrooveColor": { available: supportsGrooveColor, visible: supportsGrooveColor },
       "SidePanels.available": {
         available: sidePanels.allowed.size > 0,
         reason: sidePanels.reason,
+        // The rule's own reasonCode groups the blockers; the text is named by messageCode.
+        reasonCode: sidePanels.messageCode,
         allowedValues: [...sidePanels.allowed],
       },
       "TowelBarColor.available": { available: hasTowelBar, visible: hasTowelBar },
@@ -84,6 +90,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       allowedFaucetHoles,
       bookMatching.enabled,
       bookMatching.reason,
+      bookMatching.reasonCode,
       fluting,
       grainDirection,
       hasTowelBar,

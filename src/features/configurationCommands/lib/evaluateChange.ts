@@ -8,6 +8,7 @@ import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
 import { resolveConfirmation } from "./confirmationPolicy";
 import { resolveTarget } from "./resolveTarget";
+import { checkUndetermined } from "./undeterminedGate";
 import { validateChange } from "./validateChange";
 import type {
   AttributeChange,
@@ -77,6 +78,10 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
   // `profile` is non-null here: validateChange returns an error otherwise.
   const activeProfile = profile as NonNullable<typeof profile>;
 
+  // A change the product has no rule for yet changes nothing (CONTRACTS §8).
+  const undetermined = checkUndetermined(change, targetResult.target, state, activeProfile);
+  if (undetermined) return { kind: "blocked", ...undetermined };
+
   // Gate 4 for attributes outside the rule selection.
   const unavailable = checkAvailability(change.attributeId, change.value, state, activeProfile);
   if (unavailable) return { kind: "blocked", ...unavailable };
@@ -122,4 +127,5 @@ export const toStoppedResult = (evaluation: Exclude<ChangeEvaluation, { kind: "p
         attributeId: evaluation.attributeId,
         reasonCode: evaluation.reasonCode,
         reason: evaluation.reason,
+        ...(evaluation.compatibility ? { compatibility: evaluation.compatibility } : {}),
       };

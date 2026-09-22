@@ -7,6 +7,7 @@ import {
   type CabinetMatrixLegacyAdapter,
   type CountertopFallbacksRuleData,
   type DrawerStyleGroups,
+  type UndeterminedRule,
   type FlutingRuleData,
   type GrainDirectionRuleData,
   type MaterialNormalizationRuleData,
@@ -367,6 +368,7 @@ const RULE_SECTION_FIELDS = {
     blockedCabinetTypes: STRING_LIST,
     cabinetGroups: [isStringArrayRecord, "a map of cabinet group to cabinet names"],
     drawersByHandleType: [isStringArrayRecord, "a map of drawer group to drawers values"],
+    groovePriorityByHandle: [optional(isStringArrayRecord), "a map of handle to preferred grooves"],
     exactBlockedCabinetLengthCm: NUMBER,
     countertopLengthIncrementCm: NUMBER,
     defaultQuantityUnlessHeightTypeLow: NUMBER,
@@ -485,6 +487,29 @@ const parseDrawerStyleGroups = (raw: unknown, collect: Collector): DrawerStyleGr
   return raw as DrawerStyleGroups;
 };
 
+const isUndeterminedRule = (value: unknown): boolean =>
+  isRecord(value) &&
+  isNonEmptyString(value.ruleId) &&
+  isNonEmptyString(value.attributeId) &&
+  isNonEmptyString(value.source) &&
+  (value.values === undefined || isStringArray(value.values)) &&
+  (value.whenCabinet === undefined || isStringArrayRecord(value.whenCabinet));
+
+const parseUndeterminedRules = (raw: unknown, collect: Collector): UndeterminedRule[] | undefined => {
+  if (raw === undefined) return undefined;
+
+  if (!Array.isArray(raw) || !raw.every(isUndeterminedRule)) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/undeterminedRules",
+      "undeterminedRules must be an array of { ruleId, attributeId, source, values?, whenCabinet? }",
+    );
+    return undefined;
+  }
+
+  return raw as UndeterminedRule[];
+};
+
 /** Optional rule sections of a profile, without the keys the collection does not declare. */
 const parseRuleSections = (
   ruleData: Record<string, unknown>,
@@ -492,6 +517,7 @@ const parseRuleSections = (
 ): Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> => {
   const sections: Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> = {
     drawerStyleGroups: parseDrawerStyleGroups(ruleData.drawerStyleGroups, collect),
+    undeterminedRules: parseUndeterminedRules(ruleData.undeterminedRules, collect),
     fluting: parseRuleSection<FlutingRuleData>(ruleData, "fluting", collect),
     grainDirection: parseRuleSection<GrainDirectionRuleData>(ruleData, "grainDirection", collect),
     bookMatching: parseRuleSection<BookMatchingRuleData>(ruleData, "bookMatching", collect),

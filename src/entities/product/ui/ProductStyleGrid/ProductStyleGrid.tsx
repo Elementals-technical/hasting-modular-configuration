@@ -13,7 +13,10 @@ interface ProductStyleGridI {
     name?: string | undefined;
     desc?: string | undefined;
     isAvailable?: boolean;
+    /** Text a rule resolved itself; used while it names no reason code. */
     disabledReason?: string;
+    /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+    disabledReasonCode?: string;
     isMixingRestricted?: boolean;
     isShortDesc: boolean;
     value?: string;
@@ -71,6 +74,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
             isActive={isItemActive}
             isAvailable={i.isAvailable}
             disabledReason={i.disabledReason}
+            disabledReasonCode={i.disabledReasonCode}
             isMixingRestricted={i.isMixingRestricted}
             onSelectStyle={onSelectStyle}
             onMixingRestrictedSelect={onMixingRestrictedSelect}

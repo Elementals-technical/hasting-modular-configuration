@@ -5,6 +5,12 @@ import none_img from "../../assets/images/png/img_png.png";
 import { Hint } from "../Hint/Hint";
 
 import s from "./ProductStyleItem.module.scss";
+import { useReasonText, type MessageParams } from "@/shared/lib/reasonText";
+
+/** Shown when a style is unavailable and its rule named no reason. */
+const UNAVAILABLE_OPTION_REASON_CODE = "ui.optionUnavailable";
+/** The collection does not allow this style next to the cabinets already placed. */
+const MIXING_RESTRICTED_REASON_CODE = "drawers.mixingRestricted";
 
 interface ProductStyleItemI {
   id: number;
@@ -15,7 +21,11 @@ interface ProductStyleItemI {
   isActive?: boolean;
   onSelectStyle?: (id: number) => void;
   isAvailable?: boolean;
+  /** Text a caller resolved itself; used while its rule has no reason code. */
   disabledReason?: string;
+  /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+  disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   isMixingRestricted?: boolean;
   onMixingRestrictedSelect?: (id: number) => void;
 }
@@ -30,9 +40,13 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   onSelectStyle,
   isAvailable = true,
   disabledReason,
+  disabledReasonCode,
+  disabledReasonParams,
   isMixingRestricted = false,
   onMixingRestrictedSelect,
 }) => {
+  const reasonText = useReasonText();
+
   const handleClick = () => {
     if (isMixingRestricted) {
       onMixingRestrictedSelect?.(id);
@@ -55,9 +69,13 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
     .join(" ");
 
   const hintContent = !isAvailable
-    ? disabledReason ?? "Not available for selected configuration"
+    ? reasonText({
+        code: disabledReasonCode ?? UNAVAILABLE_OPTION_REASON_CODE,
+        params: disabledReasonParams,
+        text: disabledReason,
+      })
     : isMixingRestricted
-      ? "Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration."
+      ? reasonText({ code: MIXING_RESTRICTED_REASON_CODE })
       : null;
 
   const card = (

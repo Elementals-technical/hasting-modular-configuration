@@ -8,6 +8,7 @@ import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor, getSinkType } from "../../model/store/selectors";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
+import type { MessageParams } from "@/shared/lib/reasonText";
 
 export type ProductOptionMetadata = {
   colors?: string[];
@@ -28,7 +29,11 @@ export type ProductOptionData = {
   name?: string;
   desc?: string;
   isAvailable?: boolean;
+  /** Text a rule resolved itself; used while it names no reason code. */
   disabledReason?: string;
+  /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+  disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   disabledBadgeLabel?: string;
   disabledActionLabel?: string;
   onDisabledAction?: () => void | Promise<void>;
@@ -120,6 +125,8 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         desc={groupByDesc ? undefined : i.desc}
         isAvailable={i.isAvailable}
         disabledReason={i.disabledReason}
+        disabledReasonCode={i.disabledReasonCode}
+        disabledReasonParams={i.disabledReasonParams}
         disabledBadgeLabel={i.disabledBadgeLabel}
         disabledActionLabel={i.disabledActionLabel}
         onDisabledAction={i.onDisabledAction}

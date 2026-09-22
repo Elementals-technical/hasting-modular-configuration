@@ -119,13 +119,19 @@ export const sidePanelAvailabilityRule = (
       allowed,
       reason: selectMessage(profile, REASON_SIDE_PANEL_NOT_IN_COLLECTION),
       reasonCode: "not-in-collection",
+      messageCode: REASON_SIDE_PANEL_NOT_IN_COLLECTION,
     };
   }
 
   const blocker =
     cabinetType && params.blockedCabinetTypes.includes(cabinetType) ? BLOCKER_BY_CABINET_TYPE[cabinetType] : undefined;
   if (blocker) {
-    return { allowed, reason: selectMessage(profile, blocker.messageCode), reasonCode: blocker.reasonCode };
+    return {
+      allowed,
+      reason: selectMessage(profile, blocker.messageCode),
+      reasonCode: blocker.reasonCode,
+      messageCode: blocker.messageCode,
+    };
   }
 
   const heightToken = typeof height === "number" ? params.heightTokenByCm[String(height)] : undefined;

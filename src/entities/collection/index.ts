@@ -31,6 +31,7 @@ export type {
   CabinetMatrixLegacyAdapter,
   CountertopFallbacksRuleData,
   DrawerStyleGroups,
+  UndeterminedRule,
   FlutingRuleData,
   GrainDirectionRuleData,
   MaterialDisplayGroup,
@@ -74,6 +75,7 @@ export {
   selectOptions,
   selectOptionsByCapability,
   selectResetValue,
+  selectMaterialHierarchy,
   selectRuleData,
 } from "./lib/productProfileSelectors";
 export type { MessageParams } from "./lib/productProfileSelectors";

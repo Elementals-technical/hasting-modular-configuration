@@ -124,8 +124,15 @@ describe("mako product profile", () => {
     expect(selectOptionValues(profile(), "Height")).not.toContain("40");
   });
 
-  it("declares only the drawer style groups as a rule section", () => {
-    expect(Object.keys(profile().ruleData).sort()).toEqual(["cabinetMatrixLegacyAdapter", "drawerStyleGroups"]);
+  it("declares the drawer style groups and the changes the product has not decided yet", () => {
+    expect(Object.keys(profile().ruleData).sort()).toEqual([
+      "cabinetMatrixLegacyAdapter",
+      "drawerStyleGroups",
+      "undeterminedRules",
+    ]);
+    expect(profile().ruleData.undeterminedRules).toEqual([
+      expect.objectContaining({ ruleId: "MAKO-LEG-002", attributeId: "LegColor", whenCabinet: { Drawers: ["1"] } }),
+    ]);
   });
 
   it("records the confirmed rules it cannot express yet", () => {

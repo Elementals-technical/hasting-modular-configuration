@@ -1,3 +1,4 @@
+import { interpolateMessage, type MessageParams } from "@/shared/lib/reasonText";
 import type {
   OptionCapabilities,
   ProductProfile,
@@ -118,21 +119,14 @@ export const selectEffectiveFallback = (profile: ProductProfile | null, attribut
 export const selectResetValue = (profile: ProductProfile | null, attributeId: string): string | null =>
   selectAttribute(profile, attributeId)?.resetValue ?? null;
 
-/** Values substituted into `{name}` placeholders of a message. */
-export type MessageParams = Record<string, string | number>;
+export type { MessageParams };
 
 /**
  * Reason text for a stable reason code. B owns display and translation; this is the legacy fallback.
- * A placeholder without a matching param is left as written, so a missing value is visible.
+ * The placeholders are filled the same way wherever a code is resolved (`shared/lib/reasonText`).
  */
-export const selectMessage = (profile: ProductProfile | null, reasonCode: string, params?: MessageParams): string => {
-  const template = profile?.messages[reasonCode] ?? reasonCode;
-  if (!params) return template;
-
-  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
-    Object.hasOwn(params, name) ? String(params[name]) : placeholder,
-  );
-};
+export const selectMessage = (profile: ProductProfile | null, reasonCode: string, params?: MessageParams): string =>
+  interpolateMessage(profile?.messages[reasonCode] ?? reasonCode, params);
 
 /**
  * The collection's text for a reason code, or the legacy English text while a collection
@@ -153,6 +147,18 @@ export const selectMessageOr = (
  * Parameters of one rule. `undefined` when the collection does not declare the section:
  * the rule then treats the feature as not offered, never as USH.
  */
+/**
+ * The collection's grouping of material filters, in the shape `groupMaterialsHierarchically`
+ * takes. Undefined when the collection declares none, so the caller's default applies.
+ */
+export const selectMaterialHierarchy = (profile: ProductProfile | null) =>
+  profile?.ruleData.materialNormalization?.displayHierarchy?.map(({ value, label, children, aliases }) => ({
+    value,
+    label,
+    childValues: children,
+    aliases,
+  }));
+
 export const selectRuleData = <K extends keyof ProfileRuleData>(
   profile: ProductProfile | null,
   section: K,

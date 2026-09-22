@@ -80,7 +80,7 @@ import {
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 import { trackModularCustomizeClick } from "@/shared/lib/analytics/modularKeyEvents";
-import { optionsMockData3 } from "../countertop/constants";
+import { buildBasinOptions } from "@/features/collectionCustomization";
 
 import s from "./ModelPage.module.scss";
 
@@ -450,7 +450,9 @@ export const ModelPage = () => {
       if (!materialTokens.length) return globalConfig;
 
       const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
-        basinOptions: optionsMockData3,
+
+        profile: activeProfile,
+        basinOptions: buildBasinOptions(activeProfile),
         rules: countertopRules,
         activeMaterialTokens: materialTokens,
         activeThickness: globalConfig.Thickness ?? countertopThickness,
@@ -470,7 +472,7 @@ export const ModelPage = () => {
         CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
       };
     },
-    [countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
+    [activeProfile, countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
   );
 
   const applyPresetSelection = useCallback(

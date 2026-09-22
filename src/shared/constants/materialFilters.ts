@@ -32,14 +32,18 @@ type FiltersSet = {
   hex: FilterOption[];
 };
 
-type MaterialGroup = {
+export type MaterialGroup = {
   label: string;
   value: string;
-  childValues: string[];
-  aliases?: string[];
+  childValues: readonly string[];
+  aliases?: readonly string[];
 };
 
-const MATERIAL_HIERARCHY: MaterialGroup[] = [
+/**
+ * USH's grouping of material filters, used when a collection declares none of its own
+ * (`ruleData.materialNormalization.displayHierarchy`). Kept equal to the USH profile by test.
+ */
+export const LEGACY_MATERIAL_HIERARCHY: readonly MaterialGroup[] = [
   {
     label: "Solid Surface",
     value: "solid-surface",
@@ -60,11 +64,14 @@ const normalizeGroupToken = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "");
 
-export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): FilterOption[] => {
+export const groupMaterialsHierarchically = (
+  flatOptions: FilterOption[],
+  hierarchy: readonly MaterialGroup[] = LEGACY_MATERIAL_HIERARCHY,
+): FilterOption[] => {
   const childToParent = new Map<string, MaterialGroup>();
   const parentAliasToGroup = new Map<string, MaterialGroup>();
 
-  for (const group of MATERIAL_HIERARCHY) {
+  for (const group of hierarchy) {
     for (const childValue of group.childValues) {
       childToParent.set(normalizeGroupToken(childValue), group);
     }
@@ -122,13 +129,13 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
 
   const result: FilterOption[] = [];
 
-  const insertionOrder = MATERIAL_HIERARCHY.map((g) => g.value);
+  const insertionOrder = hierarchy.map((g) => g.value);
   let hierarchyInserted = false;
 
   for (const item of topLevel) {
-    if (!hierarchyInserted && item.label.localeCompare(MATERIAL_HIERARCHY[0]?.label ?? "") > 0) {
+    if (!hierarchyInserted && item.label.localeCompare(hierarchy[0]?.label ?? "") > 0) {
       for (const groupValue of insertionOrder) {
-        const group = MATERIAL_HIERARCHY.find((g) => g.value === groupValue);
+        const group = hierarchy.find((g) => g.value === groupValue);
         const children = grouped.get(groupValue);
         if (group && children && children.length > 0) {
           const mergedChildren = mergeChildren(children, standaloneParentOption.get(groupValue));
@@ -149,7 +156,7 @@ export const groupMaterialsHierarchically = (flatOptions: FilterOption[]): Filte
 
   if (!hierarchyInserted) {
     for (const groupValue of insertionOrder) {
-      const group = MATERIAL_HIERARCHY.find((g) => g.value === groupValue);
+      const group = hierarchy.find((g) => g.value === groupValue);
       const children = grouped.get(groupValue);
       if (group && children && children.length > 0) {
         const mergedChildren = mergeChildren(children, standaloneParentOption.get(groupValue));

@@ -89,6 +89,8 @@ export type FieldRuntimeState = {
   visible: boolean;
   enabled: boolean;
   disabledReason?: string;
+  /** Stable code of `disabledReason`; the interface resolves it to text. */
+  reasonCode?: string;
   loading?: boolean;
   error?: string;
 };

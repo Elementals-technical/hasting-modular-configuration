@@ -36,6 +36,8 @@ type FilterWidthValuesParams = {
   activeCountertopStyle?: string | null;
   activeBasinStyle?: string | null;
   activeThickness?: string | null;
+  /** Active collection: its `ruleData.materialNormalization` decides which materials match. */
+  profile?: ProductProfile | null;
 };
 
 export type CountertopWidthRuleStyle = "integrated" | "vessel" | "undermount" | "plain";
@@ -119,7 +121,9 @@ export const filterWidthValuesByCountertopRules = ({
   activeCountertopStyle,
   activeBasinStyle,
   activeThickness,
+  profile,
 }: FilterWidthValuesParams): Array<string | number> => {
+  const aliasTable = selectMaterialAliasTable(profile ?? null);
   if (!values.length) return values;
   if (activeCabinetIsOpen) return values;
   if (activeCabinetCode === "Sink-Cabinet") return values;
@@ -131,7 +135,7 @@ export const filterWidthValuesByCountertopRules = ({
   });
   const matchingRules = rules.filter((rule) => {
     if (!matchesDepthForStyle(rule, selectedDepth, widthRuleStyle)) return false;
-    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable));
   });
 
   if (!matchingRules.length) return values;

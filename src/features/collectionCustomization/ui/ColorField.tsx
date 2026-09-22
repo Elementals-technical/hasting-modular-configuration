@@ -17,7 +17,9 @@ import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 
-import type { FieldOptionState, FieldRuntimeState } from "@/entities/collection";
+import { selectMaterialHierarchy, type FieldOptionState, type FieldRuntimeState } from "@/entities/collection";
+import { getActiveProductProfile } from "@/entities/configuration";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 
 import s from "./ColorField.module.scss";
 
@@ -34,9 +36,14 @@ type ColorFilters = { materials: FilterOption[]; colors: FilterOption[]; looks: 
 const toFilterOptions = (values: string[]): FilterOption[] =>
   [...new Set(values)].sort((a, b) => a.localeCompare(b)).map((value) => ({ label: value, value }));
 
-const buildColorFilters = (options: ProductOptionData[], section: string): ColorFilters => ({
+const buildColorFilters = (
+  options: ProductOptionData[],
+  section: string,
+  hierarchy: ReturnType<typeof selectMaterialHierarchy>,
+): ColorFilters => ({
   materials: groupMaterialsHierarchically(
     toFilterOptions(options.flatMap((option) => option.metadata?.materials ?? []).filter((token) => token !== section)),
+    hierarchy,
   ),
   colors: toFilterOptions(options.flatMap((option) => option.metadata?.colors ?? [])),
   looks: toFilterOptions(options.flatMap((option) => option.metadata?.looks ?? [])),
@@ -51,6 +58,9 @@ const toProductOptionData = (option: FieldOptionState, index: number): ProductOp
   id: index,
   title: option.label ?? option.value,
   desc: option.desc,
+  // The colour grid shows every option; only the text of a rule's reason travels with it.
+  disabledReason: option.reason,
+  disabledReasonCode: option.reasonCode,
   isShortDesc: false,
   metadata: { ...option.traits, value: option.value, image: option.image },
 });
@@ -58,7 +68,12 @@ const toProductOptionData = (option: FieldOptionState, index: number): ProductOp
 export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitle }: ColorFieldProps) => {
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const options = useMemo(() => field.options.map(toProductOptionData), [field.options]);
-  const filters = useMemo(() => buildColorFilters(options, title), [options, title]);
+  const profile = useAppSelector(getActiveProductProfile);
+  const materialHierarchy = useMemo(() => selectMaterialHierarchy(profile), [profile]);
+  const filters = useMemo(
+    () => buildColorFilters(options, title, materialHierarchy),
+    [options, title, materialHierarchy],
+  );
   const tierOptions = useMemo(() => buildTierFilterOptions(options), [options]);
 
   const allOptions = useMemo(

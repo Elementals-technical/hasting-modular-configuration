@@ -14,6 +14,7 @@ export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { selectOptionLabel, useOptionLabel } from "./lib/selectOptionLabel";
 export { FieldControl } from "./ui/FieldControl";
 export { ColorField } from "./ui/ColorField";
+export { ReasonTextProvider } from "./ui/ReasonTextProvider";
 export type {
   CustomizationSchemaDiagnostic,
   CustomizationSchemaDiagnosticCode,
@@ -22,3 +23,12 @@ export type {
   ValidateCustomizationSchemaResult,
 } from "./model/types";
 export type { ResolvedCustomizationField, ResolvedCustomizationSection } from "./lib/useCustomizationSectionState";
+export {
+  buildBasinOptions,
+  buildCountertopStyleOptions,
+  buildDividerModeOptions,
+  buildDividerStyleOptions,
+  buildSidePanelOptions,
+  buildThicknessOptions,
+  buildTowelBarOptions,
+} from "./lib/pageOptionCatalogs";

@@ -43,14 +43,12 @@ import {
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
   clearPlacedDividers,
-  setDividersOption,
   setDividersStyle,
   setIsDrawerOpen,
 } from "@/entities/product/model/store/slice";
 
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import type { AccordionConfig } from "@/shared/constants/types";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets, type EdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
@@ -73,8 +71,13 @@ import {
   useDividerController,
 } from "@/features/dividers";
 
-import { dividersMockData, optionsSidePanelsData, optionsSwatchData2, optionsSwatchDataTowel } from "./constants";
-import { useActiveCollection } from "@/entities/collection";
+import {
+  buildDividerModeOptions,
+  buildDividerStyleOptions,
+  buildSidePanelOptions,
+  buildTowelBarOptions,
+} from "@/features/collectionCustomization";
+import { selectAttribute, useActiveCollection } from "@/entities/collection";
 import {
   formatSidePanelsExceedMaxReason,
   useCountertopLengthGuard,
@@ -150,7 +153,7 @@ const DIVIDER_OPEN_DRAWER_HINT_STYLE = {
 
 export const CustomAccessoriesPage = () => {
   const dispatch = useAppDispatch();
-  const { change: changeAttributeValue } = useChangeAttribute();
+  const { change: changeAttributeValue, record: recordValues } = useChangeAttribute();
   const saveSnapshot = useHistorySnapshot();
   const dividerSelection = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
@@ -163,6 +166,11 @@ export const CustomAccessoriesPage = () => {
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const activeProfile = useAppSelector(getActiveProductProfile);
+  // Option lists of this step come from the active collection's profile (B06).
+  const sidePanelCatalog = useMemo(() => buildSidePanelOptions(activeProfile), [activeProfile]);
+  const dividerModeCatalog = useMemo(() => buildDividerModeOptions(activeProfile), [activeProfile]);
+  const dividerStyleCatalog = useMemo(() => buildDividerStyleOptions(activeProfile), [activeProfile]);
+  const towelBarCatalog = useMemo(() => buildTowelBarOptions(activeProfile), [activeProfile]);
 
   const isPlayCanvasReady = usePlayCanvasReady();
   const [activeAccordionId, setActiveAccordionId] = useState<string | null>(DEFAULT_ACCORDION_ID);
@@ -176,7 +184,7 @@ export const CustomAccessoriesPage = () => {
   const divider = useDividerController({
     isPlayCanvasReady,
     dividerSelection,
-    optionsSource: dividersMockData,
+    optionsSource: dividerStyleCatalog,
     saveSnapshot,
     fallbackCabinetId: activeCabinetId || null,
     shouldRestoreDrawerButtons: activeAccordionId === DIVIDERS_ACCORDION_ID,
@@ -352,7 +360,7 @@ export const CustomAccessoriesPage = () => {
 
   const sidePanelOptions = useMemo(() => {
     if (sidePanelsBlockedByLength340) {
-      return optionsSidePanelsData.filter((option) => option.metadata?.value === "None");
+      return sidePanelCatalog.filter((option) => option.metadata?.value === "None");
     }
 
     const isSyntesiBlocked =
@@ -361,7 +369,7 @@ export const CustomAccessoriesPage = () => {
     const allowed = new Set<string>(["None"]);
     sidePanelAvailability.allowed.forEach((value) => allowed.add(value));
 
-    return optionsSidePanelsData
+    return sidePanelCatalog
       .map((option) => {
         const value = option.metadata?.value;
         if (!value || value === "None") return option;
@@ -379,12 +387,15 @@ export const CustomAccessoriesPage = () => {
         return {
           ...option,
           isAvailable: false,
-          disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max),
+          disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max, activeProfile),
         };
       })
-      .filter((option): option is (typeof optionsSidePanelsData)[number] => option !== null);
+      .filter((option): option is (typeof sidePanelCatalog)[number] => option !== null);
   }, [
+    activeProfile,
+    sidePanelCatalog,
     sidePanelAvailability.reason,
+    sidePanelAvailability.reasonCode,
     sidePanelAvailability.allowed,
     sidePanelsBlockedByLength340,
     computeTotalAfterSpChange,
@@ -613,17 +624,13 @@ export const CustomAccessoriesPage = () => {
 
   // Side panel invalidation is handled by global listener middleware.
 
+  // With no towel bar chosen the scene shows none: the command sends the option's None patch.
   useEffect(() => {
-    if (towelSelection !== "None") return;
+    const towelNoneValue = selectAttribute(activeProfile, "TowelBarOption")?.noneValue;
+    if (!towelNoneValue || towelSelection !== towelNoneValue) return;
 
-    setConfigBatch(
-      {},
-      {
-        TowelBar: "None",
-        TowelBarSide: "both",
-      },
-    );
-  }, [towelSelection]);
+    void changeAttributeValue({ attributeId: "TowelBarOption", value: towelNoneValue, scope: "global" });
+  }, [activeProfile, changeAttributeValue, towelSelection]);
 
   const applySidePanelGrooveChange = useCallback(
     async (value: GrooveType, side: SidePanelApplySide) => {
@@ -725,7 +732,8 @@ export const CustomAccessoriesPage = () => {
       dispatch(setIsDrawerOpen(false));
     }
 
-    dispatch(setDividersOption(value));
+    // The divider adapter updates the scene; the command records the option.
+    recordValues({ DividersOption: value });
 
     if (value !== "Customize") {
       dispatch(setDividersStyle(""));
@@ -746,7 +754,7 @@ export const CustomAccessoriesPage = () => {
     });
     if (!value) return;
     if (availableTypes && dividerType && !availableTypes.includes(dividerType)) {
-      const userMessage = buildUnavailableDividerWarning(dividerType, availableTypes);
+      const userMessage = buildUnavailableDividerWarning(dividerType, availableTypes, activeProfile);
       divider.showWarning(userMessage);
       warnDividerUiDebug("Custom.DividerStyle", "Blocked unavailable divider style", {
         value,
@@ -829,7 +837,7 @@ export const CustomAccessoriesPage = () => {
       content: (
         <>
           <ProductSwatchesGrid
-            data={optionsSwatchData2}
+            data={dividerModeCatalog}
             onSelectChange={handleDividersChange}
             selectedValue={dividerSelection}
           />
@@ -864,7 +872,7 @@ export const CustomAccessoriesPage = () => {
       content: (
         <>
           <ProductSwatchesGrid
-            data={optionsSwatchDataTowel}
+            data={towelBarCatalog}
             onSelectChange={handleTowelBarChange}
             selectedValue={towelSelection}
           />
