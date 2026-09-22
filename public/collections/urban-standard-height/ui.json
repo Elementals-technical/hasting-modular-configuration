@@ -62,7 +62,7 @@
     "accessories-custom": {
       "label": "Accessories",
       "kind": "fields",
-      "sectionIds": ["side-panels-custom", "dividers-custom", "tovel-bar"]
+      "sectionIds": ["side-panels-custom", "dividers-custom", "towel-bar"]
     },
     "faucet-holes": { "label": "Faucet Details", "kind": "fields", "sectionIds": ["faucet-holes-amount"] },
     "summary": { "label": "Summary", "kind": "summary" }
@@ -205,13 +205,6 @@
       "fields": [
         { "attributeId": "DividersOption", "control": "swatches" },
         { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
-      ]
-    },
-    "tovel-bar": {
-      "label": "Towel Bar",
-      "fields": [
-        { "attributeId": "TowelBarOption", "control": "swatches" },
-        { "attributeId": "TowelBarColor", "control": "options-grid", "availabilityRef": "TowelBarColor.available" }
       ]
     },
     "cabinet-type": {
