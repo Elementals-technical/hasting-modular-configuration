@@ -489,6 +489,8 @@ export const CabinetBuilderPage = () => {
                 : undefined,
             metadata: {
               image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
+              hasSink: rule.hasSink,
+              isOpen: rule.isOpen,
             },
           };
         }),
