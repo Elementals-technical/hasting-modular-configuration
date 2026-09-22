@@ -9,12 +9,18 @@ import {
   getAttributeValue,
   getCabinetEntries,
   getRuntimeSyncState,
+  getValuesByAttributeId,
   resetConfiguration,
   setActiveCollectionId,
   setActiveRuntimeBindings,
   setAttributeValue,
 } from "@/entities/configuration";
-import { getCabinetColor, getVesselColor } from "@/entities/product/model/store/selectors";
+import {
+  getCabinetColor,
+  getDrawerPanelFluting,
+  getHandleGrooveColor,
+  getVesselColor,
+} from "@/entities/product/model/store/selectors";
 import { recordComposition, reset, setActiveProfile } from "@/entities/product/model/store/slice";
 import {
   createTestCompositionPort,
@@ -22,6 +28,8 @@ import {
   createTestSidePanelPort,
   type TestCompositionPort,
 } from "@/features/playCanvasAdapter";
+import { buildCollectionPricingLines } from "@/shared/lib/pricing";
+import { collectionPricingInput, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
 import {
   addCabinet,
@@ -251,6 +259,183 @@ describe("composition commands", () => {
       const call = lastCall(composition);
       expect(call.op === "replace" && call.request.products.map(({ config }) => config.Drawers)).toEqual(["1", "1"]);
       expect(Object.values(product().placedCabinetStyles)).toEqual(["1", "1"]);
+    });
+  });
+
+  describe("values the products carry", () => {
+    const cabinetValue = (attributeId: string, cabinetId: string) =>
+      getAttributeValue(store.getState(), attributeId, { scope: "cabinet", cabinetId });
+
+    const makoModel = [
+      {
+        productType: "Sink-Cabinet",
+        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+      },
+      {
+        productType: "Sink-Base",
+        config: { Width: 60, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+      },
+      {
+        productType: "Sink-Cabinet",
+        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+      },
+    ];
+
+    describe("a Mako model", () => {
+      beforeEach(() => {
+        store.dispatch(setActiveProfile(makoProfile));
+        store.dispatch(setActiveCollectionId("mako"));
+        store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+      });
+
+      it("records each cabinet's handle and leg colour at that cabinet, and the handle once for the model", async () => {
+        const { composition, runtime, deps } = setup();
+
+        await applyPreset({ products: makoModel }, deps);
+
+        const cabinets = getCabinetEntries(store.getState());
+        expect(cabinets).toHaveLength(3);
+        cabinets.forEach(({ stableKey }) => {
+          expect(cabinetValue("HandleColor", stableKey)).toBe("Silver");
+          expect(cabinetValue("LegColor", stableKey)).toBe("None");
+        });
+        // The handle is one for the composition, as the scene and the handle command hold it.
+        expect(product().selectedProductConfig?.Handle).toBe("G57");
+        expect(composition.calls).toHaveLength(1);
+        expect(runtime.calls).toHaveLength(0);
+      });
+
+      it("prices every cabinet of the model with its handle and handle finish", async () => {
+        const { deps } = setup();
+
+        await applyPreset({ products: makoModel }, deps);
+
+        const state = store.getState();
+        const widths = makoModel.map(({ config }) => config.Width);
+        const input = collectionPricingInput(
+          MAKO,
+          getCabinetEntries(state).map(({ stableKey, runtimeId }, index) => ({
+            stableKey,
+            runtimeId,
+            size: { width: widths[index], height: 52, depth: 52 },
+          })),
+          { ...getValuesByAttributeId(state) },
+          {
+            runtimeBindings: makoRuntimeBindings,
+            selectedProductConfig: product().selectedProductConfig,
+            placedCabinetStyles: product().placedCabinetStyles,
+          },
+        );
+
+        const cabinetSkus = buildCollectionPricingLines(input)
+          .lines.filter(({ group }) => group === "cabinet")
+          .map(({ sku }) => sku);
+
+        expect(cabinetSkus).toEqual([
+          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-HDL-MTL-SLV",
+          "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-HDL-MTL-SLV",
+          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-HDL-MTL-SLV",
+        ]);
+      });
+
+      it("records no handle for a model whose cabinets carry different ones", async () => {
+        const { deps } = setup();
+
+        await applyPreset(
+          {
+            products: [
+              { productType: "Sink-Base", config: { Handle: "G57" } },
+              { productType: "Sink-Cabinet", config: { Handle: "G50" } },
+            ],
+          },
+          deps,
+        );
+
+        expect(product().selectedProductConfig?.Handle).toBeUndefined();
+      });
+
+      it("keeps a value the caller records over the one the products carry", async () => {
+        const { deps } = setup();
+
+        await applyPreset({ products: makoModel, record: { Handle: "G50" } }, deps);
+
+        expect(product().selectedProductConfig?.Handle).toBe("G50");
+      });
+
+      it("records no cabinet's own values when the scene placed only part of the model", async () => {
+        const { composition, deps } = setup();
+        composition.answerNext({
+          status: "partial",
+          placed: ["Sink-Cabinet-9"],
+          message: "The scene placed 1 of 3 products.",
+          scene: { status: "ready", order: ["Sink-Cabinet-9"], cabinets: [] },
+        });
+
+        await applyPreset({ products: makoModel }, deps);
+
+        expect(getValuesByAttributeId(store.getState()).HandleColor).toBeUndefined();
+        expect(product().placedCabinetStyles).toEqual({});
+      });
+
+      it("records the cabinets' own values of a composition the scene already holds", async () => {
+        const { deps } = setup();
+
+        await adoptComposition({ runtimeIds: ["kept-a", "kept-b", "kept-c"], products: makoModel }, deps);
+
+        getCabinetEntries(store.getState()).forEach(({ stableKey }) => {
+          expect(cabinetValue("HandleColor", stableKey)).toBe("Silver");
+        });
+        // Adopting keeps the composition's values to the caller: a restore adopts saved scene configs.
+        expect(product().selectedProductConfig?.Handle).toBeUndefined();
+      });
+    });
+
+    describe("a USH model", () => {
+      it("records the model's handle as the composition's and nothing per cabinet", async () => {
+        const { deps } = setup();
+
+        await applyPreset(
+          {
+            products: [
+              { productType: "Sink-Base", config: { Width: 60, Drawers: "1D", Handle: "handle_urban_topcut" } },
+              { productType: "Open-Shelf", config: { Width: 40 } },
+            ],
+          },
+          deps,
+        );
+
+        expect(product().selectedProductConfig?.Handle).toBe("handle_urban_topcut");
+        // Only the handle, at the first cabinet, as the handle command records it.
+        expect(Object.keys(getValuesByAttributeId(store.getState()))).toEqual(["Handle"]);
+        expect(product().placedCabinetStyles).toEqual({ "Sink-Base-new-1": "1" });
+      });
+
+      it("leaves the shared values of adopted scene configs to the restore", async () => {
+        const { deps } = setup();
+
+        await adoptComposition(
+          {
+            runtimeIds: ["restored-a"],
+            products: [
+              {
+                productType: "Sink-Base",
+                config: {
+                  Drawers: "2D",
+                  Handle: "handle_pto",
+                  HandleGrooveColor: "None",
+                  DrawerPanelFluting: "None",
+                },
+              },
+            ],
+          },
+          deps,
+        );
+
+        expect(product().selectedProductConfig?.Handle).toBeUndefined();
+        expect(getHandleGrooveColor(store.getState())).toBe("");
+        expect(getDrawerPanelFluting(store.getState())).toBe("");
+        expect(getValuesByAttributeId(store.getState())).toEqual({});
+      });
     });
   });
 

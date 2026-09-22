@@ -85,6 +85,15 @@ describe("USH order regression", () => {
     `);
   });
 
+  it("prices a prebuilt set the same once its handle is recorded as the composition's", () => {
+    // Placing a preset records the handle its cabinets carry as the selection, as the handle command does.
+    const { input } = PRICING_SCENARIOS["prebuilt-set-with-added-cabinet"];
+
+    expect(buildPricingLines({ ...input, selectedProductConfig: { Handle: "handle_urban_topcut" } })).toEqual(
+      buildPricingLines(input),
+    );
+  });
+
   it("covers every scenario", () => {
     expect(PRICING_SCENARIO_IDS).toEqual([
       "custom-composition-60",

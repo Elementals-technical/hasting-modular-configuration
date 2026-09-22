@@ -245,3 +245,10 @@ export const commitPlan = (changes: readonly PlannedChange[], context: CommitCon
 
 /** Attribute ids that are written into the typed product slice rather than the scoped map. */
 export const TYPED_COMMIT_ATTRIBUTE_IDS: readonly string[] = Object.keys(COMMITTERS);
+
+/**
+ * Actions that record values placed products already carry, each at its own address. The scene
+ * has them and no committer runs: only values without a product-slice projection come here.
+ */
+export const recordCarriedChanges = (changes: readonly PlannedChange[]): UnknownAction[] =>
+  changes.flatMap((change) => recordSemanticChange(change) ?? []);
