@@ -1,7 +1,7 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { ProductProfile } from "@/entities/collection";
-import { selectAttribute, selectLegacySpelling } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectLegacySpelling } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getAttributeOwnership, setAttributeValue } from "@/entities/configuration";
 import {
@@ -154,7 +154,12 @@ const COMMITTERS: Record<string, Committer> = {
   },
   LedOption: (change) => [setLedOption(asText(change))],
   DividersOption: (change) => [setDividersOption(asText(change))],
-  DividersStyle: (change) => [setDividersStyle(asText(change))],
+  // A link saved before the style was stored by value carries its label ("Option A"); the
+  // profile declares that spelling as an alias, so the state keeps one form either way.
+  DividersStyle: (change, context) => {
+    const value = asText(change);
+    return [setDividersStyle(value ? (normalizeOptionValue(context.profile, "DividersStyle", value) ?? value) : "")];
+  },
   FaucetHolesAmount: (change) => [setFaucetHolesAmount(asText(change))],
   FaucetHolesSpacing: (change) => [setFaucetHolesSpacing(asText(change))],
   Width: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ width: change.value })] : []),

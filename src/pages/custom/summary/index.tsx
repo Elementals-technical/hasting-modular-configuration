@@ -30,7 +30,6 @@ import {
   getDrawerPanelFluting,
   getLedOption,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getGrainDirection,
   getBookMatching,
   getHandleGrooveColor,
@@ -285,7 +284,6 @@ export const CustomSummaryPage = () => {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
   const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
   const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
@@ -1538,7 +1536,6 @@ export const CustomSummaryPage = () => {
     countertopColorSku,
     vesselColor,
     bookMatching,
-    faucetHolesSpacing,
     selectedMaterials,
     manualSelectedMaterials,
     isAutofillEnabled,

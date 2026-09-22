@@ -75,7 +75,7 @@ describe("USH reason texts equal the legacy strings", () => {
       expect(fromProfile).toEqual(legacy);
     }
 
-    const options = [{ title: "Option A" }, { title: "No divider" }];
+    const options = [{ name: "A" }, { name: "not-a-divider" }];
     expect(deriveDividerOptions(options, ["B"], ushProfile)).toEqual(deriveDividerOptions(options, ["B"], null));
   });
 

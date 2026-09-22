@@ -3,8 +3,8 @@
 Acceptance of the configuration state, the single change path and Save/restore (C01, C02, C05–C09).
 
 USH is checked in the browser; the two test profiles are checked by test, because the production
-registry (`public/collections/registry.json`) lists only USH and the registry URL is a constant the
-provider resolves at startup — a test provider for the browser belongs to A. The scene side of the
+registry (`public/collections/registry.json`) lists only the shipped collections and the registry URL
+is a constant the provider resolves at startup — a test provider for the browser belongs to A. The scene side of the
 same scenarios is I06; this document covers what the state records and what Save carries.
 
 ## Automated evidence
@@ -81,14 +81,14 @@ state and calls the scene itself (B06); **runtime** — the scene reports it and
 | Thickness | countertop | service | uiState | — |
 | CountertopColor | countertop | service | uiState + product config | Pages still write the SKU (D) |
 | VesselColor | basin | service | uiState + product config | — |
-| sinkType | basin | service, one page path | uiState + product config | An integrated basin sent only to the sink bases it fits by width stays on the page until the adapter addresses one sink base (I) |
+| sinkType | basin | service | uiState + product config | An integrated basin names each sink base it fits; the adapter addresses that one product |
 | SidePanels, SidePanelLeft, SidePanelRight | global | service (side panel command) / runtime | uiState | Per-side statuses come from the scene |
 | LedOption | global | service (state-only) | uiState | No field; restored from saved links |
-| DividersOption | global | service (recorded) | uiState | The divider adapter clears the scene zones (I) |
-| DividersStyle | drawer | page | uiState + product config | The picker's style has no drawer; placements are recorded per drawer |
+| DividersOption | global | service (recorded) | uiState | The divider port clears the scene zones through the clearDividers command |
+| DividersStyle | global | service (recorded) | uiState + product config | Stored as the profile's value ("A"); links saved with the label are read back through its aliases |
 | TowelBarOption, TowelBarColor | global | service | uiState | — |
 | FaucetHolesAmount | countertop | service (state-only) | uiState | — |
-| FaucetHolesSpacing | countertop | page | uiState | No profile attribute yet |
+| FaucetHolesSpacing | countertop | service (state-only) | uiState | Carried through from older links: no step offers it and no collection declares a catalog |
 
 `ATTRIBUTE_OWNERSHIP` (`entities/configuration/model/ownership.ts`) is the machine-checked version of
 this table; `ownership.test.ts` fails when a value is added without an owner.
@@ -97,7 +97,7 @@ this table; `ownership.test.ts` fails when a value is added without an owner.
 
 - **Test profiles in the browser.** `fixture-ui` and `fixture-rules` have no entry in the production
   registry, so they are covered by test only. A test provider is A's item.
-- **The sidebar size effect** sends Height with Depth to every cabinet in one scene call (see `dev-residue-report.md`).
-- **Two page paths** still write the scene themselves: the integrated basin per fitting sink base and dividers None (I).
+- **The sidebar size effect** sends Height with Depth to every cabinet in one scene call, the last direct
+  one left (see `dev-residue-report.md`).
 - **The scene side** of these scenarios (order of commands, what the scene really applied) is I06; the
   browser run is done once for both.

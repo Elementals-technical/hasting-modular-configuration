@@ -236,3 +236,19 @@ export type SidePanelApplyResult =
 export type ConfigurationSidePanelPort = {
   apply(placements: readonly SidePanelPlacement[], cabinetCount?: number): Promise<SidePanelApplyResult>;
 };
+
+export type DividerClearResult =
+  | { status: "applied"; cleared: number }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string }
+  | { status: "partial"; cleared: number; message: string };
+
+/**
+ * The dividers of the placed products. Dividers reach the scene as drawer zone objects built
+ * by the divider adapter, not as a bound value, so clearing them is an operation of its own
+ * rather than a value translation (`DividersOption` is an unbound binding).
+ */
+export type ConfigurationDividerPort = {
+  /** Removes every placed divider of these products. */
+  clear(runtimeIds: readonly string[]): Promise<DividerClearResult>;
+};

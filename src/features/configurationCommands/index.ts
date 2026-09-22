@@ -33,6 +33,9 @@ export type {
   CompositionErrorCode,
   CompositionResult,
 } from "./lib/composition";
+export { clearDividers } from "./lib/clearDividers";
+export type { ClearDividersChange, ClearDividersResult } from "./lib/clearDividers";
+
 export { changeSidePanels } from "./lib/changeSidePanels";
 export type {
   SidePanelChange,

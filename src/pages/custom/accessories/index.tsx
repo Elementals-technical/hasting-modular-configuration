@@ -42,8 +42,6 @@ import {
 } from "@/features/sidePanel";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import {
-  clearPlacedDividers,
-  setDividersStyle,
   setIsDrawerOpen,
 } from "@/entities/product/model/store/slice";
 
@@ -52,8 +50,6 @@ import type { AccordionConfig } from "@/shared/constants/types";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getEdgeCabinets, type EdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 import {
-  clearPlacedDividersInScene,
-  getDividerTypeFromOptionTitle,
   recordDividerUiDebug,
   setVisibleDividerSlotButtons,
   warnDividerUiDebug,
@@ -67,6 +63,7 @@ import {
 import {
   buildUnavailableDividerWarning,
   getSharedDividerRuntimeAdapter,
+  normalizeDividerType,
   shouldClearDividersOnOptionChange,
   useDividerController,
 } from "@/features/dividers";
@@ -86,7 +83,7 @@ import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisible
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 import { applyGroove, autoRemoveBoth, isGrooveType } from "@/features/sidePanel";
-import { useChangeAttribute } from "@/features/configurationCommands";
+import { clearDividers, useChangeAttribute } from "@/features/configurationCommands";
 
 const DEFAULT_ACCORDION_ID = "side-panels";
 const DIVIDERS_ACCORDION_ID = "dividers";
@@ -704,12 +701,15 @@ export const CustomAccessoriesPage = () => {
     divider.clearWarning();
     await saveSnapshot();
 
-    if (shouldClearDividersOnOptionChange(value, dividerSelection)) {
-      const clearResult = await clearPlacedDividersInScene(selectedProducts);
+    const dividersNoneValue = selectAttribute(activeProfile, "DividersOption")?.noneValue ?? "";
+
+    if (shouldClearDividersOnOptionChange(value, dividerSelection, dividersNoneValue)) {
+      // The divider command owns both sides: the port clears the scene zones, and the placed
+      // dividers are dropped from the state only for what the scene took.
+      const clearResult = await clearDividers({ runtimeIds: selectedProducts }, { dispatch });
       recordDividerUiDebug("Custom.DividerSelection", "Scene dividers cleared for None option", {
         clearResult,
       });
-      dispatch(clearPlacedDividers());
 
       // Exit side-effects (camera restore, isDrawerOpen) are handled by the shared
       // adapter's "exit" event subscription above.
@@ -732,19 +732,16 @@ export const CustomAccessoriesPage = () => {
       dispatch(setIsDrawerOpen(false));
     }
 
-    // The divider adapter updates the scene; the command records the option.
-    recordValues({ DividersOption: value });
-
-    if (value !== "Customize") {
-      dispatch(setDividersStyle(""));
-    }
+    // The divider adapter updates the scene; the command records the values. Leaving
+    // Customize drops the style the picker held, so both are recorded together.
+    recordValues({ DividersOption: value, ...(value === "Customize" ? {} : { DividersStyle: "" }) });
     recordDividerUiDebug("Custom.DividerSelection", "Divider option change applied", {
       value,
     });
   };
 
   const handleDividerStyleChange = async (value: string) => {
-    const dividerType = getDividerTypeFromOptionTitle(value);
+    const dividerType = normalizeDividerType(value);
     const availableTypes = divider.availableTypes;
 
     recordDividerUiDebug("Custom.DividerStyle", "Divider style change requested", {
@@ -773,7 +770,7 @@ export const CustomAccessoriesPage = () => {
     }
     divider.clearWarning();
     await saveSnapshot();
-    dispatch(setDividersStyle(value));
+    recordValues({ DividersStyle: value });
     recordDividerUiDebug("Custom.DividerStyle", "Divider style change applied", {
       value,
       dividerType,

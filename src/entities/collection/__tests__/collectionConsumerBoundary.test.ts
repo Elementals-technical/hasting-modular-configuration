@@ -73,28 +73,6 @@ const expectedCounts = (list: Record<string, CountedResidue>) =>
  * so the list only shrinks (DEV-10).
  */
 const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
-  "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
-    owner: "I",
-    count: 1,
-    reason:
-      "integrated basin on the sink bases it fits by width: the sinkType binding addresses every Sink-Base, so the command cannot send it to some of them",
-  },
-  "/src/pages/custom/countertop/index.tsx": {
-    owner: "I",
-    count: 1,
-    reason:
-      "integrated basin on the sink bases it fits by width: the sinkType binding addresses every Sink-Base, so the command cannot send it to some of them",
-  },
-  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
-    owner: "I",
-    count: 1,
-    reason: "dividers None clears the placed dividers: DividersOption is unbound, the divider adapter owns the zones",
-  },
-  "/src/pages/custom/accessories/index.tsx": {
-    owner: "I",
-    count: 1,
-    reason: "dividers None clears the placed dividers: DividersOption is unbound, the divider adapter owns the zones",
-  },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "C",
     count: 1,
@@ -147,33 +125,7 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * Consumers that still write a value the command owns, next to the command or instead of it
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
-const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
-  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
-    owner: "C",
-    count: 2,
-    reason: "the divider style of the picker has no drawer to address: the profile keeps DividersStyle per drawer",
-  },
-  "/src/pages/custom/accessories/index.tsx": {
-    owner: "C",
-    count: 2,
-    reason: "the divider style of the picker has no drawer to address: the profile keeps DividersStyle per drawer",
-  },
-  "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
-    owner: "I",
-    count: 1,
-    reason: "records the integrated basin that the page itself sent to the sink bases it fits (see the scene call)",
-  },
-  "/src/pages/custom/countertop/index.tsx": {
-    owner: "I",
-    count: 1,
-    reason: "records the integrated basin that the page itself sent to the sink bases it fits (see the scene call)",
-  },
-  "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
-    owner: "C",
-    count: 1,
-    reason: "a saved divider style has no drawer to address: the profile keeps DividersStyle per drawer",
-  },
-};
+const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {};
 
 /** Material matching by the legacy alias table: a helper called without the collection's table. */
 const legacyAliasLookups = [/\bgetMaterialAliases\([^,()]+\)/, /\bmaterialMatchesRule\([^,()]+,[^,()]+\)/];

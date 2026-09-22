@@ -75,14 +75,16 @@ describe("replayValues", () => {
     const runtime = createTestRuntimePort();
 
     const result = await replayValues(
-      { send: { CabinetColor: "Ardesia DD GL", TowelBarOption: "Sideways", DividersStyle: "Oak" }, record: false },
+      { send: { CabinetColor: "Ardesia DD GL", TowelBarOption: "Sideways", DividersStyle: "A" }, record: false },
       depsWith(runtime.port),
     );
 
     expect(result.status).toBe("applied");
+    // Both are addressable values the scene takes no translation for: the towel bar has no
+    // binding of its own, and the dividers reach the scene as drawer zones, not as a value.
     expect(result.skipped).toEqual([
-      { attributeId: "DividersStyle", value: "Oak", reason: "no-target" },
       { attributeId: "TowelBarOption", value: "Sideways", reason: "no-translation" },
+      { attributeId: "DividersStyle", value: "A", reason: "no-translation" },
     ]);
     expect(runtime.calls[0].map(({ attributeId }) => attributeId)).toEqual(["CabinetColor"]);
   });
@@ -159,14 +161,24 @@ describe("recordValues", () => {
     expect(getFaucetHolesSpacing(store.getState())).toBe("8in");
   });
 
-  it("skips a value kept per drawer, which one value cannot address", () => {
+  it("records the divider style the picker places next, which belongs to the configuration", () => {
     const result = recordValues(
       { DividersStyle: "A" },
       { getState: () => store.getState(), dispatch: (action) => store.dispatch(action), flow: "custom" },
     );
 
-    expect(result.skipped).toEqual([{ attributeId: "DividersStyle", value: "A", reason: "no-target" }]);
-    expect(getDividersStyle(store.getState())).not.toBe("A");
+    expect(result.skipped).toEqual([]);
+    expect(getDividersStyle(store.getState())).toBe("A");
+  });
+
+  it("reads a link saved with the style's label back as the style", () => {
+    recordValues(
+      { DividersStyle: "Option B" },
+      { getState: () => store.getState(), dispatch: (action) => store.dispatch(action), flow: "custom" },
+    );
+
+    expect(getDividersStyle(store.getState())).toBe("B");
+    expect(store.getState().rootStateUI.product.selectedDividerType).toBe("B");
   });
 });
 

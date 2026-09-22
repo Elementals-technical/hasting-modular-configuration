@@ -194,11 +194,11 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     hasProfileAttribute: true,
   }),
   DividersStyle: productOption("DividersStyle", {
-    scope: "drawer",
+    scope: "global",
     owner: "redux",
     persistedIn: "both",
     hasProfileAttribute: true,
-    note: "selectedDividerType is derived from this label and must never be written independently",
+    note: "the style the picker places next, one for the whole configuration; the dividers already placed carry their own type per drawer in placedDividers. selectedDividerType is derived from it and must never be written independently",
   }),
   TowelBarOption: productOption("TowelBarOption", {
     scope: "global",
@@ -224,6 +224,7 @@ export const ATTRIBUTE_OWNERSHIP: Record<string, AttributeOwnership> = {
     owner: "redux",
     persistedIn: "uiState",
     hasProfileAttribute: false,
+    note: "carried through from links saved before the migration: no step offers it and no collection declares a catalog for it, so it is only recorded and saved again",
   }),
 
   // Values addressed per product that do not live in `productOptions`.

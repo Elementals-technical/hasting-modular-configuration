@@ -1,6 +1,6 @@
-# DEV-05…DEV-10 residue report v2
+# DEV-05…DEV-10 residue report v3
 
-From Developer C, 22.09.2026, branch `S1-DD-C/ProductProfile`. Replaces v1 of 18.09.2026.
+From Developer C, 23.09.2026, branch `S1-DD-C/ProductProfile`. Replaces v2 of 22.09.2026.
 
 This lists what still keeps product knowledge or scene calls outside the collection path, who removes each item
 and what it waits for. The lists are guarded: `src/entities/collection/__tests__/collectionConsumerBoundary.test.ts`
@@ -13,6 +13,9 @@ Owners: **B** pages and fields, **C** state, rules and commands, **I** scene and
 
 | Area | Now | Proof |
 | --- | --- | --- |
+| Integrated basin (C06, 23.09) | A basin that names its sink base reaches that one product: the adapter narrows the binding's product type to the named sink base, so the countertop steps send one command per fitting sink base instead of a batch of their own. Files calling the scene directly: 5 → 1. | `createPlayCanvasRuntimePort.test.ts`, boundary test |
+| Dividers None (C06, 23.09) | Clearing the placed dividers goes through the divider port and the `clearDividers` command, which records the cleared placements only for what the scene took. | `clearDividers.test.ts`, boundary test |
+| Divider style (C06/DEV-07, 23.09) | The picker stores the style the profile declares (`"A"`), not its English label. The label parser is gone, the style is configuration-wide, and the steps record it through the command. Files writing a command-owned value directly: 5 → 0. | `replayValues.test.ts`, `deriveOptions.test.ts`, boundary test |
 | Scene calls (C06, 21.09) | Presets, adding/removing/swapping cabinets, undo/redo and the 3D player change the scene through the commands. Files calling the scene directly: 13 → 5. | `compositionCommands.test.ts`, boundary test |
 | Page option lists (B06) | The countertop and accessories steps list basins, countertop styles, thicknesses, side panels, divider options and styles and towel bar options from the collection's profile. The page constants are gone. | `pageOptionCatalogs.test.ts`, boundary test "declares no page product catalog" |
 | Materials (DEV-06) | Material filter groups come from `materialNormalization.displayHierarchy`; the vessel-compatible countertop materials from `vesselCompatibleCountertopMaterialTokens`; every rule and page matches materials by the collection's alias table. | `materialAliases.test.ts`, boundary test "matches materials by the collection's alias table" |
@@ -27,21 +30,15 @@ Owners: **B** pages and fields, **C** state, rules and commands, **I** scene and
 | Table 438 fallbacks (DEV-06) | Analysed against the frozen table: see section 4. | `countertopFallbacksVs438.test.ts` |
 | Reason texts of the interface (DEV-08) | One place turns a reason code into text: the collection's own wording first, then the interface dictionary (`shared/lib/reasonText`). The option and style items and the colour step hold no wording of their own, the cabinet-style mixing text included. | `reasonText.test.ts`, `uiReasonCodes.test.ts`, `reasonTextInItems.test.tsx` |
 
-## 1. Direct scene calls (5 files)
+## 1. Direct scene calls (1 file)
 
 | File | What remains | Owner | Unblocked by |
 | --- | --- | --- | --- |
-| `pages/prebuilt/countertop/CountertopPage.tsx`, `pages/custom/countertop/index.tsx` | 1 call each: an integrated basin sent only to the sink bases it fits by width. | I | The `sinkType` binding targets every `Sink-Base`; the adapter has to address one sink base when the change names it (`scope: "basin"`, `sinkBaseId`). Then the page sends one command per fitting sink base. |
-| `pages/prebuilt/accessories/AccessoriesPage.tsx`, `pages/custom/accessories/index.tsx` | 1 call each: dividers None clears the placed dividers. | I | `DividersOption` is unbound; the divider adapter owns the drawer zones. |
-| `features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx` | 1 call: the size effect sends Height with Depth to every cabinet at once. | C | Depth has `changeDimension`, but Height follows the handle rules; splitting the call changes the order of scene commands and needs a browser check. |
+| `features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx` | 1 call: the size effect sends Height with Depth to every cabinet at once. | C | Depth and Height both have `changeDimension`, but the port sends one patch per change, so the single call becomes two. `updateDimensionDataForProduct` replaces the dimension label rather than merging it, so the split needs a browser check before it lands. |
 
-## 2. Direct state writes (5 files)
+## 2. Direct state writes
 
-| File | What remains | Owner | Unblocked by |
-| --- | --- | --- | --- |
-| both countertop pages | 1 write each: records the integrated basin the page itself sent (section 1). | I | Same as the scene call. |
-| both accessories pages | 2 writes each: the divider style of the picker. | C | `DividersStyle` is drawer-scoped in the profile, but the picker's style belongs to no drawer; the placed dividers are already saved per drawer. Needs a decision on what the picker value is. |
-| `pages/custom/cabinetBuilder/CabinetBuilderPage.tsx` | 1 write: the divider style of a legacy saved link. | C | Same decision. Kept on purpose: it only preselects the picker. |
+None. Every value the command owns is written by `commitChange.ts` alone.
 
 ## 3. Attributes the scene cannot take through a command
 
@@ -69,7 +66,6 @@ records them without a scene call.
 | Class has no runtime bindings; Mako has no basins in the scene and no Mako materials. | I (I07), scene resources |
 | Test profiles cannot be opened in the browser: the production registry lists only the real collections. | A |
 | Class loads its sources from the USH configurator and tables. | Product → A |
-| Divider styles are stored by label ("Option A") and parsed back from it; moving to the value ("A", "Oak") changes the saved format. | B + C |
 | The material filter tree still compares its reasons as text; its wording already comes from the collection, so only the comparison is left. | B |
 | A second language: the dictionary and the resolver are one place, but no locale is chosen anywhere yet. | B |
 
@@ -83,6 +79,7 @@ Used only when the active collection does not declare the data; each is kept equ
 | `LEGACY_MATERIAL_HIERARCHY` | `materialNormalization.displayHierarchy` | `materialAliases.test.ts` |
 | `LEGACY_VESSEL_COMPATIBLE_COUNTERTOP_MATERIAL_TOKENS` | `materialNormalization.vesselCompatibleCountertopMaterialTokens` | `materialAliases.test.ts` |
 | English reason strings | `messages` | `legacyReasonTextParity.test.ts` |
+| `DividersStyle` labels of links saved before the style was stored by value | `aliases` of the `DividersStyle` options | `replayValues.test.ts` |
 
 ## Not checked here
 

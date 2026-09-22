@@ -171,9 +171,9 @@ const occupiedSlot = (occupiedType: DividerType): DividerSlot => ({
 // ── Harness ─────────────────────────────────────────────────────────────────────
 
 const mockOptions = [
-  { id: 5000, title: "Option A", isShortDesc: false },
-  { id: 5001, title: "Option B", isShortDesc: false },
-  { id: 5002, title: "Option C", isShortDesc: false },
+  { id: 5000, name: "A", title: "Option A", isShortDesc: false },
+  { id: 5001, name: "B", title: "Option B", isShortDesc: false },
+  { id: 5002, name: "C", title: "Option C", isShortDesc: false },
 ];
 
 const mountController = async (

@@ -59,14 +59,12 @@ export const buildSidePanelOptions = (profile: ProductProfile | null) =>
 export const buildDividerModeOptions = (profile: ProductProfile | null) =>
   selectOptions(profile, "DividersOption").map((option, index) => ({ id: 3001 + index, title: option.label }));
 
-/**
- * DividersStyle: `title` is the label the divider state stores ("Option A"); the picture is
- * found by the style value ("A").
- */
+/** DividersStyle: `name` is the style value the state keeps ("A"), `title` its label. */
 export const buildDividerStyleOptions = (profile: ProductProfile | null) =>
   selectOptions(profile, "DividersStyle").map((option, index) => ({
     id: 5000 + index,
     title: option.label,
+    name: option.value,
     isShortDesc: false,
     metadata: withImage(dividerStyleOptionImages[option.value]),
   }));

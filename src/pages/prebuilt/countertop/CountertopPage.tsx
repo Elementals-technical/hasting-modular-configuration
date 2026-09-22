@@ -19,10 +19,7 @@ import {
   getSelectedDimensions,
   getSinkType,
 } from "@/entities/product/model/store/selectors.ts";
-import {
-  setActiveBasinStyle,
-  setCountertopColorSku,
-} from "@/entities/product/model/store/slice.ts";
+import { setCountertopColorSku } from "@/entities/product/model/store/slice.ts";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 
@@ -85,14 +82,13 @@ import {
   buildCountertopStyleOptions,
   buildThicknessOptions,
 } from "@/features/collectionCustomization";
-import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import { resolveCabinetDimensions, resolveStableKey } from "@/entities/configuration/model/identity";
 import {
   getActiveProductProfile,
   getCabinetEntries,
   getDimensionsByCabinet,
 } from "@/entities/configuration/model/store/selectors";
 
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch.ts";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -1630,8 +1626,15 @@ export const CountertopPage = () => {
         : targetIds;
 
       if (!finalTargetIds.length) return;
-      await setConfigBatch(finalTargetIds, { sinkType: basinStyle });
-      dispatch(setActiveBasinStyle(basinStyle));
+
+      // One command per fitting sink base. The basin binding addresses every Sink-Base, so the
+      // sink base a change names is what keeps the others on the basin they already have.
+      for (const productId of finalTargetIds) {
+        const sinkBaseId = resolveStableKey(cabinetEntries, productId);
+        if (!sinkBaseId) continue;
+
+        await changeAttributeValue({ attributeId: "sinkType", value: basinStyle, scope: "basin", sinkBaseId });
+      }
     },
     [
       materialAliasTable,
@@ -1641,7 +1644,7 @@ export const CountertopPage = () => {
       countertopRules,
       selectedProducts,
       containsSinkBase,
-      dispatch,
+      changeAttributeValue,
       sceneTotalWidth,
       selectedDimensions,
       cabinetEntries,

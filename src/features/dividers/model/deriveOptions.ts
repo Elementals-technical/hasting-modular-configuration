@@ -1,10 +1,11 @@
 import { selectMessageOr, type ProductProfile } from "@/entities/collection";
 
-import { getDividerTypeFromOptionTitle } from "./normalize";
+import { normalizeDividerType } from "./normalize";
 import type { DividerAvailability, DividerType } from "./types";
 import { unavailableDividerReason } from "./validate";
 
-export type DividerOptionBase = { title: string };
+/** A style option as the step lists it: `name` is the style value the profile declares. */
+export type DividerOptionBase = { name: string };
 
 export type DerivedDividerOption<T extends DividerOptionBase> = T & {
   isAvailable?: boolean;
@@ -32,9 +33,9 @@ const resolveAvailableTypes = (availability: DividerAvailabilityInput): readonly
 };
 
 /**
- * Maps UI option mock data + current availability into grid-ready options with
- * `isAvailable` / `disabledReason`. Moved verbatim from the pages' `dividerOptions`
- * useMemo (custom accessories page) — behavior must not change.
+ * Maps the step's style options and the current availability into grid-ready options with
+ * `isAvailable` / `disabledReason`. The style of an option is its declared value, so a
+ * collection may label it however it likes.
  */
 export function deriveDividerOptions<T extends DividerOptionBase>(
   options: readonly T[],
@@ -47,7 +48,7 @@ export function deriveDividerOptions<T extends DividerOptionBase>(
   const availableTypes = [...types];
 
   return options.map((option) => {
-    const dividerType = getDividerTypeFromOptionTitle(option.title);
+    const dividerType = normalizeDividerType(option.name);
     const isAvailable = dividerType ? types.includes(dividerType) : true;
     const reason = dividerType
       ? unavailableDividerReason(dividerType, availableTypes, profile)

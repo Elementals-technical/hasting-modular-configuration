@@ -32,7 +32,6 @@ import {
   removeProductId,
   setActiveCabinetType,
   setCountertopColorSku,
-  setDividersStyle,
   setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
   setSelectedProductConfig,
@@ -1347,10 +1346,9 @@ export const CabinetBuilderPage = () => {
         ...(uiDividersOption ? { DividersOption: uiDividersOption } : {}),
         ...(uiFaucetHolesAmount ? { FaucetHolesAmount: uiFaucetHolesAmount } : {}),
         ...(uiFaucetHolesSpacing !== undefined ? { FaucetHolesSpacing: uiFaucetHolesSpacing } : {}),
+        ...(uiDividersStyle ? { DividersStyle: uiDividersStyle } : {}),
       });
       if (uiCountertopColorSku) dispatch(setCountertopColorSku(uiCountertopColorSku));
-      // The profile keeps the divider style per drawer; a save carries one value with no drawer to address.
-      if (uiDividersStyle) dispatch(setDividersStyle(uiDividersStyle));
 
       const [firstPreset] = presetProducts;
       if (firstPreset?.name) {

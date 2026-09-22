@@ -276,11 +276,11 @@
     },
     {
       "attributeId": "DividersStyle",
-      "scope": "drawer",
+      "scope": "global",
       "options": [
-        { "value": "A", "label": "Option A", "order": 10 },
-        { "value": "B", "label": "Option B", "order": 20 },
-        { "value": "C", "label": "Option C", "order": 30 }
+        { "value": "A", "label": "Option A", "order": 10, "aliases": ["Option A"] },
+        { "value": "B", "label": "Option B", "order": 20, "aliases": ["Option B"] },
+        { "value": "C", "label": "Option C", "order": 30, "aliases": ["Option C"] }
       ]
     },
     {

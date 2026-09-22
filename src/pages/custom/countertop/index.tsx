@@ -31,12 +31,8 @@ import {
   getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import {
-  setActiveBasinStyle,
-  setCountertopColorSku,
-} from "@/entities/product/model/store/slice";
+import { setCountertopColorSku } from "@/entities/product/model/store/slice";
 import {
   buildCountertopColorSkuCandidates,
   extractColorCode,
@@ -95,7 +91,7 @@ import {
   buildCountertopStyleOptions,
   buildThicknessOptions,
 } from "@/features/collectionCustomization";
-import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
+import { resolveCabinetDimensions, resolveStableKey } from "@/entities/configuration/model/identity";
 import {
   getActiveProductProfile,
   getCabinetEntries,
@@ -1631,8 +1627,15 @@ export const CustomCountertopPage = () => {
         : targetIds;
 
       if (!finalTargetIds.length) return;
-      await setConfigBatch(finalTargetIds, { sinkType: basinStyle });
-      dispatch(setActiveBasinStyle(basinStyle));
+
+      // One command per fitting sink base. The basin binding addresses every Sink-Base, so the
+      // sink base a change names is what keeps the others on the basin they already have.
+      for (const productId of finalTargetIds) {
+        const sinkBaseId = resolveStableKey(cabinetEntries, productId);
+        if (!sinkBaseId) continue;
+
+        await changeAttributeValue({ attributeId: "sinkType", value: basinStyle, scope: "basin", sinkBaseId });
+      }
     },
     [
       materialAliasTable,
@@ -1642,7 +1645,7 @@ export const CustomCountertopPage = () => {
       countertopRules,
       selectedProducts,
       containsSinkBase,
-      dispatch,
+      changeAttributeValue,
       sceneTotalWidth,
       selectedDimensions,
       cabinetEntries,
