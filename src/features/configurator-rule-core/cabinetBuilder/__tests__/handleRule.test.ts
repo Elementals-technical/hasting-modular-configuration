@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import ushProfile from "../../../../../public/collections/urban-standard-height/product-profile.json";
 import classProfileDocument from "../../../../../public/collections/class/product-profile.json";
-import makoCabinetTable from "../../../../../public/collections/mako/cabinet-table.json";
+import makoCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import { parseProductProfile } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
@@ -271,7 +271,7 @@ describe("a table with one forced height column for all handles", () => {
     );
 
   it("gives a Mako cabinet the height of its drawers before any handle is chosen", () => {
-    // The Mako cabinet table the collection loads (local until it is in the API).
+    // The Mako cabinet table the collection loads (581).
     const makoCatalog = buildCabinetCatalogFromMatrix(makoCabinetTable, makoProfile);
 
     const oneDrawer = runFirst(makoProfile, makoCatalog, {

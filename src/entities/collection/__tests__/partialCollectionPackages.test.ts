@@ -10,7 +10,6 @@ import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
-import makoCabinetTable from "../../../../public/collections/mako/cabinet-table.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
@@ -21,6 +20,7 @@ import makoUi from "../../../../public/collections/mako/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
+import datatable581 from "./fixtures/remote/datatable-581.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -42,7 +42,6 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}class/product-profile.json`]: classProductProfile,
     [`${collectionsRootUrl}class/sku-profile.json`]: classSkuProfile,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
-    [`${collectionsRootUrl}mako/cabinet-table.json`]: makoCabinetTable,
     [`${collectionsRootUrl}mako/manifest.json`]: makoManifest,
     [`${collectionsRootUrl}mako/presets.json`]: makoPresets,
     [`${collectionsRootUrl}mako/product-profile.json`]: makoProductProfile,
@@ -58,7 +57,8 @@ const fetchJson = vi.fn(async (url: string) => {
 const makeRemote = (): RemoteCollectionLoader => ({
   loadConfigurator: vi.fn(async () => configurator4),
   loadCountertopTable: vi.fn(async () => datatable438),
-  loadCabinetTable: vi.fn(async () => datatable439),
+  // Mako reads its own cabinet table (581); the other collections share the USH one (439).
+  loadCabinetTable: vi.fn(async (id: string | number) => (id === 581 ? datatable581 : datatable439)),
 });
 
 describe("partial production collection packages", () => {
@@ -108,9 +108,16 @@ describe("partial production collection packages", () => {
 
   it.each([
     // Class has no scene bindings and no model compositions yet; Mako places its own scene products (I)
-    // and has the composition of every model. Mako's cabinet rows are local until its table is in the API.
+    // and has the composition of every model, and its own cabinet table.
     ["class", "Class", 44, undefined, false, [[439, abortSignal]]],
-    ["mako", "Mako", 42, { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" }, true, []],
+    [
+      "mako",
+      "Mako",
+      42,
+      { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" },
+      true,
+      [[581, abortSignal]],
+    ],
   ])(
     "loads %s from only its declared local data and approved shared remotes",
     async (collectionId, label, modelCount, productTypes, hasCompositions, cabinetTableCalls) => {
