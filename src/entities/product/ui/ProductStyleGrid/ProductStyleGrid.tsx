@@ -1,6 +1,5 @@
 import { ProductStyleItem } from "@/shared/ui/ProductStyleItem/ProductStyleItem";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { ROUTES } from "@/shared";
 
 import { getActiveCabinetType, getSelectedDimensions } from "../../model/store/selectors";
 
@@ -21,6 +20,7 @@ interface ProductStyleGridI {
       image?: string;
     };
   }[];
+  styleDetailsPath: string;
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
@@ -31,6 +31,7 @@ interface ProductStyleGridI {
 
 export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   data,
+  styleDetailsPath,
   requiresActiveCabinet,
   handleOpenStyleSidebar,
   isActive = false,
@@ -58,7 +59,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
         if (typeof selectedDimensions.height === "number") detailsParams.set("height", String(selectedDimensions.height));
         if (i.metadata?.image) detailsParams.set("image", i.metadata.image);
 
-        const detailsTo = `${ROUTES.CUSTOM_CABINET_STYLE_DETAILS}?${detailsParams.toString()}`;
+        const detailsTo = `${styleDetailsPath}?${detailsParams.toString()}`;
 
         return (
           <ProductStyleItem

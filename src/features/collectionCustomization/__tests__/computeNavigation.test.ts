@@ -34,6 +34,35 @@ describe("computeNavigation", () => {
     expect(result.currentStep).toBeNull();
   });
 
+  it("drops a step whose flow ref names an id absent from steps", () => {
+    const withGhostRef: CustomizationSchema = {
+      ...schema,
+      flows: {
+        ...schema.flows,
+        prebuilt: {
+          ...schema.flows.prebuilt,
+          steps: [...schema.flows.prebuilt.steps, { stepId: "ghost", path: "/prebuilt/ghost" }],
+        },
+      },
+    };
+
+    const result = computeNavigation(withGhostRef, "prebuilt", "/prebuilt/countertop");
+
+    expect(result.steps.map((step) => step.stepId)).not.toContain("ghost");
+  });
+
+  it("drops a disabled step from the flow, closing the prev/next gap around it", () => {
+    const disabled: CustomizationSchema = {
+      ...schema,
+      steps: { ...schema.steps, accessories: { ...schema.steps.accessories, enabled: false } },
+    };
+
+    const result = computeNavigation(disabled, "prebuilt", "/prebuilt/countertop");
+
+    expect(result.steps.map((step) => step.stepId)).not.toContain("accessories");
+    expect(result.nextStep?.stepId).toBe("faucet-holes");
+  });
+
   it("resolves summary by kind, not by array position", () => {
     const originalSteps = schema.flows.prebuilt.steps;
     const summaryRef = originalSteps.find((step) => step.stepId === "summary");

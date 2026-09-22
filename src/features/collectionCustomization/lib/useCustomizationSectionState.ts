@@ -9,6 +9,7 @@ import {
 } from "@/entities/product/model/store/derivedSelectors";
 import {
   getCountertopStyle,
+  getDividersOption,
   getProductsPresets,
   getSelectedProductConfig,
   getTowelBarOption,
@@ -50,6 +51,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
   const bookMatching = useAppSelector(selectBookMatchingState);
   const sidePanels = useAppSelector(selectSidePanelAvailability);
   const towelBarOption = useAppSelector(getTowelBarOption);
+  const dividersOption = useAppSelector(getDividersOption);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const selectedHandle = useAppSelector((state) => getSelectedProductConfig(state)?.Handle);
   const presetHandle = useAppSelector((state) => getProductsPresets(state)[0]?.Handle);
@@ -63,6 +65,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
     "supportsGrooveColor",
   );
   const hasTowelBar = Boolean(towelBarOption) && towelBarOption !== "None";
+  const isCustomizingDividers = dividersOption === "Customize";
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
 
   return useMemo(
@@ -77,6 +80,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
         allowedValues: [...sidePanels.allowed],
       },
       "TowelBarColor.available": { available: hasTowelBar, visible: hasTowelBar },
+      "DividersStyle.available": { available: isCustomizingDividers, visible: isCustomizingDividers },
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
     }),
@@ -87,6 +91,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       fluting,
       grainDirection,
       hasTowelBar,
+      isCustomizingDividers,
       isVesselStyle,
       sidePanels,
       supportsGrooveColor,
@@ -104,15 +109,6 @@ const useSectionInputs = () => {
   return { schema, configurator, profile, productOptions, availabilityResults };
 };
 
-export const useCustomizationSectionFields = (sectionId: string): ResolvedCustomizationField[] => {
-  const { schema, configurator, profile, productOptions, availabilityResults } = useSectionInputs();
-
-  return useMemo(
-    () => resolveSectionFields(schema, sectionId, profile, productOptions, availabilityResults, configurator),
-    [availabilityResults, configurator, productOptions, profile, schema, sectionId],
-  );
-};
-
 export const useCustomizationStepSections = (stepId: string): ResolvedCustomizationSection[] => {
   const { schema, configurator, profile, productOptions, availabilityResults } = useSectionInputs();
 
@@ -120,7 +116,7 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
     () =>
       (schema?.steps[stepId]?.sectionIds ?? []).flatMap((sectionId) => {
         const section = schema?.sections[sectionId];
-        if (!section) return [];
+        if (!section || section.enabled === false) return [];
 
         return [
           {

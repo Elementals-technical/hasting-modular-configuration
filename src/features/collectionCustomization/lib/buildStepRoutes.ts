@@ -22,7 +22,7 @@ export const buildStepRoutes = (schema: CustomizationSchema, screens: StepScreen
   CUSTOMIZATION_FLOW_IDS.flatMap((flowId) =>
     schema.flows[flowId].steps.flatMap((ref) => {
       const definition = schema.steps[ref.stepId];
-      if (!definition) return [];
+      if (!definition || definition.enabled === false) return [];
 
       const screen = screens[ref.screen ?? definition.kind];
       const path = toRelativePath(ref.path);

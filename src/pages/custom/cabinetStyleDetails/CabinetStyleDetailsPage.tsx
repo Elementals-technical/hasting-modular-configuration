@@ -16,10 +16,9 @@ import {
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
-import { ROUTES } from "@/shared";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
-import { useCollectionNavigate } from "@/features/collectionCustomization";
+import { useCollectionNavigate, useCollectionNavigation } from "@/features/collectionCustomization";
 
 const CHARACTERISTICS = [
   "Soft-close, ergonomic drawer system",
@@ -111,6 +110,7 @@ const cmToInches = (cm: number) => Number((cm / 2.54).toFixed(1));
 
 export const CabinetStyleDetailsPage = () => {
   const navigate = useCollectionNavigate();
+  const cabinetBuilderStepPath = useCollectionNavigation("custom")?.currentStep?.path;
   const [params] = useSearchParams();
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -195,7 +195,7 @@ export const CabinetStyleDetailsPage = () => {
       <button
         type="button"
         className={s.backButton}
-        onClick={() => navigate(`${ROUTES.CUSTOM}/cabinet-builder?accordion=cabinet-style`)}
+        onClick={() => navigate(cabinetBuilderStepPath ? `${cabinetBuilderStepPath}?accordion=cabinet-style` : -1)}
       >
         <ArrowLeft width="18" height="18" />
         <span>{displayTitle}</span>

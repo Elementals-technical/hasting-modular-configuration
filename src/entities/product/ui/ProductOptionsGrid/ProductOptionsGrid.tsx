@@ -20,6 +20,9 @@ export type ProductOptionMetadata = {
   sku?: string;
   lightBorder?: boolean;
   configValue?: string;
+  /** From the cabinet type's own rule row, for a cabinetType variant's card styling. */
+  hasSink?: boolean;
+  isOpen?: boolean;
 };
 
 export type ProductOptionData = {

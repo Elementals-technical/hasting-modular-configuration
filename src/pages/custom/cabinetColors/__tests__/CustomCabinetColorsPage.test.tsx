@@ -75,12 +75,7 @@ vi.mock("@/features/configurationCommands", async (importOriginal) => {
   };
 });
 
-vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
-  ConfiguratorAccordionGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ConfiguratorAccordionItem: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <section aria-label={title}>{children}</section>
-  ),
-}));
+vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
 
 vi.mock("@/shared/ui/Filter/FilterRow", () => ({
   FilterRow: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

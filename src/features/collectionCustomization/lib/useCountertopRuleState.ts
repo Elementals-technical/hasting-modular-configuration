@@ -11,6 +11,7 @@ import {
   getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { buildCountertopRuleState, useCountertopRules } from "@/features/configurator-rule-core/countertop";
+import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import {
@@ -19,9 +20,9 @@ import {
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 
-export type CountertopRuleState = ReturnType<typeof buildCountertopRuleState>;
+export type CountertopRuleState = ReturnType<typeof buildCountertopRuleState> & { activeMaterialTokens: string[] };
 
-/** The countertop matrix judged for the current colour, size, style, basin and thickness. */
+/** The countertop matrix judged for the current colour, sizes, style, basin and thickness. */
 export const useCountertopRuleState = (): CountertopRuleState => {
   const rules = useCountertopRules();
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
@@ -31,7 +32,9 @@ export const useCountertopRuleState = (): CountertopRuleState => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const basinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
-  const sinkBaseDims = useSinkBaseDimensions(useAppSelector(getSelectedProducts));
+  const selectedProducts = useAppSelector(getSelectedProducts);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
+  const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
 
   return useMemo(() => {
     const activeMaterialTokens = resolveCountertopMaterialTokensFromCandidates({
@@ -41,15 +44,19 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(basinStyle),
     });
 
-    return buildCountertopRuleState({
+    const ruleState = buildCountertopRuleState({
       rules,
       activeMaterialTokens,
       width: sinkBaseDims.width ?? selectedDimensions.width,
+      sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width,
+      totalWidth: sceneTotalWidth ?? selectedDimensions.width,
       depth: sinkBaseDims.depth ?? selectedDimensions.depth,
       activeCountertopStyle: countertopStyle,
       activeBasinStyle: basinStyle,
       activeThickness: thickness,
     });
+
+    return { ...ruleState, activeMaterialTokens };
   }, [
     basinStyle,
     configuratorGroups,
@@ -57,6 +64,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
     countertopColorSku,
     countertopStyle,
     rules,
+    sceneTotalWidth,
     selectedDimensions.depth,
     selectedDimensions.width,
     sinkBaseDims.depth,

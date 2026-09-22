@@ -20,7 +20,7 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
-import { selectAttribute, useActiveCollection, useCollectionPresets } from "@/entities/collection";
+import { selectAttribute, selectOptions, useActiveCollection, useCollectionPresets } from "@/entities/collection";
 import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -80,7 +80,6 @@ import {
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 import { trackModularCustomizeClick } from "@/shared/lib/analytics/modularKeyEvents";
-import { optionsMockData3 } from "../countertop/constants";
 
 import s from "./ModelPage.module.scss";
 
@@ -450,7 +449,10 @@ export const ModelPage = () => {
       if (!materialTokens.length) return globalConfig;
 
       const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
-        basinOptions: optionsMockData3,
+        basinOptions: selectOptions(activeProfile, "sinkType").map(({ value, label }) => ({
+          name: value,
+          title: label,
+        })),
         rules: countertopRules,
         activeMaterialTokens: materialTokens,
         activeThickness: globalConfig.Thickness ?? countertopThickness,
@@ -470,7 +472,7 @@ export const ModelPage = () => {
         CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
       };
     },
-    [countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
+    [activeProfile, countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
   );
 
   const applyPresetSelection = useCallback(
@@ -1074,6 +1076,7 @@ export const ModelPage = () => {
 
             <ProductModelsGrid
               data={filteredData}
+              modelStepPath={modelStepPath}
               handleAddPreset={handleAddPreset}
               handleCustomizePreset={handleCustomizePreset}
               createModelBtn={<CreateModelBtn onCreate={handleCreateOwnComposition} />}
