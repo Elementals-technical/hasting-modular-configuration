@@ -19,7 +19,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
 
-import { useCustomizationSectionFields, useCustomizationStepSections } from "../lib/useCustomizationSectionState";
+import { useCustomizationStepSections } from "../lib/useCustomizationSectionState";
 
 const readyCollection = {
   ...readyCollectionFixture,
@@ -32,8 +32,11 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   </ReadyCollectionContext.Provider>
 );
 
-const renderSection = (sectionId: string) =>
-  renderHook(() => useCustomizationSectionFields(sectionId), { wrapper }).result.current;
+const renderStep = (stepId: string) =>
+  renderHook(() => useCustomizationStepSections(stepId), { wrapper }).result.current;
+
+const renderSection = (stepId: string, sectionId: string) =>
+  renderStep(stepId).find((section) => section.sectionId === sectionId)?.fields ?? [];
 
 describe("field availability from the modules that already compute it", () => {
   beforeEach(() => {
@@ -44,30 +47,30 @@ describe("field availability from the modules that already compute it", () => {
 
   it("shows the groove colour only for a handle whose profile option supports it", () => {
     store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
-    expect(renderSection("groove-color")[0]?.field.visible).toBe(false);
+    expect(renderSection("cabinet-colors", "groove-color")[0]?.field.visible).toBe(false);
 
     store.dispatch(setSelectedProductConfig({ Handle: "handle_urban_topcut" }));
-    expect(renderSection("groove-color")[0]?.field.visible).toBe(true);
+    expect(renderSection("cabinet-colors", "groove-color")[0]?.field.visible).toBe(true);
   });
 
   it("shows the towel bar colour only while a towel bar is chosen", () => {
     store.dispatch(setTowelBarOption("None"));
-    expect(renderSection("towel-bar")[1]?.field.visible).toBe(false);
+    expect(renderSection("accessories", "towel-bar")[1]?.field.visible).toBe(false);
 
     store.dispatch(setTowelBarOption("Left"));
-    expect(renderSection("towel-bar")[1]?.field.visible).toBe(true);
+    expect(renderSection("accessories", "towel-bar")[1]?.field.visible).toBe(true);
   });
 
   it("shows the vessel colour only for the vessel countertop style", () => {
     store.dispatch(setCountertopStyle("Integrated"));
-    expect(renderSection("vessel-color")[0]?.field.visible).toBe(false);
+    expect(renderSection("countertop", "vessel-color")[0]?.field.visible).toBe(false);
 
     store.dispatch(setCountertopStyle("Vessel"));
-    expect(renderSection("vessel-color")[0]?.field.visible).toBe(true);
+    expect(renderSection("countertop", "vessel-color")[0]?.field.visible).toBe(true);
   });
 
   it("resolves a step's sections in the order ui.json declares them", () => {
-    const sections = renderHook(() => useCustomizationStepSections("cabinet-colors"), { wrapper }).result.current;
+    const sections = renderStep("cabinet-colors");
 
     expect(sections.map((section) => section.sectionId)).toEqual([
       "cabinet-color-custom",

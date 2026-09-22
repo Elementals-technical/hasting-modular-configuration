@@ -7,10 +7,10 @@ import { renderWithFixtureCollection } from "@/entities/collection/__tests__/fix
 import fixtureUiUi from "@/entities/collection/__tests__/fixtures/collections/fixture-ui/ui.json";
 
 import { FieldControl } from "../ui/FieldControl";
-import { useCustomizationSectionFields } from "../lib/useCustomizationSectionState";
+import { useCustomizationStepSections } from "../lib/useCustomizationSectionState";
 
-const SectionProbe = ({ sectionId }: { sectionId: string }) => {
-  const fields = useCustomizationSectionFields(sectionId);
+const StepProbe = ({ stepId }: { stepId: string }) => {
+  const fields = useCustomizationStepSections(stepId).flatMap((section) => section.fields);
 
   return (
     <div data-testid="section">
@@ -27,13 +27,13 @@ afterEach(cleanup);
 
 describe("a fixture-only field renders through the generic section pipeline", () => {
   it("resolves fixture-ui's TestGrooveFinish swatches field with no collectionId-specific component", () => {
-    renderWithFixtureCollection(<SectionProbe sectionId="test-finish" />, { collectionId: "fixture-ui" });
+    renderWithFixtureCollection(<StepProbe stepId="fixture-finish" />, { collectionId: "fixture-ui" });
 
-    expect(screen.getByTestId("section")).toBeTruthy();
+    expect(screen.getByTestId("field-TestGrooveFinish")).toBeTruthy();
   });
 
-  it("returns no fields for a section the collection's schema doesn't declare", () => {
-    renderWithFixtureCollection(<SectionProbe sectionId="does-not-exist" />, { collectionId: "fixture-ui" });
+  it("returns no fields for a step the collection's schema doesn't declare", () => {
+    renderWithFixtureCollection(<StepProbe stepId="does-not-exist" />, { collectionId: "fixture-ui" });
 
     expect(screen.getByTestId("section").children).toHaveLength(0);
   });
@@ -53,7 +53,7 @@ describe("a fixture-only field renders through the generic section pipeline", ()
       },
     };
 
-    renderWithFixtureCollection(<SectionProbe sectionId="test-finish" />, {
+    renderWithFixtureCollection(<StepProbe stepId="fixture-finish" />, {
       collectionId: "fixture-ui",
       uiDocument: mutatedUi,
     });
@@ -71,7 +71,7 @@ describe("a fixture-only field renders through the generic section pipeline", ()
       },
     };
 
-    renderWithFixtureCollection(<SectionProbe sectionId="test-finish" />, {
+    renderWithFixtureCollection(<StepProbe stepId="fixture-finish" />, {
       collectionId: "fixture-ui",
       uiDocument: mutatedUi,
     });

@@ -122,6 +122,27 @@ describe("validateCustomizationSchema", () => {
     expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-control" }));
   });
 
+  it("rejects field hints that are not strings", () => {
+    const broken = {
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", hints: { "1": 1 } }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.faucet-holes-amount.fields[0].hints" }),
+    );
+  });
+
   it("rejects a non-object input", () => {
     const result = validateCustomizationSchema(null);
 

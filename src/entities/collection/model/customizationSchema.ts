@@ -9,11 +9,9 @@ export const CUSTOMIZATION_SCREEN_IDS = [
   "prebuilt-cabinet",
   "prebuilt-countertop",
   "prebuilt-accessories",
-  "prebuilt-faucet-holes",
   "custom-cabinet-colors",
   "custom-countertop",
   "custom-accessories",
-  "custom-faucet-holes",
   "custom-summary",
 ] as const;
 
@@ -51,6 +49,8 @@ export type CustomizationFieldDefinition = {
   control: CustomizationFieldControl;
   optionsRef?: string;
   availabilityRef?: string;
+  /** Text under the control, keyed by the selected option value. */
+  hints?: Record<string, string>;
 };
 
 export type CustomizationSectionDefinition = {
@@ -89,6 +89,8 @@ export type FieldRuntimeState = {
   visible: boolean;
   enabled: boolean;
   disabledReason?: string;
+  /** The hint ui.json declares for the current value. */
+  hint?: string;
   loading?: boolean;
   error?: string;
 };

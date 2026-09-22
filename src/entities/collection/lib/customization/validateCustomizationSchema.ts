@@ -172,6 +172,17 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
           });
         }
       }
+
+      if (
+        field.hints !== undefined &&
+        (!isRecord(field.hints) || !Object.values(field.hints).every(isNonEmptyString))
+      ) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.hints`,
+          message: "hints must map option values to non-empty strings",
+        });
+      }
     });
   }
 };

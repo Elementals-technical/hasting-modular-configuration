@@ -8,7 +8,7 @@ export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigat
 export { useCollectionNavigate } from "./lib/useCollectionNavigate";
 export { withPreservedEntrySearch } from "./lib/withPreservedEntrySearch";
 export { resolveSectionFields } from "./lib/resolveSectionState";
-export { useCustomizationSectionFields, useCustomizationStepSections } from "./lib/useCustomizationSectionState";
+export { useCustomizationStepSections } from "./lib/useCustomizationSectionState";
 export { buildConfiguratorOptions } from "./lib/buildConfiguratorOptions";
 export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { selectOptionLabel, useOptionLabel } from "./lib/selectOptionLabel";

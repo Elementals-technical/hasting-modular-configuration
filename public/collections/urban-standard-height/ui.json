@@ -8,7 +8,7 @@
         { "stepId": "cabinet", "path": "/prebuilt/color", "screen": "prebuilt-cabinet" },
         { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "prebuilt-countertop" },
         { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "prebuilt-accessories" },
-        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes", "screen": "prebuilt-faucet-holes" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
       ]
     },
@@ -19,7 +19,7 @@
         { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors", "screen": "custom-cabinet-colors" },
         { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "custom-countertop" },
         { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "custom-accessories" },
-        { "stepId": "faucet-holes", "path": "/custom/faucet-holes", "screen": "custom-faucet-holes" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
         { "stepId": "summary", "path": "/custom/summary", "screen": "custom-summary" }
       ]
     }
@@ -220,7 +220,18 @@
     "faucet-holes-amount": {
       "label": "Faucet Holes",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "FaucetHolesAmount", "control": "swatches" }]
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed",
+          "hints": {
+            "1": "Faucet hole placement to be specified at time of order.",
+            "2": "Faucet hole placement and spacing to be specified at time of order.",
+            "3": "Faucet hole placement and spacing to be specified at time of order."
+          }
+        }
+      ]
     }
   }
 }

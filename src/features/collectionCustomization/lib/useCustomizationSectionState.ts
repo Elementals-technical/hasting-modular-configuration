@@ -104,15 +104,6 @@ const useSectionInputs = () => {
   return { schema, configurator, profile, productOptions, availabilityResults };
 };
 
-export const useCustomizationSectionFields = (sectionId: string): ResolvedCustomizationField[] => {
-  const { schema, configurator, profile, productOptions, availabilityResults } = useSectionInputs();
-
-  return useMemo(
-    () => resolveSectionFields(schema, sectionId, profile, productOptions, availabilityResults, configurator),
-    [availabilityResults, configurator, productOptions, profile, schema, sectionId],
-  );
-};
-
 export const useCustomizationStepSections = (stepId: string): ResolvedCustomizationSection[] => {
   const { schema, configurator, profile, productOptions, availabilityResults } = useSectionInputs();
 
