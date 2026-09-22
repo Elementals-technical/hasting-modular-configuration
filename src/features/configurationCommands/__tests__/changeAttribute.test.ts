@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import type { ProductProfile } from "@/entities/collection";
+import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import type { ProductProfile, ScenePatch } from "@/entities/collection";
+import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
+import { buildCountertopStyleOptions } from "@/features/collectionCustomization";
 import {
   getAttributeValue,
   getCabinetEntries,
@@ -28,7 +31,7 @@ import {
 import { changeAttribute } from "../lib/changeAttribute";
 import type { ChangeAttributeDeps } from "../lib/changeAttribute";
 import { confirmAttributeChange } from "../lib/confirmAttributeChange";
-import { createTestRuntimePort } from "@/features/playCanvasAdapter";
+import { createPlayCanvasRuntimePort, createTestRuntimePort } from "@/features/playCanvasAdapter";
 import type { TestRuntimePort } from "@/features/playCanvasAdapter";
 import type { AttributeChange } from "../model/types";
 
@@ -468,5 +471,50 @@ describe("changeAttribute with a synthetic fourth handle", () => {
     });
 
     expect(result).toMatchObject({ status: "blocked" });
+  });
+});
+
+/**
+ * The countertop step offers the styles its catalog builds from the profile, and the options
+ * grid hands the command the value the picked card carries. The collection's value map is keyed
+ * by the option value, so a catalog carrying only the label reached the scene as "unknown-value"
+ * and the page's `status !== "applied"` guard dropped the click without a word.
+ */
+describe("changeAttribute for a value the collection maps for the scene", () => {
+  const scenePatches: ScenePatch[] = [];
+
+  const sceneRuntime = createPlayCanvasRuntimePort({
+    getBindings: () => ushRuntimeBindings,
+    scene: {
+      isReady: () => true,
+      async apply(_selector, patch) {
+        scenePatches.push(patch);
+        return { status: "applied", updatedIds: null };
+      },
+    },
+  });
+
+  /** What ProductOptionsGrid hands the command when a card is clicked. */
+  const clickedValue = ({ title, name, metadata }: ProductOptionData) => metadata?.value ?? name ?? title;
+  const clickedStyles = buildCountertopStyleOptions(profile).map((option) => [option.title, clickedValue(option)]);
+
+  beforeEach(() => {
+    scenePatches.length = 0;
+  });
+
+  it.each(clickedStyles)("applies the %s countertop style the page offers", async (_title, style) => {
+    const result = await changeAttribute(
+      { attributeId: "CountertopStyle", value: style, scope: "countertop" },
+      {
+        getState: () => store.getState(),
+        dispatch: (action) => store.dispatch(action),
+        runtime: sceneRuntime,
+        flow: "prebuilt",
+      },
+    );
+
+    expect(result.status).toBe("applied");
+    expect(scenePatches).toHaveLength(1);
+    expect(store.getState().rootStateUI.product.productOptions.CountertopStyle).toBe(style);
   });
 });

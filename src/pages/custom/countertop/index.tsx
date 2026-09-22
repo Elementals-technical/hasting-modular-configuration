@@ -215,7 +215,9 @@ export const CustomCountertopPage = () => {
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
   const [selectedVesselFilter, setSelectedVesselFilter] = useState<MaterialFilterSelection>({});
   const hasSelectedMaterial = Boolean(activeCountertopColor);
-  const isVesselStyle = (activeCountertopStyle ?? "").trim().toLowerCase() === "vessel";
+  // The active style as the profile spells it: a saved configuration may carry the legacy "Vessel".
+  const countertopStyle = (activeCountertopStyle ?? "").trim().toLowerCase();
+  const isVesselStyle = countertopStyle === "vessel";
 
   useEffect(() => {
     setActiveVesselColor(storedVesselColor);
@@ -1152,11 +1154,11 @@ export const CustomCountertopPage = () => {
   const filteredStyleOptions = useMemo(
     () =>
       styleCatalog.map((option) => {
-        const normalizedStyle = option.title.trim().toLowerCase();
-        const isIntegrated = normalizedStyle === "integrated";
+        const style = option.name;
+        const isIntegrated = style === "integrated";
         const styleState =
-          normalizedStyle === "integrated" || normalizedStyle === "vessel" || normalizedStyle === "undermount"
-            ? ruleState.styleAvailability[normalizedStyle]
+          style === "integrated" || style === "vessel" || style === "undermount"
+            ? ruleState.styleAvailability[style]
             : null;
         const blockedByRules = styleState ? !styleState.isAvailable : false;
         const blockedByDepth = isDepth46VesselOnly && isIntegrated && styleState?.isAvailable !== true;
@@ -1181,22 +1183,19 @@ export const CustomCountertopPage = () => {
     [activeProfile, isDepth46VesselOnly, ruleState.styleAvailability, styleCatalog],
   );
   const isActiveCountertopStyleAvailable = useMemo(() => {
-    const normalizedActiveStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
-    if (!normalizedActiveStyle) return false;
+    if (!countertopStyle) return false;
 
     return filteredStyleOptions.some((option) => {
       if (option.isAvailable === false) return false;
-      return option.title.trim().toLowerCase() === normalizedActiveStyle;
+      return option.name === countertopStyle;
     });
-  }, [activeCountertopStyle, filteredStyleOptions]);
+  }, [countertopStyle, filteredStyleOptions]);
   const basinSelectionStyle = useMemo(() => {
-    if (isActiveCountertopStyleAvailable) {
-      return activeCountertopStyle?.trim().toLowerCase() ?? "";
-    }
+    if (isActiveCountertopStyleAvailable) return countertopStyle;
 
     const firstAvailable = filteredStyleOptions.find((option) => option.isAvailable !== false);
-    return firstAvailable?.title?.trim().toLowerCase() ?? "";
-  }, [activeCountertopStyle, filteredStyleOptions, isActiveCountertopStyleAvailable]);
+    return firstAvailable?.name ?? "";
+  }, [countertopStyle, filteredStyleOptions, isActiveCountertopStyleAvailable]);
   const isBasinSelectionVesselStyle = basinSelectionStyle === "vessel";
   const activeBasinOptionValue =
     isBasinSelectionVesselStyle && !activeBasinStyle ? VESSEL_SINK_NONE_OPTION_VALUE : activeBasinStyle;
@@ -1676,15 +1675,15 @@ export const CustomCountertopPage = () => {
     await saveSnapshot();
     console.log("basinStyle", basinStyle);
     if (basinStyle === VESSEL_SINK_NONE_OPTION_VALUE) {
-      if ((activeCountertopStyle ?? "").trim().toLowerCase() !== "vessel") {
-        await changeAttributeValue({ attributeId: "CountertopStyle", value: "Vessel", scope: "countertop" });
+      if (!isVesselStyle) {
+        await changeAttributeValue({ attributeId: "CountertopStyle", value: "vessel", scope: "countertop" });
       }
       await applyVesselCutout();
       return;
     }
     if (basinStyle.startsWith("Vessel_")) {
-      if ((activeCountertopStyle ?? "").trim().toLowerCase() !== "vessel") {
-        await changeAttributeValue({ attributeId: "CountertopStyle", value: "Vessel", scope: "countertop" });
+      if (!isVesselStyle) {
+        await changeAttributeValue({ attributeId: "CountertopStyle", value: "vessel", scope: "countertop" });
       }
       // Toggle: clicking the already-selected vessel reverts to empty cutout
       if (activeBasinStyle === basinStyle) {
@@ -1958,7 +1957,7 @@ export const CustomCountertopPage = () => {
         <ProductOptionsGrid
           data={filteredStyleOptions}
           handleAdd={handleCountertopStyle}
-          activeValue={activeCountertopStyle}
+          activeValue={countertopStyle}
         />
       ),
     },

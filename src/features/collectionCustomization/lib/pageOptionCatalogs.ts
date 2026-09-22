@@ -16,11 +16,12 @@ import {
 
 const withImage = (image: string | undefined) => (image ? { image } : {});
 
-/** CountertopStyle: `title` is the label, the style is read from it lower-cased. */
+/** CountertopStyle: `name` is the style value the command takes, `title` its label. */
 export const buildCountertopStyleOptions = (profile: ProductProfile | null) =>
   selectOptions(profile, "CountertopStyle").map((option, index) => ({
     id: 2001 + index,
     title: option.label,
+    name: option.value,
     isShortDesc: false,
     metadata: withImage(countertopStyleOptionImages[option.value]),
   }));
