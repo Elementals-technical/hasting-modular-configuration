@@ -9,7 +9,7 @@ export { useCollectionNavigate } from "./lib/useCollectionNavigate";
 export { withPreservedEntrySearch } from "./lib/withPreservedEntrySearch";
 export { resolveSectionFields } from "./lib/resolveSectionState";
 export { useCustomizationStepSections } from "./lib/useCustomizationSectionState";
-export { buildConfiguratorOptions } from "./lib/buildConfiguratorOptions";
+export { buildConfiguratorOptions, fromCsv, pick } from "./lib/buildConfiguratorOptions";
 export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { selectOptionLabel, useOptionLabel } from "./lib/selectOptionLabel";
 export { FieldControl } from "./ui/FieldControl";

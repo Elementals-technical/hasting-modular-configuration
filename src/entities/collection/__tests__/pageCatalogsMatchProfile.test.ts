@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { COUNTERTOP_THICKNESS_OPTIONS } from "@/entities/countertop";
-import * as prebuiltCountertop from "@/pages/prebuilt/countertop/constants";
-import * as customCountertop from "@/pages/custom/countertop/constants";
 import * as prebuiltAccessories from "@/pages/prebuilt/accessories/constants";
 import * as customAccessories from "@/pages/custom/accessories/constants";
 
 import { ushProfile } from "./ushProfileFixture";
-import { selectBasinOptions, selectOptions } from "../lib/productProfileSelectors";
+import { selectOptions } from "../lib/productProfileSelectors";
 
 /**
- * DEV-06/07 handoff to B06: the pages still list basins, thicknesses and accessories from their
- * own constants. The USH profile already declares the same catalogs, so a page can switch to
+ * DEV-06/07 handoff to B06: the accessories pages still list their options from their own constants. The USH profile already declares the same catalogs, so a page can switch to
  * `selectOptions` / `selectBasinOptions` without losing an option or changing a label. Only the
  * pictures stay on the page, as a map from option value to image.
  *
@@ -26,25 +23,6 @@ const pairsOf = (options: readonly PageOption[], valueKey: "name" | "value") =>
 
 const profilePairs = (attributeId: string) =>
   selectOptions(ushProfile, attributeId).map(({ value, label }) => [value, label]);
-
-describe.each([
-  ["prebuilt", prebuiltCountertop],
-  ["custom", customCountertop],
-])("%s countertop page constants", (_flow, constants) => {
-  it("list every basin of the profile, with its value and label, in the same order", () => {
-    const basins = [...selectBasinOptions(ushProfile, "integrated"), ...selectBasinOptions(ushProfile, "vessel")];
-
-    expect(pairsOf(constants.optionsMockData3 as PageOption[], "name")).toEqual(
-      basins.map(({ value, label }) => [value, label]),
-    );
-  });
-
-  it("list the countertop styles of the profile", () => {
-    expect(labelsOf(constants.optionsMockData2 as PageOption[])).toEqual(
-      selectOptions(ushProfile, "CountertopStyle").map(({ label }) => label),
-    );
-  });
-});
 
 describe("countertop thicknesses", () => {
   it("are the Thickness options of the profile", () => {

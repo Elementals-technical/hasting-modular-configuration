@@ -6,7 +6,7 @@
       "steps": [
         { "stepId": "model", "path": "/prebuilt/model" },
         { "stepId": "cabinet", "path": "/prebuilt/color", "screen": "prebuilt-cabinet" },
-        { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "prebuilt-countertop" },
+        { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "countertop" },
         { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "prebuilt-accessories" },
         { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
@@ -17,7 +17,7 @@
       "steps": [
         { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
         { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors", "screen": "custom-cabinet-colors" },
-        { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "custom-countertop" },
+        { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "countertop" },
         { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "custom-accessories" },
         { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
         { "stepId": "summary", "path": "/custom/summary", "screen": "custom-summary" }
@@ -141,7 +141,7 @@
     },
     "thickness": {
       "label": "Thickness",
-      "fields": [{ "attributeId": "Thickness", "control": "options-grid" }]
+      "fields": [{ "attributeId": "Thickness", "control": "swatches" }]
     },
     "countertop-styles": {
       "label": "Countertop Style",
@@ -162,7 +162,7 @@
     },
     "thickness-custom": {
       "label": "Thickness",
-      "fields": [{ "attributeId": "Thickness", "control": "options-grid" }]
+      "fields": [{ "attributeId": "Thickness", "control": "swatches" }]
     },
     "countertop-style": {
       "label": "Countertop Style",

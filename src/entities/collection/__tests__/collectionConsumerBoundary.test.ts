@@ -73,14 +73,24 @@ const expectedCounts = (list: Record<string, CountedResidue>) =>
  * so the list only shrinks (DEV-10).
  */
 const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
-  "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
+  "/src/widgets/CountertopSections/ui/CountertopSections.tsx": {
     owner: "B",
-    count: 7,
+    count: 4,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/custom/countertop/index.tsx": {
+  "/src/widgets/CountertopSections/lib/useBasinState.ts": {
     owner: "B",
-    count: 7,
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useVesselColorState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useCountertopResets.ts": {
+    owner: "B",
+    count: 1,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
   "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
@@ -155,14 +165,24 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     count: 3,
     reason: "C06 phase 5: dividers option and style through the command",
   },
-  "/src/pages/prebuilt/countertop/CountertopPage.tsx": {
+  "/src/widgets/CountertopSections/ui/CountertopSections.tsx": {
     owner: "B",
-    count: 10,
+    count: 5,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/custom/countertop/index.tsx": {
+  "/src/widgets/CountertopSections/lib/useBasinState.ts": {
     owner: "B",
-    count: 10,
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useVesselColorState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useCountertopResets.ts": {
+    owner: "B",
+    count: 1,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
   "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
@@ -186,8 +206,22 @@ const legacyAliasLookups = [/\bgetMaterialAliases\([^,()]+\)/, /\bmaterialMatche
  * `materialAliases.test.ts`. The rule files take the table once their callers pass the profile.
  */
 const PENDING_LEGACY_ALIAS_CALLERS: Record<string, Residue> = {
-  "/src/pages/prebuilt/countertop/CountertopPage.tsx": { owner: "B", reason: "B06: material filters of the page" },
-  "/src/pages/custom/countertop/index.tsx": { owner: "B", reason: "B06: material filters of the page" },
+  "/src/widgets/CountertopSections/lib/useBasinState.ts": {
+    owner: "B",
+    reason: "B06: basin rules of the countertop step",
+  },
+  "/src/widgets/CountertopSections/lib/basinOptions.ts": {
+    owner: "B",
+    reason: "B06: basin rules of the countertop step",
+  },
+  "/src/widgets/CountertopSections/lib/materialCompatibility.ts": {
+    owner: "B",
+    reason: "B06: material filters of the countertop step",
+  },
+  "/src/widgets/CountertopSections/lib/countertopColorOptions.ts": {
+    owner: "B",
+    reason: "B06: material filters of the countertop step",
+  },
   "/src/features/configurator-rule-core/countertop/basinSelection.ts": {
     owner: "C",
     reason: "called without a profile by the model page",
@@ -216,14 +250,6 @@ const PENDING_LEGACY_ALIAS_CALLERS: Record<string, Residue> = {
  * `selectOptions` / `selectBasinOptions`, see docs/b06-profile-options-handoff.md.
  */
 const PENDING_PAGE_CATALOGS: Record<string, { owner: "B"; constants: string[] }> = {
-  "/src/pages/prebuilt/countertop/constants.ts": {
-    owner: "B",
-    constants: ["optionsMockData2", "optionsMockData3", "optionsMockData4"],
-  },
-  "/src/pages/custom/countertop/constants.ts": {
-    owner: "B",
-    constants: ["optionsMockData2", "optionsMockData3", "optionsMockData4"],
-  },
   "/src/pages/prebuilt/accessories/constants.ts": {
     owner: "B",
     constants: ["optionsSidePanelsData", "optionsSwatchData2", "optionsSwatchDataTowel", "dividersMockData"],
@@ -277,9 +303,15 @@ describe("active collection consumer boundary", () => {
 
   it("counts every action creator the command commits", () => {
     const commitChange = sourceModules["/src/features/configurationCommands/lib/commitChange.ts"] ?? "";
-    const imported = commitChange.match(/import \{([^}]*)\} from "@\/entities\/product\/model\/store\/slice"/)?.[1] ?? "";
+    const imported =
+      commitChange.match(/import \{([^}]*)\} from "@\/entities\/product\/model\/store\/slice"/)?.[1] ?? "";
     // Selection, preset and pricing inputs are not values the command alone owns.
-    const notOwned = ["addProductPreset", "setSelectedProductConfig", "setSelectedDimensions", "setHandleGrooveColorSku"];
+    const notOwned = [
+      "addProductPreset",
+      "setSelectedProductConfig",
+      "setSelectedDimensions",
+      "setHandleGrooveColorSku",
+    ];
     const committed = imported
       .split(",")
       .map((name) => name.trim())

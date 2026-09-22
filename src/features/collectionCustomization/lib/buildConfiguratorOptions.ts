@@ -7,10 +7,11 @@ import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisi
 
 import type { FieldOptionState } from "@/entities/collection";
 
-const pick = (...values: unknown[]): string | undefined =>
+/** The first non-empty string among configurator metadata candidates. */
+export const pick = (...values: unknown[]): string | undefined =>
   values.find((value): value is string => typeof value === "string" && value.length > 0);
 
-const fromCsv = (value: unknown): string[] =>
+export const fromCsv = (value: unknown): string[] =>
   typeof value === "string"
     ? value
         .split(",")
