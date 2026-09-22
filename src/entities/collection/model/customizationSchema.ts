@@ -7,10 +7,9 @@ export type CustomizationFlowId = (typeof CUSTOMIZATION_FLOW_IDS)[number];
 
 export const CUSTOMIZATION_SCREEN_IDS = [
   "prebuilt-cabinet",
-  "prebuilt-accessories",
   "custom-cabinet-colors",
   "countertop",
-  "custom-accessories",
+  "accessories",
   "custom-summary",
 ] as const;
 

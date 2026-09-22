@@ -7,7 +7,7 @@
         { "stepId": "model", "path": "/prebuilt/model" },
         { "stepId": "cabinet", "path": "/prebuilt/color", "screen": "prebuilt-cabinet" },
         { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "countertop" },
-        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "prebuilt-accessories" },
+        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "accessories" },
         { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
       ]
@@ -18,7 +18,7 @@
         { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
         { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors", "screen": "custom-cabinet-colors" },
         { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "countertop" },
-        { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "custom-accessories" },
+        { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "accessories" },
         { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
         { "stepId": "summary", "path": "/custom/summary", "screen": "custom-summary" }
       ]
@@ -183,7 +183,10 @@
     },
     "dividers": {
       "label": "Dividers",
-      "fields": [{ "attributeId": "DividersOption", "control": "swatches" }]
+      "fields": [
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
+      ]
     },
     "towel-bar": {
       "label": "Towel Bar",
@@ -199,7 +202,10 @@
     },
     "dividers-custom": {
       "label": "Dividers",
-      "fields": [{ "attributeId": "DividersOption", "control": "swatches" }]
+      "fields": [
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
+      ]
     },
     "tovel-bar": {
       "label": "Towel Bar",

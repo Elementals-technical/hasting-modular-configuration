@@ -93,15 +93,15 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 1,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
+  "/src/widgets/AccessoriesSections/ui/AccessoriesSections.tsx": {
     owner: "B",
-    count: 2,
-    reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
+    count: 1,
+    reason: "C06 phase 2: towel bar reset effect",
   },
-  "/src/pages/custom/accessories/index.tsx": {
+  "/src/widgets/AccessoriesSections/lib/useDividersState.ts": {
     owner: "B",
-    count: 2,
-    reason: "C06 phases 2, 5: towel bar reset effect, dividers None through the command",
+    count: 1,
+    reason: "C06 phase 5: dividers None through the command",
   },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "B",
@@ -155,12 +155,7 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
 const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
-  "/src/pages/prebuilt/accessories/AccessoriesPage.tsx": {
-    owner: "B",
-    count: 3,
-    reason: "C06 phase 5: dividers option and style through the command",
-  },
-  "/src/pages/custom/accessories/index.tsx": {
+  "/src/widgets/AccessoriesSections/lib/useDividersState.ts": {
     owner: "B",
     count: 3,
     reason: "C06 phase 5: dividers option and style through the command",
@@ -249,16 +244,7 @@ const PENDING_LEGACY_ALIAS_CALLERS: Record<string, Residue> = {
  * the same values and labels (`pageCatalogsMatchProfile.test.ts`); B06 replaces them with
  * `selectOptions` / `selectBasinOptions`, see docs/b06-profile-options-handoff.md.
  */
-const PENDING_PAGE_CATALOGS: Record<string, { owner: "B"; constants: string[] }> = {
-  "/src/pages/prebuilt/accessories/constants.ts": {
-    owner: "B",
-    constants: ["optionsSidePanelsData", "optionsSwatchData2", "optionsSwatchDataTowel", "dividersMockData"],
-  },
-  "/src/pages/custom/accessories/constants.ts": {
-    owner: "B",
-    constants: ["optionsSidePanelsData", "optionsSwatchData2", "optionsSwatchDataTowel", "dividersMockData"],
-  },
-};
+const PENDING_PAGE_CATALOGS: Record<string, { owner: "B"; constants: string[] }> = {};
 
 const findOffenders = (patterns: RegExp[]) =>
   productionSources.flatMap(([path, source]) =>

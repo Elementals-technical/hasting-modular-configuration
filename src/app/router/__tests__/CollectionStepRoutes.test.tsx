@@ -30,9 +30,8 @@ vi.mock("@/pages", () => {
     SummaryPage: () => <Page name="summary" />,
     CabinetPage: () => <Page name="cabinet" />,
     CountertopPage: ({ stepId }: { stepId: string }) => <Page name={`countertop ${stepId}`} />,
-    AccessoriesPage: () => <Page name="accessories" />,
+    AccessoriesPage: ({ stepId }: { stepId: string }) => <Page name={`accessories ${stepId}`} />,
     CustomCabinetColorsPage: () => <Page name="custom cabinet colors" />,
-    CustomAccessoriesPage: () => <Page name="custom accessories" />,
     CustomSummaryPage: () => <Page name="custom summary" />,
   };
 });
@@ -140,14 +139,14 @@ describe("CollectionStepRoutes builds the step routes from the collection's ui.j
       ["/prebuilt/model", "model"],
       ["/prebuilt/color", "cabinet"],
       ["/prebuilt/countertop", "countertop countertop"],
-      ["/prebuilt/accessories", "accessories"],
+      ["/prebuilt/accessories", "accessories accessories"],
       ["/prebuilt/faucet-holes", "fields faucet-holes"],
       ["/prebuilt/summary", "summary"],
       ["/custom/cabinet-builder", "cabinet builder"],
       ["/custom/cabinet-builder/details/style", "cabinet style details"],
       ["/custom/cabinet-colors", "custom cabinet colors"],
       ["/custom/countertop", "countertop countertop-custom"],
-      ["/custom/accessories", "custom accessories"],
+      ["/custom/accessories", "accessories accessories-custom"],
       ["/custom/faucet-holes", "fields faucet-holes"],
       ["/custom/summary", "custom summary"],
     ];

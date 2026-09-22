@@ -9,7 +9,6 @@ vi.mock("@/pages", () => {
 
   return {
     CustomCabinetColorsPage: () => <Page name="custom cabinet colors" />,
-    CustomAccessoriesPage: () => <Page name="custom accessories" />,
     CustomSummaryPage: () => <Page name="custom summary" />,
     HomePage: () => <Outlet />,
     ModelPage: () => <Page name="model" />,
