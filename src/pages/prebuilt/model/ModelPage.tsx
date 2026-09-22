@@ -1076,6 +1076,7 @@ export const ModelPage = () => {
 
             <ProductModelsGrid
               data={filteredData}
+              modelStepPath={modelStepPath}
               handleAddPreset={handleAddPreset}
               handleCustomizePreset={handleCustomizePreset}
               createModelBtn={<CreateModelBtn onCreate={handleCreateOwnComposition} />}

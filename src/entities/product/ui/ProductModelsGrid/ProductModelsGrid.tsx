@@ -6,6 +6,7 @@ import s from "./ProductModelsGrid.module.scss";
 
 interface ProductModelsGridI {
   data: ProductModel[];
+  modelStepPath: string;
   createModelBtn?: React.ReactNode;
   handleAddPreset: (presetProducts?: PresetProduct[], presetId?: number) => void;
   handleCustomizePreset: (presetProducts?: PresetProduct[]) => void;
@@ -15,6 +16,7 @@ interface ProductModelsGridI {
 
 export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
   data,
+  modelStepPath,
   createModelBtn,
   handleAddPreset,
   handleCustomizePreset,
@@ -39,6 +41,7 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
                 desc={preset.desc}
                 price={preset.price}
                 isProductModel={true}
+                detailsPath={`${modelStepPath}/${preset.id}`}
                 presetProducts={preset.presetProducts}
                 onSelect={handleAddPreset}
                 onCustomize={handleCustomizePreset}

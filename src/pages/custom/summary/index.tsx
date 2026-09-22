@@ -146,7 +146,7 @@ import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
 import s from "./SummaryPage.module.scss";
-import { useCollectionNavigate } from "@/features/collectionCustomization";
+import { useCollectionNavigate, useStepPathById } from "@/features/collectionCustomization";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
@@ -240,17 +240,18 @@ export const CustomSummaryPage = () => {
   const [openEditMenuSectionId, setOpenEditMenuSectionId] = useState<string | null>(null);
   const editMenuRef = useRef<HTMLDivElement | null>(null);
   const lastSavedHashRef = useRef<string | null>(null);
-  const editPathBySectionId = useMemo<Record<string, string>>(
-    () => ({
-      cabinet: "/custom/cabinet-colors",
-      "cabinet-options": "/custom/cabinet-colors",
-      countertop: "/custom/countertop",
-      basin: "/custom/countertop",
-      accessories: "/custom/accessories",
-      faucet: "/custom/faucet-holes",
-    }),
-    [],
-  );
+  const stepPathById = useStepPathById("custom");
+  const editPathBySectionId = useMemo<Record<string, string>>(() => {
+    const entries: Array<[string, string | undefined]> = [
+      ["cabinet", stepPathById["cabinet-colors"]],
+      ["cabinet-options", stepPathById["cabinet-colors"]],
+      ["countertop", stepPathById["countertop-custom"]],
+      ["basin", stepPathById["countertop-custom"]],
+      ["accessories", stepPathById["accessories-custom"]],
+      ["faucet", stepPathById["faucet-holes"]],
+    ];
+    return Object.fromEntries(entries.filter((entry): entry is [string, string] => Boolean(entry[1])));
+  }, [stepPathById]);
 
   const buildConfigurationRequest = useBuildConfigurationRequest();
   const priceResult = usePriceResult();
@@ -348,23 +349,18 @@ export const CustomSummaryPage = () => {
     [navigate],
   );
 
-  const cabinetEditMenuItems = useMemo<DropdownItem[]>(
-    () => [
-      {
-        id: "cabinet-builder",
-        label: "Cabinet Builder",
-        trailing: <ArrowTopRight color="#333" />,
-        onClick: () => handleCabinetEditMenuNavigate("/custom/cabinet-builder"),
-      },
-      {
-        id: "color",
-        label: "Color",
-        trailing: <ArrowTopRight color="#333" />,
-        onClick: () => handleCabinetEditMenuNavigate("/custom/cabinet-colors"),
-      },
-    ],
-    [handleCabinetEditMenuNavigate],
-  );
+  const cabinetEditMenuItems = useMemo<DropdownItem[]>(() => {
+    const items: Array<{ id: string; label: string; path: string | undefined }> = [
+      { id: "cabinet-builder", label: "Cabinet Builder", path: stepPathById["cabinet-builder"] },
+      { id: "color", label: "Color", path: stepPathById["cabinet-colors"] },
+    ];
+
+    return items.flatMap(({ id, label, path }) =>
+      path
+        ? [{ id, label, trailing: <ArrowTopRight color="#333" />, onClick: () => handleCabinetEditMenuNavigate(path) }]
+        : [],
+    );
+  }, [handleCabinetEditMenuNavigate, stepPathById]);
 
   useEffect(() => {
     if (!openEditMenuSectionId) return;
