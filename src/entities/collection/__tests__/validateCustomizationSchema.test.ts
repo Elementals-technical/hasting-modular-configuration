@@ -203,6 +203,21 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  it("rejects a section label for the vessel style that is not a string", () => {
+    const broken = {
+      ...uiJson,
+      sections: { ...uiJson.sections, "basin-style": { ...uiJson.sections["basin-style"], labelWhenVessel: 3 } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.basin-style.labelWhenVessel" }),
+    );
+  });
+
   it("rejects a non-object input", () => {
     const result = validateCustomizationSchema(null);
 

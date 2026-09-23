@@ -59,6 +59,12 @@ export type CustomizationSectionDefinition = {
   fields: CustomizationFieldDefinition[];
   /** false drops the section from its step, without clearing the values of its fields. */
   enabled?: boolean;
+  /**
+   * Label of the basin section while the countertop style is vessel, where the section lists
+   * vessel sinks rather than integrated basins. A collection that names the two the same, or
+   * offers no vessel, declares only `label`.
+   */
+  labelWhenVessel?: string;
 };
 
 /**

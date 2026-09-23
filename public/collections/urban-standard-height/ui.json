@@ -192,7 +192,8 @@
       "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
     },
     "basin-style": {
-      "label": "Basin style / Vessel Sink Style",
+      "label": "Basin style",
+      "labelWhenVessel": "Vessel Sink Style",
       "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
     },
     "vessel-color": {
@@ -213,7 +214,8 @@
       "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
     },
     "basin-style-custom": {
-      "label": "Basin style / Vessel Sink Style",
+      "label": "Basin style",
+      "labelWhenVessel": "Vessel Sink Style",
       "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
     },
     "vessel-color-custom": {

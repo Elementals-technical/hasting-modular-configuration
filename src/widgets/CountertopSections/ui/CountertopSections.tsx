@@ -288,10 +288,19 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
   return sections.flatMap((section) => {
     const visibleFields = section.fields.filter(({ field }) => field.visible);
     if (!visibleFields.length) return [];
+
+    // The basin section lists vessel sinks while the style is vessel, and the collection may
+    // name that list differently.
+    const listsBasins = visibleFields.some(({ definition }) => definition.attributeId === "sinkType");
+    const label =
+      listsBasins && basinState.isBasinSelectionVesselStyle
+        ? (section.labelWhenVessel ?? section.label)
+        : section.label;
+
     return [
       {
         sectionId: section.sectionId,
-        label: section.label,
+        label,
         defaultOpen: section.defaultOpen,
         content: visibleFields.map(renderField),
       },

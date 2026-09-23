@@ -28,6 +28,8 @@ export type { ResolvedCustomizationField } from "./resolveSectionState";
 export type ResolvedCustomizationSection = {
   sectionId: string;
   label: string;
+  /** The countertop step's label for this section while the style is vessel; absent otherwise. */
+  labelWhenVessel?: string;
   defaultOpen: boolean;
   fields: ResolvedCustomizationField[];
 };
@@ -129,6 +131,7 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
           {
             sectionId,
             label: section.label,
+            ...(section.labelWhenVessel ? { labelWhenVessel: section.labelWhenVessel } : {}),
             defaultOpen: section.defaultOpen ?? false,
             fields: resolveSectionFields(schema, sectionId, profile, productOptions, availabilityResults, configurator),
           },

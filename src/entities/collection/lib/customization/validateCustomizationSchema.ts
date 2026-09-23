@@ -158,6 +158,14 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
     );
     validateOptionalBoolean(section.enabled, `sections.${sectionId}.enabled`, "enabled must be a boolean", diagnostics);
 
+    if (section.labelWhenVessel !== undefined && !isNonEmptyString(section.labelWhenVessel)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `sections.${sectionId}.labelWhenVessel`,
+        message: "labelWhenVessel must be a non-empty string",
+      });
+    }
+
     section.fields.forEach((field: unknown, index: number) => {
       const path = `sections.${sectionId}.fields[${index}]`;
       const control = isRecord(field) ? field.control : undefined;
