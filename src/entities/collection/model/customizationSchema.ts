@@ -1,4 +1,5 @@
 import type { AttributeValue } from "@/entities/configuration";
+import type { MessageParams } from "@/shared/lib/reasonText";
 import type { OptionState } from "@/features/configurator-rule-core/cabinetBuilder";
 
 export const CUSTOMIZATION_FLOW_IDS = ["prebuilt", "custom"] as const;
@@ -97,6 +98,8 @@ export type FieldOptionTraits = {
 };
 
 export type FieldOptionState = OptionState<string> & {
+  /** Values the option's reason code names; the interface fills them into its text. */
+  reasonParams?: MessageParams;
   image?: string;
   /** Group the option is shown under, e.g. the material of a colour. */
   desc?: string;
@@ -112,6 +115,8 @@ export type FieldRuntimeState = {
   disabledReason?: string;
   /** Stable code of `disabledReason`; the interface resolves it to text. */
   reasonCode?: string;
+  /** Values `reasonCode`'s text names; without them the interface shows its placeholders. */
+  reasonParams?: MessageParams;
   /** The hint ui.json declares for the current value. */
   hint?: string;
   loading?: boolean;

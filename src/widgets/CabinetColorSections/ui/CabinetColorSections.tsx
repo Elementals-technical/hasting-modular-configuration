@@ -208,6 +208,7 @@ export const useCabinetColorSections = ({
             key={definition.attributeId}
             reason={field.disabledReason}
             reasonCode={field.reasonCode}
+            reasonParams={field.reasonParams}
           />
         );
 

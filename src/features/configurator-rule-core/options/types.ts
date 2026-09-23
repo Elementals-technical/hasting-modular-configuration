@@ -1,3 +1,4 @@
+import type { MessageParams } from "@/entities/collection";
 import type { OptionState } from "@/features/configurator-rule-core/cabinetBuilder/model/types";
 
 export type { OptionState };
@@ -13,6 +14,8 @@ export type GrainDirectionRuleResult = {
   reason?: string;
   /** Stable code of `reason`, for control flow. */
   reasonCode?: string;
+  /** Values the code's text names, so the interface can resolve it itself (DEV-08). */
+  reasonParams?: MessageParams;
 };
 
 export type BookMatchingRuleInput = {

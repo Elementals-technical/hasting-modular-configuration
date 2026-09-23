@@ -17,6 +17,9 @@ const unavailable = (
   options: [],
   reason: selectMessage(profile, reasonCode, params),
   reasonCode,
+  // The interface resolves the code again against the collection; without these the text
+  // would reach the user with its placeholders unfilled.
+  ...(params ? { reasonParams: params } : {}),
 });
 
 /** "Essenze, HPL, and 3D" — the list as the reason text has always named it. */
