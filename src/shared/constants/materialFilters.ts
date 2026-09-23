@@ -188,10 +188,7 @@ const findFilterOptionInTree = (options: readonly FilterOption[], target: string
   return null;
 };
 
-export const resolveSelectedMaterialFilterValues = (
-  options: readonly FilterOption[],
-  selected?: string,
-): string[] => {
+export const resolveSelectedMaterialFilterValues = (options: readonly FilterOption[], selected?: string): string[] => {
   if (!selected) return [];
 
   const selectedNode = findFilterOptionInTree(options, selected);
@@ -275,7 +272,7 @@ const parseList = (raw?: string) =>
     .map((item) => item.trim())
     .filter(Boolean) ?? [];
 
-const toFilterOptions = (set: Set<string>): FilterOption[] =>
+export const toFilterOptions = (set: Set<string>): FilterOption[] =>
   Array.from(set)
     .sort((a, b) => a.localeCompare(b))
     .map((value) => ({ label: value, value }));

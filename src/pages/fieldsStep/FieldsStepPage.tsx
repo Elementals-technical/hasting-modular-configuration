@@ -1,11 +1,10 @@
-import { useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration";
 import { selectConfiguratorSection, useAttributeChangeHandler } from "@/features/configurationCommands";
 import {
   ColorField,
   FieldControl,
   useCollectionNavigation,
-  useCustomizationSectionFields,
+  useCustomizationStepSections,
   type ResolvedCustomizationField,
 } from "@/features/collectionCustomization";
 import { openSwatchOrder } from "@/features/swatchOrder";
@@ -55,39 +54,33 @@ const SectionField = (props: SectionFieldProps) => {
       ) : (
         <FieldControl control={definition.control} field={field} onChange={onChange} />
       )}
+      {field.hint && <p className={s.hint}>{field.hint}</p>}
       {notice && <div className={s.notice}>{notice}</div>}
     </>
   );
 };
 
-const SectionFields = ({ section }: { section: SectionRef }) => {
-  const fields = useCustomizationSectionFields(section.sectionId);
-
-  return (
-    <>
-      {fields.map(({ definition, field }) => (
-        <SectionField key={definition.attributeId} definition={definition} field={field} section={section} />
-      ))}
-    </>
-  );
-};
-
 export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
-  const schema = useActiveCollection((collection) => collection.catalog.customization);
-  const sectionIds = schema?.steps[stepId]?.sectionIds ?? [];
-  const sections = sectionIds.flatMap((sectionId) => {
-    const section = schema?.sections[sectionId];
-    return section ? [{ sectionId, ...section }] : [];
-  });
+  // Sections with no visible field are skipped; their values stay recorded.
+  const sections = useCustomizationStepSections(stepId).filter((section) =>
+    section.fields.some(({ field }) => field.visible),
+  );
 
   return (
     <ConfiguratorAccordionGroup
       defaultValue={sections.find((section) => section.defaultOpen)?.sectionId}
       collapseDefaultOnCompact
     >
-      {sections.map(({ sectionId, label }) => (
+      {sections.map(({ sectionId, label, fields }) => (
         <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
-          <SectionFields section={{ sectionId, label }} />
+          {fields.map(({ definition, field }) => (
+            <SectionField
+              key={definition.attributeId}
+              definition={definition}
+              field={field}
+              section={{ sectionId, label }}
+            />
+          ))}
         </ConfiguratorAccordionItem>
       ))}
     </ConfiguratorAccordionGroup>

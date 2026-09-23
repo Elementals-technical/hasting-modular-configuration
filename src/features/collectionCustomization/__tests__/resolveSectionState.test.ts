@@ -32,6 +32,14 @@ describe("resolveSectionFields", () => {
     );
   });
 
+  it("carries the hint ui.json declares for the current value, and none otherwise", () => {
+    const withHint = resolveSectionFields(schema, "faucet-holes-amount", profile, { FaucetHolesAmount: "2" }, {});
+    const withoutHint = resolveSectionFields(schema, "faucet-holes-amount", profile, { FaucetHolesAmount: "0" }, {});
+
+    expect(withHint[0]?.field.hint).toBe("Faucet hole placement and spacing to be specified at time of order.");
+    expect(withoutHint[0]?.field.hint).toBeUndefined();
+  });
+
   it("reads the current value from productOptions by attributeId", () => {
     const resolved = resolveSectionFields(
       schema,

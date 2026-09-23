@@ -88,7 +88,7 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
 import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
-import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { buildStepPathById, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -369,6 +369,8 @@ export const PlayCanvasIntegration = ({
   const navigation = useCollectionNavigation();
   const isCustomPage = navigation?.flowId === "custom";
   const isPrebuilt = !isCustomPage;
+  const currentStepPathById = useMemo(() => buildStepPathById(navigation?.steps), [navigation]);
+  const customStepPathById = useStepPathById("custom");
   const isCabinetBuilderPage = navigation?.currentStep?.kind === "cabinet-builder";
   const isAccessoriesPage = location.pathname.endsWith("/accessories");
   const isSummaryPage = navigation?.isSummary ?? false;
@@ -1861,11 +1863,11 @@ export const PlayCanvasIntegration = ({
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
   const handleAddAdditionalProduct = useCallback(() => {
     if (!canAddAnotherCabinet) return;
-    navigate("/custom/cabinet-builder?accordion=cabinet-type");
+    navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-type`);
     closeCanvasFullMode();
 
     closeInPlayerActionSurface();
-  }, [canAddAnotherCabinet, closeCanvasFullMode, closeInPlayerActionSurface, navigate]);
+  }, [canAddAnotherCabinet, closeCanvasFullMode, closeInPlayerActionSurface, customStepPathById, navigate]);
 
   const handleOpenCustomizeModePrompt = useCallback(
     (action: CustomizeModePromptAction, deleteTarget: string | null = null) => {
@@ -1915,40 +1917,40 @@ export const PlayCanvasIntegration = ({
   }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
-    navigate("/prebuilt/countertop?accordion=countertop-color");
+    navigate(`${currentStepPathById.countertop}?accordion=countertop-color`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, navigate]);
+  }, [closeCanvasFullMode, currentStepPathById, navigate]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    navigate("/prebuilt/countertop?accordion=thickness");
+    navigate(`${currentStepPathById.countertop}?accordion=thickness`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, navigate]);
+  }, [closeCanvasFullMode, currentStepPathById, navigate]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    navigate("/prebuilt/countertop?accordion=countertop-styles");
+    navigate(`${currentStepPathById.countertop}?accordion=countertop-styles`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, navigate]);
+  }, [closeCanvasFullMode, currentStepPathById, navigate]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
-    navigate("/prebuilt/countertop?accordion=basin-style");
+    navigate(`${currentStepPathById.countertop}?accordion=basin-style`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, navigate]);
+  }, [closeCanvasFullMode, currentStepPathById, navigate]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
@@ -2164,31 +2166,31 @@ export const PlayCanvasIntegration = ({
     dispatch(resetCabinetBuilderBootstrap());
 
     if (action === "add") {
-      navigate("/custom/cabinet-builder?accordion=cabinet-type");
+      navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-type`);
       closeCanvasFullMode();
       return;
     }
 
     if (action === "cabinet-style") {
-      navigate("/custom/cabinet-builder?accordion=cabinet-style");
+      navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-style`);
       closeCanvasFullMode();
       return;
     }
 
     if (action === "countertop-color") {
-      navigate("/custom/countertop?accordion=counter-top-color");
+      navigate(`${customStepPathById["countertop-custom"]}?accordion=counter-top-color`);
       closeCanvasFullMode();
       return;
     }
 
     if (action === "countertop-thickness" || action === "countertop-style") {
-      navigate(`/custom/countertop?accordion=${action}`);
+      navigate(`${customStepPathById["countertop-custom"]}?accordion=${action}`);
       closeCanvasFullMode();
       return;
     }
 
     if (action === "basin-style") {
-      navigate("/custom/countertop?accordion=basin-style");
+      navigate(`${customStepPathById["countertop-custom"]}?accordion=basin-style`);
       closeCanvasFullMode();
       return;
     }
@@ -2199,28 +2201,31 @@ export const PlayCanvasIntegration = ({
     closeCanvasFullMode,
     customizeModePromptAction,
     customizeModePromptDeleteTarget,
+    customStepPathById,
     dispatch,
     navigate,
     productsPresets,
   ]);
 
   const handleOpenCabinetStyle = useCallback(() => {
-    navigate("/custom/cabinet-builder?accordion=cabinet-style");
+    navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-style`);
     closeCanvasFullMode();
     closeInPlayerActionSurface();
-  }, [closeCanvasFullMode, closeInPlayerActionSurface, navigate]);
+  }, [closeCanvasFullMode, closeInPlayerActionSurface, customStepPathById, navigate]);
 
   const handleOpenCabinetColor = useCallback(() => {
-    navigate(isPrebuilt ? "/prebuilt/color" : "/custom/cabinet-colors?accordion=cabinet-color");
+    navigate(
+      isPrebuilt ? currentStepPathById.cabinet : `${currentStepPathById["cabinet-colors"]}?accordion=cabinet-color`,
+    );
     closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, currentStepPathById, isPrebuilt, navigate]);
 
   const handleOpenAccessories = useCallback(() => {
-    navigate(isPrebuilt ? "/prebuilt/accessories" : "/custom/accessories");
+    navigate(isPrebuilt ? currentStepPathById.accessories : currentStepPathById["accessories-custom"]);
     closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, currentStepPathById, isPrebuilt, navigate]);
 
   const isTopViewActive = useCallback((): boolean => {
     const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
@@ -3132,46 +3137,44 @@ export const PlayCanvasIntegration = ({
     [changeAttributeValue, saveSnapshot, selectedSceneProduct],
   );
 
+  const currentCountertopStepPath = isPrebuilt
+    ? currentStepPathById.countertop
+    : currentStepPathById["countertop-custom"];
+
   const handleOpenCountertopColor = useCallback(() => {
-    navigate(
-      isPrebuilt
-        ? "/prebuilt/countertop?accordion=counter-top-color"
-        : "/custom/countertop?accordion=counter-top-color",
-    );
+    navigate(`${currentCountertopStepPath}?accordion=counter-top-color`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, currentCountertopStepPath, navigate]);
 
   const handleOpenCountertopStyle = useCallback(() => {
-    navigate(
-      isPrebuilt ? "/prebuilt/countertop?accordion=countertop-style" : "/custom/countertop?accordion=countertop-style",
-    );
+    navigate(`${currentCountertopStepPath}?accordion=countertop-style`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, currentCountertopStepPath, navigate]);
 
   const handleOpenBasinStyle = useCallback(() => {
-    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    navigate(`${currentCountertopStepPath}?accordion=basin-style`);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, currentCountertopStepPath, navigate]);
 
   const handleOpenVesselBasinColor = useCallback(() => {
-    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=vessel-color" : "/custom/countertop?accordion=vessel-color");
+    navigate(`${currentCountertopStepPath}?accordion=vessel-color`);
     closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, currentCountertopStepPath, navigate]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
     // The basin list opens for the countertop style of the basin picked in 3D.
@@ -3180,16 +3183,16 @@ export const PlayCanvasIntegration = ({
         ? VESSEL_PLACEHOLDER_SINK_TYPE
         : "integrated",
     });
-    navigate(isPrebuilt ? "/prebuilt/countertop?accordion=basin-style" : "/custom/countertop?accordion=basin-style");
+    navigate(`${currentCountertopStepPath}?accordion=basin-style`);
     closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, isPrebuilt, navigate, record, vesselBasinSelectionInfo]);
+  }, [closeCanvasFullMode, currentCountertopStepPath, navigate, record, vesselBasinSelectionInfo]);
 
   const handleEmptySceneRedirect = useCallback(() => {
-    navigate("/custom/cabinet-builder?accordion=cabinet-type");
-  }, [navigate]);
+    navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-type`);
+  }, [customStepPathById, navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
     if (isPrebuilt) {

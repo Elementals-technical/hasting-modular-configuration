@@ -88,9 +88,8 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
   const isCabinetTypeVariant = variant === "cabinetType";
   const isAccessoryVariant = variant === "accessory";
-  const isSinkBaseCabinetType = isCabinetTypeVariant && productName === "Sink-Base";
-  const isSideCabinetType =
-    isCabinetTypeVariant && (productName === "Sink-Cabinet" || productName === "Side-Cabinet");
+  const isSinkBaseCabinetType = isCabinetTypeVariant && metadata?.hasSink === true;
+  const isSideCabinetType = isCabinetTypeVariant && metadata?.hasSink === false && metadata?.isOpen === false;
 
   const optionContent = (
     <div

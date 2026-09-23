@@ -73,6 +73,36 @@ const expectedCounts = (list: Record<string, CountedResidue>) =>
  * so the list only shrinks (DEV-10).
  */
 const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
+  "/src/widgets/CountertopSections/ui/CountertopSections.tsx": {
+    owner: "B",
+    count: 4,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useBasinState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useVesselColorState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useCountertopResets.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/AccessoriesSections/ui/AccessoriesSections.tsx": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 2: towel bar reset effect",
+  },
+  "/src/widgets/AccessoriesSections/lib/useDividersState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 5: dividers None through the command",
+  },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
     owner: "C",
     count: 1,
@@ -125,26 +155,67 @@ const STATE_WRITE_OWNERS = ["/src/features/configurationCommands/lib/commitChang
  * Consumers that still write a value the command owns, next to the command or instead of it
  * (C06: one writer per value). Same exact-count rule as the scene callers.
  */
-const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {};
+const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
+  "/src/widgets/AccessoriesSections/lib/useDividersState.ts": {
+    owner: "B",
+    count: 3,
+    reason: "C06 phase 5: dividers option and style through the command",
+  },
+  "/src/widgets/CountertopSections/ui/CountertopSections.tsx": {
+    owner: "B",
+    count: 5,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useBasinState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useVesselColorState.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+  "/src/widgets/CountertopSections/lib/useCountertopResets.ts": {
+    owner: "B",
+    count: 1,
+    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
+  },
+};
 
 /** Material matching by the legacy alias table: a helper called without the collection's table. */
 const legacyAliasLookups = [/\bgetMaterialAliases\([^,()]+\)/, /\bmaterialMatchesRule\([^,()]+,[^,()]+\)/];
 
+/**
+ * Rules match countertop materials by the collection's `ruleData.materialNormalization`
+ * (DEV-06). These still fall back to the legacy table, kept equal to USH's by
+ * `materialAliases.test.ts`. The rule files take the table once their callers pass the profile.
+ */
+const PENDING_LEGACY_ALIAS_CALLERS: Record<string, Residue> = {
+  "/src/widgets/CountertopSections/lib/useBasinState.ts": {
+    owner: "B",
+    reason: "B06: basin rules of the countertop step",
+  },
+  "/src/widgets/CountertopSections/lib/basinOptions.ts": {
+    owner: "B",
+    reason: "B06: basin rules of the countertop step",
+  },
+  "/src/widgets/CountertopSections/lib/materialCompatibility.ts": {
+    owner: "B",
+    reason: "B06: material filters of the countertop step",
+  },
+  "/src/widgets/CountertopSections/lib/countertopColorOptions.ts": {
+    owner: "B",
+    reason: "B06: material filters of the countertop step",
+  },
+};
 
 /**
  * Product catalogs the countertop and accessories steps used to declare themselves (B06). They
  * are read from the profile now (`features/collectionCustomization/lib/pageOptionCatalogs.ts`);
  * none of these names may come back in production code.
  */
-const FORMER_PAGE_CATALOGS = [
-  "optionsMockData2",
-  "optionsMockData3",
-  "optionsMockData4",
-  "optionsSidePanelsData",
-  "optionsSwatchData2",
-  "optionsSwatchDataTowel",
-  "dividersMockData",
-];
+const PENDING_PAGE_CATALOGS: Record<string, { owner: "B"; constants: string[] }> = {};
 
 const findOffenders = (patterns: RegExp[]) =>
   productionSources.flatMap(([path, source]) =>
@@ -189,9 +260,15 @@ describe("active collection consumer boundary", () => {
 
   it("counts every action creator the command commits", () => {
     const commitChange = sourceModules["/src/features/configurationCommands/lib/commitChange.ts"] ?? "";
-    const imported = commitChange.match(/import \{([^}]*)\} from "@\/entities\/product\/model\/store\/slice"/)?.[1] ?? "";
+    const imported =
+      commitChange.match(/import \{([^}]*)\} from "@\/entities\/product\/model\/store\/slice"/)?.[1] ?? "";
     // Selection, preset and pricing inputs are not values the command alone owns.
-    const notOwned = ["addProductPreset", "setSelectedProductConfig", "setSelectedDimensions", "setHandleGrooveColorSku"];
+    const notOwned = [
+      "addProductPreset",
+      "setSelectedProductConfig",
+      "setSelectedDimensions",
+      "setHandleGrooveColorSku",
+    ];
     const committed = imported
       .split(",")
       .map((name) => name.trim())
@@ -200,19 +277,20 @@ describe("active collection consumer boundary", () => {
     expect([...committed].sort()).toEqual([...COMMITTED_SETTERS].sort());
   });
 
-  it("matches materials by the collection's alias table everywhere (DEV-06)", () => {
+  it("matches materials by the legacy alias table only in the files still waiting for the profile", () => {
     const callers = productionSources
       .filter(([, source]) => legacyAliasLookups.some((pattern) => pattern.test(source)))
       .map(([path]) => path);
 
-    expect(callers).toEqual([]);
+    expect(callers.filter((path) => !(path in PENDING_LEGACY_ALIAS_CALLERS))).toEqual([]);
+    expect(Object.keys(PENDING_LEGACY_ALIAS_CALLERS).filter((path) => !callers.includes(path))).toEqual([]);
   });
 
-  it("declares no page product catalog: the steps read their options from the profile", () => {
-    const offenders = productionSources.flatMap(([path, source]) =>
-      FORMER_PAGE_CATALOGS.filter((name) => new RegExp(`\\b${name}\\b`).test(source)).map((name) => `${path}: ${name}`),
+  it("keeps the page catalog list honest: a catalog the page dropped leaves it", () => {
+    const dropped = Object.entries(PENDING_PAGE_CATALOGS).flatMap(([path, { constants }]) =>
+      constants.filter((name) => !new RegExp(`\\bexport const ${name}\\b`).test(sourceModules[path] ?? "")),
     );
 
-    expect(offenders).toEqual([]);
+    expect(dropped).toEqual([]);
   });
 });

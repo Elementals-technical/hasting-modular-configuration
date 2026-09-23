@@ -20,7 +20,7 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
-import { useActiveCollection, useCollectionPresets } from "@/entities/collection";
+import { selectAttribute, selectOptions, useActiveCollection, useCollectionPresets } from "@/entities/collection";
 import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -80,7 +80,6 @@ import {
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 import { trackModularCustomizeClick } from "@/shared/lib/analytics/modularKeyEvents";
-import { buildBasinOptions } from "@/features/collectionCustomization";
 
 import s from "./ModelPage.module.scss";
 
@@ -450,9 +449,11 @@ export const ModelPage = () => {
       if (!materialTokens.length) return globalConfig;
 
       const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
-
         profile: activeProfile,
-        basinOptions: buildBasinOptions(activeProfile),
+        basinOptions: selectOptions(activeProfile, "sinkType").map(({ value, label }) => ({
+          name: value,
+          title: label,
+        })),
         rules: countertopRules,
         activeMaterialTokens: materialTokens,
         activeThickness: globalConfig.Thickness ?? countertopThickness,
@@ -535,6 +536,16 @@ export const ModelPage = () => {
           (p) => typeof p.CabinetColor === "string" && p.CabinetColor,
         )?.CabinetColor;
         if (presetCabinetColor) record({ CabinetColor: presetCabinetColor });
+
+        // A collection with handle and leg colours (Mako) records the model's, which pricing reads:
+        // whether the model stands on legs, and in which colour.
+        for (const attributeId of ["HandleColor", "LegColor"] as const) {
+          if (!selectAttribute(activeProfileRef.current, attributeId)) continue;
+          const presetValue = effectivePresetProducts.find(
+            (p) => typeof p[attributeId] === "string" && p[attributeId],
+          )?.[attributeId];
+          record({ [attributeId]: presetValue ?? "" });
+        }
 
         dispatch(clearHistory());
 
@@ -1066,6 +1077,7 @@ export const ModelPage = () => {
 
             <ProductModelsGrid
               data={filteredData}
+              modelStepPath={modelStepPath}
               handleAddPreset={handleAddPreset}
               handleCustomizePreset={handleCustomizePreset}
               createModelBtn={<CreateModelBtn onCreate={handleCreateOwnComposition} />}

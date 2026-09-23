@@ -101,14 +101,16 @@ export const resolveSectionFields = (
       };
     });
 
+    const value = readProductOptionValue(productOptions, definition.attributeId);
     const field: FieldRuntimeState = {
       attributeId: definition.attributeId,
-      value: readProductOptionValue(productOptions, definition.attributeId),
+      value,
       options,
       visible: availability.visible ?? true,
       enabled: availability.available,
       disabledReason: availability.reason,
       reasonCode: availability.reasonCode,
+      hint: value === null ? undefined : definition.hints?.[String(value)],
     };
 
     return { definition, field };

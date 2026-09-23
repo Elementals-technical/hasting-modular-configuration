@@ -10,6 +10,7 @@ import {
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
   sortOptionsByMaterialFilterOrder,
+  toFilterOptions,
   type FilterOption,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
@@ -33,20 +34,19 @@ type ColorFieldProps = {
 
 type ColorFilters = { materials: FilterOption[]; colors: FilterOption[]; looks: FilterOption[] };
 
-const toFilterOptions = (values: string[]): FilterOption[] =>
-  [...new Set(values)].sort((a, b) => a.localeCompare(b)).map((value) => ({ label: value, value }));
-
 const buildColorFilters = (
   options: ProductOptionData[],
   section: string,
   hierarchy: ReturnType<typeof selectMaterialHierarchy>,
 ): ColorFilters => ({
   materials: groupMaterialsHierarchically(
-    toFilterOptions(options.flatMap((option) => option.metadata?.materials ?? []).filter((token) => token !== section)),
+    toFilterOptions(
+      new Set(options.flatMap((option) => option.metadata?.materials ?? []).filter((token) => token !== section)),
+    ),
     hierarchy,
   ),
-  colors: toFilterOptions(options.flatMap((option) => option.metadata?.colors ?? [])),
-  looks: toFilterOptions(options.flatMap((option) => option.metadata?.looks ?? [])),
+  colors: toFilterOptions(new Set(options.flatMap((option) => option.metadata?.colors ?? []))),
+  looks: toFilterOptions(new Set(options.flatMap((option) => option.metadata?.looks ?? []))),
 });
 
 const sortOptions = (list: ProductOptionData[], byTitle: boolean | undefined, materials: FilterOption[]) =>

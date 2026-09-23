@@ -7,13 +7,9 @@ export type CustomizationFlowId = (typeof CUSTOMIZATION_FLOW_IDS)[number];
 
 export const CUSTOMIZATION_SCREEN_IDS = [
   "prebuilt-cabinet",
-  "prebuilt-countertop",
-  "prebuilt-accessories",
-  "prebuilt-faucet-holes",
   "custom-cabinet-colors",
-  "custom-countertop",
-  "custom-accessories",
-  "custom-faucet-holes",
+  "countertop",
+  "accessories",
   "custom-summary",
 ] as const;
 
@@ -37,6 +33,8 @@ export type CustomizationStepDefinition = {
   kind: CustomizationScreenKind;
   headerPrefix?: string | null;
   sectionIds?: string[];
+  /** false removes the step from navigation and routes; absent means enabled. */
+  enabled?: boolean;
 };
 
 /**
@@ -51,12 +49,16 @@ export type CustomizationFieldDefinition = {
   control: CustomizationFieldControl;
   optionsRef?: string;
   availabilityRef?: string;
+  /** Text under the control, keyed by the selected option value. */
+  hints?: Record<string, string>;
 };
 
 export type CustomizationSectionDefinition = {
   label: string;
   defaultOpen?: boolean;
   fields: CustomizationFieldDefinition[];
+  /** false drops the section from its step, without clearing the values of its fields. */
+  enabled?: boolean;
 };
 
 /**
@@ -104,6 +106,8 @@ export type FieldRuntimeState = {
   disabledReason?: string;
   /** Stable code of `disabledReason`; the interface resolves it to text. */
   reasonCode?: string;
+  /** The hint ui.json declares for the current value. */
+  hint?: string;
   loading?: boolean;
   error?: string;
 };

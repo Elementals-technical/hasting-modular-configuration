@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { ProductStyleGrid } from "@/entities/product/ui/ProductStyleGrid/ProductStyleGrid";
 
+import { ROUTES } from "@/shared/config/routes";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { InstructionPopup } from "@/shared/ui/Popups/ui/InstructionPopup/InstructionPopup";
@@ -108,7 +109,7 @@ import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelE
 import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
-import { useCollectionNavigate } from "@/features/collectionCustomization";
+import { useCollectionNavigate, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
 
 type AccordionConfig = {
   id: string;
@@ -240,8 +241,13 @@ export const CabinetBuilderPage = () => {
   const canvasReady = usePlayCanvasReady();
   const presets = useCollectionPresets();
 
-  const { pathname, search, key: locationKey } = useLocation();
+  const { search, key: locationKey } = useLocation();
   const navigate = useCollectionNavigate();
+  const isCabinetBuilderStep = useCollectionNavigation("custom")?.currentStep?.stepId === "cabinet-builder";
+  const customStepPathById = useStepPathById("custom");
+  const cabinetStyleDetailsPath = customStepPathById["cabinet-builder"]
+    ? `${customStepPathById["cabinet-builder"]}/details/style`
+    : ROUTES.CUSTOM_CABINET_STYLE_DETAILS;
   const [searchParams] = useSearchParams();
   const configId = searchParams.get("configId");
   const isInteractiveTutorialRoute =
@@ -479,6 +485,8 @@ export const CabinetBuilderPage = () => {
                 : undefined,
             metadata: {
               image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
+              hasSink: rule.hasSink,
+              isOpen: rule.isOpen,
             },
           };
         }),
@@ -877,7 +885,7 @@ export const CabinetBuilderPage = () => {
   }, [isStyleSidebarOpen, hasProducts, canvasReady]);
 
   useEffect(() => {
-    if (!pathname.includes("/custom/cabinet-builder")) return;
+    if (!isCabinetBuilderStep) return;
     if (presetFromUrl) return;
     if (productsPresets.length) return;
     if (hasBootstrappedCabinetBuilder) return;
@@ -907,7 +915,7 @@ export const CabinetBuilderPage = () => {
     record,
     hasPendingCabinetBuilderSelection,
     hasBootstrappedCabinetBuilder,
-    pathname,
+    isCabinetBuilderStep,
     productsPresets.length,
     presetFromUrl,
     cabinetColor,
@@ -916,7 +924,7 @@ export const CabinetBuilderPage = () => {
   ]);
 
   useEffect(() => {
-    if (!pathname.includes("/custom/cabinet-builder")) return;
+    if (!isCabinetBuilderStep) return;
     if (configId) return;
     if (!canvasReady) return;
     if (!presetFromUrl?.presetProducts.length || !customPresetBootstrapKey) return;
@@ -967,7 +975,7 @@ export const CabinetBuilderPage = () => {
     configId,
     customPresetBootstrapKey,
     dispatch,
-    pathname,
+    isCabinetBuilderStep,
     presetFromUrl,
     record,
   ]);
@@ -1415,7 +1423,7 @@ export const CabinetBuilderPage = () => {
       keepStyleSidebarOpen = false,
       resetAccordionAfterAdd = true,
     }: AddSelectedCabinetToSceneOptions = {}) => {
-      if (!pathname.includes("/custom/cabinet-builder")) return false;
+      if (!isCabinetBuilderStep) return false;
       if (!canvasReady || hasProducts || !activeCabinetType) return false;
 
       const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCabinetType);
@@ -1546,7 +1554,7 @@ export const CabinetBuilderPage = () => {
       handleResetToDefaultState,
       handleSelectCabinetConfig,
       hasProducts,
-      pathname,
+      isCabinetBuilderStep,
       saveSnapshot,
       selectedDimensions.depth,
       selectedDimensions.height,
@@ -1660,6 +1668,7 @@ export const CabinetBuilderPage = () => {
           <ProductStyleGrid
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             data={cabinetStyleOptions}
+            styleDetailsPath={cabinetStyleDetailsPath}
             requiresActiveCabinet
             isActive={isStyleDrawerActive}
             activeStyleId={activeStyleId}

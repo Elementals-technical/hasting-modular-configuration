@@ -152,6 +152,57 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  it("rejects a non-boolean enabled on a step", () => {
+    const broken = {
+      ...uiJson,
+      steps: { ...uiJson.steps, accessories: { ...uiJson.steps.accessories, enabled: "no" } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "steps.accessories.enabled" }),
+    );
+  });
+
+  it("rejects a non-boolean enabled on a section", () => {
+    const broken = {
+      ...uiJson,
+      sections: { ...uiJson.sections, "towel-bar": { ...uiJson.sections["towel-bar"], enabled: "no" } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.towel-bar.enabled" }),
+    );
+  });
+
+  it("rejects field hints that are not strings", () => {
+    const broken = {
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", hints: { "1": 1 } }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.faucet-holes-amount.fields[0].hints" }),
+    );
+  });
+
   it("rejects a non-object input", () => {
     const result = validateCustomizationSchema(null);
 

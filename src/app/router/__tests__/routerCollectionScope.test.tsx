@@ -9,15 +9,11 @@ vi.mock("@/pages", () => {
 
   return {
     CustomCabinetColorsPage: () => <Page name="custom cabinet colors" />,
-    CustomCountertopPage: () => <Page name="custom countertop" />,
-    CustomAccessoriesPage: () => <Page name="custom accessories" />,
-    CustomFaucetHolesPage: () => <Page name="custom faucet holes" />,
     CustomSummaryPage: () => <Page name="custom summary" />,
     HomePage: () => <Outlet />,
     ModelPage: () => <Page name="model" />,
     AccessoriesPage: () => <Page name="accessories" />,
     CountertopPage: () => <Page name="countertop" />,
-    FaucetPage: () => <Page name="faucet" />,
     CabinetBuilderPage: () => <Page name="cabinet builder" />,
     CabinetPage: () => <Page name="cabinet" />,
     ModelDetailsPage: () => <Page name="model details" />,

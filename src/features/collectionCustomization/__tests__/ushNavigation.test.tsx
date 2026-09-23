@@ -1,32 +1,19 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { MemoryRouter } from "react-router-dom";
+import { cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { store } from "@/app/store";
-import { ReadyCollectionContext, useCollectionPresets } from "@/entities/collection";
-import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import { useCollectionPresets } from "@/entities/collection";
 import { SideNavigation } from "@/widgets/SideNavigation/ui/SideNavigation";
-
-import ushManifest from "../../../../public/collections/urban-standard-height/manifest.json";
-import ushPresets from "../../../../public/collections/urban-standard-height/presets.json";
-import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
 
 import { NavigationProbe } from "./testUtils/NavigationProbe";
 import { readNavigation } from "./testUtils/readNavigation";
+import { buildReadyUshCollection, renderWithUshCollection } from "./testUtils/renderWithUshCollection";
 
-const readyUsh = buildReadyCollection("urban-standard-height", ushManifest, ushUi, ushPresets);
+const readyUsh = buildReadyUshCollection();
 
-const renderUsh = (children: React.ReactNode, initialPath = "/?collectionId=urban-standard-height") =>
-  render(
-    <Provider store={store}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        <ReadyCollectionContext.Provider value={readyUsh}>{children}</ReadyCollectionContext.Provider>
-      </MemoryRouter>
-    </Provider>,
-  );
+const renderUsh = (children: React.ReactNode, initialPath?: string) =>
+  renderWithUshCollection(children, { data: readyUsh, initialPath });
 
 const PresetsProbe = () => {
   const presets = useCollectionPresets();
@@ -66,6 +53,12 @@ describe("USH through the shared navigation/presets path", () => {
     renderUsh(<PresetsProbe />);
 
     expect(screen.getByTestId("presets-count").textContent).toBe("54");
+  });
+
+  it("carries every preset's own product list, 123 items total across the catalog", () => {
+    const total = readyUsh.catalog.presets?.reduce((sum, preset) => sum + preset.presetProducts.length, 0) ?? 0;
+
+    expect(total).toBe(123);
   });
 
   it("renders USH's 6 prebuilt step labels through the real SideNavigation widget", () => {

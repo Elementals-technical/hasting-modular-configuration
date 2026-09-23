@@ -29,13 +29,9 @@ vi.mock("@/pages", () => {
     FieldsStepPage: ({ stepId }: { stepId: string }) => <Page name={`fields ${stepId}`} />,
     SummaryPage: () => <Page name="summary" />,
     CabinetPage: () => <Page name="cabinet" />,
-    CountertopPage: () => <Page name="countertop" />,
-    AccessoriesPage: () => <Page name="accessories" />,
-    FaucetPage: () => <Page name="faucet" />,
+    CountertopPage: ({ stepId }: { stepId: string }) => <Page name={`countertop ${stepId}`} />,
+    AccessoriesPage: ({ stepId }: { stepId: string }) => <Page name={`accessories ${stepId}`} />,
     CustomCabinetColorsPage: () => <Page name="custom cabinet colors" />,
-    CustomCountertopPage: () => <Page name="custom countertop" />,
-    CustomAccessoriesPage: () => <Page name="custom accessories" />,
-    CustomFaucetHolesPage: () => <Page name="custom faucet holes" />,
     CustomSummaryPage: () => <Page name="custom summary" />,
   };
 });
@@ -125,6 +121,21 @@ describe("CollectionStepRoutes builds the step routes from the collection's ui.j
     expect(currentLocation()).toBe("/fixture/models?collectionId=fixture-ui");
   });
 
+  it("sends the old url of a disabled step to the flow's entry step, without removing it from the schema", async () => {
+    const withDisabledFinish = {
+      ...fixtureUiUi,
+      steps: { ...fixtureUiUi.steps, "fixture-finish": { ...fixtureUiUi.steps["fixture-finish"], enabled: false } },
+    };
+
+    renderAt(
+      "/fixture/finish?collectionId=fixture-ui",
+      buildReadyFixtureCollection("fixture-ui", { uiDocument: withDisabledFinish }),
+    );
+
+    await waitFor(() => expect(pageName()).toBe("model"));
+    expect(currentLocation()).toBe("/fixture/models?collectionId=fixture-ui");
+  });
+
   it("sends an unknown path to the entry step of the flow it belongs to", async () => {
     renderAt("/custom/nowhere?collectionId=urban-standard-height", readyUsh);
 
@@ -138,20 +149,20 @@ describe("CollectionStepRoutes builds the step routes from the collection's ui.j
     await waitFor(() => expect(currentLocation()).toBe("/prebuilt/model?collectionId=urban-standard-height"));
   });
 
-  it("keeps every USH step on its own page through the screen bindings", () => {
+  it("opens every USH step: the bound screen where a page still exists, the fields page otherwise", () => {
     const cases: [string, string][] = [
       ["/prebuilt/model", "model"],
       ["/prebuilt/color", "cabinet"],
-      ["/prebuilt/countertop", "countertop"],
-      ["/prebuilt/accessories", "accessories"],
-      ["/prebuilt/faucet-holes", "faucet"],
+      ["/prebuilt/countertop", "countertop countertop"],
+      ["/prebuilt/accessories", "accessories accessories"],
+      ["/prebuilt/faucet-holes", "fields faucet-holes"],
       ["/prebuilt/summary", "summary"],
       ["/custom/cabinet-builder", "cabinet builder"],
       ["/custom/cabinet-builder/details/style", "cabinet style details"],
       ["/custom/cabinet-colors", "custom cabinet colors"],
-      ["/custom/countertop", "custom countertop"],
-      ["/custom/accessories", "custom accessories"],
-      ["/custom/faucet-holes", "custom faucet holes"],
+      ["/custom/countertop", "countertop countertop-custom"],
+      ["/custom/accessories", "accessories accessories-custom"],
+      ["/custom/faucet-holes", "fields faucet-holes"],
       ["/custom/summary", "custom summary"],
     ];
 

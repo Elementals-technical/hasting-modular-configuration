@@ -7,12 +7,7 @@ import { renderWithFixtureCollection } from "@/entities/collection/__tests__/fix
 
 import { FieldsStepPage } from "../FieldsStepPage";
 
-vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
-  ConfiguratorAccordionGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ConfiguratorAccordionItem: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <section aria-label={title}>{children}</section>
-  ),
-}));
+vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
 
 afterEach(cleanup);
 

@@ -50,9 +50,9 @@
       "steps": [
         { "stepId": "model", "path": "/prebuilt/model" },
         { "stepId": "cabinet", "path": "/prebuilt/color", "screen": "prebuilt-cabinet" },
-        { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "prebuilt-countertop" },
-        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "prebuilt-accessories" },
-        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes", "screen": "prebuilt-faucet-holes" },
+        { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "countertop" },
+        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
       ]
     },
@@ -61,9 +61,9 @@
       "steps": [
         { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
         { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors", "screen": "custom-cabinet-colors" },
-        { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "custom-countertop" },
-        { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "custom-accessories" },
-        { "stepId": "faucet-holes", "path": "/custom/faucet-holes", "screen": "custom-faucet-holes" },
+        { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "countertop" },
+        { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
         { "stepId": "summary", "path": "/custom/summary", "screen": "custom-summary" }
       ]
     }
@@ -106,7 +106,7 @@
     "accessories-custom": {
       "label": "Accessories",
       "kind": "fields",
-      "sectionIds": ["side-panels-custom", "dividers-custom", "tovel-bar"]
+      "sectionIds": ["side-panels-custom", "dividers-custom", "towel-bar"]
     },
     "faucet-holes": { "label": "Faucet Details", "kind": "fields", "sectionIds": ["faucet-holes-amount"] },
     "summary": { "label": "Summary", "kind": "summary" }
@@ -185,7 +185,7 @@
     },
     "thickness": {
       "label": "Thickness",
-      "fields": [{ "attributeId": "Thickness", "control": "options-grid" }]
+      "fields": [{ "attributeId": "Thickness", "control": "swatches" }]
     },
     "countertop-styles": {
       "label": "Countertop Style",
@@ -206,7 +206,7 @@
     },
     "thickness-custom": {
       "label": "Thickness",
-      "fields": [{ "attributeId": "Thickness", "control": "options-grid" }]
+      "fields": [{ "attributeId": "Thickness", "control": "swatches" }]
     },
     "countertop-style": {
       "label": "Countertop Style",
@@ -227,7 +227,10 @@
     },
     "dividers": {
       "label": "Dividers",
-      "fields": [{ "attributeId": "DividersOption", "control": "swatches" }]
+      "fields": [
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
+      ]
     },
     "towel-bar": {
       "label": "Towel Bar",
@@ -243,13 +246,9 @@
     },
     "dividers-custom": {
       "label": "Dividers",
-      "fields": [{ "attributeId": "DividersOption", "control": "swatches" }]
-    },
-    "tovel-bar": {
-      "label": "Towel Bar",
       "fields": [
-        { "attributeId": "TowelBarOption", "control": "swatches" },
-        { "attributeId": "TowelBarColor", "control": "options-grid", "availabilityRef": "TowelBarColor.available" }
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
       ]
     },
     "cabinet-type": {
@@ -264,7 +263,18 @@
     "faucet-holes-amount": {
       "label": "Faucet Holes",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "FaucetHolesAmount", "control": "swatches" }]
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed",
+          "hints": {
+            "1": "Faucet hole placement to be specified at time of order.",
+            "2": "Faucet hole placement and spacing to be specified at time of order.",
+            "3": "Faucet hole placement and spacing to be specified at time of order."
+          }
+        }
+      ]
     }
   }
 }
