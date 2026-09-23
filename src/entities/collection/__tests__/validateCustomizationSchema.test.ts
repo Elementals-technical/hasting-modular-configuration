@@ -152,6 +152,74 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  it("accepts a schema with no optionImageVariants and one that declares them", () => {
+    expect(validateCustomizationSchema({ ...uiJson, optionImageVariants: undefined }).ok).toBe(true);
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImageVariants: {
+          CabinetType: [{ value: "Sink-Base", when: { Drawers: "2" }, image: "images/cabinet/x.png" }],
+        },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("accepts an empty string in when, which matches an attribute that is not set", () => {
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImageVariants: { Drawers: [{ value: "2", when: { LegColor: "" }, image: "images/cabinet/x.png" }] },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects optionImageVariants that is not a record of row arrays", () => {
+    const notARecord = validateCustomizationSchema({ ...uiJson, optionImageVariants: [] });
+    const notAnArray = validateCustomizationSchema({ ...uiJson, optionImageVariants: { CabinetType: {} } });
+
+    expect(notARecord.ok === false && notARecord.diagnostics).toEqual([
+      { code: "invalid-schema", dataPath: "optionImageVariants", message: expect.any(String) },
+    ]);
+    expect(notAnArray.ok === false && notAnArray.diagnostics[0]?.dataPath).toBe("optionImageVariants.CabinetType");
+  });
+
+  it("names the offending row and field of a broken variant", () => {
+    const rowOf = (row: unknown) =>
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImageVariants: {
+          CabinetType: [{ value: "Sink-Base", when: { Drawers: "2" }, image: "images/cabinet/ok.png" }, row],
+        },
+      });
+
+    const missingValue = rowOf({ when: { Drawers: "2" }, image: "images/cabinet/x.png" });
+    const emptyImage = rowOf({ value: "Sink-Base", when: { Drawers: "2" }, image: "  " });
+    const whenNotARecord = rowOf({ value: "Sink-Base", when: [], image: "images/cabinet/x.png" });
+    const whenNotAString = rowOf({ value: "Sink-Base", when: { Drawers: 2 }, image: "images/cabinet/x.png" });
+
+    expect(missingValue.ok === false && missingValue.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].value",
+    );
+    expect(emptyImage.ok === false && emptyImage.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].image",
+    );
+    expect(whenNotARecord.ok === false && whenNotARecord.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].when",
+    );
+    expect(whenNotAString.ok === false && whenNotAString.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].when.Drawers",
+    );
+  });
+
+  it("rejects an empty when, which would match every card and hide optionImages", () => {
+    const result = validateCustomizationSchema({
+      ...uiJson,
+      optionImageVariants: { CabinetType: [{ value: "Sink-Base", when: {}, image: "images/cabinet/x.png" }] },
+    });
+
+    expect(result.ok === false && result.diagnostics[0]?.dataPath).toBe("optionImageVariants.CabinetType[0].when");
+  });
+
   it("rejects a non-boolean enabled on a step", () => {
     const broken = {
       ...uiJson,

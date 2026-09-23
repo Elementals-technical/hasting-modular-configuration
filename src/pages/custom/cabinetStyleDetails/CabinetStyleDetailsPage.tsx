@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
+import { selectOptionImageContext } from "@/entities/product/model/store/derivedSelectors";
 import {
   getCountertopColorSku,
   getCountertopStyle,
@@ -18,7 +18,13 @@ import {
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
-import { useCollectionNavigate, useCollectionNavigation } from "@/features/collectionCustomization";
+import {
+  resolveOptionImage,
+  useCollectionNavigate,
+  useCollectionNavigation,
+  useOptionImageVariants,
+  useOptionImages,
+} from "@/features/collectionCustomization";
 
 const CHARACTERISTICS = [
   "Soft-close, ergonomic drawer system",
@@ -119,11 +125,13 @@ export const CabinetStyleDetailsPage = () => {
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const sinkType = useAppSelector(getSinkType);
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const optionImages = useOptionImages();
+  const optionImageVariants = useOptionImageVariants();
+  const optionImageContext = useAppSelector(selectOptionImageContext);
   const countertopRules = useCountertopRules();
 
   const style = params.get("style");
   const cabinetType = params.get("cabinetType");
-  const imageFromQuery = params.get("image");
 
   const title = params.get("title")?.trim() || styleToLabel(style);
 
@@ -137,8 +145,16 @@ export const CabinetStyleDetailsPage = () => {
 
   const currentHeight = Number(params.get("height") ?? selectedDimensions.height ?? 56);
 
-  const previewImage =
-    imageFromQuery || resolveCabinetStyleImage(style ?? undefined, currentHeight, cabinetType ?? undefined, undefined);
+  // The same picture the grid showed, resolved from the collection again rather than carried in
+  // the URL: the type and the height the card was opened with come from the query, the rest of
+  // the configuration from the store.
+  const previewImage = resolveOptionImage({
+    optionImages,
+    variants: optionImageVariants,
+    attributeId: "Drawers",
+    value: style ?? "",
+    context: { ...optionImageContext, CabinetType: cabinetType ?? "", Height: String(currentHeight) },
+  });
 
   const widthsInches = useMemo(() => {
     const values = dimensionOptions.width

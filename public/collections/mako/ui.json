@@ -14,7 +14,26 @@
       "Iris": "images/vessel/Iris.png",
       "Frame": "images/vessel/Frame.png",
       "Plaza": "images/vessel/Plaza.png"
+    },
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base-2-drawer.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet-2-drawer.png"
+    },
+    "Drawers": {
+      "1": "images/cabinet/drawers-1.png",
+      "2": "images/cabinet/drawers-2-legs.png"
+    },
+    "Handle": {
+      "G50": "images/handle/G50.png",
+      "G57": "images/handle/G57.png"
     }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      { "value": "Sink-Base", "when": { "Drawers": "1" }, "image": "images/cabinet/sink-base-1-drawer.png" },
+      { "value": "Sink-Cabinet", "when": { "Drawers": "1" }, "image": "images/cabinet/side-cabinet-1-drawer.png" }
+    ],
+    "Drawers": [{ "value": "2", "when": { "LegColor": "" }, "image": "images/cabinet/drawers-2.png" }]
   },
   "flows": {
     "prebuilt": {

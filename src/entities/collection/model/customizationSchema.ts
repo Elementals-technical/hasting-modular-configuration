@@ -80,12 +80,40 @@ export type CustomizationSectionDefinition = {
  */
 export type CustomizationOptionImages = Record<string, Record<string, string>>;
 
+/**
+ * A picture that stands in for the option's own one while other attributes hold given values.
+ *
+ * `optionImages` has one picture per option value, which is all a collection needs while the card
+ * always looks the same. A cabinet card does not: Urban shows the groove of the handle its forced
+ * height stands for, Mako shows legs once a leg colour is chosen. A row names such a case in the
+ * collection's own vocabulary, so no attribute id or option value has to be known by the code.
+ *
+ * `value` is the option value of the card. Every entry of `when` must equal the current value of
+ * that attribute; an empty string matches an attribute that is not set, which is how "no legs
+ * chosen yet" is written without a wildcard.
+ *
+ * `image` is a safe relative path inside the collection folder or an absolute HTTPS URL, as
+ * `optionImages` is; the loader replaces it with the resolved URL before a consumer reads it.
+ */
+export type OptionImageVariant = {
+  value: string;
+  when: Record<string, string>;
+  image: string;
+};
+
+/**
+ * Variant pictures by attributeId. The rows of one attribute are read in the declared order and
+ * the first match wins, so a row with fewer conditions belongs after the ones it would shadow.
+ */
+export type OptionImageVariants = Record<string, OptionImageVariant[]>;
+
 export type CustomizationSchema = {
   collectionId: string;
   flows: Record<CustomizationFlowId, CustomizationFlow>;
   steps: Record<string, CustomizationStepDefinition>;
   sections: Record<string, CustomizationSectionDefinition>;
   optionImages?: CustomizationOptionImages;
+  optionImageVariants?: OptionImageVariants;
 };
 
 /** Properties of a configurator colour the colour grid filters and prices by. */

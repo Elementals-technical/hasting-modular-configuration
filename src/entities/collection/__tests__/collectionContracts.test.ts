@@ -161,16 +161,25 @@ describe("collection contracts", () => {
       const result = validateCustomizationSchema(document);
       if (!result.ok) return [`${id}: ui.json failed validation`];
 
-      return Object.entries(result.schema.optionImages ?? {}).flatMap(([attributeId, byValue]) =>
-        Object.entries(byValue).flatMap(([value, reference]) => {
-          // Throws on an escaping or insecure reference, so a bad path fails here, not in a page.
-          const url = resolveCollectionImageUrl(reference, `${rootUrl}${id}/manifest.json`, rootUrl);
-          if (!url.startsWith(rootUrl)) return [];
+      // Throws on an escaping or insecure reference, so a bad path fails here, not in a page.
+      const missingFile = (label: string, reference: string) => {
+        const url = resolveCollectionImageUrl(reference, `${rootUrl}${id}/manifest.json`, rootUrl);
+        if (!url.startsWith(rootUrl)) return [];
 
-          const file = `/public/collections/${decodeURIComponent(url.slice(rootUrl.length))}`;
-          return shipped.has(file) ? [] : [`${id}.${attributeId}.${value}: ${reference}`];
-        }),
-      );
+        const file = `/public/collections/${decodeURIComponent(url.slice(rootUrl.length))}`;
+        return shipped.has(file) ? [] : [`${label}: ${reference}`];
+      };
+
+      return [
+        ...Object.entries(result.schema.optionImages ?? {}).flatMap(([attributeId, byValue]) =>
+          Object.entries(byValue).flatMap(([value, reference]) =>
+            missingFile(`${id}.optionImages.${attributeId}.${value}`, reference),
+          ),
+        ),
+        ...Object.entries(result.schema.optionImageVariants ?? {}).flatMap(([attributeId, rows]) =>
+          rows.flatMap((row, index) => missingFile(`${id}.optionImageVariants.${attributeId}[${index}]`, row.image)),
+        ),
+      ];
     });
 
     expect(missing).toEqual([]);

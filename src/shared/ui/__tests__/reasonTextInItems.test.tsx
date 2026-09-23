@@ -92,7 +92,7 @@ describe("a cabinet style the collection does not mix", () => {
   const renderStyle = (children: ReactNode) => render(<MemoryRouter>{children}</MemoryRouter>);
 
   it("explains it in the interface wording", () => {
-    renderStyle(<ProductStyleItem id={1} title="2 Drawer" isMixingRestricted handleOpenStyleSidebar={() => {}} />);
+    renderStyle(<ProductStyleItem value="2" title="2 Drawer" isMixingRestricted handleOpenStyleSidebar={() => {}} />);
     hoverHint("2 Drawer");
 
     expect(screen.getByText("These cabinet styles cannot be mixed in one vanity configuration.")).toBeTruthy();
@@ -100,7 +100,9 @@ describe("a cabinet style the collection does not mix", () => {
 
   it("explains it in the collection's wording when it has one", () => {
     renderStyle(
-      withCollection(<ProductStyleItem id={2} title="1 Drawer" isMixingRestricted handleOpenStyleSidebar={() => {}} />),
+      withCollection(
+        <ProductStyleItem value="1" title="1 Drawer" isMixingRestricted handleOpenStyleSidebar={() => {}} />,
+      ),
     );
     hoverHint("1 Drawer");
 

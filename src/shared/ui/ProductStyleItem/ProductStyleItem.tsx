@@ -13,13 +13,14 @@ const UNAVAILABLE_OPTION_REASON_CODE = "ui.optionUnavailable";
 const MIXING_RESTRICTED_REASON_CODE = "drawers.mixingRestricted";
 
 interface ProductStyleItemI {
-  id: number;
+  /** The option value this card stands for; it is the card's identity. */
+  value: string;
   title: string;
   imageSrc?: string;
   detailsTo?: string;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
-  onSelectStyle?: (id: number) => void;
+  onSelectStyle?: (value: string) => void;
   isAvailable?: boolean;
   /** Text a caller resolved itself; used while its rule has no reason code. */
   disabledReason?: string;
@@ -27,11 +28,11 @@ interface ProductStyleItemI {
   disabledReasonCode?: string;
   disabledReasonParams?: MessageParams;
   isMixingRestricted?: boolean;
-  onMixingRestrictedSelect?: (id: number) => void;
+  onMixingRestrictedSelect?: (value: string) => void;
 }
 
 export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
-  id,
+  value,
   title,
   imageSrc,
   detailsTo = "#",
@@ -49,13 +50,13 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
 
   const handleClick = () => {
     if (isMixingRestricted) {
-      onMixingRestrictedSelect?.(id);
+      onMixingRestrictedSelect?.(value);
       return;
     }
 
     if (!isAvailable) return;
 
-    onSelectStyle?.(id);
+    onSelectStyle?.(value);
     handleOpenStyleSidebar();
   };
 
