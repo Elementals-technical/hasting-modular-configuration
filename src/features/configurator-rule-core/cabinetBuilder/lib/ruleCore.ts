@@ -10,6 +10,6 @@ export const ruleCore = (
   context: RuleContext,
   profile: ProductProfile | null,
 ): RuleResult => {
-  const baseResult = typeCabinetRule(catalog, context);
+  const baseResult = typeCabinetRule(catalog, context, profile);
   return handleRule(baseResult, context, catalog, profile);
 };

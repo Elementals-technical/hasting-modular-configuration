@@ -1,14 +1,16 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute } from "@/entities/collection";
 import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
+  getCabinetEntries,
   markRuntimeOutOfSync,
   requestSceneStateSync,
+  resolveStableKey,
 } from "@/entities/configuration";
 import type {
   AttributeValue,
@@ -22,8 +24,10 @@ import type {
 } from "@/entities/configuration";
 import { recordComposition } from "@/entities/product/model/store/slice";
 
+import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
 import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
+import type { PlannedChange } from "../model/types";
 
 /**
  * The composition commands (C06): placing a preset, adding, removing and moving a cabinet, and
@@ -32,7 +36,8 @@ import { toSceneValue } from "./sceneValue";
  * Each goes to the scene once, through I's composition port, and records the composition the
  * scene then holds in one write: the products in order and the drawer style of each new one.
  * Stable keys, per-cabinet values and actual sizes follow that write through the existing
- * listeners. A composition the scene did not take is not recorded; one it took only in part is
+ * listeners. A preset also records the cabinet values its products carry (`carriedValues`).
+ * A composition the scene did not take is not recorded; one it took only in part is
  * recorded as it is and holds Save until the scene is read again.
  */
 
@@ -136,6 +141,74 @@ const drawerStyles = (
           return style ? [[runtimeId, style]] : [];
         }),
       );
+
+/** Sizes are read from the scene and drawer styles go with the composition, so neither is carried. */
+const NOT_CARRIED_ATTRIBUTE_IDS = new Set(["Width", "Height", "Depth", "Drawers"]);
+
+type CarriedValues = {
+  /** Values of a cabinet's own, e.g. a Mako handle colour: recorded at the cabinet that carries them. */
+  perCabinet: PlannedChange[];
+  /**
+   * Values the configuration keeps once for the whole composition, e.g. the handle, which the
+   * scene and the handle command also hold once. Only when every product that carries one agrees.
+   */
+  composition: ReplayValues;
+};
+
+/**
+ * The cabinet-scoped values the products carry. Product `i` of the request became `placed[i]`;
+ * read once the composition is recorded, when every placed product has its stable key.
+ */
+const carriedValues = (
+  state: RootState,
+  placed: readonly string[],
+  products: readonly SceneCompositionProduct[],
+): CarriedValues => {
+  const profile = getActiveProductProfile(state);
+  const cabinets = getCabinetEntries(state);
+  const isComplete = placed.length === products.length;
+  const perCabinet: PlannedChange[] = [];
+  const compositionValues = new Map<string, Set<AttributeValue>>();
+
+  products.forEach(({ config }, index) => {
+    const cabinetId = isComplete ? resolveStableKey(cabinets, placed[index]) : null;
+
+    Object.entries(config).forEach(([attributeId, raw]) => {
+      if (NOT_CARRIED_ATTRIBUTE_IDS.has(attributeId)) return;
+      if (selectAttribute(profile, attributeId)?.scope !== "cabinet") return;
+      if (!isAttributeValue(raw) || raw === null || raw === "") return;
+
+      const value = normalizeOptionValue(profile, attributeId, raw) ?? raw;
+
+      if (TYPED_COMMIT_ATTRIBUTE_IDS.includes(attributeId)) {
+        compositionValues.set(attributeId, (compositionValues.get(attributeId) ?? new Set()).add(value));
+        return;
+      }
+
+      if (!cabinetId) return;
+      perCabinet.push({ attributeId, target: { scope: "cabinet", cabinetId }, value, origin: "requested" });
+    });
+  });
+
+  const composition = Object.fromEntries(
+    [...compositionValues].flatMap(([attributeId, values]) =>
+      values.size === 1 ? [[attributeId, [...values][0]]] : [],
+    ),
+  );
+
+  return { perCabinet, composition };
+};
+
+/** Records each cabinet's own carried values; the composition's are returned to go with `record`. */
+const recordCarriedValues = (
+  deps: CompositionDeps,
+  placed: readonly string[],
+  products: readonly SceneCompositionProduct[],
+): ReplayValues => {
+  const { perCabinet, composition } = carriedValues(deps.getState(), placed, products);
+  recordCarriedChanges(perCabinet).forEach((action) => deps.dispatch(action));
+  return composition;
+};
 
 /** The expected products in the order the scene reports, when it reports them all. */
 const inSceneOrder = (expected: readonly string[], scene: SceneStateResult): string[] => {
@@ -244,8 +317,11 @@ export const applyPreset = async (
     inSceneOrder(result.placed, result.scene),
     drawerStyles(profile, result.placed, products),
   );
+  // A value the caller records is its own choice; it wins over the one the products carry.
+  const carried = recordCarriedValues(deps, result.placed, products);
+  const values = Object.keys(carried).length > 0 ? { ...carried, ...record } : record;
 
-  return settleValues(deps, recorded, { afterPlacement, record });
+  return settleValues(deps, recorded, { afterPlacement, record: values });
 };
 
 export const addCabinet = async (
@@ -364,6 +440,9 @@ export const adoptComposition = async (
     placed,
     drawerStyles(profile, placed, products),
   );
+  // Only each cabinet's own values: a restore adopts saved scene configs, whose shared values are
+  // scene tokens the configuration records from its own saved state.
+  recordCarriedValues(deps, placed, products);
 
   return settleValues(deps, recorded, { record });
 };

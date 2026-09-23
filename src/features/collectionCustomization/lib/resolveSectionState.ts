@@ -4,6 +4,7 @@ import { buildConfiguratorOptions } from "./buildConfiguratorOptions";
 
 import type {
   CustomizationFieldDefinition,
+  MessageParams,
   CustomizationSchema,
   FieldOptionState,
   FieldRuntimeState,
@@ -14,6 +15,10 @@ import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types
 export type FieldAvailability = {
   available: boolean;
   reason?: string;
+  /** Stable code of `reason`; the interface resolves it to text. */
+  reasonCode?: string;
+  /** Values the code's text names; without them the interface shows its placeholders. */
+  reasonParams?: MessageParams;
   /** false hides the field; a hidden field keeps its stored value. */
   visible?: boolean;
   /** When set, only these option values stay enabled. */
@@ -85,9 +90,19 @@ export const resolveSectionFields = (
           desc: category,
         }));
 
+    // Pictures the collection declares for this attribute; a configurator option keeps its own.
+    const declaredImages = schema?.optionImages?.[definition.attributeId];
+
     const options = declaredOptions.map((option) => {
       const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);
-      return { ...option, enabled, reason: enabled ? undefined : availability.reason };
+      return {
+        ...option,
+        enabled,
+        image: option.image ?? declaredImages?.[option.value],
+        reason: enabled ? undefined : availability.reason,
+        reasonCode: enabled ? undefined : availability.reasonCode,
+        reasonParams: enabled ? undefined : availability.reasonParams,
+      };
     });
 
     const value = readProductOptionValue(productOptions, definition.attributeId);
@@ -98,6 +113,8 @@ export const resolveSectionFields = (
       visible: availability.visible ?? true,
       enabled: availability.available,
       disabledReason: availability.reason,
+      reasonCode: availability.reasonCode,
+      reasonParams: availability.reasonParams,
       hint: value === null ? undefined : definition.hints?.[String(value)],
     };
 

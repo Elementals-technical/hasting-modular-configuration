@@ -449,6 +449,7 @@ export const ModelPage = () => {
       if (!materialTokens.length) return globalConfig;
 
       const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
+        profile: activeProfile,
         basinOptions: selectOptions(activeProfile, "sinkType").map(({ value, label }) => ({
           name: value,
           title: label,

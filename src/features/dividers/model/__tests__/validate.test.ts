@@ -36,6 +36,7 @@ describe("validatePlacement", () => {
     expect(decision).toEqual({
       ok: false,
       reason: "no-context",
+      reasonCode: "divider.noContext",
       message: DIVIDER_NO_CONTEXT_WARNING,
     });
   });
@@ -46,6 +47,7 @@ describe("validatePlacement", () => {
     expect(decision).toEqual({
       ok: false,
       reason: "no-selection",
+      reasonCode: "divider.noSelection",
       message: DIVIDER_NO_SELECTION_WARNING,
     });
   });
@@ -56,6 +58,7 @@ describe("validatePlacement", () => {
     expect(decision).toEqual({
       ok: false,
       reason: "type-unavailable",
+      reasonCode: "divider.typeUnavailable",
       message: "Option C does not fit here. Choose one of: Option A, Option B.",
     });
   });
@@ -66,6 +69,7 @@ describe("validatePlacement", () => {
     expect(decision).toEqual({
       ok: false,
       reason: "cannot-place",
+      reasonCode: "divider.cannotPlace",
       message: DIVIDER_CANNOT_PLACE_WARNING,
     });
   });
@@ -77,6 +81,7 @@ describe("validatePlacement", () => {
     expect(decision).toEqual({
       ok: false,
       reason: "slot-mismatch",
+      reasonCode: "divider.slotMismatch",
       message: DIVIDER_SLOT_MISMATCH_WARNING,
     });
   });

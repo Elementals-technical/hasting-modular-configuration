@@ -1,3 +1,4 @@
+import type { ProductProfile } from "@/entities/collection";
 import {
   extractCountertopBasinMaterialScopeTokens,
   getMaterialAliases,
@@ -6,6 +7,7 @@ import {
   normalizeBasinKey,
   normalizeMaterialToken,
   parseThicknessValue,
+  selectMaterialAliasTable,
 } from "./parse";
 import { isRuleWidthEligibleForIntegratedContext } from "./rules";
 import type { CountertopMatrixRule } from "./types";
@@ -27,6 +29,8 @@ type ResolveIntegratedCountertopBasinOptionsInput = {
   activeMaterialTokens: string[];
   activeThickness?: string | null;
   dimensions: CountertopBasinSelectionDimensions;
+  /** Active collection: its `ruleData.materialNormalization` decides which materials match. */
+  profile?: ProductProfile | null;
 };
 
 type ResolveIntegratedCountertopBasinFallbackInput = ResolveIntegratedCountertopBasinOptionsInput & {
@@ -54,13 +58,15 @@ export const resolveAvailableIntegratedCountertopBasinOptions = ({
   activeMaterialTokens,
   activeThickness,
   dimensions,
+  profile,
 }: ResolveIntegratedCountertopBasinOptionsInput): CountertopBasinOptionLike[] => {
+  const aliasTable = selectMaterialAliasTable(profile ?? null);
   const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
   const applicableRules = rules.filter((rule) => {
     if (!matchesDepthForStyle(rule, dimensions.depth, "integrated")) return false;
     if (!matchesThickness(rule, activeThickness)) return false;
     if (!activeMaterialTokens.length) return true;
-    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material));
+    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable));
   });
 
   if (!applicableRules.length) return [];
@@ -75,12 +81,12 @@ export const resolveAvailableIntegratedCountertopBasinOptions = ({
     if (!label) return [];
 
     const [, ...restTokens] = label.trim().split(/\s+/);
-    const materialTokens = extractCountertopBasinMaterialScopeTokens(label, option.name);
+    const materialTokens = extractCountertopBasinMaterialScopeTokens(label, option.name, aliasTable);
     const isMaterialSpecific = materialTokens.length > 0;
 
     if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
       const matchesMaterial = materialTokens.some((token) =>
-        getMaterialAliases(token).some((alias) => normalizedActiveMaterials.includes(alias)),
+        getMaterialAliases(token, aliasTable).some((alias) => normalizedActiveMaterials.includes(alias)),
       );
       if (!matchesMaterial) return [];
     }

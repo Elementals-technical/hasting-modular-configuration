@@ -19,7 +19,6 @@ import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { matchesThickness, resolveIntegratedBasinOptions, resolveVesselBasinOptions } from "./basinOptions";
 import { VESSEL_SINK_NONE_OPTION_VALUE } from "./countertopColorOptions";
-import { basinOptionImages, countertopStyleOptionImages } from "./optionImages";
 
 import type { CountertopContext } from "./useCountertopContext";
 import type { FieldRuntimeState } from "@/entities/collection";
@@ -96,7 +95,7 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
 
         return {
           ...option,
-          image: countertopStyleOptionImages[style],
+          image: option.image,
           enabled: !(blockedByDepth || blockedByRules),
           reason: blockedByDepth
             ? INTEGRATED_DEPTH_46_DISABLED_REASON
@@ -127,7 +126,7 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
         title: option.label ?? option.value,
         name: option.value,
         isShortDesc: false,
-        metadata: { image: basinOptionImages[option.value], value: option.value },
+        metadata: { image: option.image, value: option.value },
       })),
     [basinField],
   );

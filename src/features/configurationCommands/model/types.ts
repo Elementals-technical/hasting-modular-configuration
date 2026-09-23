@@ -67,6 +67,11 @@ export type ChangeBlockedReason = {
   reasonCode: string;
   /** Legacy English fallback from profile.messages; B owns display and translation. */
   reason: string;
+  /**
+   * "undetermined": the product has no rule for this change yet (CONTRACTS §8), as opposed to
+   * a rule that forbids it. B may show the two differently.
+   */
+  compatibility?: "undetermined";
 };
 
 /** Why a change waits for the user's confirmation. B resolves the code to text. */

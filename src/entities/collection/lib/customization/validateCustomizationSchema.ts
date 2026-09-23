@@ -158,6 +158,14 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
     );
     validateOptionalBoolean(section.enabled, `sections.${sectionId}.enabled`, "enabled must be a boolean", diagnostics);
 
+    if (section.labelWhenVessel !== undefined && !isNonEmptyString(section.labelWhenVessel)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `sections.${sectionId}.labelWhenVessel`,
+        message: "labelWhenVessel must be a non-empty string",
+      });
+    }
+
     section.fields.forEach((field: unknown, index: number) => {
       const path = `sections.${sectionId}.fields[${index}]`;
       const control = isRecord(field) ? field.control : undefined;
@@ -200,6 +208,41 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
   }
 };
 
+/** Pictures of options, by attribute and option value; every reference is a non-empty string. */
+const validateOptionImages = (optionImages: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (optionImages === undefined) return;
+
+  if (!isRecord(optionImages)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "optionImages",
+      message: "optionImages must be an object keyed by attributeId",
+    });
+    return;
+  }
+
+  for (const [attributeId, byValue] of Object.entries(optionImages)) {
+    if (!isRecord(byValue)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `optionImages.${attributeId}`,
+        message: "attribute images must be an object keyed by option value",
+      });
+      continue;
+    }
+
+    for (const [value, reference] of Object.entries(byValue)) {
+      if (!isNonEmptyString(reference)) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `optionImages.${attributeId}.${value}`,
+          message: "image reference must be a non-empty string",
+        });
+      }
+    }
+  }
+};
+
 export const validateCustomizationSchema = (input: unknown): ValidateCustomizationSchemaResult => {
   if (!isRecord(input) || !isRecord(input.flows) || !isRecord(input.steps) || !isRecord(input.sections)) {
     return {
@@ -223,6 +266,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateFlows(input.flows, input.steps, diagnostics);
   validateSteps(input.steps, input.sections, diagnostics);
   validateSections(input.sections, diagnostics);
+  validateOptionImages(input.optionImages, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

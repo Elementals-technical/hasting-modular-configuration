@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ushProfile } from "./ushProfileFixture";
+import { parseProductProfile } from "../lib/parseProductProfile";
 import { selectMessage } from "../lib/productProfileSelectors";
 
 /**
@@ -56,4 +57,37 @@ describe("reason codes have a text in the USH profile", () => {
   it("declares a message for every code", () => {
     expect(reasonCodes.filter((code) => selectMessage(ushProfile, code) === code)).toEqual([]);
   });
+});
+
+/**
+ * Codes the command returns whatever the collection: a value outside the catalog, an option the
+ * current selection rules out. Every production collection reaches them, so each needs a text.
+ */
+const commandCodes = reasonCodes.filter((code) => code.startsWith("change."));
+
+const productionProfiles = Object.entries(
+  import.meta.glob("/public/collections/*/product-profile.json", { eager: true, import: "default" }),
+).map(([path, document]) => {
+  const result = parseProductProfile(document);
+  if (!result.ok) throw new Error(`${path} failed validation`);
+  return result.profile;
+});
+
+describe("command reason codes have a text in every production collection", () => {
+  it("reads every production profile", () => {
+    expect(productionProfiles.map(({ collectionId }) => collectionId).sort()).toEqual([
+      "class",
+      "mako",
+      "urban-low-height",
+      "urban-standard-height",
+    ]);
+    expect(commandCodes).toEqual(expect.arrayContaining(["change.notAvailable", "change.valueNotInCatalog"]));
+  });
+
+  it.each(productionProfiles.map((profile) => [profile.collectionId, profile] as const))(
+    "%s declares a message for every command code",
+    (_, profile) => {
+      expect(commandCodes.filter((code) => selectMessage(profile, code) === code)).toEqual([]);
+    },
+  );
 });

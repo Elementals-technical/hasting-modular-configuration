@@ -23,6 +23,11 @@ export type { CompositionPortDeps, SceneCompositionBridge } from "./lib/createCo
 export { createTestCompositionPort } from "./lib/testCompositionPort";
 export type { CompositionCall, TestCompositionPort } from "./lib/testCompositionPort";
 
+export { createDividerPort } from "./lib/createDividerPort";
+export type { DividerPortDeps } from "./lib/createDividerPort";
+export { createTestDividerPort } from "./lib/testDividerPort";
+export type { TestDividerPort } from "./lib/testDividerPort";
+
 export { createSidePanelPort } from "./lib/createSidePanelPort";
 export type { SidePanelPortDeps } from "./lib/createSidePanelPort";
 export { createTestSidePanelPort } from "./lib/testSidePanelPort";

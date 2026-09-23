@@ -175,8 +175,9 @@ export const useSidePanelState = (field: FieldRuntimeState | undefined) => {
         targetSide,
         leftStatus,
         rightStatus,
+        profile: activeProfile,
       }),
-    [availability, field, isBlockedByLength, lengthGuard, leftStatus, rightStatus, targetSide],
+    [activeProfile, availability, field, isBlockedByLength, lengthGuard, leftStatus, rightStatus, targetSide],
   );
 
   useEffect(() => {

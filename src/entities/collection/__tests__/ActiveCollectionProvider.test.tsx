@@ -26,7 +26,6 @@ import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
 import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
-import makoCabinetTable from "../../../../public/collections/mako/cabinet-table.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoPresets from "../../../../public/collections/mako/presets.json";
 import makoProductProfile from "../../../../public/collections/mako/product-profile.json";
@@ -50,6 +49,7 @@ import fixtureRulesUi from "./fixtures/collections/fixture-rules/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
+import datatable581 from "./fixtures/remote/datatable-581.json";
 
 import { useActiveCollectionSession, useActiveCollectionState } from "../ui/activeCollectionContext";
 import { ActiveCollectionProvider } from "../ui/ActiveCollectionProvider";
@@ -88,7 +88,6 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}class/product-profile.json`]: classProductProfile,
   [`${rootUrl}class/sku-profile.json`]: classSkuProfile,
   [`${rootUrl}class/ui.json`]: classUi,
-  [`${rootUrl}mako/cabinet-table.json`]: makoCabinetTable,
   [`${rootUrl}mako/manifest.json`]: makoManifest,
   [`${rootUrl}mako/presets.json`]: makoPresets,
   [`${rootUrl}mako/product-profile.json`]: makoProductProfile,
@@ -202,7 +201,8 @@ describe("ActiveCollectionProvider", () => {
   const productionRemote: RemoteCollectionLoader = {
     loadConfigurator: vi.fn(async () => configurator4),
     loadCountertopTable: vi.fn(async () => datatable438),
-    loadCabinetTable: vi.fn(async () => datatable439),
+    // Mako reads its own cabinet table (581); the other collections share the USH one (439).
+    loadCabinetTable: vi.fn(async (id: string | number) => (id === 581 ? datatable581 : datatable439)),
   };
 
   it("takes the production registry default through resolving and loading to ready", async () => {
@@ -219,13 +219,13 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it.each([
-    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, null],
-    ["class", "Class Models", "class", 44, null],
-    // Mako ships its scene bindings (I).
-    ["mako", "Mako Models", "mako", 42, { collectionId: "mako" }],
+    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, null, 439],
+    ["class", "Class Models", "class", 44, null, 439],
+    // Mako ships its scene bindings (I) and has its own cabinet table.
+    ["mako", "Mako Models", "mako", 42, { collectionId: "mako" }, 581],
   ])(
     "loads the initial %s session without requiring optional local catalogs",
-    async (collectionId, detail, profileCollectionId, presetCount, runtimeBindings) => {
+    async (collectionId, detail, profileCollectionId, presetCount, runtimeBindings, cabinetTableId) => {
       renderProvider(
         "/?collectionId=" + collectionId,
         makeDependencies(undefined, productionRemote, productionRegistry),
@@ -244,6 +244,7 @@ describe("ActiveCollectionProvider", () => {
       expect(localData).toMatchObject({ defaults: {}, runtimeBindings, cabinetSkuMappings: null });
       expect(localData.presets?.length ?? null).toBe(presetCount);
       expect(localData.productProfile?.collectionId ?? null).toBe(profileCollectionId);
+      expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(cabinetTableId, expect.any(AbortSignal));
     },
   );
 

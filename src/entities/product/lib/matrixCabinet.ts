@@ -1,5 +1,5 @@
 import { normalizeHandleProfile, normalizeOptionValue } from "@/entities/collection";
-import type { CabinetMatrixLegacyAdapter, NormalizedMatrixRow, ProductProfile } from "@/entities/collection";
+import type { NormalizedMatrixRow, ProductProfile } from "@/entities/collection";
 import type { ProductDatatable, ProductDatatableRow } from "@/entities/product/api";
 import type { ConfiguratorCatalog, TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
@@ -24,13 +24,6 @@ const parseBoolean = (value?: unknown): boolean =>
     .trim()
     .toLowerCase() === "true";
 
-/** Legacy drawer spellings, used only until a profile with the Drawers catalog is available. */
-const LEGACY_DRAWER_ALIASES: Record<string, string> = {
-  "1D": "1",
-  "2D": "2",
-  "1DWID": "1+inner",
-};
-
 const normalizeKey = (key: string) => key.trim().toLowerCase().replace(/\s+/g, "_");
 
 const normalizeRow = (row: ProductDatatableRow): NormalizedMatrixRow =>
@@ -39,49 +32,25 @@ const normalizeRow = (row: ProductDatatableRow): NormalizedMatrixRow =>
     return acc;
   }, {});
 
-const createDrawerNormalizer = (profile: ProductProfile | null) => (value: string) => {
-  const fromProfile = normalizeOptionValue(profile, "Drawers", value);
-  if (fromProfile) return fromProfile;
-
-  const trimmed = value.trim();
-  return LEGACY_DRAWER_ALIASES[trimmed] ?? trimmed;
-};
-
-/**
- * Fallback column mapping for the window where no profile is loaded yet.
- * The authoritative mapping is `profile.ruleData.cabinetMatrixLegacyAdapter`.
- */
-const FALLBACK_ADAPTER: Pick<CabinetMatrixLegacyAdapter, "columns"> = {
-  columns: {
-    cabinetType: "cabinet_type",
-    drawers: "drawer_configs",
-    handlesAllowed: "handles_allowed",
-    supportsHeight: "supports_height",
-    forcedHeightByHandle: {
-      handle_pto: "handle_pto_forced_height_cm",
-      handle_urban_topcut: "handle_urban_topcut_forced_height_cm",
-      handle_urban_botcut: "handle_urban_botcut_forced_height_cm",
-    },
-    requiresDrawersByHandle: {
-      handle_urban_botcut: "handle_urban_botcut_requires_drawers",
-    },
-  },
-};
+/** A drawers value the profile's Drawers catalog knows (by value or alias), else as written. */
+const createDrawerNormalizer = (profile: ProductProfile) => (value: string) =>
+  normalizeOptionValue(profile, "Drawers", value) ?? value.trim();
 
 /**
  * Builds the cabinet catalog from the legacy matrix rows.
  *
- * Handle-specific columns are resolved through the profile adapter, so this parser
- * never tests a handle id: adding a handle means one more entry in the adapter data.
+ * Every column, handle-specific ones included, comes from the collection's
+ * `ruleData.cabinetMatrixLegacyAdapter`, so this parser never tests a handle id or assumes
+ * USH columns: adding a handle means one more entry in the adapter data.
  */
 export const buildCabinetCatalogFromMatrix = (
   datatable: ProductDatatable,
-  profile: ProductProfile | null = null,
+  profile: ProductProfile,
 ): ConfiguratorCatalog => {
   const rows = Array.isArray(datatable.rows) ? datatable.rows : [];
   const normalizedRows = rows.map(normalizeRow);
 
-  const adapter = profile?.ruleData.cabinetMatrixLegacyAdapter ?? FALLBACK_ADAPTER;
+  const adapter = profile.ruleData.cabinetMatrixLegacyAdapter;
   const normalizeDrawers = createDrawerNormalizer(profile);
 
   const { relations } = normalizeHandleProfile({ rows: normalizedRows, adapter, normalizeDrawers });

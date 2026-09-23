@@ -8,8 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import { reset, setActiveProfile } from "@/entities/product/model/store/slice";
+import { reset, setActiveProfile, setCountertopStyle } from "@/entities/product/model/store/slice";
 import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
+import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import type { CountertopDatatable } from "@/entities/countertop/api/types";
+import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { CountertopPage } from "@/pages/countertop/CountertopPage";
 
 // The countertop step reads its sections from ui.json and its options from the profile; the pick goes to the command.
@@ -26,9 +29,18 @@ vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport", () => ({ useCompact
 
 afterEach(cleanup);
 
-const renderStep = (path = "/prebuilt/countertop", stepId = "countertop") =>
+/** The shipped countertop matrix, so a style the rules allow reads as available. */
+const withCountertopRules = {
+  ...readyCollectionFixture,
+  catalog: {
+    ...readyCollectionFixture.catalog,
+    countertops: parseCountertopMatrix(datatable438 as unknown as CountertopDatatable),
+  },
+};
+
+const renderStep = (path = "/prebuilt/countertop", stepId = "countertop", collection = readyCollectionFixture) =>
   render(
-    <ReadyCollectionContext.Provider value={readyCollectionFixture}>
+    <ReadyCollectionContext.Provider value={collection}>
       <Provider store={store}>
         <MemoryRouter initialEntries={[path]}>
           <CountertopPage stepId={stepId} />
@@ -49,23 +61,13 @@ describe("the countertop step from ui.json", () => {
   it("renders the prebuilt sections in the order ui.json declares, without the vessel colour", () => {
     renderStep();
 
-    expect(sectionTitles()).toEqual([
-      "Countertop Color",
-      "Thickness",
-      "Countertop Style",
-      "Basin style / Vessel Sink Style",
-    ]);
+    expect(sectionTitles()).toEqual(["Countertop Color", "Thickness", "Countertop Style", "Basin style"]);
   });
 
   it("renders the custom flow from the same widget", () => {
     renderStep("/custom/countertop", "countertop-custom");
 
-    expect(sectionTitles()).toEqual([
-      "Countertop Color",
-      "Thickness",
-      "Countertop Style",
-      "Basin style / Vessel Sink Style",
-    ]);
+    expect(sectionTitles()).toEqual(["Countertop Color", "Thickness", "Countertop Style", "Basin style"]);
   });
 
   it("lists the thicknesses and styles of the profile", () => {
@@ -78,6 +80,18 @@ describe("the countertop step from ui.json", () => {
     const style = within(screen.getByRole("region", { name: "Countertop Style" }));
     expect(style.getByText("Integrated")).toBeTruthy();
     expect(style.getByText("Vessel")).toBeTruthy();
+  });
+
+  it("names the basin section as ui.json names it for the chosen style", () => {
+    renderStep("/prebuilt/countertop", "countertop", withCountertopRules);
+    expect(sectionTitles()).toContain("Basin style");
+
+    act(() => {
+      store.dispatch(setCountertopStyle("vessel"));
+    });
+
+    expect(sectionTitles()).toContain("Vessel Sink Style");
+    expect(sectionTitles()).not.toContain("Basin style");
   });
 
   it("asks for a thickness before it offers basins", () => {

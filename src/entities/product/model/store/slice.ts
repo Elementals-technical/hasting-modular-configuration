@@ -7,7 +7,7 @@ import {
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveForcedHeightForHandle } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleForcedHeight";
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
-import { getDividerTypeFromOptionTitle } from "@/features/dividers/model/normalize";
+import { normalizeDividerType } from "@/features/dividers/model/normalize";
 import type { DividerType } from "@/features/dividers/model/types";
 import { hasCapability, normalizeOptionValue, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -19,6 +19,7 @@ type DimensionOption = {
   value: number | string;
   disabled?: boolean;
   reason?: string;
+  reasonCode?: string;
 };
 
 type DimensionOptionGroup = {
@@ -137,6 +138,7 @@ const mapOptionState = <T extends string | number>(option: OptionState<T>): Dime
   value: option.value,
   disabled: !option.enabled,
   reason: option.reason,
+  reasonCode: option.reasonCode,
 });
 
 /**
@@ -708,8 +710,8 @@ const productSlice = createSlice({
     },
     setDividersStyle(state, action: PayloadAction<string>) {
       state.productOptions.DividersStyle = action.payload;
-      // Single place where the "Option X" label is parsed into the domain type.
-      state.selectedDividerType = getDividerTypeFromOptionTitle(action.payload);
+      // Single place where the stored style becomes the domain type.
+      state.selectedDividerType = normalizeDividerType(action.payload);
     },
     replacePlacedDividersForDrawer(
       state,
@@ -790,9 +792,9 @@ const productSlice = createSlice({
       } = action.payload;
       state.productIds = productIds;
       state.productOptions = productOptions;
-      // History snapshots only persist the DividersStyle label — re-derive the
-      // domain type so undo/redo never desynchronizes the label/type pair.
-      state.selectedDividerType = getDividerTypeFromOptionTitle(productOptions.DividersStyle ?? "");
+      // A snapshot persists only the style — re-derive the domain type so undo/redo
+      // never desynchronizes the two.
+      state.selectedDividerType = normalizeDividerType(productOptions.DividersStyle ?? "");
       state.activeCabinetType = activeCabinetType;
       state.selectedDimensions = selectedDimensions;
       state.placedDividers = placedDividers ?? [];

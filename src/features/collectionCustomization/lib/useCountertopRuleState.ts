@@ -11,6 +11,7 @@ import {
   getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { buildCountertopRuleState, useCountertopRules } from "@/features/configurator-rule-core/countertop";
+import { getActiveProductProfile } from "@/entities/configuration";
 import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
@@ -26,6 +27,7 @@ export type CountertopRuleState = ReturnType<typeof buildCountertopRuleState> & 
 export const useCountertopRuleState = (): CountertopRuleState => {
   const rules = useCountertopRules();
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const thickness = useAppSelector(getActiveCountertopThickness);
@@ -54,10 +56,12 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       activeCountertopStyle: countertopStyle,
       activeBasinStyle: basinStyle,
       activeThickness: thickness,
+      profile: activeProfile,
     });
 
     return { ...ruleState, activeMaterialTokens };
   }, [
+    activeProfile,
     basinStyle,
     configuratorGroups,
     countertopColor,

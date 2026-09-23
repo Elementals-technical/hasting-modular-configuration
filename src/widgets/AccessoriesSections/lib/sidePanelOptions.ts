@@ -84,6 +84,8 @@ type BuildOptionsArgs = {
   targetSide: SidePanelTargetSide;
   leftStatus: string;
   rightStatus: string;
+  /** Active collection: the length reason comes from its `messages`. */
+  profile: ProductProfile | null;
 };
 
 const SYNTESI_BLOCKED_REASON: SidePanelReasonCode = "syntesi-countertop";
@@ -97,6 +99,7 @@ export const buildSidePanelOptions = ({
   targetSide,
   leftStatus,
   rightStatus,
+  profile,
 }: BuildOptionsArgs): ProductOptionData[] => {
   const catalog: ProductOptionData[] = (field?.options ?? []).map((option) => ({
     id: option.value,
@@ -123,7 +126,11 @@ export const buildSidePanelOptions = ({
     );
     if (totalAfter === null || lengthGuard.max === null || lengthGuard.canAccommodateTotal(totalAfter)) return [option];
     return [
-      { ...option, isAvailable: false, disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max) },
+      {
+        ...option,
+        isAvailable: false,
+        disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max, profile),
+      },
     ];
   });
 };

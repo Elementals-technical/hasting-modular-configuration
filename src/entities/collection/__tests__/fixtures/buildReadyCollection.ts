@@ -1,6 +1,7 @@
 import {
   deriveCollectionNavigation,
   presetsSchema,
+  resolveCustomizationImageUrls,
   validateCollectionManifest,
   type ReadyCollectionData,
 } from "@/entities/collection";
@@ -15,13 +16,10 @@ export const buildReadyCollection = (
   uiDocument: unknown,
   presetsDocument?: unknown,
 ): ReadyCollectionData => {
-  const manifest = validateCollectionManifest(
-    manifestDocument,
-    collectionId,
-    `${rootUrl}${collectionId}/manifest.json`,
-    rootUrl,
-  );
-  const customization = readCustomizationSchema(uiDocument);
+  const manifestUrl = `${rootUrl}${collectionId}/manifest.json`;
+  const manifest = validateCollectionManifest(manifestDocument, collectionId, manifestUrl, rootUrl);
+  // Resolved as the loader resolves it, so a fixture sees the same URLs a page sees.
+  const customization = resolveCustomizationImageUrls(readCustomizationSchema(uiDocument), manifestUrl, rootUrl);
 
   return {
     id: collectionId,

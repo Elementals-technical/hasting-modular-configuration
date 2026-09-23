@@ -41,6 +41,7 @@ export const FieldControl = ({ control, field, onChange, label, className }: Fie
       title: option.label ?? option.value,
       isAvailable: option.enabled,
       disabledReason: option.reason,
+      disabledReasonCode: option.reasonCode,
       isShortDesc: false,
       metadata: { value: option.value, image: option.image },
     }));

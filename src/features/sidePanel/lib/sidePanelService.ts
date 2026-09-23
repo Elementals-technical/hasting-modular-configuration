@@ -48,24 +48,24 @@ export function isGrooveType(value: string): value is GrooveType {
 
 // ── Shared groove resolution ───────────────────────────────────────────
 
-const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
-  handle_urban_topcut: ["UpperG", "DoubleG"],
-  handle_urban_botcut: ["CenterG"],
-  handle_pto: ["NoG"],
-};
-
 const GROOVE_FALLBACK = ["UpperG", "CenterG", "DoubleG", "NoG"] as const;
 
 /**
  * Pick the best groove given allowed set, current groove, and handle style.
  * 1) Keep current if still allowed
- * 2) Pick preferred by handle priority
+ * 2) Pick preferred by the handle's priority in `ruleData.sidePanels.groovePriorityByHandle`
  * 3) Fallback to first available (NoG last)
  */
-export function resolveGroove(allowed: Set<string>, currentGroove: string | null, handle: string | null): GrooveType {
+export function resolveGroove(
+  allowed: Set<string>,
+  currentGroove: string | null,
+  handle: string | null,
+  profile: ProductProfile | null,
+): GrooveType {
   if (currentGroove && allowed.has(currentGroove) && isGrooveType(currentGroove)) return currentGroove;
 
-  const priorities = handle ? (HANDLE_GROOVE_PRIORITY[handle] ?? []) : [];
+  const priorityByHandle = selectRuleData(profile, "sidePanels")?.groovePriorityByHandle;
+  const priorities = handle ? (priorityByHandle?.[handle] ?? []) : [];
   const preferred = priorities.find((g) => allowed.has(g));
   if (preferred && isGrooveType(preferred)) return preferred;
 
@@ -277,7 +277,7 @@ export async function reapplySidePanelsForPreset(
     profile,
   );
 
-  const groove = resolveGroove(availability.allowed as Set<string>, currentGroove, eligible.Handle ?? null);
+  const groove = resolveGroove(availability.allowed as Set<string>, currentGroove, eligible.Handle ?? null, profile);
 
   if (groove === "None") {
     return change(dispatch, {

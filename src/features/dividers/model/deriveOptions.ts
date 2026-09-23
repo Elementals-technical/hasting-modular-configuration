@@ -1,12 +1,17 @@
-import { getDividerTypeFromOptionTitle } from "./normalize";
-import type { DividerAvailability, DividerType } from "./types";
-import { buildUnavailableDividerWarning } from "./validate";
+import { selectMessageOr, type ProductProfile } from "@/entities/collection";
 
-export type DividerOptionBase = { title: string };
+import { normalizeDividerType } from "./normalize";
+import type { DividerAvailability, DividerType } from "./types";
+import { unavailableDividerReason } from "./validate";
+
+/** A style option as the step lists it: `name` is the style value the profile declares. */
+export type DividerOptionBase = { name: string };
 
 export type DerivedDividerOption<T extends DividerOptionBase> = T & {
   isAvailable?: boolean;
   disabledReason?: string;
+  /** Stable code of `disabledReason`; the interface resolves it to text. */
+  disabledReasonCode?: string;
 };
 
 export type DividerAvailabilityInput =
@@ -16,6 +21,7 @@ export type DividerAvailabilityInput =
   | null
   | undefined;
 
+export const REASON_DIVIDER_OPTION_DOES_NOT_FIT = "divider.optionDoesNotFit";
 const NON_DIVIDER_OPTION_DISABLED_REASON = "This divider option does not fit in the selected drawer space.";
 
 const resolveAvailableTypes = (availability: DividerAvailabilityInput): readonly DividerType[] | null => {
@@ -27,13 +33,14 @@ const resolveAvailableTypes = (availability: DividerAvailabilityInput): readonly
 };
 
 /**
- * Maps UI option mock data + current availability into grid-ready options with
- * `isAvailable` / `disabledReason`. Moved verbatim from the pages' `dividerOptions`
- * useMemo (custom accessories page) — behavior must not change.
+ * Maps the step's style options and the current availability into grid-ready options with
+ * `isAvailable` / `disabledReason`. The style of an option is its declared value, so a
+ * collection may label it however it likes.
  */
 export function deriveDividerOptions<T extends DividerOptionBase>(
   options: readonly T[],
   availability: DividerAvailabilityInput,
+  profile: ProductProfile | null = null,
 ): DerivedDividerOption<T>[] {
   const types = resolveAvailableTypes(availability);
   if (!types) return [...options];
@@ -41,16 +48,20 @@ export function deriveDividerOptions<T extends DividerOptionBase>(
   const availableTypes = [...types];
 
   return options.map((option) => {
-    const dividerType = getDividerTypeFromOptionTitle(option.title);
+    const dividerType = normalizeDividerType(option.name);
     const isAvailable = dividerType ? types.includes(dividerType) : true;
-    const disabledReason = dividerType
-      ? buildUnavailableDividerWarning(dividerType, availableTypes)
-      : NON_DIVIDER_OPTION_DISABLED_REASON;
+    const reason = dividerType
+      ? unavailableDividerReason(dividerType, availableTypes, profile)
+      : {
+          reasonCode: REASON_DIVIDER_OPTION_DOES_NOT_FIT,
+          message: selectMessageOr(profile, REASON_DIVIDER_OPTION_DOES_NOT_FIT, NON_DIVIDER_OPTION_DISABLED_REASON),
+        };
 
     return {
       ...option,
       isAvailable,
-      disabledReason: isAvailable ? undefined : disabledReason,
+      disabledReason: isAvailable ? undefined : reason.message,
+      disabledReasonCode: isAvailable ? undefined : reason.reasonCode,
     };
   });
 }

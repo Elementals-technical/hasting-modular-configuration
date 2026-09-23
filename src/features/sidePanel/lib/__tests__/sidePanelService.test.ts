@@ -15,6 +15,7 @@ vi.mock("@/utils/functions/playcanvas/sceneBridge", async (importOriginal) => ({
 }));
 
 import { store } from "@/app/store";
+import type { ProductProfile } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { reset, setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
 import {
@@ -23,7 +24,12 @@ import {
   getSidePanelsOption,
 } from "@/features/sidePanel/model/selectors";
 
-import { applyGrooveToActiveSides, reapplySidePanelsForPreset, restoreSidePanelState } from "../sidePanelService";
+import {
+  applyGrooveToActiveSides,
+  reapplySidePanelsForPreset,
+  resolveGroove,
+  restoreSidePanelState,
+} from "../sidePanelService";
 
 /** The panels the scene was sent, one [panel, side] pair per call. */
 const sentPanels = () =>
@@ -226,5 +232,44 @@ describe("sidePanelService through the command", () => {
     expect(getSidePanelsOption(state)).toBe("DoubleG");
     expect(getSidePanelLeftStatus(state)).toBe("active");
     expect(getSidePanelRightStatus(state)).toBe("none");
+  });
+});
+
+describe("resolveGroove", () => {
+  const allGrooves = new Set(["NoG", "UpperG", "CenterG", "DoubleG"]);
+
+  it("keeps the current groove while it is still allowed", () => {
+    expect(resolveGroove(allGrooves, "CenterG", "handle_urban_topcut", ushProfile)).toBe("CenterG");
+  });
+
+  it("prefers the grooves the USH profile lists for each handle", () => {
+    expect(resolveGroove(allGrooves, "None", "handle_urban_topcut", ushProfile)).toBe("UpperG");
+    expect(resolveGroove(new Set(["NoG", "DoubleG"]), "None", "handle_urban_topcut", ushProfile)).toBe("DoubleG");
+    expect(resolveGroove(allGrooves, "None", "handle_urban_botcut", ushProfile)).toBe("CenterG");
+    expect(resolveGroove(allGrooves, "None", "handle_pto", ushProfile)).toBe("NoG");
+  });
+
+  it("reads a new handle's priority from data alone", () => {
+    const sidePanels = ushProfile.ruleData.sidePanels;
+    if (!sidePanels) throw new Error("The USH profile declares side panels");
+
+    const profile: ProductProfile = {
+      ...ushProfile,
+      ruleData: {
+        ...ushProfile.ruleData,
+        sidePanels: {
+          ...sidePanels,
+          groovePriorityByHandle: { ...sidePanels.groovePriorityByHandle, test_groove_handle: ["DoubleG"] },
+        },
+      },
+    };
+
+    expect(resolveGroove(allGrooves, "None", "test_groove_handle", profile)).toBe("DoubleG");
+  });
+
+  it("falls back to the first allowed groove for a handle without a priority, or without a profile", () => {
+    expect(resolveGroove(new Set(["CenterG", "NoG"]), "None", "test_groove_handle", ushProfile)).toBe("CenterG");
+    expect(resolveGroove(new Set(["CenterG", "NoG"]), "None", "handle_pto", null)).toBe("CenterG");
+    expect(resolveGroove(new Set(), "None", "handle_pto", ushProfile)).toBe("None");
   });
 });

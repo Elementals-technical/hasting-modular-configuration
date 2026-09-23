@@ -8,6 +8,10 @@ import type { ProductOptionMetadata } from "@/entities/product/ui/ProductOptions
 
 import s from "./ProductOptionItem.module.scss";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
+import { useReasonText, type MessageParams } from "@/shared/lib/reasonText";
+
+/** Shown when an option is unavailable and its rule named no reason. */
+const UNAVAILABLE_OPTION_REASON_CODE = "ui.optionUnavailable";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 
@@ -26,7 +30,11 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  /** Text a caller resolved itself; used while its rule has no reason code. */
   disabledReason?: string;
+  /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+  disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   disabledBadgeLabel?: string;
   disabledActionLabel?: string;
   onDisabledAction?: () => void | Promise<void>;
@@ -48,6 +56,8 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   desc,
   isAvailable,
   disabledReason,
+  disabledReasonCode,
+  disabledReasonParams,
   disabledBadgeLabel,
   disabledActionLabel,
   onDisabledAction,
@@ -62,7 +72,13 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   onPreview,
   variant,
 }) => {
+  const reasonText = useReasonText();
   const available = isAvailable ?? true; // undefined as available
+  const unavailableText = reasonText({
+    code: disabledReasonCode ?? UNAVAILABLE_OPTION_REASON_CODE,
+    params: disabledReasonParams,
+    text: disabledReason,
+  });
   const productName = name ?? title;
   const hasImage = !!metadata?.image;
   const hasHexColor = !!metadata?.hex;
@@ -153,7 +169,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 
   if (!available) {
     return (
-      <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
+      <Hint className={s.optionHint} content={unavailableText}>
         {optionContent}
       </Hint>
     );

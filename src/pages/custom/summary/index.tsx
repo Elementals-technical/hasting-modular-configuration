@@ -30,7 +30,6 @@ import {
   getDrawerPanelFluting,
   getLedOption,
   getFaucetHolesAmount,
-  getFaucetHolesSpacing,
   getGrainDirection,
   getBookMatching,
   getHandleGrooveColor,
@@ -53,7 +52,6 @@ import {
   getCabinetEntries,
   getDimensionsByCabinet,
 } from "@/entities/configuration/model/store/selectors";
-// import { dividersMockData } from "@/pages/custom/accessories/constants";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import {
   SPECIAL_VARIANT_DISPLAY_IMAGE,
@@ -160,12 +158,6 @@ const buildImageSrc = (imagePath?: string) => {
 
   return imagePath;
 };
-
-// const resolveDividerImage = (selection?: string) => {
-//   if (!selection) return undefined;
-//   const match = dividersMockData.find((option) => option.title === selection);
-//   return match?.metadata?.image;
-// };
 
 const INCLUDED_IN_COUNTERTOP_PRICE_LABEL = "Included in Countertop";
 
@@ -293,7 +285,6 @@ export const CustomSummaryPage = () => {
   const towelBarColor = useAppSelector(getTowelBarColor);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
   const isSwatchesEnabledInSummary = useAppSelector(getIsSwatchesEnabledInSummary);
   const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
   const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
@@ -971,6 +962,7 @@ export const CustomSummaryPage = () => {
     const materialForThicknessRules =
       resolvedCountertopMaterialSku || resolveCountertopMaterialSkuFromBasinType(resolvedSinkType);
     const matrixDefaultThickness = resolveDefaultThicknessFromRules({
+      profile: activeProfile,
       rules: countertopRules,
       activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
       width:
@@ -1540,7 +1532,6 @@ export const CustomSummaryPage = () => {
     countertopColorSku,
     vesselColor,
     bookMatching,
-    faucetHolesSpacing,
     selectedMaterials,
     manualSelectedMaterials,
     isAutofillEnabled,

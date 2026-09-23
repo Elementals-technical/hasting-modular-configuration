@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { selectAttribute } from "@/entities/collection";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import {
   getDividersOption,
@@ -17,6 +19,7 @@ import {
 import {
   buildUnavailableDividerWarning,
   getSharedDividerRuntimeAdapter,
+  normalizeDividerType,
   shouldClearDividersOnOptionChange,
   useDividerController,
 } from "@/features/dividers";
@@ -25,7 +28,6 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { exportCameraState, importCameraState, setAutoFraming } from "@/utils/functions/playcanvas/camera";
 import {
   clearPlacedDividersInScene,
-  getDividerTypeFromOptionTitle,
   recordDividerUiDebug,
   setVisibleDividerSlotButtons,
   warnDividerUiDebug,
@@ -51,6 +53,9 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
   const dispatch = useAppDispatch();
   const saveSnapshot = useHistorySnapshot();
   const isPlayCanvasReady = usePlayCanvasReady();
+  const activeProfile = useAppSelector(getActiveProductProfile);
+  // "Nothing chosen" is the profile's noneValue, so no collection has to spell it "None".
+  const dividersNoneValue = selectAttribute(activeProfile, "DividersOption")?.noneValue ?? "";
   const dividerSelection = useAppSelector(getDividersOption);
   const dividerStyle = useAppSelector(getDividersStyle);
   const selectedDividerType = useAppSelector(getSelectedDividerType);
@@ -64,6 +69,7 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
     () =>
       (styleField?.options ?? []).map((option) => ({
         id: option.value,
+        name: option.value,
         title: option.label ?? option.value,
         isShortDesc: false,
         metadata: { image: dividerStyleOptionImages[option.value] },
@@ -130,7 +136,7 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
     divider.clearWarning();
     await saveSnapshot();
 
-    if (shouldClearDividersOnOptionChange(value, dividerSelection)) {
+    if (shouldClearDividersOnOptionChange(value, dividerSelection, dividersNoneValue)) {
       await clearPlacedDividersInScene(selectedProducts);
       dispatch(clearPlacedDividers());
       const exitTopView = wrapExitTopView({});
@@ -152,7 +158,7 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
 
   const changeStyle = async (value: string) => {
     if (!value) return;
-    const dividerType = getDividerTypeFromOptionTitle(value);
+    const dividerType = normalizeDividerType(value);
     const availableTypes = divider.availableTypes;
     if (availableTypes && dividerType && !availableTypes.includes(dividerType)) {
       divider.showWarning(buildUnavailableDividerWarning(dividerType, availableTypes));

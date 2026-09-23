@@ -1,5 +1,49 @@
 {
   "collectionId": "urban-standard-height",
+  "optionImages": {
+    "sinkType": {
+      "Top_HPLPrisma": "images/basin/prisma.jpg",
+      "Top_HPLQuadra": "images/basin/quadro.jpg",
+      "Top_HPLCover": "images/basin/cover.jpg",
+      "Top_HPLStrip": "images/basin/strip.jpg",
+      "Top_HPL/Fenix_Cover_Gres": "images/basin/fenix_Cover.jpg",
+      "Top_HPL/Fenix_Prisma_Gres": "images/basin/fenix_Prisma.jpg",
+      "Top_HPL/Fenix_Quadra_Gres": "images/basin/fenix_Quadra.jpg",
+      "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Top_Glass_Nettuno": "images/basin/Nettuno.png",
+      "Top_Glass_Ovale": "images/basin/Ovale.png",
+      "Top_Mineralmarmo_Diamond": "images/basin/Diamond.jpg",
+      "Top_Ocritech_Oly55": "images/basin/Olly_55.jpg",
+      "Top_Ocritech_Oly56": "images/basin/Olly_56.jpg",
+      "Top_Ocritech_Orion": "images/basin/Orion.jpg",
+      "Top_Ocritech_Quadra": "images/basin/Quadra.jpg",
+      "Top_Ocritech_Rayo": "images/basin/Rayo.jpg",
+      "Top_Ocritech_Roll": "images/basin/Roll.jpg",
+      "Top_Porcelain_Cover": "images/basin/cover.jpg",
+      "Top_Porcelain_Prisma": "images/basin/prisma.jpg",
+      "Top_Porcelain_Quadra": "images/basin/quadro.jpg",
+      "Top_Porcelain_Strip": "images/basin/strip.jpg",
+      "Top_Tekorlux_Syntesi": "images/basin/Syntesi.jpg",
+      "Top_Tekorlux_Quadra": "images/basin/Quadra.jpg",
+      "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
+      "Top_Tekorlux_Ron": "images/basin/Ron.jpg",
+      "Top_Tekorlux_Trip": "images/basin/Trip.jpg",
+      "Top_Tekormud_Tivi": "images/basin/Tivi.jpg",
+      "Vessel_Blade11": "images/vessel/Vessel_Blade11.png",
+      "Vessel_Blade18": "images/vessel/Vessel_Blade18.png",
+      "Vessel_UrbanModo": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanModo_Flat": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanModo_Seam": "images/vessel/Vessel_UrbanModo_Seam.png",
+      "Vessel_UrbanModo_Cover": "images/vessel/Vessel_UrbanModo_Cover.png",
+      "Vessel_UrbanMorris": "images/vessel/Vessel_UrbanMorris.png",
+      "Vessel_Aquarius": "images/vessel/Vessel_Aquarius48.png"
+    },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
+    }
+  },
   "flows": {
     "prebuilt": {
       "entryStepId": "model",
@@ -148,7 +192,8 @@
       "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
     },
     "basin-style": {
-      "label": "Basin style / Vessel Sink Style",
+      "label": "Basin style",
+      "labelWhenVessel": "Vessel Sink Style",
       "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
     },
     "vessel-color": {
@@ -169,7 +214,8 @@
       "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
     },
     "basin-style-custom": {
-      "label": "Basin style / Vessel Sink Style",
+      "label": "Basin style",
+      "labelWhenVessel": "Vessel Sink Style",
       "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
     },
     "vessel-color-custom": {

@@ -21,13 +21,14 @@ export function useSidePanelEnforce(productIdsLength: number) {
   const spLeftRef = useRef(spLeft);
   const spRightRef = useRef(spRight);
   const profileRef = useRef(profile);
-  spGrooveRef.current = spGroove;
-  spLeftRef.current = spLeft;
-  spRightRef.current = spRight;
 
+  // Updated after commit, before the enforce effect below reads them.
   useEffect(() => {
+    spGrooveRef.current = spGroove;
+    spLeftRef.current = spLeft;
+    spRightRef.current = spRight;
     profileRef.current = profile;
-  }, [profile]);
+  }, [spGroove, spLeft, spRight, profile]);
 
   const enforce = useCallback(async () => {
     await enforceSidePanelEligibility(

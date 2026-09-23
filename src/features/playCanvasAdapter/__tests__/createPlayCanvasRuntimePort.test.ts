@@ -259,11 +259,40 @@ describe("createPlayCanvasRuntimePort", () => {
     expect(scene.calls).toHaveLength(0);
   });
 
-  it("sends the basin to every sink base, since USH has one basin per configuration", async () => {
+  it("sends a basin that names no sink base to every sink base of the configuration", async () => {
     const { scene, port } = setUp();
     const basin: RuntimeChange = { attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel_Blade11" };
 
     expect(await port.apply([basin], context())).toMatchObject({ status: "applied" });
     expect(scene.calls).toEqual([{ selector: { productType: "Sink-Base" }, patch: { sinkType: "Vessel_Blade11" } }]);
+  });
+
+  // An integrated basin fits only the sink bases wide enough for it, so the countertop step
+  // sends one change per fitting sink base and the others keep the basin they have.
+  it("sends a basin that names its sink base to that product alone", async () => {
+    const { scene, port } = setUp();
+    const basin: RuntimeChange = {
+      attributeId: "sinkType",
+      target: { scope: "basin", sinkBaseId: "cab-2" },
+      value: "Top_HPLPrisma",
+    };
+
+    expect(await port.apply([basin], context())).toMatchObject({ status: "applied" });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-2"] }, patch: { sinkType: "Top_HPLPrisma" } }]);
+  });
+
+  it("refuses a basin whose sink base the scene does not hold, before any command", async () => {
+    const { scene, port } = setUp();
+    const basin: RuntimeChange = {
+      attributeId: "sinkType",
+      target: { scope: "basin", sinkBaseId: "cab-9" },
+      value: "Top_HPLPrisma",
+    };
+
+    expect(await port.apply([basin], context())).toMatchObject({
+      status: "failed",
+      failed: [{ code: "unknown-target" }],
+    });
+    expect(scene.calls).toHaveLength(0);
   });
 });

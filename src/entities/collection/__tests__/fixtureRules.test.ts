@@ -118,6 +118,7 @@ describe("fixture-rules collection", () => {
     expect(blocked.violations).toContainEqual({
       field: "drawers",
       reason: "Not available for selected cabinet type",
+      reasonCode: "cabinet.notAvailableForType",
     });
     expect(allowed.violations.some(({ field }) => field === "drawers")).toBe(false);
     expect(allowed.availableOptions.drawers).toEqual([expect.objectContaining({ value: "2", enabled: true })]);

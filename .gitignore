@@ -103,6 +103,13 @@ docs/*
 !docs/side-panel-reasons-refactor.md
 !docs/collection-data-migration-status-v1.md
 !docs/collection-data-migration-status-v2.md
+# Developer C reports: residue, acceptance, handoffs and collection profiles.
+!docs/dev-residue-report.md
+!docs/c12-state-acceptance.md
+!docs/b06-profile-options-handoff.md
+!docs/class-profile.md
+!docs/mako-profile.md
+!docs/urban-low-height-profile.md
 !docs/product-profile-migration.md
 !docs/runtime-bindings-migration.md
 

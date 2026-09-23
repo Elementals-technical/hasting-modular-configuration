@@ -1,7 +1,7 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { ProductProfile } from "@/entities/collection";
-import { selectAttribute, selectLegacySpelling } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectLegacySpelling } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getAttributeOwnership, setAttributeValue } from "@/entities/configuration";
 import {
@@ -154,7 +154,12 @@ const COMMITTERS: Record<string, Committer> = {
   },
   LedOption: (change) => [setLedOption(asText(change))],
   DividersOption: (change) => [setDividersOption(asText(change))],
-  DividersStyle: (change) => [setDividersStyle(asText(change))],
+  // A link saved before the style was stored by value carries its label ("Option A"); the
+  // profile declares that spelling as an alias, so the state keeps one form either way.
+  DividersStyle: (change, context) => {
+    const value = asText(change);
+    return [setDividersStyle(value ? (normalizeOptionValue(context.profile, "DividersStyle", value) ?? value) : "")];
+  },
   FaucetHolesAmount: (change) => [setFaucetHolesAmount(asText(change))],
   FaucetHolesSpacing: (change) => [setFaucetHolesSpacing(asText(change))],
   Width: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ width: change.value })] : []),
@@ -245,3 +250,10 @@ export const commitPlan = (changes: readonly PlannedChange[], context: CommitCon
 
 /** Attribute ids that are written into the typed product slice rather than the scoped map. */
 export const TYPED_COMMIT_ATTRIBUTE_IDS: readonly string[] = Object.keys(COMMITTERS);
+
+/**
+ * Actions that record values placed products already carry, each at its own address. The scene
+ * has them and no committer runs: only values without a product-slice projection come here.
+ */
+export const recordCarriedChanges = (changes: readonly PlannedChange[]): UnknownAction[] =>
+  changes.flatMap((change) => recordSemanticChange(change) ?? []);

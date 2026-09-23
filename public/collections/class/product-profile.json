@@ -1786,6 +1786,9 @@
     "drawerStyleGroups": [["1", "1+inner"], ["2"]]
   },
   "messages": {
+    "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option is not available in this collection.",
     "drawers.requiredHeight": "Required for selected drawers"
   },
   "excludedFromThisProfile": {

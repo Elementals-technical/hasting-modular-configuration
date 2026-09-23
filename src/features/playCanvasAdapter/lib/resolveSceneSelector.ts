@@ -20,8 +20,20 @@ export const resolveSceneSelector = (
     case "all":
       return { ok: true, selector: {} };
 
-    case "productType":
-      return { ok: true, selector: { productType: target.productType } };
+    case "productType": {
+      // A value that names the sink base it belongs to reaches that one product. Without a
+      // name it stays the broadcast the binding declares, which is how a configuration-wide
+      // basin still reaches every sink base.
+      if (change.target.scope !== "basin" || !change.target.sinkBaseId) {
+        return { ok: true, selector: { productType: target.productType } };
+      }
+
+      const runtimeId = context.resolveRuntimeId(change.target.sinkBaseId);
+
+      return runtimeId
+        ? { ok: true, selector: { productIds: [runtimeId] } }
+        : { ok: false, message: `The scene has no product for sink base ${change.target.sinkBaseId}.` };
+    }
 
     case "cabinets":
       return context.cabinetRuntimeIds.length > 0

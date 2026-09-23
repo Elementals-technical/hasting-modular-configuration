@@ -122,6 +122,36 @@ describe("validateCustomizationSchema", () => {
     expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-control" }));
   });
 
+  it("accepts a schema with no optionImages and one that declares them", () => {
+    expect(validateCustomizationSchema({ ...uiJson, optionImages: undefined }).ok).toBe(true);
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImages: { sinkType: { Top_HPLPrisma: "images/basin/prisma.jpg" } },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects optionImages that is not a record of records of references", () => {
+    const notARecord = validateCustomizationSchema({ ...uiJson, optionImages: [] });
+    const attributeNotARecord = validateCustomizationSchema({ ...uiJson, optionImages: { sinkType: "x.jpg" } });
+    const emptyReference = validateCustomizationSchema({
+      ...uiJson,
+      optionImages: { sinkType: { Top_HPLPrisma: "  " } },
+    });
+
+    expect(notARecord.ok).toBe(false);
+    expect(notARecord.ok === false && notARecord.diagnostics).toEqual([
+      { code: "invalid-schema", dataPath: "optionImages", message: expect.any(String) },
+    ]);
+    expect(attributeNotARecord.ok === false && attributeNotARecord.diagnostics[0]?.dataPath).toBe(
+      "optionImages.sinkType",
+    );
+    expect(emptyReference.ok === false && emptyReference.diagnostics[0]?.dataPath).toBe(
+      "optionImages.sinkType.Top_HPLPrisma",
+    );
+  });
+
   it("rejects a non-boolean enabled on a step", () => {
     const broken = {
       ...uiJson,
@@ -170,6 +200,21 @@ describe("validateCustomizationSchema", () => {
     if (result.ok) return;
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: "invalid-schema", dataPath: "sections.faucet-holes-amount.fields[0].hints" }),
+    );
+  });
+
+  it("rejects a section label for the vessel style that is not a string", () => {
+    const broken = {
+      ...uiJson,
+      sections: { ...uiJson.sections, "basin-style": { ...uiJson.sections["basin-style"], labelWhenVessel: 3 } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.basin-style.labelWhenVessel" }),
     );
   });
 

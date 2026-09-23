@@ -5,14 +5,45 @@ import {
   normalizeBasinKey,
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
+  selectMaterialAliasTable,
 } from "./parse";
+import type { ProductProfile } from "@/entities/collection";
+import { selectMessageOr } from "@/entities/collection";
 import { cmToInches } from "@/shared/lib/sku/cmToInches";
 
-export const formatCompositionLengthReachedReason = (maxCm: number): string =>
-  `Maximum composition length reached for the selected countertop setup (${maxCm} cm / ${cmToInches(maxCm)}").`;
+export const REASON_COMPOSITION_LENGTH_REACHED = "countertop.compositionLengthReached";
+export const REASON_COMPOSITION_LENGTH_REACHED_NO_MAX = "countertop.compositionLengthReachedNoMax";
+export const REASON_SIDE_PANELS_EXCEED_MAX_LENGTH = "countertop.sidePanelsExceedMaxLength";
 
-export const formatSidePanelsExceedMaxReason = (withPanelsCm: number, maxCm: number): string =>
-  `Enabling side panels would exceed max countertop length (with panels: ${withPanelsCm} cm / ${cmToInches(withPanelsCm)}", max ${maxCm} cm / ${cmToInches(maxCm)}").`;
+/**
+ * The text comes from the collection's `messages`; the English one is the legacy fallback.
+ * Without a known maximum the reason names no length.
+ */
+export const formatCompositionLengthReachedReason = (maxCm: number | null, profile: ProductProfile | null): string =>
+  maxCm === null
+    ? selectMessageOr(
+        profile,
+        REASON_COMPOSITION_LENGTH_REACHED_NO_MAX,
+        "Maximum composition length reached for the selected countertop setup.",
+      )
+    : selectMessageOr(
+        profile,
+        REASON_COMPOSITION_LENGTH_REACHED,
+        `Maximum composition length reached for the selected countertop setup (${maxCm} cm / ${cmToInches(maxCm)}").`,
+        { maxCm, maxIn: cmToInches(maxCm) },
+      );
+
+export const formatSidePanelsExceedMaxReason = (
+  withPanelsCm: number,
+  maxCm: number,
+  profile: ProductProfile | null,
+): string =>
+  selectMessageOr(
+    profile,
+    REASON_SIDE_PANELS_EXCEED_MAX_LENGTH,
+    `Enabling side panels would exceed max countertop length (with panels: ${withPanelsCm} cm / ${cmToInches(withPanelsCm)}", max ${maxCm} cm / ${cmToInches(maxCm)}").`,
+    { withPanelsCm, withPanelsIn: cmToInches(withPanelsCm), maxCm, maxIn: cmToInches(maxCm) },
+  );
 
 export const resolveMaxResizableCabinetWidthCm = ({
   maxCm,
@@ -51,6 +82,8 @@ type ResolveCountertopMaxLengthInput = {
   depth: number | null;
   thickness: string | null;
   activeBasinStyle?: string | null;
+  /** Active collection: its `ruleData.materialNormalization` decides which materials match. */
+  profile?: ProductProfile | null;
 };
 
 const normalizeStyle = (style: string | null): CountertopStyle => {
@@ -75,8 +108,10 @@ export const resolveCountertopMaxLengthByRules = ({
   depth,
   thickness,
   activeBasinStyle,
+  profile,
 }: ResolveCountertopMaxLengthInput): number | null => {
   if (!rules.length) return null;
+  const aliasTable = selectMaterialAliasTable(profile ?? null);
 
   const normalizedStyle = normalizeStyle(style);
   if (normalizedStyle === "plain") return null;
@@ -97,7 +132,7 @@ export const resolveCountertopMaxLengthByRules = ({
 
     if (!normalizedMaterials.length) return true;
 
-    return normalizedMaterials.some((material) => materialMatchesRule(material, rule.material));
+    return normalizedMaterials.some((material) => materialMatchesRule(material, rule.material, aliasTable));
   });
 
   if (!matchingRules.length) return null;

@@ -9,20 +9,14 @@ import {
   getCabinetColorMaterial,
   getProductsPresets,
 } from "@/entities/product/model/store/selectors";
-import {
-  setCabinetColor,
-  setCabinetColorFinish,
-  setCabinetColorMaterial,
-  setCabinetColorSku,
-  setHandleGrooveColorSku,
-} from "@/entities/product/model/store/slice";
+import { setCabinetColorSku, setHandleGrooveColorSku } from "@/entities/product/model/store/slice";
 import {
   ColorField,
   FieldControl,
   useCustomizationStepSections,
   type ResolvedCustomizationField,
 } from "@/features/collectionCustomization";
-import { resolveColorTraits, useAttributeChangeHandler } from "@/features/configurationCommands";
+import { resolveColorTraits, useAttributeChangeHandler, useChangeAttribute } from "@/features/configurationCommands";
 import { openSwatchOrder } from "@/features/swatchOrder";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
@@ -34,13 +28,17 @@ import s from "./CabinetColorSections.module.scss";
 import type { FieldOptionState, FieldRuntimeState } from "@/entities/collection";
 import type { ReactNode } from "react";
 
-type Availability = { available: boolean; reason?: string };
+import { useReasonText } from "@/shared/lib/reasonText";
+
+import { UnavailableMessage, VALUE_UNAVAILABLE_REASON_CODE } from "./UnavailableMessage";
+
+type Availability = { available: boolean; reason?: string; reasonCode?: string };
 
 type CabinetColorSectionsArgs = {
   stepId: string;
   flow: "prebuilt" | "custom";
   flutingState: Availability;
-  bookMatchingState: { enabled: boolean; reason?: string };
+  bookMatchingState: { enabled: boolean; reason?: string; reasonCode?: string };
 };
 
 type CabinetColorAccordion = {
@@ -54,12 +52,6 @@ const withImages = (field: FieldRuntimeState, images: Record<string, string>): F
   ...field,
   options: field.options.map((option) => ({ ...option, image: images[option.value] })),
 });
-
-const unavailable = (key: string, reason?: string) => (
-  <div key={key} className={s.disabledMessage}>
-    {reason ?? "Not available."}
-  </div>
-);
 
 /** Color step sections for both flows. SKU stays here until D02. */
 export const useCabinetColorSections = ({
@@ -82,6 +74,8 @@ export const useCabinetColorSections = ({
   const fluting = useAttributeChangeHandler("DrawerPanelFluting");
   const grainDirection = useAttributeChangeHandler("GrainDirection");
   const bookMatching = useAttributeChangeHandler("BookMatching");
+  const { record } = useChangeAttribute();
+  const reasonText = useReasonText();
 
   const cabinetColorOptions: FieldOptionState[] = useMemo(
     () =>
@@ -105,14 +99,18 @@ export const useCabinetColorSections = ({
     const targetColor = presetColor || activeCabinetColor;
     if (!targetColor || !cabinetColorOptions.some((option) => option.value === targetColor)) return;
 
-    if (presetColor && presetColor !== activeCabinetColor) {
-      dispatch(setCabinetColor(presetColor));
-      dispatch(setCabinetColorSku(skuOf(presetColor)));
-    }
-
+    // The scene already shows this colour: it is recorded without a scene call, and the
+    // command records its material and finish with it.
+    const isNewColor = Boolean(presetColor) && presetColor !== activeCabinetColor;
     const traits = resolveColorTraits(targetColor, configurator, activeProfile);
-    if (traits?.material && traits.material !== cabinetMaterial) dispatch(setCabinetColorMaterial(traits.material));
-    if (traits?.finish && traits.finish !== cabinetFinish) dispatch(setCabinetColorFinish(traits.finish));
+    const lacksTraits =
+      (Boolean(traits?.material) && traits?.material !== cabinetMaterial) ||
+      (Boolean(traits?.finish) && traits?.finish !== cabinetFinish);
+    if (!isNewColor && !lacksTraits) return;
+
+    record({ CabinetColor: targetColor });
+    // The SKU is a pricing input (D), not a value the command records.
+    if (isNewColor) dispatch(setCabinetColorSku(skuOf(targetColor)));
   }, [
     activeCabinetColor,
     activeProfile,
@@ -124,6 +122,7 @@ export const useCabinetColorSections = ({
     flow,
     isHistoryRestoring,
     presets,
+    record,
     skuOf,
   ]);
 
@@ -151,7 +150,9 @@ export const useCabinetColorSections = ({
     dispatch(openSwatchOrder("Cabinet Color"));
   };
 
-  const bookMatchingTooltip = !bookMatchingState.enabled ? (bookMatchingState.reason ?? "Not available.") : undefined;
+  const bookMatchingTooltip = !bookMatchingState.enabled
+    ? reasonText({ code: bookMatchingState.reasonCode ?? VALUE_UNAVAILABLE_REASON_CODE, text: bookMatchingState.reason })
+    : undefined;
 
   const renderField = ({ definition, field }: ResolvedCustomizationField) => {
     switch (definition.attributeId) {
@@ -187,7 +188,11 @@ export const useCabinetColorSections = ({
             onChange={fluting.onChange}
           />
         ) : (
-          unavailable(definition.attributeId, flutingState.reason)
+          <UnavailableMessage
+            key={definition.attributeId}
+            reason={flutingState.reason}
+            reasonCode={flutingState.reasonCode}
+          />
         );
 
       case "GrainDirection":
@@ -199,7 +204,12 @@ export const useCabinetColorSections = ({
             onChange={grainDirection.onChange}
           />
         ) : (
-          unavailable(definition.attributeId, field.disabledReason)
+          <UnavailableMessage
+            key={definition.attributeId}
+            reason={field.disabledReason}
+            reasonCode={field.reasonCode}
+            reasonParams={field.reasonParams}
+          />
         );
 
       case "BookMatching":

@@ -7,8 +7,7 @@
     "ui": "ui.json",
     "productProfile": "product-profile.json",
     "skuProfile": "sku-profile.json",
-    "runtimeBindings": "runtime-bindings.json",
-    "cabinetTable": "cabinet-table.json"
+    "runtimeBindings": "runtime-bindings.json"
   },
   "remote": {
     "configurator": {
@@ -18,6 +17,9 @@
     },
     "countertopTable": {
       "id": 438
+    },
+    "cabinetTable": {
+      "id": 581
     }
   }
 }

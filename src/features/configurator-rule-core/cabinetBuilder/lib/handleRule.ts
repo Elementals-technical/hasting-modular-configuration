@@ -5,6 +5,7 @@ import {
   resolvePossibleForcedHeights,
   selectEffectiveFallback,
   selectMessage,
+  selectMessageOr,
   selectOptions,
   type ProductProfile,
 } from "@/entities/collection";
@@ -21,6 +22,7 @@ const REASON_DEFAULT_REQUIRED_HEIGHT = "handle.defaultRequiredHeight";
 const REASON_DRAWERS_REQUIRED_HEIGHT = "drawers.requiredHeight";
 const REASON_NOT_AVAILABLE_FOR_CABINET_TYPE = "handle.notAvailableForCabinetType";
 const REASON_SELECT_DRAWERS_FOR_HEIGHT = "handle.selectDrawersForHeight";
+export const REASON_HANDLE_HEIGHT_LOCKED = "handle.heightLocked";
 
 const supportsHeightForAllProducts = (
   productIds: string[] | undefined,
@@ -44,6 +46,7 @@ const constrainHeightOptions = (
   options: OptionState<number>[],
   requiredHeight: number,
   reason: string,
+  reasonCode: string,
 ): OptionState<number>[] =>
   options.map((option) => {
     if (option.value === requiredHeight) {
@@ -51,10 +54,10 @@ const constrainHeightOptions = (
     }
 
     if (!option.enabled) {
-      return option.reason ? option : { ...option, reason };
+      return option.reason ? option : { ...option, reason, reasonCode };
     }
 
-    return { ...option, enabled: false, reason };
+    return { ...option, enabled: false, reason, reasonCode };
   });
 
 export const handleRule = (
@@ -78,7 +81,12 @@ export const handleRule = (
   const heightLocked = ruleResult.heightLocked;
   const heightLockedReason =
     typeof heightLocked === "number"
-      ? `Not available for current configuration height (${heightLocked} cm / ${cmToInches(heightLocked)}" locked)`
+      ? selectMessageOr(
+          profile,
+          REASON_HANDLE_HEIGHT_LOCKED,
+          `Not available for current configuration height (${heightLocked} cm / ${cmToInches(heightLocked)}" locked)`,
+          { heightCm: heightLocked, heightIn: cmToInches(heightLocked) },
+        )
       : null;
 
   const hasDrawerSelection = selection.drawers !== null && selection.drawers !== undefined;
@@ -112,11 +120,18 @@ export const handleRule = (
             label: option.label,
             enabled: false,
             reason: selectMessage(profile, REASON_NOT_AVAILABLE_FOR_CABINET_TYPE),
+            reasonCode: REASON_NOT_AVAILABLE_FOR_CABINET_TYPE,
           };
         }
 
         if (heightLockedReason && isHandleLockedConflict(option.value)) {
-          return { value: option.value, label: option.label, enabled: false, reason: heightLockedReason };
+          return {
+            value: option.value,
+            label: option.label,
+            enabled: false,
+            reason: heightLockedReason,
+            reasonCode: REASON_HANDLE_HEIGHT_LOCKED,
+          };
         }
 
         if (hasDrawerRestriction(option.value) && !isDrawerAllowedFor(option.value)) {
@@ -125,6 +140,7 @@ export const handleRule = (
             label: option.label,
             enabled: false,
             reason: selectMessage(profile, REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS),
+            reasonCode: REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS,
             deferAutoChange: !hasDrawerSelection,
           };
         }
@@ -149,7 +165,11 @@ export const handleRule = (
   if (selection.handle && handleIsAllowed) {
     const hasMapping = Object.keys(relations?.forcedHeightByHandle[selection.handle] ?? {}).length > 0;
     if (hasMapping && !selection.drawers) {
-      violations.push({ field: "drawers", reason: selectMessage(profile, REASON_SELECT_DRAWERS_FOR_HEIGHT) });
+      violations.push({
+        field: "drawers",
+        reason: selectMessage(profile, REASON_SELECT_DRAWERS_FOR_HEIGHT),
+        reasonCode: REASON_SELECT_DRAWERS_FOR_HEIGHT,
+      });
     }
   }
 
@@ -176,7 +196,12 @@ export const handleRule = (
           ? REASON_DEFAULT_REQUIRED_HEIGHT
           : REASON_REQUIRED_HEIGHT;
 
-    heightOptions = constrainHeightOptions(heightOptions, forcedHeight as number, selectMessage(profile, reasonCode));
+    heightOptions = constrainHeightOptions(
+      heightOptions,
+      forcedHeight as number,
+      selectMessage(profile, reasonCode),
+      reasonCode,
+    );
   }
 
   return {

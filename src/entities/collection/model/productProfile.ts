@@ -135,6 +135,23 @@ export type BookMatchingRuleData = {
   openCabinetAliases: string[];
 };
 
+/**
+ * A change whose outcome the product has not decided (CONTRACTS §8: valid / invalid /
+ * undetermined). The command blocks it with `product.missingData` and changes nothing,
+ * rather than letting it through as allowed or inventing a rule.
+ */
+export type UndeterminedRule = {
+  /** Stable id, named in the reason: "MAKO-LEG-002". */
+  ruleId: string;
+  attributeId: string;
+  /** Only these values; any value but the attribute's clearing one when absent. */
+  values?: string[];
+  /** Only on a cabinet whose own values are these, e.g. `{ "Drawers": ["1"] }`. */
+  whenCabinet?: Record<string, string[]>;
+  /** The open question in the product documents: "Q-MAKO-002". */
+  source: string;
+};
+
 export type SidePanelAvailabilityRow = {
   height: string;
   handleType: string;
@@ -153,6 +170,11 @@ export type SidePanelsRuleData = {
   cabinetGroups: Record<string, string[]>;
   /** Drawer group of the availability table ("1D", "2D") -> drawers values that belong to it. */
   drawersByHandleType: Record<string, string[]>;
+  /**
+   * Handle value -> side panel grooves to prefer, in order, when the current one is no longer
+   * allowed. A handle without an entry falls back to the first allowed groove.
+   */
+  groovePriorityByHandle?: Record<string, string[]>;
   exactBlockedCabinetLengthCm: number;
   countertopLengthIncrementCm: number;
   defaultQuantityUnlessHeightTypeLow: number;
@@ -239,6 +261,8 @@ export type CabinetColorTraitsRuleData = {
 export type ProfileRuleData = {
   cabinetMatrixLegacyAdapter: CabinetMatrixLegacyAdapter;
   drawerStyleGroups?: DrawerStyleGroups;
+  /** Changes the product has no rule for yet (CONTRACTS §8); the command holds them back. */
+  undeterminedRules?: UndeterminedRule[];
   fluting?: FlutingRuleData;
   grainDirection?: GrainDirectionRuleData;
   bookMatching?: BookMatchingRuleData;

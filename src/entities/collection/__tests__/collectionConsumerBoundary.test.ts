@@ -104,9 +104,10 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     reason: "C06 phase 5: dividers None through the command",
   },
   "/src/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar.tsx": {
-    owner: "B",
-    count: 2,
-    reason: "C06 phase 4: depth through changeDimension; phase 7: open shelves removed through removeCabinets",
+    owner: "C",
+    count: 1,
+    reason:
+      "the size effect sends Height with Depth to every cabinet in one call; Height follows the handle rules, so splitting it needs a browser check",
   },
 };
 
@@ -180,16 +181,6 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     count: 1,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx": {
-    owner: "C",
-    count: 1,
-    reason: "a saved divider style has no drawer to address: the profile keeps DividersStyle per drawer",
-  },
-  "/src/widgets/CabinetColorSections/ui/CabinetColorSections.tsx": {
-    owner: "B",
-    count: 3,
-    reason: "C06 phase 7: the preset colour with its material and finish recorded by applyPreset",
-  },
 };
 
 /** Material matching by the legacy alias table: a helper called without the collection's table. */
@@ -217,32 +208,12 @@ const PENDING_LEGACY_ALIAS_CALLERS: Record<string, Residue> = {
     owner: "B",
     reason: "B06: material filters of the countertop step",
   },
-  "/src/features/configurator-rule-core/countertop/basinSelection.ts": {
-    owner: "C",
-    reason: "called without a profile by the model page",
-  },
-  "/src/features/configurator-rule-core/countertop/lengthLimits.ts": {
-    owner: "C",
-    reason: "called without a profile by the scene widget and the sidebar",
-  },
-  "/src/features/configurator-rule-core/countertop/parse.ts": {
-    owner: "C",
-    reason: "basin material scope, read without a profile by basinSelection and the countertop pages",
-  },
-  "/src/features/configurator-rule-core/countertop/rules.ts": {
-    owner: "C",
-    reason: "called without a profile by pages, Summary and pricing (D)",
-  },
-  "/src/features/configurator-rule-core/countertop/sizeFilters.ts": {
-    owner: "C",
-    reason: "width filter called without a profile by the scene widget and the sidebar",
-  },
 };
 
 /**
- * Product catalogs the pages still declare themselves. The USH profile holds each one with
- * the same values and labels (`pageCatalogsMatchProfile.test.ts`); B06 replaces them with
- * `selectOptions` / `selectBasinOptions`, see docs/b06-profile-options-handoff.md.
+ * Product catalogs the countertop and accessories steps used to declare themselves (B06). They
+ * are read from the profile now (`features/collectionCustomization/lib/pageOptionCatalogs.ts`);
+ * none of these names may come back in production code.
  */
 const PENDING_PAGE_CATALOGS: Record<string, { owner: "B"; constants: string[] }> = {};
 

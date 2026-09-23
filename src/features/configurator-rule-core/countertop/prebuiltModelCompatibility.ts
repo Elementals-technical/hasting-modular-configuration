@@ -1,4 +1,5 @@
 import type { ProductProfile } from "@/entities/collection";
+import { selectMessageOr } from "@/entities/collection";
 import type { PresetProduct } from "@/entities/product/types";
 
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
@@ -22,6 +23,8 @@ type PrebuiltPresetDimensions = {
   cabinetCount: number;
 };
 
+export const REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL = "countertop.materialNotAvailableForModel";
+
 export type PrebuiltModelCountertopCompatibilityInput = {
   rules: CountertopMatrixRule[];
   presetProducts: PresetProduct[];
@@ -35,6 +38,8 @@ export type PrebuiltModelCountertopCompatibilityInput = {
 export type PrebuiltModelCountertopCompatibilityResult = {
   isCompatible: boolean;
   reason?: string;
+  /** Stable code of `reason`; the text comes from the collection's `messages`. */
+  reasonCode?: string;
 };
 
 const normalizeProductName = (value?: string | null): string => value?.toLowerCase().replace(/[^a-z0-9]+/g, "") ?? "";
@@ -232,7 +237,12 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
   if (!materialCompatible) {
     return {
       isCompatible: false,
-      reason: "The selected countertop material/finish is not available for this model.",
+      reasonCode: REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
+      reason: selectMessageOr(
+        profile,
+        REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
+        "The selected countertop material/finish is not available for this model.",
+      ),
     };
   }
 
@@ -246,12 +256,14 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
     activeCountertopStyle,
     activeBasinStyle: activeBasinStyle ?? null,
     activeThickness: activeThickness ?? null,
+    profile,
   });
 
   const styleKey = resolveStyleKey(activeCountertopStyle);
   if (styleKey && !ruleState.styleAvailability[styleKey].isAvailable) {
     return {
       isCompatible: false,
+      reasonCode: ruleState.styleAvailability[styleKey].reasonCode,
       reason: ruleState.styleAvailability[styleKey].disabledReason,
     };
   }

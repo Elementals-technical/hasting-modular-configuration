@@ -28,6 +28,7 @@ import type {
   RemoteCollectionSources,
 } from "../model/types";
 import { deriveCollectionNavigation, findNavigationMismatch } from "./customization/deriveCollectionNavigation";
+import { resolveCustomizationImageUrls } from "./customization/resolveCustomizationImageUrls";
 import { validateCustomizationSchema } from "./customization/validateCustomizationSchema";
 import { parseProductProfile } from "./parseProductProfile";
 import type { CollectionResolution } from "./resolveCollection";
@@ -130,7 +131,7 @@ const fetchCustomizationSchema = async (
     });
   }
 
-  return result.schema;
+  return resolveCustomizationImageUrls(result.schema, manifestUrl, dependencies.collectionsRootUrl);
 };
 
 const fetchRuntimeBindings = async (
@@ -213,6 +214,18 @@ const validateLocalContracts = (
       dataset: "productProfile",
       dataPath: "/collectionId",
       message: `ProductProfile collectionId "${local.productProfile.collectionId}" does not match manifest "${manifest.id}"`,
+    });
+  }
+
+  // The cabinet table is read through the profile's column mapping; without a profile its
+  // rows cannot be interpreted, and guessing USH columns would be wrong for any other collection.
+  if ((local.cabinetTable || manifest.remote?.cabinetTable) && !local.productProfile) {
+    diagnostics.push({
+      code: "cabinet.missing-product-profile",
+      severity: "error",
+      dataset: "productProfile",
+      dataPath: "/",
+      message: "A cabinet table requires a ProductProfile to map its columns",
     });
   }
 
@@ -397,10 +410,12 @@ export const assembleCollectionData = (
       runtimeBindings: local.runtimeBindings,
       // Normalized against the profile: the handle -> column mapping of the legacy
       // matrix comes from data, so a collection with different handles needs no code
-      // change here. Without a profile the parser falls back to the hardcoded USH
-      // columns, which is right for USH and silently wrong for anything else.
+      // change here. A table without a profile is rejected by validateLocalContracts.
       // A local table stands in for a collection whose table is not in the API yet.
-      cabinets: cabinetTable ? buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile ?? null) : undefined,
+      cabinets:
+        cabinetTable && local.productProfile
+          ? buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile)
+          : undefined,
       countertops: remote.countertopTable ? parseCountertopMatrix(remote.countertopTable) : undefined,
     },
   };

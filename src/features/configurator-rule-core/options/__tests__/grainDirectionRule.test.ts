@@ -20,7 +20,16 @@ const withGrain = (grainDirection: GrainDirectionRuleData | undefined): ProductP
   ruleData: { ...ushProfile.ruleData, grainDirection },
 });
 
-const unavailable = (reason: string, reasonCode: string) => ({ available: false, options: [], reason, reasonCode });
+/** The rule hands the values of the text over too, so the interface can resolve the code itself. */
+const unavailable = (reason: string, reasonCode: string, reasonParams?: Record<string, string | number>) => ({
+  available: false,
+  options: [],
+  reason,
+  reasonCode,
+  ...(reasonParams ? { reasonParams } : {}),
+});
+
+const MATERIALS = { materials: "Essenze, HPL, and 3D" };
 
 describe("grainDirectionRule on the USH profile", () => {
   it.each([
@@ -44,25 +53,37 @@ describe("grainDirectionRule on the USH profile", () => {
       unavailable(
         "Grain direction is only available for Essenze, HPL, and 3D materials.",
         "grain.requiresEligibleMaterial",
+        MATERIALS,
       ),
     );
   });
 
   it.each([["Lacquer Matte"], ["hpl"], ["Essence"]])("is unavailable for material %j", (material) => {
     expect(grainDirectionRule({ material, finish: "TKF" }, ushProfile)).toEqual(
-      unavailable("Grain direction is available only for Essenze, HPL, and 3D materials.", "grain.materialNotEligible"),
+      unavailable(
+        "Grain direction is available only for Essenze, HPL, and 3D materials.",
+        "grain.materialNotEligible",
+        MATERIALS,
+      ),
     );
   });
 
   it.each(["TKP", "TKQ", " TKN "])("is unavailable for the HPL finish %j", (finish) => {
     expect(grainDirectionRule({ material: "HPL", finish }, ushProfile)).toEqual(
-      unavailable(HPL_REASON, "grain.finishExcluded"),
+      unavailable(HPL_REASON, "grain.finishExcluded", {
+        material: "HPL",
+        finishes: "TKP, TKQ, TKN (Cepp Stone, Rox Black, Brera Brown)",
+      }),
     );
   });
 
   it.each(["10B", "10F", "1A1", "1A5", "1PE"])("is unavailable for the 3D finish %j", (finish) => {
     expect(grainDirectionRule({ material: "3D", finish }, ushProfile)).toEqual(
-      unavailable(THREE_D_REASON, "grain.finishExcluded"),
+      unavailable(THREE_D_REASON, "grain.finishExcluded", {
+        material: "3D",
+        finishes:
+          "10B, 10F, 1A1, 1A2, 1A3, 1A4, 1A5, 1PE (Colortech Bianco, Colortech Grigio fume, Cemento Cenere, Cemento Tortora, Cemento Creta, Cemento Oltremare, Cemento Ghiaccio, Pelle Pecari Tortora)",
+      }),
     );
   });
 
