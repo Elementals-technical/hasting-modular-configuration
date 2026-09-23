@@ -2,8 +2,18 @@
   "collectionId": "mako",
   "optionImages": {
     "sinkType": {
+      "LB440": "images/basin/LB440.png",
+      "LB175": "images/basin/LB175.png",
+      "LB575": "images/basin/LB575.png",
+      "LB856": "images/basin/LB856.png",
+      "VA024": "images/basin/VA024.png",
+      "LV890": "images/basin/LV890.png",
+      "LV892": "images/basin/LV892.png",
+      "VA002": "images/basin/VA002.png",
+      "VA005": "images/basin/VA005.png",
       "Iris": "images/vessel/Iris.png",
-      "Frame": "images/vessel/Frame.png"
+      "Frame": "images/vessel/Frame.png",
+      "Plaza": "images/vessel/Plaza.png"
     }
   },
   "flows": {
