@@ -87,11 +87,15 @@ export const resolveSectionFields = (
           desc: category,
         }));
 
+    // Pictures the collection declares for this attribute; a configurator option keeps its own.
+    const declaredImages = schema?.optionImages?.[definition.attributeId];
+
     const options = declaredOptions.map((option) => {
       const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);
       return {
         ...option,
         enabled,
+        image: option.image ?? declaredImages?.[option.value],
         reason: enabled ? undefined : availability.reason,
         reasonCode: enabled ? undefined : availability.reasonCode,
       };

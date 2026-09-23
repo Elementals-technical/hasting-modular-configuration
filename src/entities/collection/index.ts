@@ -145,6 +145,7 @@ export type {
   CustomizationFlow,
   CustomizationFlowId,
   CustomizationFlowStepRef,
+  CustomizationOptionImages,
   CustomizationScreenId,
   CustomizationScreenKind,
   CustomizationSchema,
@@ -158,5 +159,6 @@ export type {
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
 export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS } from "./model/customizationSchema";
+export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 
 export { useCollectionPresets } from "./lib/useCollectionPresets";

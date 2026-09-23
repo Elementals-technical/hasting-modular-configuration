@@ -28,6 +28,7 @@ import type {
   RemoteCollectionSources,
 } from "../model/types";
 import { deriveCollectionNavigation, findNavigationMismatch } from "./customization/deriveCollectionNavigation";
+import { resolveCustomizationImageUrls } from "./customization/resolveCustomizationImageUrls";
 import { validateCustomizationSchema } from "./customization/validateCustomizationSchema";
 import { parseProductProfile } from "./parseProductProfile";
 import type { CollectionResolution } from "./resolveCollection";
@@ -130,7 +131,7 @@ const fetchCustomizationSchema = async (
     });
   }
 
-  return result.schema;
+  return resolveCustomizationImageUrls(result.schema, manifestUrl, dependencies.collectionsRootUrl);
 };
 
 const fetchRuntimeBindings = async (

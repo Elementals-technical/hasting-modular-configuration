@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
+import { ushCustomizationSchema } from "@/entities/collection/__tests__/ushUiFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { selectBasinOptions, selectOptions } from "@/entities/collection";
 
@@ -16,13 +17,15 @@ import {
 
 /**
  * B06: the countertop and accessories steps list their options from the active collection's
- * profile. The lists keep the shape the pages used when they were constants; the pictures are
- * joined by option value.
+ * profile. The lists keep the shape the pages used when they were constants; the pictures come
+ * from the collection's ui.json and are joined by option value.
  */
+
+const ushOptionImages = ushCustomizationSchema.optionImages;
 
 describe("page option lists from the USH profile", () => {
   it("list every basin in profile order, integrated first, each with its picture", () => {
-    const basins = buildBasinOptions(ushProfile);
+    const basins = buildBasinOptions(ushProfile, ushOptionImages);
     const expected = [...selectBasinOptions(ushProfile, "integrated"), ...selectBasinOptions(ushProfile, "vessel")];
 
     expect(basins.map(({ name, title }) => [name, title])).toEqual(expected.map(({ value, label }) => [value, label]));
@@ -32,7 +35,12 @@ describe("page option lists from the USH profile", () => {
   });
 
   it("list the countertop styles with pictures and the thicknesses with their stored values", () => {
-    expect(buildCountertopStyleOptions(ushProfile).map(({ title, metadata }) => [title, "image" in metadata])).toEqual([
+    expect(
+      buildCountertopStyleOptions(ushProfile, ushOptionImages).map(({ title, metadata }) => [
+        title,
+        "image" in metadata,
+      ]),
+    ).toEqual([
       ["Integrated", true],
       ["Vessel", true],
     ]);
@@ -73,5 +81,16 @@ describe("page option lists of another collection", () => {
   it("are empty without a profile", () => {
     expect(buildBasinOptions(null)).toEqual([]);
     expect(buildCountertopStyleOptions(null)).toEqual([]);
+  });
+
+  it("keep an option the collection declares no picture for, without a picture", () => {
+    const basins = buildBasinOptions(makoProfile, ushOptionImages);
+
+    expect(basins.length).toBeGreaterThan(0);
+    expect(basins.every(({ metadata }) => !("image" in metadata))).toBe(true);
+  });
+
+  it("show no picture at all when the collection declares none", () => {
+    expect(buildBasinOptions(ushProfile).every(({ metadata }) => !("image" in metadata))).toBe(true);
   });
 });

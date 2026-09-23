@@ -90,6 +90,7 @@ import {
   buildBasinOptions,
   buildCountertopStyleOptions,
   buildThicknessOptions,
+  useOptionImages,
 } from "@/features/collectionCustomization";
 import { resolveCabinetDimensions, resolveStableKey } from "@/entities/configuration/model/identity";
 import {
@@ -157,9 +158,14 @@ export const CustomCountertopPage = () => {
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const activeProfile = useAppSelector(getActiveProductProfile);
-  // Option lists of this step come from the active collection's profile (B06).
-  const styleCatalog = useMemo(() => buildCountertopStyleOptions(activeProfile), [activeProfile]);
-  const basinCatalog = useMemo(() => buildBasinOptions(activeProfile), [activeProfile]);
+  // Option lists of this step come from the active collection's profile (B06), their pictures
+  // from its ui.json.
+  const optionImages = useOptionImages();
+  const styleCatalog = useMemo(
+    () => buildCountertopStyleOptions(activeProfile, optionImages),
+    [activeProfile, optionImages],
+  );
+  const basinCatalog = useMemo(() => buildBasinOptions(activeProfile, optionImages), [activeProfile, optionImages]);
   const thicknessCatalog = useMemo(() => buildThicknessOptions(activeProfile), [activeProfile]);
   const materialHierarchy = useMemo(() => selectMaterialHierarchy(activeProfile), [activeProfile]);
   const materialAliasTable = useMemo(() => selectMaterialAliasTable(activeProfile), [activeProfile]);

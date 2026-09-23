@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import productionRegistry from "../../../../public/collections/registry.json";
 import productionManifest from "../../../../public/collections/urban-standard-height/manifest.json";
+import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifestDocument from "../../../../public/collections/class/manifest.json";
@@ -9,6 +10,7 @@ import classUi from "../../../../public/collections/class/ui.json";
 import makoManifestDocument from "../../../../public/collections/mako/manifest.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
 
+import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import { withCollectionId } from "../lib/collectionUrl";
 import { resolveCollectionImageUrl, resolveCollectionJsonUrl } from "../lib/paths";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -16,6 +18,13 @@ import { validateCollectionManifest, validateCollectionRegistry } from "../lib/v
 
 const registryUrl = "https://app.test/collections/registry.json";
 const rootUrl = "https://app.test/collections/";
+
+const COLLECTION_UI_DOCUMENTS: [string, unknown][] = [
+  ["urban-standard-height", ushUi],
+  ["urban-low-height", urbanLowHeightUi],
+  ["class", classUi],
+  ["mako", makoUi],
+];
 
 describe("collection contracts", () => {
   it("validates the production registry and collection manifests", () => {
@@ -143,6 +152,28 @@ describe("collection contracts", () => {
     );
     expect(() => resolveCollectionImageUrl("http://cdn.test/model.png", manifestUrl, rootUrl)).toThrow("HTTPS");
     expect(() => resolveCollectionImageUrl("../../model.png", manifestUrl, rootUrl)).toThrow("safe relative path");
+  });
+
+  it("ships every option picture each collection declares", () => {
+    const shipped = new Set(Object.keys(import.meta.glob("/public/collections/*/images/**/*", { query: "?url" })));
+
+    const missing = COLLECTION_UI_DOCUMENTS.flatMap(([id, document]) => {
+      const result = validateCustomizationSchema(document);
+      if (!result.ok) return [`${id}: ui.json failed validation`];
+
+      return Object.entries(result.schema.optionImages ?? {}).flatMap(([attributeId, byValue]) =>
+        Object.entries(byValue).flatMap(([value, reference]) => {
+          // Throws on an escaping or insecure reference, so a bad path fails here, not in a page.
+          const url = resolveCollectionImageUrl(reference, `${rootUrl}${id}/manifest.json`, rootUrl);
+          if (!url.startsWith(rootUrl)) return [];
+
+          const file = `/public/collections/${decodeURIComponent(url.slice(rootUrl.length))}`;
+          return shipped.has(file) ? [] : [`${id}.${attributeId}.${value}: ${reference}`];
+        }),
+      );
+    });
+
+    expect(missing).toEqual([]);
   });
 });
 

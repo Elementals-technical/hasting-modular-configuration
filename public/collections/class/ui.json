@@ -1,5 +1,11 @@
 {
   "collectionId": "class",
+  "optionImages": {
+    "sinkType": {
+      "Iris": "images/vessel/Iris.png",
+      "Frame": "images/vessel/Frame.png"
+    }
+  },
   "flows": {
     "prebuilt": {
       "entryStepId": "model",

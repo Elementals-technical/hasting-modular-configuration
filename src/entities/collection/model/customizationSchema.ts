@@ -59,11 +59,24 @@ export type CustomizationSectionDefinition = {
   fields: CustomizationFieldDefinition[];
 };
 
+/**
+ * Pictures of the options a collection declares, by attribute and option value.
+ *
+ * Keyed by attributeId rather than by field: a collection that shows the same attribute in two
+ * sections (USH repeats every countertop section for the custom flow) declares the pictures once.
+ *
+ * A value is a safe relative path inside the collection folder or an absolute HTTPS URL, as
+ * `presets.img` is; the loader replaces it with the resolved URL before the schema reaches a
+ * consumer, so a page reads an absolute URL here.
+ */
+export type CustomizationOptionImages = Record<string, Record<string, string>>;
+
 export type CustomizationSchema = {
   collectionId: string;
   flows: Record<CustomizationFlowId, CustomizationFlow>;
   steps: Record<string, CustomizationStepDefinition>;
   sections: Record<string, CustomizationSectionDefinition>;
+  optionImages?: CustomizationOptionImages;
 };
 
 /** Properties of a configurator colour the colour grid filters and prices by. */

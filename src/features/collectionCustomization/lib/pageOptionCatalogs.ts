@@ -1,12 +1,11 @@
-import { selectBasinOptions, selectOptions, type ProductProfile } from "@/entities/collection";
-
 import {
-  basinOptionImages,
-  basinShortDescValues,
-  countertopStyleOptionImages,
-  dividerStyleOptionImages,
-  sidePanelOptionImages,
-} from "./pageOptionImages";
+  selectBasinOptions,
+  selectOptions,
+  type CustomizationOptionImages,
+  type ProductProfile,
+} from "@/entities/collection";
+
+import { basinShortDescValues, dividerStyleOptionImages, sidePanelOptionImages } from "./pageOptionImages";
 
 /**
  * Option lists of the countertop and accessories steps, read from the active collection's
@@ -16,24 +15,31 @@ import {
 
 const withImage = (image: string | undefined) => (image ? { image } : {});
 
+/**
+ * `optionImages` comes from the active collection's `ui.json` (`useOptionImages`). It is optional
+ * so a caller that only needs the values — the model step's basin fallback — passes nothing.
+ */
+const imageFor = (optionImages: CustomizationOptionImages | undefined, attributeId: string, value: string) =>
+  optionImages?.[attributeId]?.[value];
+
 /** CountertopStyle: `name` is the style value the command takes, `title` its label. */
-export const buildCountertopStyleOptions = (profile: ProductProfile | null) =>
+export const buildCountertopStyleOptions = (profile: ProductProfile | null, optionImages?: CustomizationOptionImages) =>
   selectOptions(profile, "CountertopStyle").map((option, index) => ({
     id: 2001 + index,
     title: option.label,
     name: option.value,
     isShortDesc: false,
-    metadata: withImage(countertopStyleOptionImages[option.value]),
+    metadata: withImage(imageFor(optionImages, "CountertopStyle", option.value)),
   }));
 
 /** Integrated basins, then vessel sinks: `name` is the sinkType value, `title` its label. */
-export const buildBasinOptions = (profile: ProductProfile | null) =>
+export const buildBasinOptions = (profile: ProductProfile | null, optionImages?: CustomizationOptionImages) =>
   [...selectBasinOptions(profile, "integrated"), ...selectBasinOptions(profile, "vessel")].map((option, index) => ({
     id: 3001 + index,
     title: option.label,
     name: option.value,
     isShortDesc: basinShortDescValues.has(option.value),
-    metadata: withImage(basinOptionImages[option.value]),
+    metadata: withImage(imageFor(optionImages, "sinkType", option.value)),
   }));
 
 /** Thickness: `value` is the stored thickness, `title` its label. */

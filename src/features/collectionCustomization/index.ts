@@ -13,6 +13,7 @@ export { buildConfiguratorOptions } from "./lib/buildConfiguratorOptions";
 export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { selectOptionLabel, useOptionLabel } from "./lib/selectOptionLabel";
 export { FieldControl } from "./ui/FieldControl";
+export { useOptionImages } from "./lib/useOptionImages";
 export { ColorField } from "./ui/ColorField";
 export { ReasonTextProvider } from "./ui/ReasonTextProvider";
 export type {

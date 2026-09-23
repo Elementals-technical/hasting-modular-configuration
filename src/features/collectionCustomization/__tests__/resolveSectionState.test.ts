@@ -133,6 +133,40 @@ describe("resolveSectionFields", () => {
     expect(resolved[0]?.field.visible).toBe(false);
   });
 
+  it("joins the pictures the collection declares onto its own option catalog", () => {
+    const resolved = resolveSectionFields(schema, "basin-style", profile, {}, {});
+    const options = resolved[0]?.field.options ?? [];
+
+    expect(resolved[0]?.definition.attributeId).toBe("sinkType");
+    expect(options.find((option) => option.value === "Top_HPLPrisma")?.image).toBe(
+      schema.optionImages?.sinkType?.Top_HPLPrisma,
+    );
+    // Every basin has one; "Vessel" is the plain cutout the collection declares no picture for.
+    expect(options.filter((option) => option.image === undefined).map((option) => option.value)).toEqual(["Vessel"]);
+  });
+
+  it("leaves an option the collection declares no picture for without one, and keeps it listed", () => {
+    const withoutPrisma = {
+      ...schema,
+      optionImages: { sinkType: { Top_HPLQuadra: "images/basin/quadro.jpg" } },
+    };
+    const options = resolveSectionFields(withoutPrisma, "basin-style", profile, {}, {})[0]?.field.options ?? [];
+
+    expect(options.find((option) => option.value === "Top_HPLPrisma")?.image).toBeUndefined();
+    expect(options.map((option) => option.value)).toContain("Top_HPLPrisma");
+  });
+
+  it("fills a configurator option that carries no picture of its own", () => {
+    const declared = { ...schema, optionImages: { CabinetColor: { "Old Cabinet Color": "images/override.png" } } };
+    const options =
+      resolveSectionFields(declared, "cabinet-color-custom", profile, {}, {}, configuratorColorGroups)[0]?.field
+        .options ?? [];
+
+    // The fixture variant has image: null, so the declared picture fills the gap.
+    expect(options.find((option) => option.value === "Old Cabinet Color")?.image).toBe("images/override.png");
+    expect(options.find((option) => option.value === "New Cabinet Color")?.image).toBeUndefined();
+  });
+
   it("returns no fields for an unknown or missing section", () => {
     expect(resolveSectionFields(schema, "does-not-exist", profile, {}, {})).toEqual([]);
     expect(resolveSectionFields(null, "drawer-panel-custom", profile, {}, {})).toEqual([]);
