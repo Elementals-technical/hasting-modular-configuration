@@ -3,7 +3,10 @@ import classSkuProfileDocument from "../../../../../../public/collections/class/
 import makoProfileDocument from "../../../../../../public/collections/mako/product-profile.json";
 import makoSkuProfileDocument from "../../../../../../public/collections/mako/sku-profile.json";
 
+import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import type { CabinetDimensions, CabinetEntry, ScopedValue, ValueTarget } from "@/entities/configuration";
 import type { PricingInput } from "@/shared/lib/pricing/types";
@@ -23,17 +26,75 @@ const parseProfile = (document: unknown): ProductProfile => {
   return result.profile;
 };
 
+/** Configurator 9: the colours of Mako, and for now of Class too, name their material there. */
+const configurator9Groups = configurator9.availableOptions as unknown as ConfiguratorAvailableOption[];
+const configurator9Catalog: ConfiguratorGroupCatalog = {
+  groups: configurator9Groups,
+  groupsByName: Object.fromEntries(configurator9Groups.map((group) => [group.proxyName, group])),
+};
+
+/**
+ * Class's colours as its own configurator will carry them.
+ *
+ * Class's manifest reads configurator 9 while configurator 8 is still a copy of it, and 9 holds
+ * only the shared lacquers. Its SKU profile names five more front materials, so the fronts that
+ * make a Class cabinet a Class cabinet are added here: until 8 is filled, a real Class order with
+ * one of them cannot be priced.
+ */
+const CLASS_OWN_FRONTS: readonly { value: string; sku: string; material: string }[] = [
+  { value: "CALACATTA BLACK 338", sku: "POR", material: "Porcelain" },
+  { value: "Fume", sku: "SGLS", material: "Smoke Glass" },
+  { value: "GGrigio Argento 403 GL", sku: "GLSG", material: "Glass GL" },
+  { value: "Nativo Cotto 961", sku: "LAM", material: "Laminates" },
+];
+
+const classConfigurator: ConfiguratorGroupCatalog = (() => {
+  const groups = configurator9Groups.map((group) =>
+    group.proxyName === "Select Cabinet Color"
+      ? {
+          ...group,
+          options: group.options.map((option, index) =>
+            index === 0
+              ? {
+                  ...option,
+                  variants: [
+                    ...option.variants,
+                    ...CLASS_OWN_FRONTS.map(({ value, sku, material }, position) => ({
+                      id: 90_000 + position,
+                      name: value,
+                      image: null,
+                      enabled: true,
+                      description: "",
+                      metadata: { value, label: value, sku, Material: material },
+                    })),
+                  ],
+                }
+              : option,
+          ),
+        }
+      : group,
+  );
+
+  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
+})();
+
 export const CLASS = {
   profile: parseProfile(classProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(classSkuProfileDocument),
+  configurator: classConfigurator,
 };
 
 export const MAKO = {
   profile: parseProfile(makoProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(makoSkuProfileDocument),
+  configurator: configurator9Catalog,
 };
 
-type Collection = { profile: ProductProfile; skuProfile: CollectionSkuProfile };
+type Collection = {
+  profile: ProductProfile;
+  skuProfile: CollectionSkuProfile;
+  configurator?: ConfiguratorGroupCatalog;
+};
 
 export type CollectionCabinet = { stableKey: string; runtimeId: string; size: CabinetDimensions };
 
@@ -41,7 +102,7 @@ export const at = (target: ValueTarget, value: string): ScopedValue => ({ target
 
 /** A `PricingInput` of a collection priced from its SKU profile: no scene, no USH options. */
 export const collectionPricingInput = (
-  { profile, skuProfile }: Collection,
+  { profile, skuProfile, configurator }: Collection,
   cabinets: readonly CollectionCabinet[],
   values: Record<string, ScopedValue[]>,
   overrides: Partial<PricingInput> = {},
@@ -49,6 +110,7 @@ export const collectionPricingInput = (
   pricingInput({
     skuBuilders: createSkuBuilders({ status: "collection", collectionProfile: skuProfile }),
     activeProfile: profile,
+    configurator: configurator ?? null,
     productIds: [],
     orderedProductIds: [],
     sceneConfigs: [],

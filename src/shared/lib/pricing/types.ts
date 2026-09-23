@@ -1,5 +1,6 @@
 import type { RootState } from "@/app/store";
 import type { PricingGapGroup, ProductProfile, RuntimeBindingSet } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { CabinetDimensions, CabinetEntry, ScopedValue, StableCabinetKey } from "@/entities/configuration";
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
 import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
@@ -62,6 +63,8 @@ export type PricingInput = {
   /** The scene types of the collection, which name the placed products (a Mako sink base is a Mako-sink-cabinet). */
   runtimeBindings?: RuntimeBindingSet | null;
   colorSkuMaps: ColorSkuMaps;
+  /** The loaded configurator, for a collection whose colours name their material through it. */
+  configurator?: ConfiguratorGroupCatalog | null;
   countertopRules: CountertopMatrixRule[];
   cabinetCatalog: ProductState["cabinetCatalog"];
 

@@ -10,6 +10,9 @@ import type {
  *
  * The recorded configurator 4 fixture holds only 3D colours, so the SKU mapping, a colour
  * whose material comes from its option name and a finish code need colours of their own.
+ *
+ * Every offered variant carries a SKU, as configurator 4 does. "Cepp Stone TKP" carries one the
+ * profile does not map, so its material still has to come from the option name.
  */
 
 const variant = (id: number, name: string, sku: string, enabled = true): ConfiguratorVariant => ({
@@ -40,7 +43,7 @@ const colorGroup = (id: number, proxyName: string): ConfiguratorAvailableOption 
     option(id * 10 + 1, "Essenze", [variant(id * 100 + 1, "Rovere Naturale", "ESS")]),
     option(id * 10 + 2, "Lacquered Matte", [variant(id * 100 + 2, "Bianco LACM", "LACM")]),
     option(id * 10 + 3, "HPL", [
-      variant(id * 100 + 3, "Cepp Stone TKP", ""),
+      variant(id * 100 + 3, "Cepp Stone TKP", "TKH"),
       variant(id * 100 + 4, "Retired Oak", "ESS", false),
     ]),
   ],

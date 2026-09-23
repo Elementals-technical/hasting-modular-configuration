@@ -115,7 +115,8 @@
       "fields": [
         {
           "attributeId": "CabinetColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "CabinetColor"
         }
       ]
     },
@@ -124,7 +125,8 @@
       "fields": [
         {
           "attributeId": "CabinetSideColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "CabinetSideColor"
         }
       ]
     },
@@ -133,7 +135,8 @@
       "fields": [
         {
           "attributeId": "FrameColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "FrameColor"
         }
       ]
     },
@@ -143,7 +146,8 @@
       "fields": [
         {
           "attributeId": "CountertopColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "CountertopColor"
         }
       ]
     },

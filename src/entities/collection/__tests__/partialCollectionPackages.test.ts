@@ -108,8 +108,8 @@ describe("partial production collection packages", () => {
 
   it.each([
     // Class has no scene bindings and no model compositions yet; Mako places its own scene products (I)
-    // and has the composition of every model, and its own cabinet table.
-    ["class", "Class", 44, undefined, false, [[439, abortSignal]]],
+    // and has the composition of every model, its own cabinet table and its own configurator.
+    ["class", "Class", 44, undefined, false, [[439, abortSignal]], 9],
     [
       "mako",
       "Mako",
@@ -117,10 +117,11 @@ describe("partial production collection packages", () => {
       { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" },
       true,
       [[581, abortSignal]],
+      9,
     ],
   ])(
     "loads %s from only its declared local data and approved shared remotes",
-    async (collectionId, label, modelCount, productTypes, hasCompositions, cabinetTableCalls) => {
+    async (collectionId, label, modelCount, productTypes, hasCompositions, cabinetTableCalls, configuratorId) => {
       const remote = makeRemote();
       const dependencies: CollectionRuntimeDependencies = {
         registryUrl,
@@ -137,7 +138,10 @@ describe("partial production collection packages", () => {
       const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
 
       expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-      expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+      expect(remote.loadConfigurator).toHaveBeenCalledWith(
+        { id: configuratorId, view: "full", serialize: true },
+        abortSignal,
+      );
       expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
       expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
       expect(vi.mocked(remote.loadCabinetTable).mock.calls).toEqual(cabinetTableCalls);

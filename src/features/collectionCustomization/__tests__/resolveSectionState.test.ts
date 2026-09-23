@@ -99,7 +99,7 @@ describe("resolveSectionFields", () => {
     expect(options[0]?.desc).toBe("HPL");
     expect(options[0]?.traits).toMatchObject({
       sku: "HPL",
-      materials: ["Cabinet Color", "HPL"],
+      materials: ["HPL"],
       colors: ["Old Cabinet Color"],
     });
   });

@@ -15,6 +15,14 @@ import type {
 export const selectAttribute = (profile: ProductProfile | null, attributeId: string): ProfileAttribute | null =>
   profile?.attributes.find((attribute) => attribute.attributeId === attributeId) ?? null;
 
+const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
+
+/** The configurator section an attribute's options come from ("configurator:Cabinet Color" -> "Cabinet Color"). */
+export const selectConfiguratorSection = (profile: ProductProfile | null, attributeId: string): string | null => {
+  const source = selectAttribute(profile, attributeId)?.optionsSource;
+  return source?.startsWith(CONFIGURATOR_SOURCE_PREFIX) ? source.slice(CONFIGURATOR_SOURCE_PREFIX.length) : null;
+};
+
 /** Catalog of an attribute in profile order. Empty when the collection does not declare it. */
 export const selectOptions = (profile: ProductProfile | null, attributeId: string): ProfileOption[] =>
   selectAttribute(profile, attributeId)?.options ?? [];

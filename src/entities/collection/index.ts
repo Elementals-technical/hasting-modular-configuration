@@ -63,6 +63,7 @@ export {
   isKnownOption,
   normalizeOptionValue,
   selectAttribute,
+  selectConfiguratorSection,
   selectDefaultValue,
   selectEffectiveFallback,
   selectInitialValue,

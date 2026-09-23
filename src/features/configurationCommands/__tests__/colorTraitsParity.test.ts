@@ -60,7 +60,7 @@ const colours = cabinetColorGroups.flatMap(({ proxyName, options }) =>
   options.flatMap((option) =>
     option.variants
       // The page offered only visible variants, and never the hidden special display value.
-      .filter((variant) => isVisibleConfiguratorVariant({ proxyName, variant }))
+      .filter((variant) => isVisibleConfiguratorVariant(variant))
       .flatMap((variant) => {
         const meta = variant.metadata ?? {};
         const nested = (typeof meta.metadata === "object" && meta.metadata ? meta.metadata : {}) as Record<

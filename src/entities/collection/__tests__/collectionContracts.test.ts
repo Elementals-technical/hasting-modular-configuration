@@ -87,7 +87,8 @@ describe("collection contracts", () => {
     });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
-      configurator: { id: 4, view: "full", serialize: true },
+      // Class has no configurator of its own yet; 8 is still a copy of Mako's 9, so it reads 9.
+      configurator: { id: 9, view: "full", serialize: true },
       countertopTable: { id: 438 },
       cabinetTable: { id: 439 },
     });
@@ -109,7 +110,8 @@ describe("collection contracts", () => {
     });
     expect(makoManifest.defaultPresetId).toBeUndefined();
     expect(makoManifest.remote).toEqual({
-      configurator: { id: 4, view: "full", serialize: true },
+      // Mako's own configurator; 4 is the one the other collections share.
+      configurator: { id: 9, view: "full", serialize: true },
       countertopTable: { id: 438 },
       // Mako's own cabinet table; 439 has no Mako rows.
       cabinetTable: { id: 581 },

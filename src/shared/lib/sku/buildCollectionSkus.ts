@@ -3,6 +3,7 @@ import type { ProductProfile } from "@/entities/collection/model/productProfile"
 import type { CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
 import { cmToInches } from "./cmToInches";
+import type { ConfiguratorColorReader } from "./configuratorColors";
 
 /**
  * SKUs of a collection priced from its `sku-profile.json` (D04): Class and Mako.
@@ -29,13 +30,20 @@ export const resolveCollectionColorCode = (skuProfile: CollectionSkuProfile, val
     .find((token) => /^\d+$/.test(token)) ??
   null;
 
-/** The material of a colour: the category of its option in the product profile. */
+/**
+ * The material of a colour: the SKU the configurator gives it, else the category of its option
+ * in the product profile. A collection declares one or the other, never both.
+ */
 export const resolveCollectionColorMaterial = (
   skuProfile: CollectionSkuProfile,
   productProfile: ProductProfile | null,
   attributeId: string,
   value: string,
+  readConfiguratorColor?: ConfiguratorColorReader,
 ): string | null => {
+  const fromConfigurator = readConfiguratorColor?.(attributeId, value)?.sku;
+  if (fromConfigurator) return fromConfigurator;
+
   const category = selectOption(productProfile, attributeId, value)?.category;
   return category ? (skuProfile.colors.materialByCategory[category] ?? null) : null;
 };
@@ -45,6 +53,8 @@ export type CollectionCabinetSkuInput = {
   widthCm: number | null;
   heightCm: number | null;
   depthCm: number | null;
+  /** Set when the collection takes its colours from the configurator. */
+  readConfiguratorColor?: ConfiguratorColorReader;
 };
 
 export type CollectionCabinetSku = {
@@ -59,7 +69,7 @@ const sizeToken = (cm: number | null, unit: "W" | "H" | "D") =>
 export const buildCollectionCabinetSku = (
   skuProfile: CollectionSkuProfile,
   productProfile: ProductProfile | null,
-  { read, widthCm, heightCm, depthCm }: CollectionCabinetSkuInput,
+  { read, widthCm, heightCm, depthCm, readConfiguratorColor }: CollectionCabinetSkuInput,
 ): CollectionCabinetSku => {
   const { cabinet } = skuProfile;
   const missing: string[] = [];
@@ -74,7 +84,9 @@ export const buildCollectionCabinetSku = (
 
   const elements = cabinet.elements.flatMap(({ code, attributeId, materialSuffix }) => {
     const value = read(attributeId);
-    const material = value ? resolveCollectionColorMaterial(skuProfile, productProfile, attributeId, value) : null;
+    const material = value
+      ? resolveCollectionColorMaterial(skuProfile, productProfile, attributeId, value, readConfiguratorColor)
+      : null;
     if (!value || !material) return [];
 
     let pricedMaterial = material;
@@ -107,6 +119,8 @@ export type CollectionCountertopSkuInput = {
   widthCm: number | null;
   /** `FaucetHolesAmount` value. */
   faucetHoles: string | null;
+  /** Set when the collection takes its colours from the configurator. */
+  readConfiguratorColor?: ConfiguratorColorReader;
 };
 
 export type CollectionCountertopSkus = {
@@ -124,7 +138,7 @@ export type CollectionCountertopSkus = {
 export const buildCollectionCountertopSkus = (
   skuProfile: CollectionSkuProfile,
   productProfile: ProductProfile | null,
-  { style, color, basins, widthCm, faucetHoles }: CollectionCountertopSkuInput,
+  { style, color, basins, widthCm, faucetHoles, readConfiguratorColor }: CollectionCountertopSkuInput,
 ): CollectionCountertopSkus => {
   const { countertop } = skuProfile;
   const styleCode = style ? (countertop.styles[style] ?? null) : null;
@@ -134,9 +148,13 @@ export const buildCollectionCountertopSkus = (
   const basinMaterial = isIntegrated
     ? basins.map((basin) => (basin ? countertop.materialByBasin[basin] : undefined)).find(Boolean)
     : undefined;
+  const colorSku = color ? readConfiguratorColor?.("CountertopColor", color)?.sku : undefined;
   const colorCategory = color ? selectOption(productProfile, "CountertopColor", color)?.category : undefined;
   const material =
-    basinMaterial ?? (colorCategory ? countertop.materialByColorCategory[colorCategory] : undefined) ?? null;
+    basinMaterial ??
+    colorSku ??
+    (colorCategory ? countertop.materialByColorCategory[colorCategory] : undefined) ??
+    null;
   const thickness = material ? (countertop.thicknessByMaterial[material] ?? null) : null;
   const series = material ? `${COUNTERTOP_CATEGORY}-${countertop.series}${material}` : null;
   const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;

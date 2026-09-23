@@ -226,7 +226,7 @@ export const adaptThreekitConfig = (
 
     for (const option of group.options ?? []) {
       for (const variant of option.variants ?? []) {
-        if (!isVisibleConfiguratorVariant({ proxyName: parentName, variant })) continue;
+        if (!isVisibleConfiguratorVariant(variant)) continue;
 
         const outer = (variant.metadata ?? {}) as Record<string, unknown>;
         const nested = (

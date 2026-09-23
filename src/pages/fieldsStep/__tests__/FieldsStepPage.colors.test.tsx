@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import makoManifestDocument from "../../../../public/collections/mako/manifest.json";
 import makoUiDocument from "../../../../public/collections/mako/ui.json";
 import ulhManifestDocument from "../../../../public/collections/urban-low-height/manifest.json";
@@ -57,7 +58,7 @@ const cabinetColors: ConfiguratorAvailableOption = {
           image: null,
           enabled: true,
           description: "",
-          metadata: { value: "Pulpis Chiaro TKH", image: "/api/files/hash/sha256-pulpis" },
+          metadata: { sku: "TKH", value: "Pulpis Chiaro TKH", image: "/api/files/hash/sha256-pulpis" },
         },
       ],
     },
@@ -105,13 +106,28 @@ describe("FieldsStepPage colour fields", () => {
     expect(pictures).toContain("https://preview.threekit.com/api/files/hash/sha256-pulpis");
   });
 
-  it("shows a colour listed in the profile in the same grid, grouped by its material (Mako)", () => {
+  // Mako's section holds every colour in one option named after the attribute, so the grid can
+  // only group them by the material each variant names.
+  it("groups a Mako colour by the material its own configurator names", () => {
     store.dispatch(setActiveProfile(makoProfile));
+    const collection = buildReadyCollection("mako", makoManifestDocument, makoUiDocument);
+    const makoGroups = configurator9.availableOptions as unknown as ConfiguratorAvailableOption[];
 
     render(
       <Provider store={store}>
         <MemoryRouter initialEntries={["/prebuilt/color?collectionId=mako"]}>
-          <ReadyCollectionContext.Provider value={buildReadyCollection("mako", makoManifestDocument, makoUiDocument)}>
+          <ReadyCollectionContext.Provider
+            value={{
+              ...collection,
+              catalog: {
+                ...collection.catalog,
+                configurator: {
+                  groups: makoGroups,
+                  groupsByName: Object.fromEntries(makoGroups.map((group) => [group.proxyName, group])),
+                },
+              },
+            }}
+          >
             <FieldsStepPage stepId="color" />
           </ReadyCollectionContext.Provider>
         </MemoryRouter>
