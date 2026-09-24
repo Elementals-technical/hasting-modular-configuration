@@ -1,252 +1,211 @@
-# Countertop service
+# Countertop
 
-Цей модуль виносить логіку стільниці в окремий доменний шар. Сервіс не рухає PlayCanvas entities напряму. Він зберігає стан стільниці, приймає команди від API або input adapter, а фізичні зміни сцени виконують adapters.
+The active composition owns one `Top_Solid` countertop. Horizontal layout, vertical support,
+manual movement, custom length, boolean cutouts and presentation are separate concerns that meet
+in `RuleCountertopLayout` and `CountertopCompositionAdapter`.
 
-Основний потік:
+All spatial values are metres. Layout measurements use world space; the adapter ultimately writes
+the countertop root's local position.
 
-```text
-Composition rules
-  -> CountertopCompositionAdapter
-  -> CountertopService state
-  -> AssemblyAdapter / GeometryAdapter / InputAdapter / OutlineAdapter
-  -> PlayCanvas entities, SmartStretch, MeshBoolean
-```
+## Current scope
 
-## Архітектурний патерн
+- `CompositionManager` creates one countertop when the composition gets its first cabinet.
+- That countertop is currently declared as `CountertopRole: 'basinTop'`.
+- `CountertopRole: 'cabinetCover'` and multiple countertop instances are domain concepts for the
+  next layout stage; the current single-countertop lifecycle does not generate them yet.
+- Urban Standard Height keeps the legacy height-table positioning.
+- ULH, Class and Mako opt into support-plane positioning through product metadata.
 
-Модуль побудований за схемою `policy -> service -> adapters`.
+## Snapshot data
 
-- `countertop-policy.mjs`, `countertop-layout-policy.mjs`, `countertop-validation.mjs` - чиста доменна логіка. Вона рахує позицію, довжину, attachment/validation state і не читає PlayCanvas scene.
-- `countertop-state.mjs` - immutable snapshot стану в метрах. Він є єдиною формою правди для service.
-- `countertop-service.mjs` - керує state transitions, events, async settle/cancel flow і restore. Він не знає, як саме пересунути mesh.
-- `adapters/*` - перетворюють доменний state у PlayCanvas дії: рух entities, SmartStretch, MeshBoolean, outline, dimensions, mouse/touch input.
-- `index.mjs` - public exports для інших runtime модулів.
+The composition saves these fields on the countertop product snapshot:
 
-Цей поділ важливий, бо помилки в математиці можна тестувати окремо від renderer/input, а scene-specific код не протікає в API.
+| key | meaning |
+|---|---|
+| `productType: 'Top_Solid'` | immutable registry identity; do not derive capabilities from the runtime entity name |
+| `CountertopPositioning: 'legacy' \| 'support-plane'` | vertical positioning strategy selected when the countertop is created |
+| `CountertopPlacement: 'supported' \| 'independent'` | whether layout aligns the countertop to cabinet supports or preserves its base Y |
+| `CountertopRole: 'basinTop' \| 'cabinetCover'` | semantic purpose; only `basinTop` is instantiated today |
+| `SupportGroupId` | support plane used by this countertop; currently defaults to `group-1` |
+| `SpatialOffsetM: { x, y }` | manual offset from the standard X/Y produced by `RuleCountertopLayout` |
+| `CountertopLengthM` | custom length, only meaningful while the countertop is moved |
 
-## State
+Cabinet snapshots must also preserve their registry `productType`. The positioning profile reads
+`snapshot.productType` and then resolves `countertopSupport` from `ProductRegistry_V2`; entity
+names are not product capabilities.
 
-`createCountertopStateM()` створює стан стільниці у метрах (`M`):
+## Layout ownership
 
-```js
-{
-  layoutMode,        // "standard" або "drag"
-  interactionState,  // "idle", "selected", "editing", "dragging"
-  basePositionM,     // стандартна позиція від composition rules
-  offsetM,           // ручне зміщення від basePositionM
-  positionM,         // basePositionM + offsetM у drag mode
-  baseLengthM,       // автоматична довжина від тумб
-  customLengthM,     // ручна довжина, якщо задана
-  sizeM,             // фактичний розмір
-  thicknessM,
-  validation
-}
-```
+`RuleCountertopLayout` submits one complete standard layout update containing X, Y and length:
 
-Назовні, через `ConfiguratorAPI.countertop`, основний snapshot і `setSize()` зберігають inch-facing контракт. Movement-команди `setOffset()`, `setMovementBounds()`, `setMovementGrid()`, `moveBy()` і `resetPosition()` приймають сантиметри без поля `unit`; конвертація cm -> m виконується тільки в bridge plugin. Внутрішній runtime використовує метри, бо PlayCanvas scene працює в метрах.
+1. `countertop-layout-policy.mjs` calculates horizontal base X and automatic length.
+2. `countertop-support-measurement.mjs` reads cabinet support planes and the countertop mount plane
+   from the PlayCanvas scene.
+3. `countertop-support-resolver.mjs` calculates the supported root world-Y without touching the
+   scene.
+4. `resolvedRootWorldYToLocalY()` converts the result to the root local Y expected by the adapter.
+5. `CountertopCompositionAdapter.updateStandardLayout()` applies the full X/Y/length plan once.
+6. `CountertopSpatial` reapplies `SpatialOffsetM`; a manual drag never becomes the new standard
+   position.
 
-## Layout modes
-
-Є два режими layout:
-
-- `standard` - стільниця прив'язана до автоматичного layout тумб. Позиція дорівнює `basePositionM`, довжина дорівнює `baseLengthM`.
-- `drag` - користувач може редагувати стільницю. Позиція дорівнює `basePositionM + offsetM`, довжина може бути `customLengthM`.
-
-Attachment state рахується з offset:
-
-- `attached` - offset майже нульовий або режим `standard`.
-- `detached` - у `drag` mode є ручне зміщення.
-
-## Service lifecycle
-
-`CountertopService` створюється тільки коли `CountertopCompositionAdapter` має готовий layout binding: активну composition, product id стільниці, root entity, `TopSolid` mesh, base position і base length.
-
-Основні команди:
-
-```js
-setLayoutMode("drag")
-setOffsetM({ x, y })
-setMovementGridM({ x, y })
-resetPosition()
-setLengthM(lengthM)
-setSelected(true)
-setEditing(true)
-beginMove()
-updateMoveM(offsetM)
-endMove()
-cancelMove()
-validate()
-whenSettled()
-restoreStateM(intentM)
-```
-
-Service змінює state і викликає injected callbacks з composition adapter:
-
-```js
-applyCountertopStateM(stateM, metadata)
-whenCountertopSettled()
-validateCountertopStateM(stateM, metadata)
-cancelCountertopWork(metadata)
-```
-
-Так service лишається доменним власником state, а PlayCanvas mutation лишається в adapters.
-
-## Drag flow
-
-Переміщення починається не одразу на `mousedown`, а після screen threshold у `CountertopInputAdapter`.
+The vertical formula is:
 
 ```text
-mousedown/touchstart на countertop
-  -> reserve gesture ownership
-mousemove/touchmove більше threshold
-  -> service.beginMove()
-  -> interactionState = "dragging"
-кожен move
-  -> screen point projected to world XY plane
-  -> offsetM updated
-  -> service.updateMoveM(offsetM)
-mouseup/touchend
-  -> service.endMove()
-  -> interactionState повертається в "editing" або "selected"
+mountOffsetFromRootM = mountWorldY - currentRootWorldY
+resolvedRootWorldY   = supportWorldY - mountOffsetFromRootM
 ```
 
-`Alt` під час mouse drag блокує `Y` offset, тому рух іде тільки по `X`. Перемикання Alt rebases anchor, щоб не було стрибка позиції.
+For `support-plane + supported`, every support in the selected group must be coplanar within
+`0.001 m`. A missing or non-coplanar plane is reported as unresolved and the current base Y is
+preserved.
 
-Gesture ownership знаходиться в `services/input/gesture-ownership.mjs`. Воно дозволяє countertop drag заблокувати camera orbit і selection на час активного жесту.
+## Resolver results
 
-## Composition binding
+| status | meaning | typical cases |
+|---|---|---|
+| `resolved` | a supported root Y was calculated and may be applied | valid mount point and coplanar cabinet supports |
+| `passthrough` | Y intentionally stays under its existing owner | legacy positioning or independent placement |
+| `unresolved` | support-plane positioning was requested but scene facts are incomplete or incompatible | missing mount/support, unknown placement, non-coplanar supports |
 
-`CountertopCompositionAdapter` є містком між старими composition rules і новим countertop service.
+## PlayCanvas authoring contract
 
-Він робить такі кроки:
+### Cabinet support point
 
-- приймає standard layout з `RuleCountertopWidth`;
-- через `resolveCountertopAssembly()` знаходить countertop root, `TopSolid`, sinks і cutters;
-- створює `CountertopService`;
-- підключає `AssemblyAdapter`, `GeometryAdapter`, `InputAdapter`, `OutlineAdapter`, `EditOverlay`, `DimensionAdapter`;
-- синхронізує selection tool із service state;
-- чекає завершення geometry/boolean робіт через `whenSettled()`.
+Each support-plane collection needs a collection-specific point at the top support plane of the
+cabinet. It must be a child of the cabinet template and follow every height change.
 
-Якщо active composition або countertop identity змінюється, adapter робить reset і створює нове binding покоління. Старі async операції відкидаються через revision/generation checks.
+| collection | point | required position |
+|---|---|---|
+| ULH | `ULH_Countertop_Point` | top of the cabinet body; local Y `0.25`, `0.28`, `0.35`, `0.38` for the supported heights |
+| Class | `Class_Countertop_Point` | top of the cabinet body; local Y `0.40` or `0.52` |
+| Mako | `Mako_Countertop_Point` | top of the cabinet body; local Y `0.26` or `0.52` |
 
-## Assembly movement
+These are absolute local positions from the cabinet root, not movement deltas. The collection's
+height rule owns them. Do not reuse a generic `Countertop_Point` across these templates.
 
-`CountertopAssemblyAdapter` застосовує ручний offset у world space.
+When an authored point is missing, measurement may use only the explicitly declared
+`fallbackMeshNames`. The top AABB of an arbitrary cabinet subtree is not a valid fallback because
+sinks, helpers and cutters may extend above the cabinet.
 
-Він спочатку запам'ятовує standard world positions для top-level transform targets, а потім застосовує absolute offset:
+### Countertop mount point
+
+`Countertop_Mount_Point` represents the countertop installation plane that must touch the cabinet
+support plane. For the current `TopSolid` template it is the bottom face of the slab.
+
+- Put it under the `Top_Solid` product root.
+- At the baseline `0.5 in` thickness its local Y is `-0.00635 m` because `TopSolid` has a centred
+  pivot.
+- `RuleChangeCountertopPositionByStrategy` moves this point down by half of the symmetric
+  thickness stretch, so it keeps following the bottom face.
+- `Top_Solid_Point` remains the legacy/thickness positioning point and is not the support mount.
+- If the authored mount is unavailable, the bottom AABB of the declared `TopSolid` fallback mesh
+  is used.
+
+## Product declarations
+
+The countertop product declares its mount capability and the rule that maintains it:
 
 ```js
-entity.setPosition(
-  base.x + offsetM.x,
-  base.y + offsetM.y,
-  base.z
-);
+registry.registerProduct('Top_Solid', {
+  category: 'countertops',
+  rules: [
+    { rule: RuleChangeCountertopHeight, priority: 25 },
+    { rule: RuleChangeCountertopDepth, priority: 30 },
+    { rule: RuleChangeCountertopPositionByStrategy, priority: 35 }
+  ],
+  defaultConfig: {
+    Thickness: 0.375,
+    CountertopLengthM: null
+  },
+  countertopMount: {
+    anchorName: 'Countertop_Mount_Point',
+    fallbackMeshName: 'TopSolid',
+    baseLocalYM: -0.00635
+  },
+  thicknessOffsets: {
+    countertop: {
+      // Thickness-dependent TopSolid stretch values.
+    }
+  }
+});
 ```
 
-`Z` не рухається. Ручне переміщення працює тільки в `X/Y`.
-
-Resolver спеціально вибирає top-level transform targets, щоб не рухати одночасно parent і child з тим самим offset. Це захищає від подвійного зміщення sink/cutter.
-
-## Length and boolean geometry
-
-`CountertopGeometryAdapter` відповідає за довжину стільниці.
-
-Зміна довжини проходить так:
-
-```text
-effectiveLengthM
-  -> stretchXM = effectiveLengthM - intrinsicLengthM
-  -> smartStretch.stretchAmount.x = stretchXM
-  -> smartStretch.updateGeometry()
-  -> meshBoolean.requestBoolean()
-  -> whenSettled()
-```
-
-Довжина не змінюється scale-ом root entity. Вона йде через `SmartStretch`, після чого `MeshBoolean` перебудовує cutouts.
-
-`RuleCountertopBooleanCutouts` знаходить `BoolB_*` cutters у тумбах/мийках і передає їх у composition adapter. Для `Vessel` sink використовується template `Vessel_BoolCut`, з якого створюються стабільні clones:
-
-```text
-Vessel_BoolCut_Clone_0
-Vessel_BoolCut_Clone_1
-```
-
-Ці clones перевикористовуються між aggregation retries, щоб не накопичувати зайві helper entities.
-
-## Outline and selection
-
-`CountertopOutlineAdapter` перетворює countertop state у semantic outline state для `SelectTool`:
-
-```text
-validation invalid -> red outline
-editing/dragging valid -> green outline
-selected -> yellow outline
-idle -> no semantic override
-```
-
-Outline adapter не створює renderer. Він тільки викликає public API selection tool:
+Every cabinet product that can support this countertop declares the same strategy plus its own
+scene point and verified fallback meshes:
 
 ```js
-selectTool.setEntitySemanticState(target, semanticState)
-selectTool.clearEntitySemanticState(target)
+registry.registerProduct('ULH-side-cabinet', {
+  category: 'cabinets',
+  countertopSupport: {
+    strategy: 'support-plane',
+    anchorName: 'ULH_Countertop_Point',
+    fallbackMeshNames: ['ULH_Cabinet_Walls']
+  },
+  // meshConfig, rules and defaultConfig...
+});
 ```
 
-Це зберігає один ownership boundary: selection/outline renderer лишається власністю `SelectTool`.
+Declare `countertopSupport` on both sink and side variants of the collection. The support-plane
+profile is enabled only when every cabinet in the composition explicitly resolves to the same
+non-empty strategy. A mixed or incomplete composition deliberately falls back to `legacy`.
 
-## Public API
+`ProductRegistry_V2.registerProduct()` preserves `countertopSupport` and `countertopMount`, while
+`getCountertopSupport()` and `getCountertopMount()` expose them to scene measurement. Keep sink
+attachment metadata separate under `sinkMount`; it is not part of the countertop support-plane
+contract.
 
-Bridge plugin `bridge/plugins/countertop.plugin.mjs` відкриває same-runtime API:
+## Adding another support-plane collection
 
-```js
-ConfiguratorAPI.countertop.getState()
-ConfiguratorAPI.countertop.setLayoutMode("drag")
-ConfiguratorAPI.countertop.setOffset({ x, y })
-ConfiguratorAPI.countertop.setSize({ length, unit: "inch" })
-ConfiguratorAPI.countertop.setMovementBounds({
-  x: { min: -30, max: 30 },
-  y: { min: -10, max: 20 }
-})
-ConfiguratorAPI.countertop.setMovementGrid({ x: 2, y: 2 })
-ConfiguratorAPI.countertop.moveBy({ x: -2.54, y: 0 })
-ConfiguratorAPI.countertop.resetPosition()
-ConfiguratorAPI.countertop.setEditing(true)
-ConfiguratorAPI.countertop.validate()
-ConfiguratorAPI.countertop.whenSettled()
-ConfiguratorAPI.countertop.restoreState(state)
-ConfiguratorAPI.countertop.on("change", callback)
-ConfiguratorAPI.countertop.on("action", callback)
-```
+1. Add a collection-specific support point to the PlayCanvas cabinet template.
+2. Put it exactly on the cabinet's top support plane and verify every allowed height.
+3. Update the collection height rule with absolute local Y values for that point.
+4. Add `countertopSupport` to every cabinet product variant in `product-config-loader.mjs`.
+5. Declare only verified cabinet-body meshes in `fallbackMeshNames`.
+6. Ensure `SceneManager` writes the registry identity to `config.productType` for both individual
+   creation and `presetProducts()`.
+7. Add anchor, measurement, resolver and complete-layout tests before enabling the collection.
 
-Legacy size/restore boundary приймає inches, перевіряє payload shape і повертає sanitized snapshot. Movement API є centimeter-only: усі числа в payload трактуються як centimeters, поле `unit` не підтримується, а конвертація cm -> m виконується тільки в bridge plugin. Відсутня вісь у bounds означає unbounded axis; якщо вісь передана, `min` і `max` обов'язкові, finite і `min <= max`. Відсутня вісь у grid означає unsnapped axis; порожній grid `{}` вимикає snapping.
+## Length rule (`countertop-layout-policy.mjs`)
 
-`canMove` у public snapshot має directional shape:
+- **Attached** (no offset): the length is the composition's length and follows it.
+- **Moved** off the composition: a custom length may be set (`setSize`); without one it keeps
+  following the composition.
+- Moving back onto the composition (offset 0) drops the custom length.
 
-```js
-{
-  left: true,
-  right: false,
-  up: true,
-  down: true
-}
-```
+## Files
 
-Це derived UI-поле. Full restore payload може містити `canMove`, але restore не відновлює його і застосовує тільки versioned intent: `layoutMode`, `offset` і `customLength`.
+| file | role |
+|---|---|
+| `countertop-layout-policy.mjs` | pure standard horizontal layout: composition length and base X |
+| `countertop-support-resolver.mjs` | pure vertical support-plane/profile policy |
+| `countertop-units.mjs` | inch labels for dimension lines |
+| `adapters/countertop-support-measurement.mjs` | PlayCanvas measurement adapter for cabinet supports and countertop mount |
+| `adapters/countertop-composition-adapter.mjs` | active countertop state, commands, atomic standard layout, length, booleans and presentation |
+| `adapters/countertop-geometry-adapter.mjs` | X length via SmartStretch and boolean rebuild |
+| `adapters/countertop-edit-overlay.mjs` | "edit size" button, shown only while moved |
+| `adapters/countertop-dimension-adapter.mjs` | length/depth dimension lines |
+| `spatial/countertop.manipulable.mjs` | countertop integration with `spatial-manipulation`: motion, snap rules and collision |
+| `spatial/countertop-snap-targets.mjs` | composition snap targets: edges, centres, tops, endpoints and joints |
+| `spatial/countertop-spatial.mjs` | World registration, drag gating, restored offset and commit on drag end |
+| `spatial/countertop-assembly-resolver.mjs` | entities that move with the countertop, including sinks and cutters |
+| `../composition/rules/RuleCountertopLayout.mjs` | scene orchestration and the single complete X/Y/length writer call |
+| `../product/registry/product-config-loader.mjs` | `Top_Solid` mount and cabinet support capability declarations |
 
-PlayCanvas entities, service internals і mutable objects не виходять за межу bridge.
+Collision outline is implemented in `composition/spatial/collision-outline.mjs` and shared with the
+modules. The colliding countertop and everything it overlaps turn red.
 
-## Commit boundaries
+## Tests
 
-Countertop feature краще комітити окремими частинами:
+The Node suites for this contract are:
 
-- selection/outline foundation;
-- countertop domain service and policies;
-- composition adapters and input movement;
-- geometry/boolean integration;
-- bridge API integration;
-- generated exports або PlayCanvas sync output, якщо вони потрібні.
+- `tests/node/countertop-support-resolver.test.mjs`
+- `tests/node/countertop-layout-rule.test.mjs`
+- `tests/node/countertop-position-strategy.test.mjs`
+- `tests/node/collection-countertop-anchors.test.mjs`
+- `tests/node/countertop-manipulation.test.mjs`
 
-Перед синхронізацією в PlayCanvas треба перевіряти runtime scripts:
+## API — `ConfiguratorAPI.countertop`
 
-```bash
-node "$CODEX_HOME/skills/playcanvas-configurator/scripts/check-runtime-scripts.mjs" src
-```
+`getState()`, `isDragEnabled()`, `setDragEnabled(bool)`, `setOffset({ x, y })`, `resetOffset()`,
+`setSize({ length })` (moved only; `null` = composition length), `whenSettled()`,
+`on('change' | 'action', callback, { emitCurrent })`, `off(event, callback)`.
