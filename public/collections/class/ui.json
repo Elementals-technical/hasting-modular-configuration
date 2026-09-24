@@ -4,7 +4,48 @@
     "sinkType": {
       "Iris": "images/vessel/Iris.png",
       "Frame": "images/vessel/Frame.png"
+    },
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base-2-drawer.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet-2-drawer.png"
+    },
+    "Drawers": {
+      "1": "images/cabinet/drawers-1.png",
+      "2": "images/cabinet/drawers-2.png",
+      "1+inner": "images/cabinet/drawers-1.png"
     }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      {
+        "value": "Sink-Base",
+        "when": {
+          "Drawers": "1"
+        },
+        "image": "images/cabinet/sink-base-1-drawer.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": {
+          "Drawers": "1"
+        },
+        "image": "images/cabinet/side-cabinet-1-drawer.png"
+      },
+      {
+        "value": "Sink-Base",
+        "when": {
+          "Drawers": "1+inner"
+        },
+        "image": "images/cabinet/sink-base-1-drawer.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": {
+          "Drawers": "1+inner"
+        },
+        "image": "images/cabinet/side-cabinet-1-drawer.png"
+      }
+    ]
   },
   "flows": {
     "prebuilt": {

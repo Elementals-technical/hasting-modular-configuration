@@ -90,7 +90,7 @@ describe("collection contracts", () => {
       // Class has no configurator of its own yet; 8 is still a copy of Mako's 9, so it reads 9.
       configurator: { id: 9, view: "full", serialize: true },
       countertopTable: { id: 438 },
-      cabinetTable: { id: 439 },
+      cabinetTable: { id: 579 },
     });
     expect(classUi.collectionId).toBe("class");
 

@@ -20,6 +20,7 @@ import makoUi from "../../../../public/collections/mako/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
+import datatable579 from "./fixtures/remote/datatable-579.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
@@ -57,8 +58,10 @@ const fetchJson = vi.fn(async (url: string) => {
 const makeRemote = (): RemoteCollectionLoader => ({
   loadConfigurator: vi.fn(async () => configurator4),
   loadCountertopTable: vi.fn(async () => datatable438),
-  // Mako reads its own cabinet table (581); the other collections share the USH one (439).
-  loadCabinetTable: vi.fn(async (id: string | number) => (id === 581 ? datatable581 : datatable439)),
+  // Mako and Class read their own cabinet tables (581, 579); the other collections share the USH one (439).
+  loadCabinetTable: vi.fn(async (id: string | number) =>
+    id === 581 ? datatable581 : id === 579 ? datatable579 : datatable439,
+  ),
 });
 
 describe("partial production collection packages", () => {
@@ -107,9 +110,10 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    // Class has no scene bindings and no model compositions yet; Mako places its own scene products (I)
-    // and has the composition of every model, its own cabinet table and its own configurator.
-    ["class", "Class", 44, undefined, false, [[439, abortSignal]], 9],
+    // Class has no scene bindings and no model compositions yet, but its own cabinet table; Mako places
+    // its own scene products (I) and has the composition of every model, its own cabinet table and its
+    // own configurator.
+    ["class", "Class", 44, undefined, false, [[579, abortSignal]], 9],
     [
       "mako",
       "Mako",
