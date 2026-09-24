@@ -49,7 +49,10 @@ import fixtureRulesUi from "./fixtures/collections/fixture-rules/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
+import datatable577 from "./fixtures/remote/datatable-577.json";
+import datatable578 from "./fixtures/remote/datatable-578.json";
 import datatable579 from "./fixtures/remote/datatable-579.json";
+import datatable580 from "./fixtures/remote/datatable-580.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
 
 import { useActiveCollectionSession, useActiveCollectionState } from "../ui/activeCollectionContext";
@@ -198,14 +201,15 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+/** Tables of their own: Mako (577, 581), Class (578, 579) and Urban Low Height (580); the rest share USH's 438 / 439. */
+const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578 };
+const cabinetTables: Record<string, unknown> = { 579: datatable579, 580: datatable580, 581: datatable581 };
+
 describe("ActiveCollectionProvider", () => {
   const productionRemote: RemoteCollectionLoader = {
     loadConfigurator: vi.fn(async () => configurator4),
-    loadCountertopTable: vi.fn(async () => datatable438),
-    // Mako and Class read their own cabinet tables (581, 579); the other collections share the USH one (439).
-    loadCabinetTable: vi.fn(async (id: string | number) =>
-      id === 581 ? datatable581 : id === 579 ? datatable579 : datatable439,
-    ),
+    loadCountertopTable: vi.fn(async (id: string | number) => countertopTables[id] ?? datatable438),
+    loadCabinetTable: vi.fn(async (id: string | number) => cabinetTables[id] ?? datatable439),
   };
 
   it("takes the production registry default through resolving and loading to ready", async () => {
@@ -222,7 +226,7 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it.each([
-    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, null, 439],
+    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, null, 580],
     // Class has its own cabinet table.
     ["class", "Class Models", "class", 44, null, 579],
     // Mako ships its scene bindings (I) and has its own cabinet table.

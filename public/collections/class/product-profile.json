@@ -14,7 +14,7 @@
   },
   "sourceRefs": {
     "configuratorId": 4,
-    "countertopMatrixTableId": 438,
+    "countertopMatrixTableId": 578,
     "cabinetMatrixTableId": 579
   },
   "defaults": {},
@@ -283,7 +283,7 @@
   },
   "excludedFromThisProfile": {
     "handle": "Class has no handle choice: the grip is part of the frame (CLS-WGL-003). No Handle attribute is declared.",
-    "sourceRefs": "Cabinet table 579 comes from the manifest and holds Class data; countertop table 438 is shared and has no Class rows. The colour catalogs are read from the configurator the manifest names; Class has no configurator of its own yet, so it reads Mako's 9 and offers only the colours that appear there. Configurator 8 is named for Class but is still a copy of 9.",
+    "sourceRefs": "Cabinet table 579 comes from the manifest and holds Class data; countertop table 578 comes from the manifest and holds Class data. The colour catalogs are read from the configurator the manifest names; Class has no configurator of its own yet, so it reads Mako's 9 and offers only the colours that appear there. Configurator 8 is named for Class but is still a copy of 9.",
     "heightByStyle": "Confirmed: 1DW and 1DWID are 40 cm high, 2DW is 52 cm (CLS-XLS-005/006/007). The builder catalog gets it from the cabinet table rows (table 579, forced_height_cm 2:52|1:40|1+inner:40).",
     "widths": "Confirmed: Sink Base 60/80/100/120 cm, Side Cabinet 40/60/80/100/120 cm, depth 52 cm (CLS-XLS-002/003/008). Cabinet table rows (table 579).",
     "integratedSb60WithInnerDrawer": "Confirmed: a 60 cm Sink Base with 1DWID is not available with an Integrated countertop (CLS-WGL-006). The profile has no width x style x countertop style rule.",

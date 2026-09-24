@@ -68,7 +68,7 @@ describe("collection contracts", () => {
     expect(urbanLowHeight.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
       countertopTable: { id: 438 },
-      cabinetTable: { id: 439 },
+      cabinetTable: { id: 580 },
     });
     expect(urbanLowHeightUi.collectionId).toBe("urban-low-height");
 
@@ -89,7 +89,7 @@ describe("collection contracts", () => {
     expect(classManifest.remote).toEqual({
       // Class has no configurator of its own yet; 8 is still a copy of Mako's 9, so it reads 9.
       configurator: { id: 9, view: "full", serialize: true },
-      countertopTable: { id: 438 },
+      countertopTable: { id: 578 },
       cabinetTable: { id: 579 },
     });
     expect(classUi.collectionId).toBe("class");
@@ -112,8 +112,8 @@ describe("collection contracts", () => {
     expect(makoManifest.remote).toEqual({
       // Mako's own configurator; 4 is the one the other collections share.
       configurator: { id: 9, view: "full", serialize: true },
-      countertopTable: { id: 438 },
-      // Mako's own cabinet table; 439 has no Mako rows.
+      // Mako's own countertop and cabinet tables; 438 and 439 have no Mako rows.
+      countertopTable: { id: 577 },
       cabinetTable: { id: 581 },
     });
     expect(makoUi.collectionId).toBe("mako");

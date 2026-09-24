@@ -12,7 +12,7 @@
   "sourceRefs": {
     "configuratorId": 4,
     "countertopMatrixTableId": 438,
-    "cabinetMatrixTableId": 439
+    "cabinetMatrixTableId": 580
   },
   "defaults": {},
   "attributes": [
@@ -121,7 +121,7 @@
   ],
   "ruleData": {
     "cabinetMatrixLegacyAdapter": {
-      "tableId": 439,
+      "tableId": 580,
       "columns": {
         "cabinetType": "cabinet_type",
         "drawers": "drawer_configs",
@@ -172,7 +172,7 @@
   },
   "excludedFromThisProfile": {
     "handleGrooveColor": "The HDL segment of the SKU has no stable structure, so no handle declares a groove colour (product map §5, §15.4).",
-    "handleHeightCoupling": "Confirmed: Upper Groove gives 38/28 cm, Push-to-Open gives 35/25 cm (§2). It is read from the cabinet table, and table 439 has no Urban Low Height rows yet.",
+    "handleHeightCoupling": "Confirmed: Upper Groove gives 38/28 cm, Push-to-Open gives 35/25 cm (§2). Table 580 lists it (handle_urban_topcut_heights_cm, handle_pto_heights_cm), but the cabinet catalog does not read those columns yet.",
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
     "basinAndCountertopOptions": "Basin styles and countertop thickness are known as display names only; scene tokens and rules are not confirmed (§11, §12). Table 438 has no Urban Low Height basins.",

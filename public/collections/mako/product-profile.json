@@ -14,7 +14,7 @@
   },
   "sourceRefs": {
     "configuratorId": 4,
-    "countertopMatrixTableId": 438,
+    "countertopMatrixTableId": 577,
     "cabinetMatrixTableId": 581
   },
   "defaults": {},
@@ -303,7 +303,7 @@
     "drawers.requiredHeight": "Required for selected drawers"
   },
   "excludedFromThisProfile": {
-    "sourceRefs": "Configurator 9 and cabinet table 581 come from the manifest and hold Mako data, so the colour catalogs are read from configurator 9 instead of being listed here; a colour it offers without a SKU is not offered. Countertop table 438 is shared and has no Mako rows.",
+    "sourceRefs": "Configurator 9 and cabinet table 581 come from the manifest and hold Mako data, so the colour catalogs are read from configurator 9 instead of being listed here; a colour it offers without a SKU is not offered. Countertop table 577 comes from the manifest and holds Mako data.",
     "matteWhite8cm": "Listed in the Master File (L121) but Mako has thin countertops only (map section 7, D-P0184), so it is not offered.",
     "va023": "Listed in the Master File (L195) but bound to the thick 3.1\" Technomat top in GB row 14, which thin-only excludes (section 9).",
     "va030": "Confirmed for SS Texturizzato by GB row 13 and the price workbook, but absent from the Master File, so it is not offered until the product list is fixed (section 9).",

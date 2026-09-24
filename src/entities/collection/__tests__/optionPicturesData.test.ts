@@ -10,6 +10,7 @@ import urbanLowHeightProfileDocument from "../../../../public/collections/urban-
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import cabinetTable439 from "./fixtures/remote/datatable-439.json";
 import cabinetTable579 from "./fixtures/remote/datatable-579.json";
+import cabinetTable580 from "./fixtures/remote/datatable-580.json";
 import cabinetTable581 from "./fixtures/remote/datatable-581.json";
 
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -48,7 +49,7 @@ const COLLECTIONS: { id: string; ui: unknown; profile: ProductProfile; table: un
     id: "urban-low-height",
     ui: urbanLowHeightUi,
     profile: profileOf("urban-low-height", urbanLowHeightProfileDocument),
-    table: cabinetTable439,
+    table: cabinetTable580,
   },
   { id: "class", ui: classUi, profile: profileOf("class", classProfileDocument), table: cabinetTable579 },
   { id: "mako", ui: makoUi, profile: profileOf("mako", makoProfileDocument), table: cabinetTable581 },
