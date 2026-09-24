@@ -63,6 +63,7 @@ export {
   isKnownOption,
   normalizeOptionValue,
   selectAttribute,
+  selectConfiguratorSection,
   selectDefaultValue,
   selectEffectiveFallback,
   selectInitialValue,
@@ -156,6 +157,8 @@ export type {
   FieldOptionState,
   FieldOptionTraits,
   FieldRuntimeState,
+  OptionImageVariant,
+  OptionImageVariants,
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
 export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS } from "./model/customizationSchema";

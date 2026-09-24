@@ -12,9 +12,6 @@ import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import image from "../../../../shared/assets/images/png/img_png.png";
-import upperHandleImage from "@/shared/assets/images/jpeg/UpperGHandle.jpg";
-import centralHandleImage from "@/shared/assets/images/jpeg/CentralGHandle.jpg";
-import ptoHandleImage from "@/shared/assets/images/jpeg/PTOHandle.jpg";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
@@ -55,6 +52,7 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { hasCapability, selectEffectiveFallback, selectOptions, useActiveCollection } from "@/entities/collection";
+import { useOptionImages } from "@/features/collectionCustomization";
 import {
   getActiveProductProfile,
   getCabinetDimensionsByRuntimeId,
@@ -94,19 +92,10 @@ interface PendingDepthChange {
   previous: number | null;
 }
 
-/**
- * Presentation-only mapping. An unknown handle id falls back to the generic image
- * instead of gating behaviour, so a new handle renders without a change here.
- */
-const HANDLE_IMAGES_BY_VALUE: Record<string, string> = {
-  handle_urban_topcut: upperHandleImage,
-  handle_urban_botcut: centralHandleImage,
-  handle_pto: ptoHandleImage,
-};
-
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const optionImages = useOptionImages();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
@@ -170,10 +159,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     [dimensionOptions.handles, handlesDisabled, activeProfile],
   );
 
+  // The picture of a handle is the collection's; an id it declares none for falls back to the
+  // generic image instead of gating behaviour, so a new handle renders without a change here.
   const handleImage = useMemo(() => {
     const value = selectedProductConfig?.Handle;
-    return (typeof value === "string" ? HANDLE_IMAGES_BY_VALUE[value] : undefined) ?? image;
-  }, [selectedProductConfig?.Handle]);
+    return (typeof value === "string" ? optionImages?.Handle?.[value] : undefined) ?? image;
+  }, [optionImages, selectedProductConfig?.Handle]);
 
   useEffect(
     () =>

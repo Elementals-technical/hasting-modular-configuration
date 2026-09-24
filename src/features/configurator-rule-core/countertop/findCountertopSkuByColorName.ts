@@ -19,7 +19,8 @@ const MATERIAL_SKU_BY_TOKEN: Record<string, string> = {
   tekorund: "SSTM",
 };
 
-const COUNTERTOP_PROXY_NAMES = new Set(["Countertop Color", "Vessels"]);
+// "Select Countertop Color" is the group name in the Mako configurator (9).
+const COUNTERTOP_PROXY_NAMES = new Set(["Countertop Color", "Select Countertop Color", "Vessels"]);
 
 
 export const findCountertopSkuByColorName = (

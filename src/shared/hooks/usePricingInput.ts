@@ -54,7 +54,8 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
  */
 export const usePricingInput = () => {
   const skuBuilders = useSkuBuilders();
-  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const configurator = useActiveCollection((collection) => collection.catalog.configurator);
+  const configuratorGroups = configurator.groups;
   const colorSkuMaps = useMemo(() => buildColorSkuMaps(configuratorGroups), [configuratorGroups]);
   const countertopRules = useCountertopRules();
   const { sceneConfigs, refresh: refreshSceneConfigs } = useSceneProductConfigs();
@@ -116,6 +117,7 @@ export const usePricingInput = () => {
       activeProfile,
       runtimeBindings,
       colorSkuMaps,
+      configurator,
       countertopRules,
       cabinetCatalog,
       shouldUsePresets,
@@ -157,6 +159,7 @@ export const usePricingInput = () => {
       activeProfile,
       runtimeBindings,
       colorSkuMaps,
+      configurator,
       countertopRules,
       cabinetCatalog,
       shouldUsePresets,

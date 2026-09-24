@@ -59,26 +59,27 @@ describe("mako product profile", () => {
     ]);
   });
 
-  it("lists the Master File colour catalogs, grouped by material", () => {
-    expect(categoryCounts("CabinetColor")).toEqual({ "Lacquered MT": 20, "Lacquered GL": 20 });
-    expect(categoryCounts("HandleColor")).toEqual({ Metal: 2, "Lacquered MT": 20 });
-    expect(categoryCounts("LegColor")).toEqual({ Metal: 2, "Lacquered MT": 20 });
-    expect(categoryCounts("CountertopColor")).toEqual({
-      "Solid Surface": 1,
-      HPL: 14,
-      Porcelain: 15,
-      "Glass MT": 20,
-      "Glass GL": 20,
-    });
+  // Mako has its own configurator (9); its colours, their material and their SKU come from there
+  // rather than being copied into this profile. The catalogs it still lists are shapes, not colours.
+  it("takes the colour catalogs from its own configurator instead of listing them", () => {
+    const colours = ["CabinetColor", "HandleColor", "LegColor", "CountertopColor"].map((attributeId) => [
+      attributeId,
+      attribute(attributeId)?.optionsSource,
+      attribute(attributeId)?.options,
+    ]);
+
+    expect(colours).toEqual([
+      ["CabinetColor", "configurator:Select Cabinet Color", undefined],
+      ["HandleColor", "configurator:Select Handle Color", undefined],
+      ["LegColor", "configurator:Select Leg Color", undefined],
+      ["CountertopColor", "configurator:Select Countertop Color", undefined],
+    ]);
   });
 
-  it("keeps the Mako glass keys without the Class G prefix and the stone labels apart", () => {
-    const values = selectOptionValues(profile(), "CountertopColor");
-    const porcelain = attribute("CountertopColor")?.options?.find(({ value }) => value === "CALACATTA BLACK 338");
-
-    expect(values).toContain("Grigio Argento 403 MT");
-    expect(values).not.toContain("GGrigio Argento 403 MT");
-    expect(porcelain?.label).toBe("Calacatta Black 338");
+  it("still lists the catalogs that are shapes rather than colours", () => {
+    expect(categoryCounts("sinkType")).toEqual({ integrated: 9, vessel: 3 });
+    expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
+    expect(selectOptionValues(profile(), "Handle")).toEqual(["G57", "G50"]);
   });
 
   it("leaves out what the thin-only rule excludes and what the Master File lacks (sections 7, 9)", () => {

@@ -53,14 +53,8 @@
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
     "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
   },
+  "legs": { "quantity": 2, "cabinetColorValue": "None" },
   "gaps": [
-    {
-      "group": "legs",
-      "blocksTotal": true,
-      "owner": "product",
-      "reason": "Legs are priced as VAN-MAKOV-LEG ($1,340 matte lacquer, $745 metal), but how many a cabinet or composition takes, and whether the price is per leg, pair or set, is not confirmed.",
-      "appliesWhen": { "attributeId": "LegColor" }
-    },
     {
       "group": "vessel",
       "blocksTotal": true,

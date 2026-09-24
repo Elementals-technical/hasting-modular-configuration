@@ -1,5 +1,5 @@
 import type { CabinetColorTraitsRuleData, ProductProfile } from "@/entities/collection";
-import { selectAttribute, selectRuleData } from "@/entities/collection";
+import { selectConfiguratorSection, selectRuleData } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getConfiguratorVariantOverrides,
@@ -16,8 +16,6 @@ import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisi
  */
 
 export type ColorTraits = { material: string; finish: string };
-
-const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
 
 type ColorOption = {
   label: string;
@@ -39,11 +37,7 @@ const fromCsv = (value: unknown): string[] =>
         .filter(Boolean)
     : [];
 
-/** The configurator section an attribute's options come from ("configurator:Cabinet Color" -> "Cabinet Color"). */
-export const selectConfiguratorSection = (profile: ProductProfile | null, attributeId: string): string | null => {
-  const source = selectAttribute(profile, attributeId)?.optionsSource;
-  return source?.startsWith(CONFIGURATOR_SOURCE_PREFIX) ? source.slice(CONFIGURATOR_SOURCE_PREFIX.length) : null;
-};
+export { selectConfiguratorSection };
 
 const findColorOption = (
   colorName: string,
@@ -53,7 +47,7 @@ const findColorOption = (
   for (const group of configurator.groups.filter(({ proxyName }) => proxyName === section)) {
     for (const option of group.options) {
       for (const variant of option.variants) {
-        if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) continue;
+        if (!isVisibleConfiguratorVariant(variant)) continue;
 
         const meta: Record<string, unknown> = variant.metadata ?? {};
         const nested = isRecord(meta.metadata) ? meta.metadata : {};
@@ -64,15 +58,16 @@ const findColorOption = (
         if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) continue;
         if ((value ?? variant.name) !== colorName && variant.name !== colorName) continue;
 
+        // Mirrors `buildConfiguratorOptions`: the option name is a material only where the section
+        // is split by material.
+        const materials = fromCsv(pick(nested.Material, meta.Material));
+        const optionMaterial = group.options.length > 1 ? option.name : undefined;
+
         return {
           label: label ?? variant.name,
           optionName: option.name,
           sku: pick(meta.sku) ?? "",
-          materials: [
-            ...new Set(
-              [group.proxyName, option.name, ...fromCsv(pick(nested.Material, meta.Material))].filter(Boolean),
-            ),
-          ],
+          materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
         };
       }
     }

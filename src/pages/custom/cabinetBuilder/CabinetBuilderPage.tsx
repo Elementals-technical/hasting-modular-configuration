@@ -61,19 +61,21 @@ import {
   getVesselColor,
   getProductsPresets,
   getHasBootstrappedCabinetBuilder,
-  getDominantDrawerGroup,
   getSinkBaseCount,
   getSideShelfCount,
   getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
-import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
-import { resolveCabinetTypeImage, resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
+import {
+  selectCountertopCabinetCompositionConstraint,
+  selectOptionImageContext,
+} from "@/entities/product/model/store/derivedSelectors";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   hasCapability,
   isDrawerStyleMixingRestricted,
   selectDefaultValue,
   selectEffectiveFallback,
+  selectOption,
   selectOptionsByCapability,
   useCollectionPresets,
 } from "@/entities/collection";
@@ -93,7 +95,6 @@ import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabine
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
-import { cabinetTypeMetadataByCode, drawerMetaByValue } from "./constants";
 import { DrawerStyleConflictPopup } from "./DrawerStyleConflictPopup";
 import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useSearchParams } from "react-router-dom";
@@ -109,7 +110,14 @@ import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelE
 import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { applySwatchOrderFromMetadata } from "@/features/swatchOrder";
-import { useCollectionNavigate, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
+import {
+  resolveOptionImage,
+  useCollectionNavigate,
+  useCollectionNavigation,
+  useOptionImageVariants,
+  useOptionImages,
+  useStepPathById,
+} from "@/features/collectionCustomization";
 
 type AccordionConfig = {
   id: string;
@@ -181,14 +189,6 @@ const resolveTowelBarOption = (option: string | undefined, side: string | undefi
   return TOWEL_BAR_OPTIONS.includes(fromSide) ? fromSide : undefined;
 };
 
-const CABINET_TYPE_ORDER: Record<string, number> = {
-  "Sink-Base": 0,
-  "Sink-Cabinet": 1,
-  "Side-Cabinet": 1,
-  "Open-Shelf": 2,
-  "Side-Shelf": 3,
-};
-
 const mapDrawerValueToConfig = (value?: string) => {
   if (value === "1") return "1D";
   if (value === "2") return "2D";
@@ -219,10 +219,8 @@ const readConfigDrawerValue = (config: unknown): string | null => {
 export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
   const [accordionValue, setAccordionValue] = useState(defaultValue);
-  const [activeStyleId, setActiveStyleId] = useState<number | null>(null);
-  const [pendingMixingStyle, setPendingMixingStyle] = useState<{ id: number; value: string; title: string } | null>(
-    null,
-  );
+  const [activeStyleValue, setActiveStyleValue] = useState<string | null>(null);
+  const [pendingMixingStyle, setPendingMixingStyle] = useState<{ value: string; title: string } | null>(null);
   const [isPtoSwitchPromptOpen, setIsPtoSwitchPromptOpen] = useState(false);
   const [pendingTutorialDefaultCabinetType, setPendingTutorialDefaultCabinetType] = useState(false);
   const [pendingTutorialDefaultCabinetStyle, setPendingTutorialDefaultCabinetStyle] = useState(false);
@@ -299,11 +297,14 @@ export const CabinetBuilderPage = () => {
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
   const productsPresets = useAppSelector(getProductsPresets);
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
-  const dominantDrawerGroup = useAppSelector(getDominantDrawerGroup);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
+  // Pictures, labels and the values they depend on all come from the active collection.
+  const optionImages = useOptionImages();
+  const optionImageVariants = useOptionImageVariants();
+  const optionImageContext = useAppSelector(selectOptionImageContext);
 
 
   const saveSnapshot = useHistorySnapshot();
@@ -350,23 +351,16 @@ export const CabinetBuilderPage = () => {
       if (aIsNum !== bIsNum) return aIsNum ? -1 : 1;
       return a.localeCompare(b);
     });
-    const heightValue = selectedDimensions.height ?? 0;
     const placedDrawerValues = Object.values(placedCabinetStyles);
 
-    return activeDrawerValues.filter(Boolean).map((value, index) => {
+    return activeDrawerValues.filter(Boolean).map((value) => {
       const ruleOption = drawerOptionMap.get(String(value));
-      const meta = drawerMetaByValue[String(value)] ?? {
-        id: 200 + index + 1,
-        title: String(value),
-        isShortDesc: false,
-      };
 
       // Drawer style groups of the collection decide which styles cannot be mixed.
       const isMixingRestricted = isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, String(value));
 
       return {
-        id: meta.id,
-        title: meta.title,
+        title: selectOption(activeProfile, "Drawers", String(value))?.label ?? String(value),
         value: String(value),
         isAvailable:
           countertopCompositionConstraint.canAddCabinet &&
@@ -379,17 +373,23 @@ export const CabinetBuilderPage = () => {
               ? compositionExceededReason
               : ruleOption?.reason,
         isMixingRestricted,
-        isShortDesc: meta.isShortDesc ?? false,
+        isShortDesc: false,
         metadata: {
-          ...(meta.metadata ?? {}),
-          image: resolveCabinetStyleImage(String(value), heightValue, activeCabinetType, meta.metadata?.image),
+          image: resolveOptionImage({
+            optionImages,
+            variants: optionImageVariants,
+            attributeId: "Drawers",
+            value: String(value),
+            context: optionImageContext,
+          }),
         },
       };
     });
   }, [
-    selectedDimensions.height,
     dimensionOptions.drawers,
-    activeCabinetType,
+    optionImages,
+    optionImageVariants,
+    optionImageContext,
     activeProfile,
     placedCabinetStyles,
     countertopCompositionConstraint.canAddCabinet,
@@ -422,16 +422,16 @@ export const CabinetBuilderPage = () => {
 
   const cabinetTypeOptions = useMemo(
     () =>
+      // Order, label and description of a cabinet type are the collection's, not the page's.
       [...cabinetCatalog.typeCabinetRules]
         .sort((a, b) => {
-          const aOrder = CABINET_TYPE_ORDER[a.code] ?? Number.MAX_SAFE_INTEGER;
-          const bOrder = CABINET_TYPE_ORDER[b.code] ?? Number.MAX_SAFE_INTEGER;
+          const aOrder = selectOption(activeProfile, "CabinetType", a.code)?.order ?? Number.MAX_SAFE_INTEGER;
+          const bOrder = selectOption(activeProfile, "CabinetType", b.code)?.order ?? Number.MAX_SAFE_INTEGER;
           if (aOrder !== bOrder) return aOrder - bOrder;
           return a.code.localeCompare(b.code);
         })
         .map((rule) => {
-          const meta = cabinetTypeMetadataByCode[rule.code] ?? {};
-          const heightValue = selectedDimensions.height ?? 0;
+          const typeOption = selectOption(activeProfile, "CabinetType", rule.code);
           const typeHasFittingWidth =
             !hasProducts ||
             remainingCountertopLength === null ||
@@ -469,10 +469,10 @@ export const CabinetBuilderPage = () => {
 
           return {
             id: rule.code,
-            title: meta.title ?? rule.code.replace(/-/g, " "),
+            title: typeOption?.label ?? rule.code.replace(/-/g, " "),
             name: rule.code,
-            desc: meta.desc,
-            isShortDesc: meta.isShortDesc ?? false,
+            desc: typeOption?.legacyDescription,
+            isShortDesc: false,
             isAvailable: !isDisabled,
             disabledReason,
             disabledActionLabel:
@@ -484,7 +484,13 @@ export const CabinetBuilderPage = () => {
                 ? () => setIsPtoSwitchPromptOpen(true)
                 : undefined,
             metadata: {
-              image: resolveCabinetTypeImage(rule.code, heightValue, dominantDrawerGroup, meta.image),
+              image: resolveOptionImage({
+                optionImages,
+                variants: optionImageVariants,
+                attributeId: "CabinetType",
+                value: rule.code,
+                context: optionImageContext,
+              }),
               hasSink: rule.hasSink,
               isOpen: rule.isOpen,
             },
@@ -492,10 +498,12 @@ export const CabinetBuilderPage = () => {
         }),
     [
       cabinetCatalog.typeCabinetRules,
-      selectedDimensions.height,
+      activeProfile,
+      optionImages,
+      optionImageVariants,
+      optionImageContext,
       sinkBaseCount,
       sideShelfCount,
-      dominantDrawerGroup,
       isOssBlockedByHandle,
       countertopCompositionConstraint.canAddCabinet,
       countertopCompositionConstraint.reason,
@@ -578,14 +586,13 @@ export const CabinetBuilderPage = () => {
   }, [dispatch]);
 
   const handleSelectDrawerStyle = useCallback(
-    (id: number) => {
+    (value: string) => {
       if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
       autoAddSignatureRef.current = null;
       if (!hasProducts) allowNextAutoAddRef.current = true;
-      setActiveStyleId(id);
+      setActiveStyleValue(value);
 
-      const option = cabinetStyleOptions.find((item) => item.id === id);
-      const mappedValue = mapDrawerValueToConfig(option?.value);
+      const mappedValue = mapDrawerValueToConfig(value);
 
       if (mappedValue) {
         dispatch(
@@ -596,13 +603,7 @@ export const CabinetBuilderPage = () => {
         );
       }
     },
-    [
-      cabinetStyleOptions,
-      countertopCompositionConstraint.canAddCabinet,
-      dispatch,
-      hasProducts,
-      selectedProductConfig,
-    ],
+    [countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts, selectedProductConfig],
   );
 
   const handleResetToDefaultState = useCallback(() => {
@@ -610,10 +611,10 @@ export const CabinetBuilderPage = () => {
   }, []);
 
   const handleMixingRestrictedSelect = useCallback(
-    (id: number) => {
-      const option = cabinetStyleOptions.find((item) => item.id === id);
+    (value: string) => {
+      const option = cabinetStyleOptions.find((item) => item.value === value);
       if (!option) return;
-      setPendingMixingStyle({ id, value: option.value ?? "", title: option.title });
+      setPendingMixingStyle({ value, title: option.title });
     },
     [cabinetStyleOptions],
   );
@@ -621,12 +622,10 @@ export const CabinetBuilderPage = () => {
   const handleMixingConfirm = useCallback(async () => {
     if (!pendingMixingStyle) return;
 
-    const { id } = pendingMixingStyle;
-    const option = cabinetStyleOptions.find((item) => item.id === id);
-    const mappedValue = mapDrawerValueToConfig(option?.value);
-    const drawerRawValue = option?.value;
+    const drawerRawValue = pendingMixingStyle.value;
+    const mappedValue = mapDrawerValueToConfig(drawerRawValue);
 
-    if (!mappedValue || !drawerRawValue) {
+    if (!mappedValue) {
       setPendingMixingStyle(null);
       return;
     }
@@ -679,7 +678,7 @@ export const CabinetBuilderPage = () => {
       return;
     }
 
-    setActiveStyleId(id);
+    setActiveStyleValue(drawerRawValue);
 
     // In some compositions a batch update keeps a stale height until the sidebar is touched. The
     // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
@@ -705,7 +704,6 @@ export const CabinetBuilderPage = () => {
     });
   }, [
     cabinetCatalog,
-    cabinetStyleOptions,
     changeAttributeValue,
     confirmAttributeValue,
     dispatch,
@@ -743,7 +741,7 @@ export const CabinetBuilderPage = () => {
       autoAddSignatureRef.current = null;
       if (!hasProducts) {
         allowNextAutoAddRef.current = true;
-        setActiveStyleId(null); // Reset stale style from previous session so auto-add waits for explicit style pick
+        setActiveStyleValue(null); // Reset stale style from previous session so auto-add waits for explicit style pick
       }
       dispatch(setActiveCabinetType(id));
       setAccordionValue(CABINET_STYLE_ID);
@@ -779,7 +777,7 @@ export const CabinetBuilderPage = () => {
 
     if (!option) return false;
 
-    handleSelectDrawerStyle(option.id);
+    handleSelectDrawerStyle(option.value);
     handleOpenStyleSidebar();
     return true;
   }, [cabinetStyleOptions, handleOpenStyleSidebar, handleSelectDrawerStyle]);
@@ -1428,7 +1426,7 @@ export const CabinetBuilderPage = () => {
 
       const selectedCabinetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCabinetType);
       if (!selectedCabinetRule) return false;
-      if (!selectedCabinetRule.isOpen && !activeStyleId) return false;
+      if (!selectedCabinetRule.isOpen && !activeStyleValue) return false;
 
       if (
         selectedDimensions.height === null ||
@@ -1438,7 +1436,7 @@ export const CabinetBuilderPage = () => {
         return false;
       }
 
-      const signature = `${activeCabinetType ?? ""}|${activeStyleId ?? ""}`;
+      const signature = `${activeCabinetType ?? ""}|${activeStyleValue ?? ""}`;
       if (autoAddSignatureRef.current === signature) return false;
       autoAddSignatureRef.current = signature;
 
@@ -1541,7 +1539,7 @@ export const CabinetBuilderPage = () => {
     [
       activeProfile,
       activeCabinetType,
-      activeStyleId,
+      activeStyleValue,
       composition,
       cabinetCatalog,
       cabinetColor,
@@ -1671,7 +1669,7 @@ export const CabinetBuilderPage = () => {
             styleDetailsPath={cabinetStyleDetailsPath}
             requiresActiveCabinet
             isActive={isStyleDrawerActive}
-            activeStyleId={activeStyleId}
+            activeValue={activeStyleValue}
             onSelectStyle={handleSelectDrawerStyle}
             onMixingRestrictedSelect={handleMixingRestrictedSelect}
           />

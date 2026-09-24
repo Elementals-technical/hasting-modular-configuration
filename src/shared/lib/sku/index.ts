@@ -19,17 +19,21 @@ export { resolveCabinetPricingMaterialSku, resolveHandleGroovePricingMaterialSku
 export type { SkuProfile, SkuProfileResolution, SkuProfileUnsupportedReason, SkuSeries } from "./skuProfile";
 export { SKU_SERIES_BY_COLLECTION } from "./skuSeries";
 export { resolveSkuProfile, type SkuProfileSource } from "./resolveSkuProfile";
+export { createConfiguratorColorReader, type ConfiguratorColor, type ConfiguratorColorReader } from "./configuratorColors";
 export { createSkuBuilders, type SkuBuilders } from "./createSkuBuilders";
 export {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegsSku,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   type CollectionCabinetSku,
+  type CollectionCabinetSkuGap,
   type CollectionCabinetSkuInput,
   type CollectionCountertopSkuInput,
   type CollectionCountertopSkus,
+  type CollectionLegsSkuInput,
   type CollectionValueReader,
 } from "./buildCollectionSkus";
 export {

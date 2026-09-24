@@ -7,7 +7,8 @@ import s from "./ProductStyleGrid.module.scss";
 
 interface ProductStyleGridI {
   data: {
-    id: number;
+    /** The option value this card stands for; it is the card's identity. */
+    value: string;
     title: string;
     name?: string | undefined;
     desc?: string | undefined;
@@ -18,7 +19,6 @@ interface ProductStyleGridI {
     disabledReasonCode?: string;
     isMixingRestricted?: boolean;
     isShortDesc: boolean;
-    value?: string;
     metadata?: {
       image?: string;
     };
@@ -27,9 +27,9 @@ interface ProductStyleGridI {
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
-  activeStyleId?: number | null;
-  onSelectStyle?: (id: number) => void;
-  onMixingRestrictedSelect?: (id: number) => void;
+  activeValue?: string | null;
+  onSelectStyle?: (value: string) => void;
+  onMixingRestrictedSelect?: (value: string) => void;
 }
 
 export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
@@ -38,7 +38,7 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   requiresActiveCabinet,
   handleOpenStyleSidebar,
   isActive = false,
-  activeStyleId = null,
+  activeValue = null,
   onSelectStyle,
   onMixingRestrictedSelect,
 }) => {
@@ -53,21 +53,20 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   return (
     <div className={s.optionsGrid}>
       {data.map((i) => {
-        const isItemActive = isActive && activeStyleId === i.id;
+        const isItemActive = isActive && activeValue === i.value;
         const detailsParams = new URLSearchParams();
 
-        if (i.value) detailsParams.set("style", i.value);
+        detailsParams.set("style", i.value);
         if (i.title) detailsParams.set("title", i.title);
         if (activeCabinet) detailsParams.set("cabinetType", activeCabinet);
         if (typeof selectedDimensions.height === "number") detailsParams.set("height", String(selectedDimensions.height));
-        if (i.metadata?.image) detailsParams.set("image", i.metadata.image);
 
         const detailsTo = `${styleDetailsPath}?${detailsParams.toString()}`;
 
         return (
           <ProductStyleItem
-            key={i.id}
-            id={i.id}
+            key={i.value}
+            value={i.value}
             title={i.title}
             imageSrc={i.metadata?.image}
             detailsTo={detailsTo}

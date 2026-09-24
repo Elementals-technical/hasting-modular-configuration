@@ -68,7 +68,7 @@ describe("collection contracts", () => {
     expect(urbanLowHeight.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
       countertopTable: { id: 438 },
-      cabinetTable: { id: 439 },
+      cabinetTable: { id: 580 },
     });
     expect(urbanLowHeightUi.collectionId).toBe("urban-low-height");
 
@@ -87,9 +87,10 @@ describe("collection contracts", () => {
     });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
-      configurator: { id: 4, view: "full", serialize: true },
-      countertopTable: { id: 438 },
-      cabinetTable: { id: 439 },
+      // Class has no configurator of its own yet; 8 is still a copy of Mako's 9, so it reads 9.
+      configurator: { id: 9, view: "full", serialize: true },
+      countertopTable: { id: 578 },
+      cabinetTable: { id: 579 },
     });
     expect(classUi.collectionId).toBe("class");
 
@@ -109,9 +110,10 @@ describe("collection contracts", () => {
     });
     expect(makoManifest.defaultPresetId).toBeUndefined();
     expect(makoManifest.remote).toEqual({
-      configurator: { id: 4, view: "full", serialize: true },
-      countertopTable: { id: 438 },
-      // Mako's own cabinet table; 439 has no Mako rows.
+      // Mako's own configurator; 4 is the one the other collections share.
+      configurator: { id: 9, view: "full", serialize: true },
+      // Mako's own countertop and cabinet tables; 438 and 439 have no Mako rows.
+      countertopTable: { id: 577 },
       cabinetTable: { id: 581 },
     });
     expect(makoUi.collectionId).toBe("mako");
@@ -161,16 +163,25 @@ describe("collection contracts", () => {
       const result = validateCustomizationSchema(document);
       if (!result.ok) return [`${id}: ui.json failed validation`];
 
-      return Object.entries(result.schema.optionImages ?? {}).flatMap(([attributeId, byValue]) =>
-        Object.entries(byValue).flatMap(([value, reference]) => {
-          // Throws on an escaping or insecure reference, so a bad path fails here, not in a page.
-          const url = resolveCollectionImageUrl(reference, `${rootUrl}${id}/manifest.json`, rootUrl);
-          if (!url.startsWith(rootUrl)) return [];
+      // Throws on an escaping or insecure reference, so a bad path fails here, not in a page.
+      const missingFile = (label: string, reference: string) => {
+        const url = resolveCollectionImageUrl(reference, `${rootUrl}${id}/manifest.json`, rootUrl);
+        if (!url.startsWith(rootUrl)) return [];
 
-          const file = `/public/collections/${decodeURIComponent(url.slice(rootUrl.length))}`;
-          return shipped.has(file) ? [] : [`${id}.${attributeId}.${value}: ${reference}`];
-        }),
-      );
+        const file = `/public/collections/${decodeURIComponent(url.slice(rootUrl.length))}`;
+        return shipped.has(file) ? [] : [`${label}: ${reference}`];
+      };
+
+      return [
+        ...Object.entries(result.schema.optionImages ?? {}).flatMap(([attributeId, byValue]) =>
+          Object.entries(byValue).flatMap(([value, reference]) =>
+            missingFile(`${id}.optionImages.${attributeId}.${value}`, reference),
+          ),
+        ),
+        ...Object.entries(result.schema.optionImageVariants ?? {}).flatMap(([attributeId, rows]) =>
+          rows.flatMap((row, index) => missingFile(`${id}.optionImageVariants.${attributeId}[${index}]`, row.image)),
+        ),
+      ];
     });
 
     expect(missing).toEqual([]);

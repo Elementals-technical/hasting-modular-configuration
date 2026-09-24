@@ -243,6 +243,88 @@ const validateOptionImages = (optionImages: unknown, diagnostics: CustomizationS
   }
 };
 
+/**
+ * Variant pictures: ordered rows naming an option value, the attribute values it applies under
+ * and the reference. An empty `when` would match every card and hide `optionImages`, so the
+ * unconditional picture has to stay there.
+ */
+const validateOptionImageVariants = (optionImageVariants: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (optionImageVariants === undefined) return;
+
+  if (!isRecord(optionImageVariants)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "optionImageVariants",
+      message: "optionImageVariants must be an object keyed by attributeId",
+    });
+    return;
+  }
+
+  for (const [attributeId, rows] of Object.entries(optionImageVariants)) {
+    if (!Array.isArray(rows)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `optionImageVariants.${attributeId}`,
+        message: "attribute variants must be an array of rows",
+      });
+      continue;
+    }
+
+    rows.forEach((row: unknown, index: number) => {
+      const dataPath = `optionImageVariants.${attributeId}[${index}]`;
+
+      if (!isRecord(row)) {
+        diagnostics.push({ code: "invalid-schema", dataPath, message: "variant must be an object" });
+        return;
+      }
+
+      if (!isNonEmptyString(row.value)) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${dataPath}.value`,
+          message: "variant value must be a non-empty option value",
+        });
+      }
+
+      if (!isNonEmptyString(row.image)) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${dataPath}.image`,
+          message: "image reference must be a non-empty string",
+        });
+      }
+
+      if (!isRecord(row.when)) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${dataPath}.when`,
+          message: "when must be an object of attributeId to expected value",
+        });
+        return;
+      }
+
+      if (Object.keys(row.when).length === 0) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${dataPath}.when`,
+          message: "when must name at least one attribute; an unconditional picture belongs in optionImages",
+        });
+      }
+
+      for (const [conditionId, expected] of Object.entries(row.when)) {
+        // "" is a meaningful expectation: it matches an attribute that is not set.
+        if (typeof expected !== "string") {
+          diagnostics.push({
+            code: "invalid-schema",
+            dataPath: `${dataPath}.when.${conditionId}`,
+            message: "when value must be a string",
+          });
+        }
+      }
+    });
+  }
+};
+
 export const validateCustomizationSchema = (input: unknown): ValidateCustomizationSchemaResult => {
   if (!isRecord(input) || !isRecord(input.flows) || !isRecord(input.steps) || !isRecord(input.sections)) {
     return {
@@ -267,6 +349,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateSteps(input.steps, input.sections, diagnostics);
   validateSections(input.sections, diagnostics);
   validateOptionImages(input.optionImages, diagnostics);
+  validateOptionImageVariants(input.optionImageVariants, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

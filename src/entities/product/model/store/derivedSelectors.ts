@@ -119,3 +119,68 @@ export const selectSyntesiConstraint = createSelector(
       profile,
     ),
 );
+
+/**
+ * The drawers value the placed composition stands for, or null while nothing is placed.
+ *
+ * Styles of different `drawerStyleGroups` cannot be mixed, so every placed cabinet normally
+ * belongs to one group and any of its values names the composition. A legacy configuration that
+ * did mix them is resolved by the later group, as the `single` / `double` predecessor resolved
+ * it. A collection that declares no groups has nothing to choose between.
+ */
+export const getDominantDrawerValue = createSelector(
+  [getPlacedCabinetStyles, getActiveProfile],
+  (placedCabinetStyles, profile): string | null => {
+    const placed = Object.values(placedCabinetStyles);
+    if (placed.length === 0) return null;
+
+    const groups = profile?.ruleData.drawerStyleGroups;
+    if (!groups?.length) return placed[0] ?? null;
+
+    for (let index = groups.length - 1; index >= 0; index -= 1) {
+      const found = placed.find((value) => groups[index]?.includes(value));
+      if (found) return found;
+    }
+
+    return null;
+  },
+);
+
+/**
+ * Attribute values the active collection's `optionImageVariants` rows are matched against.
+ *
+ * Two stores hold them: the typed product options, and the configuration slice for attributes
+ * that left the typed core — Mako's `LegColor` and `HandleColor` live only there. A cabinet-scoped
+ * attribute counts as set as soon as one cabinet has it, which is what "this composition has
+ * legs" means for a card.
+ *
+ * The cabinet type, the drawers the composition stands for and the selected height are named
+ * here because they are not attributes of the typed options.
+ */
+export const selectOptionImageContext = createSelector(
+  [
+    (state: RootState) => state.rootStateUI.product.productOptions,
+    (state: RootState) => state.rootStateUI.configuration.valuesByAttributeId,
+    getActiveCabinetType,
+    getDominantDrawerValue,
+    getSelectedDimensions,
+  ],
+  (productOptions, valuesByAttributeId, cabinetType, drawers, dimensions): Record<string, string> => {
+    const context: Record<string, string> = {};
+
+    for (const [attributeId, value] of Object.entries(productOptions)) {
+      context[attributeId] = typeof value === "string" ? value : String(value ?? "");
+    }
+
+    for (const [attributeId, values] of Object.entries(valuesByAttributeId)) {
+      const set = values.find((entry) => typeof entry.value === "string" && entry.value.trim().length > 0);
+      context[attributeId] = typeof set?.value === "string" ? set.value : "";
+    }
+
+    context.CabinetType = cabinetType ?? "";
+    context.Drawers = drawers ?? "";
+    context.Height = dimensions.height === null ? "" : String(dimensions.height);
+
+    return context;
+  },
+);

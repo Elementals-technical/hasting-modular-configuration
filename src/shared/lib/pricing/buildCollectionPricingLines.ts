@@ -4,8 +4,12 @@ import { isSameTarget, type CabinetEntry, type ScopedValue, type ValueTarget } f
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegsSku,
+  createConfiguratorColorReader,
   resolveCollectionDividerSku,
+  type CollectionCabinetSkuGap,
   type CollectionValueReader,
+  type ConfiguratorColorReader,
 } from "@/shared/lib/sku";
 
 import type { PricingGap, PricingInput, PricingLine } from "./types";
@@ -30,11 +34,36 @@ const asText = (value: ScopedValue["value"] | undefined): string | null =>
 const valueAt = (values: Values, attributeId: string, target: ValueTarget): string | null =>
   asText(values[attributeId]?.find((entry) => isSameTarget(entry.target, target))?.value);
 
+/** The first value an attribute holds at any address: what the whole composition shares. */
+const anyValue = (values: Values, attributeId: string): string | null => {
+  for (const { value } of values[attributeId] ?? []) {
+    const text = asText(value);
+    if (text) return text;
+  }
+  return null;
+};
+
+type InputGap = { owner: string; reason: (attributeId: string) => string };
+
+/** What an attribute the cabinet SKU could not spell says about the order, by why it could not. */
+const INPUT_GAP: Record<CollectionCabinetSkuGap["cause"], InputGap> = {
+  "not-chosen": {
+    owner: "C",
+    reason: (attributeId) => `${attributeId} is not chosen, so the cabinet material cannot be priced exactly.`,
+  },
+  "no-material": {
+    owner: "product",
+    reason: (attributeId) =>
+      `${attributeId} is set to a value the collection names no material for, so the cabinet has no price.`,
+  },
+};
+
 /** A gap concerns this order when the attribute it names has a value it covers. */
 const gapApplies = (
   { appliesWhen }: CollectionSkuProfile["gaps"][number],
   values: Values,
   profile: ProductProfile | null,
+  readConfiguratorColor: ConfiguratorColorReader,
 ): boolean => {
   if (!appliesWhen) return false;
   const { attributeId, values: coveredValues, categories } = appliesWhen;
@@ -43,7 +72,12 @@ const gapApplies = (
     const text = asText(value);
     if (!text) return false;
     if (coveredValues && !coveredValues.includes(text)) return false;
-    if (categories && !categories.includes(selectOption(profile, attributeId, text)?.category ?? "")) return false;
+
+    // The material group of a colour: its own category, or the material the configurator names
+    // for a collection whose colours come from there.
+    const category =
+      readConfiguratorColor(attributeId, text)?.material ?? selectOption(profile, attributeId, text)?.category ?? "";
+    if (categories && !categories.includes(category)) return false;
     return true;
   });
 };
@@ -53,6 +87,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   if (!skuProfile) return { lines: [], gaps: [] };
 
   const { activeProfile: profile, configurationValues: values, dimensionsByCabinet, placedCabinetStyles } = input;
+  const readConfiguratorColor = createConfiguratorColorReader(profile, input.configurator ?? null);
   // The cabinet type the scene placed, read through the collection's scene types (a Mako sink
   // base is a Mako-sink-cabinet in the scene).
   const cabinetTypeOf = (runtimeId: string) =>
@@ -71,7 +106,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     valueAt(values, attributeId, { scope: "countertop" }) ?? (legacy || null);
 
   // 1) Cabinets
-  const missing = new Set<string>();
+  const missing = new Map<string, CollectionCabinetSkuGap["cause"]>();
   cabinets.forEach((entry) => {
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     const read: CollectionValueReader = (attributeId) => {
@@ -88,9 +123,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       widthCm: size?.width ?? null,
       heightCm: size?.height ?? null,
       depthCm: size?.depth ?? null,
+      readConfiguratorColor,
     });
 
-    cabinetSku.missing.forEach((attributeId) => missing.add(attributeId));
+    cabinetSku.missing.forEach(({ attributeId, cause }) => missing.set(attributeId, cause));
     add({
       id: `cabinet:${entry.runtimeId}`,
       group: "cabinet",
@@ -116,6 +152,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     basins: sinkBases.map(basinOf),
     widthCm: cabinets.length > 0 ? widthCm : null,
     faucetHoles: countertopValue("FaucetHolesAmount", input.faucetHolesAmount),
+    readConfiguratorColor,
   });
 
   if (countertop.top && widthCm != null) {
@@ -140,7 +177,21 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     });
   }
 
-  // 3) Organizers: one per drawer that has a divider style.
+  // 3) Legs: the collection's own number of them, in their colour or the cabinet's.
+  const legs = skuProfile.legs;
+  if (legs) {
+    const legColor = anyValue(values, "LegColor");
+    const takesCabinetColor = legColor !== null && legColor === legs.cabinetColorValue;
+    const legsSku = buildCollectionLegsSku(skuProfile, profile, {
+      color: takesCabinetColor ? globalValue("CabinetColor") : legColor,
+      attributeId: takesCabinetColor ? "CabinetColor" : "LegColor",
+      readConfiguratorColor,
+    });
+
+    if (legsSku) add({ id: "legs", group: "legs", sku: legsSku, quantity: legs.quantity });
+  }
+
+  // 4) Organizers: one per drawer that has a divider style.
   (values.DividersStyle ?? []).forEach(({ target, value }) => {
     const style = asText(value);
     const sku = style ? resolveCollectionDividerSku(skuProfile, style) : null;
@@ -149,19 +200,15 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     }
   });
 
-  // 4) What the order uses and the collection has not confirmed.
+  // 5) What the order uses and the collection has not confirmed.
   skuProfile.gaps.forEach((gap) => {
-    if (gapApplies(gap, values, profile)) {
+    if (gapApplies(gap, values, profile, readConfiguratorColor)) {
       gaps.push({ group: gap.group, blocksTotal: gap.blocksTotal, owner: gap.owner, reason: gap.reason });
     }
   });
-  missing.forEach((attributeId) => {
-    gaps.push({
-      group: "input",
-      blocksTotal: true,
-      owner: "C",
-      reason: `${attributeId} is not chosen, so the cabinet material cannot be priced exactly.`,
-    });
+  missing.forEach((cause, attributeId) => {
+    const { owner, reason } = INPUT_GAP[cause];
+    gaps.push({ group: "input", blocksTotal: true, owner, reason: reason(attributeId) });
   });
 
   return { lines, gaps };

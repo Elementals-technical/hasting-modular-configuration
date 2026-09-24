@@ -20,6 +20,10 @@ import makoUi from "../../../../public/collections/mako/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
+import datatable577 from "./fixtures/remote/datatable-577.json";
+import datatable578 from "./fixtures/remote/datatable-578.json";
+import datatable579 from "./fixtures/remote/datatable-579.json";
+import datatable580 from "./fixtures/remote/datatable-580.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
@@ -54,11 +58,14 @@ const fetchJson = vi.fn(async (url: string) => {
   return sources[url];
 });
 
+/** Tables of their own: Mako (577, 581), Class (578, 579) and Urban Low Height (580); the rest share USH's 438 / 439. */
+const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578 };
+const cabinetTables: Record<string, unknown> = { 579: datatable579, 580: datatable580, 581: datatable581 };
+
 const makeRemote = (): RemoteCollectionLoader => ({
   loadConfigurator: vi.fn(async () => configurator4),
-  loadCountertopTable: vi.fn(async () => datatable438),
-  // Mako reads its own cabinet table (581); the other collections share the USH one (439).
-  loadCabinetTable: vi.fn(async (id: string | number) => (id === 581 ? datatable581 : datatable439)),
+  loadCountertopTable: vi.fn(async (id: string | number) => countertopTables[id] ?? datatable438),
+  loadCabinetTable: vi.fn(async (id: string | number) => cabinetTables[id] ?? datatable439),
 });
 
 describe("partial production collection packages", () => {
@@ -83,7 +90,7 @@ describe("partial production collection packages", () => {
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
     expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCabinetTable).toHaveBeenCalledWith(439, abortSignal);
+    expect(remote.loadCabinetTable).toHaveBeenCalledWith(580, abortSignal);
 
     expect(data.id).toBe("urban-low-height");
     expect(data.manifest.label).toBe("Urban Low Height");
@@ -107,9 +114,10 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    // Class has no scene bindings and no model compositions yet; Mako places its own scene products (I)
-    // and has the composition of every model, and its own cabinet table.
-    ["class", "Class", 44, undefined, false, [[439, abortSignal]]],
+    // Class has no scene bindings and no model compositions yet, but its own cabinet and countertop
+    // tables; Mako places its own scene products (I) and has the composition of every model, its own
+    // tables and its own configurator.
+    ["class", "Class", 44, undefined, false, [[579, abortSignal]], 578, 9],
     [
       "mako",
       "Mako",
@@ -117,10 +125,21 @@ describe("partial production collection packages", () => {
       { "Sink-Base": "Mako-sink-cabinet", "Sink-Cabinet": "Mako-side-cabinet" },
       true,
       [[581, abortSignal]],
+      577,
+      9,
     ],
   ])(
     "loads %s from only its declared local data and approved shared remotes",
-    async (collectionId, label, modelCount, productTypes, hasCompositions, cabinetTableCalls) => {
+    async (
+      collectionId,
+      label,
+      modelCount,
+      productTypes,
+      hasCompositions,
+      cabinetTableCalls,
+      countertopTableId,
+      configuratorId,
+    ) => {
       const remote = makeRemote();
       const dependencies: CollectionRuntimeDependencies = {
         registryUrl,
@@ -137,9 +156,12 @@ describe("partial production collection packages", () => {
       const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
 
       expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-      expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+      expect(remote.loadConfigurator).toHaveBeenCalledWith(
+        { id: configuratorId, view: "full", serialize: true },
+        abortSignal,
+      );
       expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
-      expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
+      expect(remote.loadCountertopTable).toHaveBeenCalledWith(countertopTableId, abortSignal);
       expect(vi.mocked(remote.loadCabinetTable).mock.calls).toEqual(cabinetTableCalls);
 
       expect(data.id).toBe(collectionId);

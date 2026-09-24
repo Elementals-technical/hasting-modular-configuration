@@ -8,6 +8,7 @@ import {
   resolveCollectionDividerSku,
   type CollectionValueReader,
 } from "../buildCollectionSkus";
+import { createConfiguratorColorReader } from "../configuratorColors";
 
 /**
  * Class and Mako SKUs from their `sku-profile.json` (D04). Each expected SKU is a form the
@@ -20,13 +21,19 @@ const reader =
   (attributeId) =>
     values[attributeId] ?? null;
 
+// Both collections now name their colours' material in their configurator, not in their profile.
+const readClassColor = createConfiguratorColorReader(CLASS.profile, CLASS.configurator);
+
 const classCabinet = (values: Record<string, string>, widthCm = 60, heightCm = 52) =>
   buildCollectionCabinetSku(CLASS.skuProfile, CLASS.profile, {
     read: reader({ CabinetType: "Sink-Base", Drawers: "2", ...values }),
     widthCm,
     heightCm,
     depthCm: 52,
+    readConfiguratorColor: readClassColor,
   });
+
+const readMakoColor = createConfiguratorColorReader(MAKO.profile, MAKO.configurator);
 
 const makoCabinet = (values: Record<string, string>, widthCm = 60, heightCm = 52) =>
   buildCollectionCabinetSku(MAKO.skuProfile, MAKO.profile, {
@@ -34,6 +41,7 @@ const makoCabinet = (values: Record<string, string>, widthCm = 60, heightCm = 52
     widthCm,
     heightCm,
     depthCm: 52,
+    readConfiguratorColor: readMakoColor,
   });
 
 describe("Class cabinet SKU", () => {
@@ -72,7 +80,7 @@ describe("Class cabinet SKU", () => {
   it("reports a missing frame colour, which would otherwise price the default frame", () => {
     expect(classCabinet({ CabinetColor: "Nero 433 MT" })).toEqual({
       sku: "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-LACM-433",
-      missing: ["FrameColor"],
+      missing: [{ attributeId: "FrameColor", cause: "not-chosen" }],
     });
   });
 });
@@ -109,6 +117,7 @@ describe("countertop SKUs", () => {
       basins: [],
       widthCm: 120,
       faucetHoles: null,
+      readConfiguratorColor: collection === CLASS ? readClassColor : readMakoColor,
       ...input,
     });
 

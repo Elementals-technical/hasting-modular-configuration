@@ -2,9 +2,42 @@
   "collectionId": "mako",
   "optionImages": {
     "sinkType": {
+      "LB440": "images/basin/LB440.png",
+      "LB175": "images/basin/LB175.png",
+      "LB575": "images/basin/LB575.png",
+      "LB856": "images/basin/LB856.png",
+      "VA024": "images/basin/VA024.png",
+      "LV890": "images/basin/LV890.png",
+      "LV892": "images/basin/LV892.png",
+      "VA002": "images/basin/VA002.png",
+      "VA005": "images/basin/VA005.png",
       "Iris": "images/vessel/Iris.png",
-      "Frame": "images/vessel/Frame.png"
+      "Frame": "images/vessel/Frame.png",
+      "Plaza": "images/vessel/Plaza.png"
+    },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
+    },
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base-2-drawer.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet-2-drawer.png"
+    },
+    "Drawers": {
+      "1": "images/cabinet/drawers-1.png",
+      "2": "images/cabinet/drawers-2-legs.png"
+    },
+    "Handle": {
+      "G50": "images/handle/G50.png",
+      "G57": "images/handle/G57.png"
     }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      { "value": "Sink-Base", "when": { "Drawers": "1" }, "image": "images/cabinet/sink-base-1-drawer.png" },
+      { "value": "Sink-Cabinet", "when": { "Drawers": "1" }, "image": "images/cabinet/side-cabinet-1-drawer.png" }
+    ],
+    "Drawers": [{ "value": "2", "when": { "LegColor": "" }, "image": "images/cabinet/drawers-2.png" }]
   },
   "flows": {
     "prebuilt": {
@@ -115,7 +148,8 @@
       "fields": [
         {
           "attributeId": "CabinetColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "CabinetColor"
         }
       ]
     },
@@ -124,7 +158,8 @@
       "fields": [
         {
           "attributeId": "HandleColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "HandleColor"
         }
       ]
     },
@@ -133,7 +168,8 @@
       "fields": [
         {
           "attributeId": "LegColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "LegColor"
         }
       ]
     },
@@ -143,7 +179,8 @@
       "fields": [
         {
           "attributeId": "CountertopColor",
-          "control": "colors"
+          "control": "colors",
+          "optionsRef": "CountertopColor"
         }
       ]
     },

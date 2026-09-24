@@ -1,6 +1,6 @@
 {
   "scenario": "mako-vessel-with-legs",
-  "recordedAt": "2026-09-18",
+  "recordedAt": "2026-09-24",
   "answers": {
     "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": {
       "price": 3028,
@@ -232,6 +232,37 @@
         "approach": "matrix",
         "datatableId": 536,
         "matchedSku": "CT-GBSSTL-FAHO/3"
+      },
+      "error": null
+    },
+    "VAN-MAKOV-LEG-MTL": {
+      "price": 745,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "MAKOV",
+        "modelTokens": [
+          "LEG"
+        ],
+        "sizes": {},
+        "materials": [
+          {
+            "material": "MTL",
+            "color": null
+          }
+        ],
+        "baseSku": "VAN-MAKOV-LEG",
+        "originalSku": "VAN-MAKOV-LEG-MTL"
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-MAKOV-LEG"
       },
       "error": null
     },

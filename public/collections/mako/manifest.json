@@ -11,12 +11,12 @@
   },
   "remote": {
     "configurator": {
-      "id": 4,
+      "id": 9,
       "view": "full",
       "serialize": true
     },
     "countertopTable": {
-      "id": 438
+      "id": 577
     },
     "cabinetTable": {
       "id": 581

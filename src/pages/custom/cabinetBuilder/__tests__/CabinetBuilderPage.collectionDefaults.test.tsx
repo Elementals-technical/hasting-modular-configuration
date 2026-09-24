@@ -96,7 +96,7 @@ describe("CabinetBuilderPage starting values", () => {
       selectedOptions: { CabinetColor: started.CabinetColor },
       fields: PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS,
     });
-    expect(overrides.CabinetColor).toBe("Antracite Matte OCF");
+    expect(overrides.CabinetColor).toBe("Antracite 400 MT");
   });
 
   it("starts an Urban builder from the Urban values", async () => {

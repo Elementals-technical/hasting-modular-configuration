@@ -42,7 +42,131 @@
     "CountertopStyle": {
       "integrated": "images/countertop-style/Integrated.png",
       "vessel": "images/countertop-style/Vessel.png"
+    },
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base/SinkBase2D_upperG.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png",
+      "Side-Cabinet": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png",
+      "Open-Shelf": "images/cabinet/OpenShelves.png",
+      "Side-Shelf": "images/cabinet/SideShelves_Trans.png"
+    },
+    "Drawers": {
+      "1": "images/cabinet/side-cabinet/SinkBase1D_upperG.png",
+      "1+inner": "images/cabinet/side-cabinet/SinkBase1D_upperG.png",
+      "2": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png"
+    },
+    "Handle": {
+      "handle_urban_topcut": "images/handle/UpperGHandle.jpg",
+      "handle_urban_botcut": "images/handle/CentralGHandle.jpg",
+      "handle_pto": "images/handle/PTOHandle.jpg"
     }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "2", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase2D_PTO.png"
+      },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "2", "Height": "53" },
+        "image": "images/cabinet/sink-base/SinkBase2D_centralG.png"
+      },
+      { "value": "Sink-Base", "when": { "Drawers": "2" }, "image": "images/cabinet/sink-base/SinkBase2D_upperG.png" },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "1", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      { "value": "Sink-Base", "when": { "Drawers": "1" }, "image": "images/cabinet/sink-base/SinkBase1D_upperG.png" },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "1+inner", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "1+inner" },
+        "image": "images/cabinet/sink-base/SinkBase1D_upperG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "2", "Height": "50" },
+        "image": "images/cabinet/side-cabinet/SinkBase2D_PTO.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "2", "Height": "53" },
+        "image": "images/cabinet/side-cabinet/SinkBase2D_centralG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "2" },
+        "image": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1", "Height": "50" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_upperG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1+inner", "Height": "50" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1+inner" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_upperG.png"
+      }
+    ],
+    "Drawers": [
+      {
+        "value": "2",
+        "when": { "CabinetType": "Sink-Base", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase2D_PTO.png"
+      },
+      {
+        "value": "2",
+        "when": { "CabinetType": "Sink-Base", "Height": "53" },
+        "image": "images/cabinet/sink-base/SinkBase2D_centralG.png"
+      },
+      {
+        "value": "2",
+        "when": { "CabinetType": "Sink-Base" },
+        "image": "images/cabinet/sink-base/SinkBase2D_upperG.png"
+      },
+      { "value": "2", "when": { "Height": "50" }, "image": "images/cabinet/side-cabinet/SinkBase2D_PTO.png" },
+      { "value": "2", "when": { "Height": "53" }, "image": "images/cabinet/side-cabinet/SinkBase2D_centralG.png" },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base" },
+        "image": "images/cabinet/sink-base/SinkBase1D_upperG.png"
+      },
+      { "value": "1", "when": { "Height": "50" }, "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png" },
+      {
+        "value": "1+inner",
+        "when": { "CabinetType": "Sink-Base", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "1+inner",
+        "when": { "CabinetType": "Sink-Base" },
+        "image": "images/cabinet/sink-base/SinkBase1D_upperG.png"
+      },
+      { "value": "1+inner", "when": { "Height": "50" }, "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png" }
+    ]
   },
   "flows": {
     "prebuilt": {

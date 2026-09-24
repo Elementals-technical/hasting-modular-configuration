@@ -25,7 +25,7 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
 
   return group.options.flatMap((option) =>
     option.variants.flatMap((variant) => {
-      if (!isVisibleConfiguratorVariant({ proxyName: group.proxyName, variant })) return [];
+      if (!isVisibleConfiguratorVariant(variant)) return [];
 
       const meta: Record<string, unknown> = variant.metadata ?? {};
       const nested: Record<string, unknown> =
@@ -36,20 +36,23 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
 
       if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) return [];
 
+      const materials = fromCsv(pick(nested.Material, meta.Material));
+      // The option name is a material only where the section is split by material, as configurator 4
+      // splits it. Configurator 9 keeps one option named after the attribute and puts the material on
+      // the variant, so there the name says nothing and the variant is the only source.
+      const optionMaterial = group.options.length > 1 ? option.name : undefined;
+
       return [
         {
           value,
           label,
           enabled: true,
           image: overrides.image ?? pick(nested.image, meta.image, variant.image),
-          desc: option.name ?? group.proxyName,
+          desc: optionMaterial ?? materials[0] ?? group.proxyName,
           traits: {
             sku: pick(meta.sku, nested.sku),
-            materials: [
-              ...new Set(
-                [group.proxyName, option.name, ...fromCsv(pick(nested.Material, meta.Material))].filter(Boolean),
-              ),
-            ],
+            // The section name is never a material; it used to be filtered back out by the colour grid.
+            materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
             colors: fromCsv(pick(nested.Color, meta.Color)),
             looks: fromCsv(pick(nested.Look, meta.Look)),
             hex: pick(nested.hex, meta.hex)?.trim(),

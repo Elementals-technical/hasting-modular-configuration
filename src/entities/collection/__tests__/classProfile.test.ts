@@ -60,32 +60,27 @@ describe("class product profile", () => {
     expect(profile().ruleData.cabinetMatrixLegacyAdapter.columns.forcedHeightByHandle).toEqual({});
   });
 
-  it("lists the Master File colour catalogs, grouped by material", () => {
-    expect(categoryCounts("CabinetColor")).toEqual({
-      "Lacquered MT": 20,
-      "Lacquered GL": 20,
-      "Smoke Glass": 1,
-      Porcelain: 15,
-      "Glass MT": 20,
-      "Glass GL": 20,
-      Laminates: 12,
-    });
-    expect(categoryCounts("CabinetSideColor")).toEqual({ "Lacquered MT": 20, "Lacquered GL": 20, Laminates: 12 });
-    expect(categoryCounts("FrameColor")).toEqual({ "Lacquered MT": 20 });
-    expect(categoryCounts("CountertopColor")).toEqual({
-      "Solid Surface": 2,
-      HPL: 14,
-      Porcelain: 15,
-      "Glass MT": 20,
-      "Glass GL": 20,
-    });
+  // The colour catalogs come from the configurator the manifest names. Class has no configurator
+  // of its own yet, so it reads Mako's 9 and only the shared lacquers reach it; the five other
+  // front materials its SKU profile names return once configurator 8 carries Class data.
+  it("takes the colour catalogs from the configurator instead of listing them", () => {
+    const colours = ["CabinetColor", "CabinetSideColor", "FrameColor", "CountertopColor"].map((attributeId) => [
+      attributeId,
+      attribute(attributeId)?.optionsSource,
+      attribute(attributeId)?.options,
+    ]);
+
+    expect(colours).toEqual([
+      ["CabinetColor", "configurator:Select Cabinet Color", undefined],
+      ["CabinetSideColor", "configurator:Select Cabinet Color", undefined],
+      ["FrameColor", "configurator:Select Cabinet Color", undefined],
+      ["CountertopColor", "configurator:Select Countertop Color", undefined],
+    ]);
   });
 
-  it("keeps the raw Master File key as the value and its display label apart", () => {
-    const glass = attribute("CountertopColor")?.options?.find(({ value }) => value === "GGrigio Argento 403 MT");
-
-    expect(glass?.label).toBe("Grigio Argento 403 MT");
-    expect(attribute("CountertopColor")?.optionsSource).toBeUndefined();
+  it("still lists the catalogs that are shapes rather than colours", () => {
+    expect(categoryCounts("sinkType")).toEqual({ integrated: 10, vessel: 3 });
+    expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
   });
 
   it("has the ten integrated basin codes and the three vessel styles", () => {
