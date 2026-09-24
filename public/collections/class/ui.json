@@ -5,6 +5,10 @@
       "Iris": "images/vessel/Iris.png",
       "Frame": "images/vessel/Frame.png"
     },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
+    },
     "CabinetType": {
       "Sink-Base": "images/cabinet/sink-base-2-drawer.png",
       "Sink-Cabinet": "images/cabinet/side-cabinet-2-drawer.png"
