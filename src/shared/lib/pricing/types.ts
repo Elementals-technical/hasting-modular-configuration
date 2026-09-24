@@ -22,6 +22,8 @@ export type PricingLineGroup =
   | "sidePanel"
   | "divider"
   | "bookMatching"
+  /** The legs a composition stands on (collections priced from their SKU profile). */
+  | "legs"
   /** Brackets of a thick countertop (collections priced from their SKU profile). */
   | "bracket";
 

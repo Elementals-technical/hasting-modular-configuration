@@ -80,7 +80,7 @@ describe("Class cabinet SKU", () => {
   it("reports a missing frame colour, which would otherwise price the default frame", () => {
     expect(classCabinet({ CabinetColor: "Nero 433 MT" })).toEqual({
       sku: "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-LACM-433",
-      missing: ["FrameColor"],
+      missing: [{ attributeId: "FrameColor", cause: "not-chosen" }],
     });
   });
 });

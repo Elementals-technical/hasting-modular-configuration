@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
+
+import { normalizeOptionValue, presetsSchema } from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
+import type { ValueTarget } from "@/entities/configuration";
 
 import {
   derivePriceStatus,
@@ -58,6 +62,8 @@ const WORKBOOK_PRICES: Record<CollectionPricingScenarioId, Record<string, number
     // CabinetPricing: SB/2DW/G57 and SC/2DW/G50 23.6W, LACG.
     "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": 3028,
     "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": 2938,
+    // CabinetPricing A54: a leg costs 745 in metal and 1340 in matte lacquer; a pair is ordered.
+    "VAN-MAKOV-LEG-MTL": 745,
     // CountertopPricing: SS Technolite .5 at 13.11 / cm × 120 cm = 1573.20, rounded up.
     "CT-GBSSTL-VES-47.2W-.5H-20.7D": 1574,
     // Class AccessoriesPricing, which Mako refers to: SSTL cutout 607.69 and three holes.
@@ -69,8 +75,8 @@ const WORKBOOK_PRICES: Record<CollectionPricingScenarioId, Record<string, number
 
 const EXPECTED = {
   "class-porcelain-integrated": { total: 14650, status: "ready" },
-  // Legs and the Iris vessel have no confirmed price: the total leaves them out and says so.
-  "mako-vessel-with-legs": { total: 8573, status: "partial" },
+  // The pair of legs is priced; the Iris vessel is not, so the total leaves it out and says so.
+  "mako-vessel-with-legs": { total: 10063, status: "partial" },
 } as const;
 
 const entriesOf = (scenario: CollectionPricingScenarioId): Record<string, SkuPriceEntry> =>
@@ -112,8 +118,8 @@ describe("Class and Mako order lines", () => {
     expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBSSTL-HCUT", quantity: 1 });
     expect(lines.find(({ group }) => group === "divider")).toMatchObject({ id: "divider:mko-sb:Top", quantity: 1 });
     expect(lines.some(({ group }) => group === "basin")).toBe(false);
+    expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
     expect(gaps.map(({ group, blocksTotal }) => [group, blocksTotal])).toEqual([
-      ["legs", true],
       ["vessel", true],
       ["solidSurfaceGroup", false],
       ["divider", false],
@@ -173,6 +179,69 @@ describe("Class and Mako order lines", () => {
     };
 
     expect(buildCollectionPricingLines(input)).toEqual({ lines: [], gaps: [] });
+  });
+
+  const MAKO_MODELS = presetsSchema.parse(makoPresetsDocument);
+  const modelWithLegs = MAKO_MODELS.find(({ presetProducts }) => presetProducts.some(({ LegColor }) => LegColor));
+
+  /**
+   * The first cabinet of a shipped Mako model, with the values the preset path leaves in C's
+   * state: the cabinet colour once for the configuration, the rest at the cabinet that carries them.
+   */
+  const makoModelInput = (model: (typeof MAKO_MODELS)[number], cabinetColor?: string) => {
+    const [product] = model.presetProducts;
+    const cabinet: ValueTarget = { scope: "cabinet", cabinetId: "mko-model" };
+
+    return collectionPricingInput(
+      MAKO,
+      [
+        {
+          stableKey: "mko-model",
+          runtimeId: "Sink-Base-eee555",
+          size: { width: product.Width ?? 0, height: product.Height ?? 0, depth: product.Depth ?? 0 },
+        },
+      ],
+      {
+        Drawers: [at(cabinet, normalizeOptionValue(MAKO.profile, "Drawers", product.Drawers) ?? "")],
+        Handle: [at(cabinet, product.Handle ?? "")],
+        HandleColor: [at(cabinet, product.HandleColor ?? "")],
+        LegColor: product.LegColor ? [at(cabinet, product.LegColor)] : [],
+        CabinetColor: [at({ scope: "global" }, cabinetColor ?? product.CabinetColor ?? "")],
+      },
+    );
+  };
+
+  it("prices the cabinet of a shipped Mako model with its material and colour", () => {
+    const { lines } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0]));
+
+    expect(lines[0].sku).toBe("VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400");
+  });
+
+  it("stands a shipped Mako model on its pair of legs, in the cabinet's colour", () => {
+    if (!modelWithLegs) throw new Error("No Mako model carries legs");
+    const { lines, gaps } = buildCollectionPricingLines(makoModelInput(modelWithLegs));
+
+    // `LegColor: "None"` is not a colour of its own: the legs take the cabinet's.
+    expect(lines.find(({ group }) => group === "legs")).toMatchObject({
+      id: "legs",
+      sku: "VAN-MAKOV-LEG-LACM-400",
+      quantity: 2,
+    });
+    expect(gaps).toEqual([]);
+  });
+
+  it("leaves a model without legs without a legs line", () => {
+    const { lines } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0]));
+
+    expect(lines.some(({ group }) => group === "legs")).toBe(false);
+  });
+
+  it("names a colour the collection has no material for instead of pricing the cabinet without it", () => {
+    // The scene's Mako material, which is not one of the colours the collection offers.
+    const { lines, gaps } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0], "Antracite Matte OCF"));
+
+    expect(lines[0].sku).not.toContain("-CAB-");
+    expect(gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
   });
 });
 

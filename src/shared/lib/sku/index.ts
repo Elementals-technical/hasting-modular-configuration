@@ -24,13 +24,16 @@ export { createSkuBuilders, type SkuBuilders } from "./createSkuBuilders";
 export {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegsSku,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   type CollectionCabinetSku,
+  type CollectionCabinetSkuGap,
   type CollectionCabinetSkuInput,
   type CollectionCountertopSkuInput,
   type CollectionCountertopSkus,
+  type CollectionLegsSkuInput,
   type CollectionValueReader,
 } from "./buildCollectionSkus";
 export {

@@ -308,7 +308,7 @@
     "va023": "Listed in the Master File (L195) but bound to the thick 3.1\" Technomat top in GB row 14, which thin-only excludes (section 9).",
     "va030": "Confirmed for SS Texturizzato by GB row 13 and the price workbook, but absent from the Master File, so it is not offered until the product list is fixed (section 9).",
     "legsOnlyForTwoDrawers": "Confirmed: legs exist only for 2DW (section 6, D-P0173). The profile has no availability rule for it, and the Master File does not say when Leg Color is shown (Q-MAKO-002). The scene shows the legs only with a leg colour and hides them on 1DW (runtime-bindings.json); a leg colour kept from a 2DW cabinet is not reset on 1DW yet.",
-    "legsQuantityAndPrice": "Leg height 33.3 cm and prices $745 / $1,340 are known; quantity, positions and the unit of sale are not (section 6, Q-MAKO-003).",
+    "legsQuantityAndPrice": "Leg height 33.3 cm and prices $745 / $1,340 are known, and so is the unit: $745 / $1,340 is the price of one leg and a configuration takes a pair (team, 24.09.2026), which is what the SKU profile orders. Positions are still not given (section 6, Q-MAKO-003).",
     "handleColorByStyle": "Gold and Silver are shown for both handles, lacquered colours only for G57; lacquered G50 is neither confirmed nor forbidden (section 4).",
     "handleG50Length": "G50 comes in 20 and 36 cm; which cabinet width takes which length is not described (sections 4, 16).",
     "handleAndColorMixing": "Whether handles, handle colours, leg colours and cabinet colours must be shared by the whole composition is not described (sections 4, 5).",

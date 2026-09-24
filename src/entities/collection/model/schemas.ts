@@ -246,6 +246,16 @@ export const collectionSkuProfileSchema = z
       .strict(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
+    /** The legs a composition stands on, for a collection that offers them. */
+    legs: z
+      .object({
+        /** Legs ordered per configuration; the collection's price is the price of one leg. */
+        quantity: z.number().int().positive(),
+        /** The `LegColor` value that means "in the cabinet's colour" rather than a colour of its own. */
+        cabinetColorValue: z.string().trim().min(1).optional(),
+      })
+      .strict()
+      .optional(),
     gaps: z.array(
       z
         .object({

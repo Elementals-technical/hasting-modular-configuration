@@ -66,12 +66,12 @@ describe("mako model compositions", () => {
     }
   });
 
-  it("paints every cabinet and its handles in the scene's Mako colour until the product names the models' colours", () => {
+  it("paints every cabinet and its handles in the models' Antracite lacquer, a colour the collection offers", () => {
     for (const { title, presetProducts } of presets) {
       for (const product of presetProducts) {
         expect(product, title).toMatchObject({
-          CabinetColor: "Antracite Matte OCF",
-          HandleColor: "Antracite Matte OCF",
+          CabinetColor: "Antracite 400 MT",
+          HandleColor: "Antracite 400 MT",
         });
       }
     }
@@ -110,8 +110,8 @@ describe("mako model compositions", () => {
 
         expect(makoRuntimeBindings.productTypes[name]).toMatch(/^Mako-(sink|side)-cabinet$/);
         expect(resolveProductConfig(makoRuntimeBindings, { ...config, Drawers: drawers }), title).toMatchObject({
-          CabinetColor: "Antracite Matte OCF",
-          HandleColor: "Antracite Matte OCF",
+          CabinetColor: "Antracite 400 MT",
+          HandleColor: "Antracite 400 MT",
           HandleStyle: "G57",
           ShowLegs: legs ? "Enable" : "Disable",
         });

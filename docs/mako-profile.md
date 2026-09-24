@@ -17,7 +17,7 @@ the map, the map wins and the conflict is recorded.
 | `mako/manifest.json` | label `Mako`, no defaults, local `presets` / `ui` / `productProfile` / `skuProfile` / `runtimeBindings`, remote 4 / 438 / 581 (Mako cabinet table) |
 | `mako/ui.json` | same flows as Class: “Mako Models”, “Mako Cabinet Builder”, no sections yet |
 | `mako/runtime-bindings.json` | how each Mako value reaches the scene (see below) |
-| `mako/presets.json` | 42 models (Master File L2–L43), sizes from the key suffix, picture paths `images/Mako Vanity · 24_ 1-Drawer.png`. Compositions from `MAKO_MODEL_PRESET_MODULES` (team, 21.09.2026): Sink Base / Side Cabinet at 40–120 cm, height and drawers by style, depth 52, cabinet and handle colour `Antracite Matte OCF` (the scene's Mako default), legs in the cabinet colour (`LegColor: "None"`) on the Legs models, handle G57 — until the product names the models' handle and colours. Basin and symmetry tags follow the compositions (ids 20, 29, 32, 37, 40, 41 corrected) |
+| `mako/presets.json` | 42 models (Master File L2–L43), sizes from the key suffix, picture paths `images/Mako Vanity · 24_ 1-Drawer.png`. Compositions from `MAKO_MODEL_PRESET_MODULES` (team, 21.09.2026): Sink Base / Side Cabinet at 40–120 cm, height and drawers by style, depth 52, cabinet and handle colour `Antracite 400 MT` (configurator 9: `LACM`, colour code `400`; it replaced the scene material name `Antracite Matte OCF`, which configurator 9 does not offer and which left the cabinet SKU without its material block, 23.09.2026), legs in the cabinet colour (`LegColor: "None"`) on the Legs models, handle G57 — until the product names the models' handle. Basin and symmetry tags follow the compositions (ids 20, 29, 32, 37, 40, 41 corrected) |
 
 ## Colour catalogs are listed, not read from the configurator
 
@@ -95,7 +95,7 @@ Listed in `excludedFromThisProfile`:
 
 ## Open in the sources
 
-- **Legs** — quantity, positions and unit of sale of $745 / $1,340 (§6, Q-MAKO-003).
+- **Legs** — positions (§6, Q-MAKO-003). Quantity and unit are settled: $745 / $1,340 is the price of one leg and a configuration takes a pair (team, 24.09.2026); the SKU profile orders them as `VAN-MAKOV-LEG-{material}-{colour}` × 2.
 - **Handles** — G50 20 or 36 cm by width; lacquered G50; shared handle and colours across the composition (§4, §5).
 - **Thickness** — Porcelain 0.8″ in the tables vs 3/4″ in the catalog (§7); no thickness catalog declared.
 - **Floating** — needs a thick top, Mako has thin ones only, so it is not valid today (§12).
@@ -107,7 +107,7 @@ Listed in `excludedFromThisProfile`:
 
 | Owner | What is needed |
 |---|---|
-| Product | A Mako configurator and Mako rows in the cabinet and countertop tables; approved defaults; the handle and colours of the 42 models; legs rule and unit; G50 length rule; VA030 in the product list; Porcelain profile; vessel data. Whether integrated basins are held back as undetermined until the countertop table has Mako rows (one `undeterminedRules` entry, but it disables every integrated basin). |
+| Product | A Mako configurator and Mako rows in the cabinet and countertop tables; approved defaults; the handle of the 42 models (their colour is `Antracite 400 MT`, 23.09.2026); leg positions (the pair per configuration and the per-leg price are confirmed, 24.09.2026); G50 length rule; VA030 in the product list; Porcelain profile; vessel data. Whether integrated basins are held back as undetermined until the countertop table has Mako rows (one `undeterminedRules` entry, but it disables every integrated basin). |
 | A | Load Mako sources instead of 4 / 438. The cabinet table is table 581. |
 | B | Handle style and colour, leg colour, countertop and basin steps in `ui.json`. |
 | I | Basins: the Mako cabinets have no basin sub-product in the scene. (Handles, handle colour, legs and leg colour are bound.) |

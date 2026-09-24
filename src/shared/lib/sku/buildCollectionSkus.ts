@@ -16,6 +16,8 @@ import type { ConfiguratorColorReader } from "./configuratorColors";
 
 const CABINET_CATEGORY = "VAN";
 const COUNTERTOP_CATEGORY = "CT";
+/** The word the price server reads as "the legs of the composition". */
+const LEGS_ELEMENT = "LEG";
 const FALLBACK = "X";
 
 /** An attribute value of the product being priced, or null when none is chosen. */
@@ -57,10 +59,17 @@ export type CollectionCabinetSkuInput = {
   readConfiguratorColor?: ConfiguratorColorReader;
 };
 
+/**
+ * Why a cabinet cannot be priced exactly: an attribute the price depends on has no value, e.g.
+ * the frame colour of a Class front, or its value is one the collection names no material for,
+ * which leaves out the element that carries the price.
+ */
+export type CollectionCabinetSkuGap = { attributeId: string; cause: "not-chosen" | "no-material" };
+
 export type CollectionCabinetSku = {
   sku: string;
-  /** Attributes the price depends on that have no value, e.g. the frame colour of a Class front. */
-  missing: string[];
+  /** Attributes the collection could not turn into an element of the SKU. */
+  missing: CollectionCabinetSkuGap[];
 };
 
 const sizeToken = (cm: number | null, unit: "W" | "H" | "D") =>
@@ -72,7 +81,7 @@ export const buildCollectionCabinetSku = (
   { read, widthCm, heightCm, depthCm, readConfiguratorColor }: CollectionCabinetSkuInput,
 ): CollectionCabinetSku => {
   const { cabinet } = skuProfile;
-  const missing: string[] = [];
+  const missing: CollectionCabinetSkuGap[] = [];
 
   const configBlock = cabinet.configBlock
     .map(({ attributeId, codes }) => {
@@ -84,10 +93,21 @@ export const buildCollectionCabinetSku = (
 
   const elements = cabinet.elements.flatMap(({ code, attributeId, materialSuffix }) => {
     const value = read(attributeId);
-    const material = value
-      ? resolveCollectionColorMaterial(skuProfile, productProfile, attributeId, value, readConfiguratorColor)
-      : null;
-    if (!value || !material) return [];
+    if (!value) return [];
+
+    const material = resolveCollectionColorMaterial(
+      skuProfile,
+      productProfile,
+      attributeId,
+      value,
+      readConfiguratorColor,
+    );
+    // A colour the collection names no material for cannot be priced: the element is left out
+    // and said so, rather than leaving a cabinet SKU the price server answers nothing for.
+    if (!material) {
+      missing.push({ attributeId, cause: "no-material" });
+      return [];
+    }
 
     let pricedMaterial = material;
     if (materialSuffix) {
@@ -95,7 +115,7 @@ export const buildCollectionCabinetSku = (
       if (decidingValue) {
         pricedMaterial = `${material}/${materialSuffix.byValue[decidingValue] ?? materialSuffix.otherwise}`;
       } else {
-        missing.push(materialSuffix.attributeId);
+        missing.push({ attributeId: materialSuffix.attributeId, cause: "not-chosen" });
       }
     }
 
@@ -179,3 +199,39 @@ export const buildCollectionCountertopSkus = (
 /** The organizer SKU of a `DividersStyle` value. */
 export const resolveCollectionDividerSku = (skuProfile: CollectionSkuProfile, style: string): string | null =>
   skuProfile.dividers[style] ?? null;
+
+export type CollectionLegsSkuInput = {
+  /** The colour the legs are priced in: their own, or the cabinet's when they take it. */
+  color: string | null;
+  /** The attribute that colour belongs to, so its material is read from the right section. */
+  attributeId: string;
+  /** Set when the collection takes its colours from the configurator. */
+  readConfiguratorColor?: ConfiguratorColorReader;
+};
+
+/**
+ * `VAN-{series}-LEG-{material}-{colour}`: the legs a composition stands on.
+ *
+ * The same material and colour block a cabinet element carries, as its own SKU — legs have no
+ * size of their own. Null when the collection offers no legs or the colour names no material.
+ */
+export const buildCollectionLegsSku = (
+  skuProfile: CollectionSkuProfile,
+  productProfile: ProductProfile | null,
+  { color, attributeId, readConfiguratorColor }: CollectionLegsSkuInput,
+): string | null => {
+  if (!skuProfile.legs || !color) return null;
+
+  const material = resolveCollectionColorMaterial(
+    skuProfile,
+    productProfile,
+    attributeId,
+    color,
+    readConfiguratorColor,
+  );
+  if (!material) return null;
+
+  const series = `${CABINET_CATEGORY}-${skuProfile.cabinet.series}-${LEGS_ELEMENT}`;
+  const colorCode = resolveCollectionColorCode(skuProfile, color);
+  return colorCode ? `${series}-${material}-${colorCode}` : `${series}-${material}`;
+};
