@@ -141,6 +141,26 @@ describe("Class and Mako order lines", () => {
     expect(placed.lines.find(({ group }) => group === "holeCut")).toMatchObject({ quantity: 1 });
   });
 
+  it("addresses the cabinets of a model by their place in it, as the Summary of a model reads them", () => {
+    const { input } = COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"];
+    // A cabinet added on top of the two-cabinet model, which the Summary reads by its runtime id.
+    const added = { stableKey: "mko-added", runtimeId: "Sink-Cabinet-fff666", index: 2 };
+    const { lines } = buildCollectionPricingLines({
+      ...input,
+      shouldUsePresets: true,
+      productsPresets: [{ name: "Sink-Base" }, { name: "Sink-Cabinet" }],
+      productIds: [...input.cabinetEntries.map(({ runtimeId }) => runtimeId), added.runtimeId],
+      cabinetEntries: [...input.cabinetEntries, added],
+      dimensionsByCabinet: { ...input.dimensionsByCabinet, [added.stableKey]: { width: 60, height: 52, depth: 52 } },
+    });
+
+    expect(lines.filter(({ group }) => group === "cabinet").map(({ id, sourceId }) => [id, sourceId])).toEqual([
+      ["cabinet:preset-0", "Sink-Base-ccc333"],
+      ["cabinet:preset-1", "Sink-Cabinet-ddd444"],
+      ["cabinet:Sink-Cabinet-fff666", "Sink-Cabinet-fff666"],
+    ]);
+  });
+
   it("keeps two identical cabinets as two lines", () => {
     const cabinet = (stableKey: string, runtimeId: string) => ({
       stableKey,
@@ -234,6 +254,28 @@ describe("Class and Mako order lines", () => {
     const { lines } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0]));
 
     expect(lines.some(({ group }) => group === "legs")).toBe(false);
+  });
+
+  it("prices the cabinet and its legs in the colour the builder starts from until one is chosen", () => {
+    if (!modelWithLegs) throw new Error("No Mako model carries legs");
+    const input = makoModelInput(modelWithLegs);
+    const { lines } = buildCollectionPricingLines({
+      ...input,
+      configurationValues: { ...input.configurationValues, CabinetColor: [] },
+      cabinetColor: MAKO.profile.defaults.CabinetColor,
+    });
+
+    expect(lines[0].sku).toContain("-CAB-LACM-400-");
+    expect(lines.find(({ group }) => group === "legs")?.sku).toBe("VAN-MAKOV-LEG-LACM-400");
+  });
+
+  it("keeps the chosen cabinet colour over the one the builder starts from", () => {
+    const { lines } = buildCollectionPricingLines({
+      ...makoModelInput(MAKO_MODELS[0], "Nero 433 MT"),
+      cabinetColor: MAKO.profile.defaults.CabinetColor,
+    });
+
+    expect(lines[0].sku).toContain("-CAB-LACM-433-");
   });
 
   it("names a colour the collection has no material for instead of pricing the cabinet without it", () => {

@@ -120,14 +120,14 @@ describe("CabinetBuilderPage starting values", () => {
     });
   });
 
-  it("starts an Urban Low Height builder with the countertop colour its scene draws", async () => {
+  it("starts an Urban Low Height builder with its default cabinet colour and the countertop colour its scene draws", async () => {
     // Switched as CollectionStateBridge switches a collection: every option at its profile default.
     store.dispatch(replaceCollectionData({ profile: ulhProfile, cabinetCatalog: null }));
 
     // Top_Solid carries Pietra Di Savoia Antracite TQ6; the ULH cabinet material (Antracite Matte OCF)
-    // is no colour of configurator 4, so the cabinet colour stays unchosen.
+    // is no colour of configurator 4, so the cabinet starts in the grey concrete of the model pictures.
     expect(await renderEmptyBuilder()).toEqual({
-      CabinetColor: "",
+      CabinetColor: "Cemento Cenere 1A1",
       CountertopColor: "Pietra Di Savoia Antracite TQ6",
       sinkType: "",
     });

@@ -181,7 +181,21 @@ export const cabinetSkuMappingsSchema = z
   .strict();
 
 /** Parts of an order whose SKU, quantity or input the collection has not confirmed (D04). */
-export const pricingGapGroupSchema = z.enum(["legs", "vessel", "solidSurfaceGroup", "divider", "thickTop", "bracket"]);
+export const pricingGapGroupSchema = z.enum([
+  "legs",
+  "vessel",
+  "solidSurfaceGroup",
+  "divider",
+  "thickTop",
+  "bracket",
+  "countertop",
+  "openSideShelf",
+  "sidePanel",
+  "towelBar",
+]);
+
+/** `SB/2DW/G57`: one code per attribute, in order. */
+const skuConfigBlockSchema = z.array(z.object({ attributeId: z.string(), codes: stringMapSchema }).strict()).min(1);
 
 /**
  * How a collection spells its pricing SKUs, for collections whose SKU words are data (D04).
@@ -197,8 +211,14 @@ export const collectionSkuProfileSchema = z
     cabinet: z
       .object({
         series: z.string().trim().min(1),
-        /** `SB/2DW/G57`: one code per attribute, in order. */
-        configBlock: z.array(z.object({ attributeId: z.string(), codes: stringMapSchema }).strict()).min(1),
+        configBlock: skuConfigBlockSchema,
+        /** A cabinet type with a series of its own, e.g. the open shelf `VAN-UROS-1S-…`; its elements stay the cabinet's. */
+        byCabinetType: z
+          .record(
+            z.string(),
+            z.object({ series: z.string().trim().min(1), configBlock: skuConfigBlockSchema }).strict(),
+          )
+          .optional(),
         /** `CAB-LACM-412`: the first element carries the price. */
         elements: z
           .array(

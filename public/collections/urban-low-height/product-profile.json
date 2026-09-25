@@ -15,6 +15,7 @@
     "cabinetMatrixTableId": 580
   },
   "defaults": {
+    "CabinetColor": "Cemento Cenere 1A1",
     "CountertopColor": "Pietra Di Savoia Antracite TQ6",
     "TowelBarOption": "None"
   },

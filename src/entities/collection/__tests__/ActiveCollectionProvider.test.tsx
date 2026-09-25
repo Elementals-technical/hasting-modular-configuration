@@ -21,6 +21,7 @@ import urbanLowHeightManifest from "../../../../public/collections/urban-low-hei
 import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightRuntimeBindings from "../../../../public/collections/urban-low-height/runtime-bindings.json";
+import urbanLowHeightSkuProfile from "../../../../public/collections/urban-low-height/sku-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
@@ -89,6 +90,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-low-height/presets.json`]: urbanLowHeightPresets,
   [`${rootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
   [`${rootUrl}urban-low-height/runtime-bindings.json`]: urbanLowHeightRuntimeBindings,
+  [`${rootUrl}urban-low-height/sku-profile.json`]: urbanLowHeightSkuProfile,
   [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
   [`${rootUrl}class/manifest.json`]: classManifest,
   [`${rootUrl}class/presets.json`]: classPresets,

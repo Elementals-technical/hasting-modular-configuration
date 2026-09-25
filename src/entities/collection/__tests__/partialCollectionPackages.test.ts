@@ -5,6 +5,7 @@ import urbanLowHeightManifest from "../../../../public/collections/urban-low-hei
 import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightRuntimeBindings from "../../../../public/collections/urban-low-height/runtime-bindings.json";
+import urbanLowHeightSkuProfile from "../../../../public/collections/urban-low-height/sku-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
@@ -43,6 +44,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-low-height/presets.json`]: urbanLowHeightPresets,
     [`${collectionsRootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
     [`${collectionsRootUrl}urban-low-height/runtime-bindings.json`]: urbanLowHeightRuntimeBindings,
+    [`${collectionsRootUrl}urban-low-height/sku-profile.json`]: urbanLowHeightSkuProfile,
     [`${collectionsRootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
     [`${collectionsRootUrl}class/presets.json`]: classPresets,
