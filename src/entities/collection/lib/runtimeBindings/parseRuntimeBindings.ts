@@ -196,26 +196,32 @@ const parseValues = (raw: unknown, path: string, collect: Collector): IdentityVa
   return null;
 };
 
-const parseProductTypes = (raw: unknown, collect: Collector): Record<string, string> | null => {
+/** A table keyed by cabinet type: `productTypes` (scene product) or `unplacedProductTypes` (reason). */
+const parseCabinetTypeTable = (
+  raw: unknown,
+  field: "productTypes" | "unplacedProductTypes",
+  valueName: string,
+  collect: Collector,
+): Record<string, string> | null => {
   if (!isRecord(raw)) {
-    collect.add("bindings.missing_field", "/productTypes", "productTypes must be an object");
+    collect.add("bindings.missing_field", `/${field}`, `${field} must be an object`);
     return null;
   }
 
-  const productTypes: Record<string, string> = {};
+  const table: Record<string, string> = {};
   let valid = true;
 
-  for (const [cabinetType, productType] of Object.entries(raw)) {
-    if (!isNonEmptyString(productType)) {
-      collect.add("bindings.invalid_field_type", `/productTypes/${cabinetType}`, "product type must be a string");
+  for (const [cabinetType, value] of Object.entries(raw)) {
+    if (!isNonEmptyString(value)) {
+      collect.add("bindings.invalid_field_type", `/${field}/${cabinetType}`, `${valueName} must be a string`);
       valid = false;
       continue;
     }
 
-    productTypes[cabinetType] = productType;
+    table[cabinetType] = value;
   }
 
-  return valid ? productTypes : null;
+  return valid ? table : null;
 };
 
 const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBinding | null => {
@@ -286,7 +292,11 @@ export const parseRuntimeBindings = (input: unknown): ParseRuntimeBindingsResult
     collect.add("bindings.missing_field", "/collectionId", "collectionId is required");
   }
 
-  const productTypes = parseProductTypes(input.productTypes, collect);
+  const productTypes = parseCabinetTypeTable(input.productTypes, "productTypes", "product type", collect);
+  const unplacedProductTypes =
+    input.unplacedProductTypes === undefined
+      ? undefined
+      : parseCabinetTypeTable(input.unplacedProductTypes, "unplacedProductTypes", "reason", collect);
 
   if (!Array.isArray(input.bindings)) {
     collect.add("bindings.missing_field", "/bindings", "bindings must be an array");
@@ -302,10 +312,20 @@ export const parseRuntimeBindings = (input: unknown): ParseRuntimeBindingsResult
     typeof schemaVersion !== "number" ||
     !isNonEmptyString(collectionId) ||
     !productTypes ||
+    unplacedProductTypes === null ||
     collect.diagnostics.length > 0
   ) {
     return { ok: false, diagnostics: collect.diagnostics };
   }
 
-  return { ok: true, bindings: { schemaVersion, collectionId, productTypes, bindings } };
+  return {
+    ok: true,
+    bindings: {
+      schemaVersion,
+      collectionId,
+      productTypes,
+      ...(unplacedProductTypes ? { unplacedProductTypes } : {}),
+      bindings,
+    },
+  };
 };

@@ -4,6 +4,7 @@ import productionRegistry from "../../../../public/collections/registry.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
+import urbanLowHeightRuntimeBindings from "../../../../public/collections/urban-low-height/runtime-bindings.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
@@ -41,6 +42,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
     [`${collectionsRootUrl}urban-low-height/presets.json`]: urbanLowHeightPresets,
     [`${collectionsRootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
+    [`${collectionsRootUrl}urban-low-height/runtime-bindings.json`]: urbanLowHeightRuntimeBindings,
     [`${collectionsRootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
     [`${collectionsRootUrl}class/presets.json`]: classPresets,
@@ -109,7 +111,18 @@ describe("partial production collection packages", () => {
     expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
     // The profile carries only the confirmed product facts; the rest of the package is still missing.
     expect(data.catalog.productProfile?.collectionId).toBe("urban-low-height");
-    expect(data.catalog.runtimeBindings).toBeUndefined();
+    // Three module types have their ULH scene product (I); Open Side Shelf has none yet, so its card
+    // of table 580 is temporarily hidden until the scene has it.
+    expect(data.catalog.runtimeBindings?.productTypes).toEqual({
+      "Sink-Base": "ULH-sink-cabinet",
+      "Side-Cabinet": "ULH-side-cabinet",
+      "Open-Shelf": "ULH-Open-Shelf",
+    });
+    expect(data.catalog.cabinets?.typeCabinetRules.map(({ code }) => code)).toEqual([
+      "Sink-Base",
+      "Side-Cabinet",
+      "Open-Shelf",
+    ]);
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
     expect(data.sources.local).toMatchObject({ ui: { collectionId: "urban-low-height" } });
     expect(data.diagnostics).toEqual([]);

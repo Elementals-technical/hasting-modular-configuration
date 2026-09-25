@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
+import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import type { RuntimeBindingSet } from "@/entities/collection";
 import type {
@@ -213,6 +214,53 @@ describe("createCompositionPort", () => {
         },
       ],
     ]);
+  });
+
+  it("places an Urban Low Height cabinet beside another as the ULH scene product, without a basin", async () => {
+    const { port, calls } = createPort(undefined, ulhRuntimeBindings);
+
+    const result = await port.add(
+      {
+        productType: "Sink-Base",
+        config: {
+          Width: 80,
+          Height: 35,
+          Depth: 46,
+          Handle: "handle_pto",
+          Drawers: "1",
+          sinkType: "Vessel_Round",
+          HandleGrooveColor: "Black",
+        },
+      },
+      { kind: "beside", anchorRuntimeId: "cab-a", side: "left" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["ULH-sink-cabinet-inserted"] });
+    expect(calls).toEqual([
+      ["insert", "ULH-sink-cabinet", "cab-a", "left"],
+      [
+        "setConfig",
+        "ULH-sink-cabinet-inserted",
+        {
+          Width: 80,
+          Height: 35,
+          Depth: 46,
+          Handle: "handle_pto",
+          Drawers: "1D",
+          ProductType: "ULH-sink-cabinet",
+          productType: "ULH-sink-cabinet",
+        },
+      ],
+    ]);
+  });
+
+  it("does not place the Urban Low Height Open Side Shelf, which has no scene product yet", async () => {
+    const { port, calls } = createPort(undefined, ulhRuntimeBindings);
+
+    const result = await port.add({ productType: "Open-Side-Shelf", config: { Width: 15 } }, { kind: "end" });
+
+    expect(result).toMatchObject({ status: "rejected", issues: [{ code: "unknown-product-type" }] });
+    expect(calls).toEqual([]);
   });
 
   it("places a Mako preset, a side cabinet on legs in the cabinet colour", async () => {

@@ -105,5 +105,11 @@ export type RuntimeBindingSet = {
    * placed as "Sink-Cabinet". Used by addProduct / setProductByParams, not setConfig.
    */
   productTypes: Record<string, string>;
+  /**
+   * CabinetType value -> why the scene cannot place it yet, e.g. a module the scene has no
+   * product for. Declared so it is not mistaken for a forgotten product type; the builder
+   * temporarily hides it until the scene has its product.
+   */
+  unplacedProductTypes?: Record<string, string>;
   bindings: readonly RuntimeBinding[];
 };

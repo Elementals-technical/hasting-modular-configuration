@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "urban-low-height",
+  "productTypes": {
+    "Sink-Base": "ULH-sink-cabinet",
+    "Side-Cabinet": "ULH-side-cabinet",
+    "Open-Shelf": "ULH-Open-Shelf"
+  },
+  "unplacedProductTypes": {
+    "Open-Side-Shelf": "Temporarily hidden in the builder: the scene registers no ULH-Open-Side-Shelf product yet. Move it to productTypes once the scene has it, and the card of table 580 comes back."
+  },
+  "bindings": [
+    {
+      "attributeId": "Handle",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Handle"
+      },
+      "order": 20,
+      "note": "RuleHandleULHCabinet reads handle_pto and handle_urban_topcut; an empty value shows handle_pto. The open shelf has no handle and ignores the key."
+    },
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Height"
+      },
+      "order": 30,
+      "note": "Number in cm. RuleHeightULHCabinet and RuleHeightULHOpenShelves take 25, 28, 35 and 38; the composition shares one height."
+    },
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Width"
+      },
+      "order": 30,
+      "note": "Number in cm, set on one cabinet. The ULH scene takes 25, 35, 50, 60, 70, 80, 90, 105 and 120 (RuleWidthULHCabinet, RuleWidthULHOpenShelves)."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Depth"
+      },
+      "order": 30,
+      "note": "Number in cm. RuleDepthULHCabinet and RuleDepthULHOpenShelves lay out 46 and 50.5 only; cabinet table 580 lists 50, which the scene leaves at the 46 cm geometry until the table says 50.5."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "1": {
+            "Drawers": "1D"
+          }
+        }
+      },
+      "order": 40,
+      "note": "Low Height has one drawer (1DW). The ULH scene draws it without reading the key, but the scene config would otherwise keep its 2D default, and history and saved configurations read the style there."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor"
+      },
+      "order": 50,
+      "note": "Exact PlayCanvas material name (RuleMaterialsCabinetULH); a colour the scene lacks leaves the material as it is."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor"
+      },
+      "order": 50,
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the ULH cabinets ignore the key."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "Read by the countertop and by the Sink Base basin mount (thicknessOffsets), so both get the same value."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "state-only",
+      "reason": "The ULH Sink Base places the scene's default basin; the Low Height basin tokens are not confirmed (profile excludedFromThisProfile.basinAndCountertopOptions). Recorded only, so a basin carried over from another collection never reaches the scene."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "state-only",
+      "reason": "No Low Height vessel is confirmed; the vessel colour is recorded only."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "state-only",
+      "reason": "The scene export has no CountertopStyle key; recorded for the countertop rules only."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "state-only",
+      "reason": "A Low Height option, but the ULH scene products have no fluting rule yet; recorded for the rules and pricing only."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "state-only",
+      "reason": "Low Height handles have no groove (Handle capabilities: supportsGrooveColor false). Recorded, not sent, so a value carried over from state does not stop a placement."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no BookMatching key in the scene export."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no LED key in the scene export."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The ULH scene products of each value are in productTypes."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not a Low Height option; the ULH scene products have no grain direction rule."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "unbound",
+      "reason": "Not a Low Height option in the profile."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "unbound",
+      "reason": "Not a Low Height option in the profile."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "Not a Low Height option in the profile."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Not a Low Height option in the profile."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Not a Low Height option in the profile."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; not a Low Height option in the profile."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; not a Low Height option in the profile."
+    }
+  ]
+}

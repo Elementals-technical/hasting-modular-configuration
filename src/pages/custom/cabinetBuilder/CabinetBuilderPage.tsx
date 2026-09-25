@@ -73,6 +73,7 @@ import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/
 import {
   hasCapability,
   isDrawerStyleMixingRestricted,
+  resolveCabinetTypeOfRuntimeId,
   selectDefaultValue,
   selectEffectiveFallback,
   selectOption,
@@ -275,6 +276,7 @@ export const CabinetBuilderPage = () => {
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   // What the builder starts from when nothing is chosen: the active collection's own values, so a
   // collection without one (Mako) does not start with, and carry into Prebuilt, the Urban colours.
   const collectionDefaults = useMemo(
@@ -407,17 +409,15 @@ export const CabinetBuilderPage = () => {
     selectedHandle && hasCapability(activeProfile, "Handle", selectedHandle, "supportsGrooveColor"),
   );
 
+  // The scene names a product after its scene type ("ULH-sink-cabinet-…"), which need not contain
+  // the cabinet type; the collection's bindings map it back.
   const hasBaseOrSideCabinetOnScene = useMemo(
     () =>
       selectedProducts.some((productId) => {
-        const matchedRuleCode = cabinetCatalog.typeCabinetRules.find((rule) =>
-          productId.toLowerCase().includes(rule.code.toLowerCase()),
-        )?.code;
-        return (
-          matchedRuleCode === "Sink-Base" || matchedRuleCode === "Sink-Cabinet" || matchedRuleCode === "Side-Cabinet"
-        );
+        const cabinetType = resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, productId);
+        return cabinetType === "Sink-Base" || cabinetType === "Sink-Cabinet" || cabinetType === "Side-Cabinet";
       }),
-    [selectedProducts, cabinetCatalog.typeCabinetRules],
+    [activeProfile, runtimeBindings, selectedProducts],
   );
 
   const cabinetTypeOptions = useMemo(

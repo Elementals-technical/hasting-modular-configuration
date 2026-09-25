@@ -17,6 +17,7 @@ type RuntimeBindingSet = {
   schemaVersion: number;
   collectionId: string;
   productTypes: Record<string, string>;   // CabinetType value -> runtime product type
+  unplacedProductTypes?: Record<string, string>; // CabinetType value -> why the scene cannot place it yet; temporarily hidden in the builder
   bindings: RuntimeBinding[];
 };
 

@@ -3,6 +3,7 @@ import type { ZodType } from "zod";
 import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop/parse";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import type { CustomizationSchema } from "../model/customizationSchema";
 import type { CollectionDiagnostic } from "../model/diagnostics";
@@ -380,6 +381,21 @@ const loadRemoteSources = async (
   return { configurator, countertopTable, cabinetTable };
 };
 
+/**
+ * Temporarily hides a cabinet type the scene cannot place yet (`unplacedProductTypes` of the
+ * collection's runtime bindings, e.g. the Urban Low Height Open Side Shelf): its card would lead
+ * to a placement the scene refuses. Once the scene has the product, the type moves to
+ * `productTypes` and its card comes back without a change here.
+ */
+const withoutUnplacedCabinetTypes = (
+  catalog: ConfiguratorCatalog,
+  bindings: RuntimeBindingSet | undefined,
+): ConfiguratorCatalog => {
+  const unplaced = bindings?.unplacedProductTypes ?? {};
+
+  return { typeCabinetRules: catalog.typeCabinetRules.filter(({ code }) => !Object.hasOwn(unplaced, code)) };
+};
+
 export const assembleCollectionData = (
   manifest: CollectionManifest,
   local: LocalCollectionSources,
@@ -414,7 +430,10 @@ export const assembleCollectionData = (
       // A local table stands in for a collection whose table is not in the API yet.
       cabinets:
         cabinetTable && local.productProfile
-          ? buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile)
+          ? withoutUnplacedCabinetTypes(
+              buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile),
+              local.runtimeBindings,
+            )
           : undefined,
       countertops: remote.countertopTable ? parseCountertopMatrix(remote.countertopTable) : undefined,
     },

@@ -1,5 +1,39 @@
 {
   "collectionId": "urban-low-height",
+  "optionImages": {
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base-upper-groove.png",
+      "Side-Cabinet": "images/cabinet/side-cabinet-upper-groove.png",
+      "Open-Shelf": "images/cabinet/open-shelf.png",
+      "Open-Side-Shelf": "images/cabinet/open-side-shelf.png"
+    },
+    "Drawers": {
+      "1": "images/cabinet/side-cabinet-upper-groove.png"
+    }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      { "value": "Sink-Base", "when": { "Height": "35" }, "image": "images/cabinet/sink-base-pto.png" },
+      { "value": "Sink-Base", "when": { "Height": "25" }, "image": "images/cabinet/sink-base-pto.png" },
+      { "value": "Side-Cabinet", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
+      { "value": "Side-Cabinet", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
+    ],
+    "Drawers": [
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "Height": "35" },
+        "image": "images/cabinet/sink-base-pto.png"
+      },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "Height": "25" },
+        "image": "images/cabinet/sink-base-pto.png"
+      },
+      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-upper-groove.png" },
+      { "value": "1", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
+      { "value": "1", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
+    ]
+  },
   "flows": {
     "prebuilt": {
       "entryStepId": "model",

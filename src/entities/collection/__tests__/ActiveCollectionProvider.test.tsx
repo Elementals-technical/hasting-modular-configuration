@@ -20,6 +20,7 @@ import productionUi from "../../../../public/collections/urban-standard-height/u
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
+import urbanLowHeightRuntimeBindings from "../../../../public/collections/urban-low-height/runtime-bindings.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
@@ -87,6 +88,7 @@ const localValues: Record<string, unknown> = {
   [`${rootUrl}urban-low-height/manifest.json`]: urbanLowHeightManifest,
   [`${rootUrl}urban-low-height/presets.json`]: urbanLowHeightPresets,
   [`${rootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
+  [`${rootUrl}urban-low-height/runtime-bindings.json`]: urbanLowHeightRuntimeBindings,
   [`${rootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
   [`${rootUrl}class/manifest.json`]: classManifest,
   [`${rootUrl}class/presets.json`]: classPresets,
@@ -228,7 +230,8 @@ describe("ActiveCollectionProvider", () => {
   });
 
   it.each([
-    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, null, 580],
+    // Urban Low Height ships its scene bindings (I) and has its own cabinet table.
+    ["urban-low-height", "Urban Low Height Models", "urban-low-height", 59, { collectionId: "urban-low-height" }, 580],
     // Class ships its scene bindings (I) and has its own cabinet table.
     ["class", "Class Models", "class", 44, { collectionId: "class" }, 579],
     // Mako ships its scene bindings (I) and has its own cabinet table.

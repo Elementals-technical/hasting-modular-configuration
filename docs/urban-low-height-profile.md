@@ -79,7 +79,7 @@ Listed in `excludedFromThisProfile` with the section numbers:
 | Product | Approved `defaults` (the profile ships `{}`); model BOMs for the 59 sets (§15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
 | Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
 | B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
-| I | Scene product types for the four module types, and the runtime bindings for the attributes above. |
+| I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. |
 | D | SKU series and pricing inputs. Until they exist the collection shows "Price unavailable". Note: the map spells the open shelf `VAN-UROS-1S`, the USH builder writes `2S`. |
 
 ## Evidence

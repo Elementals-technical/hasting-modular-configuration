@@ -285,6 +285,19 @@ describe("validateRuntimeBindings", () => {
     ).toEqual([{ code: "missing-product-type", attributeId: "CabinetType", value: "Side-Cabinet" }]);
   });
 
+  it("accepts a cabinet type declared as not placeable yet, with its reason", () => {
+    const productTypes = Object.fromEntries(
+      Object.entries(ushRuntimeBindings.productTypes).filter(([cabinetType]) => cabinetType !== "Side-Cabinet"),
+    );
+    const set: RuntimeBindingSet = {
+      ...ushRuntimeBindings,
+      productTypes,
+      unplacedProductTypes: { "Side-Cabinet": "The scene has no product for it yet" },
+    };
+
+    expect(validateRuntimeBindings(ushProfile, set, REQUIRED_ATTRIBUTE_IDS)).toEqual([]);
+  });
+
   it("finds a catalog option without a scene patch", () => {
     const profile: ProductProfile = {
       ...ushProfile,

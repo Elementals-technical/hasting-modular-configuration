@@ -17,7 +17,7 @@ export type RuntimeBindingIssueCode =
   | "missing-binding"
   /** A catalog option of a mapped attribute has no scene patch. */
   | "missing-value"
-  /** A cabinet type of the profile has no runtime product type. */
+  /** A cabinet type of the profile has neither a runtime product type nor a reason it has none. */
   | "missing-product-type"
   /** A binding for an attribute nobody requires. */
   | "orphan-binding"
@@ -90,7 +90,10 @@ export const validateRuntimeBindings = (
   const cabinetTypes = profile.attributes.find(({ attributeId }) => attributeId === CABINET_TYPE_ATTRIBUTE_ID);
 
   for (const option of cabinetTypes?.options ?? []) {
-    if (!Object.hasOwn(set.productTypes, option.value)) {
+    const isDeclared =
+      Object.hasOwn(set.productTypes, option.value) || Object.hasOwn(set.unplacedProductTypes ?? {}, option.value);
+
+    if (!isDeclared) {
       issues.push({ code: "missing-product-type", attributeId: CABINET_TYPE_ATTRIBUTE_ID, value: option.value });
     }
   }

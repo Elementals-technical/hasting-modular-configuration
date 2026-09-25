@@ -52,6 +52,20 @@ describe("parseRuntimeBindings", () => {
     ).toEqual([["bindings.invalid_field_type", "/productTypes/Side-Cabinet"]]);
   });
 
+  it("reads a cabinet type the scene cannot place yet, with the reason it cannot", () => {
+    const table = { schemaVersion: 1, collectionId: "test", productTypes: {}, bindings: [] };
+
+    expect(
+      parseRuntimeBindings({ ...table, unplacedProductTypes: { "Open-Side-Shelf": "no scene product" } }),
+    ).toMatchObject({ ok: true, bindings: { unplacedProductTypes: { "Open-Side-Shelf": "no scene product" } } });
+    expect(codesOf({ ...table, unplacedProductTypes: { "Open-Side-Shelf": "" } })).toEqual([
+      ["bindings.invalid_field_type", "/unplacedProductTypes/Open-Side-Shelf"],
+    ]);
+    expect(codesOf({ ...table, unplacedProductTypes: [] })).toEqual([
+      ["bindings.missing_field", "/unplacedProductTypes"],
+    ]);
+  });
+
   it("requires a reason for an unbound entry", () => {
     expect(codesOf(withBinding({ attributeId: "SidePanels", status: "unbound" }))).toEqual([
       ["bindings.missing_field", "/bindings/0/reason"],

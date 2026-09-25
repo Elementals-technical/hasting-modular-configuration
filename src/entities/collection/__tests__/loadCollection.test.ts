@@ -569,6 +569,43 @@ describe("collection loading and assembly", () => {
     );
   });
 
+  it("temporarily hides a cabinet type the scene cannot place yet", async () => {
+    const productTypes = Object.fromEntries(
+      Object.entries(productionRuntimeBindings.productTypes).filter(([cabinetType]) => cabinetType !== "Side-Shelf"),
+    );
+    const runtimeBindings = {
+      ...productionRuntimeBindings,
+      productTypes,
+      unplacedProductTypes: { "Side-Shelf": "The scene has no product for it yet" },
+    };
+    const data = await loadUshLocalContract(
+      {
+        id: "urban-standard-height",
+        label: "USH local contract",
+        defaults: {},
+        local: {
+          productProfile: "product-profile.json",
+          ui: "ui.json",
+          runtimeBindings: "runtime-bindings.json",
+          cabinetTable: "cabinet-table.json",
+        },
+      },
+      {
+        [`${rootUrl}urban-standard-height/product-profile.json`]: productionProductProfile,
+        [`${rootUrl}urban-standard-height/ui.json`]: productionUi,
+        [`${rootUrl}urban-standard-height/runtime-bindings.json`]: runtimeBindings,
+        [`${rootUrl}urban-standard-height/cabinet-table.json`]: datatable439,
+      },
+    );
+
+    expect(data.diagnostics).toEqual([]);
+    expect(data.catalog.cabinets?.typeCabinetRules.map(({ code }) => code)).toEqual([
+      "Sink-Base",
+      "Sink-Cabinet",
+      "Open-Shelf",
+    ]);
+  });
+
   it("keeps an orphan runtime binding as a ready-data warning", async () => {
     const runtimeBindings = {
       ...productionRuntimeBindings,

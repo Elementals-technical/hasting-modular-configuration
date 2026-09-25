@@ -5,7 +5,8 @@
   "local": {
     "presets": "presets.json",
     "ui": "ui.json",
-    "productProfile": "product-profile.json"
+    "productProfile": "product-profile.json",
+    "runtimeBindings": "runtime-bindings.json"
   },
   "remote": {
     "configurator": {

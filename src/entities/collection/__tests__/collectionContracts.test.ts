@@ -63,6 +63,7 @@ describe("collection contracts", () => {
       presets: "presets.json",
       ui: "ui.json",
       productProfile: "product-profile.json",
+      runtimeBindings: "runtime-bindings.json",
     });
     expect(urbanLowHeight.defaultPresetId).toBeUndefined();
     expect(urbanLowHeight.remote).toEqual({
