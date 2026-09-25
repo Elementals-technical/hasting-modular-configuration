@@ -111,6 +111,27 @@ export const resolveCountertopMaxLengthByRules = ({
   profile,
 }: ResolveCountertopMaxLengthInput): number | null => {
   if (!rules.length) return null;
+
+  // Before a countertop style is chosen (a collection without a default style, whose builder
+  // comes before its countertop step), the composition is held to the longer of the two styles.
+  if (!style?.trim()) {
+    const limits = (["integrated", "vessel"] as const)
+      .map((candidate) =>
+        resolveCountertopMaxLengthByRules({
+          rules,
+          materialTokens,
+          style: candidate,
+          depth,
+          thickness,
+          activeBasinStyle,
+          profile,
+        }),
+      )
+      .filter((value): value is number => value !== null);
+
+    return limits.length ? Math.max(...limits) : null;
+  }
+
   const aliasTable = selectMaterialAliasTable(profile ?? null);
 
   const normalizedStyle = normalizeStyle(style);

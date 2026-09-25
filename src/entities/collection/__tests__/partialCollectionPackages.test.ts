@@ -8,6 +8,7 @@ import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
 import classProductProfile from "../../../../public/collections/class/product-profile.json";
+import classRuntimeBindings from "../../../../public/collections/class/runtime-bindings.json";
 import classSkuProfile from "../../../../public/collections/class/sku-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
@@ -44,6 +45,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
     [`${collectionsRootUrl}class/presets.json`]: classPresets,
     [`${collectionsRootUrl}class/product-profile.json`]: classProductProfile,
+    [`${collectionsRootUrl}class/runtime-bindings.json`]: classRuntimeBindings,
     [`${collectionsRootUrl}class/sku-profile.json`]: classSkuProfile,
     [`${collectionsRootUrl}class/ui.json`]: classUi,
     [`${collectionsRootUrl}mako/manifest.json`]: makoManifest,
@@ -114,10 +116,19 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    // Class has no scene bindings and no model compositions yet, but its own cabinet and countertop
-    // tables; Mako places its own scene products (I) and has the composition of every model, its own
-    // tables and its own configurator.
-    ["class", "Class", 44, undefined, false, [[579, abortSignal]], 578, 9],
+    // Class places its own scene products (I) but has no model compositions yet, and its own cabinet
+    // and countertop tables; Mako places its own scene products (I) and has the composition of every
+    // model, its own tables and its own configurator.
+    [
+      "class",
+      "Class",
+      44,
+      { "Sink-Base": "Class-sink-cabinet", "Sink-Cabinet": "Class-side-cabinet" },
+      false,
+      [[579, abortSignal]],
+      578,
+      9,
+    ],
     [
       "mako",
       "Mako",

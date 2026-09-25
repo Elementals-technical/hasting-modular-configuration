@@ -110,7 +110,7 @@
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
-      "sectionIds": ["countertop-color", "countertop-style", "basin-style"]
+      "sectionIds": ["countertop-color", "countertop-style", "basin-style", "vessel-color"]
     },
     "faucet-holes": {
       "label": "Faucet Details",
@@ -189,16 +189,30 @@
       "fields": [
         {
           "attributeId": "CountertopStyle",
-          "control": "options-grid"
+          "control": "options-grid",
+          "availabilityRef": "CountertopStyle.allowed"
         }
       ]
     },
     "basin-style": {
       "label": "Basin Style",
+      "labelWhenVessel": "Vessel Sink Style",
       "fields": [
         {
           "attributeId": "sinkType",
-          "control": "options-grid"
+          "control": "options-grid",
+          "availabilityRef": "sinkType.allowed"
+        }
+      ]
+    },
+    "vessel-color": {
+      "label": "Vessel Color",
+      "fields": [
+        {
+          "attributeId": "VesselColor",
+          "control": "colors",
+          "optionsRef": "VesselColor",
+          "availabilityRef": "Countertop.isVesselStyle"
         }
       ]
     },
@@ -208,7 +222,8 @@
       "fields": [
         {
           "attributeId": "FaucetHolesAmount",
-          "control": "swatches"
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed"
         }
       ]
     }

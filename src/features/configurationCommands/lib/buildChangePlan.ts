@@ -1,6 +1,6 @@
 import type { ProductProfile } from "@/entities/collection";
-import { hasCapability, selectAttribute, selectMessage, selectResetValue } from "@/entities/collection";
-import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
+import { hasCapability, selectAttribute, selectMessage, selectOption, selectResetValue } from "@/entities/collection";
+import type { CabinetEntry, StableCabinetKey, ValueTarget } from "@/entities/configuration";
 import { applyConfiguratorRules, type Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -37,6 +37,8 @@ export type BuildChangePlanArgs = {
   handleGrooveColor: string | null | undefined;
   /** Current towel bar colour, to decide whether clearing it is part of the set. */
   towelBarColor?: string | null;
+  /** Current basin and vessel colour, and the Sink Base they are addressed at, for a countertop style change. */
+  basin?: { sinkBaseId?: StableCabinetKey; sinkType?: string | null; vesselColor?: string | null };
   /** Placed cabinets, for changes that reach every drawer cabinet. */
   cabinets?: readonly CabinetEntry[];
 };
@@ -123,6 +125,7 @@ export const buildChangePlan = ({
   handleGrooveColor,
   cabinetColor,
   towelBarColor,
+  basin,
   cabinets = [],
 }: BuildChangePlanArgs): BuildChangePlanResult => {
   const isDrawers = attributeId === "Drawers";
@@ -162,6 +165,24 @@ export const buildChangePlan = ({
         origin: "dependency",
         reasonCode: REASON_TOWEL_BAR_COLOR_CLEARED,
       });
+    }
+
+    return { ok: true, plan };
+  }
+
+  // A basin of the other style no longer fits, so it is cleared, and the vessel colour with it
+  // when the style leaves vessel, as the countertop pages do.
+  if (attributeId === "CountertopStyle") {
+    const style = value.trim().toLowerCase();
+    const basinStyle = selectOption(profile, "sinkType", basin?.sinkType)?.category;
+    const basinTarget: ValueTarget = { scope: "basin", sinkBaseId: basin?.sinkBaseId };
+    const clears = [
+      ...(basin?.sinkType?.trim() && basinStyle !== style ? ["sinkType"] : []),
+      ...(style !== "vessel" && basin?.vesselColor?.trim() ? ["VesselColor"] : []),
+    ];
+
+    for (const cleared of clears) {
+      plan.push({ attributeId: cleared, target: basinTarget, value: "", origin: "dependency" });
     }
 
     return { ok: true, plan };

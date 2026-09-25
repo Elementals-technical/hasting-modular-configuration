@@ -77,7 +77,8 @@ describe("mako product profile", () => {
   });
 
   it("still lists the catalogs that are shapes rather than colours", () => {
-    expect(categoryCounts("sinkType")).toEqual({ integrated: 9, vessel: 3 });
+    // Three vessel styles and the cutout without one.
+    expect(categoryCounts("sinkType")).toEqual({ integrated: 9, vessel: 4 });
     expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
     expect(selectOptionValues(profile(), "Handle")).toEqual(["G57", "G50"]);
   });
@@ -88,7 +89,7 @@ describe("mako product profile", () => {
     expect(selectOptionValues(profile(), "sinkType")).not.toContain("VA030");
   });
 
-  it("has nine integrated basins and the three vessel styles", () => {
+  it("has nine integrated basins, the three vessel styles and the cutout without one", () => {
     const basins = attribute("sinkType")?.options ?? [];
 
     expect(basins.filter(({ category }) => category === "integrated").map(({ value }) => value)).toEqual([
@@ -103,10 +104,13 @@ describe("mako product profile", () => {
       "VA005",
     ]);
     expect(basins.filter(({ category }) => category === "vessel").map(({ value }) => value)).toEqual([
+      "None",
       "Iris",
       "Frame",
       "Plaza",
     ]);
+    // A vessel countertop without a vessel keeps its cutout, as the USH countertop step offers it.
+    expect(attribute("sinkType")?.noneValue).toBe("None");
   });
 
   it("has the confirmed countertop, faucet and divider options", () => {

@@ -84,6 +84,7 @@ describe("collection contracts", () => {
       ui: "ui.json",
       productProfile: "product-profile.json",
       skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
     });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
