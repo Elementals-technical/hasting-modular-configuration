@@ -17,7 +17,9 @@
     "countertopMatrixTableId": 577,
     "cabinetMatrixTableId": 581
   },
-  "defaults": {},
+  "defaults": {
+    "CabinetColor": "Antracite 400 MT"
+  },
   "attributes": [
     {
       "attributeId": "CabinetType",
@@ -77,6 +79,7 @@
       "attributeId": "Handle",
       "scope": "cabinet",
       "initialValue": "",
+      "effectiveFallbackValue": "G57",
       "options": [
         {
           "value": "G57",
