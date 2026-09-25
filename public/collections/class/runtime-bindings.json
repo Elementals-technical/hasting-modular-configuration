@@ -146,7 +146,7 @@
     {
       "attributeId": "VesselColor",
       "status": "state-only",
-      "reason": "Class has no vessel colour in the profile or the scene; recorded only."
+      "reason": "The Class cabinets have no vessel in the scene; the vessel colour is recorded only."
     },
     {
       "attributeId": "Thickness",

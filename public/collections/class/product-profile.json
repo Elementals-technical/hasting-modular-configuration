@@ -120,6 +120,7 @@
     {
       "attributeId": "sinkType",
       "scope": "basin",
+      "noneValue": "None",
       "options": [
         {
           "value": "LB440",
@@ -192,6 +193,14 @@
           "category": "integrated"
         },
         {
+          "value": "None",
+          "label": "None",
+          "order": 105,
+          "kind": "vessel",
+          "category": "vessel",
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen, as the USH countertop step offers it"
+        },
+        {
           "value": "Iris",
           "label": "Iris",
           "order": 110,
@@ -213,6 +222,11 @@
           "category": "vessel"
         }
       ]
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Select Cabinet Color"
     },
     {
       "attributeId": "FaucetHolesAmount",
@@ -296,6 +310,6 @@
     "solidSurfaceAliases": "Matte White and Matte White 8cm are not joined to SSTL / SSTM / SSTEX / SSTMT (Q-CLASS-016).",
     "va030": "VA030 is priced for SSTEX but absent from the Master File, so it is not offered (section 6.6).",
     "faucetHolePositions": "Only the counts 0-3 are confirmed; positions, spacing and diameters are not (section 0.8).",
-    "vesselStyleAssets": "Iris, Frame and Plaza are named; their SKU, prices, colours and assets are not given (Q-CLASS-043)."
+    "vesselStyleAssets": "Iris, Frame and Plaza are named; their SKU, prices, colours and assets are not given (Q-CLASS-043). No source names their colours, so VesselColor offers the cabinet palette until the product gives the vessel palettes."
   }
 }

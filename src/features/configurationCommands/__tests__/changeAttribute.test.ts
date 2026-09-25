@@ -502,7 +502,7 @@ describe("changeAttribute for a value the collection maps for the scene", () => 
     scenePatches.length = 0;
   });
 
-  it.each(clickedStyles)("applies the %s countertop style the page offers", async (_title, style) => {
+  it.each(clickedStyles)("applies the %s countertop style the page offers", async (title, style) => {
     const result = await changeAttribute(
       { attributeId: "CountertopStyle", value: style, scope: "countertop" },
       {
@@ -514,7 +514,12 @@ describe("changeAttribute for a value the collection maps for the scene", () => 
     );
 
     expect(result.status).toBe("applied");
-    expect(scenePatches).toHaveLength(1);
+    // The default basin is integrated, so a vessel also clears it: the scene gets its cutout.
+    expect(scenePatches).toEqual(
+      title === "Vessel"
+        ? [{ CountertopStyle: "Vessel" }, { sinkType: "Vessel" }]
+        : [{ CountertopStyle: "Integrated" }],
+    );
     expect(store.getState().rootStateUI.product.productOptions.CountertopStyle).toBe(style);
   });
 });

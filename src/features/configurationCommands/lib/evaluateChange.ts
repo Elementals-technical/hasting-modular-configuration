@@ -1,12 +1,13 @@
 import type { RootState } from "@/app/store";
 import { normalizeOptionValue } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration";
-import { getCabinetCatalog } from "@/entities/product/model/store/selectors";
+import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
 import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
 import { resolveConfirmation } from "./confirmationPolicy";
+import { findSinkBaseKey, isSinkBase } from "./isSinkBase";
 import { resolveTarget } from "./resolveTarget";
 import { checkUndetermined } from "./undeterminedGate";
 import { validateChange } from "./validateChange";
@@ -69,7 +70,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
       : { kind: "blocked", attributeId: verdict.attributeId, reasonCode: verdict.reasonCode, reason: verdict.reason };
   }
 
-  const targetResult = resolveTarget(change, cabinets);
+  const targetResult = resolveTarget(change, cabinets, (runtimeId) => isSinkBase(state, runtimeId));
 
   if (!targetResult.ok) {
     return { kind: "error", code: "unknown-target", message: targetResult.message };
@@ -98,6 +99,11 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
     handleGrooveColor: state.rootStateUI.product.productOptions.HandleGrooveColor,
     cabinetColor: state.rootStateUI.product.productOptions.CabinetColor,
     towelBarColor: state.rootStateUI.product.productOptions.TowelBarColor,
+    basin: {
+      sinkBaseId: findSinkBaseKey(state),
+      sinkType: getSinkType(state),
+      vesselColor: getVesselColor(state),
+    },
     cabinets,
   });
 

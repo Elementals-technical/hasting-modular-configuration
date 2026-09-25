@@ -139,6 +139,7 @@
     {
       "attributeId": "sinkType",
       "scope": "basin",
+      "noneValue": "None",
       "options": [
         {
           "value": "LB440",
@@ -204,6 +205,14 @@
           "category": "integrated"
         },
         {
+          "value": "None",
+          "label": "None",
+          "order": 95,
+          "kind": "vessel",
+          "category": "vessel",
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen, as the USH countertop step offers it"
+        },
+        {
           "value": "Iris",
           "label": "Iris",
           "order": 100,
@@ -225,6 +234,11 @@
           "category": "vessel"
         }
       ]
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Select Cabinet Color"
     },
     {
       "attributeId": "FaucetHolesAmount",
@@ -321,7 +335,7 @@
     "floating": "Mentioned, but it needs a thick countertop and Mako has thin ones only, so no floating option is valid today (section 12).",
     "vesselCutoutPerSb": "A vessel needs a cutout per Sink Base (section 11, D-P0191). An order line, not an option.",
     "solidSurfaceGroups": "Technolite, Technomood and Texturizzato are separate price groups with no palette of their own; the Master File has Matte White only (section 7).",
-    "vesselAssets": "Iris, Frame and Plaza are named; their colours, minimum Sink Base, cutout drawings and prices are not given (section 10).",
+    "vesselAssets": "Iris, Frame and Plaza are named; their colours, minimum Sink Base, cutout drawings and prices are not given (section 10). Each has 20 exterior colours (Plaza matte or gloss), but no source names them, so VesselColor offers the cabinet palette until the product gives the vessel palettes.",
     "productIdGap": "Master File row L100 has an empty ProductID (Q-MAKO-001)."
   }
 }

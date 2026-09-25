@@ -1,4 +1,5 @@
 import { getActiveProductProfile } from "@/entities/configuration";
+import { getCountertopStyle } from "@/entities/product/model/store/selectors";
 import { selectConfiguratorSection, useAttributeChangeHandler } from "@/features/configurationCommands";
 import {
   ColorField,
@@ -65,24 +66,29 @@ export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
   const sections = useCustomizationStepSections(stepId).filter((section) =>
     section.fields.some(({ field }) => field.visible),
   );
+  const isVesselStyle = useAppSelector(getCountertopStyle)?.trim().toLowerCase() === "vessel";
 
   return (
     <ConfiguratorAccordionGroup
       defaultValue={sections.find((section) => section.defaultOpen)?.sectionId}
       collapseDefaultOnCompact
     >
-      {sections.map(({ sectionId, label, fields }) => (
-        <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
-          {fields.map(({ definition, field }) => (
-            <SectionField
-              key={definition.attributeId}
-              definition={definition}
-              field={field}
-              section={{ sectionId, label }}
-            />
-          ))}
-        </ConfiguratorAccordionItem>
-      ))}
+      {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fields }) => {
+        const label = isVesselStyle ? (labelWhenVessel ?? sectionLabel) : sectionLabel;
+
+        return (
+          <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
+            {fields.map(({ definition, field }) => (
+              <SectionField
+                key={definition.attributeId}
+                definition={definition}
+                field={field}
+                section={{ sectionId, label }}
+              />
+            ))}
+          </ConfiguratorAccordionItem>
+        );
+      })}
     </ConfiguratorAccordionGroup>
   );
 };

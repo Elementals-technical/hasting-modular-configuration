@@ -23,6 +23,10 @@ export type FieldAvailability = {
   visible?: boolean;
   /** When set, only these option values stay enabled. */
   allowedValues?: readonly string[];
+  /** When set, only these option values are shown; a hidden one keeps its stored value. */
+  visibleValues?: readonly string[];
+  /** The option shown as chosen while nothing is stored, e.g. None for a vessel without a basin. */
+  valueWhenEmpty?: string;
 };
 
 // Keyed by availabilityRef as spelled in ui.json.
@@ -93,7 +97,11 @@ export const resolveSectionFields = (
     // Pictures the collection declares for this attribute; a configurator option keeps its own.
     const declaredImages = schema?.optionImages?.[definition.attributeId];
 
-    const options = declaredOptions.map((option) => {
+    const shownOptions = availability.visibleValues
+      ? declaredOptions.filter((option) => availability.visibleValues?.includes(option.value))
+      : declaredOptions;
+
+    const options = shownOptions.map((option) => {
       const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);
       return {
         ...option,
@@ -105,7 +113,9 @@ export const resolveSectionFields = (
       };
     });
 
-    const value = readProductOptionValue(productOptions, definition.attributeId);
+    const storedValue = readProductOptionValue(productOptions, definition.attributeId);
+    const value =
+      storedValue === null || storedValue === "" ? (availability.valueWhenEmpty ?? storedValue) : storedValue;
     const field: FieldRuntimeState = {
       attributeId: definition.attributeId,
       value,

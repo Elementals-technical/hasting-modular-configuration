@@ -4,6 +4,7 @@ import { getActiveProductProfile, getCabinetEntries } from "@/entities/configura
 import type { AttributeValue } from "@/entities/configuration";
 
 import type { AttributeChange } from "../model/types";
+import { findSinkBaseKey } from "./isSinkBase";
 
 /**
  * The change a field makes when the user picks a value, addressed at the scope its profile
@@ -29,7 +30,7 @@ export const resolveChangeRequest = (
     case "basin": {
       const cabinets = getCabinetEntries(state);
       const sinkBaseId =
-        cabinets.find(({ runtimeId }) => runtimeId.toLowerCase().includes("sink-base"))?.stableKey ??
+        findSinkBaseKey(state) ??
         (state.rootStateUI.product.activeCabinetType?.toLowerCase().includes("sink-base") ? cabinets[0]?.stableKey : undefined);
       return sinkBaseId ? { attributeId, value, scope, sinkBaseId } : null;
     }

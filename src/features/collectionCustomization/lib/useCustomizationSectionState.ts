@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { hasCapability, selectOptions, useActiveCollection } from "@/entities/collection";
+import { hasCapability, selectAttribute, selectOptions, useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration";
 import {
   selectBookMatchingState,
@@ -66,25 +66,35 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
   };
 };
 
-// An integrated basin needs a matrix row for the current colour, thickness and Sink Base width; a
-// vessel has no rows and follows the vessel Sink Base minimum. Each list applies only in its style.
+// Only the basins of the chosen style are shown, as the USH countertop screen shows them: an
+// integrated basin needs a matrix row for the current colour, and is enabled when the thickness
+// and Sink Base width fit it too; a vessel has no rows and follows the vessel Sink Base minimum.
+// A vessel countertop without a basin keeps its cutout: the profile's noneValue, chosen until
+// a vessel is.
 const resolveBasinAvailability = (
   profile: ProductProfile | null,
-  { allowedBasinKeys, vesselSinkAvailability }: CountertopRuleState,
+  { matchingRules, allowedBasinKeys, vesselSinkAvailability }: CountertopRuleState,
   countertopStyle: string | null | undefined,
 ): FieldAvailability => {
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
+  const noneValue = selectAttribute(profile, "sinkType")?.noneValue;
+  const materialBasinKeys = new Set(matchingRules.map(({ basinStyle }) => normalizeBasinKey(basinStyle)));
+  const basins = selectOptions(profile, "sinkType");
+  const valuesWhere = (predicate: (basin: (typeof basins)[number]) => boolean) =>
+    basins.filter(predicate).map(({ value }) => value);
 
   return {
     available: true,
-    allowedValues: selectOptions(profile, "sinkType")
-      .filter(({ value, category }) =>
-        category === "vessel"
-          ? isVesselStyle && vesselSinkAvailability.isAvailable
-          : !isVesselStyle && allowedBasinKeys.has(normalizeBasinKey(value)),
-      )
-      .map(({ value }) => value),
+    visibleValues: valuesWhere(({ value, category }) =>
+      category === "vessel" ? isVesselStyle : !isVesselStyle && materialBasinKeys.has(normalizeBasinKey(value)),
+    ),
+    allowedValues: valuesWhere(({ value, category }) =>
+      category === "vessel"
+        ? isVesselStyle && (value === noneValue || vesselSinkAvailability.isAvailable)
+        : !isVesselStyle && allowedBasinKeys.has(normalizeBasinKey(value)),
+    ),
     reasonCode: "change.notAvailable",
+    valueWhenEmpty: isVesselStyle ? noneValue : undefined,
   };
 };
 

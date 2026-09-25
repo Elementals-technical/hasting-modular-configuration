@@ -11,11 +11,13 @@ export type ResolveTargetResult =
  * Turns a change request into an addressed target.
  *
  * A per-product change must name a cabinet that actually exists; addressing a product
- * that is gone is an error rather than a silently ignored write.
+ * that is gone is an error rather than a silently ignored write. `isSinkBase` tells a Sink
+ * Base by its runtime id, which only the collection's runtime bindings can read.
  */
 export const resolveTarget = (
   change: AttributeChange,
   cabinets: readonly CabinetEntry[],
+  isSinkBase: (runtimeId: string) => boolean,
 ): ResolveTargetResult => {
   switch (change.scope) {
     case "global":
@@ -28,7 +30,7 @@ export const resolveTarget = (
       if (!sinkBase) {
         return { ok: false, message: `unknown sink base "${change.sinkBaseId}"` };
       }
-      if (!sinkBase.runtimeId.toLowerCase().includes("sink-base")) {
+      if (!isSinkBase(sinkBase.runtimeId)) {
         return { ok: false, message: `cabinet "${change.sinkBaseId}" is not a sink base` };
       }
       return { ok: true, target: { scope: "basin", sinkBaseId: change.sinkBaseId } };

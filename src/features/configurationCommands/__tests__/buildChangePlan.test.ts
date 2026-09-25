@@ -282,6 +282,51 @@ describe("buildChangePlan", () => {
     });
   });
 
+  describe("countertop style", () => {
+    const basinTarget: ValueTarget = { scope: "basin", sinkBaseId: "cab-1" };
+    const stylePlan = (value: string, sinkType: string, vesselColor: string) =>
+      buildChangePlan({
+        attributeId: "CountertopStyle",
+        value,
+        target: { scope: "countertop" },
+        selection: baseSelection,
+        selectedProductIds: [],
+        catalog,
+        profile,
+        handleGrooveColor: null,
+        basin: { sinkBaseId: "cab-1", sinkType, vesselColor },
+      });
+
+    it("clears an integrated basin when the style changes to vessel", () => {
+      expect(stylePlan("vessel", "Top_HPLPrisma", "")).toEqual({
+        ok: true,
+        plan: [
+          { attributeId: "CountertopStyle", target: { scope: "countertop" }, value: "vessel", origin: "requested" },
+          { attributeId: "sinkType", target: basinTarget, value: "", origin: "dependency" },
+        ],
+      });
+    });
+
+    it("clears the vessel and its colour when the style leaves vessel", () => {
+      expect(stylePlan("integrated", "Vessel_Blade11", "Bianco")).toMatchObject({
+        ok: true,
+        plan: [
+          { attributeId: "CountertopStyle", value: "integrated" },
+          { attributeId: "sinkType", target: basinTarget, value: "", origin: "dependency" },
+          { attributeId: "VesselColor", target: basinTarget, value: "", origin: "dependency" },
+        ],
+      });
+    });
+
+    it.each([
+      ["no basin is chosen", "vessel", ""],
+      ["the basin is of the chosen style", "integrated", "Top_HPLPrisma"],
+    ])("keeps the set to the style when %s", (_label, style, sinkType) => {
+      // toMatchObject compares array length, so a dependency added to the set fails here.
+      expect(stylePlan(style, sinkType, "")).toMatchObject({ ok: true, plan: [{ attributeId: "CountertopStyle" }] });
+    });
+  });
+
   it("drives a synthetic handle through the same evaluator", () => {
     const extendedProfile: ProductProfile = {
       ...profile,
