@@ -201,7 +201,8 @@
       "fields": [
         {
           "attributeId": "CountertopStyle",
-          "control": "options-grid"
+          "control": "options-grid",
+          "availabilityRef": "CountertopStyle.allowed"
         }
       ]
     },
@@ -210,7 +211,8 @@
       "fields": [
         {
           "attributeId": "sinkType",
-          "control": "options-grid"
+          "control": "options-grid",
+          "availabilityRef": "sinkType.allowed"
         }
       ]
     },
@@ -220,7 +222,8 @@
       "fields": [
         {
           "attributeId": "FaucetHolesAmount",
-          "control": "swatches"
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed"
         }
       ]
     }

@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "class",
+  "productTypes": {
+    "Sink-Base": "Class-sink-cabinet",
+    "Sink-Cabinet": "Class-side-cabinet"
+  },
+  "bindings": [
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "40": {
+            "Height": 40
+          },
+          "52": {
+            "Height": 52
+          }
+        }
+      },
+      "order": 30,
+      "note": "The Class scene takes 40 and 52 only (RuleHeightCabinetClass, docs/class-collection-runtime-facts.md). Class styles are never mixed (drawerStyleGroups), so the composition shares one height."
+    },
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Width"
+      },
+      "order": 30,
+      "note": "Number in cm, set on one cabinet. The Class scene takes 40, 60, 80, 100 and 120 (RuleWidthCabinetClass)."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Depth"
+      },
+      "order": 30,
+      "note": "Number in cm; Class has one depth, 52."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "1": {
+            "Drawers": "1D",
+            "Height": 40,
+            "InnerDrawer": "Disable"
+          },
+          "2": {
+            "Drawers": "2D",
+            "Height": 52,
+            "InnerDrawer": "Disable"
+          },
+          "1+inner": {
+            "Drawers": "1DWID",
+            "Height": 40,
+            "InnerDrawer": "Enable"
+          }
+        }
+      },
+      "order": 40,
+      "note": "The Class scene lays out the drawers from Height and InnerDrawer (RuleDrawersCabinetClass): 1DW and 1DWID are 40 cm, 2DW 52 cm (cabinet table 579, forced_height_cm); InnerDrawer shows only at 40 cm. Sent after Height, so the style decides the height. Drawers keeps the legacy spelling in the scene config, where history and saved configurations read the style; the Class scene itself ignores it."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor"
+      },
+      "order": 50,
+      "note": "Front insert material (RuleMaterialsCabinetClass). Exact PlayCanvas material name; the Class values are not supplied yet (docs/class-collection-runtime-facts.md), so a colour the scene lacks leaves the material as it is."
+    },
+    {
+      "attributeId": "CabinetSideColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetSideColor"
+      },
+      "order": 50,
+      "note": "Cabinet wall and bottom material (RuleMaterialsCabinetClass). Exact PlayCanvas material name; the Class values are not supplied yet."
+    },
+    {
+      "attributeId": "FrameColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "FrameColor"
+      },
+      "order": 50,
+      "note": "Front frame material (RuleMaterialsCabinetClass). Exact PlayCanvas material name; the Class values are not supplied yet."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor"
+      },
+      "order": 50,
+      "note": "The countertop is placed at composition level, as for Mako; the Class cabinets ignore the key. Not checked in the browser whether the scene has the Class countertop colours."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "state-only",
+      "reason": "The scene export has no CountertopStyle key; recorded for the countertop rules and pricing only."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "state-only",
+      "reason": "The Class basin codes (LB440, VA002…) are not scene basins yet; recorded for the countertop rules and pricing only."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "state-only",
+      "reason": "Class has no vessel colour in the profile or the scene; recorded only."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "state-only",
+      "reason": "Class declares no thickness option (thin countertops only); recorded only."
+    },
+    {
+      "attributeId": "Handle",
+      "status": "state-only",
+      "reason": "Class has no handle option in the profile and the Class scene reads no handle key. Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "state-only",
+      "reason": "Class has no handle groove. Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no BookMatching key in the scene export."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no LED key in the scene export."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The Class scene products of each value are in productTypes."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "unbound",
+      "reason": "Not a Class option; the Class cabinets have no fluting in the scene."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not a Class option; the Class cabinets have no grain direction in the scene."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile; the scene side panels are the Urban ones."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Class drawers have no divider zones in the scene yet."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Class drawers have no divider zones in the scene yet."
+    }
+  ]
+}
