@@ -124,12 +124,12 @@ import { SidePanelsService } from '../../services/side-panels/index.mjs';
 this.sidePanelsService = new SidePanelsService(this.app, this);
 ```
 
-### Інтеграція з RuleCountertopWidth
+### Інтеграція з RuleCountertopLayout
 
-RuleCountertopWidth використовує SidePanelsService для розрахунку offset стільниці:
+RuleCountertopLayout використовує SidePanelsService для розрахунку offset стільниці:
 
 ```javascript
-// В RuleCountertopWidth.applyFn()
+// В RuleCountertopLayout.applyFn()
 const offsetX = compositionManager.sidePanelsService.calculateCountertopOffset(listSidePanel);
 SceneTransformHelper.setLocalPosition(countertop, { x: calcResult.targetX + offsetX });
 ```
