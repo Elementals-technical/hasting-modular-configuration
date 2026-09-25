@@ -93,6 +93,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const cabinetTypeOf = (runtimeId: string) =>
     resolveCabinetTypeOfRuntimeId(profile, input.runtimeBindings ?? null, runtimeId);
   const isSinkBase = (entry: CabinetEntry) => cabinetTypeOf(entry.runtimeId) === "Sink-Base";
+  // The Summary of a model reads the model's cabinets by their place in it, as the USH lines
+  // name them; a cabinet added on top of the model, or of a custom composition, by its runtime id.
+  const cabinetLineId = (runtimeId: string) => {
+    const presetIndex = input.shouldUsePresets ? input.productIds.indexOf(runtimeId) : -1;
+    return presetIndex >= 0 && presetIndex < input.productsPresets.length
+      ? `cabinet:preset-${presetIndex}`
+      : `cabinet:${runtimeId}`;
+  };
   const cabinets = [...input.cabinetEntries].sort((left, right) => left.index - right.index);
   const lines: PricingLine[] = [];
   const gaps: PricingGap[] = [];
@@ -104,6 +112,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const globalValue = (attributeId: string) => valueAt(values, attributeId, { scope: "global" });
   const countertopValue = (attributeId: string, legacy: string | null) =>
     valueAt(values, attributeId, { scope: "countertop" }) ?? (legacy || null);
+  // Until a cabinet colour is chosen, the one the builder starts from: the collection's default.
+  const startingCabinetColor = asText(input.cabinetColor);
 
   // 1) Cabinets
   const missing = new Map<string, CollectionCabinetSkuGap["cause"]>();
@@ -115,6 +125,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;
       if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
+      if (attributeId === "CabinetColor") return startingCabinetColor;
       return null;
     };
     const size = dimensionsByCabinet[entry.stableKey];
@@ -128,7 +139,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
 
     cabinetSku.missing.forEach(({ attributeId, cause }) => missing.set(attributeId, cause));
     add({
-      id: `cabinet:${entry.runtimeId}`,
+      id: cabinetLineId(entry.runtimeId),
       group: "cabinet",
       sku: cabinetSku.sku,
       quantity: 1,
@@ -183,7 +194,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     const legColor = anyValue(values, "LegColor");
     const takesCabinetColor = legColor !== null && legColor === legs.cabinetColorValue;
     const legsSku = buildCollectionLegsSku(skuProfile, profile, {
-      color: takesCabinetColor ? globalValue("CabinetColor") : legColor,
+      color: takesCabinetColor ? (globalValue("CabinetColor") ?? startingCabinetColor) : legColor,
       attributeId: takesCabinetColor ? "CabinetColor" : "LegColor",
       readConfiguratorColor,
     });

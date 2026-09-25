@@ -82,11 +82,17 @@ export const buildCollectionCabinetSku = (
 ): CollectionCabinetSku => {
   const { cabinet } = skuProfile;
   const missing: CollectionCabinetSkuGap[] = [];
+  const optionOf = (attributeId: string) => {
+    const raw = read(attributeId);
+    return normalizeOptionValue(productProfile, attributeId, raw) ?? raw;
+  };
 
-  const configBlock = cabinet.configBlock
+  // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes.
+  const cabinetType = optionOf("CabinetType");
+  const { series, configBlock } = (cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined) ?? cabinet;
+  const config = configBlock
     .map(({ attributeId, codes }) => {
-      const raw = read(attributeId);
-      const value = normalizeOptionValue(productProfile, attributeId, raw) ?? raw;
+      const value = optionOf(attributeId);
       return (value && codes[value]) || FALLBACK;
     })
     .join("/");
@@ -126,7 +132,7 @@ export const buildCollectionCabinetSku = (
   const sizes = [sizeToken(widthCm, "W"), sizeToken(heightCm, "H"), sizeToken(depthCm, "D")].join("-");
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
-  return { sku: `${CABINET_CATEGORY}-${cabinet.series}-${configBlock}-${sizes}${elementsSuffix}`, missing };
+  return { sku: `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`, missing };
 };
 
 export type CollectionCountertopSkuInput = {

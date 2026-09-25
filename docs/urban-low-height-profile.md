@@ -24,6 +24,11 @@ the Urban Standard Height options and pictures, although the map does not descri
 | `CountertopStyle` | countertop | `integrated`, `vessel` — the options and pictures of Urban Standard Height | Not from the map: §11 lists Integrated/Vessel/Undermount as not described. Added on request; recorded only, the scene has no key for it |
 | `sinkType` | basin | the 28 integrated basins and 5 vessels Urban Standard Height shows, and `Vessel` (shown as None) for a vessel countertop without a basin | Not from the map: §12 names Rectangular, Strip, Cover, Prisma and Quadra. Added on request; integrated basins are filtered by the shared table 438, and the value reaches every ULH Sink Base as in USH |
 | `VesselColor` | basin | no list — `optionsSource: "configurator:Vessels"` | Added on request with `sinkType`; shown only for a vessel countertop |
+| `SidePanels` | global | `None`, `NoG`, `UpperG` — the grooves the ULH side panels of the scene have | Not in the map. Added on request with `ruleData.sidePanels`: upper groove at 38 / 28 cm (the upper-groove heights, §2), no groove at 35 / 25 cm; open shelves take none. The height → groove table is inferred from §2 and the Urban Standard Height table, not confirmed |
+| `TowelBarOption`, `TowelBarColor` | global | `None`, `Left`, `Right`, `Both`; colour from `configurator:Towel Bar Color` | §13 reuses the Urban Standard Height towel bar; its fit to the Low Height heights is not confirmed |
+
+The Accessories step shows Side Panels and Towel Bar. Dividers are left out: the ULH drawer and cabinet templates of
+the scene have no divider points.
 
 Widths and depths (§3) are not in the profile: they are rows of the cabinet table, not product semantics.
 
@@ -83,15 +88,47 @@ Listed in `excludedFromThisProfile` with the section numbers:
 - The Lacquer Matte spellings in `eligibleMaterialAliases` cover how configurator 4 writes the material; configurator 4 is shared with Urban Standard Height.
 - `sourceRefs` (4 / 438 / 439) come from the manifest; message texts are UI wording.
 
+## SKU profile (`sku-profile.json`)
+
+Priced the way Class and Mako are (D04). The price server already resolves the Low Height matrix (datatable 556); every
+form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
+
+| Part | SKU | Status |
+|---|---|---|
+| Sink Base, Side Cabinet | `VAN-URLH-{SB\|SC}/1DW/{UG\|PTO}/{X\|CVA\|CVB\|CHA\|CHB}-{W}W-{H}H-{D}D-CAB-{material}-{code}` | Priced |
+| Vessel cutout, faucet holes | `CT-UR{material}-HCUT`, `CT-UR{material}-FAHO/{n}`, taken from USH as the workbook says | Priced |
+| Countertop and integrated basin | none in the workbook | Gap `countertop`, blocks the total |
+| Vessel sink | none in the workbook | Gap `vessel`, blocks the total |
+| Open Shelf | `VAN-UROS-1S-{W}W-{H}H-{D}D-CAB-{material}-{code}`, its own series under `cabinet.byCabinetType` | Priced |
+| Open Side Shelf | `VAN-UROSS-{L\|R}-…` | Gap `openSideShelf`: no attribute holds its side, and the scene has no ULH Open Side Shelf |
+| Side panels | USH `URSP` rows exist only for 19.7 / 20.9 / 22 in | Gap `sidePanel` |
+| Towel bar | USH `VAN-URTWLBR-STB/{L\|R}-15.7W-1.4H-2D`, $380 | Gap `towelBar`: no towel bar line in SKU-profile pricing |
+
+- **Sizes are in inches.** The server takes a centimetre SKU as inches and snaps to the nearest row: `90W-38H-50D`
+  answers the 120 cm price.
+- **The colour code matters for white only.** The server prices `0B` in LACM or LACG from the `White GL/MT` column;
+  every other code has no effect on the price. The codes come from the colour names, as the workbook spells them
+  (`Arancio Zucca 09 MT` → `09`, `Castagno Malto 1C2` → `1C2`); configurator 4's `codeColor` is not used, since it
+  carries the finish (`0B MT`) and has wrong values (`Eucalipto Affumicato 1E2` → `100`).
+- **The server does not reject a combination the product does not sell.** Upper Groove at 35 cm or a 80 cm Open Shelf
+  at 38 cm resolve to the nearest row. Only cabinets the cabinet table allows must reach pricing.
+- **38 and 28 cm are written `15H` and `11H`** (team, 25.09.2026); the workbook writes `15.0H` and `11.0H`. The price
+  is the same.
+- **Until a cabinet colour is chosen, the cabinets are priced in the default** (`Cemento Cenere 1A1`, 3D), as the
+  countertop already is in its default colour.
+- **`HDL` is left out.** The server ignores it, and the groove colour has no stable structure (§15.4).
+- Configurator 4 names one colour `Grigio Bromo` without a code (its `codeColor` is `DS MT`, the Torba DS the map
+  lists): it is priced as LACM with no colour code.
+
 ## Blockers, by owner
 
 | Owner | What is needed |
 |---|---|
-| Product | Approved `defaults` (the profile ships `{}`); the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
+| Product | Approval of the `defaults`: `CountertopColor: Pietra Di Savoia Antracite TQ6`, the material the scene's Top_Solid countertop is authored in, and `CabinetColor: Cemento Cenere 1A1` (team, 25.09.2026), the grey concrete of the model pictures — the ULH cabinet is authored in `Antracite Matte OCF`, which configurator 4 does not offer; the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
 | Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
 | B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
 | I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. |
-| D | SKU series and pricing inputs. Until they exist the collection shows "Price unavailable". Note: the map spells the open shelf `VAN-UROS-1S`, the USH builder writes `2S`. |
+| D | Open Side Shelf in the cabinet SKU (`VAN-UROSS-L\|R`, its side). Towel bar and side panel lines in SKU-profile pricing. Until then an order with them shows an incomplete price. |
 
 ## Evidence
 

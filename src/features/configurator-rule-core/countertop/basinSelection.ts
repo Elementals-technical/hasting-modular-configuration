@@ -8,6 +8,7 @@ import {
   normalizeMaterialToken,
   parseThicknessValue,
   selectMaterialAliasTable,
+  type MaterialAliasTable,
 } from "./parse";
 import { isRuleWidthEligibleForIntegratedContext } from "./rules";
 import type { CountertopMatrixRule } from "./types";
@@ -61,7 +62,6 @@ export const resolveAvailableIntegratedCountertopBasinOptions = ({
   profile,
 }: ResolveIntegratedCountertopBasinOptionsInput): CountertopBasinOptionLike[] => {
   const aliasTable = selectMaterialAliasTable(profile ?? null);
-  const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
   const applicableRules = rules.filter((rule) => {
     if (!matchesDepthForStyle(rule, dimensions.depth, "integrated")) return false;
     if (!matchesThickness(rule, activeThickness)) return false;
@@ -76,36 +76,45 @@ export const resolveAvailableIntegratedCountertopBasinOptions = ({
     totalWidth: dimensions.totalWidth,
   };
 
-  return basinOptions.flatMap((option) => {
-    const label = option.title ?? option.name ?? "";
-    if (!label) return [];
-
-    const [, ...restTokens] = label.trim().split(/\s+/);
-    const materialTokens = extractCountertopBasinMaterialScopeTokens(label, option.name, aliasTable);
-    const isMaterialSpecific = materialTokens.length > 0;
-
-    if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
-      const matchesMaterial = materialTokens.some((token) =>
-        getMaterialAliases(token, aliasTable).some((alias) => normalizedActiveMaterials.includes(alias)),
-      );
-      if (!matchesMaterial) return [];
-    }
-
-    const basinLabelCandidates = isMaterialSpecific ? [restTokens.join(" "), label] : [label];
-    const normalizedBasinLabelCandidates = new Set(
-      basinLabelCandidates.map((candidate) => normalizeBasinKey(candidate)).filter(Boolean),
-    );
-    const basinRules = applicableRules.filter((rule) =>
-      normalizedBasinLabelCandidates.has(normalizeBasinKey(rule.basinStyle)),
-    );
-    if (!basinRules.length) return [];
-
-    const isAvailable = basinRules.some((rule) =>
+  return basinOptions.filter((option) =>
+    findIntegratedBasinRules(option, applicableRules, activeMaterialTokens, aliasTable).some((rule) =>
       isRuleWidthEligibleForIntegratedContext(rule, integratedWidthContext),
-    );
+    ),
+  );
+};
 
-    return isAvailable ? [option] : [];
-  });
+/**
+ * The matrix rows an integrated basin option names. A row names the basin as the option's label
+ * does without its material ("HPL Cover 50" is the HPL row "Cover 50"); a label that names a
+ * material only counts while that material is the active one, so Fenix Cover 50 is no HPL basin.
+ */
+export const findIntegratedBasinRules = (
+  option: CountertopBasinOptionLike,
+  rules: readonly CountertopMatrixRule[],
+  activeMaterialTokens: readonly string[],
+  aliasTable: MaterialAliasTable,
+): CountertopMatrixRule[] => {
+  const label = option.title ?? option.name ?? "";
+  if (!label) return [];
+
+  const [, ...restTokens] = label.trim().split(/\s+/);
+  const materialTokens = extractCountertopBasinMaterialScopeTokens(label, option.name, aliasTable);
+  const isMaterialSpecific = materialTokens.length > 0;
+  const normalizedActiveMaterials = activeMaterialTokens.map((material) => normalizeMaterialToken(material));
+
+  if (isMaterialSpecific && normalizedActiveMaterials.length > 0) {
+    const matchesMaterial = materialTokens.some((token) =>
+      getMaterialAliases(token, aliasTable).some((alias) => normalizedActiveMaterials.includes(alias)),
+    );
+    if (!matchesMaterial) return [];
+  }
+
+  const basinLabelCandidates = isMaterialSpecific ? [restTokens.join(" "), label] : [label];
+  const normalizedBasinLabelCandidates = new Set(
+    basinLabelCandidates.map((candidate) => normalizeBasinKey(candidate)).filter(Boolean),
+  );
+
+  return rules.filter((rule) => normalizedBasinLabelCandidates.has(normalizeBasinKey(rule.basinStyle)));
 };
 
 export const resolveIntegratedCountertopBasinFallback = ({
