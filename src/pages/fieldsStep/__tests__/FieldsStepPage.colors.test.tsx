@@ -141,6 +141,12 @@ describe("FieldsStepPage colour fields", () => {
     expect(section.getAllByText("Nebbia 402 MT").length).toBeGreaterThan(0);
   });
 
+  it("leaves out the Urban Low Height fluting section, which the collection switches off", () => {
+    renderColorStep();
+
+    expect(screen.queryByRole("region", { name: "Drawer Panel Fluting" })).toBeNull();
+  });
+
   it("lays its filters out in one row across the section, as the Urban colour sections do", () => {
     renderColorStep();
 

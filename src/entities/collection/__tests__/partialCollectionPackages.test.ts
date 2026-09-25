@@ -104,6 +104,7 @@ describe("partial production collection packages", () => {
       { id: "model", label: "Urban Low Height Models", path: "/prebuilt/model" },
       { id: "color", label: "Color", path: "/prebuilt/color" },
       { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
+      { id: "accessories", label: "Accessories", path: "/prebuilt/accessories" },
       { id: "summary", label: "Summary", path: "/prebuilt/summary" },
     ]);
     // The 59 models of the master file; the six Multi-Level ones keep no composition until the scene has a lower level.

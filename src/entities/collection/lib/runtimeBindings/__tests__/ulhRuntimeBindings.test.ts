@@ -75,6 +75,12 @@ describe("urban-low-height runtime bindings", () => {
     expect(patchOf("VesselColor", "Bianco")).toEqual({ VesselColor: "Bianco" });
   });
 
+  it("hang the towel bar on the composition as Urban Standard Height does", () => {
+    expect(patchOf("TowelBarOption", "Left")).toEqual({ TowelBar: "TowelBar40_R", TowelBarSide: "left" });
+    expect(patchOf("TowelBarOption", "None")).toEqual({ TowelBar: "None", TowelBarSide: "both" });
+    expect(patchOf("TowelBarColor", "Gold")).toEqual({ TowelBarColor: "Gold" });
+  });
+
   it("record the countertop style, the fluting and the groove colour without a scene call", () => {
     for (const attributeId of ["CountertopStyle", "DrawerPanelFluting", "HandleGrooveColor"]) {
       expect(isStateOnlyResolution(resolveRuntimeBinding(ulhRuntimeBindings, attributeId, "x"))).toBe(true);

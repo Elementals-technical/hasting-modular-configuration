@@ -219,28 +219,65 @@
     },
     {
       "attributeId": "TowelBarOption",
-      "status": "unbound",
-      "reason": "Not a Low Height option in the profile."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "None": {
+            "TowelBar": "None",
+            "TowelBarSide": "both"
+          },
+          "Left": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "left"
+          },
+          "Right": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "right"
+          },
+          "Both": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "both"
+          }
+        }
+      },
+      "order": 70,
+      "resetBefore": {
+        "TowelBar": "None",
+        "TowelBarSide": "both"
+      },
+      "note": "As in Urban Standard Height: the scene hangs the towel bar on the composition (setTowelBarType), cleared first so a side switch leaves no stale meshes."
     },
     {
       "attributeId": "TowelBarColor",
-      "status": "unbound",
-      "reason": "Not a Low Height option in the profile."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "TowelBarColor"
+      },
+      "order": 80,
+      "note": "As in Urban Standard Height; \"\" clears the color."
     },
     {
       "attributeId": "SidePanels",
       "status": "unbound",
-      "reason": "Not a Low Height option in the profile."
+      "reason": "The scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch. sidePanels.ts builds it, and the scene places the ULH panels (sidePanelSupport profile ulh)."
     },
     {
       "attributeId": "SidePanelLeft",
       "status": "unbound",
-      "reason": "Not a Low Height option in the profile."
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side."
     },
     {
       "attributeId": "SidePanelRight",
       "status": "unbound",
-      "reason": "Not a Low Height option in the profile."
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side."
     },
     {
       "attributeId": "DividersOption",

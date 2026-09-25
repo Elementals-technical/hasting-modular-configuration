@@ -15,7 +15,8 @@
     "cabinetMatrixTableId": 580
   },
   "defaults": {
-    "CountertopColor": "Pietra Di Savoia Antracite TQ6"
+    "CountertopColor": "Pietra Di Savoia Antracite TQ6",
+    "TowelBarOption": "None"
   },
   "attributes": [
     {
@@ -376,6 +377,34 @@
       "attributeId": "VesselColor",
       "scope": "basin",
       "optionsSource": "configurator:Vessels"
+    },
+    {
+      "attributeId": "SidePanels",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "NoG", "label": "No groove", "order": 20 },
+        { "value": "UpperG", "label": "1 groove (upper)", "order": 30 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "scope": "global",
+      "defaultValue": "None",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Left", "label": "Left", "order": 20 },
+        { "value": "Right", "label": "Right", "order": 30 },
+        { "value": "Both", "label": "Both", "order": 40 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "scope": "global",
+      "optionsSource": "configurator:Towel Bar Color"
     }
   ],
   "ruleData": {
@@ -415,6 +444,36 @@
       "restrictedIntegratedMaterialTokens": [],
       "restrictedIntegratedBasinKeys": [],
       "excludedMaterialFilterTokens": ["tekorlux", "tekormud", "glassmt", "glassgl", "lacqueredmt", "lacqueredgl"]
+    },
+    "sidePanels": {
+      "heightTokenByCm": {
+        "25": "25H",
+        "28": "28H",
+        "35": "35H",
+        "38": "38H"
+      },
+      "blockedCabinetTypes": ["OS", "OSS"],
+      "cabinetGroups": {
+        "OSS": ["Open-Side-Shelf", "OSS"],
+        "OS": ["Open-Shelf", "ULH-Open-Shelf", "OS"],
+        "SBSC": ["Sink-Base", "Side-Cabinet", "ULH-sink-cabinet", "ULH-side-cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1D", "1DW", "1"]
+      },
+      "groovePriorityByHandle": {
+        "handle_urban_topcut": ["UpperG"],
+        "handle_pto": ["NoG"]
+      },
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        { "height": "38H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "28H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "35H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] },
+        { "height": "25H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] }
+      ]
     }
   },
   "messages": {
@@ -427,7 +486,14 @@
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
     "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
     "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
-    "fluting.notInCollection": "Fluting is not available in this collection."
+    "fluting.notInCollection": "Fluting is not available in this collection.",
+    "sidePanel.notInCollection": "Side panels are not available in this collection.",
+    "sidePanel.openShelfUnavailable": "Side panels are not available for use with Open Shelf cabinets.",
+    "sidePanel.sideShelfUnavailable": "Side panels are not available for Open Side Shelf cabinets.",
+    "sidePanel.exactLengthBlocked": "Side panels are not available when total vanity length is exactly {lengthCm} cm ({lengthIn}\").",
+    "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Open Side Shelf cabinets are positioned at both ends.",
+    "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
+    "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {
     "handleGrooveColor": "The HDL segment of the SKU has no stable structure, so no handle declares a groove colour (product map §5, §15.4).",

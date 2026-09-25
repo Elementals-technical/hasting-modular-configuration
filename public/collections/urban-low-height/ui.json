@@ -95,6 +95,11 @@
           "path": "/prebuilt/countertop"
         },
         {
+          "stepId": "accessories",
+          "path": "/prebuilt/accessories",
+          "screen": "accessories"
+        },
+        {
           "stepId": "summary",
           "path": "/prebuilt/summary"
         }
@@ -114,6 +119,11 @@
         {
           "stepId": "countertop",
           "path": "/custom/countertop"
+        },
+        {
+          "stepId": "accessories",
+          "path": "/custom/accessories",
+          "screen": "accessories"
         },
         {
           "stepId": "summary",
@@ -142,6 +152,11 @@
       "label": "Countertop & Basin",
       "kind": "fields",
       "sectionIds": ["countertop-color", "countertop-style", "basin-style", "vessel-color"]
+    },
+    "accessories": {
+      "label": "Accessories",
+      "kind": "fields",
+      "sectionIds": ["side-panels", "towel-bar"]
     },
     "summary": {
       "label": "Summary",
@@ -181,6 +196,7 @@
     },
     "drawer-panel": {
       "label": "Drawer Panel Fluting",
+      "enabled": false,
       "fields": [
         {
           "attributeId": "DrawerPanelFluting",
@@ -228,6 +244,31 @@
           "control": "colors",
           "optionsRef": "VesselColor",
           "availabilityRef": "Countertop.isVesselStyle"
+        }
+      ]
+    },
+    "side-panels": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "SidePanels",
+          "control": "options-grid",
+          "availabilityRef": "SidePanels.available"
+        }
+      ]
+    },
+    "towel-bar": {
+      "label": "Towel Bar",
+      "fields": [
+        {
+          "attributeId": "TowelBarOption",
+          "control": "swatches"
+        },
+        {
+          "attributeId": "TowelBarColor",
+          "control": "options-grid",
+          "availabilityRef": "TowelBarColor.available"
         }
       ]
     }

@@ -24,6 +24,11 @@ the Urban Standard Height options and pictures, although the map does not descri
 | `CountertopStyle` | countertop | `integrated`, `vessel` — the options and pictures of Urban Standard Height | Not from the map: §11 lists Integrated/Vessel/Undermount as not described. Added on request; recorded only, the scene has no key for it |
 | `sinkType` | basin | the 28 integrated basins and 5 vessels Urban Standard Height shows, and `Vessel` (shown as None) for a vessel countertop without a basin | Not from the map: §12 names Rectangular, Strip, Cover, Prisma and Quadra. Added on request; integrated basins are filtered by the shared table 438, and the value reaches every ULH Sink Base as in USH |
 | `VesselColor` | basin | no list — `optionsSource: "configurator:Vessels"` | Added on request with `sinkType`; shown only for a vessel countertop |
+| `SidePanels` | global | `None`, `NoG`, `UpperG` — the grooves the ULH side panels of the scene have | Not in the map. Added on request with `ruleData.sidePanels`: upper groove at 38 / 28 cm (the upper-groove heights, §2), no groove at 35 / 25 cm; open shelves take none. The height → groove table is inferred from §2 and the Urban Standard Height table, not confirmed |
+| `TowelBarOption`, `TowelBarColor` | global | `None`, `Left`, `Right`, `Both`; colour from `configurator:Towel Bar Color` | §13 reuses the Urban Standard Height towel bar; its fit to the Low Height heights is not confirmed |
+
+The Accessories step shows Side Panels and Towel Bar. Dividers are left out: the ULH drawer and cabinet templates of
+the scene have no divider points.
 
 Widths and depths (§3) are not in the profile: they are rows of the cabinet table, not product semantics.
 
