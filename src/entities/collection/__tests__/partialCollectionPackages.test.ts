@@ -103,12 +103,12 @@ describe("partial production collection packages", () => {
     expect(data.catalog.navigation?.prebuilt).toEqual([
       { id: "model", label: "Urban Low Height Models", path: "/prebuilt/model" },
       { id: "color", label: "Color", path: "/prebuilt/color" },
-      { id: "countertop", label: "Countertop", path: "/prebuilt/countertop" },
+      { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
       { id: "summary", label: "Summary", path: "/prebuilt/summary" },
     ]);
-    // The 59 models of the master file, without their composition until the BOM is confirmed.
+    // The 59 models of the master file; the six Multi-Level ones keep no composition until the scene has a lower level.
     expect(data.catalog.presets).toHaveLength(59);
-    expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
+    expect(data.catalog.presets?.filter(({ presetProducts }) => presetProducts.length === 0)).toHaveLength(6);
     // The profile carries only the confirmed product facts; the rest of the package is still missing.
     expect(data.catalog.productProfile?.collectionId).toBe("urban-low-height");
     // Three module types have their ULH scene product (I); Open Side Shelf has none yet, so its card

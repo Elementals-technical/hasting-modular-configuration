@@ -65,8 +65,18 @@ describe("urban-low-height runtime bindings", () => {
     expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
   });
 
-  it("record the basin, the countertop style, the fluting and the groove colour without a scene call", () => {
-    for (const attributeId of ["sinkType", "CountertopStyle", "DrawerPanelFluting", "HandleGrooveColor"]) {
+  it("send the basin and the vessel colour to every ULH Sink Base, as Urban Standard Height does", () => {
+    expect(resolveRuntimeBinding(ulhRuntimeBindings, "sinkType", "Top_HPLPrisma")).toMatchObject({
+      ok: true,
+      target: { kind: "productType", productType: "ULH-sink-cabinet" },
+      patch: { sinkType: "Top_HPLPrisma" },
+    });
+    expect(patchOf("sinkType", "")).toEqual({ sinkType: "Vessel" });
+    expect(patchOf("VesselColor", "Bianco")).toEqual({ VesselColor: "Bianco" });
+  });
+
+  it("record the countertop style, the fluting and the groove colour without a scene call", () => {
+    for (const attributeId of ["CountertopStyle", "DrawerPanelFluting", "HandleGrooveColor"]) {
       expect(isStateOnlyResolution(resolveRuntimeBinding(ulhRuntimeBindings, attributeId, "x"))).toBe(true);
     }
   });

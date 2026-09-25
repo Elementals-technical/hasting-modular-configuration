@@ -7,8 +7,8 @@
 The map grades every fact as confirmed, inherited, inferred or undescribed. **Only the confirmed ones
 are in the profile.** Nothing was copied from Urban Standard Height: where Low Height has no confirmed
 rule, the profile simply does not declare it, and the collection behaves as a collection without that
-capability rather than as USH. One exception, added on request: `CountertopStyle` takes the Urban Standard Height
-options and pictures, although the map does not describe the choice.
+capability rather than as USH. One exception, added on request: `CountertopStyle`, `sinkType` and `VesselColor` take
+the Urban Standard Height options and pictures, although the map does not describe the choice and names other basins.
 
 ## What the profile declares
 
@@ -22,6 +22,8 @@ options and pictures, although the map does not describe the choice.
 | `CabinetColor` | global | no list — `optionsSource: "configurator:Cabinet Color"` | §5; the 232 values come from configurator 4 |
 | `CountertopColor` | countertop | no list — `optionsSource: "configurator:Countertop Color"` | §11; the 61 values come from the same source |
 | `CountertopStyle` | countertop | `integrated`, `vessel` — the options and pictures of Urban Standard Height | Not from the map: §11 lists Integrated/Vessel/Undermount as not described. Added on request; recorded only, the scene has no key for it |
+| `sinkType` | basin | the 28 integrated basins and 5 vessels Urban Standard Height shows, and `Vessel` (shown as None) for a vessel countertop without a basin | Not from the map: §12 names Rectangular, Strip, Cover, Prisma and Quadra. Added on request; integrated basins are filtered by the shared table 438, and the value reaches every ULH Sink Base as in USH |
+| `VesselColor` | basin | no list — `optionsSource: "configurator:Vessels"` | Added on request with `sinkType`; shown only for a vessel countertop |
 
 Widths and depths (§3) are not in the profile: they are rows of the cabinet table, not product semantics.
 
@@ -49,8 +51,15 @@ Solid-Surface is not narrowed: the map names Gloss White / Matte White, and conf
 
 The 59 models of the master file (§10) with their titles, size buckets and style tags; `Open Shelf` and
 `Open Shelving` are one tag, and `Multi-level` was added to the style filter. Every model has its picture in
-`images/`, checked against the SHA-256 in its Threekit URL. The composition of each model is empty: the map has no
-BOM (§15.7), so choosing a model builds nothing yet.
+`images/`, checked against the SHA-256 in its Threekit URL.
+
+Compositions come from `URBAN_LOW_HEIGHT_MODEL_PRESET_MODULES` (team, 25.09.2026; the map itself has no BOM, §15.7):
+Sink Base, Side Cabinet and Open Shelf modules left to right, the price-list inches in centimetres (§3: 9.8″ → 25 …
+47.2″ → 120). Every module stands at 38 cm with the upper groove (`handle_urban_topcut`) and 46 cm deep — the first
+height and handle of the profile, and the depth the scene lays out — until the product names each model's height and
+handle; cabinets carry the one drawer (`1D`). The six Multi-Level models hang at two wall heights, which the scene
+cannot place yet, so they keep no composition. The `open_shelving` and `asymmetrical` tags now follow the compositions
+(ids 13, 15, 22, 26, 32, 41, 59 corrected).
 
 ## Configurator 4 against the map
 
@@ -78,7 +87,7 @@ Listed in `excludedFromThisProfile` with the section numbers:
 
 | Owner | What is needed |
 |---|---|
-| Product | Approved `defaults` (the profile ships `{}`); model BOMs for the 59 sets (§15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
+| Product | Approved `defaults` (the profile ships `{}`); the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
 | Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
 | B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
 | I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. |

@@ -7,7 +7,7 @@
   "provenance": {
     "source": "analysis/products-data/Urban Low Height/docs/URBAN-LOW-HEIGHT-PRODUCT-MAP-UA.md",
     "auditedAt": "2026-09-09",
-    "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it. Exception, added on request: CountertopStyle takes the Urban Standard Height options."
+    "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it. Exception, added on request: CountertopStyle, sinkType and VesselColor take the Urban Standard Height options."
   },
   "sourceRefs": {
     "configuratorId": 4,
@@ -135,6 +135,245 @@
           "aliases": ["Vessel"]
         }
       ]
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "noneValue": "Vessel",
+      "options": [
+        {
+          "value": "Top_HPLPrisma",
+          "label": "HPL Prisma 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 10
+        },
+        {
+          "value": "Top_HPLQuadra",
+          "label": "HPL Quadra 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 20
+        },
+        {
+          "value": "Top_HPLCover",
+          "label": "HPL Cover 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 30
+        },
+        {
+          "value": "Top_HPLStrip",
+          "label": "HPL Strip 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 40
+        },
+        {
+          "value": "Top_HPL/Fenix_Cover_Gres",
+          "label": "Fenix Cover 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 50
+        },
+        {
+          "value": "Top_HPL/Fenix_Prisma_Gres",
+          "label": "Fenix Prisma 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 60
+        },
+        {
+          "value": "Top_HPL/Fenix_Quadra_Gres",
+          "label": "Fenix Quadra 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 70
+        },
+        {
+          "value": "Top_HPL/Fenix_Strip_Gres",
+          "label": "Fenix Strip 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 80
+        },
+        {
+          "value": "Fenix_Strip_Gres",
+          "label": "Fenix Strip Gres",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 90
+        },
+        {
+          "value": "Top_Glass_Nettuno",
+          "label": "Glass Nettuno",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 100
+        },
+        {
+          "value": "Top_Glass_Ovale",
+          "label": "Glass Ovale",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 110
+        },
+        {
+          "value": "Top_Mineralmarmo_Diamond",
+          "label": "Mineralmarmo Diamond",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 120
+        },
+        {
+          "value": "Top_Ocritech_Oly55",
+          "label": "Ocritech Oly 55",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 130
+        },
+        {
+          "value": "Top_Ocritech_Oly56",
+          "label": "Ocritech Oly 56",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 140
+        },
+        {
+          "value": "Top_Ocritech_Orion",
+          "label": "Ocritech Orion",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 150
+        },
+        {
+          "value": "Top_Ocritech_Quadra",
+          "label": "Ocritech Quadra",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 160
+        },
+        {
+          "value": "Top_Ocritech_Rayo",
+          "label": "Ocritech Rayo",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 170
+        },
+        {
+          "value": "Top_Ocritech_Roll",
+          "label": "Ocritech Roll",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 180
+        },
+        {
+          "value": "Top_Porcelain_Cover",
+          "label": "Porcelain Cover 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 190
+        },
+        {
+          "value": "Top_Porcelain_Prisma",
+          "label": "Porcelain Prisma 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 200
+        },
+        {
+          "value": "Top_Porcelain_Quadra",
+          "label": "Porcelain Quadra 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 210
+        },
+        {
+          "value": "Top_Porcelain_Strip",
+          "label": "Porcelain Strip 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 220
+        },
+        {
+          "value": "Top_Tekorlux_Syntesi",
+          "label": "Syntesi 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 230
+        },
+        {
+          "value": "Top_Tekorlux_Quadra",
+          "label": "Tekorlux Quadra 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 240
+        },
+        {
+          "value": "Top_Tekorlux_Rectangular",
+          "label": "Tekorlux Rectangular 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 250
+        },
+        {
+          "value": "Top_Tekorlux_Ron",
+          "label": "Tekorlux Ron 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 260
+        },
+        {
+          "value": "Top_Tekorlux_Trip",
+          "label": "Tekorlux Trip 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 270
+        },
+        {
+          "value": "Top_Tekormud_Tivi",
+          "label": "Tekormud TIVI",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 280
+        },
+        { "value": "Vessel_Blade11", "label": "Vessel Blade 11", "kind": "vessel", "category": "vessel", "order": 290 },
+        { "value": "Vessel_Blade18", "label": "Vessel Blade 18", "kind": "vessel", "category": "vessel", "order": 300 },
+        {
+          "value": "Vessel_UrbanModo",
+          "label": "Vessel Urban Modo",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 310
+        },
+        {
+          "value": "Vessel_UrbanMorris",
+          "label": "Vessel Urban Morris",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 350
+        },
+        {
+          "value": "Vessel_Aquarius",
+          "label": "Vessel Acquarius",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 360
+        },
+        {
+          "value": "Vessel",
+          "label": "None",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 285,
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen: the scene placeholder the Urban Standard Height countertop step sends as None"
+        }
+      ]
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Vessels"
     }
   ],
   "ruleData": {
@@ -193,7 +432,7 @@
     "handleHeightCoupling": "Confirmed: Upper Groove gives 38/28 cm, Push-to-Open gives 35/25 cm (§2). Table 580 lists it (handle_urban_topcut_heights_cm, handle_pto_heights_cm), but the cabinet catalog does not read those columns yet.",
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
-    "basinAndCountertopOptions": "Basin styles and countertop thickness are known as display names only; scene tokens and rules are not confirmed (§11, §12). Table 438 has no Urban Low Height basins.",
+    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438; thickness is still not offered.",
     "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
     "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",

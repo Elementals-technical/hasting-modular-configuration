@@ -6,7 +6,7 @@ import urbanLowHeightManifest from "../../../../public/collections/urban-low-hei
 
 import type { ConfiguratorGroupCatalog } from "../model/types";
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { selectOptionValues } from "../lib/productProfileSelectors";
+import { selectOptions, selectOptionValues } from "../lib/productProfileSelectors";
 import { flutingRule } from "@/features/configurator-rule-core/options/rules/flutingRule";
 import { resolveColorTraits } from "@/features/configurationCommands/lib/resolveColorTraits";
 
@@ -97,6 +97,25 @@ describe("urban-low-height product profile", () => {
       ["integrated", "Integrated"],
       ["vessel", "Vessel"],
     ]);
+  });
+
+  it("offers the basins and vessel colours Urban Standard Height shows, without its hidden legacy vessels", () => {
+    const basins = selectOptions(profile(), "sinkType");
+    const basin = profile().attributes.find(({ attributeId }) => attributeId === "sinkType");
+    const vesselColor = profile().attributes.find(({ attributeId }) => attributeId === "VesselColor");
+
+    expect(basin?.noneValue).toBe("Vessel");
+    expect(basins.filter(({ category }) => category === "integrated")).toHaveLength(28);
+    // None (the scene's "Vessel" cutout) comes first, as the Urban Standard Height countertop step shows it.
+    expect(basins.filter(({ category }) => category === "vessel").map(({ value, label }) => [value, label])).toEqual([
+      ["Vessel", "None"],
+      ["Vessel_Blade11", "Vessel Blade 11"],
+      ["Vessel_Blade18", "Vessel Blade 18"],
+      ["Vessel_UrbanModo", "Vessel Urban Modo"],
+      ["Vessel_UrbanMorris", "Vessel Urban Morris"],
+      ["Vessel_Aquarius", "Vessel Acquarius"],
+    ]);
+    expect(vesselColor?.optionsSource).toBe("configurator:Vessels");
   });
 
   it("inherits no Urban Standard Height value", () => {

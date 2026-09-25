@@ -120,13 +120,32 @@
     },
     {
       "attributeId": "sinkType",
-      "status": "state-only",
-      "reason": "The ULH Sink Base places the scene's default basin; the Low Height basin tokens are not confirmed (profile excludedFromThisProfile.basinAndCountertopOptions). Recorded only, so a basin carried over from another collection never reaches the scene."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "ULH-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "sinkType",
+        "emptyValue": "Vessel"
+      },
+      "order": 40,
+      "note": "The Urban Standard Height basins, sent to every ULH Sink Base as Urban Standard Height sends them to its Sink-Base: the ULH-sink-cabinet swaps its basin sub-product on sinkType (RuleChangeSinkType). \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
     },
     {
       "attributeId": "VesselColor",
-      "status": "state-only",
-      "reason": "No Low Height vessel is confirmed; the vessel colour is recorded only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "ULH-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor"
+      },
+      "order": 60,
+      "note": "The scene paints a vessel basin in VesselColor (ChangeSlinkColor); \"\" clears it, as in Urban Standard Height."
     },
     {
       "attributeId": "CountertopStyle",

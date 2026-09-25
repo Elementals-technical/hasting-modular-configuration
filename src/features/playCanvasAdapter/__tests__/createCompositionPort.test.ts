@@ -216,7 +216,7 @@ describe("createCompositionPort", () => {
     ]);
   });
 
-  it("places an Urban Low Height cabinet beside another as the ULH scene product, without a basin", async () => {
+  it("places an Urban Low Height cabinet beside another as the ULH scene product, with its basin", async () => {
     const { port, calls } = createPort(undefined, ulhRuntimeBindings);
 
     const result = await port.add(
@@ -228,7 +228,7 @@ describe("createCompositionPort", () => {
           Depth: 46,
           Handle: "handle_pto",
           Drawers: "1",
-          sinkType: "Vessel_Round",
+          sinkType: "Top_HPLPrisma",
           HandleGrooveColor: "Black",
         },
       },
@@ -247,6 +247,7 @@ describe("createCompositionPort", () => {
           Depth: 46,
           Handle: "handle_pto",
           Drawers: "1D",
+          sinkType: "Top_HPLPrisma",
           ProductType: "ULH-sink-cabinet",
           productType: "ULH-sink-cabinet",
         },
