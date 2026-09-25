@@ -131,7 +131,7 @@
     {
       "attributeId": "CountertopStyle",
       "status": "state-only",
-      "reason": "The scene export has no CountertopStyle key; recorded for the countertop rules only."
+      "reason": "Integrated or vessel, as in Urban Standard Height. The scene export has no CountertopStyle key; recorded for the countertop rules and the cabinet pictures only."
     },
     {
       "attributeId": "DrawerPanelFluting",

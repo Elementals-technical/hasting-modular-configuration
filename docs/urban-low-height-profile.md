@@ -7,7 +7,8 @@
 The map grades every fact as confirmed, inherited, inferred or undescribed. **Only the confirmed ones
 are in the profile.** Nothing was copied from Urban Standard Height: where Low Height has no confirmed
 rule, the profile simply does not declare it, and the collection behaves as a collection without that
-capability rather than as USH.
+capability rather than as USH. One exception, added on request: `CountertopStyle` takes the Urban Standard Height
+options and pictures, although the map does not describe the choice.
 
 ## What the profile declares
 
@@ -20,6 +21,7 @@ capability rather than as USH.
 | `DrawerPanelFluting` | cabinet | `None`, `Vertical A`, `Vertical B`, `Horizontal A`, `Horizontal B`, aliased to `X`, `CVA`, `CVB`, `CHA`, `CHB` | §4 |
 | `CabinetColor` | global | no list — `optionsSource: "configurator:Cabinet Color"` | §5; the 232 values come from configurator 4 |
 | `CountertopColor` | countertop | no list — `optionsSource: "configurator:Countertop Color"` | §11; the 61 values come from the same source |
+| `CountertopStyle` | countertop | `integrated`, `vessel` — the options and pictures of Urban Standard Height | Not from the map: §11 lists Integrated/Vessel/Undermount as not described. Added on request; recorded only, the scene has no key for it |
 
 Widths and depths (§3) are not in the profile: they are rows of the cabinet table, not product semantics.
 

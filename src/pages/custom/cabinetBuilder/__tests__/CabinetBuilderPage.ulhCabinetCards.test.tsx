@@ -22,6 +22,7 @@ import {
   setActiveCabinetType,
   setActiveProfile,
   setCabinetCatalog,
+  setCountertopStyle,
   setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
@@ -34,7 +35,7 @@ import { CabinetBuilderPage } from "../CabinetBuilderPage";
  * go beside it, as a placed Side Cabinet does.
  *
  * Its cards show the handle the height stands for (product map §2): the upper groove at 38 and
- * 28 cm, push-to-open at 35 and 25 cm.
+ * 28 cm, push-to-open at 35 and 25 cm. The Sink Base drawer card also shows the countertop style.
  */
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => false }));
@@ -126,11 +127,20 @@ describe("Urban Low Height cabinet pictures", () => {
     expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/side-cabinet-pto.png`);
   });
 
-  it("shows the Sink Base on the drawer card once Sink Base is chosen", () => {
+  it("shows the integrated Sink Base on the drawer card once Sink Base is chosen", () => {
     store.dispatch(setActiveCabinetType("Sink-Base"));
     store.dispatch(setSelectedDimensions({ height: 38 }));
     renderBuilder();
 
-    expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/sink-base-upper-groove.png`);
+    expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/sink-base-integrated.png`);
+  });
+
+  it("shows the vessel Sink Base on the drawer card with a vessel countertop", () => {
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    store.dispatch(setSelectedDimensions({ height: 38 }));
+    store.dispatch(setCountertopStyle("vessel"));
+    renderBuilder();
+
+    expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/sink-base-vessel.png`);
   });
 });

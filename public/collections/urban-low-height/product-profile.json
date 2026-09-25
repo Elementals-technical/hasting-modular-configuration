@@ -7,7 +7,7 @@
   "provenance": {
     "source": "analysis/products-data/Urban Low Height/docs/URBAN-LOW-HEIGHT-PRODUCT-MAP-UA.md",
     "auditedAt": "2026-09-09",
-    "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it."
+    "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it. Exception, added on request: CountertopStyle takes the Urban Standard Height options."
   },
   "sourceRefs": {
     "configuratorId": 4,
@@ -117,6 +117,24 @@
       "attributeId": "CountertopColor",
       "scope": "countertop",
       "optionsSource": "configurator:Countertop Color"
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "integrated",
+          "label": "Integrated",
+          "order": 10,
+          "aliases": ["Integrated"]
+        },
+        {
+          "value": "vessel",
+          "label": "Vessel",
+          "order": 20,
+          "aliases": ["Vessel"]
+        }
+      ]
     }
   ],
   "ruleData": {

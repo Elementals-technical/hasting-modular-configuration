@@ -9,6 +9,10 @@
     },
     "Drawers": {
       "1": "images/cabinet/side-cabinet-upper-groove.png"
+    },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
     }
   },
   "optionImageVariants": {
@@ -29,7 +33,12 @@
         "when": { "CabinetType": "Sink-Base", "Height": "25" },
         "image": "images/cabinet/sink-base-pto.png"
       },
-      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-upper-groove.png" },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "CountertopStyle": "vessel" },
+        "image": "images/cabinet/sink-base-vessel.png"
+      },
+      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-integrated.png" },
       { "value": "1", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
       { "value": "1", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
     ]
@@ -97,7 +106,7 @@
     "countertop": {
       "label": "Countertop",
       "kind": "fields",
-      "sectionIds": ["countertop-color"]
+      "sectionIds": ["countertop-color", "countertop-style"]
     },
     "summary": {
       "label": "Summary",
@@ -153,6 +162,15 @@
           "attributeId": "CountertopColor",
           "control": "colors",
           "optionsRef": "CountertopColor"
+        }
+      ]
+    },
+    "countertop-style": {
+      "label": "Countertop Style",
+      "fields": [
+        {
+          "attributeId": "CountertopStyle",
+          "control": "options-grid"
         }
       ]
     }

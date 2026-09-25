@@ -89,6 +89,16 @@ describe("urban-low-height product profile", () => {
     ]);
   });
 
+  it("offers the Urban Standard Height countertop styles, which the product map does not describe (§11)", () => {
+    const style = profile().attributes.find(({ attributeId }) => attributeId === "CountertopStyle");
+
+    expect(style?.scope).toBe("countertop");
+    expect(style?.options?.map(({ value, label }) => [value, label])).toEqual([
+      ["integrated", "Integrated"],
+      ["vessel", "Vessel"],
+    ]);
+  });
+
   it("inherits no Urban Standard Height value", () => {
     const document = JSON.stringify(urbanLowHeightProfileDocument);
 
