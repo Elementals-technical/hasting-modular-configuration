@@ -14,7 +14,9 @@
     "countertopMatrixTableId": 438,
     "cabinetMatrixTableId": 580
   },
-  "defaults": {},
+  "defaults": {
+    "CountertopColor": "Pietra Di Savoia Antracite TQ6"
+  },
   "attributes": [
     {
       "attributeId": "CabinetType",

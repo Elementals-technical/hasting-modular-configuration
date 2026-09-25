@@ -15,8 +15,10 @@ import {
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import {
+  findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
   normalizeBasinKey,
+  selectMaterialAliasTable,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
@@ -73,25 +75,28 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
 // a vessel is.
 const resolveBasinAvailability = (
   profile: ProductProfile | null,
-  { matchingRules, allowedBasinKeys, vesselSinkAvailability }: CountertopRuleState,
+  { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
   countertopStyle: string | null | undefined,
 ): FieldAvailability => {
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
   const noneValue = selectAttribute(profile, "sinkType")?.noneValue;
-  const materialBasinKeys = new Set(matchingRules.map(({ basinStyle }) => normalizeBasinKey(basinStyle)));
+  const aliasTable = selectMaterialAliasTable(profile);
   const basins = selectOptions(profile, "sinkType");
   const valuesWhere = (predicate: (basin: (typeof basins)[number]) => boolean) =>
     basins.filter(predicate).map(({ value }) => value);
+  // The matrix names a basin by its label, as the USH countertop step reads it ("HPL Cover 50").
+  const rowsOf = ({ value, label }: (typeof basins)[number]) =>
+    findIntegratedBasinRules({ name: value, title: label }, matchingRules, activeMaterialTokens, aliasTable);
 
   return {
     available: true,
-    visibleValues: valuesWhere(({ value, category }) =>
-      category === "vessel" ? isVesselStyle : !isVesselStyle && materialBasinKeys.has(normalizeBasinKey(value)),
+    visibleValues: valuesWhere((basin) =>
+      basin.category === "vessel" ? isVesselStyle : !isVesselStyle && rowsOf(basin).length > 0,
     ),
-    allowedValues: valuesWhere(({ value, category }) =>
-      category === "vessel"
-        ? isVesselStyle && (value === noneValue || vesselSinkAvailability.isAvailable)
-        : !isVesselStyle && allowedBasinKeys.has(normalizeBasinKey(value)),
+    allowedValues: valuesWhere((basin) =>
+      basin.category === "vessel"
+        ? isVesselStyle && (basin.value === noneValue || vesselSinkAvailability.isAvailable)
+        : !isVesselStyle && rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),
     ),
     reasonCode: "change.notAvailable",
     valueWhenEmpty: isVesselStyle ? noneValue : undefined,

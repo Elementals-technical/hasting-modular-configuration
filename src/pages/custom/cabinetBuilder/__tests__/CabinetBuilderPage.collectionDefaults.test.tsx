@@ -8,8 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import makoManifestDocument from "../../../../../public/collections/mako/manifest.json";
 import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
 import makoUiDocument from "../../../../../public/collections/mako/ui.json";
+import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 import { store } from "@/app/store";
-import { ReadyCollectionContext, presetsSchema } from "@/entities/collection";
+import { parseProductProfile, ReadyCollectionContext, presetsSchema } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
@@ -25,7 +26,13 @@ import {
   getHandleGrooveColor,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
-import { reset, setActiveProfile, setCabinetColor, setHandleGrooveColor } from "@/entities/product/model/store/slice";
+import {
+  replaceCollectionData,
+  reset,
+  setActiveProfile,
+  setCabinetColor,
+  setHandleGrooveColor,
+} from "@/entities/product/model/store/slice";
 
 import { CabinetBuilderPage } from "../CabinetBuilderPage";
 
@@ -48,6 +55,10 @@ vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
 }));
 
 const makoCollection = buildReadyCollection("mako", makoManifestDocument, makoUiDocument);
+
+const parsedUlhProfile = parseProductProfile(ulhProfileDocument);
+if (!parsedUlhProfile.ok) throw new Error("Urban Low Height profile must parse");
+const ulhProfile = parsedUlhProfile.profile;
 const [makoModel] = presetsSchema.parse(makoPresetsDocument);
 
 const renderEmptyBuilder = async () => {
@@ -106,6 +117,19 @@ describe("CabinetBuilderPage starting values", () => {
       CabinetColor: "Pulpis Chiaro TKH",
       CountertopColor: "Cacao Orinoco FF MT",
       sinkType: "Top_Tekorlux_Rectangular",
+    });
+  });
+
+  it("starts an Urban Low Height builder with the countertop colour its scene draws", async () => {
+    // Switched as CollectionStateBridge switches a collection: every option at its profile default.
+    store.dispatch(replaceCollectionData({ profile: ulhProfile, cabinetCatalog: null }));
+
+    // Top_Solid carries Pietra Di Savoia Antracite TQ6; the ULH cabinet material (Antracite Matte OCF)
+    // is no colour of configurator 4, so the cabinet colour stays unchosen.
+    expect(await renderEmptyBuilder()).toEqual({
+      CabinetColor: "",
+      CountertopColor: "Pietra Di Savoia Antracite TQ6",
+      sinkType: "",
     });
   });
 
