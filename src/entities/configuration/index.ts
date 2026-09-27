@@ -19,6 +19,7 @@ export type {
   ValueTarget,
 } from "./model/types";
 export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget, parseTarget } from "./model/types";
+export { compositionValueOf } from "./model/compositionValue";
 
 // runtimePort — owned by I: the typed boundary between C and the scene.
 export type {
@@ -101,6 +102,7 @@ export {
   getActiveRuntimeBindings,
   getAttributeValue,
   getCabinetByStableKey,
+  getCompositionValues,
   getCabinetDimensions,
   getCabinetDimensionsByRuntimeId,
   getDimensionsByCabinet,

@@ -78,6 +78,24 @@ describe("changes the product has not decided", () => {
     expect(await result).toMatchObject({ status: "blocked", compatibility: "undetermined" });
   });
 
+  it("let the legs be switched off on a one-drawer cabinet, since clearing needs no product data", async () => {
+    const [oneDrawer] = open("mako", makoProfile);
+    store.dispatch(setPlacedCabinetStyle({ id: RUNTIME_IDS[0], value: "1D" }));
+
+    const { result } = run({ attributeId: "LegColor", value: "", scope: "cabinet", cabinetId: oneDrawer });
+    expect((await result).status).toBe("applied");
+    expect(getAttributeValue(store.getState(), "LegColor", { scope: "cabinet", cabinetId: oneDrawer })).toBe("");
+  });
+
+  it("block the legs in the cabinet colour on a one-drawer cabinet, as any other leg colour", async () => {
+    const [oneDrawer] = open("mako", makoProfile);
+    store.dispatch(setPlacedCabinetStyle({ id: RUNTIME_IDS[0], value: "1D" }));
+
+    const { runtime, result } = run({ attributeId: "LegColor", value: "None", scope: "cabinet", cabinetId: oneDrawer });
+    expect(await result).toMatchObject({ status: "blocked", compatibility: "undetermined" });
+    expect(runtime.calls).toEqual([]);
+  });
+
   it("let a change through when the cabinet's drawers are unknown or the collection declares no such case", async () => {
     const [cabinet] = open("mako", makoProfile);
     expect((await run({ attributeId: "LegColor", value: "Gold", scope: "cabinet", cabinetId: cabinet }).result).status).toBe(

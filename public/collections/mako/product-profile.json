@@ -114,6 +114,8 @@
     {
       "attributeId": "LegColor",
       "scope": "cabinet",
+      "defaultValue": "None",
+      "resetValue": "",
       "optionsSource": "configurator:Select Leg Color"
     },
     {

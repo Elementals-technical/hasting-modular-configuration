@@ -67,7 +67,16 @@ const toProductOptionData = (option: FieldOptionState, index: number): ProductOp
 
 export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitle }: ColorFieldProps) => {
   const [selectedFilter, setSelectedFilter] = useState<MaterialFilterSelection>({});
-  const options = useMemo(() => field.options.map(toProductOptionData), [field.options]);
+  // An option of no material group is no colour of the catalog but one the profile adds ("None"):
+  // it comes first, outside the groups, the filters and the full mode.
+  const leadingOptions = useMemo(
+    () => field.options.filter((option) => !option.desc).map(toProductOptionData),
+    [field.options],
+  );
+  const options = useMemo(
+    () => field.options.filter((option) => option.desc).map(toProductOptionData),
+    [field.options],
+  );
   const profile = useAppSelector(getActiveProductProfile);
   const materialHierarchy = useMemo(() => selectMaterialHierarchy(profile), [profile]);
   const filters = useMemo(
@@ -124,6 +133,9 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
           </BaseButton>
         )}
       </FilterRow>
+      {leadingOptions.length > 0 && (
+        <ProductOptionsGrid data={leadingOptions} handleAdd={onChange} activeValue={activeValue} />
+      )}
       <ProductOptionsGrid data={visibleOptions} handleAdd={onChange} activeValue={activeValue} groupByDesc />
     </>
   );

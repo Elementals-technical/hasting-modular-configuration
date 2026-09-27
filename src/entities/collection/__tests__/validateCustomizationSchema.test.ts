@@ -271,6 +271,27 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  it("rejects a field switch without the text above it", () => {
+    const broken = {
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", toggle: { label: "" } }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.faucet-holes-amount.fields[0].toggle" }),
+    );
+  });
+
   it("rejects a section label for the vessel style that is not a string", () => {
     const broken = {
       ...uiJson,

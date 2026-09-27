@@ -1,0 +1,49 @@
+.field {
+  margin-bottom: 20px;
+}
+
+.label {
+  margin: 0 0 8px;
+
+  color: #6b6b6b;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+// Two sides in one rounded frame; the chosen side is filled, as the model mode switcher fills its tab.
+.toggle {
+  display: flex;
+  width: 100%;
+  padding: 2px;
+  box-sizing: border-box;
+
+  border: 1px solid var(--border-main-color);
+  border-radius: 999px;
+  background-color: #fff;
+}
+
+.side {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px 12px;
+
+  border: none;
+  border-radius: 999px;
+  background-color: transparent;
+
+  color: var(--text-color-base);
+  font-family: var(--font-family-base);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+
+  cursor: pointer;
+  transition: background-color 0.1s linear;
+
+  &.chosen {
+    background-color: #f1ebe6;
+    cursor: default;
+  }
+}

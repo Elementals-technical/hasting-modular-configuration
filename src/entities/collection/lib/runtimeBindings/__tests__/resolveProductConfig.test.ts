@@ -70,6 +70,16 @@ describe("resolveProductConfig", () => {
     });
   });
 
+  it("keeps a Mako cabinet copied from a scene config without legs once its legs were removed", () => {
+    // The config the scene holds after the legs were removed: a copy of the cabinet takes it as it is.
+    expect(resolveProductConfig(makoRuntimeBindings, { Drawers: "2", ShowLegs: "Disable", LegColor: "" })).toEqual({
+      Drawers: "2D",
+      Height: 52,
+      ShowLegs: "Disable",
+      LegColor: "",
+    });
+  });
+
   it("sends nothing the collection only records or does not bind", () => {
     expect(
       resolveProductConfig(makoRuntimeBindings, {

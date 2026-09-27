@@ -61,6 +61,17 @@ describe.each(collections)("%s ui.json", (...documents) => {
       }
     }
   });
+
+  it("switches a field On and Off only between values its profile declares", () => {
+    for (const [sectionId, section] of Object.entries(schema.sections)) {
+      for (const { attributeId, toggle } of section.fields) {
+        if (!toggle) continue;
+        const attribute = selectAttribute(profile, attributeId);
+        expect(attribute?.defaultValue, `${sectionId}.${attributeId} has no value for On`).toBeDefined();
+        expect(attribute?.resetValue, `${sectionId}.${attributeId} has no value for Off`).toBeDefined();
+      }
+    }
+  });
 });
 
 describe("Class and Mako UI descriptions", () => {

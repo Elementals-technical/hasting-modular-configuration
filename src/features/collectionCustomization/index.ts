@@ -18,6 +18,7 @@ export { useOptionImages } from "./lib/useOptionImages";
 export { resolveOptionImage, useOptionImageVariants } from "./lib/optionImageVariants";
 export type { OptionImageContext } from "./lib/optionImageVariants";
 export { ColorField } from "./ui/ColorField";
+export { FieldToggle } from "./ui/FieldToggle";
 export { ReasonTextProvider } from "./ui/ReasonTextProvider";
 export type {
   CustomizationSchemaDiagnostic,

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { hasCapability, selectAttribute, selectOptions, useActiveCollection } from "@/entities/collection";
-import { getActiveProductProfile } from "@/entities/configuration";
+import { getActiveProductProfile, getCabinetEntries, getCompositionValues } from "@/entities/configuration";
 import {
   selectBookMatchingState,
   selectFlutingState,
@@ -14,6 +14,7 @@ import {
   getSelectedProductConfig,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
+import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
 import {
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
@@ -117,6 +118,17 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
   const presetHandle = useAppSelector((state) => getProductsPresets(state)[0]?.Handle);
   const countertopRuleState = useCountertopRuleState();
   const allowedFaucetHoles = useAllowedFaucetHoles(countertopRuleState.allowedFaucetHoles);
+  // The leg colour a field sets at the first cabinet, unless the product decided none there (a
+  // one-drawer Mako cabinet, MAKO-LEG-002): the command would refuse every value but Off.
+  const legColorDetermined = useAppSelector((state) => {
+    const activeProfile = getActiveProductProfile(state);
+    const cabinetId = getCabinetEntries(state)[0]?.stableKey;
+    return (
+      !activeProfile ||
+      !cabinetId ||
+      !isUndeterminedAt(state, activeProfile, "LegColor", { scope: "cabinet", cabinetId })
+    );
+  });
 
   const handle = selectedHandle ?? presetHandle;
   const supportsGrooveColor = hasCapability(
@@ -148,6 +160,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       },
       "TowelBarColor.available": { available: hasTowelBar, visible: hasTowelBar },
       "DividersStyle.available": { available: isCustomizingDividers, visible: isCustomizingDividers },
+      "LegColor.determined": { available: legColorDetermined, visible: legColorDetermined },
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
       "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
@@ -165,6 +178,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       hasTowelBar,
       isCustomizingDividers,
       isVesselStyle,
+      legColorDetermined,
       profile,
       sidePanels,
       supportsGrooveColor,
@@ -177,13 +191,17 @@ const useSectionInputs = () => {
   const configurator = useActiveCollection((collection) => collection.catalog.configurator);
   const profile = useAppSelector(getActiveProductProfile);
   const productOptions = useAppSelector((state) => state.rootStateUI.product.productOptions);
+  const compositionValues = useAppSelector(getCompositionValues);
+  // An attribute that left the typed options (Mako's leg and handle colours, Class's side and frame
+  // colours) is shown as the composition holds it; the typed options keep their own values.
+  const values = useMemo(() => ({ ...compositionValues, ...productOptions }), [compositionValues, productOptions]);
   const availabilityResults = useFieldAvailabilityResults();
 
-  return { schema, configurator, profile, productOptions, availabilityResults };
+  return { schema, configurator, profile, values, availabilityResults };
 };
 
 export const useCustomizationStepSections = (stepId: string): ResolvedCustomizationSection[] => {
-  const { schema, configurator, profile, productOptions, availabilityResults } = useSectionInputs();
+  const { schema, configurator, profile, values, availabilityResults } = useSectionInputs();
 
   return useMemo(
     () =>
@@ -197,10 +215,10 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
             label: section.label,
             ...(section.labelWhenVessel ? { labelWhenVessel: section.labelWhenVessel } : {}),
             defaultOpen: section.defaultOpen ?? false,
-            fields: resolveSectionFields(schema, sectionId, profile, productOptions, availabilityResults, configurator),
+            fields: resolveSectionFields(schema, sectionId, profile, values, availabilityResults, configurator),
           },
         ];
       }),
-    [availabilityResults, configurator, productOptions, profile, schema, stepId],
+    [availabilityResults, configurator, values, profile, schema, stepId],
   );
 };

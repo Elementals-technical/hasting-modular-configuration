@@ -52,6 +52,11 @@ export type CustomizationFieldDefinition = {
   availabilityRef?: string;
   /** Text under the control, keyed by the selected option value. */
   hints?: Record<string, string>;
+  /**
+   * An On / Off switch above the control, under its `label`: On sets the attribute's profile
+   * `defaultValue`, Off its `resetValue` (Mako legs: in the cabinet colour / none).
+   */
+  toggle?: { label: string };
 };
 
 export type CustomizationSectionDefinition = {
@@ -134,10 +139,20 @@ export type FieldOptionState = OptionState<string> & {
   traits?: FieldOptionTraits;
 };
 
+/** The On / Off switch of a field that declares `toggle`, and the values each side sets. */
+export type FieldToggleState = {
+  /** The text above the switch, as ui.json declares it. */
+  label: string;
+  on: boolean;
+  onValue: string;
+  offValue: string;
+};
+
 export type FieldRuntimeState = {
   attributeId: string;
   value: AttributeValue;
   options: FieldOptionState[];
+  toggle?: FieldToggleState;
   visible: boolean;
   enabled: boolean;
   disabledReason?: string;

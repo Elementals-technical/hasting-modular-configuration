@@ -1,6 +1,12 @@
 import { resolveCabinetTypeOfRuntimeId, selectOption } from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
-import { isSameTarget, type CabinetEntry, type ScopedValue, type ValueTarget } from "@/entities/configuration";
+import {
+  compositionValueOf,
+  isSameTarget,
+  type CabinetEntry,
+  type ScopedValue,
+  type ValueTarget,
+} from "@/entities/configuration";
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
@@ -33,15 +39,6 @@ const asText = (value: ScopedValue["value"] | undefined): string | null =>
 
 const valueAt = (values: Values, attributeId: string, target: ValueTarget): string | null =>
   asText(values[attributeId]?.find((entry) => isSameTarget(entry.target, target))?.value);
-
-/** The first value an attribute holds at any address: what the whole composition shares. */
-const anyValue = (values: Values, attributeId: string): string | null => {
-  for (const { value } of values[attributeId] ?? []) {
-    const text = asText(value);
-    if (text) return text;
-  }
-  return null;
-};
 
 type InputGap = { owner: string; reason: (attributeId: string) => string };
 
@@ -188,10 +185,11 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     });
   }
 
-  // 3) Legs: the collection's own number of them, in their colour or the cabinet's.
+  // 3) Legs: the collection's own number of them, in their colour or the cabinet's, as the whole
+  // composition holds the leg colour.
   const legs = skuProfile.legs;
   if (legs) {
-    const legColor = anyValue(values, "LegColor");
+    const legColor = asText(compositionValueOf(values.LegColor, cabinets[0]?.stableKey));
     const takesCabinetColor = legColor !== null && legColor === legs.cabinetColorValue;
     const legsSku = buildCollectionLegsSku(skuProfile, profile, {
       color: takesCabinetColor ? (globalValue("CabinetColor") ?? startingCabinetColor) : legColor,

@@ -256,6 +256,32 @@ describe("Class and Mako order lines", () => {
     expect(lines.some(({ group }) => group === "legs")).toBe(false);
   });
 
+  it("prices the legs a field sets at the first cabinet over the model's on the other cabinets", () => {
+    const first: ValueTarget = { scope: "cabinet", cabinetId: "mko-first" };
+    const second: ValueTarget = { scope: "cabinet", cabinetId: "mko-second" };
+    // A model on legs records them at each cabinet; the Leg Color field records its choice at the first.
+    const withLegColor = (legColor: string) =>
+      collectionPricingInput(
+        MAKO,
+        [
+          { stableKey: "mko-first", runtimeId: "Sink-Base-eee555", size: { width: 60, height: 52, depth: 52 } },
+          { stableKey: "mko-second", runtimeId: "Sink-Cabinet-fff666", size: { width: 40, height: 52, depth: 52 } },
+        ],
+        {
+          Drawers: [at(first, "2"), at(second, "2")],
+          Handle: [at(first, "G57"), at(second, "G57")],
+          LegColor: [at(first, legColor), at(second, "None")],
+          CabinetColor: [at({ scope: "global" }, "Antracite 400 MT")],
+        },
+      );
+    const legsLine = (legColor: string) =>
+      buildCollectionPricingLines(withLegColor(legColor)).lines.find(({ group }) => group === "legs");
+
+    // Switching the legs off records no colour: they are removed and not priced.
+    expect(legsLine("")).toBeUndefined();
+    expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+  });
+
   it("prices the cabinet and its legs in the colour the builder starts from until one is chosen", () => {
     if (!modelWithLegs) throw new Error("No Mako model carries legs");
     const input = makoModelInput(modelWithLegs);

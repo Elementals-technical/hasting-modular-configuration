@@ -157,6 +157,7 @@ export type {
   FieldOptionState,
   FieldOptionTraits,
   FieldRuntimeState,
+  FieldToggleState,
   OptionImageVariant,
   OptionImageVariants,
   ValidateCustomizationSchemaResult,
