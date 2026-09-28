@@ -206,6 +206,8 @@
     }
   },
   "countertop": { "pricedAs": "urban-standard-height" },
+  "towelBar": { "pricedAs": "urban-standard-height" },
+  "sidePanel": { "pricedAs": "urban-standard-height" },
   "dividers": {},
   "gaps": [
     {
@@ -220,20 +222,6 @@
       "blocksTotal": true,
       "owner": "D, I",
       "reason": "Open Side Shelf (VAN-UROSS-L|R-…) carries its side, which no attribute holds, and the scene has no Urban Low Height Open Side Shelf yet."
-    },
-    {
-      "group": "sidePanel",
-      "blocksTotal": true,
-      "owner": "product, D",
-      "reason": "Side panels reuse the Urban Standard Height SKUs, which exist only for its heights (19.7, 20.9, 22 in), not for 38/35/28/25 cm; pricing from a SKU profile has no side panel line yet.",
-      "appliesWhen": { "attributeId": "SidePanels", "values": ["NoG", "UpperG"] }
-    },
-    {
-      "group": "towelBar",
-      "blocksTotal": true,
-      "owner": "D",
-      "reason": "The towel bar reuses the Urban Standard Height SKU (VAN-URTWLBR-STB/L|R-15.7W-1.4H-2D, 380 each), but pricing from a SKU profile has no towel bar line yet.",
-      "appliesWhen": { "attributeId": "TowelBarOption", "values": ["Left", "Right", "Both"] }
     }
   ]
 }

@@ -104,6 +104,11 @@ export type CabinetMatrixLegacyAdapter = {
     forcedHeight?: string;
     /** One column of the drawers each handle allows: "handleId:drawers" ("handle_urban_botcut:2"). */
     handleDrawerConfigs?: string;
+    /**
+     * handleId -> column name holding the heights the handle allows, "38|28", for a table whose
+     * handles each allow several heights rather than force one (Urban Low Height).
+     */
+    heightsByHandle?: Record<string, string>;
   };
 };
 

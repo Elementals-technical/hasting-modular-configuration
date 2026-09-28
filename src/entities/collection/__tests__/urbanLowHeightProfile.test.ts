@@ -162,8 +162,15 @@ describe("urban-low-height product profile", () => {
 
   it("records the confirmed limits it cannot express yet", () => {
     expect(Object.keys(urbanLowHeightProfileDocument.excludedFromThisProfile)).toEqual(
-      expect.arrayContaining(["handleHeightCoupling", "openShelfWidthByHeight", "openSideShelfSizes"]),
+      expect.arrayContaining(["openShelfWidthByHeight", "openSideShelfSizes"]),
     );
+  });
+
+  it("gives each handle its heights from the cabinet table: upper groove 38/28 cm, push-to-open 35/25 cm (§2)", () => {
+    expect(profile().ruleData.cabinetMatrixLegacyAdapter.columns.heightsByHandle).toEqual({
+      handle_urban_topcut: "handle_urban_topcut_heights_cm",
+      handle_pto: "handle_pto_heights_cm",
+    });
   });
 });
 

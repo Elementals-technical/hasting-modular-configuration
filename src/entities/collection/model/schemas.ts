@@ -242,8 +242,8 @@ const collectionCountertopSchema = z
   })
   .strict();
 
-/** A countertop that is another collection's and priced as that one's: Urban Low Height's is USH's. */
-const countertopPricedAsSchema = z.object({ pricedAs: z.literal("urban-standard-height") }).strict();
+/** A part that is another collection's and priced as that one's: Urban Low Height's countertop, towel bar and side panels are USH's. */
+const pricedAsSchema = z.object({ pricedAs: z.literal("urban-standard-height") }).strict();
 
 /**
  * How a collection spells its pricing SKUs, for collections whose SKU words are data (D04).
@@ -287,7 +287,11 @@ export const collectionSkuProfileSchema = z
         codeByValue: stringMapSchema,
       })
       .strict(),
-    countertop: z.union([collectionCountertopSchema, countertopPricedAsSchema]),
+    countertop: z.union([collectionCountertopSchema, pricedAsSchema]),
+    /** The towel bar, for a collection that offers one. */
+    towelBar: pricedAsSchema.optional(),
+    /** The side panels, for a collection that offers them. */
+    sidePanel: pricedAsSchema.optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
     /** The legs a composition stands on, for a collection that offers them. */

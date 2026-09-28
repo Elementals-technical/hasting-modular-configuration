@@ -76,6 +76,7 @@ export const buildCabinetCatalogFromMatrix = (
         forcedHeightByHandle: relation?.forcedHeightByHandle ?? {},
         forcedHeightByDrawers: relation?.forcedHeightByDrawers ?? {},
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
+        heightsByHandle: relation?.heightsByHandle ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
       },
     ];

@@ -13,6 +13,9 @@ import {
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
   createConfiguratorColorReader,
+  isChosenColor,
+  resolveCollectionColorCode,
+  resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
@@ -22,10 +25,12 @@ import {
 
 import type { PricingGap, PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
+import { buildUshSidePanelLines } from "./ushSidePanelLines";
+import { buildUshTowelBarLines } from "./ushTowelBarLines";
 
 /**
  * Order lines of a collection priced from its `sku-profile.json` (D04): Class, Mako and Urban Low
- * Height, whose countertop is priced as Urban Standard Height's.
+ * Height, whose countertop, towel bar and side panels are priced as Urban Standard Height's.
  *
  * Read from C's state — cabinets, their sizes and the values addressed to each cabinet, basin
  * and drawer — rather than the scene, which these collections do not have yet (I07). The lines
@@ -120,11 +125,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   // Until a cabinet colour is chosen, the one the builder starts from: the collection's default.
   const startingCabinetColor = asText(input.cabinetColor);
 
-  // 1) Cabinets
-  const missing = new Map<string, CollectionCabinetSkuGap["cause"]>();
-  cabinets.forEach((entry) => {
+  // A value of one cabinet: its own, the configuration's, else what the state holds for them all.
+  const readerOf = (entry: CabinetEntry): CollectionValueReader => {
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
-    const read: CollectionValueReader = (attributeId) => {
+    return (attributeId) => {
       if (attributeId === "CabinetType") return cabinetTypeOf(entry.runtimeId);
       const own = valueAt(values, attributeId, cabinetTarget) ?? globalValue(attributeId);
       if (own) return own;
@@ -134,6 +138,12 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       if (attributeId === "CabinetColor") return startingCabinetColor;
       return null;
     };
+  };
+
+  // 1) Cabinets
+  const missing = new Map<string, CollectionCabinetSkuGap["cause"]>();
+  cabinets.forEach((entry) => {
+    const read = readerOf(entry);
     const size = dimensionsByCabinet[entry.stableKey];
     const cabinetSku = buildCollectionCabinetSku(skuProfile, profile, {
       read,
@@ -254,7 +264,43 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     }
   });
 
-  // 5) What the order uses and the collection has not confirmed.
+  // 5) Towel bar: a collection that reuses Urban Standard Height's orders it as USH does.
+  if (skuProfile.towelBar) {
+    buildUshTowelBarLines({
+      series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
+      towelBarOption: input.towelBarOption,
+      towelBarColor: input.towelBarColor,
+    }).forEach(add);
+  }
+
+  // 6) Side panels: a collection that reuses Urban Standard Height's orders them as USH does, at the
+  // size and in the colours of the first cabinet. A groove without a colour of its own is the cabinet's.
+  if (skuProfile.sidePanel && cabinets.length > 0) {
+    const [first] = cabinets;
+    const read = readerOf(first);
+    const colorSku = (attributeId: string, value: string) => ({
+      materialSku: resolveCollectionColorMaterial(skuProfile, profile, attributeId, value, readConfiguratorColor),
+      colorCode: resolveCollectionColorCode(skuProfile, value),
+    });
+    const cabinetColor = read("CabinetColor");
+    const grooveColor = read("HandleGrooveColor");
+    const size = dimensionsByCabinet[first.stableKey];
+
+    buildUshSidePanelLines({
+      series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
+      panelType: input.sidePanelsOption,
+      sidePanelLeft: input.sidePanelLeft,
+      sidePanelRight: input.sidePanelRight,
+      heightCm: size?.height ?? null,
+      depthCm: size?.depth ?? null,
+      cabinet: cabinetColor ? colorSku("CabinetColor", cabinetColor) : { materialSku: null, colorCode: null },
+      groove: isChosenColor(profile, "HandleGrooveColor", grooveColor)
+        ? colorSku("HandleGrooveColor", grooveColor)
+        : { materialSku: null, colorCode: null },
+    }).forEach(add);
+  }
+
+  // 7) What the order uses and the collection has not confirmed.
   skuProfile.gaps.forEach((gap) => {
     if (gapApplies(gap, values, profile, readConfiguratorColor)) {
       gaps.push({ group: gap.group, blocksTotal: gap.blocksTotal, owner: gap.owner, reason: gap.reason });

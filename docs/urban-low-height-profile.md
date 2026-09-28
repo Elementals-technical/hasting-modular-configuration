@@ -79,7 +79,10 @@ cannot place yet, so they keep no composition. The `open_shelving` and `asymmetr
 
 Listed in `excludedFromThisProfile` with the section numbers:
 
-- **Handle decides the height** — Upper Groove 38/28, Push-to-Open 35/25 (§2). Read from the cabinet table, which has no Low Height rows.
+- **Handle decides the height** — Upper Groove 38/28, Push-to-Open 35/25 (§2). Read from table 580
+  (`cabinetMatrixLegacyAdapter.columns.heightsByHandle` → `handle_urban_topcut_heights_cm`, `handle_pto_heights_cm`):
+  the builder offers only the handle's heights, and a handle change moves the cabinet to the nearest one
+  (38 ↔ 35, 28 ↔ 25). The side panels follow the height, so Push-to-Open leaves no upper groove.
 - **Open Shelf width depends on height** — up to 70 cm at 38/35, up to 120 cm at 28/25 (§3, §6). The table keeps widths and heights as independent lists; this needs split rows or a new rule.
 - **Open Side Shelf sizes** — 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). A table row.
 
@@ -102,8 +105,8 @@ form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
 | Vessel sink | none in the workbook | Gap `vessel`, blocks the total |
 | Open Shelf | `VAN-UROS-1S-{W}W-{H}H-{D}D-CAB-{material}-{code}`, its own series under `cabinet.byCabinetType` | Priced |
 | Open Side Shelf | `VAN-UROSS-{L\|R}-…` | Gap `openSideShelf`: no attribute holds its side, and the scene has no ULH Open Side Shelf |
-| Side panels | USH `URSP` rows exist only for 19.7 / 20.9 / 22 in | Gap `sidePanel` |
-| Towel bar | USH `VAN-URTWLBR-STB/{L\|R}-15.7W-1.4H-2D`, $380 | Gap `towelBar`: no towel bar line in SKU-profile pricing |
+| Side panels | Urban Standard Height's (`sidePanel: { pricedAs: "urban-standard-height" }`, team, 28.09.2026): `VAN-URSP-{0G\|1GU}-.4W-{H}H-{D}D-CAB-{material}-{code}`, an upper-groove panel with `-HDL-…` in the groove colour or the cabinet's, at the first cabinet's height and depth, one per active side | SKU built; USH `URSP` rows exist only for 19.7 / 20.9 / 22 in, so the price the server gives at 15 / 13.8 / 11 / 9.8 in is not checked |
+| Towel bar | Urban Standard Height's (`towelBar: { pricedAs: "urban-standard-height" }`): `VAN-URTWLBR-STB/{L\|R}-15.7W-1.4H-2D-LACM-{code}`, one per side, $380 each | Priced as USH prices it; its fit to the Low Height heights is not confirmed (§13) |
 
 - **Sizes are in inches.** The server takes a centimetre SKU as inches and snaps to the nearest row: `90W-38H-50D`
   answers the 120 cm price.
@@ -132,7 +135,7 @@ form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
 | Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
 | B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
 | I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. **The groove colour in the scene:** `RuleMaterialsCabinetULH` paints `ULH_Cabinet_HGroove` in `CabinetColor`, and `RuleChangeHandleGrooveColor` reaches Urban Standard Height meshes only. Once the export paints the ULH groove from `HandleGrooveColor`, its binding becomes `bound` (identity, `emptyValue: "None"`, as in USH). |
-| D | Open Side Shelf in the cabinet SKU (`VAN-UROSS-L\|R`, its side). Towel bar and side panel lines in SKU-profile pricing. Until then an order with them shows an incomplete price. |
+| D | Open Side Shelf in the cabinet SKU (`VAN-UROSS-L\|R`, its side). With Product: the side panel price at the Low Height heights, which the USH `URSP` rows do not have. |
 
 ## Evidence
 

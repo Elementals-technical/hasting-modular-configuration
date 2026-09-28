@@ -44,12 +44,12 @@ const supportsHeightForAllProducts = (
 
 const constrainHeightOptions = (
   options: OptionState<number>[],
-  requiredHeight: number,
+  allowedHeights: readonly number[],
   reason: string,
   reasonCode: string,
 ): OptionState<number>[] =>
   options.map((option) => {
-    if (option.value === requiredHeight) {
+    if (allowedHeights.includes(option.value)) {
       return option;
     }
 
@@ -184,6 +184,9 @@ export const handleRule = (
     supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
   const handleAllowsDrawers =
     handleForcedHeight === null || (effectiveHandle !== null && isDrawerAllowedFor(effectiveHandle));
+  // A handle may allow several heights instead of forcing one (Urban Low Height: 38/28 or 35/25).
+  const handleHeights = effectiveHandle ? (relations?.heightsByHandle[effectiveHandle] ?? []) : [];
+  const offersHandleHeight = heightOptions.some((option) => option.enabled && handleHeights.includes(option.value));
 
   if (hasForcedHeight && !forcedHeightConflictsLock && handleAllowsDrawers) {
     // The collection's fallback handle applies to every product, so its explanation
@@ -198,9 +201,16 @@ export const handleRule = (
 
     heightOptions = constrainHeightOptions(
       heightOptions,
-      forcedHeight as number,
+      [forcedHeight as number],
       selectMessage(profile, reasonCode),
       reasonCode,
+    );
+  } else if (offersHandleHeight) {
+    heightOptions = constrainHeightOptions(
+      heightOptions,
+      handleHeights,
+      selectMessage(profile, REASON_REQUIRED_HEIGHT),
+      REASON_REQUIRED_HEIGHT,
     );
   }
 

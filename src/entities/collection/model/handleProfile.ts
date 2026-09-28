@@ -25,6 +25,8 @@ export type CabinetHandleRelations = {
   forcedHeightByDrawers: Record<string, number>;
   /** handleId -> drawers values that allow this handle. Empty/absent means "no restriction". */
   requiresDrawersByHandle: Record<string, string[]>;
+  /** handleId -> heights in cm the handle allows. Absent means "any height of the cabinet type". */
+  heightsByHandle: Record<string, number[]>;
 };
 
 export type NormalizedHandleProfile = {

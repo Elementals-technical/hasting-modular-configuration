@@ -1,9 +1,21 @@
 import type { AutoChangeEntry, AutoChangeResult, OptionState, RuleContext, RuleResult } from "../model/types";
 
+type PickFallback<T> = (options: OptionState<T>[], current: T) => OptionState<T> | undefined;
+
+const firstEnabled = <T>(options: OptionState<T>[]): OptionState<T> | undefined =>
+  options.find((option) => option.enabled);
+
+/** The enabled height nearest the current one, so a cabinet moves as little as the rules allow. */
+const nearestEnabled: PickFallback<number> = (options, current) =>
+  options
+    .filter((option) => option.enabled)
+    .sort((left, right) => Math.abs(left.value - current) - Math.abs(right.value - current))[0];
+
 const resolveValue = <T extends string | number>(
   options: OptionState<T>[],
   current: T,
   emptyFallback?: T | null,
+  pickFallback: PickFallback<T> = firstEnabled,
 ): { next: T; changed: boolean } => {
   const currentOption = options.find((option) => option.value === current);
 
@@ -11,7 +23,7 @@ const resolveValue = <T extends string | number>(
     return { next: current, changed: false };
   }
 
-  const fallback = options.find((option) => option.enabled);
+  const fallback = pickFallback(options, current);
 
   if (!fallback) {
     const next = emptyFallback ?? current;
@@ -31,9 +43,9 @@ export const autoChange = (ruleResult: RuleResult, context: RuleContext): AutoCh
     field: AutoChangeEntry["field"],
     current: T,
     options: OptionState<T>[],
-    emptyFallback?: T | null,
+    pickFallback?: PickFallback<T>,
   ): T => {
-    const { next, changed } = resolveValue(options, current, emptyFallback);
+    const { next, changed } = resolveValue(options, current, undefined, pickFallback);
 
     if (changed) {
       autoChanges.push({ field, from: current, to: next });
@@ -44,7 +56,7 @@ export const autoChange = (ruleResult: RuleResult, context: RuleContext): AutoCh
 
   const nextWidth = update("width", selection.width, availableOptions.width);
   const nextDepth = update("depth", selection.depth, availableOptions.depth);
-  const nextHeight = update("height", selection.height, availableOptions.height);
+  const nextHeight = update("height", selection.height, availableOptions.height, nearestEnabled);
 
   let nextDrawers: string | null | undefined = selection.drawers ?? null;
   if (availableOptions.drawers.length === 0) {

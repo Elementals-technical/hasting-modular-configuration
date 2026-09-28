@@ -37,6 +37,13 @@ export const resolveCollectionColorCode = (skuProfile: CollectionSkuProfile, val
     .find((token) => /^\d+$/.test(token)) ??
   null;
 
+/** A colour value that chooses a colour: set, and not the attribute's reset value ("None"). */
+export const isChosenColor = (
+  productProfile: ProductProfile | null,
+  attributeId: string,
+  value: string | null,
+): value is string => Boolean(value) && value !== selectAttribute(productProfile, attributeId)?.resetValue;
+
 /**
  * The material of a colour: the SKU the configurator gives it, else the category of its option
  * in the product profile. A collection declares one or the other, never both.
@@ -115,7 +122,7 @@ export const buildCollectionCabinetSku = (
 
     // A colour not chosen, empty or the reset value ("None"), is spelled with the one it inherits.
     const own = read(attributeId);
-    const isChosen = Boolean(own) && own !== selectAttribute(productProfile, attributeId)?.resetValue;
+    const isChosen = isChosenColor(productProfile, attributeId, own);
     const colorAttributeId = isChosen || !inheritsFrom ? attributeId : inheritsFrom;
     const value = isChosen ? own : inheritsFrom ? read(inheritsFrom) : null;
     if (!value) return [];

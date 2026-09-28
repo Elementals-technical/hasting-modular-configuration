@@ -16,6 +16,8 @@ export type TypeCabinetRuleConfig = {
   forcedHeightByDrawers?: Record<string, number>;
   /** handleId -> drawers values that allow this handle. Absent/empty means no restriction. */
   requiresDrawersByHandle?: Record<string, string[]>;
+  /** handleId -> heights in cm the handle allows. Absent means any height of the type. */
+  heightsByHandle?: Record<string, number[]>;
   supportsHeight?: number[];
 };
 

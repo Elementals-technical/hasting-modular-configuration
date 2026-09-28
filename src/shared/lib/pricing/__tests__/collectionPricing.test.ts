@@ -20,7 +20,7 @@ import { createSkuBuilders } from "@/shared/lib/sku";
 
 import { buildCollectionPricingLines } from "../buildCollectionPricingLines";
 import { resolvePriceFromResponse, resolvePriceRequest } from "../priceRequests";
-import type { PricingLine } from "../types";
+import type { PricingInput, PricingLine } from "../types";
 import {
   at,
   COLLECTION_PRICING_SCENARIOS,
@@ -326,7 +326,11 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
   });
   const countertop: ValueTarget = { scope: "countertop" };
   /** A composition of 60 cm sink bases with the default HPL top configurator 4 keeps, `Ardesia TKF`. */
-  const ulhOrder = (cabinets: ReturnType<typeof sinkBase>[], values: Record<string, ScopedValue[]> = {}) =>
+  const ulhOrder = (
+    cabinets: ReturnType<typeof sinkBase>[],
+    values: Record<string, ScopedValue[]> = {},
+    overrides: Partial<PricingInput> = {},
+  ) =>
     buildCollectionPricingLines(
       collectionPricingInput(
         URBAN_LOW_HEIGHT,
@@ -340,7 +344,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
           CountertopStyle: [at(countertop, "integrated")],
           ...values,
         },
-        { countertopRules, cabinetColor: "Castagno chiaro 1C1" },
+        { countertopRules, cabinetColor: "Castagno chiaro 1C1", ...overrides },
       ),
     );
   const skusOf = (lines: PricingLine[], group: PricingLine["group"]) =>
@@ -394,6 +398,45 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
 
     expect(cabinetSku("Castagno Malto 1C2")).toBe("VAN-URLH-SB/1DW/UG/X-23.6W-15H-18.1D-CAB-3D-1C1-HDL-3D-1C2");
     expect(cabinetSku("")).toBe("VAN-URLH-SB/1DW/UG/X-23.6W-15H-18.1D-CAB-3D-1C1-HDL-3D-1C1");
+  });
+
+  it("hangs the towel bar on each side as Urban Standard Height prices it, and completes the total", () => {
+    const withTowelBar = (towelBarOption: string) =>
+      ulhOrder(
+        [sinkBase("ulh-sb")],
+        { TowelBarOption: [at({ scope: "global" }, towelBarOption)] },
+        { towelBarOption, towelBarColor: "Carbone 43 MT" },
+      );
+    const towelBarOf = (towelBarOption: string) => skusOf(withTowelBar(towelBarOption).lines, "towelBar");
+
+    expect(towelBarOf("Both")).toEqual([
+      { sku: "VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT", quantity: 1 },
+      { sku: "VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT", quantity: 1 },
+    ]);
+    expect(withTowelBar("Both").gaps).toEqual([]);
+    expect(towelBarOf("Left")).toEqual([{ sku: "VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT", quantity: 1 }]);
+    expect(towelBarOf("None")).toEqual([]);
+  });
+
+  it("stands a side panel on each active side as Urban Standard Height spells it, at the cabinets' height", () => {
+    const withSidePanels = (sidePanelsOption: string, overrides: Partial<PricingInput> = {}) =>
+      ulhOrder(
+        [sinkBase("ulh-sb")],
+        { SidePanels: [at({ scope: "global" }, sidePanelsOption)] },
+        { sidePanelsOption, sidePanelLeft: "active", sidePanelRight: "active", ...overrides },
+      );
+    const sidePanelsOf = (order: ReturnType<typeof withSidePanels>) => skusOf(order.lines, "sidePanel");
+
+    // 38 cm high, 46 cm deep; the groove of an upper-groove panel in the cabinet colour until one is chosen.
+    const upperGroove = withSidePanels("UpperG");
+    expect(sidePanelsOf(upperGroove)).toEqual([
+      { sku: "VAN-URSP-1GU-.4W-15H-17.9D-CAB-3D-1C1-HDL-3D-1C1", quantity: 2 },
+    ]);
+    expect(upperGroove.gaps).toEqual([]);
+    expect(
+      sidePanelsOf(withSidePanels("UpperG", { handleGrooveColor: "Castagno Malto 1C2", sidePanelRight: "none" })),
+    ).toEqual([{ sku: "VAN-URSP-1GU-.4W-15H-17.9D-CAB-3D-1C1-HDL-3D-1C2", quantity: 1 }]);
+    expect(sidePanelsOf(withSidePanels("NoG"))).toEqual([{ sku: "VAN-URSP-0G-.4W-15H-17.9D-CAB-3D-1C1", quantity: 2 }]);
   });
 
   it("orders the integrated basin of each sink base as USH spells it", () => {

@@ -13,14 +13,14 @@ import {
   resolveDefaultBasinByCountertopColor,
   resolveHandleGroovePricingMaterialSku,
   resolveOpenSideShelfSide,
-  SIDE_PANEL_WIDTH_CM,
-  TOWEL_BAR_DEFAULTS,
   vesselHeightCmMap,
 } from "@/shared/lib/sku";
 
 import { expandLineSkus } from "./pricingLines";
 import type { PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
+import { buildUshSidePanelLines } from "./ushSidePanelLines";
+import { buildUshTowelBarLines } from "./ushTowelBarLines";
 
 /**
  * The order lines of the current configuration (D02).
@@ -544,33 +544,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   }
 
   // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
-  const hasTowel = towelBarOption && towelBarOption !== "None";
-  const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
-  const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
-
-  if (hasTowel && hasRight) {
-    const sku = skuBuilders.buildTowelBarSku({
-      side: "R",
-      width: TOWEL_BAR_DEFAULTS.width,
-      height: TOWEL_BAR_DEFAULTS.height,
-      depth: TOWEL_BAR_DEFAULTS.depth,
-      materialSku: "LACM",
-      colorCode: towelBarColor || null,
-    });
-    if (sku) add({ id: "towelBar:right", group: "towelBar", sku });
-  }
-
-  if (hasTowel && hasLeft) {
-    const sku = skuBuilders.buildTowelBarSku({
-      side: "L",
-      width: TOWEL_BAR_DEFAULTS.width,
-      height: TOWEL_BAR_DEFAULTS.height,
-      depth: TOWEL_BAR_DEFAULTS.depth,
-      materialSku: "LACM",
-      colorCode: towelBarColor || null,
-    });
-    if (sku) add({ id: "towelBar:left", group: "towelBar", sku });
-  }
+  buildUshTowelBarLines({ series: profile.series, towelBarOption, towelBarColor }).forEach((line) => add(line));
 
   // 4) Accessories SKUs — Resolver 4 (Side panels per product + Dividers global)
 
@@ -593,24 +567,25 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
         cabinetColor)
       : (sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor ??
         cabinetColor);
-    const activeSides = [sidePanelLeft === "active", sidePanelRight === "active"];
-    const activeSideCount = activeSides.filter(Boolean).length;
-    if (activeSideCount > 0) {
-      const dims = productDimsList[0] ?? { height: null, depth: null };
-      const sidePanelCabinetMaterialSku =
-        resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor);
-      const spSku = skuBuilders.buildSidePanelSku({
-        panelType: sidePanelsOption,
-        width: SIDE_PANEL_WIDTH_CM,
-        height: dims.height,
-        depth: dims.depth,
-        cabMaterialSku: sidePanelCabinetMaterialSku,
-        cabColorCode: resolveMaterialColorCode(sidePanelCabinetColor, sidePanelCabinetMaterialSku),
-        hdlMaterialSku: handleMaterialSku,
-        hdlColorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
-      });
-      if (spSku) add({ id: "sidePanel", group: "sidePanel", sku: spSku, quantity: activeSideCount });
-    }
+    const dims = productDimsList[0] ?? { height: null, depth: null };
+    const sidePanelCabinetMaterialSku =
+      resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor);
+    buildUshSidePanelLines({
+      series: profile.series,
+      panelType: sidePanelsOption,
+      sidePanelLeft,
+      sidePanelRight,
+      heightCm: dims.height,
+      depthCm: dims.depth,
+      cabinet: {
+        materialSku: sidePanelCabinetMaterialSku,
+        colorCode: resolveMaterialColorCode(sidePanelCabinetColor, sidePanelCabinetMaterialSku),
+      },
+      groove: {
+        materialSku: handleMaterialSku,
+        colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
+      },
+    }).forEach((line) => add(line));
   }
 
   // Dividers are priced only from actual per-slot placements.
