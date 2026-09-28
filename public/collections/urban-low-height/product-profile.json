@@ -73,6 +73,7 @@
       "scope": "cabinet",
       "confirmation": { "when": "cabinetsPlaced", "reasonCode": "handle.appliesToAllCabinets" },
       "initialValue": "",
+      "effectiveFallbackValue": "handle_urban_topcut",
       "options": [
         {
           "value": "handle_urban_topcut",
