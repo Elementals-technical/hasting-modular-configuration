@@ -125,9 +125,9 @@ describe("CabinetBuilderPage starting values", () => {
     store.dispatch(replaceCollectionData({ profile: ulhProfile, cabinetCatalog: null }));
 
     // Top_Solid carries Pietra Di Savoia Antracite TQ6; the ULH cabinet material (Antracite Matte OCF)
-    // is no colour of configurator 4, so the cabinet starts in the grey concrete of the model pictures.
+    // is no colour of configurator 4, so the cabinet starts in the colour of the models, Rox Black TKQ.
     expect(await renderEmptyBuilder()).toEqual({
-      CabinetColor: "Cemento Cenere 1A1",
+      CabinetColor: "Rox Black TKQ",
       CountertopColor: "Pietra Di Savoia Antracite TQ6",
       sinkType: "",
     });

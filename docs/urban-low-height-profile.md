@@ -62,7 +62,8 @@ Compositions come from `URBAN_LOW_HEIGHT_MODEL_PRESET_MODULES` (team, 25.09.2026
 Sink Base, Side Cabinet and Open Shelf modules left to right, the price-list inches in centimetres (§3: 9.8″ → 25 …
 47.2″ → 120). Every module stands at 38 cm with the upper groove (`handle_urban_topcut`) and 46 cm deep — the first
 height and handle of the profile, and the depth the scene lays out — until the product names each model's height and
-handle; cabinets carry the one drawer (`1D`). The six Multi-Level models hang at two wall heights, which the scene
+handle; cabinets carry the one drawer (`1D`). Every module is in `Rox Black TKQ` (HPL, team, 28.09.2026), as the USH
+models carry their colour; the profile's `defaults` name the same colour, as USH's do, so prebuilt keeps it when a model is picked and a custom composition starts in it. The six Multi-Level models hang at two wall heights, which the scene
 cannot place yet, so they keep no composition. The `open_shelving` and `asymmetrical` tags now follow the compositions
 (ids 13, 15, 22, 26, 32, 41, 59 corrected).
 
@@ -113,7 +114,7 @@ form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
   at 38 cm resolve to the nearest row. Only cabinets the cabinet table allows must reach pricing.
 - **38 and 28 cm are written `15H` and `11H`** (team, 25.09.2026); the workbook writes `15.0H` and `11.0H`. The price
   is the same.
-- **Until a cabinet colour is chosen, the cabinets are priced in the default** (`Cemento Cenere 1A1`, 3D), as the
+- **Until a cabinet colour is chosen, the cabinets are priced in the default** (`Rox Black TKQ`, HPL), as the
   countertop already is in its default colour.
 - **`HDL` is left out.** The server ignores it, and the groove colour has no stable structure (§15.4).
 - Configurator 4 names one colour `Grigio Bromo` without a code (its `codeColor` is `DS MT`, the Torba DS the map
@@ -123,7 +124,7 @@ form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
 
 | Owner | What is needed |
 |---|---|
-| Product | Approval of the `defaults`: `CountertopColor: Pietra Di Savoia Antracite TQ6`, the material the scene's Top_Solid countertop is authored in, `CountertopStyle: integrated` as in Urban Standard Height (team, 28.09.2026), and `CabinetColor: Cemento Cenere 1A1` (team, 25.09.2026), the grey concrete of the model pictures — the ULH cabinet is authored in `Antracite Matte OCF`, which configurator 4 does not offer; the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
+| Product | Approval of the `defaults`: `CountertopColor: Pietra Di Savoia Antracite TQ6`, the material the scene's Top_Solid countertop is authored in, `CountertopStyle: integrated` as in Urban Standard Height (team, 28.09.2026), and `CabinetColor: Rox Black TKQ` (team, 28.09.2026; it was `Cemento Cenere 1A1`), the colour the models carry: prebuilt carries the current cabinet colour from model to model, so a default that differs from the models' colour would repaint them — the ULH cabinet is authored in `Antracite Matte OCF`, which configurator 4 does not offer; the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
 | Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
 | B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
 | I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. |

@@ -167,6 +167,21 @@ const readSceneOrder = (): string[] | null => {
   return Object.keys(orderMap).sort((a, b) => position(a) - position(b));
 };
 
+type SceneConfigSnapshot = { getAll: () => unknown };
+
+/**
+ * A product's config as values. getConfig may answer with a plain object or with a snapshot
+ * whose values sit behind `getAll()` (the scene's SnapshotProductAttribute); the scene's own
+ * code reads a config in either form.
+ */
+const toConfigValues = (config: unknown): Record<string, unknown> | null => {
+  if (!isRecord(config)) return null;
+  if (typeof config.getAll !== "function") return config;
+
+  const values = (config as SceneConfigSnapshot).getAll();
+  return isRecord(values) ? { ...values } : null;
+};
+
 /**
  * Reads the order and the config of the given products. Queued like the commands, so it
  * sees every batch sent before it. A product the scene has no config for is left out.
@@ -184,8 +199,8 @@ export const readSceneProducts = (productIds: readonly string[]): Promise<SceneP
 
     for (const productId of productIds) {
       try {
-        const config = await (getConfig as SceneConfigApi)(productId);
-        if (isRecord(config)) configs[productId] = config;
+        const config = toConfigValues(await (getConfig as SceneConfigApi)(productId));
+        if (config) configs[productId] = config;
       } catch {
         // A product the scene cannot answer for gets no size rather than another one's.
       }

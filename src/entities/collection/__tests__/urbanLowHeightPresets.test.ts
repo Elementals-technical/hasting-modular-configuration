@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import ulhPresetsDocument from "../../../../public/collections/urban-low-height/presets.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import ulhSkuProfileDocument from "../../../../public/collections/urban-low-height/sku-profile.json";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
 import { normalizeOptionValue, selectOptionValues } from "../lib/productProfileSelectors";
 import { resolveProductConfig } from "../lib/runtimeBindings/resolveProductConfig";
 import { ulhRuntimeBindings } from "../lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
-import { presetsSchema } from "../model/schemas";
+import { collectionSkuProfileSchema, presetsSchema } from "../model/schemas";
 
 /**
  * The 59 Urban Low Height models with their compositions (URBAN_LOW_HEIGHT_MODEL_PRESET_MODULES):
@@ -18,6 +19,7 @@ import { presetsSchema } from "../model/schemas";
  */
 
 const presets = presetsSchema.parse(ulhPresetsDocument);
+const ulhSkuProfile = collectionSkuProfileSchema.parse(ulhSkuProfileDocument);
 
 const parsed = parseProductProfile(ulhProfileDocument);
 const ulhProfile = () => {
@@ -87,6 +89,14 @@ describe("urban-low-height model compositions", () => {
     }
   });
 
+  it("paints every module of the models in Rox Black TKQ, an HPL colour the collection prices by its code", () => {
+    for (const { title, presetProducts } of presets) {
+      for (const product of presetProducts) expect(product.CabinetColor, title).toBe("Rox Black TKQ");
+    }
+    // The name carries no number, so the cabinet SKU takes its code (`CAB-HPL-TKQ`) from the profile.
+    expect(ulhSkuProfile.colors.codeByValue["Rox Black TKQ"]).toBe("TKQ");
+  });
+
   it("tags each model by what its composition holds", () => {
     for (const { title, presetProducts, style } of presets) {
       if (isMultiLevel(title)) {
@@ -116,6 +126,7 @@ describe("urban-low-height model compositions", () => {
           Width: config.Width,
           Height: 38,
           Depth: 46,
+          CabinetColor: "Rox Black TKQ",
           ...(name === "Open-Shelf" ? {} : { Handle: "handle_urban_topcut", Drawers: "1D" }),
         });
       }
