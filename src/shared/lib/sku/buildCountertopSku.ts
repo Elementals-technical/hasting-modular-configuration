@@ -122,9 +122,10 @@ export const canBuildCountertopSku = (input: CountertopSkuInput): boolean => {
  *  [2] Faucet Qty — if faucet holes > 0  CT-{SERIES}-FAHO/{QTY}
  *  [3] Hole Cut   — if style is vessel   CT-{SERIES}-HCUT
  *
- * SERIES is the collection countertop prefix + material SKU (USH: FX → URFX, HPL → URHPL)
+ * SERIES is the collection countertop prefix + material SKU (USH: FX → URFX, HPL → URHPL). Only the
+ * series is read, so a collection whose countertop is priced as USH's passes USH's series alone.
  */
-export function buildCountertopSku(profile: SkuProfile, input: CountertopSkuInput): string[] {
+export function buildCountertopSku(profile: Pick<SkuProfile, "series">, input: CountertopSkuInput): string[] {
   const styleValue = input.style?.trim() || "plain";
   if (!hasKnownCountertopStyle(styleValue)) {
     throw new Error(INVALID_COUNTERTOP_STYLE_ERROR);
@@ -216,5 +217,7 @@ export function buildCountertopSku(profile: SkuProfile, input: CountertopSkuInpu
   return lines;
 }
 
-export const buildCountertopSkuIfComplete = (profile: SkuProfile, input: CountertopSkuInput): string[] =>
-  canBuildCountertopSku(input) ? buildCountertopSku(profile, input) : [];
+export const buildCountertopSkuIfComplete = (
+  profile: Pick<SkuProfile, "series">,
+  input: CountertopSkuInput,
+): string[] => (canBuildCountertopSku(input) ? buildCountertopSku(profile, input) : []);

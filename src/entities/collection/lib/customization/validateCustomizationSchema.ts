@@ -204,6 +204,14 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
           message: "hints must map option values to non-empty strings",
         });
       }
+
+      if (field.toggle !== undefined && !(isRecord(field.toggle) && isNonEmptyString(field.toggle.label))) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.toggle`,
+          message: "toggle must be { label } with a non-empty label",
+        });
+      }
     });
   }
 };

@@ -45,7 +45,7 @@ export const TOWEL_BAR_DEFAULTS = { width: 40, height: 3.5, depth: 5 } as const;
  * VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT
  * VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT
  */
-export function buildTowelBarSku(profile: SkuProfile, input: TowelBarSkuInput): string | null {
+export function buildTowelBarSku(profile: Pick<SkuProfile, "series">, input: TowelBarSkuInput): string | null {
   const mat = input.materialSku?.trim();
   if (!mat) return null;
   const color = normalizeTowelBarColorCode(input.colorCode);

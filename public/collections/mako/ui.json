@@ -169,7 +169,9 @@
         {
           "attributeId": "LegColor",
           "control": "colors",
-          "optionsRef": "LegColor"
+          "optionsRef": "LegColor",
+          "availabilityRef": "LegColor.determined",
+          "toggle": { "label": "Enable Legs, Then Color" }
         }
       ]
     },

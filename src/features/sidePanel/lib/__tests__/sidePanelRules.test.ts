@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import type { ProductProfile, SidePanelsRuleData } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
+import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 
 import { mapCabinetTypeToGroup } from "../../model/selectors";
 import { formatSidePanelLength340Reason, isSidePanelLengthBlocked } from "../sidePanelReasons";
@@ -221,5 +223,32 @@ describe("side panel length block on the USH profile", () => {
     expect(formatSidePanelLength340Reason(ushProfile)).toBe(
       'Side panels are not available when total vanity length is exactly 340 cm (133.9").',
     );
+  });
+});
+
+// Urban Low Height hangs the ULH side panels (sidePanelSupport profile "ulh"): no groove, or the
+// upper groove at the heights of the upper-groove handle (product map §2: 38 / 28 cm).
+describe("side panel rules on the Urban Low Height profile", () => {
+  const parsed = parseProductProfile(ulhProfileDocument);
+  if (!parsed.ok) throw new Error("Urban Low Height profile must parse");
+  const ulhProfile = parsed.profile;
+
+  it("offers the upper groove at the upper-groove heights and no groove at the push-to-open ones", () => {
+    expect(allowed(38, "1D", ulhProfile)).toEqual(["NoG", "UpperG"]);
+    expect(allowed(28, "1D", ulhProfile)).toEqual(["NoG", "UpperG"]);
+    expect(allowed(35, "1D", ulhProfile)).toEqual(["NoG"]);
+    expect(allowed(25, "1D", ulhProfile)).toEqual(["NoG"]);
+  });
+
+  it("knows its cabinets by type and by the ULH scene name, and refuses the open shelf", () => {
+    expect(mapCabinetTypeToGroup("Sink-Base", ulhProfile)).toBe("SBSC");
+    expect(mapCabinetTypeToGroup("ULH-side-cabinet-k3j4h5g6f", ulhProfile)).toBe("SBSC");
+    expect(mapCabinetTypeToGroup("ULH-Open-Shelf-k3j4h5g6f", ulhProfile)).toBe("OS");
+    expect(mapSidePanelDrawersToHandleType("1D", ulhProfile)).toBe("1D");
+
+    expect(sidePanelAvailabilityRule({ height: 38, handleType: "1D", cabinetType: "OS" }, ulhProfile)).toMatchObject({
+      allowed: new Set(),
+      reason: "Side panels are not available for use with Open Shelf cabinets.",
+    });
   });
 });

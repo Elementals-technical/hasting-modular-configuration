@@ -14,7 +14,12 @@
     "countertopMatrixTableId": 438,
     "cabinetMatrixTableId": 580
   },
-  "defaults": {},
+  "defaults": {
+    "CabinetColor": "Rox Black TKQ",
+    "CountertopColor": "Pietra Di Savoia Antracite TQ6",
+    "CountertopStyle": "integrated",
+    "TowelBarOption": "None"
+  },
   "attributes": [
     {
       "attributeId": "CabinetType",
@@ -72,7 +77,7 @@
           "label": "Upper Groove",
           "order": 10,
           "capabilities": {
-            "supportsGrooveColor": false
+            "supportsGrooveColor": true
           }
         },
         {
@@ -112,6 +117,12 @@
       "attributeId": "CabinetColor",
       "scope": "global",
       "optionsSource": "configurator:Cabinet Color"
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "scope": "cabinet",
+      "resetValue": "None",
+      "optionsSource": "configurator:Handle Groove Color"
     },
     {
       "attributeId": "CountertopColor",
@@ -374,6 +385,34 @@
       "attributeId": "VesselColor",
       "scope": "basin",
       "optionsSource": "configurator:Vessels"
+    },
+    {
+      "attributeId": "SidePanels",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "NoG", "label": "No groove", "order": 20 },
+        { "value": "UpperG", "label": "1 groove (upper)", "order": 30 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "scope": "global",
+      "defaultValue": "None",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Left", "label": "Left", "order": 20 },
+        { "value": "Right", "label": "Right", "order": 30 },
+        { "value": "Both", "label": "Both", "order": 40 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "scope": "global",
+      "optionsSource": "configurator:Towel Bar Color"
     }
   ],
   "ruleData": {
@@ -387,7 +426,11 @@
         "forcedHeightByHandle": {},
         "requiresDrawersByHandle": {},
         "forcedHeight": "forced_height_cm",
-        "handleDrawerConfigs": "handle_drawer_configs"
+        "handleDrawerConfigs": "handle_drawer_configs",
+        "heightsByHandle": {
+          "handle_urban_topcut": "handle_urban_topcut_heights_cm",
+          "handle_pto": "handle_pto_heights_cm"
+        }
       }
     },
     "fluting": {
@@ -413,6 +456,36 @@
       "restrictedIntegratedMaterialTokens": [],
       "restrictedIntegratedBasinKeys": [],
       "excludedMaterialFilterTokens": ["tekorlux", "tekormud", "glassmt", "glassgl", "lacqueredmt", "lacqueredgl"]
+    },
+    "sidePanels": {
+      "heightTokenByCm": {
+        "25": "25H",
+        "28": "28H",
+        "35": "35H",
+        "38": "38H"
+      },
+      "blockedCabinetTypes": ["OS", "OSS"],
+      "cabinetGroups": {
+        "OSS": ["Open-Side-Shelf", "OSS"],
+        "OS": ["Open-Shelf", "ULH-Open-Shelf", "OS"],
+        "SBSC": ["Sink-Base", "Side-Cabinet", "ULH-sink-cabinet", "ULH-side-cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1D", "1DW", "1"]
+      },
+      "groovePriorityByHandle": {
+        "handle_urban_topcut": ["UpperG"],
+        "handle_pto": ["NoG"]
+      },
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        { "height": "38H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "28H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "35H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] },
+        { "height": "25H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] }
+      ]
     }
   },
   "messages": {
@@ -425,11 +498,17 @@
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
     "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
     "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
-    "fluting.notInCollection": "Fluting is not available in this collection."
+    "fluting.notInCollection": "Fluting is not available in this collection.",
+    "sidePanel.notInCollection": "Side panels are not available in this collection.",
+    "sidePanel.openShelfUnavailable": "Side panels are not available for use with Open Shelf cabinets.",
+    "sidePanel.sideShelfUnavailable": "Side panels are not available for Open Side Shelf cabinets.",
+    "sidePanel.exactLengthBlocked": "Side panels are not available when total vanity length is exactly {lengthCm} cm ({lengthIn}\").",
+    "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Open Side Shelf cabinets are positioned at both ends.",
+    "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
+    "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {
-    "handleGrooveColor": "The HDL segment of the SKU has no stable structure, so no handle declares a groove colour (product map §5, §15.4).",
-    "handleHeightCoupling": "Confirmed: Upper Groove gives 38/28 cm, Push-to-Open gives 35/25 cm (§2). Table 580 lists it (handle_urban_topcut_heights_cm, handle_pto_heights_cm), but the cabinet catalog does not read those columns yet.",
+    "handleGrooveColor": "Upper Groove offers a groove colour, spelled HDL-{material}-{code} as the price list's SKU formula names it (product element #2), but the ULH scene paints the groove in the cabinet colour: the choice reaches the SKU and the Summary, not the 3D model, until the scene export paints ULH_Cabinet_HGroove on its own.",
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
     "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438; thickness is still not offered.",

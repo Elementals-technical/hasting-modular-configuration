@@ -4,6 +4,7 @@ import { selectConfiguratorSection, useAttributeChangeHandler } from "@/features
 import {
   ColorField,
   FieldControl,
+  FieldToggle,
   useCollectionNavigation,
   useCustomizationStepSections,
   type ResolvedCustomizationField,
@@ -50,6 +51,7 @@ const SectionField = (props: SectionFieldProps) => {
 
   return (
     <>
+      {field.toggle && <FieldToggle toggle={field.toggle} onChange={onChange} />}
       {definition.control === "colors" ? (
         <ColorSectionField {...props} onChange={onChange} />
       ) : (

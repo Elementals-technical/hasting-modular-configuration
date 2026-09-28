@@ -8,7 +8,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
@@ -29,6 +31,9 @@ import classProfileDocument from "../../../../public/collections/class/product-p
 import classUi from "../../../../public/collections/class/ui.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
+import ulhManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import ulhUi from "../../../../public/collections/urban-low-height/ui.json";
 
 import { useCustomizationStepSections } from "../lib/useCustomizationSectionState";
 
@@ -40,7 +45,49 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
-const readyCollectionOf = (collectionId: string, manifest: unknown, ui: unknown, countertopTable: unknown) => {
+// Configurator 4 as Urban Low Height loads it, with one live Tekorlux colour: its material is
+// "Lacquered MT" (LACM), which the recorded fixture leaves out.
+const ulhConfiguratorGroups = configuratorSchema.parse(configurator4).availableOptions.map((group) =>
+  group.proxyName === "Countertop Color"
+    ? {
+        ...group,
+        options: [
+          ...group.options,
+          {
+            id: 290,
+            name: "Tekorlux",
+            resource: null,
+            paramString: "",
+            playcanvasString: "",
+            variants: [
+              {
+                id: 3094,
+                name: "Agata BD MT",
+                image: null,
+                enabled: true,
+                description: "",
+                metadata: {
+                  sku: "SSTKR",
+                  codeColor: "BD MT",
+                  Material: "Lacquered MT",
+                  label: "Agata BD MT",
+                  value: "Agata BD MT",
+                },
+              },
+            ],
+          },
+        ],
+      }
+    : group,
+);
+
+const readyCollectionOf = (
+  collectionId: string,
+  manifest: unknown,
+  ui: unknown,
+  countertopTable: unknown,
+  groups = configuratorGroups,
+) => {
   const collection = buildReadyCollection(collectionId, manifest, ui);
 
   return {
@@ -48,8 +95,8 @@ const readyCollectionOf = (collectionId: string, manifest: unknown, ui: unknown,
     catalog: {
       ...collection.catalog,
       configurator: {
-        groups: configuratorGroups,
-        groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
+        groups,
+        groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])),
       },
       countertops: parseCountertopMatrix(countertopDatatableSchema.parse(countertopTable)),
     },
@@ -59,12 +106,20 @@ const readyCollectionOf = (collectionId: string, manifest: unknown, ui: unknown,
 const parsedClassProfile = parseProductProfile(classProfileDocument);
 if (!parsedClassProfile.ok) throw new Error("Packaged Class profile failed validation");
 
+const parsedUlhProfile = parseProductProfile(ulhProfileDocument);
+if (!parsedUlhProfile.ok) throw new Error("Packaged Urban Low Height profile failed validation");
+
 const collections = {
   mako: { profile: makoProfile, ready: readyCollectionOf("mako", makoManifest, makoUi, datatable577) },
   class: {
     profile: parsedClassProfile.profile,
     ready: readyCollectionOf("class", classManifest, classUi, datatable578),
   },
+};
+
+const urbanLowHeight = {
+  profile: parsedUlhProfile.profile,
+  ready: readyCollectionOf("urban-low-height", ulhManifest, ulhUi, datatable438, ulhConfiguratorGroups),
 };
 
 type TestCollection = { profile: ProductProfile; ready: ReturnType<typeof readyCollectionOf> };
@@ -125,6 +180,34 @@ describe("Mako countertop fields follow the countertop matrix", () => {
 
     expect(style?.options.filter(({ enabled }) => enabled)).toEqual([]);
     expect(style?.options[0]?.reasonCode).toMatch(/^countertop\./);
+  });
+});
+
+// The Urban Standard Height basins name their matrix row by their label ("HPL Cover 50" is the
+// HPL row "Cover 50"), as the USH countertop step reads them.
+describe("Urban Low Height integrated basins follow the countertop matrix as the USH countertop step", () => {
+  const { shownValues } = fieldsOf(urbanLowHeight);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("shows the Tekorlux basins of a lacquered (LACM) Tekorlux countertop", () => {
+    store.dispatch(setActiveCountertopColor("Agata BD MT"));
+
+    expect(shownValues("basin-style")).toEqual([
+      "Top_Tekorlux_Quadra",
+      "Top_Tekorlux_Rectangular",
+      "Top_Tekorlux_Trip",
+    ]);
+  });
+
+  it("keeps an HPL countertop to the HPL basins, not the Fenix ones of the same name", () => {
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+
+    expect(shownValues("basin-style")).toEqual(["Top_HPLPrisma", "Top_HPLQuadra", "Top_HPLCover", "Top_HPLStrip"]);
   });
 });
 

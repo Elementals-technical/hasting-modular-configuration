@@ -54,7 +54,7 @@ profile keeps the product values; `runtime-bindings.json` says how each reaches 
 | `Drawers` `1` / `2` | `Height` 26 / 52, which lays the drawers out; legs hidden. The legacy `1D` / `2D` stays in the scene config for history and saved configurations |
 | `Height` | 26 / 52 only |
 | `Width`, `Depth` | as they are, in cm (the scene takes 40–120 and 52) |
-| `LegColor` | no colour: legs hidden; a colour: legs shown in it. `None` shows them in the cabinet colour |
+| `LegColor` | no colour: legs hidden and their colour cleared; a colour: legs shown in it. `None` shows them in the cabinet colour |
 | `CabinetColor`, `HandleColor`, `CountertopColor` | as they are: the scene takes the exact material name |
 | `sinkType`, `VesselColor`, `HandleGrooveColor` | recorded only: no Mako basin in the scene, no groove on Mako handles |
 

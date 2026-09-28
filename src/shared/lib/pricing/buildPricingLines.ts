@@ -1,32 +1,26 @@
 import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
-import {
-  getAllowedVesselMaterialTokens,
-  isSyntesiCountertopMaterialSku,
-  normalizeMaterialToken,
-  resolveDefaultThicknessFromRules,
-} from "@/features/configurator-rule-core/countertop";
+import { getAllowedVesselMaterialTokens } from "@/features/configurator-rule-core/countertop";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 import {
   extractColorCode,
   getCountertopMaterialTokensBySku,
-  getCountertopMaterialTokensFromBasinType,
   resolveCabinetPricingMaterialSku,
   resolveCountertopColorCodeFromCandidates,
   resolveCountertopColorSkuFromCandidates,
-  resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
   resolveDefaultBasinByCountertopColor,
   resolveHandleGroovePricingMaterialSku,
   resolveOpenSideShelfSide,
-  SIDE_PANEL_WIDTH_CM,
-  TOWEL_BAR_DEFAULTS,
   vesselHeightCmMap,
 } from "@/shared/lib/sku";
 
 import { expandLineSkus } from "./pricingLines";
-import type { PricingInput, PricingLine, PricingLineGroup } from "./types";
+import type { PricingInput, PricingLine } from "./types";
+import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
+import { buildUshSidePanelLines } from "./ushSidePanelLines";
+import { buildUshTowelBarLines } from "./ushTowelBarLines";
 
 /**
  * The order lines of the current configuration (D02).
@@ -42,20 +36,11 @@ const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
-/** Position 0 of the countertop SKU lines is the top; the rest are told apart by their tokens. */
-const countertopLineGroup = (sku: string, index: number): PricingLineGroup => {
-  if (index === 0) return "countertop";
-  if (sku.includes("-FAHO/")) return "faucetHoles";
-  if (sku.endsWith("-HCUT")) return "holeCut";
-  return "basin";
-};
-
 export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   const {
     skuBuilders,
     activeProfile,
     colorSkuMaps: { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue },
-    countertopRules,
     cabinetCatalog,
     shouldUsePresets,
     productIds,
@@ -74,9 +59,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
     handleGrooveColor,
     handleGrooveColorSku,
     countertopColor,
-    countertopColorSku,
     vesselColor,
-    countertopThickness,
     countertopStyle,
     sinkType,
     drawerPanelFluting,
@@ -144,24 +127,20 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
       : shouldUsePresetSinkType
         ? (firstPreset?.sinkType as string)
         : sinkType || null;
-  const preferredCountertopMaterialTokens = [
-    ...getCountertopMaterialTokensBySku(countertopColorSku),
-    ...getCountertopMaterialTokensFromBasinType(resolvedSinkType),
-  ];
-  const resolvedCountertopMaterialSku =
-    countertopColorSku ||
-    resolveCountertopColorSkuFromCandidates({
-      value: resolvedCountertopColor,
-      candidatesByValue: countertopColorSkuCandidatesByValue,
-      preferredMaterialTokens: preferredCountertopMaterialTokens,
-    }) ||
-    resolveCountertopColorSkuFromCandidates({
-      value: countertopColor,
-      candidatesByValue: countertopColorSkuCandidatesByValue,
-      preferredMaterialTokens: preferredCountertopMaterialTokens,
-    }) ||
-    resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ||
-    null;
+  const countertop = resolveUshCountertop(input, {
+    color: resolvedCountertopColor,
+    sinkType: resolvedSinkType,
+    width:
+      selectedDimensions.width ??
+      (productsPresets.length > 0 ? (productsPresets[0]?.Width ?? null) : null) ??
+      sceneConfigs[0]?.Width ??
+      null,
+    depth:
+      selectedDimensions.depth ??
+      (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
+      sceneConfigs[0]?.Depth ??
+      null,
+  });
   const resolvedVesselColor = vesselColor;
   const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
   const allowedVesselMaterialTokens = vesselTypeForTokens
@@ -170,7 +149,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   const vesselPreferredMaterialTokens =
     allowedVesselMaterialTokens.length > 0
       ? allowedVesselMaterialTokens
-      : [...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku), ...preferredCountertopMaterialTokens];
+      : [...getCountertopMaterialTokensBySku(countertop.materialSku), ...countertop.preferredMaterialTokens];
   const resolvedVesselColorCode = resolvedVesselColor
     ? resolveCountertopColorCodeFromCandidates({
         value: resolvedVesselColor,
@@ -186,15 +165,6 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
         preferredMaterialTokens: vesselPreferredMaterialTokens,
       }))
     : null;
-  const effectiveCountertopColorCode = extractColorCode(resolvedCountertopColor);
-  const effectiveCountertopMaterialSku =
-    resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ?? resolvedCountertopMaterialSku;
-  const syntesiMaterial = activeProfile?.ruleData.syntesi?.material ?? null;
-  const isSyntesiCountertop =
-    syntesiMaterial !== null &&
-    (isSyntesiCountertopMaterialSku(effectiveCountertopMaterialSku, activeProfile) ||
-      normalizeMaterialToken(resolvedSinkType ?? "").includes(normalizeMaterialToken(syntesiMaterial)));
-  const isVesselCountertop = (countertopStyle || "").trim().toLowerCase() === "vessel";
   const resolveNameFromRaw = (value: string) => {
     const lastDash = value.lastIndexOf("-");
     if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
@@ -246,25 +216,6 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
       : isSinkBaseName(selectedProductName)
         ? [{ id: "fallback-0", sinkType: resolvedSinkType }]
         : [];
-  const materialForThicknessRules =
-    resolvedCountertopMaterialSku || resolveCountertopMaterialSkuFromBasinType(resolvedSinkType);
-  const matrixDefaultThickness = resolveDefaultThicknessFromRules({
-    rules: countertopRules,
-    activeMaterialTokens: materialForThicknessRules ? [normalizeMaterialToken(materialForThicknessRules)] : [],
-    width:
-      selectedDimensions.width ??
-      (productsPresets.length > 0 ? (productsPresets[0]?.Width ?? null) : null) ??
-      sceneConfigs[0]?.Width ??
-      null,
-    depth:
-      selectedDimensions.depth ??
-      (productsPresets.length > 0 ? (productsPresets[0]?.Depth ?? null) : null) ??
-      sceneConfigs[0]?.Depth ??
-      null,
-    activeCountertopStyle: countertopStyle || null,
-  });
-  const resolvedCountertopThickness =
-    countertopThickness || sceneConfigs[0]?.Thickness || matrixDefaultThickness || null;
 
   // 1) Product SKU(s) — Resolver 1
   const selectedProductDrawerStyle =
@@ -561,63 +512,17 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   const cabinetWidthSum = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0);
   const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
-  const aggregateCountertopInput = {
-    style: countertopStyle || null,
-    width: totalCountertopWidth,
-    depth: selectedDimensions.depth,
-    thickness: resolvedCountertopThickness,
-    basinType: resolvedSinkType,
-    faucetHolesAmount: faucetHolesAmount || null,
-    countertopMaterialSku: effectiveCountertopMaterialSku,
-    countertopColorCode: effectiveCountertopColorCode,
-  };
-  const aggregateCountertopLines = skuBuilders.buildCountertopSkuIfComplete(aggregateCountertopInput);
-  const aggregateCountertopSkuSet = new Set(aggregateCountertopLines);
-  aggregateCountertopLines.forEach((line, index) => {
-    const isIntegratedBasinSkuLine = index === 1 && !isVesselCountertop;
-    if (isIntegratedBasinSkuLine && isSyntesiCountertop) return;
-
-    if (isIntegratedBasinSkuLine && sinkBaseEntriesForPricing.length > 0) {
-      sinkBaseEntriesForPricing.forEach((entry) => {
-        const basinLine =
-          skuBuilders.buildCountertopSkuIfComplete({
-            style: countertopStyle || null,
-            width: totalCountertopWidth,
-            depth: selectedDimensions.depth,
-            thickness: resolvedCountertopThickness,
-            basinType: entry.sinkType || null,
-            faucetHolesAmount: faucetHolesAmount || null,
-            countertopMaterialSku: effectiveCountertopMaterialSku,
-            countertopColorCode: effectiveCountertopColorCode,
-          })[1] ?? line;
-        add({ id: `countertop:basin:${entry.id}`, group: "basin", sku: basinLine });
-      });
-      return;
-    }
-    const group = countertopLineGroup(line, index);
-    // A basin and a vessel cutout (HCUT) are ordered per sink base; the top and the faucet holes once.
-    const repeatCount = group === "holeCut" || (group === "basin" && resolvedSinkType) ? sinkBaseCountForPricing : 1;
-    add({
-      id: `countertop:${index}`,
-      group,
-      sku: line,
-      quantity: repeatCount,
-      ...(index === 0 && totalCountertopWidth != null ? { widthCm: totalCountertopWidth } : {}),
-    });
-  });
-
-  // Always keep a default faucet-holes pricing SKU in the pool (including "0"),
-  // with dynamic material resolved from basin/material context.
-  const faucetHolesQty = (faucetHolesAmount ?? "").trim() || "0";
-  const faucetMaterialSku =
-    resolveCountertopMaterialSkuFromColorCode(effectiveCountertopColorCode) ??
-    resolveCountertopMaterialSkuFromBasinType(resolvedSinkType) ??
-    effectiveCountertopMaterialSku ??
-    "HPL";
-  const defaultFaucetSku = `CT-${profile.series.countertopPrefix}${faucetMaterialSku}-FAHO/${faucetHolesQty}`;
-  if (!aggregateCountertopSkuSet.has(defaultFaucetSku)) {
-    add({ id: "countertop:faucetDefault", group: "faucetHoles", sku: defaultFaucetSku });
-  }
+  buildUshCountertopLines({
+    series: profile.series,
+    countertop,
+    style: countertopStyle,
+    faucetHolesAmount,
+    sinkType: resolvedSinkType,
+    widthCm: totalCountertopWidth,
+    depthCm: selectedDimensions.depth,
+    sinkBases: sinkBaseEntriesForPricing,
+    sinkBaseCount: sinkBaseCountForPricing,
+  }).forEach((line) => add(line));
 
   // Do not add per-product countertop lines to active pricing SKUs.
   // They duplicate the aggregate countertop pricing line and inflate totals
@@ -639,33 +544,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   }
 
   // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
-  const hasTowel = towelBarOption && towelBarOption !== "None";
-  const hasRight = towelBarOption === "Right" || towelBarOption === "Both";
-  const hasLeft = towelBarOption === "Left" || towelBarOption === "Both";
-
-  if (hasTowel && hasRight) {
-    const sku = skuBuilders.buildTowelBarSku({
-      side: "R",
-      width: TOWEL_BAR_DEFAULTS.width,
-      height: TOWEL_BAR_DEFAULTS.height,
-      depth: TOWEL_BAR_DEFAULTS.depth,
-      materialSku: "LACM",
-      colorCode: towelBarColor || null,
-    });
-    if (sku) add({ id: "towelBar:right", group: "towelBar", sku });
-  }
-
-  if (hasTowel && hasLeft) {
-    const sku = skuBuilders.buildTowelBarSku({
-      side: "L",
-      width: TOWEL_BAR_DEFAULTS.width,
-      height: TOWEL_BAR_DEFAULTS.height,
-      depth: TOWEL_BAR_DEFAULTS.depth,
-      materialSku: "LACM",
-      colorCode: towelBarColor || null,
-    });
-    if (sku) add({ id: "towelBar:left", group: "towelBar", sku });
-  }
+  buildUshTowelBarLines({ series: profile.series, towelBarOption, towelBarColor }).forEach((line) => add(line));
 
   // 4) Accessories SKUs — Resolver 4 (Side panels per product + Dividers global)
 
@@ -688,24 +567,25 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
         cabinetColor)
       : (sceneConfigs.find((cfg) => typeof cfg.CabinetColor === "string" && cfg.CabinetColor)?.CabinetColor ??
         cabinetColor);
-    const activeSides = [sidePanelLeft === "active", sidePanelRight === "active"];
-    const activeSideCount = activeSides.filter(Boolean).length;
-    if (activeSideCount > 0) {
-      const dims = productDimsList[0] ?? { height: null, depth: null };
-      const sidePanelCabinetMaterialSku =
-        resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor);
-      const spSku = skuBuilders.buildSidePanelSku({
-        panelType: sidePanelsOption,
-        width: SIDE_PANEL_WIDTH_CM,
-        height: dims.height,
-        depth: dims.depth,
-        cabMaterialSku: sidePanelCabinetMaterialSku,
-        cabColorCode: resolveMaterialColorCode(sidePanelCabinetColor, sidePanelCabinetMaterialSku),
-        hdlMaterialSku: handleMaterialSku,
-        hdlColorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
-      });
-      if (spSku) add({ id: "sidePanel", group: "sidePanel", sku: spSku, quantity: activeSideCount });
-    }
+    const dims = productDimsList[0] ?? { height: null, depth: null };
+    const sidePanelCabinetMaterialSku =
+      resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor);
+    buildUshSidePanelLines({
+      series: profile.series,
+      panelType: sidePanelsOption,
+      sidePanelLeft,
+      sidePanelRight,
+      heightCm: dims.height,
+      depthCm: dims.depth,
+      cabinet: {
+        materialSku: sidePanelCabinetMaterialSku,
+        colorCode: resolveMaterialColorCode(sidePanelCabinetColor, sidePanelCabinetMaterialSku),
+      },
+      groove: {
+        materialSku: handleMaterialSku,
+        colorCode: resolveMaterialColorCode(handleGrooveColor, handleMaterialSku),
+      },
+    }).forEach((line) => add(line));
   }
 
   // Dividers are priced only from actual per-slot placements.

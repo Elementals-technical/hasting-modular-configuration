@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import ushProfile from "../../../../../public/collections/urban-standard-height/product-profile.json";
 import classProfileDocument from "../../../../../public/collections/class/product-profile.json";
+import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
+import ulhCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
 import makoCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import { parseProductProfile } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
@@ -253,6 +255,43 @@ describe("extension: a fourth handle from fixture data only", () => {
     const result = run({}, otherCollection);
 
     expect(result.availableOptions.handles.map((o) => o.value)).toEqual(["other_handle"]);
+  });
+});
+
+describe("a table whose handles each allow several heights (Urban Low Height)", () => {
+  const parsedUlh = parseProductProfile(ulhProfileDocument);
+  if (!parsedUlh.ok) throw new Error("Urban Low Height profile must parse");
+  const ulhProfile = parsedUlh.profile;
+  // The Urban Low Height cabinet table the collection loads (580).
+  const ulhCatalog = buildCabinetCatalogFromMatrix(ulhCabinetTable as ProductDatatable, ulhProfile);
+
+  const runUlh = (handle: string, height: number) =>
+    applyConfiguratorRules(
+      { cabinetType: "Sink-Base", width: 60, depth: 46, height, drawers: "1", handle },
+      undefined,
+      { selectedProductIds: [] },
+      ulhCatalog,
+      ulhProfile,
+    );
+  const enabledHeights = (result: ReturnType<typeof runUlh>) =>
+    result.availableOptions.height.filter(({ enabled }) => enabled).map(({ value }) => value);
+
+  it("offers the upper groove its 38 and 28 cm and push-to-open its 35 and 25 cm", () => {
+    expect(enabledHeights(runUlh("handle_urban_topcut", 38))).toEqual([28, 38]);
+
+    const pushToOpen = runUlh("handle_pto", 35);
+    expect(enabledHeights(pushToOpen)).toEqual([25, 35]);
+    expect(pushToOpen.availableOptions.height.find(({ value }) => value === 38)).toMatchObject({
+      reasonCode: "handle.requiredHeight",
+      reason: "Required for selected handle",
+    });
+  });
+
+  it("moves a height the new handle does not allow to the nearest one it does", () => {
+    expect(runUlh("handle_pto", 38).nextSelection.height).toBe(35);
+    expect(runUlh("handle_pto", 28).nextSelection.height).toBe(25);
+    expect(runUlh("handle_urban_topcut", 35).nextSelection.height).toBe(38);
+    expect(runUlh("handle_urban_topcut", 25).nextSelection.height).toBe(28);
   });
 });
 

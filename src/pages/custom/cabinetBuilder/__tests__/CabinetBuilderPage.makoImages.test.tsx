@@ -12,7 +12,13 @@ import { ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import cabinetTable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
-import { resetConfiguration, setActiveCollectionId, setAttributeValue } from "@/entities/configuration";
+import {
+  getCabinetEntries,
+  resetConfiguration,
+  setActiveCollectionId,
+  setAttributeValue,
+  syncCabinets,
+} from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import {
@@ -99,18 +105,35 @@ describe("Mako cabinet cards", () => {
     expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/drawers-1.png`);
   });
 
+  /** Records a leg colour at each placed cabinet, in composition order. */
+  const placeWithLegColors = (...legColors: string[]) => {
+    store.dispatch(syncCabinets(legColors.map((_, index) => `Sink-Base-${index + 1}`)));
+    getCabinetEntries(store.getState()).forEach(({ stableKey }, index) =>
+      store.dispatch(
+        setAttributeValue({
+          attributeId: "LegColor",
+          target: { scope: "cabinet", cabinetId: stableKey },
+          value: legColors[index],
+        }),
+      ),
+    );
+  };
+
   it("puts the two-drawer style on legs once a leg colour is chosen", () => {
     store.dispatch(setActiveCabinetType("Sink-Base"));
-    store.dispatch(
-      setAttributeValue({
-        attributeId: "LegColor",
-        target: { scope: "cabinet", cabinetId: "cab-1" },
-        value: "Silver",
-      }),
-    );
+    placeWithLegColors("Silver");
     renderBuilder();
 
     expect(cardImage("2 Drawer")).toBe(`${IMAGES}/cabinet/drawers-2-legs.png`);
     expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/drawers-1.png`);
+  });
+
+  it("takes the two-drawer style off its legs once they are switched off", () => {
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    // A model on legs records them at each cabinet; switching them off records no colour at the first.
+    placeWithLegColors("", "None");
+    renderBuilder();
+
+    expect(cardImage("2 Drawer")).toBe(`${IMAGES}/cabinet/drawers-2.png`);
   });
 });

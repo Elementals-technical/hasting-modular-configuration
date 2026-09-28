@@ -51,7 +51,8 @@ describe("mako runtime bindings", () => {
   });
 
   it("show the legs with a leg colour and hide them without one, after the drawer style", () => {
-    expect(patchOf("LegColor", "")).toEqual({ ShowLegs: "Disable" });
+    // No colour hides the legs and clears their colour, so the scene config says "no legs" too.
+    expect(patchOf("LegColor", "")).toEqual({ ShowLegs: "Disable", LegColor: "" });
     expect(patchOf("LegColor", "Gold")).toEqual({ ShowLegs: "Enable", LegColor: "Gold" });
     // The models with legs show them in the cabinet colour.
     expect(patchOf("LegColor", "None")).toEqual({ ShowLegs: "Enable", LegColor: "None" });

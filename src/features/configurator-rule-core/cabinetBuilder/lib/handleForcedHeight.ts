@@ -16,6 +16,7 @@ export const toHandleRelations = (rule: TypeCabinetRuleConfig | undefined): Cabi
     forcedHeightByHandle: rule.forcedHeightByHandle ?? {},
     forcedHeightByDrawers: rule.forcedHeightByDrawers ?? {},
     requiresDrawersByHandle: rule.requiresDrawersByHandle ?? {},
+    heightsByHandle: rule.heightsByHandle ?? {},
   };
 };
 

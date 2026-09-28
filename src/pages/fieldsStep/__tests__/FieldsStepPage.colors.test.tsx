@@ -18,7 +18,13 @@ import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/b
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import colorFieldStyles from "@/features/collectionCustomization/ui/ColorField.module.scss";
-import { reset, setActiveProfile } from "@/entities/product/model/store/slice";
+import { getCabinetEntries, resetConfiguration, setAttributeValue, syncCabinets } from "@/entities/configuration";
+import {
+  reset,
+  setActiveProfile,
+  setPlacedCabinetStyle,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 
 import { FieldsStepPage } from "../FieldsStepPage";
 
@@ -65,6 +71,8 @@ const cabinetColors: ConfiguratorAvailableOption = {
   ],
 };
 
+const grooveColors: ConfiguratorAvailableOption = { ...cabinetColors, id: 16, proxyName: "Handle Groove Color" };
+
 const renderColorStep = () => {
   const collection = buildReadyCollection("urban-low-height", ulhManifestDocument, ulhUiDocument);
 
@@ -76,7 +84,10 @@ const renderColorStep = () => {
             ...collection,
             catalog: {
               ...collection.catalog,
-              configurator: { groups: [cabinetColors], groupsByName: { "Cabinet Color": cabinetColors } },
+              configurator: {
+                groups: [cabinetColors, grooveColors],
+                groupsByName: { "Cabinet Color": cabinetColors, "Handle Groove Color": grooveColors },
+              },
             },
           }}
         >
@@ -90,8 +101,18 @@ const renderColorStep = () => {
 describe("FieldsStepPage colour fields", () => {
   beforeEach(() => {
     store.dispatch(reset());
+    store.dispatch(resetConfiguration());
     store.dispatch(setActiveProfile(parsedProfile.profile));
   });
+
+  /** Records a cabinet value where a field records it: at the first placed cabinet. */
+  const recordAtFirstCabinet = (attributeId: string, value: string) => {
+    store.dispatch(syncCabinets(["Sink-Base-1", "Sink-Base-2"]));
+    const [first] = getCabinetEntries(store.getState());
+    store.dispatch(setAttributeValue({ attributeId, target: { scope: "cabinet", cabinetId: first.stableKey }, value }));
+  };
+
+  const isChosen = (option: HTMLElement) => option.closest('[class*="activeItem"]') !== null;
 
   afterEach(cleanup);
 
@@ -106,14 +127,12 @@ describe("FieldsStepPage colour fields", () => {
     expect(pictures).toContain("https://preview.threekit.com/api/files/hash/sha256-pulpis");
   });
 
-  // Mako's section holds every colour in one option named after the attribute, so the grid can
-  // only group them by the material each variant names.
-  it("groups a Mako colour by the material its own configurator names", () => {
+  const renderMakoColorStep = () => {
     store.dispatch(setActiveProfile(makoProfile));
     const collection = buildReadyCollection("mako", makoManifestDocument, makoUiDocument);
     const makoGroups = configurator9.availableOptions as unknown as ConfiguratorAvailableOption[];
 
-    render(
+    return render(
       <Provider store={store}>
         <MemoryRouter initialEntries={["/prebuilt/color?collectionId=mako"]}>
           <ReadyCollectionContext.Provider
@@ -133,12 +152,104 @@ describe("FieldsStepPage colour fields", () => {
         </MemoryRouter>
       </Provider>,
     );
+  };
+
+  // Mako's section holds every colour in one option named after the attribute, so the grid can
+  // only group them by the material each variant names.
+  it("groups a Mako colour by the material its own configurator names", () => {
+    renderMakoColorStep();
 
     const section = within(screen.getByRole("region", { name: "Cabinet Color" }));
     expect(section.getByText("Lacquered MT")).toBeTruthy();
     expect(section.getByText("Lacquered GL")).toBeTruthy();
     expect(section.queryByText("Other")).toBeNull();
     expect(section.getAllByText("Nebbia 402 MT").length).toBeGreaterThan(0);
+  });
+
+  it("shows the Mako handle colour the composition holds as chosen", () => {
+    recordAtFirstCabinet("HandleColor", "Gold");
+    renderMakoColorStep();
+
+    const section = within(screen.getByRole("region", { name: "Handle Color" }));
+    expect(section.getAllByText("Gold").some(isChosen)).toBe(true);
+    expect(section.getAllByText("Silver").some(isChosen)).toBe(false);
+  });
+
+  describe("Mako legs", () => {
+    const legColorSection = () => within(screen.getByRole("region", { name: "Leg Color" }));
+    const isPressed = (name: "On" | "Off") =>
+      legColorSection().getByRole("button", { name }).getAttribute("aria-pressed") === "true";
+
+    it("are switched off without a leg colour, which offers the colours", () => {
+      renderMakoColorStep();
+
+      expect(legColorSection().getByText("Enable Legs, Then Color")).toBeTruthy();
+      expect(isPressed("Off")).toBe(true);
+      expect(isPressed("On")).toBe(false);
+      expect(legColorSection().queryByText("None")).toBeNull();
+      expect(legColorSection().getAllByText("Gold").length).toBeGreaterThan(0);
+    });
+
+    it("are switched on in the cabinet colour, with no leg colour of their own chosen", () => {
+      recordAtFirstCabinet("LegColor", "None");
+      renderMakoColorStep();
+
+      expect(isPressed("On")).toBe(true);
+      expect(legColorSection().queryByText("None")).toBeNull();
+      expect(legColorSection().queryByText("Other")).toBeNull();
+      expect(legColorSection().getAllByText("Gold").some(isChosen)).toBe(false);
+      // Only the legs switch on and off: the cabinet colour has no switch.
+      expect(
+        within(screen.getByRole("region", { name: "Cabinet Color" })).queryByRole("button", { name: "On" }),
+      ).toBeNull();
+    });
+
+    it("are not offered on one-drawer cabinets, which have no legs, and are on two-drawer ones", () => {
+      store.dispatch(syncCabinets(["Sink-Base-1", "Sink-Base-2"]));
+      store.dispatch(setPlacedCabinetStyle({ id: "Sink-Base-1", value: "1" }));
+      store.dispatch(setPlacedCabinetStyle({ id: "Sink-Base-2", value: "1" }));
+      renderMakoColorStep();
+
+      expect(screen.queryByRole("region", { name: "Leg Color" })).toBeNull();
+      expect(screen.getByRole("region", { name: "Handle Color" })).toBeTruthy();
+
+      cleanup();
+      store.dispatch(setPlacedCabinetStyle({ id: "Sink-Base-1", value: "2" }));
+      store.dispatch(setPlacedCabinetStyle({ id: "Sink-Base-2", value: "2" }));
+      renderMakoColorStep();
+
+      expect(screen.getByRole("region", { name: "Leg Color" })).toBeTruthy();
+    });
+
+    it("are switched on in a colour of their own, shown as chosen", () => {
+      recordAtFirstCabinet("LegColor", "Gold");
+      renderMakoColorStep();
+
+      expect(isPressed("On")).toBe(true);
+      expect(legColorSection().getAllByText("Gold").some(isChosen)).toBe(true);
+      expect(legColorSection().queryByText("None")).toBeNull();
+    });
+  });
+
+  it("offers an Urban Low Height groove colour for the upper groove, with None first, and none for push-to-open", () => {
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_urban_topcut" }));
+    renderColorStep();
+
+    const groove = within(screen.getByRole("region", { name: "Handle Groove Color (Optional)" }));
+    const none = groove.getByText("None");
+    expect(none.compareDocumentPosition(groove.getByText("Pulpis Chiaro TKH"))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    cleanup();
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
+    renderColorStep();
+
+    expect(screen.queryByRole("region", { name: "Handle Groove Color (Optional)" })).toBeNull();
+  });
+
+  it("leaves out the Urban Low Height fluting section, which the collection switches off", () => {
+    renderColorStep();
+
+    expect(screen.queryByRole("region", { name: "Drawer Panel Fluting" })).toBeNull();
   });
 
   it("lays its filters out in one row across the section, as the Urban colour sections do", () => {

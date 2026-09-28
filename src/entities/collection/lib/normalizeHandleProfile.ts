@@ -114,7 +114,21 @@ export const normalizeHandleProfile = ({
       }
     }
 
-    relations.push({ cabinetType, forcedHeightByHandle, forcedHeightByDrawers, requiresDrawersByHandle });
+    const heightsByHandle: Record<string, number[]> = {};
+    for (const [handleId, columnName] of Object.entries(columns.heightsByHandle ?? {})) {
+      const heights = parseDelimitedList(row[columnName])
+        .map(Number)
+        .filter((height) => Number.isFinite(height));
+      if (heights.length > 0) heightsByHandle[handleId] = heights;
+    }
+
+    relations.push({
+      cabinetType,
+      forcedHeightByHandle,
+      forcedHeightByDrawers,
+      requiresDrawersByHandle,
+      heightsByHandle,
+    });
   }
 
   return { relations, constraints };

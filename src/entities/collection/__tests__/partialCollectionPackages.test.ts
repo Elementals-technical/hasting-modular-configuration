@@ -5,6 +5,7 @@ import urbanLowHeightManifest from "../../../../public/collections/urban-low-hei
 import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
 import urbanLowHeightProductProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightRuntimeBindings from "../../../../public/collections/urban-low-height/runtime-bindings.json";
+import urbanLowHeightSkuProfile from "../../../../public/collections/urban-low-height/sku-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classPresets from "../../../../public/collections/class/presets.json";
@@ -43,6 +44,7 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-low-height/presets.json`]: urbanLowHeightPresets,
     [`${collectionsRootUrl}urban-low-height/product-profile.json`]: urbanLowHeightProductProfile,
     [`${collectionsRootUrl}urban-low-height/runtime-bindings.json`]: urbanLowHeightRuntimeBindings,
+    [`${collectionsRootUrl}urban-low-height/sku-profile.json`]: urbanLowHeightSkuProfile,
     [`${collectionsRootUrl}urban-low-height/ui.json`]: urbanLowHeightUi,
     [`${collectionsRootUrl}class/manifest.json`]: classManifest,
     [`${collectionsRootUrl}class/presets.json`]: classPresets,
@@ -104,6 +106,7 @@ describe("partial production collection packages", () => {
       { id: "model", label: "Urban Low Height Models", path: "/prebuilt/model" },
       { id: "color", label: "Color", path: "/prebuilt/color" },
       { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
+      { id: "accessories", label: "Accessories", path: "/prebuilt/accessories" },
       { id: "summary", label: "Summary", path: "/prebuilt/summary" },
     ]);
     // The 59 models of the master file; the six Multi-Level ones keep no composition until the scene has a lower level.
@@ -129,15 +132,15 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    // Class places its own scene products (I) but has no model compositions yet, and its own cabinet
-    // and countertop tables; Mako places its own scene products (I) and has the composition of every
-    // model, its own tables and its own configurator.
+    // Class places its own scene products (I) and has the composition of every model, and its own
+    // cabinet and countertop tables; Mako places its own scene products (I) and has the composition of
+    // every model, its own tables and its own configurator.
     [
       "class",
       "Class",
       44,
       { "Sink-Base": "Class-sink-cabinet", "Sink-Cabinet": "Class-side-cabinet" },
-      false,
+      true,
       [[579, abortSignal]],
       578,
       9,

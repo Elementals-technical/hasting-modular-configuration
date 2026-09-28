@@ -178,7 +178,8 @@
         "kind": "map",
         "patches": {
           "": {
-            "ShowLegs": "Disable"
+            "ShowLegs": "Disable",
+            "LegColor": ""
           },
           "None": {
             "ShowLegs": "Enable",
@@ -275,7 +276,7 @@
         }
       },
       "order": 60,
-      "note": "Legs follow the leg colour: no colour hides them, a colour shows them in it. \"None\" shows them in the cabinet colour (the scene inherits CabinetColor); the models with legs use it until the product names a leg colour. Sent after Drawers, so a chosen colour shows the legs of a 2DW cabinet. Legs exist only for 2DW (map section 6); Drawers hides them on 1DW."
+      "note": "Legs follow the leg colour: no colour hides them and clears their colour in the scene, so a product copied from the scene config stays without legs; a colour shows them in it. \"None\" shows them in the cabinet colour (the scene inherits CabinetColor); the models with legs use it until the product names a leg colour. Sent after Drawers, so a chosen colour shows the legs of a 2DW cabinet. Legs exist only for 2DW (map section 6); Drawers hides them on 1DW."
     },
     {
       "attributeId": "sinkType",

@@ -2,7 +2,10 @@ import classProfileDocument from "../../../../../../public/collections/class/pro
 import classSkuProfileDocument from "../../../../../../public/collections/class/sku-profile.json";
 import makoProfileDocument from "../../../../../../public/collections/mako/product-profile.json";
 import makoSkuProfileDocument from "../../../../../../public/collections/mako/sku-profile.json";
+import urbanLowHeightProfileDocument from "../../../../../../public/collections/urban-low-height/product-profile.json";
+import urbanLowHeightSkuProfileDocument from "../../../../../../public/collections/urban-low-height/sku-profile.json";
 
+import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -88,6 +91,18 @@ export const MAKO = {
   profile: parseProfile(makoProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(makoSkuProfileDocument),
   configurator: configurator9Catalog,
+};
+
+/** Configurator 4: the colours Urban Low Height shares with Urban Standard Height. */
+const configurator4Groups = configurator4.availableOptions as unknown as ConfiguratorAvailableOption[];
+
+export const URBAN_LOW_HEIGHT = {
+  profile: parseProfile(urbanLowHeightProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(urbanLowHeightSkuProfileDocument),
+  configurator: {
+    groups: configurator4Groups,
+    groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),
+  },
 };
 
 type Collection = {

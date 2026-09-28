@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { configuratorColorGroups } from "@/entities/collection/__tests__/fixtures/configuratorColorGroups";
+import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
+import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile as profile } from "@/entities/collection/__tests__/ushProfileFixture";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
+import makoUiJson from "../../../../public/collections/mako/ui.json";
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
 import { resolveSectionFields } from "../lib/resolveSectionState";
 
@@ -40,7 +44,7 @@ describe("resolveSectionFields", () => {
     expect(withoutHint[0]?.field.hint).toBeUndefined();
   });
 
-  it("reads the current value from productOptions by attributeId", () => {
+  it("reads the current value from the values it is given, by attributeId", () => {
     const resolved = resolveSectionFields(
       schema,
       "drawer-panel-custom",
@@ -112,6 +116,39 @@ describe("resolveSectionFields", () => {
       "Old Cabinet Color",
       "New Cabinet Color",
     ]);
+  });
+
+  describe("a field switched On and Off (Mako legs)", () => {
+    const makoSchema = readCustomizationSchema(makoUiJson);
+    const makoGroups = configurator9.availableOptions as unknown as ConfiguratorAvailableOption[];
+    const makoConfigurator = {
+      groups: makoGroups,
+      groupsByName: Object.fromEntries(makoGroups.map((group) => [group.proxyName, group])),
+    };
+    const legColor = (values: Record<string, string>) =>
+      resolveSectionFields(makoSchema, "leg-color", makoProfile, values, {}, makoConfigurator)[0]?.field;
+
+    it("is off without legs and offers the leg colours alone", () => {
+      const withoutLegs: Record<string, string>[] = [{}, { LegColor: "" }];
+
+      for (const values of withoutLegs) {
+        const field = legColor(values);
+
+        expect(field?.toggle).toEqual({ label: "Enable Legs, Then Color", on: false, onValue: "None", offValue: "" });
+        expect(field?.options.map(({ value }) => value)).not.toContain("None");
+        expect(field?.options.map(({ value }) => value)).not.toContain("");
+      }
+    });
+
+    it("is on with legs, in the cabinet colour or their own, and offers the leg colours alone", () => {
+      for (const LegColor of ["None", "Gold"]) {
+        const field = legColor({ LegColor });
+
+        expect(field?.toggle?.on).toBe(true);
+        expect(field?.options.map(({ value }) => value)).not.toContain("None");
+        expect(field?.options.map(({ value }) => value)).toContain("Gold");
+      }
+    });
   });
 
   it("keeps only the options listed in allowedValues enabled and carries the reason on the rest", () => {

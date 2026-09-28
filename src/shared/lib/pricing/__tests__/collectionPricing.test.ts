@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
 
-import { normalizeOptionValue, presetsSchema } from "@/entities/collection";
+import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import { countertopDatatableSchema, normalizeOptionValue, presetsSchema } from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
-import type { ValueTarget } from "@/entities/configuration";
+import type { ScopedValue, ValueTarget } from "@/entities/configuration";
+import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 
 import {
   derivePriceStatus,
@@ -18,12 +20,14 @@ import { createSkuBuilders } from "@/shared/lib/sku";
 
 import { buildCollectionPricingLines } from "../buildCollectionPricingLines";
 import { resolvePriceFromResponse, resolvePriceRequest } from "../priceRequests";
+import type { PricingInput, PricingLine } from "../types";
 import {
   at,
   COLLECTION_PRICING_SCENARIOS,
   CLASS,
   collectionPricingInput,
   MAKO,
+  URBAN_LOW_HEIGHT,
   type CollectionPricingScenarioId,
 } from "./fixtures/collectionPricingScenarios";
 import classOrder from "./fixtures/prices/class-porcelain-integrated.json";
@@ -141,6 +145,26 @@ describe("Class and Mako order lines", () => {
     expect(placed.lines.find(({ group }) => group === "holeCut")).toMatchObject({ quantity: 1 });
   });
 
+  it("addresses the cabinets of a model by their place in it, as the Summary of a model reads them", () => {
+    const { input } = COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"];
+    // A cabinet added on top of the two-cabinet model, which the Summary reads by its runtime id.
+    const added = { stableKey: "mko-added", runtimeId: "Sink-Cabinet-fff666", index: 2 };
+    const { lines } = buildCollectionPricingLines({
+      ...input,
+      shouldUsePresets: true,
+      productsPresets: [{ name: "Sink-Base" }, { name: "Sink-Cabinet" }],
+      productIds: [...input.cabinetEntries.map(({ runtimeId }) => runtimeId), added.runtimeId],
+      cabinetEntries: [...input.cabinetEntries, added],
+      dimensionsByCabinet: { ...input.dimensionsByCabinet, [added.stableKey]: { width: 60, height: 52, depth: 52 } },
+    });
+
+    expect(lines.filter(({ group }) => group === "cabinet").map(({ id, sourceId }) => [id, sourceId])).toEqual([
+      ["cabinet:preset-0", "Sink-Base-ccc333"],
+      ["cabinet:preset-1", "Sink-Cabinet-ddd444"],
+      ["cabinet:Sink-Cabinet-fff666", "Sink-Cabinet-fff666"],
+    ]);
+  });
+
   it("keeps two identical cabinets as two lines", () => {
     const cabinet = (stableKey: string, runtimeId: string) => ({
       stableKey,
@@ -236,12 +260,212 @@ describe("Class and Mako order lines", () => {
     expect(lines.some(({ group }) => group === "legs")).toBe(false);
   });
 
+  it("prices the legs a field sets at the first cabinet over the model's on the other cabinets", () => {
+    const first: ValueTarget = { scope: "cabinet", cabinetId: "mko-first" };
+    const second: ValueTarget = { scope: "cabinet", cabinetId: "mko-second" };
+    // A model on legs records them at each cabinet; the Leg Color field records its choice at the first.
+    const withLegColor = (legColor: string) =>
+      collectionPricingInput(
+        MAKO,
+        [
+          { stableKey: "mko-first", runtimeId: "Sink-Base-eee555", size: { width: 60, height: 52, depth: 52 } },
+          { stableKey: "mko-second", runtimeId: "Sink-Cabinet-fff666", size: { width: 40, height: 52, depth: 52 } },
+        ],
+        {
+          Drawers: [at(first, "2"), at(second, "2")],
+          Handle: [at(first, "G57"), at(second, "G57")],
+          LegColor: [at(first, legColor), at(second, "None")],
+          CabinetColor: [at({ scope: "global" }, "Antracite 400 MT")],
+        },
+      );
+    const legsLine = (legColor: string) =>
+      buildCollectionPricingLines(withLegColor(legColor)).lines.find(({ group }) => group === "legs");
+
+    // Switching the legs off records no colour: they are removed and not priced.
+    expect(legsLine("")).toBeUndefined();
+    expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+  });
+
+  it("prices the cabinet and its legs in the colour the builder starts from until one is chosen", () => {
+    if (!modelWithLegs) throw new Error("No Mako model carries legs");
+    const input = makoModelInput(modelWithLegs);
+    const { lines } = buildCollectionPricingLines({
+      ...input,
+      configurationValues: { ...input.configurationValues, CabinetColor: [] },
+      cabinetColor: MAKO.profile.defaults.CabinetColor,
+    });
+
+    expect(lines[0].sku).toContain("-CAB-LACM-400-");
+    expect(lines.find(({ group }) => group === "legs")?.sku).toBe("VAN-MAKOV-LEG-LACM-400");
+  });
+
+  it("keeps the chosen cabinet colour over the one the builder starts from", () => {
+    const { lines } = buildCollectionPricingLines({
+      ...makoModelInput(MAKO_MODELS[0], "Nero 433 MT"),
+      cabinetColor: MAKO.profile.defaults.CabinetColor,
+    });
+
+    expect(lines[0].sku).toContain("-CAB-LACM-433-");
+  });
+
   it("names a colour the collection has no material for instead of pricing the cabinet without it", () => {
     // The scene's Mako material, which is not one of the colours the collection offers.
     const { lines, gaps } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0], "Antracite Matte OCF"));
 
     expect(lines[0].sku).not.toContain("-CAB-");
     expect(gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
+  });
+});
+
+describe("Urban Low Height countertop, priced as Urban Standard Height's", () => {
+  const countertopRules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable438));
+  const sinkBase = (stableKey: string, depth = 46) => ({
+    stableKey,
+    runtimeId: `Sink-Base-${stableKey}`,
+    size: { width: 60, height: 38, depth },
+  });
+  const countertop: ValueTarget = { scope: "countertop" };
+  /** A composition of 60 cm sink bases with the default HPL top configurator 4 keeps, `Ardesia TKF`. */
+  const ulhOrder = (
+    cabinets: ReturnType<typeof sinkBase>[],
+    values: Record<string, ScopedValue[]> = {},
+    overrides: Partial<PricingInput> = {},
+  ) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_LOW_HEIGHT,
+        cabinets,
+        {
+          Drawers: cabinets.map(({ stableKey }) => at({ scope: "cabinet", cabinetId: stableKey }, "1")),
+          Handle: cabinets.map(({ stableKey }) =>
+            at({ scope: "cabinet", cabinetId: stableKey }, "handle_urban_topcut"),
+          ),
+          CountertopColor: [at(countertop, "Ardesia TKF")],
+          CountertopStyle: [at(countertop, "integrated")],
+          ...values,
+        },
+        { countertopRules, cabinetColor: "Castagno chiaro 1C1", ...overrides },
+      ),
+    );
+  const skusOf = (lines: PricingLine[], group: PricingLine["group"]) =>
+    lines.filter((line) => line.group === group).map(({ sku, quantity }) => ({ sku, quantity }));
+
+  it("prices the top of the 24\" 1-Drawer 1 model as USH does, at the cabinets' depth, and completes the total", () => {
+    const { lines, gaps } = ulhOrder([sinkBase("ulh-sb")]);
+
+    // 60 cm wide, 46 cm deep; table 438 gives HPL at 46 cm its first thickness, 1/2".
+    expect(lines.find(({ group }) => group === "countertop")).toMatchObject({
+      sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKF",
+      quantity: 1,
+      widthCm: 60,
+    });
+    expect(skusOf(lines, "faucetHoles")).toEqual([{ sku: "CT-URHPL-FAHO/0", quantity: 1 }]);
+    expect(gaps).toEqual([]);
+
+    const entries = Object.fromEntries(lines.map(({ sku }) => [sku, { status: "ready" as const, value: 100 }]));
+    expect(derivePriceStatus({ isUnavailable: false, isLoading: false, lines, entries, gaps })).toBe("ready");
+  });
+
+  it("sizes the top by its sink base when a narrower cabinet stands first, as a side cabinet added on the left", () => {
+    const sideCabinet = {
+      stableKey: "ulh-sc",
+      runtimeId: "Side-Cabinet-ulh-sc",
+      size: { width: 25, height: 38, depth: 46 },
+    };
+    const { lines, gaps } = ulhOrder([sideCabinet, sinkBase("ulh-sb")]);
+
+    // Table 438 takes an integrated HPL top over a sink base of 60 cm or more; the side cabinet is 25 cm.
+    expect(lines.find(({ group }) => group === "countertop")).toMatchObject({
+      sku: "CT-URHPL-INTG-33.5W-.5H-18.1D-HPL-TKF",
+      widthCm: 85,
+    });
+    expect(gaps).toEqual([]);
+  });
+
+  it("spells the groove colour the configuration holds on an Upper Groove cabinet, and the cabinet colour until one is chosen", () => {
+    const cabinetSku = (handleGrooveColor: string) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          URBAN_LOW_HEIGHT,
+          [sinkBase("ulh-sb")],
+          {
+            Drawers: [at({ scope: "cabinet", cabinetId: "ulh-sb" }, "1")],
+            Handle: [at({ scope: "cabinet", cabinetId: "ulh-sb" }, "handle_urban_topcut")],
+          },
+          { cabinetColor: "Castagno chiaro 1C1", handleGrooveColor },
+        ),
+      ).lines.find(({ group }) => group === "cabinet")?.sku;
+
+    expect(cabinetSku("Castagno Malto 1C2")).toBe("VAN-URLH-SB/1DW/UG/X-23.6W-15H-18.1D-CAB-3D-1C1-HDL-3D-1C2");
+    expect(cabinetSku("")).toBe("VAN-URLH-SB/1DW/UG/X-23.6W-15H-18.1D-CAB-3D-1C1-HDL-3D-1C1");
+  });
+
+  it("hangs the towel bar on each side as Urban Standard Height prices it, and completes the total", () => {
+    const withTowelBar = (towelBarOption: string) =>
+      ulhOrder(
+        [sinkBase("ulh-sb")],
+        { TowelBarOption: [at({ scope: "global" }, towelBarOption)] },
+        { towelBarOption, towelBarColor: "Carbone 43 MT" },
+      );
+    const towelBarOf = (towelBarOption: string) => skusOf(withTowelBar(towelBarOption).lines, "towelBar");
+
+    expect(towelBarOf("Both")).toEqual([
+      { sku: "VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT", quantity: 1 },
+      { sku: "VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT", quantity: 1 },
+    ]);
+    expect(withTowelBar("Both").gaps).toEqual([]);
+    expect(towelBarOf("Left")).toEqual([{ sku: "VAN-URTWLBR-STB/L-15.7W-1.4H-2D-LACM-43 MT", quantity: 1 }]);
+    expect(towelBarOf("None")).toEqual([]);
+  });
+
+  it("stands a side panel on each active side as Urban Standard Height spells it, at the cabinets' height", () => {
+    const withSidePanels = (sidePanelsOption: string, overrides: Partial<PricingInput> = {}) =>
+      ulhOrder(
+        [sinkBase("ulh-sb")],
+        { SidePanels: [at({ scope: "global" }, sidePanelsOption)] },
+        { sidePanelsOption, sidePanelLeft: "active", sidePanelRight: "active", ...overrides },
+      );
+    const sidePanelsOf = (order: ReturnType<typeof withSidePanels>) => skusOf(order.lines, "sidePanel");
+
+    // 38 cm high, 46 cm deep; the groove of an upper-groove panel in the cabinet colour until one is chosen.
+    const upperGroove = withSidePanels("UpperG");
+    expect(sidePanelsOf(upperGroove)).toEqual([
+      { sku: "VAN-URSP-1GU-.4W-15H-17.9D-CAB-3D-1C1-HDL-3D-1C1", quantity: 2 },
+    ]);
+    expect(upperGroove.gaps).toEqual([]);
+    expect(
+      sidePanelsOf(withSidePanels("UpperG", { handleGrooveColor: "Castagno Malto 1C2", sidePanelRight: "none" })),
+    ).toEqual([{ sku: "VAN-URSP-1GU-.4W-15H-17.9D-CAB-3D-1C1-HDL-3D-1C2", quantity: 1 }]);
+    expect(sidePanelsOf(withSidePanels("NoG"))).toEqual([{ sku: "VAN-URSP-0G-.4W-15H-17.9D-CAB-3D-1C1", quantity: 2 }]);
+  });
+
+  it("orders the integrated basin of each sink base as USH spells it", () => {
+    const { lines } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
+      sinkType: [at({ scope: "basin" }, "Top_HPLPrisma")],
+    });
+
+    expect(lines.find(({ group }) => group === "countertop")?.sku).toBe("CT-URHPL-INTG-47.2W-.5H-18.1D-HPL-TKF");
+    expect(skusOf(lines, "basin")).toEqual([
+      { sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 },
+      { sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 },
+    ]);
+  });
+
+  it("cuts a vessel top once per sink base and keeps the vessel sink unpriced", () => {
+    const { lines, gaps } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
+      CountertopStyle: [at(countertop, "vessel")],
+    });
+
+    expect(lines.find(({ group }) => group === "countertop")?.sku).toBe("CT-URHPL-VES-47.2W-.5H-18.1D-HPL-TKF");
+    expect(skusOf(lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 2 }]);
+    expect(gaps.map(({ group }) => group)).toEqual(["vessel"]);
+  });
+
+  it("says so when the countertop table gives the material no thickness at the cabinets' depth", () => {
+    const { lines, gaps } = ulhOrder([sinkBase("ulh-sb", 40)]);
+
+    expect(lines.some(({ group }) => group === "countertop")).toBe(false);
+    expect(gaps).toEqual([expect.objectContaining({ group: "countertop", blocksTotal: true })]);
   });
 });
 

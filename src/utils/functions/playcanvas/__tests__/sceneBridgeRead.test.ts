@@ -46,6 +46,27 @@ describe("readSceneProducts", () => {
     });
   });
 
+  it("reads the values of a config the scene answers with as a snapshot", async () => {
+    // The scene's SnapshotProductAttribute: the values sit behind get/getAll, not on the object.
+    class SnapshotProductAttribute {
+      private readonly _params: Record<string, unknown>;
+      constructor(data: Record<string, unknown>) {
+        this._params = Object.freeze({ ...data });
+      }
+      get(key: string) {
+        return this._params[key];
+      }
+      getAll() {
+        return this._params;
+      }
+    }
+    installScene({ "rt-a": new SnapshotProductAttribute({ Width: 50, Height: 38, Depth: 46 }), "rt-b": { Width: 80 } });
+
+    expect(await readSceneProducts(["rt-a", "rt-b"])).toMatchObject({
+      configs: { "rt-a": { Width: 50, Height: 38, Depth: 46 }, "rt-b": { Width: 80 } },
+    });
+  });
+
   it("leaves out a product the scene has no config for", async () => {
     installScene({ "rt-a": { Width: 60 } });
 

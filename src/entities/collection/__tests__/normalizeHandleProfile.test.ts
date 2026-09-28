@@ -114,7 +114,32 @@ describe("normalizeHandleProfile", () => {
       forcedHeightByHandle: {},
       forcedHeightByDrawers: {},
       requiresDrawersByHandle: {},
+      heightsByHandle: {},
     });
+  });
+
+  it("reads the heights each handle allows, for a table whose handles do not force one (Urban Low Height)", () => {
+    const { relations } = normalizeHandleProfile({
+      rows: [
+        {
+          cabinet_type: "Sink-Base",
+          handle_urban_topcut_heights_cm: "38|28",
+          handle_pto_heights_cm: "35|25",
+        },
+      ],
+      adapter: {
+        columns: {
+          ...adapter.columns,
+          heightsByHandle: {
+            handle_urban_topcut: "handle_urban_topcut_heights_cm",
+            handle_pto: "handle_pto_heights_cm",
+          },
+        },
+      },
+      normalizeDrawers,
+    });
+
+    expect(relations[0].heightsByHandle).toEqual({ handle_urban_topcut: [38, 28], handle_pto: [35, 25] });
   });
 });
 

@@ -1,6 +1,11 @@
-import { normalizeOptionValue, selectOption } from "@/entities/collection/lib/productProfileSelectors";
+import {
+  hasCapability,
+  normalizeOptionValue,
+  selectAttribute,
+  selectOption,
+} from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
-import type { CollectionSkuProfile } from "@/entities/collection/model/schemas";
+import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
 import { cmToInches } from "./cmToInches";
 import type { ConfiguratorColorReader } from "./configuratorColors";
@@ -31,6 +36,13 @@ export const resolveCollectionColorCode = (skuProfile: CollectionSkuProfile, val
     .reverse()
     .find((token) => /^\d+$/.test(token)) ??
   null;
+
+/** A colour value that chooses a colour: set, and not the attribute's reset value ("None"). */
+export const isChosenColor = (
+  productProfile: ProductProfile | null,
+  attributeId: string,
+  value: string | null,
+): value is string => Boolean(value) && value !== selectAttribute(productProfile, attributeId)?.resetValue;
 
 /**
  * The material of a colour: the SKU the configurator gives it, else the category of its option
@@ -82,30 +94,50 @@ export const buildCollectionCabinetSku = (
 ): CollectionCabinetSku => {
   const { cabinet } = skuProfile;
   const missing: CollectionCabinetSkuGap[] = [];
+  const optionOf = (attributeId: string) => {
+    const raw = read(attributeId);
+    return normalizeOptionValue(productProfile, attributeId, raw) ?? raw;
+  };
 
-  const configBlock = cabinet.configBlock
+  // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes.
+  const cabinetType = optionOf("CabinetType");
+  const ownSpelling = cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined;
+  const { series, configBlock } = ownSpelling ?? cabinet;
+  const config = configBlock
     .map(({ attributeId, codes }) => {
-      const raw = read(attributeId);
-      const value = normalizeOptionValue(productProfile, attributeId, raw) ?? raw;
+      const value = optionOf(attributeId);
       return (value && codes[value]) || FALLBACK;
     })
     .join("/");
 
-  const elements = cabinet.elements.flatMap(({ code, attributeId, materialSuffix }) => {
-    const value = read(attributeId);
+  const elementsOfType = ownSpelling?.elements ?? cabinet.elements;
+  const elements = elementsOfType.flatMap(({ code, attributeId, materialSuffix, appliesWhen, inheritsFrom }) => {
+    // An element of a part the cabinet may not have, e.g. a handle groove, only where it has it.
+    if (
+      appliesWhen &&
+      !hasCapability(productProfile, appliesWhen.attributeId, optionOf(appliesWhen.attributeId), appliesWhen.capability)
+    ) {
+      return [];
+    }
+
+    // A colour not chosen, empty or the reset value ("None"), is spelled with the one it inherits.
+    const own = read(attributeId);
+    const isChosen = isChosenColor(productProfile, attributeId, own);
+    const colorAttributeId = isChosen || !inheritsFrom ? attributeId : inheritsFrom;
+    const value = isChosen ? own : inheritsFrom ? read(inheritsFrom) : null;
     if (!value) return [];
 
     const material = resolveCollectionColorMaterial(
       skuProfile,
       productProfile,
-      attributeId,
+      colorAttributeId,
       value,
       readConfiguratorColor,
     );
     // A colour the collection names no material for cannot be priced: the element is left out
     // and said so, rather than leaving a cabinet SKU the price server answers nothing for.
     if (!material) {
-      missing.push({ attributeId, cause: "no-material" });
+      missing.push({ attributeId: colorAttributeId, cause: "no-material" });
       return [];
     }
 
@@ -126,7 +158,7 @@ export const buildCollectionCabinetSku = (
   const sizes = [sizeToken(widthCm, "W"), sizeToken(heightCm, "H"), sizeToken(depthCm, "D")].join("-");
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
-  return { sku: `${CABINET_CATEGORY}-${cabinet.series}-${configBlock}-${sizes}${elementsSuffix}`, missing };
+  return { sku: `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`, missing };
 };
 
 export type CollectionCountertopSkuInput = {
@@ -156,7 +188,8 @@ export type CollectionCountertopSkus = {
 };
 
 export const buildCollectionCountertopSkus = (
-  skuProfile: CollectionSkuProfile,
+  /** A collection that spells its countertop itself (`hasOwnCountertop`). */
+  skuProfile: CollectionSkuProfile & { countertop: CollectionCountertop },
   productProfile: ProductProfile | null,
   { style, color, basins, widthCm, faucetHoles, readConfiguratorColor }: CollectionCountertopSkuInput,
 ): CollectionCountertopSkus => {

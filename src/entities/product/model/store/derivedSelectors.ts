@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
+import { getCompositionValues } from "@/entities/configuration";
 
 import {
   bookMatchingRule,
@@ -150,9 +151,8 @@ export const getDominantDrawerValue = createSelector(
  * Attribute values the active collection's `optionImageVariants` rows are matched against.
  *
  * Two stores hold them: the typed product options, and the configuration slice for attributes
- * that left the typed core — Mako's `LegColor` and `HandleColor` live only there. A cabinet-scoped
- * attribute counts as set as soon as one cabinet has it, which is what "this composition has
- * legs" means for a card.
+ * that left the typed core — Mako's `LegColor` and `HandleColor` live only there. The slice's
+ * values are the ones the whole composition holds (`getCompositionValues`).
  *
  * The cabinet type, the drawers the composition stands for and the selected height are named
  * here because they are not attributes of the typed options.
@@ -160,21 +160,20 @@ export const getDominantDrawerValue = createSelector(
 export const selectOptionImageContext = createSelector(
   [
     (state: RootState) => state.rootStateUI.product.productOptions,
-    (state: RootState) => state.rootStateUI.configuration.valuesByAttributeId,
+    getCompositionValues,
     getActiveCabinetType,
     getDominantDrawerValue,
     getSelectedDimensions,
   ],
-  (productOptions, valuesByAttributeId, cabinetType, drawers, dimensions): Record<string, string> => {
+  (productOptions, compositionValues, cabinetType, drawers, dimensions): Record<string, string> => {
     const context: Record<string, string> = {};
 
     for (const [attributeId, value] of Object.entries(productOptions)) {
       context[attributeId] = typeof value === "string" ? value : String(value ?? "");
     }
 
-    for (const [attributeId, values] of Object.entries(valuesByAttributeId)) {
-      const set = values.find((entry) => typeof entry.value === "string" && entry.value.trim().length > 0);
-      context[attributeId] = typeof set?.value === "string" ? set.value : "";
+    for (const [attributeId, value] of Object.entries(compositionValues)) {
+      context[attributeId] = typeof value === "string" ? value : "";
     }
 
     context.CabinetType = cabinetType ?? "";

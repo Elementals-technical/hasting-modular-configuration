@@ -1,6 +1,9 @@
+import { createSelector } from "@reduxjs/toolkit";
+
 import type { RootState } from "@/app/store";
 import type { ProductProfile } from "@/entities/collection";
 
+import { compositionValueOf } from "../compositionValue";
 import { findByStableKey, resolveCabinetDimensions, resolveStableKey } from "../identity";
 import { CONFIGURATION_SNAPSHOT_VERSION, isSameTarget } from "../types";
 import type {
@@ -43,6 +46,18 @@ export const getStableKeyForRuntimeId = (state: RootState, runtimeId: string): s
 /** Every value by attribute and address. The reference changes only when a value does. */
 export const getValuesByAttributeId = (state: RootState): ConfigurationState["valuesByAttributeId"] =>
   state.rootStateUI.configuration.valuesByAttributeId;
+
+/** Each recorded attribute's value as the whole composition holds it (`compositionValueOf`). */
+export const getCompositionValues = createSelector(
+  [getValuesByAttributeId, (state: RootState) => getCabinetEntries(state)[0]?.stableKey],
+  (valuesByAttributeId, firstCabinetId): Record<string, AttributeValue | undefined> =>
+    Object.fromEntries(
+      Object.entries(valuesByAttributeId).map(([attributeId, entries]) => [
+        attributeId,
+        compositionValueOf(entries, firstCabinetId),
+      ]),
+    ),
+);
 
 /** Actual sizes read from the scene, by stable key. The reference changes only when a size does. */
 export const getDimensionsByCabinet = (state: RootState): ConfigurationState["dimensionsByCabinet"] =>

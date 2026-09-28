@@ -8,6 +8,7 @@ import type {
   CustomizationSchema,
   FieldOptionState,
   FieldRuntimeState,
+  FieldToggleState,
   ProductProfile,
 } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -37,11 +38,8 @@ export type ResolvedCustomizationField = {
   field: FieldRuntimeState;
 };
 
-const readProductOptionValue = (
-  productOptions: Record<string, unknown>,
-  attributeId: string,
-): FieldRuntimeState["value"] => {
-  const value = productOptions[attributeId];
+const readFieldValue = (values: Record<string, unknown>, attributeId: string): FieldRuntimeState["value"] => {
+  const value = values[attributeId];
   return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? value : null;
 };
 
@@ -73,11 +71,26 @@ const resolveConfiguratorOptions = (
     : options;
 };
 
+// A field that declares `toggle` switches between its profile default (On) and reset value (Off),
+// and is on while it holds anything else than the reset value.
+const resolveFieldToggle = (
+  profile: ProductProfile | null,
+  { attributeId, toggle }: CustomizationFieldDefinition,
+  value: FieldRuntimeState["value"],
+): FieldToggleState | undefined => {
+  const attribute = selectAttribute(profile, attributeId);
+  if (!toggle || attribute?.defaultValue === undefined || attribute.resetValue === undefined) return undefined;
+
+  const { defaultValue: onValue, resetValue: offValue } = attribute;
+  return { label: toggle.label, on: value !== null && value !== "" && value !== offValue, onValue, offValue };
+};
+
 export const resolveSectionFields = (
   schema: CustomizationSchema | null,
   sectionId: string,
   profile: ProductProfile | null,
-  productOptions: Record<string, unknown>,
+  /** The values the fields show, by attributeId. */
+  values: Record<string, unknown>,
   availabilityResults: FieldAvailabilityResults,
   configurator: ConfiguratorGroupCatalog | null = null,
 ): ResolvedCustomizationField[] => {
@@ -85,6 +98,8 @@ export const resolveSectionFields = (
 
   return definitions.map((definition) => {
     const availability = resolveFieldAvailability(definition.availabilityRef, availabilityResults);
+    const storedValue = readFieldValue(values, definition.attributeId);
+    const toggle = resolveFieldToggle(profile, definition, storedValue);
     const declaredOptions: FieldOptionState[] = definition.optionsRef
       ? resolveConfiguratorOptions(profile, definition.attributeId, configurator)
       : selectOptions(profile, definition.attributeId).map(({ value, label, category }) => ({
@@ -113,13 +128,13 @@ export const resolveSectionFields = (
       };
     });
 
-    const storedValue = readProductOptionValue(productOptions, definition.attributeId);
     const value =
       storedValue === null || storedValue === "" ? (availability.valueWhenEmpty ?? storedValue) : storedValue;
     const field: FieldRuntimeState = {
       attributeId: definition.attributeId,
       value,
       options,
+      toggle,
       visible: availability.visible ?? true,
       enabled: availability.available,
       disabledReason: availability.reason,

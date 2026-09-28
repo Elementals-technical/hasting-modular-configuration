@@ -43,7 +43,7 @@ export const SIDE_PANEL_WIDTH_CM = 1;
  * Example: VAN-URSP-1GU-.4W-20.9H-19.7D-CAB-LACM-90-HDL-LACM-DD
  * (1cm wide, 53cm tall, 50cm deep, cabinet LACM/90, handle groove LACM/DD)
  */
-export function buildSidePanelSku(profile: SkuProfile, input: SidePanelSkuInput): string | null {
+export function buildSidePanelSku(profile: Pick<SkuProfile, "series">, input: SidePanelSkuInput): string | null {
   if (!input.panelType || input.panelType === "None") return null;
 
   const code = sidePanelPricingMap[input.panelType] ?? FALLBACK;

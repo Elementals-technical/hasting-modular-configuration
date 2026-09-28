@@ -191,7 +191,7 @@ describe("CustomCabinetColorsPage", () => {
       [...screen.getByRole("region", { name }).querySelectorAll("button")].map((button) => button.textContent);
 
     expect(buttonsIn("Cabinet Color")).toEqual(["New Cabinet Color", "Old Cabinet Color"]);
-    expect(buttonsIn("Handle Groove Color (Optional)")).toEqual(["New Cabinet Color", "None", "Old Cabinet Color"]);
+    expect(buttonsIn("Handle Groove Color (Optional)")).toEqual(["None", "New Cabinet Color", "Old Cabinet Color"]);
   });
 
   it("changes the cabinet colour through the shared handler and records the colour's SKU", async () => {

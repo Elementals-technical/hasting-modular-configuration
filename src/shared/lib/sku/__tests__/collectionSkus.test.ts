@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { hasOwnCountertop } from "@/entities/collection";
 import { CLASS, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
 import {
@@ -110,8 +111,14 @@ describe("Mako cabinet SKU", () => {
 });
 
 describe("countertop SKUs", () => {
-  const countertop = (collection: typeof CLASS, input: Partial<Parameters<typeof buildCollectionCountertopSkus>[2]>) =>
-    buildCollectionCountertopSkus(collection.skuProfile, collection.profile, {
+  const countertop = (
+    collection: typeof CLASS,
+    input: Partial<Parameters<typeof buildCollectionCountertopSkus>[2]>,
+  ) => {
+    const { skuProfile } = collection;
+    if (!hasOwnCountertop(skuProfile)) throw new Error(`${skuProfile.collectionId} spells no countertop of its own`);
+
+    return buildCollectionCountertopSkus(skuProfile, collection.profile, {
       style: "integrated",
       color: null,
       basins: [],
@@ -120,6 +127,7 @@ describe("countertop SKUs", () => {
       readConfiguratorColor: collection === CLASS ? readClassColor : readMakoColor,
       ...input,
     });
+  };
 
   it("prices an HPL top with its basin and faucet holes", () => {
     expect(countertop(CLASS, { color: "CALACATTA 259", basins: ["VA024"], faucetHoles: "1" })).toEqual({
