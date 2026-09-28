@@ -2,6 +2,7 @@ import { Script, Entity } from 'playcanvas';
 import { MeshBooleanExecutor } from '../core/MeshBooleanExecutor.mjs';
 import { OperationType } from '../core/MeshBooleanOperation.mjs';
 import { MeshBooleanScheduler } from '../core/MeshBooleanScheduler.mjs';
+import { MeshBooleanQueue } from '../core/MeshBooleanQueue.mjs';
 
 export const MESH_BOOLEAN_RESULT_STATUS = Object.freeze({
     SUCCESS: 'success',
@@ -38,6 +39,8 @@ export class MeshBoolean extends Script {
     _destroyed = false;
     _waitFrameCallbacks = new Set();
     _keyboardHandler = null;
+    _legacySuspended = false;
+    _assetLoadWaits = new Set();
 
     initialize() {
         this._resolveCuttersIfEmpty();
@@ -47,7 +50,7 @@ export class MeshBoolean extends Script {
         if (this._runOnStart) {
             // Відкладаємо boolean щоб SmartStretch + visibility rules встигли виконатись
             this._waitFrames(6).then(() => {
-                if (this._destroyed) return;
+                if (this._destroyed || this._legacySuspended) return;
                 // Skip if all cutters' parents are disabled (e.g. Sink-Cabinet)
                 const allParentsDisabled = this._cutters?.length > 0 &&
                     this._cutters.every(c => !c || (c.parent && !c.parent.enabled));
@@ -59,7 +62,7 @@ export class MeshBoolean extends Script {
         }
 
         this._keyboardHandler = (e) => {
-            if (e.key === pc.KEY_SPACE) this.performBoolean();
+            if (!this._legacySuspended && e.key === pc.KEY_SPACE) this.performBoolean();
         };
         this.app.keyboard.on('keydown', this._keyboardHandler);
 
@@ -71,6 +74,8 @@ export class MeshBoolean extends Script {
                 this.app.keyboard.off('keydown', this._keyboardHandler);
                 this._keyboardHandler = null;
             }
+            for (const wait of this._assetLoadWaits) wait.asset.off?.('load', wait.callback);
+            this._assetLoadWaits.clear();
             this._disposeGeneratedMesh();
         });
     }
@@ -167,7 +172,7 @@ export class MeshBoolean extends Script {
                 Object.defineProperty(ss, propName, {
                     set: (val) => {
                         desc.set.call(ss, val);
-                        if (!this._isUpdating) {
+                        if (!this._isUpdating && !this._legacySuspended) {
                             this.requestBoolean({
                                 reason: 'smartStretch',
                                 skipWhenNoActiveCutters: this._cutters?.length > 0
@@ -207,16 +212,23 @@ export class MeshBoolean extends Script {
     }
 
     runSafeBoolean() {
+        if (this._legacySuspended) return;
         const checkAsset = (comp) => {
             if (comp && comp.asset) {
                 const asset = this.app.assets.get(comp.asset);
                 if(!asset) return false;
                 if (asset.loaded) this.performBoolean();
-                else asset.once('load', () => {
-                    if (this._destroyed) return;
+                else {
+                    const wait = { asset, callback: null };
+                    wait.callback = () => {
+                    this._assetLoadWaits.delete(wait);
+                    if (this._destroyed || this._legacySuspended) return;
                     this.cacheSourceMesh();
                     this.performBoolean();
-                });
+                    };
+                    this._assetLoadWaits.add(wait);
+                    asset.once('load', wait.callback);
+                }
                 return true;
             }
             return false;
@@ -243,6 +255,10 @@ export class MeshBoolean extends Script {
      * @returns {Promise<object>} Revisioned success/no-op/cancelled/error result.
      */
     requestBoolean(options = {}) {
+        if (this._legacySuspended) {
+            return Promise.resolve(this._createBooleanResult(MESH_BOOLEAN_RESULT_STATUS.CANCELLED,
+                this._geometryRevision, { reason: 'legacy-suspended' }));
+        }
         if (this._destroyed) {
             return Promise.resolve(this._createBooleanResult(
                 MESH_BOOLEAN_RESULT_STATUS.CANCELLED,
@@ -332,6 +348,7 @@ export class MeshBoolean extends Script {
     }
 
     performBoolean() {
+        if (this._legacySuspended) return false;
         const revision = this._scheduledGeometryRevision ?? ++this._geometryRevision;
         if (revision > this._latestRequestedGeometryRevision) {
             this._latestRequestedGeometryRevision = revision;
@@ -346,6 +363,47 @@ export class MeshBoolean extends Script {
             this._recordBooleanError(revision, error);
             throw error;
         }
+    }
+
+    /** Stop future legacy callbacks without destroying source/generated meshes. */
+    suspendLegacy() {
+        if (this._destroyed || this._legacySuspended || this._isUpdating ||
+            this._pendingBooleanPromise || this._booleanTimer ||
+            this._waitFrameCallbacks.size || MeshBooleanQueue._queuedItems.has(this)) {
+            throw Object.assign(new Error('Mesh Boolean is still active or unavailable'), {code:'LEGACY_WRITERS_BUSY'});
+        }
+        for (const wait of this._assetLoadWaits) {
+            if (typeof wait.asset?.off !== 'function') {
+                throw Object.assign(new Error('Mesh Boolean asset listener cannot be detached'), {code:'LEGACY_HANDOFF_UNSUPPORTED'});
+            }
+        }
+        if (this._keyboardHandler && (typeof this.app?.keyboard?.off !== 'function' ||
+            typeof this.app?.keyboard?.on !== 'function')) {
+            throw Object.assign(new Error('Mesh Boolean keyboard listener cannot be detached'), {code:'LEGACY_HANDOFF_UNSUPPORTED'});
+        }
+        this._legacySuspended = true;
+        if (this._keyboardHandler) this.app.keyboard?.off?.('keydown', this._keyboardHandler);
+        for (const wait of this._assetLoadWaits) wait.asset.off('load', wait.callback);
+        let resumed = false;
+        return () => {
+            if (resumed) return;
+            const attached = [];
+            try {
+                if (this._keyboardHandler) {
+                    this.app.keyboard.on('keydown', this._keyboardHandler);
+                    attached.push(() => this.app.keyboard.off('keydown', this._keyboardHandler));
+                }
+                for (const wait of this._assetLoadWaits) {
+                    wait.asset.once('load', wait.callback);
+                    attached.push(() => wait.asset.off('load', wait.callback));
+                }
+            } catch (error) {
+                for (const detach of attached.reverse()) detach();
+                throw error;
+            }
+            this._legacySuspended = false;
+            resumed = true;
+        };
     }
 
     onMeshReplaced(callback, scope = this) {
