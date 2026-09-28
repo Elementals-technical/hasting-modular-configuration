@@ -19,7 +19,12 @@ import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture"
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import colorFieldStyles from "@/features/collectionCustomization/ui/ColorField.module.scss";
 import { getCabinetEntries, resetConfiguration, setAttributeValue, syncCabinets } from "@/entities/configuration";
-import { reset, setActiveProfile, setPlacedCabinetStyle } from "@/entities/product/model/store/slice";
+import {
+  reset,
+  setActiveProfile,
+  setPlacedCabinetStyle,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 
 import { FieldsStepPage } from "../FieldsStepPage";
 
@@ -66,6 +71,8 @@ const cabinetColors: ConfiguratorAvailableOption = {
   ],
 };
 
+const grooveColors: ConfiguratorAvailableOption = { ...cabinetColors, id: 16, proxyName: "Handle Groove Color" };
+
 const renderColorStep = () => {
   const collection = buildReadyCollection("urban-low-height", ulhManifestDocument, ulhUiDocument);
 
@@ -77,7 +84,10 @@ const renderColorStep = () => {
             ...collection,
             catalog: {
               ...collection.catalog,
-              configurator: { groups: [cabinetColors], groupsByName: { "Cabinet Color": cabinetColors } },
+              configurator: {
+                groups: [cabinetColors, grooveColors],
+                groupsByName: { "Cabinet Color": cabinetColors, "Handle Groove Color": grooveColors },
+              },
             },
           }}
         >
@@ -219,6 +229,21 @@ describe("FieldsStepPage colour fields", () => {
       expect(legColorSection().getAllByText("Gold").some(isChosen)).toBe(true);
       expect(legColorSection().queryByText("None")).toBeNull();
     });
+  });
+
+  it("offers an Urban Low Height groove colour for the upper groove, with None first, and none for push-to-open", () => {
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_urban_topcut" }));
+    renderColorStep();
+
+    const groove = within(screen.getByRole("region", { name: "Handle Groove Color (Optional)" }));
+    const none = groove.getByText("None");
+    expect(none.compareDocumentPosition(groove.getByText("Pulpis Chiaro TKH"))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    cleanup();
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
+    renderColorStep();
+
+    expect(screen.queryByRole("region", { name: "Handle Groove Color (Optional)" })).toBeNull();
   });
 
   it("leaves out the Urban Low Height fluting section, which the collection switches off", () => {

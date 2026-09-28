@@ -15,6 +15,8 @@ import { createConfiguratorColorReader } from "../configuratorColors";
  * Urban Low Height SKUs from its `sku-profile.json`. Each expected SKU is a form of the price
  * workbook (Pricing, in inches) that the price server resolved on 2026-09-25. The workbook writes
  * 38 and 28 cm as `15.0H` and `11.0H`; the SKU carries `15H` and `11H`, as the team spells them.
+ * The HDL of an Upper Groove cabinet follows the price list's SKU formula (element #2); the server
+ * has not been asked for these forms.
  */
 
 const parsed = parseProductProfile(urbanLowHeightProfileDocument);
@@ -80,10 +82,36 @@ const cabinet = (values: Record<string, string>, widthCm: number, heightCm: numb
   });
 
 describe("Urban Low Height cabinet SKU", () => {
-  it("spells a sink base with the upper groove and no fluting", () => {
+  it("spells a sink base with the upper groove and no fluting, its groove in the cabinet colour", () => {
     expect(cabinet({ CabinetColor: "Ardesia TKF" }, 90, 38)).toEqual({
-      sku: "VAN-URLH-SB/1DW/UG/X-35.4W-15H-19.7D-CAB-HPL-TKF",
+      sku: "VAN-URLH-SB/1DW/UG/X-35.4W-15H-19.7D-CAB-HPL-TKF-HDL-HPL-TKF",
       missing: [],
+    });
+  });
+
+  it("spells the groove colour chosen for an Upper Groove cabinet as HDL, and None as the cabinet colour", () => {
+    const withGroove = (HandleGrooveColor: string) =>
+      cabinet({ CabinetColor: "Ardesia TKF", HandleGrooveColor }, 90, 38).sku;
+
+    expect(withGroove("Castagno Malto 1C2")).toBe("VAN-URLH-SB/1DW/UG/X-35.4W-15H-19.7D-CAB-HPL-TKF-HDL-3D-1C2");
+    expect(withGroove("None")).toBe("VAN-URLH-SB/1DW/UG/X-35.4W-15H-19.7D-CAB-HPL-TKF-HDL-HPL-TKF");
+    // Push-to-Open has no groove, whatever colour the configuration still holds.
+    expect(
+      cabinet({ Handle: "handle_pto", CabinetColor: "Ardesia TKF", HandleGrooveColor: "Castagno Malto 1C2" }, 90, 35)
+        .sku,
+    ).toBe("VAN-URLH-SB/1DW/PTO/X-35.4W-13.8H-19.7D-CAB-HPL-TKF");
+  });
+
+  it("gives every groove colour of configurator 4 a material and a code", () => {
+    const grooveColors = configurator.groupsByName["Handle Groove Color"].options.flatMap(({ variants }) =>
+      variants.map(({ name }) => name),
+    );
+
+    expect(grooveColors.length).toBeGreaterThan(0);
+    grooveColors.forEach((HandleGrooveColor) => {
+      const { sku, missing } = cabinet({ CabinetColor: "Ardesia TKF", HandleGrooveColor }, 90, 38);
+      expect(missing).toEqual([]);
+      expect(sku).toMatch(/-HDL-[A-Z0-9]+-[A-Z0-9]+$/);
     });
   });
 
@@ -115,7 +143,7 @@ describe("Urban Low Height cabinet SKU", () => {
 
   it("reads the legacy drawer spelling through the profile aliases, at the 28 cm height", () => {
     expect(cabinet({ Drawers: "1D", CabinetColor: "Castagno Malto 1C2" }, 120, 28).sku).toBe(
-      "VAN-URLH-SB/1DW/UG/X-47.2W-11H-19.7D-CAB-3D-1C2",
+      "VAN-URLH-SB/1DW/UG/X-47.2W-11H-19.7D-CAB-3D-1C2-HDL-3D-1C2",
     );
   });
 
@@ -123,8 +151,8 @@ describe("Urban Low Height cabinet SKU", () => {
     const cabinetOfModel = (CabinetType: string, widthCm: number) =>
       cabinet({ CabinetType, CabinetColor: "Cemento Cenere 1A1" }, widthCm, 38, 46).sku;
 
-    expect(cabinetOfModel("Sink-Base", 80)).toBe("VAN-URLH-SB/1DW/UG/X-31.5W-15H-18.1D-CAB-3D-1A1");
-    // The open shelf has a series of its own and no drawer or handle.
+    expect(cabinetOfModel("Sink-Base", 80)).toBe("VAN-URLH-SB/1DW/UG/X-31.5W-15H-18.1D-CAB-3D-1A1-HDL-3D-1A1");
+    // The open shelf has a series of its own and no drawer or handle, so no groove either.
     expect(cabinetOfModel("Open-Shelf", 25)).toBe("VAN-UROS-1S-9.8W-15H-18.1D-CAB-3D-1A1");
   });
 });

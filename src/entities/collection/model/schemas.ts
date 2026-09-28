@@ -197,6 +197,30 @@ export const pricingGapGroupSchema = z.enum([
 /** `SB/2DW/G57`: one code per attribute, in order. */
 const skuConfigBlockSchema = z.array(z.object({ attributeId: z.string(), codes: stringMapSchema }).strict()).min(1);
 
+/** `CAB-LACM-412`: the first element carries the price. */
+const skuElementsSchema = z
+  .array(
+    z
+      .object({
+        code: z.string().trim().min(1),
+        attributeId: z.string(),
+        /** `LACM/B`: a suffix of the material decided by another attribute. */
+        materialSuffix: z
+          .object({ attributeId: z.string(), byValue: stringMapSchema, otherwise: z.string() })
+          .strict()
+          .optional(),
+        /** Only on a cabinet whose option of that attribute has the capability, e.g. a handle with a groove. */
+        appliesWhen: z
+          .object({ attributeId: z.string(), capability: z.enum(["supportsGrooveColor"]) })
+          .strict()
+          .optional(),
+        /** Spelled with this attribute's colour while its own is not chosen, e.g. a groove in the cabinet colour. */
+        inheritsFrom: z.string().optional(),
+      })
+      .strict(),
+  )
+  .min(1);
+
 /** A countertop the collection spells in its own words: `CT-{series}{material}-…` (Class, Mako). */
 const collectionCountertopSchema = z
   .object({
@@ -236,29 +260,23 @@ export const collectionSkuProfileSchema = z
       .object({
         series: z.string().trim().min(1),
         configBlock: skuConfigBlockSchema,
-        /** A cabinet type with a series of its own, e.g. the open shelf `VAN-UROS-1S-…`; its elements stay the cabinet's. */
+        /**
+         * A cabinet type with a series of its own, e.g. the open shelf `VAN-UROS-1S-…`. It keeps the
+         * cabinet's elements unless it names its own, as a shelf without a handle does.
+         */
         byCabinetType: z
           .record(
             z.string(),
-            z.object({ series: z.string().trim().min(1), configBlock: skuConfigBlockSchema }).strict(),
-          )
-          .optional(),
-        /** `CAB-LACM-412`: the first element carries the price. */
-        elements: z
-          .array(
             z
               .object({
-                code: z.string().trim().min(1),
-                attributeId: z.string(),
-                /** `LACM/B`: a suffix of the material decided by another attribute. */
-                materialSuffix: z
-                  .object({ attributeId: z.string(), byValue: stringMapSchema, otherwise: z.string() })
-                  .strict()
-                  .optional(),
+                series: z.string().trim().min(1),
+                configBlock: skuConfigBlockSchema,
+                elements: skuElementsSchema.optional(),
               })
               .strict(),
           )
-          .min(1),
+          .optional(),
+        elements: skuElementsSchema,
       })
       .strict(),
     colors: z

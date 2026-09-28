@@ -160,7 +160,7 @@
     {
       "attributeId": "HandleGrooveColor",
       "status": "state-only",
-      "reason": "Low Height handles have no groove (Handle capabilities: supportsGrooveColor false). Recorded, not sent, so a value carried over from state does not stop a placement."
+      "reason": "The ULH scene paints the groove in the cabinet colour: RuleMaterialsCabinetULH colours ULH_Cabinet_HGroove with CabinetColor, and RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded for the SKU and the Summary, not sent, until the export paints the ULH groove on its own."
     },
     {
       "attributeId": "FaucetHolesAmount",

@@ -130,6 +130,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;
       if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
+      if (attributeId === "HandleGrooveColor") return asText(input.handleGrooveColor);
       if (attributeId === "CabinetColor") return startingCabinetColor;
       return null;
     };

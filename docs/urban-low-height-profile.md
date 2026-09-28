@@ -16,7 +16,8 @@ the Urban Standard Height options and pictures, although the map does not descri
 |---|---|---|---|
 | `CabinetType` | cabinet | `Sink-Base` (URLH-SB), `Side-Cabinet` (URLH-SC), `Open-Shelf` (UROS), `Open-Side-Shelf` (UROSS) | §1, four module types over 664 base SKUs |
 | `Drawers` | cabinet | `1`, aliased `1D` / `1DW` | §2, every SB and SC is `1DW` |
-| `Handle` | cabinet | `handle_urban_topcut` (Upper Groove), `handle_pto` (Push-to-Open); neither offers a groove colour | §2; §5 — the groove colour cannot be included yet |
+| `Handle` | cabinet | `handle_urban_topcut` (Upper Groove), which offers a groove colour; `handle_pto` (Push-to-Open), which has no groove | §2; §5 |
+| `HandleGrooveColor` | cabinet | no list — `optionsSource: "configurator:Handle Groove Color"`, `None` first (`resetValue`); shown as Handle Groove Color (Optional) on the Color step for Upper Groove only | Added on request (team, 28.09.2026), as in Urban Standard Height. The ULH scene paints the groove in the cabinet colour, so the choice reaches the SKU and the Summary, not the 3D model (binding `state-only`) |
 | `Height` | cabinet | `38`, `35`, `28`, `25` | §2–3 |
 | `DrawerPanelFluting` | cabinet | `None`, `Vertical A`, `Vertical B`, `Horizontal A`, `Horizontal B`, aliased to `X`, `CVA`, `CVB`, `CHA`, `CHB` | §4 |
 | `CabinetColor` | global | no list — `optionsSource: "configurator:Cabinet Color"` | §5; the 232 values come from configurator 4 |
@@ -116,7 +117,10 @@ form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
   is the same.
 - **Until a cabinet colour is chosen, the cabinets are priced in the default** (`Rox Black TKQ`, HPL), as the
   countertop already is in its default colour.
-- **`HDL` is left out.** The server ignores it, and the groove colour has no stable structure (§15.4).
+- **An Upper Groove cabinet carries `HDL`**, product element #2 of the price list's SKU formula
+  (`…-CAB-{material}-{code}-HDL-{material}-{code}`): the groove colour chosen, or the cabinet colour until one is
+  (`None`). Push-to-Open and the Open Shelf have no groove and no `HDL`. The price columns depend on the cabinet
+  material only; that the server resolves these forms has not been checked.
 - Configurator 4 names one colour `Grigio Bromo` without a code (its `codeColor` is `DS MT`, the Torba DS the map
   lists): it is priced as LACM with no colour code.
 
@@ -124,10 +128,10 @@ form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
 
 | Owner | What is needed |
 |---|---|
-| Product | Approval of the `defaults`: `CountertopColor: Pietra Di Savoia Antracite TQ6`, the material the scene's Top_Solid countertop is authored in, `CountertopStyle: integrated` as in Urban Standard Height (team, 28.09.2026), and `CabinetColor: Rox Black TKQ` (team, 28.09.2026; it was `Cemento Cenere 1A1`), the colour the models carry: prebuilt carries the current cabinet colour from model to model, so a default that differs from the models' colour would repaint them — the ULH cabinet is authored in `Antracite Matte OCF`, which configurator 4 does not offer; the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); the groove colour structure (§15.4); confirmation whether `ProductID = USTD` is intentional (§15.2). |
+| Product | Approval of the `defaults`: `CountertopColor: Pietra Di Savoia Antracite TQ6`, the material the scene's Top_Solid countertop is authored in, `CountertopStyle: integrated` as in Urban Standard Height (team, 28.09.2026), and `CabinetColor: Rox Black TKQ` (team, 28.09.2026; it was `Cemento Cenere 1A1`), the colour the models carry: prebuilt carries the current cabinet colour from model to model, so a default that differs from the models' colour would repaint them — the ULH cabinet is authored in `Antracite Matte OCF`, which configurator 4 does not offer; the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); confirmation whether `ProductID = USTD` is intentional (§15.2). |
 | Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
 | B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
-| I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. |
+| I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. **The groove colour in the scene:** `RuleMaterialsCabinetULH` paints `ULH_Cabinet_HGroove` in `CabinetColor`, and `RuleChangeHandleGrooveColor` reaches Urban Standard Height meshes only. Once the export paints the ULH groove from `HandleGrooveColor`, its binding becomes `bound` (identity, `emptyValue: "None"`, as in USH). |
 | D | Open Side Shelf in the cabinet SKU (`VAN-UROSS-L\|R`, its side). Towel bar and side panel lines in SKU-profile pricing. Until then an order with them shows an incomplete price. |
 
 ## Evidence

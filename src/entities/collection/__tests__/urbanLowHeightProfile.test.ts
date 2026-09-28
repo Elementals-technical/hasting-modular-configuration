@@ -52,12 +52,12 @@ describe("urban-low-height product profile", () => {
     expect(drawers?.options?.[0]?.aliases).toContain("1DW");
   });
 
-  it("has the two handles, and neither offers a groove colour until its SKU structure is confirmed", () => {
+  it("has the two handles, and the upper groove offers a groove colour, which push-to-open has none of", () => {
     const handle = profile().attributes.find(({ attributeId }) => attributeId === "Handle");
 
     expect(selectOptionValues(profile(), "Handle")).toEqual(["handle_urban_topcut", "handle_pto"]);
     expect(handle?.options?.map(({ value, capabilities }) => [value, capabilities?.supportsGrooveColor])).toEqual([
-      ["handle_urban_topcut", false],
+      ["handle_urban_topcut", true],
       ["handle_pto", false],
     ]);
   });
@@ -80,11 +80,12 @@ describe("urban-low-height product profile", () => {
 
   it("takes the colour catalogs from the configurator instead of listing them", () => {
     const colours = profile().attributes.filter(({ attributeId }) =>
-      ["CabinetColor", "CountertopColor"].includes(attributeId),
+      ["CabinetColor", "HandleGrooveColor", "CountertopColor"].includes(attributeId),
     );
 
     expect(colours.map(({ attributeId, optionsSource, options }) => [attributeId, optionsSource, options])).toEqual([
       ["CabinetColor", "configurator:Cabinet Color", undefined],
+      ["HandleGrooveColor", "configurator:Handle Groove Color", undefined],
       ["CountertopColor", "configurator:Countertop Color", undefined],
     ]);
   });

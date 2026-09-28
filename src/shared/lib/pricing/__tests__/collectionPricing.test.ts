@@ -378,6 +378,24 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(gaps).toEqual([]);
   });
 
+  it("spells the groove colour the configuration holds on an Upper Groove cabinet, and the cabinet colour until one is chosen", () => {
+    const cabinetSku = (handleGrooveColor: string) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          URBAN_LOW_HEIGHT,
+          [sinkBase("ulh-sb")],
+          {
+            Drawers: [at({ scope: "cabinet", cabinetId: "ulh-sb" }, "1")],
+            Handle: [at({ scope: "cabinet", cabinetId: "ulh-sb" }, "handle_urban_topcut")],
+          },
+          { cabinetColor: "Castagno chiaro 1C1", handleGrooveColor },
+        ),
+      ).lines.find(({ group }) => group === "cabinet")?.sku;
+
+    expect(cabinetSku("Castagno Malto 1C2")).toBe("VAN-URLH-SB/1DW/UG/X-23.6W-15H-18.1D-CAB-3D-1C1-HDL-3D-1C2");
+    expect(cabinetSku("")).toBe("VAN-URLH-SB/1DW/UG/X-23.6W-15H-18.1D-CAB-3D-1C1-HDL-3D-1C1");
+  });
+
   it("orders the integrated basin of each sink base as USH spells it", () => {
     const { lines } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
       sinkType: [at({ scope: "basin" }, "Top_HPLPrisma")],

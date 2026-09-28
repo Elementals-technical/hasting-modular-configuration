@@ -1,4 +1,9 @@
-import { normalizeOptionValue, selectOption } from "@/entities/collection/lib/productProfileSelectors";
+import {
+  hasCapability,
+  normalizeOptionValue,
+  selectAttribute,
+  selectOption,
+} from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
 import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
@@ -89,7 +94,8 @@ export const buildCollectionCabinetSku = (
 
   // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes.
   const cabinetType = optionOf("CabinetType");
-  const { series, configBlock } = (cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined) ?? cabinet;
+  const ownSpelling = cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined;
+  const { series, configBlock } = ownSpelling ?? cabinet;
   const config = configBlock
     .map(({ attributeId, codes }) => {
       const value = optionOf(attributeId);
@@ -97,21 +103,34 @@ export const buildCollectionCabinetSku = (
     })
     .join("/");
 
-  const elements = cabinet.elements.flatMap(({ code, attributeId, materialSuffix }) => {
-    const value = read(attributeId);
+  const elementsOfType = ownSpelling?.elements ?? cabinet.elements;
+  const elements = elementsOfType.flatMap(({ code, attributeId, materialSuffix, appliesWhen, inheritsFrom }) => {
+    // An element of a part the cabinet may not have, e.g. a handle groove, only where it has it.
+    if (
+      appliesWhen &&
+      !hasCapability(productProfile, appliesWhen.attributeId, optionOf(appliesWhen.attributeId), appliesWhen.capability)
+    ) {
+      return [];
+    }
+
+    // A colour not chosen, empty or the reset value ("None"), is spelled with the one it inherits.
+    const own = read(attributeId);
+    const isChosen = Boolean(own) && own !== selectAttribute(productProfile, attributeId)?.resetValue;
+    const colorAttributeId = isChosen || !inheritsFrom ? attributeId : inheritsFrom;
+    const value = isChosen ? own : inheritsFrom ? read(inheritsFrom) : null;
     if (!value) return [];
 
     const material = resolveCollectionColorMaterial(
       skuProfile,
       productProfile,
-      attributeId,
+      colorAttributeId,
       value,
       readConfiguratorColor,
     );
     // A colour the collection names no material for cannot be priced: the element is left out
     // and said so, rather than leaving a cabinet SKU the price server answers nothing for.
     if (!material) {
-      missing.push({ attributeId, cause: "no-material" });
+      missing.push({ attributeId: colorAttributeId, cause: "no-material" });
       return [];
     }
 

@@ -146,7 +146,7 @@
     "color": {
       "label": "Color",
       "kind": "fields",
-      "sectionIds": ["cabinet-color", "drawer-panel"]
+      "sectionIds": ["cabinet-color", "handle-groove", "drawer-panel"]
     },
     "countertop": {
       "label": "Countertop & Basin",
@@ -191,6 +191,17 @@
           "attributeId": "CabinetColor",
           "control": "colors",
           "optionsRef": "CabinetColor"
+        }
+      ]
+    },
+    "handle-groove": {
+      "label": "Handle Groove Color (Optional)",
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "colors",
+          "optionsRef": "HandleGrooveColor",
+          "availabilityRef": "Handle.supportsGrooveColor"
         }
       ]
     },
