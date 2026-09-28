@@ -127,10 +127,11 @@ describe("CabinetBuilderPage starting values", () => {
 
     // Top_Solid carries Pietra Di Savoia Antracite TQ6; the ULH cabinet material (Antracite Matte OCF)
     // is no colour of configurator 4, so the cabinet starts in the colour of the models, Rox Black TKQ.
+    // The basin is the first Porcelain one table 438 gives a 46 cm deep top.
     expect(await renderEmptyBuilder()).toEqual({
       CabinetColor: "Rox Black TKQ",
       CountertopColor: "Pietra Di Savoia Antracite TQ6",
-      sinkType: "",
+      sinkType: "Top_Porcelain_Cover",
     });
   });
 

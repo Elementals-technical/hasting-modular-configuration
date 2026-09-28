@@ -501,6 +501,26 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     ]);
   });
 
+  it("prices the top and the basin of a model before a countertop is chosen, from the collection's defaults", () => {
+    // What switching to Urban Low Height leaves in the state: the profile's defaults (replaceCollectionData).
+    const store = configureStore({ reducer: rootReducer });
+    store.dispatch(replaceCollectionData({ profile: URBAN_LOW_HEIGHT.profile, cabinetCatalog: null }));
+    const { CountertopColor, CountertopStyle, sinkType } = store.getState().rootStateUI.product.productOptions;
+
+    const { lines, gaps } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      { CountertopColor: [], CountertopStyle: [] },
+      { countertopColor: CountertopColor, countertopStyle: CountertopStyle, sinkType },
+    );
+
+    // Pietra Di Savoia Antracite TQ6 is Porcelain; table 438 gives Porcelain 46 cm deep 1/2" first.
+    expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
+      "CT-URPOR-INTG-23.6W-.5H-18.1D-POR-TQ6",
+      "CT-URPOR-COVER-.5H-POR-TQ6",
+    ]);
+    expect(gaps).toEqual([]);
+  });
+
   it("cuts a vessel top once per sink base and keeps the vessel sink unpriced", () => {
     const { lines, gaps } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
       CountertopStyle: [at(countertop, "vessel")],

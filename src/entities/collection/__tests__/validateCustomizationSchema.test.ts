@@ -292,6 +292,31 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  it("accepts a field that keeps its value allowed, and no other autoSelect", () => {
+    const withAutoSelect = (autoSelect: unknown) => ({
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", autoSelect }],
+        },
+      },
+    });
+
+    expect(validateCustomizationSchema(withAutoSelect("firstAllowed")).ok).toBe(true);
+
+    const result = validateCustomizationSchema(withAutoSelect("lastAllowed"));
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "invalid-schema",
+        dataPath: "sections.faucet-holes-amount.fields[0].autoSelect",
+      }),
+    );
+  });
+
   it("rejects a section label for the vessel style that is not a string", () => {
     const broken = {
       ...uiJson,

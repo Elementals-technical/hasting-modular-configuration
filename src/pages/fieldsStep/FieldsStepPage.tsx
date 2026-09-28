@@ -1,6 +1,10 @@
 import { getActiveProductProfile } from "@/entities/configuration";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
-import { selectConfiguratorSection, useAttributeChangeHandler } from "@/features/configurationCommands";
+import {
+  selectConfiguratorSection,
+  useAttributeChangeHandler,
+  useFieldAutoSelect,
+} from "@/features/configurationCommands";
 import {
   ColorField,
   FieldControl,
@@ -48,6 +52,7 @@ const ColorSectionField = ({
 const SectionField = (props: SectionFieldProps) => {
   const { definition, field } = props;
   const { onChange, notice } = useAttributeChangeHandler(definition.attributeId);
+  useFieldAutoSelect(field, definition.autoSelect);
 
   return (
     <>
