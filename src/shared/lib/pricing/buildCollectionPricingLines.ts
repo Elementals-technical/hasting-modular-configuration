@@ -202,12 +202,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     // composition — as deep as its cabinets, as wide as they are with their side panels.
     const firstSize = dimensionsByCabinet[cabinets[0].stableKey];
     const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : null;
+    // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
+    const sinkBaseWidth = sinkBases.length > 0 ? (dimensionsByCabinet[sinkBases[0].stableKey]?.width ?? null) : null;
     const countertopLines = buildUshCountertopLines({
       series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
       countertop: resolveUshCountertop(input, {
         color: countertopColor,
         sinkType,
-        width: firstSize?.width ?? null,
+        width: sinkBaseWidth,
         depth: firstSize?.depth ?? null,
       }),
       style: countertopStyle ?? "",

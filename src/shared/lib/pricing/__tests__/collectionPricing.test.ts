@@ -362,6 +362,22 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(derivePriceStatus({ isUnavailable: false, isLoading: false, lines, entries, gaps })).toBe("ready");
   });
 
+  it("sizes the top by its sink base when a narrower cabinet stands first, as a side cabinet added on the left", () => {
+    const sideCabinet = {
+      stableKey: "ulh-sc",
+      runtimeId: "Side-Cabinet-ulh-sc",
+      size: { width: 25, height: 38, depth: 46 },
+    };
+    const { lines, gaps } = ulhOrder([sideCabinet, sinkBase("ulh-sb")]);
+
+    // Table 438 takes an integrated HPL top over a sink base of 60 cm or more; the side cabinet is 25 cm.
+    expect(lines.find(({ group }) => group === "countertop")).toMatchObject({
+      sku: "CT-URHPL-INTG-33.5W-.5H-18.1D-HPL-TKF",
+      widthCm: 85,
+    });
+    expect(gaps).toEqual([]);
+  });
+
   it("orders the integrated basin of each sink base as USH spells it", () => {
     const { lines } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
       sinkType: [at({ scope: "basin" }, "Top_HPLPrisma")],
