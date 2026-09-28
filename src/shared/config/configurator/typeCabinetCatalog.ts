@@ -18,6 +18,11 @@ export type TypeCabinetRuleConfig = {
   requiresDrawersByHandle?: Record<string, string[]>;
   /** handleId -> heights in cm the handle allows. Absent means any height of the type. */
   heightsByHandle?: Record<string, number[]>;
+  /**
+   * The scene product that places this type ("ULH-sink-cabinet"), from the collection's runtime
+   * bindings. A placed product's runtime id names it, not the cabinet type.
+   */
+  sceneProductType?: string;
   supportsHeight?: number[];
 };
 

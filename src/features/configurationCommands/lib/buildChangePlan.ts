@@ -1,7 +1,11 @@
 import type { ProductProfile } from "@/entities/collection";
 import { hasCapability, selectAttribute, selectMessage, selectOption, selectResetValue } from "@/entities/collection";
 import type { CabinetEntry, StableCabinetKey, ValueTarget } from "@/entities/configuration";
-import { applyConfiguratorRules, type Selection } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  applyConfiguratorRules,
+  findPlacedCabinetRule,
+  type Selection,
+} from "@/features/configurator-rule-core/cabinetBuilder";
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
@@ -56,14 +60,8 @@ const SELECTION_FIELD_BY_ATTRIBUTE: Record<string, keyof Selection> = {
 
 const configurationTarget = (): ValueTarget => ({ scope: "global" });
 
-/** Catalog rule of a placed product, found by the type code inside its runtime id. */
-const findCabinetRule = (runtimeId: string, catalog: ConfiguratorCatalog) => {
-  const normalized = runtimeId.toLowerCase();
-  return catalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase())) ?? null;
-};
-
 const isDrawerCabinet = (runtimeId: string, catalog: ConfiguratorCatalog): boolean => {
-  const rule = findCabinetRule(runtimeId, catalog);
+  const rule = findPlacedCabinetRule(catalog, runtimeId);
   return Boolean(rule && !rule.isOpen);
 };
 
@@ -205,7 +203,7 @@ export const buildChangePlan = ({
     ...selection,
     cabinetType:
       isDrawers && addressedCabinet
-        ? (findCabinetRule(addressedCabinet.runtimeId, catalog)?.code ?? selection.cabinetType)
+        ? (findPlacedCabinetRule(catalog, addressedCabinet.runtimeId)?.code ?? selection.cabinetType)
         : selection.cabinetType,
   };
   const ruleProductIds = isDrawers ? [] : selectedProductIds;

@@ -1,5 +1,5 @@
 import { normalizeHandleProfile, normalizeOptionValue } from "@/entities/collection";
-import type { NormalizedMatrixRow, ProductProfile } from "@/entities/collection";
+import type { NormalizedMatrixRow, ProductProfile, RuntimeBindingSet } from "@/entities/collection";
 import type { ProductDatatable, ProductDatatableRow } from "@/entities/product/api";
 import type { ConfiguratorCatalog, TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
@@ -41,11 +41,13 @@ const createDrawerNormalizer = (profile: ProductProfile) => (value: string) =>
  *
  * Every column, handle-specific ones included, comes from the collection's
  * `ruleData.cabinetMatrixLegacyAdapter`, so this parser never tests a handle id or assumes
- * USH columns: adding a handle means one more entry in the adapter data.
+ * USH columns: adding a handle means one more entry in the adapter data. The runtime bindings
+ * name the scene product of each type, by which the rules recognise a placed cabinet.
  */
 export const buildCabinetCatalogFromMatrix = (
   datatable: ProductDatatable,
   profile: ProductProfile,
+  bindings?: RuntimeBindingSet,
 ): ConfiguratorCatalog => {
   const rows = Array.isArray(datatable.rows) ? datatable.rows : [];
   const normalizedRows = rows.map(normalizeRow);
@@ -62,6 +64,7 @@ export const buildCabinetCatalogFromMatrix = (
 
     const supportsHeight = parseNumberList(row.supports_height);
     const relation = relationsByType.get(code);
+    const sceneProductType = bindings?.productTypes[code];
 
     return [
       {
@@ -78,6 +81,7 @@ export const buildCabinetCatalogFromMatrix = (
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
         heightsByHandle: relation?.heightsByHandle ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
+        ...(sceneProductType ? { sceneProductType } : {}),
       },
     ];
   });

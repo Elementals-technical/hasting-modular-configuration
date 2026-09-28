@@ -6,6 +6,7 @@ import cabinetTable580 from "@/entities/collection/__tests__/fixtures/remote/dat
 import { rootReducer } from "@/app/store/reducer";
 import type { RootState } from "@/app/store";
 import { parseProductProfile } from "@/entities/collection";
+import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import {
@@ -31,7 +32,8 @@ import { resolveGroove } from "../sidePanelService";
 const parsed = parseProductProfile(ulhProfileDocument);
 if (!parsed.ok) throw new Error("Urban Low Height profile must parse");
 const profile = parsed.profile;
-const cabinetCatalog = buildCabinetCatalogFromMatrix(cabinetTable580 as ProductDatatable, profile);
+// Built as the loader builds it, with the scene product of each cabinet type.
+const cabinetCatalog = buildCabinetCatalogFromMatrix(cabinetTable580 as ProductDatatable, profile, ulhRuntimeBindings);
 
 /** The height the command plans with a handle change on a Sink Base at 38 cm with the upper groove. */
 const plannedHeight = (handle: string): number | undefined => {
@@ -47,7 +49,8 @@ const plannedHeight = (handle: string): number | undefined => {
       drawers: "1",
       handle: "handle_urban_topcut",
     },
-    selectedProductIds: [],
+    // The placed cabinets, named after their scene products as the scene names them.
+    selectedProductIds: ["ULH-sink-cabinet-l4dkl0l8x", "ULH-side-cabinet-14f7v5hpm"],
     catalog: cabinetCatalog,
     profile,
     handleGrooveColor: null,

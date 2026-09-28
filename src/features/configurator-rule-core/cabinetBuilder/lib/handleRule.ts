@@ -14,6 +14,7 @@ import { cmToInches } from "@/shared/lib/sku";
 
 import type { OptionState, RuleContext, RuleResult } from "../model/types";
 import { toHandleRelations } from "./handleForcedHeight";
+import { findPlacedCabinetRule } from "./placedCabinetRule";
 
 /** Stable reason codes; the English fallback text lives in profile.messages. */
 const REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS = "handle.centralGrooveRequiresDrawers";
@@ -32,8 +33,7 @@ const supportsHeightForAllProducts = (
   if (!productIds?.length) return true;
 
   return productIds.every((productId) => {
-    const normalized = productId.toLowerCase();
-    const rule = catalog.typeCabinetRules.find((entry) => normalized.includes(entry.code.toLowerCase()));
+    const rule = findPlacedCabinetRule(catalog, productId);
 
     if (!rule) return false;
 

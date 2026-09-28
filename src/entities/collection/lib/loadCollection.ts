@@ -431,7 +431,7 @@ export const assembleCollectionData = (
       cabinets:
         cabinetTable && local.productProfile
           ? withoutUnplacedCabinetTypes(
-              buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile),
+              buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile, local.runtimeBindings),
               local.runtimeBindings,
             )
           : undefined,
