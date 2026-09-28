@@ -1,4 +1,4 @@
-import { resolveCabinetTypeOfRuntimeId, selectOption } from "@/entities/collection";
+import { hasOwnCountertop, resolveCabinetTypeOfRuntimeId, selectOption } from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
 import {
   compositionValueOf,
@@ -7,21 +7,25 @@ import {
   type ScopedValue,
   type ValueTarget,
 } from "@/entities/configuration";
+import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
   createConfiguratorColorReader,
   resolveCollectionDividerSku,
+  SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
   type CollectionValueReader,
   type ConfiguratorColorReader,
 } from "@/shared/lib/sku";
 
 import type { PricingGap, PricingInput, PricingLine } from "./types";
+import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 
 /**
- * Order lines of a collection priced from its `sku-profile.json` (D04): Class and Mako.
+ * Order lines of a collection priced from its `sku-profile.json` (D04): Class, Mako and Urban Low
+ * Height, whose countertop is priced as Urban Standard Height's.
  *
  * Read from C's state — cabinets, their sizes and the values addressed to each cabinet, basin
  * and drawer — rather than the scene, which these collections do not have yet (I07). The lines
@@ -54,6 +58,10 @@ const INPUT_GAP: Record<CollectionCabinetSkuGap["cause"], InputGap> = {
       `${attributeId} is set to a value the collection names no material for, so the cabinet has no price.`,
   },
 };
+
+/** Why a countertop priced as Urban Standard Height's has no top line. */
+const UNPRICED_USH_COUNTERTOP =
+  "The countertop has no Urban Standard Height price here: the countertop table gives no thickness for its material at this depth, or its colour names no material.";
 
 /** A gap concerns this order when the attribute it names has a value it covers. */
 const gapApplies = (
@@ -154,35 +162,69 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     valueAt(values, "sinkType", { scope: "basin", sinkBaseId: entry.stableKey }) ??
     valueAt(values, "sinkType", { scope: "basin" }) ??
     (input.sinkType || null);
-  const countertop = buildCollectionCountertopSkus(skuProfile, profile, {
-    style: countertopValue("CountertopStyle", input.countertopStyle),
-    color: countertopValue("CountertopColor", input.countertopColor),
-    basins: sinkBases.map(basinOf),
-    widthCm: cabinets.length > 0 ? widthCm : null,
-    faucetHoles: countertopValue("FaucetHolesAmount", input.faucetHolesAmount),
-    readConfiguratorColor,
-  });
+  const countertopStyle = countertopValue("CountertopStyle", input.countertopStyle);
+  const countertopColor = countertopValue("CountertopColor", input.countertopColor);
+  const faucetHoles = countertopValue("FaucetHolesAmount", input.faucetHolesAmount);
 
-  if (countertop.top && widthCm != null) {
-    add({ id: "countertop:0", group: "countertop", sku: countertop.top, quantity: 1, widthCm });
-  }
-  sinkBases.forEach((entry, index) => {
-    const basinSku = countertop.basins[index];
-    if (basinSku) add({ id: `countertop:basin:${entry.stableKey}`, group: "basin", sku: basinSku, quantity: 1 });
-  });
-  if (countertop.holeCut) {
-    add({ id: "countertop:holeCut", group: "holeCut", sku: countertop.holeCut, quantity: sinkBases.length });
-  }
-  if (countertop.faucetHoles) {
-    add({ id: "countertop:faucetDefault", group: "faucetHoles", sku: countertop.faucetHoles, quantity: 1 });
-  }
-  if (countertop.bracket) {
-    add({
-      id: "countertop:bracket",
-      group: "bracket",
-      sku: countertop.bracket.sku,
-      quantity: countertop.bracket.quantity,
+  if (hasOwnCountertop(skuProfile)) {
+    const countertop = buildCollectionCountertopSkus(skuProfile, profile, {
+      style: countertopStyle,
+      color: countertopColor,
+      basins: sinkBases.map(basinOf),
+      widthCm: cabinets.length > 0 ? widthCm : null,
+      faucetHoles,
+      readConfiguratorColor,
     });
+
+    if (countertop.top && widthCm != null) {
+      add({ id: "countertop:0", group: "countertop", sku: countertop.top, quantity: 1, widthCm });
+    }
+    sinkBases.forEach((entry, index) => {
+      const basinSku = countertop.basins[index];
+      if (basinSku) add({ id: `countertop:basin:${entry.stableKey}`, group: "basin", sku: basinSku, quantity: 1 });
+    });
+    if (countertop.holeCut) {
+      add({ id: "countertop:holeCut", group: "holeCut", sku: countertop.holeCut, quantity: sinkBases.length });
+    }
+    if (countertop.faucetHoles) {
+      add({ id: "countertop:faucetDefault", group: "faucetHoles", sku: countertop.faucetHoles, quantity: 1 });
+    }
+    if (countertop.bracket) {
+      add({
+        id: "countertop:bracket",
+        group: "bracket",
+        sku: countertop.bracket.sku,
+        quantity: countertop.bracket.quantity,
+      });
+    }
+  } else if (countertopColor && cabinets.length > 0) {
+    // A countertop priced as Urban Standard Height's (Urban Low Height): its SKUs and rules, on this
+    // composition — as deep as its cabinets, as wide as they are with their side panels.
+    const firstSize = dimensionsByCabinet[cabinets[0].stableKey];
+    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : null;
+    const countertopLines = buildUshCountertopLines({
+      series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
+      countertop: resolveUshCountertop(input, {
+        color: countertopColor,
+        sinkType,
+        width: firstSize?.width ?? null,
+        depth: firstSize?.depth ?? null,
+      }),
+      style: countertopStyle ?? "",
+      faucetHolesAmount: faucetHoles ?? "",
+      sinkType,
+      widthCm: widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight),
+      depthCm: firstSize?.depth ?? null,
+      sinkBases: sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
+      sinkBaseCount: sinkBases.length,
+    });
+
+    countertopLines.forEach(add);
+    // The countertop table may give no thickness for the material at this depth, or the colour
+    // may name no material: then there is no top to price, and the order says so.
+    if (!countertopLines.some(({ group }) => group === "countertop")) {
+      gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
+    }
   }
 
   // 3) Legs: the collection's own number of them, in their colour or the cabinet's, as the whole

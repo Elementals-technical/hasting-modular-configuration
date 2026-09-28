@@ -6,7 +6,8 @@
     "Urban Low Height - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Structure, SKU Curation, Pricing, Accessories Pricing",
     "Hasting Master File [Urban Low Height]: the colour codes, as the price list spells them after the colour name",
     "Configurator 4: the material SKU of each cabinet and countertop colour",
-    "pricing-v2/resolve answers for every cabinet form, checked 2026-09-25"
+    "pricing-v2/resolve answers for every cabinet form, checked 2026-09-25",
+    "Team, 2026-09-28: the Urban Low Height countertop is Urban Standard Height's — its SKUs, the thickness table 438 gives, as deep as the cabinets"
   ],
   "cabinet": {
     "series": "URLH",
@@ -194,23 +195,9 @@
       "Rovere Nero 06J": "06J"
     }
   },
-  "countertop": {
-    "series": "UR",
-    "styles": { "vessel": "VES" },
-    "depthIn": "X",
-    "materialByColorCategory": {},
-    "materialByBasin": {},
-    "thicknessByMaterial": {}
-  },
+  "countertop": { "pricedAs": "urban-standard-height" },
   "dividers": {},
   "gaps": [
-    {
-      "group": "countertop",
-      "blocksTotal": true,
-      "owner": "product",
-      "reason": "The Urban Low Height price list has no countertop or integrated basin prices, and whether its tops are priced as Urban Standard Height tops is not confirmed. Only the vessel cutout and the faucet holes are priced: the price list takes those from Urban Standard Height.",
-      "appliesWhen": { "attributeId": "CountertopColor" }
-    },
     {
       "group": "vessel",
       "blocksTotal": true,

@@ -1,6 +1,6 @@
 import { normalizeOptionValue, selectOption } from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
-import type { CollectionSkuProfile } from "@/entities/collection/model/schemas";
+import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
 import { cmToInches } from "./cmToInches";
 import type { ConfiguratorColorReader } from "./configuratorColors";
@@ -162,7 +162,8 @@ export type CollectionCountertopSkus = {
 };
 
 export const buildCollectionCountertopSkus = (
-  skuProfile: CollectionSkuProfile,
+  /** A collection that spells its countertop itself (`hasOwnCountertop`). */
+  skuProfile: CollectionSkuProfile & { countertop: CollectionCountertop },
   productProfile: ProductProfile | null,
   { style, color, basins, widthCm, faucetHoles, readConfiguratorColor }: CollectionCountertopSkuInput,
 ): CollectionCountertopSkus => {

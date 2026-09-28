@@ -197,6 +197,30 @@ export const pricingGapGroupSchema = z.enum([
 /** `SB/2DW/G57`: one code per attribute, in order. */
 const skuConfigBlockSchema = z.array(z.object({ attributeId: z.string(), codes: stringMapSchema }).strict()).min(1);
 
+/** A countertop the collection spells in its own words: `CT-{series}{material}-…` (Class, Mako). */
+const collectionCountertopSchema = z
+  .object({
+    series: z.string().trim().min(1),
+    styles: stringMapSchema,
+    depthIn: z.string().trim().min(1),
+    materialByColorCategory: stringMapSchema,
+    /** A basin that belongs to one material decides it (`VA030` → `SSTEX`). */
+    materialByBasin: stringMapSchema,
+    thicknessByMaterial: stringMapSchema,
+    bracket: z
+      .object({
+        sku: z.string().trim().min(1),
+        quantity: z.number().int().positive(),
+        thicknesses: z.array(z.string()),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+/** A countertop that is another collection's and priced as that one's: Urban Low Height's is USH's. */
+const countertopPricedAsSchema = z.object({ pricedAs: z.literal("urban-standard-height") }).strict();
+
 /**
  * How a collection spells its pricing SKUs, for collections whose SKU words are data (D04).
  * USH keeps its series in code (D01); a collection with this file is priced from it alone.
@@ -245,25 +269,7 @@ export const collectionSkuProfileSchema = z
         codeByValue: stringMapSchema,
       })
       .strict(),
-    countertop: z
-      .object({
-        series: z.string().trim().min(1),
-        styles: stringMapSchema,
-        depthIn: z.string().trim().min(1),
-        materialByColorCategory: stringMapSchema,
-        /** A basin that belongs to one material decides it (`VA030` → `SSTEX`). */
-        materialByBasin: stringMapSchema,
-        thicknessByMaterial: stringMapSchema,
-        bracket: z
-          .object({
-            sku: z.string().trim().min(1),
-            quantity: z.number().int().positive(),
-            thicknesses: z.array(z.string()),
-          })
-          .strict()
-          .optional(),
-      })
-      .strict(),
+    countertop: z.union([collectionCountertopSchema, countertopPricedAsSchema]),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
     /** The legs a composition stands on, for a collection that offers them. */
@@ -375,4 +381,10 @@ export type CollectionPreset = z.infer<typeof presetsSchema>[number];
 export type CollectionStaticOptions = z.infer<typeof staticOptionsSchema>;
 export type CabinetSkuMappings = z.infer<typeof cabinetSkuMappingsSchema>;
 export type CollectionSkuProfile = z.infer<typeof collectionSkuProfileSchema>;
+export type CollectionCountertop = z.infer<typeof collectionCountertopSchema>;
+
+/** Whether the collection spells its countertop itself, rather than pricing it as another collection's. */
+export const hasOwnCountertop = (
+  skuProfile: CollectionSkuProfile,
+): skuProfile is CollectionSkuProfile & { countertop: CollectionCountertop } => !("pricedAs" in skuProfile.countertop);
 export type PricingGapGroup = z.infer<typeof pricingGapGroupSchema>;

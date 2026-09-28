@@ -8,11 +8,7 @@ import { collectionSkuProfileSchema, parseProductProfile } from "@/entities/coll
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
-import {
-  buildCollectionCabinetSku,
-  buildCollectionCountertopSkus,
-  type CollectionValueReader,
-} from "../buildCollectionSkus";
+import { buildCollectionCabinetSku, type CollectionValueReader } from "../buildCollectionSkus";
 import { createConfiguratorColorReader } from "../configuratorColors";
 
 /**
@@ -130,33 +126,5 @@ describe("Urban Low Height cabinet SKU", () => {
     expect(cabinetOfModel("Sink-Base", 80)).toBe("VAN-URLH-SB/1DW/UG/X-31.5W-15H-18.1D-CAB-3D-1A1");
     // The open shelf has a series of its own and no drawer or handle.
     expect(cabinetOfModel("Open-Shelf", 25)).toBe("VAN-UROS-1S-9.8W-15H-18.1D-CAB-3D-1A1");
-  });
-});
-
-describe("Urban Low Height countertop SKUs", () => {
-  const countertop = (style: string) =>
-    buildCollectionCountertopSkus(skuProfile, profile, {
-      style,
-      color: "Ardesia TKF",
-      basins: ["Top_HPLPrisma"],
-      widthCm: 120,
-      faucetHoles: "1",
-      readConfiguratorColor,
-    });
-
-  it("prices the vessel cutout and faucet holes Urban Standard Height sells, and no top", () => {
-    expect(countertop("vessel")).toEqual({
-      material: "HPL",
-      thickness: null,
-      top: null,
-      basins: [null],
-      holeCut: "CT-URHPL-HCUT",
-      faucetHoles: "CT-URHPL-FAHO/1",
-      bracket: null,
-    });
-  });
-
-  it("has no top or basin SKU for an integrated countertop", () => {
-    expect(countertop("integrated")).toMatchObject({ top: null, basins: [null], holeCut: null });
   });
 });

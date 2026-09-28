@@ -17,6 +17,7 @@
   "defaults": {
     "CabinetColor": "Cemento Cenere 1A1",
     "CountertopColor": "Pietra Di Savoia Antracite TQ6",
+    "CountertopStyle": "integrated",
     "TowelBarOption": "None"
   },
   "attributes": [
