@@ -2,18 +2,18 @@
   "collectionId": "mako",
   "optionImages": {
     "sinkType": {
-      "LB440": "images/basin/LB440.png",
-      "LB175": "images/basin/LB175.png",
-      "LB575": "images/basin/LB575.png",
-      "LB856": "images/basin/LB856.png",
-      "VA024": "images/basin/VA024.png",
-      "LV890": "images/basin/LV890.png",
-      "LV892": "images/basin/LV892.png",
-      "VA002": "images/basin/VA002.png",
-      "VA005": "images/basin/VA005.png",
-      "Iris": "images/vessel/Iris.png",
-      "Frame": "images/vessel/Frame.png",
-      "Plaza": "images/vessel/Plaza.png"
+      "LB440": "images/basin/prisma.jpg",
+      "LB175": "images/basin/Ron.jpg",
+      "LB575": "images/basin/quadro.jpg",
+      "LB856": "images/basin/strip.jpg",
+      "VA024": "images/basin/cover.jpg",
+      "LV890": "images/basin/Trip.jpg",
+      "LV892": "images/basin/Orion.jpg",
+      "VA002": "images/basin/Olly_55.jpg",
+      "VA005": "images/basin/Rectangular.jpg",
+      "Iris": "images/vessel/Vessel_Aquarius48.png",
+      "Frame": "images/vessel/Vessel_UrbanMorris.png",
+      "Plaza": "images/vessel/Vessel_Blade11.png"
     },
     "CountertopStyle": {
       "integrated": "images/countertop-style/Integrated.png",

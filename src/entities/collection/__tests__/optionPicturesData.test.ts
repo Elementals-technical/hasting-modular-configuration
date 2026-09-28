@@ -112,3 +112,25 @@ describe("optionImageVariants name values the collection declares", () => {
     expect(unknown).toEqual([]);
   });
 });
+
+const COLLECTIONS_ROOT = "../../../../public/collections/";
+/** Every picture file of every collection, as "<collectionId>/images/…"; listed, never loaded. */
+const COLLECTION_PICTURES = new Set(
+  Object.keys(import.meta.glob("../../../../public/collections/*/images/**/*")).map((path) =>
+    path.slice(COLLECTIONS_ROOT.length),
+  ),
+);
+
+describe("option pictures are files of the collection", () => {
+  it.each(COLLECTIONS)("$id", ({ id, ui }) => {
+    const result = validateCustomizationSchema(ui);
+    if (!result.ok) throw new Error(`${id}: ui.json failed validation`);
+
+    const references = [
+      ...Object.values(result.schema.optionImages ?? {}).flatMap((byValue) => Object.values(byValue)),
+      ...Object.values(result.schema.optionImageVariants ?? {}).flatMap((rows) => rows.map(({ image }) => image)),
+    ];
+
+    expect(references.filter((reference) => !COLLECTION_PICTURES.has(`${id}/${reference}`))).toEqual([]);
+  });
+});
