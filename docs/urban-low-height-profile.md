@@ -17,7 +17,7 @@ names other basins.
 |---|---|---|---|
 | `CabinetType` | cabinet | `Sink-Base` (URLH-SB), `Side-Cabinet` (URLH-SC), `Open-Shelf` (UROS), `Open-Side-Shelf` (UROSS) | §1, four module types over 664 base SKUs |
 | `Drawers` | cabinet | `1`, aliased `1D` / `1DW` | §2, every SB and SC is `1DW` |
-| `Handle` | cabinet | `handle_urban_topcut` (Upper Groove), which offers a groove colour; `handle_pto` (Push-to-Open), which has no groove | §2; §5 |
+| `Handle` | cabinet | `handle_urban_topcut` (Upper Groove), which offers a groove colour; `handle_pto` (Push-to-Open), which has no groove | §2; §5. With cabinets placed, a change asks for confirmation first (`handle.appliesToAllCabinets`), as in Urban Standard Height (team, 29.09.2026) |
 | `HandleGrooveColor` | cabinet | no list — `optionsSource: "configurator:Handle Groove Color"`, `None` first (`resetValue`); shown as Handle Groove Color (Optional) on the Color step for Upper Groove only | Added on request (team, 28.09.2026), as in Urban Standard Height. The ULH scene paints the groove in the cabinet colour, so the choice reaches the SKU and the Summary, not the 3D model (binding `state-only`) |
 | `Height` | cabinet | `38`, `35`, `28`, `25` | §2–3 |
 | `DrawerPanelFluting` | cabinet | `None`, `Vertical A`, `Vertical B`, `Horizontal A`, `Horizontal B`, aliased to `X`, `CVA`, `CVB`, `CHA`, `CHB` | §4 |

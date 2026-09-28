@@ -32,7 +32,7 @@ its material group. Mako glass keys have no `G` prefix, unlike Class (Q-MAKO-010
 | `CabinetType` | cabinet | `Sink-Base` (SB), `Sink-Cabinet` labelled Side Cabinet (SC) | map §1 |
 | `Drawers` | cabinet | `1` (1DW), `2` (2DW) | §2 |
 | `Height` | cabinet | `26`, `52` | §2–3 |
-| `Handle` | cabinet | `G57`, `G50`; no groove colour | §4 |
+| `Handle` | cabinet | `G57`, `G50`; no groove colour. With cabinets placed, a change asks for confirmation first (`handle.appliesToAllCabinets`), as in Urban Standard Height (team, 29.09.2026) | §4 |
 | `HandleColor` | cabinet | 22: Metal 2 (Gold, Silver), Lacquered MT 20 | §4, CSV L98–L119 |
 | `CabinetColor` | global | 40: Lacquered MT 20, Lacquered GL 20 | §5 |
 | `LegColor` | cabinet | 22: Metal 2, Lacquered MT 20 | §6, CSV L201–L222 |
@@ -83,7 +83,8 @@ until the scene adds it.
 | `undeterminedRules` | `MAKO-LEG-002`: Leg Color on a one-drawer cabinet is held back as undetermined (`product.missingData`); nothing changes | §6, Q-MAKO-002 |
 
 `messages` holds the texts of the command's own reasons (`change.notAvailable`, `change.valueNotInCatalog`),
-`handle.notAvailableForCabinetType`, `drawers.requiredHeight` and `product.missingData`. No other declared rule has a
+`handle.notAvailableForCabinetType`, `handle.appliesToAllCabinets` (the handle confirmation), `drawers.requiredHeight` and
+`product.missingData`. No other declared rule has a
 reason text of its own.
 
 ## Confirmed but not yet expressible

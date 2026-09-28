@@ -71,6 +71,7 @@
     {
       "attributeId": "Handle",
       "scope": "cabinet",
+      "confirmation": { "when": "cabinetsPlaced", "reasonCode": "handle.appliesToAllCabinets" },
       "initialValue": "",
       "options": [
         {
