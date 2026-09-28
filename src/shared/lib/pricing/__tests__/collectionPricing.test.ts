@@ -1,6 +1,9 @@
+import { configureStore } from "@reduxjs/toolkit";
 import { describe, expect, it } from "vitest";
 
 import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
+import { rootReducer } from "@/app/store/reducer";
+import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import { countertopDatatableSchema, normalizeOptionValue, presetsSchema } from "@/entities/collection";
@@ -252,6 +255,53 @@ describe("Class and Mako order lines", () => {
       quantity: 2,
     });
     expect(gaps).toEqual([]);
+  });
+
+  it("prices the countertop of a Mako model before one is chosen, from the collection's defaults", () => {
+    // What switching to Mako leaves in the state: the profile's defaults (replaceCollectionData).
+    const store = configureStore({ reducer: rootReducer });
+    store.dispatch(replaceCollectionData({ profile: MAKO.profile, cabinetCatalog: null }));
+    const { CountertopColor, CountertopStyle, sinkType } = store.getState().rootStateUI.product.productOptions;
+
+    const { lines, gaps } = buildCollectionPricingLines({
+      ...makoModelInput(MAKO_MODELS[0]),
+      countertopColor: CountertopColor,
+      countertopStyle: CountertopStyle,
+      sinkType,
+    });
+
+    // Nero 433 GL is Glass Gloss (GLSG, .5"), on an integrated top with a VA005 basin over the 60 cm Sink Base.
+    expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
+      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
+      "CT-GBGLSG-VA005-.5H",
+    ]);
+    expect(gaps).toEqual([]);
+  });
+
+  it("reads the countertop style Prebuilt records in the scene's spelling through the profile's aliases", () => {
+    // Placing a model records the style as the scene takes it ("Integrated", "Vessel").
+    const countertop: ValueTarget = { scope: "countertop" };
+    const withStyle = (style: string) =>
+      buildCollectionPricingLines({
+        ...makoModelInput(MAKO_MODELS[0]),
+        configurationValues: {
+          ...makoModelInput(MAKO_MODELS[0]).configurationValues,
+          CountertopStyle: [at(countertop, style)],
+          CountertopColor: [at(countertop, "Nero 433 GL")],
+        },
+        sinkType: style === "Integrated" ? "VA005" : "",
+      });
+
+    expect(withStyle("Integrated").lines.find(({ group }) => group === "countertop")?.sku).toBe(
+      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
+    );
+
+    const vessel = withStyle("Vessel");
+    expect(vessel.lines.find(({ group }) => group === "countertop")?.sku).toBe(
+      "CT-GBGLSG-VES-23.6W-.5H-20.7D-GLSG-433",
+    );
+    // The vessel sink Mako has no price for keeps the total incomplete.
+    expect(vessel.gaps.map(({ group }) => group)).toContain("vessel");
   });
 
   it("leaves a model without legs without a legs line", () => {

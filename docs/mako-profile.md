@@ -42,6 +42,11 @@ its material group. Mako glass keys have no `G` prefix, unlike Class (Q-MAKO-010
 | `FaucetHolesAmount` | countertop | `0`–`3` | §11 |
 | `DividersStyle` | drawer | `Metal`, `Oak` | §13 |
 
+**Defaults** (`defaults`): `CabinetColor: Antracite 400 MT`, the colour of the 42 models; and a countertop the order is
+priced with before the Countertop & Basin step — `CountertopColor: Nero 433 GL` (Glass Gloss, GLSG .5"; the black glass
+top of Mako on the Hastings site), `CountertopStyle: integrated` and `sinkType: VA005`, an integrated glass basin table
+577 allows over a Sink Base of 60 cm or more (team, 28.09.2026). The models carry no countertop value of their own.
+
 ## Scene bindings
 
 The scene has two Mako products: `Mako-sink-cabinet` (with the sink Boolean cut-outs) and `Mako-side-cabinet`. The
@@ -107,7 +112,7 @@ Listed in `excludedFromThisProfile`:
 
 | Owner | What is needed |
 |---|---|
-| Product | A Mako configurator and Mako rows in the cabinet and countertop tables; approved defaults; the handle of the 42 models (their colour is `Antracite 400 MT`, 23.09.2026); leg positions (the pair per configuration and the per-leg price are confirmed, 24.09.2026); G50 length rule; VA030 in the product list; Porcelain profile; vessel data. Whether integrated basins are held back as undetermined until the countertop table has Mako rows (one `undeterminedRules` entry, but it disables every integrated basin). |
+| Product | A Mako configurator and Mako rows in the cabinet and countertop tables; approval of the countertop defaults (team choice, 28.09.2026); the handle of the 42 models (their colour is `Antracite 400 MT`, 23.09.2026); leg positions (the pair per configuration and the per-leg price are confirmed, 24.09.2026); G50 length rule; VA030 in the product list; Porcelain profile; vessel data. Whether integrated basins are held back as undetermined until the countertop table has Mako rows (one `undeterminedRules` entry, but it disables every integrated basin). |
 | A | Load Mako sources instead of 4 / 438. The cabinet table is table 581. |
 | B | Handle style and colour, leg colour, countertop and basin steps in `ui.json`. |
 | I | Basins: the Mako cabinets have no basin sub-product in the scene. (Handles, handle colour, legs and leg colour are bound.) |

@@ -225,6 +225,8 @@ describe.each(Object.entries(collections))("%s vessel choice follows the USH cou
   });
 
   it("shows None as chosen while a vessel countertop has no basin", () => {
+    // Switching to vessel clears an integrated basin, such as a collection's default (buildChangePlan).
+    store.dispatch(setActiveBasinStyle(""));
     store.dispatch(setCountertopStyle("vessel"));
     expect(fieldOf("basin-style")?.value).toBe("None");
 

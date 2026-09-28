@@ -1,4 +1,9 @@
-import { hasOwnCountertop, resolveCabinetTypeOfRuntimeId, selectOption } from "@/entities/collection";
+import {
+  hasOwnCountertop,
+  normalizeOptionValue,
+  resolveCabinetTypeOfRuntimeId,
+  selectOption,
+} from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
 import {
   compositionValueOf,
@@ -81,12 +86,16 @@ const gapApplies = (
   return (values[attributeId] ?? []).some(({ value }) => {
     const text = asText(value);
     if (!text) return false;
-    if (coveredValues && !coveredValues.includes(text)) return false;
+    // A value recorded in the scene's spelling ("Vessel") reads as its option.
+    const option = normalizeOptionValue(profile, attributeId, text) ?? text;
+    if (coveredValues && !coveredValues.includes(option)) return false;
 
     // The material group of a colour: its own category, or the material the configurator names
     // for a collection whose colours come from there.
     const category =
-      readConfiguratorColor(attributeId, text)?.material ?? selectOption(profile, attributeId, text)?.category ?? "";
+      readConfiguratorColor(attributeId, option)?.material ??
+      selectOption(profile, attributeId, option)?.category ??
+      "";
     if (categories && !categories.includes(category)) return false;
     return true;
   });

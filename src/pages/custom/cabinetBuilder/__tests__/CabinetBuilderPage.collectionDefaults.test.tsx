@@ -99,7 +99,8 @@ describe("CabinetBuilderPage starting values", () => {
   it("starts a Mako builder without the Urban values, so Prebuilt keeps the colour of the Mako model", async () => {
     const started = await renderEmptyBuilder();
 
-    expect(started).toEqual({ CabinetColor: "Antracite 400 MT", CountertopColor: "", sinkType: "" });
+    // Mako's own defaults: an integrated black glass top with a VA005 basin.
+    expect(started).toEqual({ CabinetColor: "Antracite 400 MT", CountertopColor: "Nero 433 GL", sinkType: "VA005" });
 
     // What Prebuilt then places for a Mako model.
     const overrides = resolvePrebuiltModelTransferableOverrides({
