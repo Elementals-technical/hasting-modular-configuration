@@ -18,7 +18,10 @@
     "cabinetMatrixTableId": 581
   },
   "defaults": {
-    "CabinetColor": "Antracite 400 MT"
+    "CabinetColor": "Antracite 400 MT",
+    "CountertopColor": "Nero 433 GL",
+    "CountertopStyle": "integrated",
+    "sinkType": "VA005"
   },
   "attributes": [
     {

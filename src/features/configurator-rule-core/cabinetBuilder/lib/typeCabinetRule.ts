@@ -3,6 +3,7 @@ import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabin
 
 import type { RuleContext, RuleResult } from "../model/types";
 import type { OptionState, Violation } from "../model/types";
+import { findPlacedCabinetRule } from "./placedCabinetRule";
 
 export const REASON_CABINET_TYPE_UNAVAILABLE = "cabinet.notAvailableForType";
 export const REASON_CABINET_NO_COMMON_HEIGHT = "cabinet.noCommonHeight";
@@ -62,8 +63,7 @@ const resolveHeightLock = (
   const supportsLists: number[][] = [];
 
   for (const productId of ids) {
-    const normalized = productId.toLowerCase();
-    const rule = catalog.typeCabinetRules.find((entry) => normalized.includes(entry.code.toLowerCase()));
+    const rule = findPlacedCabinetRule(catalog, productId);
     if (!rule) {
       return { heightLocked: null, intersection: [] };
     }

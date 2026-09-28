@@ -194,7 +194,9 @@ export const buildCollectionCountertopSkus = (
   { style, color, basins, widthCm, faucetHoles, readConfiguratorColor }: CollectionCountertopSkuInput,
 ): CollectionCountertopSkus => {
   const { countertop } = skuProfile;
-  const styleCode = style ? (countertop.styles[style] ?? null) : null;
+  // A style recorded in the scene's spelling ("Integrated") reads as its option, as a cabinet's values do.
+  const styleValue = normalizeOptionValue(productProfile, "CountertopStyle", style) ?? style;
+  const styleCode = styleValue ? (countertop.styles[styleValue] ?? null) : null;
   const isIntegrated = styleCode === countertop.styles.integrated;
 
   // A basin that belongs to one material decides it; otherwise the colour group does.

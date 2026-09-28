@@ -5,6 +5,7 @@ import { autoChange } from "./lib/autoChange";
 export { getUniqueCatalogWidths } from "./lib/catalogDimensions";
 export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
 export { REASON_HANDLE_HEIGHT_LOCKED } from "./lib/handleRule";
+export { findPlacedCabinetRule } from "./lib/placedCabinetRule";
 import { ruleCore } from "./lib/ruleCore";
 import type { Intent, RuleContext } from "./model/types";
 import type { RuleResult, AutoChangeResult, Selection } from "./model/types";

@@ -130,7 +130,7 @@ export type {
   StateOnlyRuntimeResolution,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
 export { resolveProductConfig } from "./lib/runtimeBindings/resolveProductConfig";
-export { resolveCabinetTypeOfRuntimeId } from "./lib/runtimeBindings/resolveCabinetType";
+export { resolveCabinetTypeOfRuntimeId, resolveCabinetTypeOfSceneId } from "./lib/runtimeBindings/resolveCabinetType";
 
 export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";

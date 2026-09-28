@@ -13,23 +13,32 @@ import { selectOptionValues } from "../productProfileSelectors";
 
 const longestFirst = (left: string, right: string) => right.length - left.length;
 
-export const resolveCabinetTypeOfRuntimeId = (
-  profile: ProductProfile | null,
-  bindings: RuntimeBindingSet | null,
+/**
+ * The same reading over the cabinet types and the scene type of each (`productTypes`), for a
+ * caller that holds them without the profile and the bindings: the cabinet catalog.
+ */
+export const resolveCabinetTypeOfSceneId = (
+  cabinetTypes: readonly string[],
+  productTypes: Readonly<Record<string, string>> | null,
   runtimeId: string,
 ): string | null => {
-  const cabinetTypes = selectOptionValues(profile, "CabinetType");
-
-  if (bindings) {
-    const sceneType = [...new Set(Object.values(bindings.productTypes))]
+  if (productTypes) {
+    const sceneType = [...new Set(Object.values(productTypes))]
       .filter((type) => runtimeId === type || runtimeId.startsWith(`${type}-`))
       .sort(longestFirst)[0];
 
     if (sceneType) {
-      const placedAs = cabinetTypes.filter((type) => bindings.productTypes[type] === sceneType);
+      const placedAs = cabinetTypes.filter((type) => productTypes[type] === sceneType);
       return placedAs.find((type) => type === sceneType) ?? placedAs[0] ?? null;
     }
   }
 
   return cabinetTypes.filter((type) => runtimeId.startsWith(type)).sort(longestFirst)[0] ?? null;
 };
+
+export const resolveCabinetTypeOfRuntimeId = (
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null,
+  runtimeId: string,
+): string | null =>
+  resolveCabinetTypeOfSceneId(selectOptionValues(profile, "CabinetType"), bindings?.productTypes ?? null, runtimeId);
