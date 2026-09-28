@@ -86,7 +86,10 @@ import {
 } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
-import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
+import { getActiveProductProfile, getActiveRuntimeBindings, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
+import { CabinetPlacementDebug, type CabinetDebugCountertopApi } from "@/features/cabinetPlacementDebug/ui/CabinetPlacementDebug";
+import { isCabinetPlacementDebugEnabled, resolveCabinetDebugSelection } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
+import type { CabinetsState } from "@/features/configuratorApi";
 import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
 import { buildStepPathById, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
@@ -384,6 +387,38 @@ export const PlayCanvasIntegration = ({
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
+  const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
+  const cabinetPlacementDebugEnabled = isCabinetPlacementDebugEnabled(location.search);
+  const playCanvasSrc = cabinetPlacementDebugEnabled ? `${PLAYCANVAS_SRC}&debug=true&local=true` : PLAYCANVAS_SRC;
+  const cabinetDebugSelection = resolveCabinetDebugSelection({
+    config: selectedProductConfig,
+    selectedProductId: selectedSceneProduct,
+    activeCabinetType,
+    bindings: runtimeBindings,
+  });
+  const getDebugCountertopApi = useCallback((): CabinetDebugCountertopApi | null => {
+    const runtimeWindow = containerRef.current?.contentWindow as (Window & { ConfiguratorAPI?: { countertop?: Partial<CabinetDebugCountertopApi> } }) | null;
+    const api = runtimeWindow?.ConfiguratorAPI?.countertop;
+    return api && typeof api.getState === "function" && typeof api.setDragEnabled === "function" && typeof api.setSize === "function"
+      ? api as CabinetDebugCountertopApi : null;
+  }, []);
+  const adoptCommittedCabinetComposition = useCallback(async (state: CabinetsState) => {
+    const result = await composition.adopt({
+      runtimeIds: state.cabinets.map((cabinet) => cabinet.id),
+      products: state.cabinets.map((cabinet) => ({
+        productType: Object.entries(runtimeBindings?.productTypes ?? {})
+          .find(([, definitionId]) => definitionId === cabinet.definitionId)?.[0] ?? cabinet.definitionId,
+        config: cabinet.selection,
+      })),
+    });
+    if (result.status === "error" || result.status === "partial") {
+      throw new Error(`Placement committed; UI synchronisation failed: ${result.message}`);
+    }
+    dispatch(setSelectedSceneProduct(state.selectedCabinetId ?? ""));
+    const selected = state.cabinets.find((cabinet) => cabinet.id === state.selectedCabinetId);
+    if (selected) dispatch(setSelectedProductConfig(selected.selection));
+  }, [composition, dispatch, runtimeBindings]);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -3339,7 +3374,7 @@ export const PlayCanvasIntegration = ({
         id="demo"
         width="100%"
         height="100%"
-        src={PLAYCANVAS_SRC}
+        src={playCanvasSrc}
         style={{
           width: "100%",
           height: "100%",
@@ -3348,6 +3383,15 @@ export const PlayCanvasIntegration = ({
           display: "block",
         }}
       />
+
+      {cabinetPlacementDebugEnabled && <CabinetPlacementDebug
+        key={playCanvasSrc}
+        ready={isPlayCanvasReady}
+        selection={cabinetDebugSelection}
+        selectedProductId={selectedSceneProduct}
+        getCountertopApi={getDebugCountertopApi}
+        onCompositionCommitted={adoptCommittedCabinetComposition}
+      />}
 
       {shouldShowEmptySceneRedirectButton && (
         <button

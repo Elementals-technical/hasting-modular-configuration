@@ -1,0 +1,35 @@
+.panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 25;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 12px;
+  border: 1px solid #d2ccc7;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #282828;
+  font-size: 12px;
+  box-shadow: 0 2px 8px #0002;
+
+  p { margin: 8px 0 0; }
+  [role="alert"] { color: #a02e20; }
+  button {
+    min-height: 32px;
+    border: 1px solid #ac5331;
+    border-radius: 4px;
+    padding: 4px 10px;
+    background: white;
+    color: #69341f;
+    cursor: pointer;
+    &:disabled { opacity: 0.5; cursor: default; }
+  }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; margin-bottom: 8px; }
+  label { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  input { width: 90px; }
+  input[type="checkbox"] { width: auto; }
+  textarea { width: 100%; min-height: 120px; font: 11px monospace; }
+}
+
+.buttons { display: flex; flex-wrap: wrap; gap: 6px; }

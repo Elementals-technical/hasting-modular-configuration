@@ -1,0 +1,269 @@
+export type ConfiguratorReadiness = "initializing" | "ready" | "error" | "unsupported";
+
+export type ConfiguratorScope = {
+  apiInstanceId: string;
+  compositionId: string;
+};
+
+export type ConfiguratorApiContext = {
+  dependencies?: {
+    compositionRevision?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+};
+
+export type ConfiguratorApiErrorDetail = {
+  code: string;
+  message?: string;
+  reasons?: unknown[];
+  retryable?: boolean;
+  requestId?: string;
+  [key: string]: unknown;
+};
+
+export type ConfiguratorApiResult<T> =
+  | { ok: true; data: T; context?: ConfiguratorApiContext }
+  | { ok: false; error: ConfiguratorApiErrorDetail; context?: ConfiguratorApiContext };
+
+export type ConfiguratorCapabilities = {
+  readiness: ConfiguratorReadiness;
+  apiInstanceId: string;
+  activeCompositionId: string;
+  collectionId?: string;
+  supportedMethods: string[];
+};
+
+export type CabinetPositionM = { x: number; y: number; z: number };
+export type CabinetSelection = Record<string, unknown>;
+
+export type Cabinet = {
+  id: string;
+  definitionId: string;
+  selection: CabinetSelection;
+  positionM: CabinetPositionM;
+  [key: string]: unknown;
+};
+
+export type CabinetConnection = Record<string, unknown>;
+
+export type CabinetsState = {
+  cabinets: Cabinet[];
+  connections: CabinetConnection[];
+  selectedCabinetId: string | null;
+};
+
+export type CabinetCatalogEntry = {
+  definitionId: string;
+  label: string;
+  availability: unknown;
+  [key: string]: unknown;
+};
+
+export type CabinetConfigurationField = {
+  id?: string;
+  key?: string;
+  [key: string]: unknown;
+};
+
+export type CabinetConfigurationOptions = CabinetConfigurationField[];
+
+export type CabinetPlacementOption = {
+  id: string;
+  kind: string;
+  anchorCabinetId?: string;
+  positionM: CabinetPositionM;
+  [key: string]: unknown;
+};
+
+export type CabinetPlacement = {
+  kind: string;
+  frameId?: string;
+  positionM?: CabinetPositionM;
+  optionId?: string;
+  [key: string]: unknown;
+};
+
+export type CabinetDraftState = {
+  sessionId: string;
+  kind: "add" | "move";
+  lifecycle: "loading-draft" | "preview" | "applying" | "committed" | "cancelled" | "error";
+  baseCompositionRevision: number;
+  candidateRevision: number;
+  candidate?: {
+    effectivePlacement?: { positionM?: CabinetPositionM; [key: string]: unknown };
+    [key: string]: unknown;
+  };
+  validation?: unknown;
+  canApply: boolean;
+  canCancel: boolean;
+  [key: string]: unknown;
+};
+
+export type ConfiguratorReceipt = {
+  requestId: string;
+  sessionId?: string;
+  kind: string;
+  compositionRevision: number;
+  addedProductIds: string[];
+  updatedProductIds: string[];
+  removedProductIds: string[];
+  selectedCabinetId: string | null;
+  [key: string]: unknown;
+};
+
+export type ConfiguratorPresetProduct = {
+  name: string;
+  [key: string]: unknown;
+};
+
+/** Portable preset v2 is intentionally open: the UI stores the runtime document unchanged. */
+export type ConfiguratorPreset = {
+  presetSchemaVersion: number;
+  collection: Record<string, unknown>;
+  presetProducts: unknown[];
+  presetLayout: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+export type ConfiguratorImportReceipt = ConfiguratorReceipt & {
+  keyToProductId: Record<string, string>;
+};
+
+export type CompositionState = {
+  status: "ready" | "applying" | "recovery-required" | string;
+  activeSessionId: string | null;
+  [key: string]: unknown;
+};
+
+export type ConfiguratorCommandResult = {
+  status: string;
+  result?: unknown;
+  error?: ConfiguratorApiErrorDetail;
+};
+
+export type ConfiguratorEventEnvelope<T> = ConfiguratorScope & {
+  eventSequence: number;
+  compositionRevision: number;
+  data: T;
+};
+
+export type ConfiguratorNamespace = "cabinets" | "cabinetPlacement" | "composition";
+export type ConfiguratorUnsubscribe = () => void;
+
+type ConfiguratorEventData = {
+  cabinets: { change: CabinetsState; selection: CabinetsState };
+  cabinetPlacement: {
+    change: CabinetDraftState | null;
+    action: { status: "committed" | "cancelled"; sessionId: string; receipt?: ConfiguratorReceipt };
+  };
+  composition: { change: CompositionState };
+};
+
+export type ConfiguratorEventName<N extends ConfiguratorNamespace> = keyof ConfiguratorEventData[N] & string;
+export type ConfiguratorEventPayload<N extends ConfiguratorNamespace, E extends ConfiguratorEventName<N>> = ConfiguratorEventData[N][E];
+
+export type CabinetBeginAddInput = {
+  definitionId: string;
+  selection: CabinetSelection;
+  initialPlacement?: CabinetPlacement;
+  sessionId?: string;
+};
+
+export type CabinetBeginMoveInput = { productId: string; sessionId?: string };
+
+export type CabinetPlacementOptionsInput = {
+  definitionId: string;
+  selection: CabinetSelection;
+  operation?: "add";
+  anchorCabinetId?: string;
+};
+
+export type ConfiguratorImportPresetInput = {
+  preset: ConfiguratorPreset;
+  anchorPositionM?: CabinetPositionM;
+};
+
+export type ConfiguratorCommandMetadata = ConfiguratorScope & {
+  requestId: string;
+  expectedCompositionRevision: number;
+};
+
+export interface ConfiguratorApi {
+  presetProducts: (
+    products: readonly ConfiguratorPresetProduct[],
+    globalConfig?: Record<string, unknown>,
+  ) => Promise<string[]>;
+  addProduct: (productType: string, config: CabinetSelection) => Promise<string>;
+  cabinets: {
+    getCapabilities(): Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>;
+    getCatalog(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CabinetCatalogEntry[]>>;
+    getConfigurationOptions(
+      input: ConfiguratorScope & { definitionId: string; selection: CabinetSelection },
+    ): Promise<ConfiguratorApiResult<CabinetConfigurationOptions>>;
+    getPlacementOptions(input: ConfiguratorScope & CabinetPlacementOptionsInput): Promise<ConfiguratorApiResult<CabinetPlacementOption[]>>;
+    getState(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CabinetsState>>;
+    select(scope: ConfiguratorScope, productId: string | null): Promise<ConfiguratorApiResult<{ selectedCabinetId: string | null }>>;
+    on(event: string, callback: (event: ConfiguratorEventEnvelope<unknown>) => void, options?: unknown): ConfiguratorUnsubscribe;
+  };
+  cabinetPlacement: {
+    beginAdd(input: ConfiguratorCommandMetadata & CabinetBeginAddInput & { sessionId: string }): Promise<ConfiguratorApiResult<CabinetDraftState>>;
+    beginMove(input: ConfiguratorCommandMetadata & CabinetBeginMoveInput & { sessionId: string }): Promise<ConfiguratorApiResult<CabinetDraftState>>;
+    updateDraft(
+      input: ConfiguratorScope & { sessionId: string; expectedCandidateRevision: number; placement: CabinetPlacement },
+    ): Promise<ConfiguratorApiResult<CabinetDraftState>>;
+    getState(scope: ConfiguratorScope, sessionId: string): Promise<ConfiguratorApiResult<CabinetDraftState>>;
+    settleInput(scope: ConfiguratorScope, sessionId: string): Promise<ConfiguratorApiResult<CabinetDraftState>>;
+    apply(
+      input: ConfiguratorCommandMetadata & { sessionId: string; expectedCandidateRevision: number },
+    ): Promise<ConfiguratorApiResult<ConfiguratorReceipt>>;
+    cancel(scope: ConfiguratorScope, sessionId: string): Promise<ConfiguratorApiResult<CabinetDraftState>>;
+    on(event: string, callback: (event: ConfiguratorEventEnvelope<unknown>) => void, options?: unknown): ConfiguratorUnsubscribe;
+  };
+  composition: {
+    getState(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CompositionState>>;
+    exportPreset(input: ConfiguratorScope & { anchorCabinetId: string }): Promise<ConfiguratorApiResult<ConfiguratorPreset>>;
+    importPreset(input: ConfiguratorCommandMetadata & ConfiguratorImportPresetInput): Promise<ConfiguratorApiResult<ConfiguratorImportReceipt>>;
+    getCommandResult(scope: ConfiguratorScope, requestId: string): Promise<ConfiguratorApiResult<ConfiguratorCommandResult>>;
+    on(event: string, callback: (event: ConfiguratorEventEnvelope<unknown>) => void, options?: unknown): ConfiguratorUnsubscribe;
+  };
+}
+
+export type ConfiguratorClientErrorCode =
+  | "API_UNAVAILABLE"
+  | "API_METHOD_UNAVAILABLE"
+  | "API_INVALID_RESPONSE"
+  | "CONFIGURATOR_NOT_READY"
+  | "CONFIGURATOR_READY_TIMEOUT"
+  | "APPLY_UNAVAILABLE"
+  | "EMPTY_COMPOSITION"
+  | (string & {});
+
+export type ConfiguratorErrorMetadata = {
+  operation?: string;
+  detail?: ConfiguratorApiErrorDetail | unknown;
+  retryable?: boolean;
+  requestId?: string;
+  context?: ConfiguratorApiContext;
+  cause?: unknown;
+};
+
+export class ConfiguratorError extends Error {
+  readonly code: ConfiguratorClientErrorCode;
+  readonly operation?: string;
+  readonly detail?: ConfiguratorApiErrorDetail | unknown;
+  readonly retryable: boolean;
+  readonly requestId?: string;
+  readonly context?: ConfiguratorApiContext;
+
+  constructor(code: ConfiguratorClientErrorCode, message = code, metadata: ConfiguratorErrorMetadata = {}) {
+    super(message, metadata.cause === undefined ? undefined : { cause: metadata.cause });
+    this.name = "ConfiguratorError";
+    this.code = code;
+    this.operation = metadata.operation;
+    this.detail = metadata.detail;
+    this.retryable = metadata.retryable ?? false;
+    this.requestId = metadata.requestId;
+    this.context = metadata.context;
+  }
+}

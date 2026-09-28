@@ -42,6 +42,7 @@ const directSceneCalls = [
 const SCENE_INFRASTRUCTURE = [
   "/src/utils/functions/playcanvas/",
   "/src/features/playCanvasAdapter/",
+  "/src/features/configuratorApi/",
   "/src/features/dividers/adapter/",
   "/src/entities/collection/model/runtimeBindings.ts",
 ];

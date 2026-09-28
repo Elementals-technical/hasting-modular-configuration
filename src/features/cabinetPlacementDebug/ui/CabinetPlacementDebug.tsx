@@ -1,0 +1,305 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { createConfiguratorClient, type CabinetsState, type ConfiguratorClient, type CabinetDraftState, type ConfiguratorReceipt, type ConfiguratorPreset } from "@/features/configuratorApi";
+
+import s from "./CabinetPlacementDebug.module.scss";
+
+type CountertopState = {
+  readiness?: string;
+  dragEnabled?: boolean;
+  canResize?: boolean;
+  size?: { length?: number | null };
+};
+
+/** The countertop namespace uses its existing legacy contract, without cabinet scope. */
+export type CabinetDebugCountertopApi = {
+  getState: () => CountertopState | Promise<CountertopState>;
+  setDragEnabled: (enabled: boolean) => unknown;
+  setSize: (size: { length: number }) => unknown;
+  on?: (event: "change", callback: (event: { reason: string; state: CountertopState }) => void, options?: { emitCurrent: boolean }) => (() => void);
+};
+
+type Props = {
+  ready: boolean;
+  selection: { definitionId: string; selection: Record<string, unknown> } | null;
+  selectedProductId: string | null;
+  createClient?: () => ConfiguratorClient;
+  getCountertopApi?: () => CabinetDebugCountertopApi | null;
+  onCompositionCommitted?: (state: CabinetsState) => void | Promise<void>;
+};
+
+const dataOf = (event: unknown): Record<string, unknown> => {
+  if (typeof event !== "object" || !event) return {};
+  const envelope = event as Record<string, unknown>;
+  return typeof envelope.data === "object" && envelope.data
+    ? envelope.data as Record<string, unknown> : envelope;
+};
+const errorMessage = (error: unknown): string => {
+  if (!(error instanceof Error)) return "Runtime command failed";
+  const code = "code" in error ? String(error.code) : "";
+  const detail = "detail" in error && error.detail && typeof error.detail === "object"
+    ? JSON.stringify(error.detail)
+    : "";
+  const message = code && !error.message.includes(code) ? `${code}: ${error.message}` : error.message;
+  return detail && detail !== `{"code":"${code}"}` ? `${message} · ${detail}` : message;
+};
+const isTerminal = (lifecycle: unknown) => ["committed", "cancelled", "error"].includes(String(lifecycle));
+
+export function CabinetPlacementDebug({
+  ready, selection, selectedProductId,
+  createClient = createConfiguratorClient,
+  getCountertopApi,
+  onCompositionCommitted,
+}: Props) {
+  const clientRef = useRef<ConfiguratorClient | null>(null);
+  const pendingRef = useRef(false);
+  const activeSessionRef = useRef<string | null>(null);
+  const onCommittedRef = useRef(onCompositionCommitted);
+  onCommittedRef.current = onCompositionCommitted;
+  const receiptSyncRef = useRef(new Map<string, Promise<void>>());
+  const [connected, setConnected] = useState(false);
+  const [supported, setSupported] = useState<string[]>([]);
+  const [pending, setPending] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<CabinetDraftState | null>(null);
+  const [status, setStatus] = useState("Waiting for cabinet runtime…");
+  const [error, setError] = useState<string | null>(null);
+  const [countertop, setCountertop] = useState<CountertopState | null>(null);
+  const [length, setLength] = useState("");
+  const [compositionStatus, setCompositionStatus] = useState("initializing");
+  const [side, setSide] = useState("right");
+  const [presetJson, setPresetJson] = useState(() => {
+    try { return localStorage.getItem("cabinet-placement-debug-preset") ?? ""; }
+    catch { return ""; }
+  });
+  const [restoreConfirmed, setRestoreConfirmed] = useState(false);
+
+  useEffect(() => {
+    if (!ready) return;
+    let disposed = false;
+    let stopCountertop: (() => void) | undefined;
+    void (async () => {
+      try {
+        const api = getCountertopApi?.();
+        if (api) {
+          const state = await api.getState();
+          if (disposed) return;
+          setCountertop(state);
+          stopCountertop = api.on?.("change", (event) => {
+            if (!disposed) setCountertop(event.state);
+          }, { emitCurrent: true });
+        }
+      } catch (failure) {
+        if (!disposed) setError(errorMessage(failure));
+      }
+    })();
+    return () => { disposed = true; stopCountertop?.(); };
+  }, [ready, getCountertopApi]);
+
+  const syncCommitted = useCallback((client: ConfiguratorClient, receipt: ConfiguratorReceipt): Promise<void> => {
+    const previous = receiptSyncRef.current.get(receipt.requestId);
+    if (previous) return previous;
+    const task = (async () => {
+      const state = await client.getCabinetsState();
+      if (clientRef.current === client) await onCommittedRef.current?.(state);
+    })();
+    receiptSyncRef.current.set(receipt.requestId, task);
+    return task;
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const client = createClient();
+    clientRef.current = client;
+    const receiptSync = receiptSyncRef.current;
+    let disposed = false;
+    const setSession = (id: string | null) => {
+      activeSessionRef.current = id;
+      setSessionId(id);
+    };
+    const updateDraft = (event: unknown) => {
+      if (disposed) return;
+      if (typeof event === "object" && event && "data" in event && event.data === null) {
+        setSession(null);
+        setDraft(null);
+        setStatus("Ready to drag a cabinet");
+        return;
+      }
+      const next = dataOf(event);
+      if (typeof next.sessionId !== "string") return;
+      const finished = isTerminal(next.lifecycle);
+      setSession(finished ? null : next.sessionId);
+      setDraft(finished ? null : next as CabinetDraftState);
+      setStatus(finished ? `Placement ${String(next.lifecycle)}` : `Placement: ${String(next.lifecycle)}`);
+    };
+
+    void (async () => {
+      try {
+        await client.connect();
+        if (disposed) return;
+        const capabilities = await client.getCapabilities();
+        if (disposed) return;
+        setSupported(capabilities.supportedMethods ?? []);
+        await client.on("cabinetPlacement", "change", updateDraft);
+        await client.on("cabinetPlacement", "action", (event: unknown) => {
+          if (disposed) return;
+          const action = dataOf(event);
+          if (activeSessionRef.current && action.sessionId !== activeSessionRef.current) return;
+          if (action.status === "committed" || action.status === "cancelled") {
+            setSession(null);
+            setDraft(null);
+            setStatus(action.status === "committed" ? "Placement applied" : "Placement cancelled");
+            if (action.status === "committed" && action.receipt) {
+              void syncCommitted(client, action.receipt as ConfiguratorReceipt).catch((failure) => {
+                if (!disposed) setError(errorMessage(failure));
+              });
+            }
+          }
+        });
+        await client.on("composition", "change", (event: unknown) => {
+          if (disposed) return;
+          const composition = dataOf(event);
+          if (typeof composition.status === "string") setCompositionStatus(composition.status);
+          if (typeof composition.activeSessionId === "string") setSession(composition.activeSessionId);
+          else if (composition.activeSessionId === null) setSession(null);
+        });
+        const state = dataOf(await client.getCompositionState());
+        if (disposed) return;
+        setCompositionStatus(typeof state.status === "string" ? state.status : "ready");
+        if (typeof state.activeSessionId === "string") {
+          setSession(state.activeSessionId);
+          updateDraft(await client.getPlacementState(state.activeSessionId));
+        }
+        setConnected(true);
+        if (!activeSessionRef.current) setStatus("Ready to drag a cabinet");
+      } catch (failure) {
+        if (!disposed) setError(errorMessage(failure));
+      }
+    })();
+    return () => {
+      disposed = true;
+      client.dispose();
+      if (clientRef.current === client) clientRef.current = null;
+      activeSessionRef.current = null;
+      receiptSync.clear();
+      setSessionId(null);
+      setDraft(null);
+      setConnected(false);
+    };
+  }, [ready, createClient, syncCommitted]);
+
+  const command = async (run: (client: ConfiguratorClient | null) => Promise<void>) => {
+    const client = clientRef.current;
+    if (pendingRef.current) return;
+    pendingRef.current = true;
+    setPending(true);
+    setError(null);
+    try { await run(client); } catch (failure) { setError(errorMessage(failure)); }
+    finally { pendingRef.current = false; setPending(false); }
+  };
+  const start = (kind: "add" | "move") => {
+    if (activeSessionRef.current) return;
+    void command(async (client) => {
+      if (!client) return;
+      let next: CabinetDraftState;
+      if (kind === "add") {
+        if (!selection) return;
+        const state = await client.getCabinetsState();
+        const anchor = state.selectedCabinetId ?? selectedProductId;
+        const anchorCabinetId = state.cabinets.some((cabinet) => cabinet.id === anchor) ? anchor : null;
+        const options = await client.getPlacementOptions({
+          ...selection, operation: "add", ...(anchorCabinetId ? { anchorCabinetId } : {}),
+        });
+        const option = options.find((item) => item.availability === "available" && item.kind === side)
+          ?? options.find((item) => item.availability === "available" && item.kind === "seed");
+        if (!option) throw new Error("No available placement on the selected side");
+        next = await client.beginAdd(selection.definitionId, selection.selection, { kind: "option", optionId: option.id });
+      } else {
+        // Local runtime does not publish cabinet selection events: read it at click time.
+        const state = await client.getCabinetsState();
+        const id = state.selectedCabinetId ?? selectedProductId;
+        if (!id || !state.cabinets.some((cabinet) => cabinet.id === id)) throw new Error("Select a cabinet in the canvas first");
+        next = await client.beginMove(id);
+      }
+      activeSessionRef.current = next.sessionId;
+      setSessionId(next.sessionId);
+      setDraft(next);
+      setStatus("Drag the cabinet in the canvas, then Apply or Cancel");
+    });
+  };
+  const finish = (action: "apply" | "cancel") => void command(async (client) => {
+    if (!client) return;
+    const id = activeSessionRef.current;
+    if (!id) return;
+    const result = await client[action](id);
+    if (action === "cancel" && !isTerminal((result as CabinetDraftState).lifecycle)) {
+      setDraft(result as CabinetDraftState);
+      setStatus(`Placement: ${(result as CabinetDraftState).lifecycle}`);
+      return;
+    }
+    activeSessionRef.current = null;
+    setSessionId(null);
+    setDraft(null);
+    setStatus(action === "apply" ? "Placement applied" : "Placement cancelled");
+    if (action === "apply") await syncCommitted(client, result as ConfiguratorReceipt);
+  });
+  const busy = !connected || pending || Boolean(sessionId) || compositionStatus !== "ready";
+  const sceneBusy = !ready || pending || Boolean(sessionId) || (connected && compositionStatus !== "ready");
+  const canAdd = supported.includes("cabinetPlacement.beginAdd");
+  const canMove = supported.includes("cabinetPlacement.beginMove");
+
+  return (
+    <section className={s.panel} aria-label="Cabinet placement test controls">
+      <div className={s.buttons}>
+        <button type="button" disabled={busy || !canAdd || !selection} onClick={() => start("add")}>Drag &amp; Drop</button>
+        {connected && canMove && <button type="button" disabled={busy} onClick={() => start("move")}>Move selected cabinet</button>}
+        {sessionId && <>
+          <button type="button" disabled={pending || draft?.canApply !== true} onClick={() => finish("apply")}>Apply</button>
+          <button type="button" disabled={pending || draft?.canCancel !== true} onClick={() => finish("cancel")}>Cancel</button>
+        </>}
+      </div>
+      <label>Add on<select aria-label="Add on side" value={side} disabled={busy} onChange={(event) => setSide(event.target.value)}><option value="left">Left</option><option value="right">Right</option></select></label>
+      {!selection && connected && <p>Select a cabinet configuration to add.</p>}
+      <p role="status">{status}</p>
+      {error && <p role="alert">{error}</p>}
+      {(supported.includes("composition.exportPreset") || supported.includes("composition.importPreset")) && <details>
+        <summary>Save / Restore JSON</summary>
+        <button type="button" disabled={busy || !supported.includes("composition.exportPreset")} onClick={() => void command(async (client) => {
+          if (!client) return;
+          const json = JSON.stringify(await client.exportPreset(), null, 2);
+          localStorage.setItem("cabinet-placement-debug-preset", json);
+          setPresetJson(json);
+          setRestoreConfirmed(false);
+          setStatus("Preset JSON saved in this browser");
+        })}>Save JSON</button>
+        <label>Preset JSON<textarea value={presetJson} disabled={busy} onChange={(event) => { setPresetJson(event.target.value); setRestoreConfirmed(false); }} /></label>
+        <label><input type="checkbox" checked={restoreConfirmed} disabled={busy} onChange={(event) => setRestoreConfirmed(event.target.checked)} />Replace the current composition with this JSON</label>
+        <button type="button" disabled={busy || !restoreConfirmed || !presetJson.trim() || !supported.includes("composition.importPreset")} onClick={() => void command(async (client) => {
+          if (!client || !restoreConfirmed) return;
+          const receipt = await client.importPreset(JSON.parse(presetJson) as ConfiguratorPreset);
+          await syncCommitted(client, receipt);
+          setRestoreConfirmed(false);
+          setStatus("Preset restored; cabinet IDs refreshed");
+        })}>Restore JSON</button>
+      </details>}
+      {countertop && <details>
+        <summary>Countertop test controls</summary>
+        <button type="button" disabled={sceneBusy || countertop.readiness !== "ready"} onClick={() => void command(async () => {
+          const api = getCountertopApi?.();
+          if (!api) return;
+          await api.setDragEnabled(!countertop.dragEnabled);
+          setCountertop(await api.getState());
+        })}>{countertop.dragEnabled ? "Disable countertop drag" : "Enable countertop drag"}</button>
+        <label>Length (metres)<input type="number" min="0.3048" step="0.01" value={length} onChange={(event) => setLength(event.target.value)} /></label>
+        <button type="button" disabled={sceneBusy || !countertop.canResize || Number(length) < 0.3048 || !Number.isFinite(Number(length))} onClick={() => void command(async () => {
+          const api = getCountertopApi?.();
+          if (!api) return;
+          await api.setSize({ length: Number(length) });
+          setCountertop(await api.getState());
+          setStatus("Countertop length updated");
+        })}>Set countertop length</button>
+        {!countertop.canResize && <p>Move the countertop away from the cabinets in the canvas to edit its length.</p>}
+      </details>}
+    </section>
+  );
+}
