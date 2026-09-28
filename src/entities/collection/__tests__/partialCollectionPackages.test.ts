@@ -132,15 +132,15 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    // Class places its own scene products (I) but has no model compositions yet, and its own cabinet
-    // and countertop tables; Mako places its own scene products (I) and has the composition of every
-    // model, its own tables and its own configurator.
+    // Class places its own scene products (I) and has the composition of every model, and its own
+    // cabinet and countertop tables; Mako places its own scene products (I) and has the composition of
+    // every model, its own tables and its own configurator.
     [
       "class",
       "Class",
       44,
       { "Sink-Base": "Class-sink-cabinet", "Sink-Cabinet": "Class-side-cabinet" },
-      false,
+      true,
       [[579, abortSignal]],
       578,
       9,

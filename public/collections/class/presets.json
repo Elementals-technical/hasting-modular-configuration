@@ -4,7 +4,15 @@
     "img": "images/Class Vanity 24_ 1-Drawer.png",
     "title": "Class Vanity 24\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "24_29",
     "style": ["1_drawer", "single_basin"]
   },
@@ -13,7 +21,15 @@
     "img": "images/Class Vanity 24_ 2-Drawer.png",
     "title": "Class Vanity 24\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "24_29",
     "style": ["2_drawer", "single_basin"]
   },
@@ -22,7 +38,15 @@
     "img": "images/Class Vanity 32_ 1-Drawer.png",
     "title": "Class Vanity 32\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin"]
   },
@@ -31,7 +55,15 @@
     "img": "images/Class Vanity 32_ 1-Drawer ID.png",
     "title": "Class Vanity 32\" 1-Drawer ID",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1DWID"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin"]
   },
@@ -40,7 +72,15 @@
     "img": "images/Class Vanity 32_ 2-Drawer.png",
     "title": "Class Vanity 32\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "30_39",
     "style": ["2_drawer", "single_basin"]
   },
@@ -49,7 +89,15 @@
     "img": "images/Class Vanity 40_ 1-Drawer.png",
     "title": "Class Vanity 40\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin"]
   },
@@ -58,7 +106,15 @@
     "img": "images/Class Vanity 40_ 2-Drawer.png",
     "title": "Class Vanity 40\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "40_49",
     "style": ["2_drawer", "single_basin"]
   },
@@ -67,7 +123,22 @@
     "img": "images/Class Vanity 48_ 1-Drawer.png",
     "title": "Class Vanity 48\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "double_basin"]
   },
@@ -76,7 +147,22 @@
     "img": "images/Class Vanity 48_ 1-Drawer 1.png",
     "title": "Class Vanity 48\" 1-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -85,7 +171,15 @@
     "img": "images/Class Vanity 48_ 1-Drawer 2.png",
     "title": "Class Vanity 48\" 1-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin"]
   },
@@ -94,7 +188,22 @@
     "img": "images/Class Vanity 48_ 1-Drawer 3.png",
     "title": "Class Vanity 48\" 1-Drawer 3",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -103,7 +212,15 @@
     "img": "images/Class Vanity 48_ 1-Drawer ID.png",
     "title": "Class Vanity 48\" 1-Drawer ID",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1DWID"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin"]
   },
@@ -112,7 +229,22 @@
     "img": "images/Class Vanity 48_ 2-Drawer.png",
     "title": "Class Vanity 48\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "40_49",
     "style": ["2_drawer", "double_basin"]
   },
@@ -121,7 +253,15 @@
     "img": "images/Class Vanity 48_ 2-Drawer 1.png",
     "title": "Class Vanity 48\" 2-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "40_49",
     "style": ["2_drawer", "single_basin"]
   },
@@ -130,7 +270,29 @@
     "img": "images/Class Vanity 55_ 1-Drawer.png",
     "title": "Class Vanity 55\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -139,7 +301,22 @@
     "img": "images/Class Vanity 55_ 1-Drawer 1.png",
     "title": "Class Vanity 55\" 1-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -148,7 +325,22 @@
     "img": "images/Class Vanity 55_ 1-Drawer 2.png",
     "title": "Class Vanity 55\" 1-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -157,7 +349,22 @@
     "img": "images/Class Vanity 55_ 2-Drawer.png",
     "title": "Class Vanity 55\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "50_59",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -166,7 +373,29 @@
     "img": "images/Class Vanity 55_ 2-Drawer 1.png",
     "title": "Class Vanity 55\" 2-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "50_59",
     "style": ["2_drawer", "single_basin"]
   },
@@ -175,7 +404,22 @@
     "img": "images/Class Vanity 55_ 2-Drawer 2.png",
     "title": "Class Vanity 55\" 2-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "50_59",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -184,7 +428,29 @@
     "img": "images/Class Vanity 63_ 1-Drawer.png",
     "title": "Class Vanity 63\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -193,7 +459,22 @@
     "img": "images/Class Vanity 63_ 1-Drawer 1.png",
     "title": "Class Vanity 63\" 1-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -202,7 +483,22 @@
     "img": "images/Class Vanity 63_ 1-Drawer 2.png",
     "title": "Class Vanity 63\" 1-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -211,7 +507,22 @@
     "img": "images/Class Vanity 63_ 1-Drawer 3.png",
     "title": "Class Vanity 63\" 1-Drawer 3",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -220,7 +531,22 @@
     "img": "images/Class Vanity 63_ 2-Drawer.png",
     "title": "Class Vanity 63\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "double_basin"]
   },
@@ -229,7 +555,22 @@
     "img": "images/Class Vanity 63_ 2-Drawer 1.png",
     "title": "Class Vanity 63\" 2-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -238,7 +579,29 @@
     "img": "images/Class Vanity 63_ 2-Drawer 2.png",
     "title": "Class Vanity 63\" 2-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin"]
   },
@@ -247,7 +610,22 @@
     "img": "images/Class Vanity 63_ 2-Drawer 3.png",
     "title": "Class Vanity 63\" 2-Drawer 3",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -256,7 +634,22 @@
     "img": "images/Class Vanity 63_ 2-Drawer 4.png",
     "title": "Class Vanity 63\" 2-Drawer 4",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -265,7 +658,22 @@
     "img": "images/Class Vanity 63_ 2-Drawer 5.png",
     "title": "Class Vanity 63\" 2-Drawer 5",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -274,7 +682,29 @@
     "img": "images/Class Vanity 71_ 1-Drawer.png",
     "title": "Class Vanity 71\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -283,7 +713,29 @@
     "img": "images/Class Vanity 71_ 2-Drawer.png",
     "title": "Class Vanity 71\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "double_basin"]
   },
@@ -292,7 +744,29 @@
     "img": "images/Class Vanity 79_ 1-Drawer.png",
     "title": "Class Vanity 79\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin"]
   },
@@ -301,7 +775,29 @@
     "img": "images/Class Vanity 79_ 1-Drawer 1.png",
     "title": "Class Vanity 79\" 1-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -310,7 +806,22 @@
     "img": "images/Class Vanity 79_ 2-Drawer.png",
     "title": "Class Vanity 79\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "double_basin"]
   },
@@ -319,7 +830,29 @@
     "img": "images/Class Vanity 79_ 2-Drawer 1.png",
     "title": "Class Vanity 79\" 2-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -328,7 +861,22 @@
     "img": "images/Class Vanity 79_ 2-Drawer 2.png",
     "title": "Class Vanity 79\" 2-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -337,7 +885,29 @@
     "img": "images/Class Vanity 87_ 1-Drawer.png",
     "title": "Class Vanity 87\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "double_basin"]
   },
@@ -346,7 +916,29 @@
     "img": "images/Class Vanity 87_ 1-Drawer 1.png",
     "title": "Class Vanity 87\" 1-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -355,7 +947,22 @@
     "img": "images/Class Vanity 87_ 1-Drawer 2.png",
     "title": "Class Vanity 87\" 1-Drawer 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 120,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -364,7 +971,29 @@
     "img": "images/Class Vanity 87_ 1-Drawer 3.png",
     "title": "Class Vanity 87\" 1-Drawer 3",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -373,7 +1002,29 @@
     "img": "images/Class Vanity 87_ 1-Drawer 4.png",
     "title": "Class Vanity 87\" 1-Drawer 4",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1D"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "single_basin"]
   },
@@ -382,7 +1033,29 @@
     "img": "images/Class Vanity 87_ 2-Drawer.png",
     "title": "Class Vanity 87\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 60,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Base",
+        "Width": 80,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "80_89",
     "style": ["2_drawer", "double_basin"]
   },
@@ -391,7 +1064,22 @@
     "img": "images/Class Vanity 87_ 2-Drawer 1.png",
     "title": "Class Vanity 87\" 2-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 120,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Width": 100,
+        "Height": 52,
+        "Depth": 52,
+        "Drawers": "2D"
+      }
+    ],
     "size": "80_89",
     "style": []
   }
