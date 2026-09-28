@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hastings Class"
+  short_description: "Work safely on the Class collection"
+  default_prompt: "Use $hastings-class to analyze or change the Class collection behavior."

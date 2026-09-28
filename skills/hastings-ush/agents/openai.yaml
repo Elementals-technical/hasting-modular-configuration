@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hastings USH"
+  short_description: "Work safely on Urban Standard Height"
+  default_prompt: "Use $hastings-ush to analyze or change Urban Standard Height collection behavior."
