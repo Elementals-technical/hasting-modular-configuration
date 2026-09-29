@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import ulhCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
+import makoCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import { store } from "@/app/store";
+import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { parseProductProfile } from "@/entities/collection";
 import type { ProductProfile } from "@/entities/collection";
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
+import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import { resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
@@ -44,6 +51,10 @@ const matrix = {
     },
   ],
 } as unknown as ProductDatatable;
+
+const parsedUlhProfile = parseProductProfile(ulhProfileDocument);
+if (!parsedUlhProfile.ok) throw new Error("Urban Low Height profile must parse");
+const ulhProfile = parsedUlhProfile.profile;
 
 const HANDLE_TO_PTO: AttributeChange = {
   attributeId: "Handle",
@@ -156,6 +167,59 @@ describe("preview", () => {
 
     expect(result).toMatchObject({ status: "blocked", attributeId: "Handle" });
     expect(runtime.calls).toHaveLength(0);
+  });
+});
+
+// Every collection whose handle changes asks as Urban Standard Height does: its cabinet table,
+// placed as the scene names its products, and a handle change with the reasons of its plan.
+describe.each([
+  {
+    collectionId: "urban-low-height",
+    profile: ulhProfile,
+    catalog: buildCabinetCatalogFromMatrix(ulhCabinetTable as ProductDatatable, ulhProfile, ulhRuntimeBindings),
+    placed: ["ULH-sink-cabinet-a", "ULH-side-cabinet-b"],
+    config: { Drawers: "1D", Handle: "handle_urban_topcut" },
+    nextHandle: "handle_pto",
+    // Push-to-open takes its own heights.
+    reasonCodes: ["handle.appliesToAllCabinets", "handle.requiredHeight"],
+  },
+  {
+    collectionId: "mako",
+    profile: makoProfile,
+    catalog: buildCabinetCatalogFromMatrix(makoCabinetTable as ProductDatatable, makoProfile, makoRuntimeBindings),
+    placed: ["Mako-sink-cabinet-a", "Mako-side-cabinet-b"],
+    config: { Drawers: "2", Handle: "G57" },
+    nextHandle: "G50",
+    reasonCodes: ["handle.appliesToAllCabinets"],
+  },
+])("$collectionId preview", ({ collectionId, profile, catalog, placed, config, nextHandle, reasonCodes }) => {
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(profile));
+    store.dispatch(setActiveCollectionId(collectionId));
+    store.dispatch(setCabinetCatalog(catalog));
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    store.dispatch(setSelectedProductConfig(config));
+    store.dispatch(syncCabinets(placed));
+  });
+
+  it("holds a handle change for confirmation while cabinets are placed, as Urban Standard Height does", async () => {
+    const runtime = createTestRuntimePort();
+    const { deps, dispatched } = createDeps(runtime);
+
+    const result = await changeAttribute({ ...HANDLE_TO_PTO, value: nextHandle }, deps);
+    const { reasons } = previewOf(result);
+
+    expect(reasons.map(({ reasonCode }) => reasonCode)).toEqual(reasonCodes);
+    expect(reasons[0]).toEqual({
+      attributeId: "Handle",
+      reasonCode: "handle.appliesToAllCabinets",
+      reason: "The handle style will be updated for all drawer cabinets.",
+    });
+    expect(dispatched).toEqual([]);
+    expect(runtime.calls).toHaveLength(0);
+    expect(currentHandle()).toBe(config.Handle);
   });
 });
 

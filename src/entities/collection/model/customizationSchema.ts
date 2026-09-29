@@ -57,6 +57,11 @@ export type CustomizationFieldDefinition = {
    * `defaultValue`, Off its `resetValue` (Mako legs: in the cabinet colour / none).
    */
   toggle?: { label: string };
+  /**
+   * `firstAllowed`: while the value shown is none of the enabled options, the field takes the first
+   * enabled one, as the Urban Standard Height countertop step keeps its thickness and basin.
+   */
+  autoSelect?: "firstAllowed";
 };
 
 export type CustomizationSectionDefinition = {

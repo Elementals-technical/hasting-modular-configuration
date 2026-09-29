@@ -42,3 +42,10 @@ export const resolveCabinetTypeOfRuntimeId = (
   runtimeId: string,
 ): string | null =>
   resolveCabinetTypeOfSceneId(selectOptionValues(profile, "CabinetType"), bindings?.productTypes ?? null, runtimeId);
+
+/** Whether a placed product is a Sink Base of the collection, read from its runtime id. */
+export const isSinkBaseRuntimeId = (
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null,
+  runtimeId: string,
+): boolean => resolveCabinetTypeOfRuntimeId(profile, bindings, runtimeId) === "Sink-Base";

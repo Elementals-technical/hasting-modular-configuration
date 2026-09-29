@@ -1,14 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
+import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import {
   formatTarget,
   resetConfiguration,
   setActiveCollectionId,
+  setActiveRuntimeBindings,
   setAttributeValue,
   syncCabinets,
 } from "@/entities/configuration";
-import { reset } from "@/entities/product/model/store/slice";
+import { reset, setActiveProfile } from "@/entities/product/model/store/slice";
 
 import {
   CONFIGURATION_FRAGMENT_VERSION,
@@ -100,6 +104,7 @@ describe("buildConfigurationFragment", () => {
   });
 
   it("upgrades a legacy basin fallback to the known sink-base targets", () => {
+    store.dispatch(setActiveProfile(ushProfile));
     store.dispatch(resetConfiguration());
     store.dispatch(syncCabinets(["Sink-Base-a", "Sink-Base-b"]));
     store.dispatch(setAttributeValue({ attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel" }));
@@ -109,6 +114,23 @@ describe("buildConfigurationFragment", () => {
     expect(fragment.values.basin).toBeUndefined();
     expect(fragment.values["basin:cab-1"]).toEqual({ sinkType: "Vessel" });
     expect(fragment.values["basin:cab-2"]).toEqual({ sinkType: "Vessel" });
+  });
+
+  it("gives the basin of the composition to each Sink Base the collection's scene names, not to a Side Cabinet", () => {
+    // Placing a Mako model records its basin for the whole composition.
+    store.dispatch(setActiveProfile(makoProfile));
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+    store.dispatch(syncCabinets(["Mako-sink-cabinet-a", "Mako-side-cabinet-b", "Mako-sink-cabinet-c"]));
+    store.dispatch(setAttributeValue({ attributeId: "sinkType", target: { scope: "basin" }, value: "VA005" }));
+
+    const { fragment } = selectConfigurationSavePayload(store.getState());
+
+    expect(Object.keys(fragment.values).filter((key) => key.startsWith("basin"))).toEqual([
+      "basin:cab-1",
+      "basin:cab-3",
+    ]);
+    expect(fragment.values["basin:cab-1"]).toEqual({ sinkType: "VA005" });
   });
 
   it("groups several attributes under one target", () => {

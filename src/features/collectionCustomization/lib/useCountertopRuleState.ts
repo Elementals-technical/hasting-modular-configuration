@@ -11,7 +11,7 @@ import {
   getSinkType,
 } from "@/entities/product/model/store/selectors";
 import { buildCountertopRuleState, useCountertopRules } from "@/features/configurator-rule-core/countertop";
-import { getActiveProductProfile } from "@/entities/configuration";
+import { getActiveProductProfile, useIsSinkBase } from "@/entities/configuration";
 import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
@@ -35,7 +35,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
   const basinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
-  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
 
   return useMemo(() => {

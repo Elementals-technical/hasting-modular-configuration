@@ -109,16 +109,23 @@ describe("resolveChangeRequest", () => {
       scope: "cabinet",
       cabinetId: "cab-1",
     });
+  });
+
+  it("asks for the basin of the composition once a Sink Base is placed", () => {
+    // The scene names a product after its type; the command puts the basin on every Sink Base.
+    store.dispatch(syncCabinets(["Sink-Base-a", "Sink-Base-b"]));
+
     expect(resolveChangeRequest(store.getState(), "sinkType", "Top_Tekorlux_Rectangular")).toEqual({
       attributeId: "sinkType",
       value: "Top_Tekorlux_Rectangular",
       scope: "basin",
-      sinkBaseId: "cab-1",
     });
   });
 
-  it("cannot address a cabinet value without cabinets, or an unknown attribute", () => {
+  it("cannot address a cabinet value without cabinets, a basin without a Sink Base, or an unknown attribute", () => {
     expect(resolveChangeRequest(store.getState(), "NotAnAttribute", "x")).toBeNull();
+    // runtime-a and runtime-b are no Sink Base of the collection.
+    expect(resolveChangeRequest(store.getState(), "sinkType", "Top_Tekorlux_Rectangular")).toBeNull();
 
     store.dispatch(resetConfiguration());
 

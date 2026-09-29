@@ -57,6 +57,7 @@ export type { UseChangeAttributeOptions } from "./hooks/useChangeAttribute";
 export { useChangeDimension } from "./hooks/useChangeDimension";
 export { useAttributeChangeHandler } from "./hooks/useAttributeChangeHandler";
 export { useAvailabilityResets } from "./hooks/useAvailabilityResets";
+export { useFieldAutoSelect } from "./hooks/useFieldAutoSelect";
 export { useRuleDrivenHandleSync } from "./hooks/useRuleDrivenHandleSync";
 export { resolveChangeRequest } from "./lib/resolveChangeRequest";
 export { resolveColorTraits, selectConfiguratorSection } from "./lib/resolveColorTraits";

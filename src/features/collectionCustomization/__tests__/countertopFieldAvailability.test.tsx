@@ -211,6 +211,47 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
   });
 });
 
+describe("Class and Mako offer the thicknesses their countertop tables give", () => {
+  it.each([
+    // Table 578: a Class Porcelain top is 3/4" or 4-3/4", an HPL one 1/2" or 4".
+    ["class", "ARDESIA NERA 328", ["0.75", "4.75"]],
+    ["class", "CALACATTA 259", ["0.5", "4"]],
+    // Table 577: a Mako HPL top is 1/2" only.
+    ["mako", "CALACATTA 259", ["0.5"]],
+  ] as const)("%s, %s", (collectionId, color, thicknesses) => {
+    const collection = collections[collectionId];
+    startWith(collection);
+    store.dispatch(setCountertopStyle("integrated"));
+    store.dispatch(setActiveCountertopColor(color));
+
+    expect(fieldsOf(collection).enabledValues("thickness")).toEqual(thicknesses);
+  });
+});
+
+describe("Urban Low Height offers the thicknesses the countertop matrix gives, as the USH countertop step", () => {
+  const { shownValues, enabledValues } = fieldsOf(urbanLowHeight);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setCountertopStyle("integrated"));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+  });
+
+  it("enables the thicknesses of the chosen material at the cabinets' depth", () => {
+    // Table 438: an HPL top 46 cm deep is 1/2", 4" or 5-1/8".
+    expect(enabledValues("thickness")).toEqual(["0.5", "4", "5.125"]);
+  });
+
+  it("enables none where the table gives the material none, rather than every thickness", () => {
+    // No HPL row of table 438 is 40 cm deep; the price says the top is missing (the countertop gap).
+    store.dispatch(setSelectedDimensions({ depth: 40 }));
+
+    expect(shownValues("thickness")?.length).toBeGreaterThan(0);
+    expect(enabledValues("thickness")).toEqual([]);
+  });
+});
+
 describe.each(Object.entries(collections))("%s vessel choice follows the USH countertop step", (_id, collection) => {
   const { fieldOf, shownValues, enabledValues } = fieldsOf(collection);
 

@@ -16,6 +16,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
 import {
+  filterThicknessValuesByCountertopRules,
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
   normalizeBasinKey,
@@ -66,6 +67,23 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
     reason: refused?.disabledReason,
     reasonCode: refused?.reasonCode,
     reasonParams: refused?.reasonParams,
+  };
+};
+
+// The thicknesses the matrix gives the current colour, depth, style and widths, as the USH countertop
+// screen offers them. Where it gives none, none is enabled: another row's thickness would price a top
+// the table does not make.
+const resolveThicknessAvailability = (
+  profile: ProductProfile | null,
+  { allowedThicknesses }: CountertopRuleState,
+): FieldAvailability => {
+  const values = selectOptions(profile, "Thickness").map(({ value }) => value);
+
+  return {
+    available: true,
+    allowedValues: allowedThicknesses.size
+      ? filterThicknessValuesByCountertopRules({ values, allowedThicknesses }).map(String)
+      : [],
   };
 };
 
@@ -164,6 +182,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
       "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
+      "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
       "sinkType.allowed": resolveBasinAvailability(profile, countertopRuleState, countertopStyle),
     }),
     [

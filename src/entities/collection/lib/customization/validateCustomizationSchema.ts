@@ -212,6 +212,14 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
           message: "toggle must be { label } with a non-empty label",
         });
       }
+
+      if (field.autoSelect !== undefined && field.autoSelect !== "firstAllowed") {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.autoSelect`,
+          message: 'autoSelect must be "firstAllowed"',
+        });
+      }
     });
   }
 };

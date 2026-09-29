@@ -30,6 +30,7 @@ the category its material group (`SelectionType`).
 | `FrameColor` | global | 20: Lacquered MT | A6 |
 | `CountertopStyle` | countertop | `integrated`, `vessel` | §0.8, CLS-XLS-015 |
 | `CountertopColor` | countertop | 71: Solid Surface 2, HPL 14, Porcelain 15, Glass MT 20, Glass GL 20 | A7 |
+| `Thickness` | countertop | `0.5` (1/2″), `0.75` (3/4″), `3.125` (3-1/8″), `4` (4″), `4.75` (4-3/4″); the Thickness section enables those table 578 gives the colour, and follows the material (`autoSelect`) | Table 578. Added on request (team, 29.09.2026). The SKU spells them `.5`, `.8`, `3.1`, `4`, `4.7` as the price workbook does (`thicknessCodes`), until Q-CLASS-033/042 settle 4 vs 4.7; a thick top (3.1, 4, 4.7) takes two brackets. Recorded only in the scene: its countertop has no mounting for these thicknesses |
 | `sinkType` | basin | integrated: LB440, LB175, LB575, LB856, VA024, LV890, LV892, VA002, VA005, VA023; vessel: Iris, Frame, Plaza | A8, CLS-WGL-012 |
 | `FaucetHolesAmount` | countertop | `0`–`3` | §0.8 (GB O5:O21), CLS-XLS-024 |
 | `DividersStyle` | drawer | `Metal` (ROW-MTL-43), `Oak` (ROW-OAK-43) | CLS-WGL-014, §6.7 |
