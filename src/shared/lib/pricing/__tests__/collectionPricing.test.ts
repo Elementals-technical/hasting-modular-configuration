@@ -125,6 +125,36 @@ describe("Class and Mako order lines", () => {
     expect(gaps).toEqual([]);
   });
 
+  it.each([
+    ["Class", CLASS],
+    ["Mako", MAKO],
+  ])("%s spells every thickness its countertop offers", (_name, { profile, skuProfile }) => {
+    if (!hasOwnCountertop(skuProfile)) throw new Error("the collection spells its own countertop");
+    const thicknesses = selectOptions(profile, "Thickness").map(({ value }) => value);
+
+    expect(thicknesses.length).toBeGreaterThan(0);
+    expect(thicknesses.filter((value) => !skuProfile.countertop.thicknessCodes[value])).toEqual([]);
+  });
+
+  it("spells the thickness chosen for the top and its basin, with the brackets a thick top takes", () => {
+    const order = COLLECTION_PRICING_SCENARIOS["class-porcelain-integrated"].input;
+    const countertopSkus = (countertopThickness: string) =>
+      buildCollectionPricingLines({ ...order, countertopThickness }).lines.flatMap(({ group, sku, quantity }) =>
+        group === "countertop" || group === "basin" || group === "bracket" ? [{ sku, quantity }] : [],
+      );
+
+    // Table 578 gives an HPL top 1/2" or 4"; the price list spells them .5 and 4.
+    expect(countertopSkus("4")).toEqual([
+      { sku: "CT-GBHPL-INTG-47.2W-4H-20.7D-HPL-259", quantity: 1 },
+      { sku: "CT-GBHPL-VA024-4H", quantity: 1 },
+      { sku: "CT-GB-BRKT", quantity: 2 },
+    ]);
+    expect(countertopSkus("0.5")).toEqual([
+      { sku: "CT-GBHPL-INTG-47.2W-.5H-20.7D-HPL-259", quantity: 1 },
+      { sku: "CT-GBHPL-VA024-.5H", quantity: 1 },
+    ]);
+  });
+
   it.each(["class-porcelain-integrated", "mako-vessel-with-legs"] as const)(
     "uses the committed top length for %s without changing cabinet or basin lines",
     (scenario) => {

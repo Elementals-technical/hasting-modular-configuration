@@ -87,6 +87,7 @@ import {
 } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
+import { useIsSinkBase } from "@/entities/configuration";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
