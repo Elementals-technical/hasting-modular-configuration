@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import { selectMessage, selectMessageOr, useActiveCollection } from "@/entities/collection";
+import { useIsSinkBase } from "@/entities/configuration";
 import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
   getActiveCountertopColor,
@@ -50,7 +51,7 @@ export const useCountertopContext = () => {
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const countertopRules = useCountertopRules();
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
-  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   const { activeMaterialTokens, ...ruleState } = useCountertopRuleState();
 
   const isDepth46VesselOnly = useMemo(

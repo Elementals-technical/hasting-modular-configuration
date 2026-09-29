@@ -35,8 +35,14 @@ export type ConfigurationFragment = {
   values: SavedValuesByTarget;
 };
 
-/** Builds the fragment from the shared snapshot produced by the configuration model. */
-export const buildConfigurationFragment = (snapshot: ConfigurationSnapshot): ConfigurationFragment => {
+/**
+ * Builds the fragment from the shared snapshot produced by the configuration model.
+ * `isSinkBase` tells a Sink Base by its runtime id, which only the collection's bindings can read.
+ */
+export const buildConfigurationFragment = (
+  snapshot: ConfigurationSnapshot,
+  isSinkBase: (runtimeId: string) => boolean,
+): ConfigurationFragment => {
   const values: SavedValuesByTarget = {};
 
   for (const [attributeId, scopedValues] of Object.entries(snapshot.values)) {
@@ -47,7 +53,7 @@ export const buildConfigurationFragment = (snapshot: ConfigurationSnapshot): Con
       const targets =
         scoped.target.scope === "basin" && !scoped.target.sinkBaseId
           ? snapshot.cabinets
-              .filter(({ runtimeId }) => runtimeId.toLowerCase().includes("sink-base"))
+              .filter(({ runtimeId }) => isSinkBase(runtimeId))
               .map(({ stableKey }) => ({ scope: "basin" as const, sinkBaseId: stableKey }))
           : [scoped.target];
 

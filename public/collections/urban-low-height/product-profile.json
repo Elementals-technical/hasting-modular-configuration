@@ -18,6 +18,7 @@
     "CabinetColor": "Rox Black TKQ",
     "CountertopColor": "Pietra Di Savoia Antracite TQ6",
     "CountertopStyle": "integrated",
+    "sinkType": "Top_Porcelain_Cover",
     "TowelBarOption": "None"
   },
   "attributes": [
@@ -70,7 +71,9 @@
     {
       "attributeId": "Handle",
       "scope": "cabinet",
+      "confirmation": { "when": "cabinetsPlaced", "reasonCode": "handle.appliesToAllCabinets" },
       "initialValue": "",
+      "effectiveFallbackValue": "handle_urban_topcut",
       "options": [
         {
           "value": "handle_urban_topcut",
@@ -128,6 +131,19 @@
       "attributeId": "CountertopColor",
       "scope": "countertop",
       "optionsSource": "configurator:Countertop Color"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        { "value": "0.375", "label": "0.4\"", "order": 10 },
+        { "value": "0.4", "label": "0.4\"", "order": 20 },
+        { "value": "0.5", "label": "0.5\"", "order": 30 },
+        { "value": "2.4", "label": "2.4\"", "order": 40, "aliases": ["2.375", "2.5"] },
+        { "value": "4", "label": "4\"", "order": 50 },
+        { "value": "5.125", "label": "5.1\"", "order": 60 },
+        { "value": "5.5", "label": "5.5\"", "order": 70 }
+      ]
     },
     {
       "attributeId": "CountertopStyle",
@@ -511,7 +527,7 @@
     "handleGrooveColor": "Upper Groove offers a groove colour, spelled HDL-{material}-{code} as the price list's SKU formula names it (product element #2), but the ULH scene paints the groove in the cabinet colour: the choice reaches the SKU and the Summary, not the 3D model, until the scene export paints ULH_Cabinet_HGroove on its own.",
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
-    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438; thickness is still not offered.",
+    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438. Thickness takes the Urban Standard Height values, offered as table 438 gives them for the colour and depth (team, 28.09.2026).",
     "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
     "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",

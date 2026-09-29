@@ -1,6 +1,10 @@
 import { getActiveProductProfile } from "@/entities/configuration";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
-import { selectConfiguratorSection, useAttributeChangeHandler } from "@/features/configurationCommands";
+import {
+  selectConfiguratorSection,
+  useAttributeChangeHandler,
+  useFieldAutoSelect,
+} from "@/features/configurationCommands";
 import {
   ColorField,
   FieldControl,
@@ -63,6 +67,15 @@ const SectionField = (props: SectionFieldProps) => {
   );
 };
 
+/**
+ * Keeps a field that declares `autoSelect` on a value its rules allow while the step is open. It
+ * stands beside the accordion: a closed section does not mount its fields.
+ */
+const FieldAutoSelect = ({ definition, field }: ResolvedCustomizationField) => {
+  useFieldAutoSelect(field, definition.autoSelect);
+  return null;
+};
+
 export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
   // Sections with no visible field are skipped; their values stay recorded.
   const sections = useCustomizationStepSections(stepId).filter((section) =>
@@ -71,26 +84,35 @@ export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
   const isVesselStyle = useAppSelector(getCountertopStyle)?.trim().toLowerCase() === "vessel";
 
   return (
-    <ConfiguratorAccordionGroup
-      defaultValue={sections.find((section) => section.defaultOpen)?.sectionId}
-      collapseDefaultOnCompact
-    >
-      {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fields }) => {
-        const label = isVesselStyle ? (labelWhenVessel ?? sectionLabel) : sectionLabel;
+    <>
+      {sections.flatMap(({ sectionId, fields }) =>
+        fields
+          .filter(({ definition }) => definition.autoSelect)
+          .map(({ definition, field }) => (
+            <FieldAutoSelect key={`${sectionId}:${definition.attributeId}`} definition={definition} field={field} />
+          )),
+      )}
+      <ConfiguratorAccordionGroup
+        defaultValue={sections.find((section) => section.defaultOpen)?.sectionId}
+        collapseDefaultOnCompact
+      >
+        {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fields }) => {
+          const label = isVesselStyle ? (labelWhenVessel ?? sectionLabel) : sectionLabel;
 
-        return (
-          <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
-            {fields.map(({ definition, field }) => (
-              <SectionField
-                key={definition.attributeId}
-                definition={definition}
-                field={field}
-                section={{ sectionId, label }}
-              />
-            ))}
-          </ConfiguratorAccordionItem>
-        );
-      })}
-    </ConfiguratorAccordionGroup>
+          return (
+            <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
+              {fields.map(({ definition, field }) => (
+                <SectionField
+                  key={definition.attributeId}
+                  definition={definition}
+                  field={field}
+                  section={{ sectionId, label }}
+                />
+              ))}
+            </ConfiguratorAccordionItem>
+          );
+        })}
+      </ConfiguratorAccordionGroup>
+    </>
   );
 };

@@ -1,7 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { CONFIGURATION_SNAPSHOT_VERSION } from "@/entities/configuration";
+import { isSinkBaseRuntimeId } from "@/entities/collection";
+import { CONFIGURATION_SNAPSHOT_VERSION, getActiveProductProfile } from "@/entities/configuration";
 
 import { buildConfigurationFragment, type ConfigurationFragment } from "./configurationFragment";
 import type { ConfigurationUiState } from "./buildConfigurationMetadata";
@@ -61,14 +62,17 @@ const selectConfigurationState = (state: RootState) => state.rootStateUI.configu
  * defeat the memoization this file exists for.
  */
 export const selectConfigurationFragment = createSelector(
-  [selectConfigurationState],
-  (configuration): ConfigurationFragment =>
-    buildConfigurationFragment({
-      collectionId: configuration.collectionId,
-      version: CONFIGURATION_SNAPSHOT_VERSION,
-      cabinets: configuration.cabinets,
-      values: configuration.valuesByAttributeId,
-    }),
+  [selectConfigurationState, getActiveProductProfile],
+  (configuration, profile): ConfigurationFragment =>
+    buildConfigurationFragment(
+      {
+        collectionId: configuration.collectionId,
+        version: CONFIGURATION_SNAPSHOT_VERSION,
+        cabinets: configuration.cabinets,
+        values: configuration.valuesByAttributeId,
+      },
+      (runtimeId) => isSinkBaseRuntimeId(profile, configuration.runtimeBindings, runtimeId),
+    ),
 );
 
 export type ConfigurationSavePayload = {

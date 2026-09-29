@@ -81,6 +81,7 @@
     {
       "attributeId": "Handle",
       "scope": "cabinet",
+      "confirmation": { "when": "cabinetsPlaced", "reasonCode": "handle.appliesToAllCabinets" },
       "initialValue": "",
       "effectiveFallbackValue": "G57",
       "options": [
@@ -143,6 +144,14 @@
       "attributeId": "CountertopColor",
       "scope": "countertop",
       "optionsSource": "configurator:Select Countertop Color"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        { "value": "0.5", "label": "0.5\"", "order": 10 },
+        { "value": "0.75", "label": "0.8\"", "order": 20 }
+      ]
     },
     {
       "attributeId": "sinkType",
@@ -322,6 +331,7 @@
     "change.notAvailable": "This option is not available for the current selection.",
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
+    "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "drawers.requiredHeight": "Required for selected drawers"
   },
   "excludedFromThisProfile": {

@@ -6,7 +6,13 @@ import { rootReducer } from "@/app/store/reducer";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
-import { countertopDatatableSchema, normalizeOptionValue, presetsSchema } from "@/entities/collection";
+import {
+  countertopDatatableSchema,
+  hasOwnCountertop,
+  normalizeOptionValue,
+  presetsSchema,
+  selectOptions,
+} from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import type { ScopedValue, ValueTarget } from "@/entities/configuration";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
@@ -117,6 +123,36 @@ describe("Class and Mako order lines", () => {
       { id: "countertop:faucetDefault", group: "faucetHoles", quantity: 1, widthCm: undefined },
     ]);
     expect(gaps).toEqual([]);
+  });
+
+  it.each([
+    ["Class", CLASS],
+    ["Mako", MAKO],
+  ])("%s spells every thickness its countertop offers", (_name, { profile, skuProfile }) => {
+    if (!hasOwnCountertop(skuProfile)) throw new Error("the collection spells its own countertop");
+    const thicknesses = selectOptions(profile, "Thickness").map(({ value }) => value);
+
+    expect(thicknesses.length).toBeGreaterThan(0);
+    expect(thicknesses.filter((value) => !skuProfile.countertop.thicknessCodes[value])).toEqual([]);
+  });
+
+  it("spells the thickness chosen for the top and its basin, with the brackets a thick top takes", () => {
+    const order = COLLECTION_PRICING_SCENARIOS["class-porcelain-integrated"].input;
+    const countertopSkus = (countertopThickness: string) =>
+      buildCollectionPricingLines({ ...order, countertopThickness }).lines.flatMap(({ group, sku, quantity }) =>
+        group === "countertop" || group === "basin" || group === "bracket" ? [{ sku, quantity }] : [],
+      );
+
+    // Table 578 gives an HPL top 1/2" or 4"; the price list spells them .5 and 4.
+    expect(countertopSkus("4")).toEqual([
+      { sku: "CT-GBHPL-INTG-47.2W-4H-20.7D-HPL-259", quantity: 1 },
+      { sku: "CT-GBHPL-VA024-4H", quantity: 1 },
+      { sku: "CT-GB-BRKT", quantity: 2 },
+    ]);
+    expect(countertopSkus("0.5")).toEqual([
+      { sku: "CT-GBHPL-INTG-47.2W-.5H-20.7D-HPL-259", quantity: 1 },
+      { sku: "CT-GBHPL-VA024-.5H", quantity: 1 },
+    ]);
   });
 
   it.each(["class-porcelain-integrated", "mako-vessel-with-legs"] as const)(
@@ -260,6 +296,37 @@ describe("Class and Mako order lines", () => {
     const { lines } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0]));
 
     expect(lines[0].sku).toBe("VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400");
+  });
+
+  it("spells the handle colour of the composition on every cabinet, and a cabinet's own where it has one", () => {
+    // A model and the Handle Color field record the composition's colour once, at the first cabinet.
+    const first: ValueTarget = { scope: "cabinet", cabinetId: "mko-1" };
+    const second: ValueTarget = { scope: "cabinet", cabinetId: "mko-2" };
+    const cabinetSkus = (handleColors: ScopedValue[]) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          MAKO,
+          [
+            { stableKey: "mko-1", runtimeId: "Sink-Base-aaa111", size: { width: 60, height: 26, depth: 52 } },
+            { stableKey: "mko-2", runtimeId: "Sink-Base-bbb222", size: { width: 60, height: 26, depth: 52 } },
+          ],
+          {
+            Drawers: [at(first, "1"), at(second, "1")],
+            Handle: [at(first, "G57"), at(second, "G57")],
+            HandleColor: handleColors,
+            CabinetColor: [at({ scope: "global" }, "Antracite 400 MT")],
+          },
+        ),
+      ).lines.flatMap(({ group, sku }) => (group === "cabinet" ? [sku] : []));
+
+    expect(cabinetSkus([at(first, "Antracite 400 MT")])).toEqual([
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+    ]);
+    expect(cabinetSkus([at(first, "Antracite 400 MT"), at(second, "Silver")])).toEqual([
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
+    ]);
   });
 
   it("stands a shipped Mako model on its pair of legs, in the cabinet's colour", () => {
@@ -532,6 +599,26 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
       { sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 },
       { sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 },
     ]);
+  });
+
+  it("prices the top and the basin of a model before a countertop is chosen, from the collection's defaults", () => {
+    // What switching to Urban Low Height leaves in the state: the profile's defaults (replaceCollectionData).
+    const store = configureStore({ reducer: rootReducer });
+    store.dispatch(replaceCollectionData({ profile: URBAN_LOW_HEIGHT.profile, cabinetCatalog: null }));
+    const { CountertopColor, CountertopStyle, sinkType } = store.getState().rootStateUI.product.productOptions;
+
+    const { lines, gaps } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      { CountertopColor: [], CountertopStyle: [] },
+      { countertopColor: CountertopColor, countertopStyle: CountertopStyle, sinkType },
+    );
+
+    // Pietra Di Savoia Antracite TQ6 is Porcelain; table 438 gives Porcelain 46 cm deep 1/2" first.
+    expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
+      "CT-URPOR-INTG-23.6W-.5H-18.1D-POR-TQ6",
+      "CT-URPOR-COVER-.5H-POR-TQ6",
+    ]);
+    expect(gaps).toEqual([]);
   });
 
   it("cuts a vessel top once per sink base and keeps the vessel sink unpriced", () => {

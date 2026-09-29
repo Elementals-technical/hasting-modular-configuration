@@ -45,11 +45,14 @@ export const toRestoredValues = (
  *
  * Runs after the page recorded the product ids: the cabinet sync reacts to them and would
  * otherwise hand out new keys over the restored ones. Returns whether the identity came back.
+ * `isSinkBase` tells a Sink Base by the scene type saved for it, which only the collection's
+ * bindings can read.
  */
 export const applyRestoredIdentity = (
   plan: RestorePlan,
   matches: readonly SceneRestoreMatch[],
   dispatch: AppDispatch,
+  isSinkBase: (sceneType: string) => boolean,
 ): boolean => {
   const keysBySource = matchSavedStableKeys(plan);
   if (!keysBySource) return false;
@@ -62,7 +65,7 @@ export const applyRestoredIdentity = (
     matches.flatMap(({ sourceId }) => {
       const stableKey = keysBySource.get(sourceId);
       const product = plan.products.find((candidate) => candidate.sourceId === sourceId);
-      return stableKey && product?.productType.toLowerCase().includes("sink-base") ? [stableKey] : [];
+      return stableKey && product && isSinkBase(product.productType) ? [stableKey] : [];
     }),
   );
 

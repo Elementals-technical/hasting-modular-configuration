@@ -13,7 +13,8 @@ import { findSinkBaseKey } from "./isSinkBase";
  * A cabinet-scoped value that the pages apply to the whole composition (fluting, grain,
  * groove colour) names the first placed cabinet; the runtime binding decides which
  * products the scene updates. `null` when the attribute is unknown, a cabinet-scoped value
- * has no cabinet to name, or the value is addressed per drawer, which a field does not know.
+ * has no cabinet to name, a basin has no Sink Base, or the value is addressed per drawer,
+ * which a field does not know.
  */
 export const resolveChangeRequest = (
   state: RootState,
@@ -27,13 +28,10 @@ export const resolveChangeRequest = (
     case "countertop":
       return { attributeId, value, scope };
 
-    case "basin": {
-      const cabinets = getCabinetEntries(state);
-      const sinkBaseId =
-        findSinkBaseKey(state) ??
-        (state.rootStateUI.product.activeCabinetType?.toLowerCase().includes("sink-base") ? cabinets[0]?.stableKey : undefined);
-      return sinkBaseId ? { attributeId, value, scope, sinkBaseId } : null;
-    }
+    // A field picks the basin of the composition: it names no Sink Base, and the command puts it
+    // on every placed one. With none placed there is no basin to set.
+    case "basin":
+      return findSinkBaseKey(state) ? { attributeId, value, scope } : null;
 
     case "cabinet": {
       const cabinetId = getCabinetEntries(state)[0]?.stableKey;

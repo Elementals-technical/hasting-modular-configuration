@@ -25,6 +25,7 @@ import {
   setCountertopStyle,
   setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
+  setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
 import { CabinetBuilderPage } from "../CabinetBuilderPage";
@@ -119,6 +120,8 @@ describe("Urban Low Height cabinet pictures", () => {
 
   it("shows the push-to-open cabinets at a push-to-open height", () => {
     store.dispatch(setActiveCabinetType("Side-Cabinet"));
+    // The height follows the handle: without one chosen, the heights are the upper groove's.
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
     store.dispatch(setSelectedDimensions({ height: 25 }));
     renderBuilder();
 

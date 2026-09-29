@@ -1,13 +1,13 @@
 import type { RootState } from "@/app/store";
 import { normalizeOptionValue } from "@/entities/collection";
-import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration";
+import { getActiveProductProfile, getCabinetEntries, isSinkBase } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
 import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
 import { resolveConfirmation } from "./confirmationPolicy";
-import { findSinkBaseKey, isSinkBase } from "./isSinkBase";
+import { findSinkBaseKeys } from "./isSinkBase";
 import { resolveTarget } from "./resolveTarget";
 import { checkUndetermined } from "./undeterminedGate";
 import { validateChange } from "./validateChange";
@@ -100,7 +100,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
     cabinetColor: state.rootStateUI.product.productOptions.CabinetColor,
     towelBarColor: state.rootStateUI.product.productOptions.TowelBarColor,
     basin: {
-      sinkBaseId: findSinkBaseKey(state),
+      sinkBaseIds: findSinkBaseKeys(state),
       sinkType: getSinkType(state),
       vesselColor: getVesselColor(state),
     },

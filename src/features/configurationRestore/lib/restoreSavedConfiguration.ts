@@ -1,6 +1,12 @@
 import type { AppDispatch, RootState } from "@/app/store";
 import { LEGACY_COLLECTION_ID } from "@/entities/collection";
-import { finishRestore, getActiveCollectionId, isRestoreInFlightOrDone, startRestore } from "@/entities/configuration";
+import {
+  finishRestore,
+  getActiveCollectionId,
+  isRestoreInFlightOrDone,
+  isSinkBase,
+  startRestore,
+} from "@/entities/configuration";
 import type {
   ConfigurationRecord,
   ConfigurationSceneRestorer,
@@ -92,7 +98,7 @@ export const restoreSavedConfiguration = async (
 
     sceneChanged = true;
     await applyPage(built.plan, scene.matches);
-    applyRestoredIdentity(built.plan, scene.matches, dispatch);
+    applyRestoredIdentity(built.plan, scene.matches, dispatch, (sceneType) => isSinkBase(getState(), sceneType));
 
     if (scene.status === "partial") {
       console.error(`[Restore] ${configId}: the scene was only partly rebuilt`, scene.failed);

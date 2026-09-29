@@ -57,6 +57,7 @@
       "GLSM": ".5",
       "HPL": ".5"
     },
+    "thicknessCodes": { "0.5": ".5", "0.75": ".8", "3.125": "3.1", "4": "4", "4.75": "4.7" },
     "bracket": { "sku": "CT-GB-BRKT", "quantity": 2, "thicknesses": ["3.1", "4", "4.7"] }
   },
   "dividers": {

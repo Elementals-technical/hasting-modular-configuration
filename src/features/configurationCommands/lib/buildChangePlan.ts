@@ -41,8 +41,8 @@ export type BuildChangePlanArgs = {
   handleGrooveColor: string | null | undefined;
   /** Current towel bar colour, to decide whether clearing it is part of the set. */
   towelBarColor?: string | null;
-  /** Current basin and vessel colour, and the Sink Base they are addressed at, for a countertop style change. */
-  basin?: { sinkBaseId?: StableCabinetKey; sinkType?: string | null; vesselColor?: string | null };
+  /** Current basin and vessel colour, and the placed Sink Bases a basin reaches. */
+  basin?: { sinkBaseIds?: readonly StableCabinetKey[]; sinkType?: string | null; vesselColor?: string | null };
   /** Placed cabinets, for changes that reach every drawer cabinet. */
   cabinets?: readonly CabinetEntry[];
 };
@@ -87,6 +87,16 @@ const resolveDrawersTargets = (
   return keys.map((cabinetId) => ({ scope: "cabinet", cabinetId }));
 };
 
+/**
+ * Sink Bases a basin value reaches. A value that names no Sink Base is the composition's basin,
+ * the one a field picks, and an integrated basin names each sink base it fits: it goes on every
+ * placed Sink Base, over the basin each had. A value addressed at one Sink Base stays there.
+ */
+const resolveBasinTargets = (target: ValueTarget, sinkBaseIds: readonly StableCabinetKey[] = []): ValueTarget[] =>
+  target.scope === "basin" && !target.sinkBaseId && sinkBaseIds.length > 0
+    ? sinkBaseIds.map((sinkBaseId) => ({ scope: "basin", sinkBaseId }))
+    : [target];
+
 /** Leaving a handle that supports a groove for one that does not clears the colour. */
 const resolveGrooveReset = (
   profile: ProductProfile,
@@ -127,7 +137,9 @@ export const buildChangePlan = ({
   cabinets = [],
 }: BuildChangePlanArgs): BuildChangePlanResult => {
   const isDrawers = attributeId === "Drawers";
-  const requestedTargets = isDrawers ? resolveDrawersTargets(target, cabinets, catalog) : [target];
+  const requestedTargets = isDrawers
+    ? resolveDrawersTargets(target, cabinets, catalog)
+    : resolveBasinTargets(target, basin?.sinkBaseIds);
 
   const plan: PlannedChange[] = requestedTargets.map((requestedTarget) => ({
     attributeId,
@@ -173,14 +185,16 @@ export const buildChangePlan = ({
   if (attributeId === "CountertopStyle") {
     const style = value.trim().toLowerCase();
     const basinStyle = selectOption(profile, "sinkType", basin?.sinkType)?.category;
-    const basinTarget: ValueTarget = { scope: "basin", sinkBaseId: basin?.sinkBaseId };
+    const basinTargets = resolveBasinTargets({ scope: "basin" }, basin?.sinkBaseIds);
     const clears = [
       ...(basin?.sinkType?.trim() && basinStyle !== style ? ["sinkType"] : []),
       ...(style !== "vessel" && basin?.vesselColor?.trim() ? ["VesselColor"] : []),
     ];
 
     for (const cleared of clears) {
-      plan.push({ attributeId: cleared, target: basinTarget, value: "", origin: "dependency" });
+      for (const basinTarget of basinTargets) {
+        plan.push({ attributeId: cleared, target: basinTarget, value: "", origin: "dependency" });
+      }
     }
 
     return { ok: true, plan };

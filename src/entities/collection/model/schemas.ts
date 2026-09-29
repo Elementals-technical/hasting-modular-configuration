@@ -230,7 +230,10 @@ const collectionCountertopSchema = z
     materialByColorCategory: stringMapSchema,
     /** A basin that belongs to one material decides it (`VA030` → `SSTEX`). */
     materialByBasin: stringMapSchema,
+    /** The thickness of a material while none is chosen. */
     thicknessByMaterial: stringMapSchema,
+    /** The price list's word for each `Thickness` value the collection offers (`4.75` → `4.7`). */
+    thicknessCodes: stringMapSchema,
     bracket: z
       .object({
         sku: z.string().trim().min(1),

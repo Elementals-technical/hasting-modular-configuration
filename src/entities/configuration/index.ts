@@ -20,6 +20,7 @@ export type {
 } from "./model/types";
 export { CONFIGURATION_SNAPSHOT_VERSION, formatTarget, isSameTarget, parseTarget } from "./model/types";
 export { compositionValueOf } from "./model/compositionValue";
+export { useIsSinkBase } from "./model/useIsSinkBase";
 
 // runtimePort — owned by I: the typed boundary between C and the scene.
 export type {
@@ -100,6 +101,7 @@ export {
   getActiveCollectionId,
   getActiveProductProfile,
   getActiveRuntimeBindings,
+  isSinkBase,
   getAttributeValue,
   getCabinetByStableKey,
   getCompositionValues,

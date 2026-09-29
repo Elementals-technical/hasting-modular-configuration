@@ -10,6 +10,10 @@
     "Drawers": {
       "1": "images/cabinet/side-cabinet-upper-groove.png"
     },
+    "Handle": {
+      "handle_urban_topcut": "images/handle/UpperGHandle.jpg",
+      "handle_pto": "images/handle/PTOHandle.jpg"
+    },
     "CountertopStyle": {
       "integrated": "images/countertop-style/Integrated.png",
       "vessel": "images/countertop-style/Vessel.png"
@@ -151,7 +155,7 @@
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
-      "sectionIds": ["countertop-color", "countertop-style", "basin-style", "vessel-color"]
+      "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
     },
     "accessories": {
       "label": "Accessories",
@@ -227,6 +231,17 @@
         }
       ]
     },
+    "thickness": {
+      "label": "Thickness",
+      "fields": [
+        {
+          "attributeId": "Thickness",
+          "control": "swatches",
+          "availabilityRef": "Thickness.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
     "countertop-style": {
       "label": "Countertop Style",
       "fields": [
@@ -243,7 +258,8 @@
         {
           "attributeId": "sinkType",
           "control": "options-grid",
-          "availabilityRef": "sinkType.allowed"
+          "availabilityRef": "sinkType.allowed",
+          "autoSelect": "firstAllowed"
         }
       ]
     },

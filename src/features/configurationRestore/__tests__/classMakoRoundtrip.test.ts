@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import type { ProductProfile } from "@/entities/collection";
+import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
+import type { RuntimeBindingSet } from "@/entities/collection/model/runtimeBindings";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { resolveCollection } from "@/entities/collection/lib/resolveCollection";
 import {
@@ -11,6 +14,7 @@ import {
   getCabinetEntries,
   resetConfiguration,
   setActiveCollectionId,
+  setActiveRuntimeBindings,
   syncCabinets,
 } from "@/entities/configuration";
 import type { AttributeValue, ConfigurationRecord, SceneRestoreMatch, ValueTarget } from "@/entities/configuration";
@@ -46,14 +50,14 @@ vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
 /**
  * C13: Class and Mako go through the same command, Save and restore as USH, with the
  * attributes USH does not have — Class's side and frame colours, Mako's handle and leg
- * colours — and a basin chosen for one sink base of two.
+ * colours — and a basin chosen for one sink base of two. The Sink Bases carry the names the
+ * scene gives them (`Mako-sink-cabinet-…`), which only the collection's bindings read.
  *
  * The scene is the test port: this proves what C hands over and records, not what the real
  * scene does with it (I07).
  */
 
 const CONFIG_ID = "13013";
-const RUNTIME_IDS = ["Sink-Base-aaa111", "Sink-Base-bbb222"];
 
 const parseProfile = (document: unknown): ProductProfile => {
   const result = parseProductProfile(document);
@@ -66,13 +70,21 @@ type Addressed = { attributeId: string; target: ValueTarget; value: AttributeVal
 type Case = {
   collectionId: string;
   profile: ProductProfile;
+  bindings: RuntimeBindingSet;
+  /** The scene type a Sink Base of the collection is placed as. */
+  sinkBaseSceneType: string;
   changes: (first: string, second: string) => Addressed[];
 };
+
+/** Two Sink Bases, named as the scene names them. */
+const runtimeIdsOf = ({ sinkBaseSceneType }: Case) => [`${sinkBaseSceneType}-aaa111`, `${sinkBaseSceneType}-bbb222`];
 
 const CASES: Case[] = [
   {
     collectionId: "class",
     profile: parseProfile(classProfileDocument),
+    bindings: classRuntimeBindings,
+    sinkBaseSceneType: "Class-sink-cabinet",
     changes: (first, second) => [
       { attributeId: "CabinetSideColor", target: { scope: "global" }, value: "Nebbia 402 MT" },
       { attributeId: "FrameColor", target: { scope: "global" }, value: "Seta 406 MT" },
@@ -83,6 +95,8 @@ const CASES: Case[] = [
   {
     collectionId: "mako",
     profile: parseProfile(makoProfileDocument),
+    bindings: makoRuntimeBindings,
+    sinkBaseSceneType: "Mako-sink-cabinet",
     changes: (first, second) => [
       { attributeId: "HandleColor", target: { scope: "cabinet", cabinetId: first }, value: "Gold" },
       { attributeId: "HandleColor", target: { scope: "cabinet", cabinetId: second }, value: "Silver" },
@@ -96,14 +110,15 @@ const CASES: Case[] = [
 const toChange = ({ attributeId, target, value }: Addressed): AttributeChange =>
   ({ attributeId, value, ...target }) as AttributeChange;
 
-const openCollection = ({ collectionId, profile }: Case) => {
+const openCollection = ({ collectionId, profile, bindings }: Case) => {
   store.dispatch(setActiveProfile(profile));
   store.dispatch(setActiveCollectionId(collectionId));
+  store.dispatch(setActiveRuntimeBindings(bindings));
 };
 
 const givenChanges = async (testCase: Case) => {
   openCollection(testCase);
-  store.dispatch(syncCabinets(RUNTIME_IDS));
+  store.dispatch(syncCabinets(runtimeIdsOf(testCase)));
 
   const [first, second] = getCabinetEntries(store.getState());
   const addressed = testCase.changes(first.stableKey, second.stableKey);
@@ -123,14 +138,17 @@ const givenChanges = async (testCase: Case) => {
   return { addressed, runtime, statuses };
 };
 
-const savedRecordFromState = (): ConfigurationRecord => {
+const savedRecordFromState = (testCase: Case): ConfigurationRecord => {
   const { uiState, fragment } = selectConfigurationSavePayload(store.getState());
+  const runtimeIds = runtimeIdsOf(testCase);
 
   return {
-    configuration: Object.fromEntries(RUNTIME_IDS.map((id) => [id, { ProductType: "Sink-Base", Width: 60 }])),
+    configuration: Object.fromEntries(
+      runtimeIds.map((id) => [id, { ProductType: testCase.sinkBaseSceneType, Width: 60 }]),
+    ),
     metadata: buildConfigurationMetadata({
       path: "/custom/summary",
-      orderedProductIds: RUNTIME_IDS,
+      orderedProductIds: runtimeIds,
       uiState,
       swatchOrder: {
         selectedMaterials: [],
@@ -182,7 +200,7 @@ describe.each(CASES)("$collectionId: change → save → open", (testCase) => {
 
   it("saves the order with its own collection, which the registry opens again", async () => {
     await givenChanges(testCase);
-    const { metadata } = savedRecordFromState();
+    const { metadata } = savedRecordFromState(testCase);
 
     expect(readSavedCollectionIdentity(metadata)).toEqual({ kind: "id", collectionId: testCase.collectionId });
 
@@ -196,7 +214,7 @@ describe.each(CASES)("$collectionId: change → save → open", (testCase) => {
 
   it("brings every value back to the cabinet or basin it was chosen for", async () => {
     const { addressed } = await givenChanges(testCase);
-    const record = savedRecordFromState();
+    const record = savedRecordFromState(testCase);
 
     startOver();
     openCollection(testCase);
@@ -214,7 +232,7 @@ describe.each(CASES)("$collectionId: change → save → open", (testCase) => {
 
   it("is not opened into another collection", async () => {
     const { addressed } = await givenChanges(testCase);
-    const record = savedRecordFromState();
+    const record = savedRecordFromState(testCase);
 
     startOver();
     store.dispatch(setActiveCollectionId("urban-standard-height"));
