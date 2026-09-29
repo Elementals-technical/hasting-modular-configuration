@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
 import { selectOptionValues } from "../../productProfileSelectors";
-import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import { configurationValueOf, isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 import { makoProfile } from "../../../__tests__/makoProfileFixture";
@@ -70,8 +70,24 @@ describe("mako runtime bindings", () => {
   });
 
   it("send the colours as material names", () => {
-    expect(patchOf("CabinetColor", "Nebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 MT" });
+    expect(patchOf("CabinetColor", "Nebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("CabinetColor", "GNebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 Glass MT" });
+    expect(patchOf("HandleColor", "Nebbia 402 MT")).toEqual({ HandleColor: "Nebbia 402 Lacquered MT" });
     expect(patchOf("HandleColor", "Silver")).toEqual({ HandleColor: "Silver" });
+    expect(patchOf("LegColor", "Nebbia 402 MT")).toEqual({ ShowLegs: "Enable", LegColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("CountertopColor", "Nero 433 GL")).toEqual({ CountertopColor: "Nero 433 Glass GL" });
+  });
+
+  it("read the chosen colour back from the material name the scene holds", () => {
+    const read = (sceneValue: string, chosenValue: string) =>
+      configurationValueOf(makoRuntimeBindings, "CabinetColor", sceneValue, chosenValue);
+
+    expect(read("Nebbia 402 Lacquered MT", "Nebbia 402 MT")).toBe("Nebbia 402 MT");
+    // A scene value the chosen colour is not sent as stays as it was read.
+    expect(read("Nebbia 402 Lacquered MT", "Acqua 419 MT")).toBe("Nebbia 402 Lacquered MT");
+    expect(configurationValueOf(null, "CabinetColor", "Nebbia 402 Lacquered MT", "Nebbia 402 MT")).toBe(
+      "Nebbia 402 Lacquered MT",
+    );
   });
 
   it("record the basin and the groove colour without a scene call", () => {

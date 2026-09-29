@@ -60,9 +60,11 @@ describe("class runtime bindings", () => {
   });
 
   it("send the three colour slots and the countertop colour as material names", () => {
-    expect(patchOf("CabinetColor", "Nebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 MT" });
-    expect(patchOf("CabinetSideColor", "Nebbia 402 MT")).toEqual({ CabinetSideColor: "Nebbia 402 MT" });
-    expect(patchOf("FrameColor", "Nebbia 402 MT")).toEqual({ FrameColor: "Nebbia 402 MT" });
+    expect(patchOf("CabinetColor", "Nebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("CabinetSideColor", "Nebbia 402 MT")).toEqual({ CabinetSideColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("FrameColor", "Nebbia 402 MT")).toEqual({ FrameColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("CountertopColor", "GNero 433 GL")).toEqual({ CountertopColor: "Nero 433 Glass GL" });
+    // The scene has no Solid Surface material yet, so the colour goes as it is.
     expect(patchOf("CountertopColor", "Matte White")).toEqual({ CountertopColor: "Matte White" });
   });
 

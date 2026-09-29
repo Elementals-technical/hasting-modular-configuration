@@ -116,6 +116,7 @@ export type {
 } from "./lib/runtimeBindings/parseRuntimeBindings";
 
 export {
+  configurationValueOf,
   findMissingBindings,
   isStateOnlyResolution,
   resolveRuntimeBinding,

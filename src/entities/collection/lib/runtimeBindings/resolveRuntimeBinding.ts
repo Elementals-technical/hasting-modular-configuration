@@ -142,6 +142,26 @@ export const resolveRuntimeBinding = (
 };
 
 /**
+ * The configuration value behind a value read back from the scene. An identity binding may send
+ * a value under another name (`overrides`), so the scene holds "Acqua 419 Lacquered MT" for the
+ * chosen "Acqua 419 MT". The chosen value is returned when the binding sends it as this scene
+ * value; any other scene value is returned as it was read.
+ */
+export const configurationValueOf = (
+  set: RuntimeBindingSet | null,
+  attributeId: string,
+  sceneValue: string,
+  chosenValue: string | null | undefined,
+): string => {
+  if (!set || !chosenValue || chosenValue === sceneValue) return sceneValue;
+
+  const binding = selectRuntimeBinding(set, attributeId);
+  if (binding?.status !== "bound" || binding.values.kind !== "identity") return sceneValue;
+
+  return toPatch(binding, chosenValue)?.[binding.values.sceneKey] === sceneValue ? chosenValue : sceneValue;
+};
+
+/**
  * Every change of the set that has no scene translation. Empty means the whole set can
  * be sent; all problems are reported, not only the first.
  */

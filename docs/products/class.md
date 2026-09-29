@@ -27,9 +27,11 @@ CountertopStyle, basin, vessel color, thickness і faucet details поки state
 
 ## Presets і production стан
 
-Є 44 model cards, але всі `presetProducts` порожні. Production 2026-09-28 показує 44 картки та
-`$0.00`; вибір model не має рецепту, з якого можна побудувати композицію. Це головний functional gap,
-а не проблема router чи loader.
+44 model cards мають композиції (92 cabinet entries). Як у Mako, кожен cabinet пресету несе кольори, а
+`defaults` профілю дають стартові значення. Їх узято з головного фото сайту (2026-09-29): фасад
+`NERO ATLANTE LUCIDO 326`, боковини й рамка `Nero 433 MT`, integrated скляна стільниця `Nero 433 GL` з VA005.
+Тому model має повну ціну одразу. Бічні кольори й рамку, яких ніхто не вибрав, pricing бере з `defaults`.
+У сцені поки немає porcelain-матеріалів, тож фасад за замовчуванням не фарбується.
 
 ## Pricing
 

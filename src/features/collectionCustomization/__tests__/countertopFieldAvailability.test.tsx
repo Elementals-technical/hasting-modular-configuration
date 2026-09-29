@@ -183,6 +183,27 @@ describe("Mako countertop fields follow the countertop matrix", () => {
   });
 });
 
+describe("Class countertop fields follow the countertop matrix", () => {
+  const { shownValues } = fieldsOf(collections.class);
+
+  beforeEach(() => {
+    startWith(collections.class);
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("shows the integrated basins of the chosen material only", () => {
+    // Table 578 names its glass rows as configurator 9 names the material (Glass GL, Glass MT).
+    store.dispatch(setActiveCountertopColor("Nero 433 GL"));
+    expect(shownValues("basin-style")).toEqual(["VA002", "VA005"]);
+
+    store.dispatch(setActiveCountertopColor("CALACATTA BLACK 338"));
+    expect(shownValues("basin-style")).toEqual(["LV890", "LV892"]);
+
+    store.dispatch(setActiveCountertopColor("CALACATTA 259"));
+    expect(shownValues("basin-style")).toEqual(["VA024"]);
+  });
+});
+
 // The Urban Standard Height basins name their matrix row by their label ("HPL Cover 50" is the
 // HPL row "Cover 50"), as the USH countertop step reads them.
 describe("Urban Low Height integrated basins follow the countertop matrix as the USH countertop step", () => {

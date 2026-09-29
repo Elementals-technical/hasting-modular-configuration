@@ -17,7 +17,14 @@
     "countertopMatrixTableId": 578,
     "cabinetMatrixTableId": 579
   },
-  "defaults": {},
+  "defaults": {
+    "CabinetColor": "NERO ATLANTE LUCIDO 326",
+    "CabinetSideColor": "Nero 433 MT",
+    "FrameColor": "Nero 433 MT",
+    "CountertopColor": "Nero 433 GL",
+    "CountertopStyle": "integrated",
+    "sinkType": "VA005"
+  },
   "attributes": [
     {
       "attributeId": "CabinetType",

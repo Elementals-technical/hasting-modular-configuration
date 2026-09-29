@@ -77,7 +77,7 @@ import {
   resolveCountertopMaterialSkuFromColorCode,
 } from "@/shared/lib/sku";
 import { useSaveConfigurationMutation } from "@/entities";
-import { useActiveCollection } from "@/entities/collection";
+import { configurationValueOf, useActiveCollection } from "@/entities/collection";
 import { useOptionLabel } from "@/features/collectionCustomization";
 import { usePriceResult } from "@/shared/hooks/usePriceResult";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
@@ -401,6 +401,7 @@ export const SummaryPage = () => {
   );
 
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
   const countertopRules = useCountertopRules();
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
@@ -667,8 +668,11 @@ export const SummaryPage = () => {
         (config.entityName ? resolveNameFromRaw(config.entityName) : undefined) ??
         config.name ??
         undefined;
+      // The scene holds the material name the colour was sent as; the summary shows the chosen colour.
       const swatchValue =
-        typeof config.CabinetColor === "string" && config.CabinetColor ? config.CabinetColor : cabinetColor;
+        typeof config.CabinetColor === "string" && config.CabinetColor
+          ? configurationValueOf(runtimeBindings, "CabinetColor", config.CabinetColor, cabinetColor)
+          : cabinetColor;
       const swatch = resolveSwatch(swatchValue);
 
       const productCabinetType = name ?? activeCabinetType;
@@ -808,7 +812,12 @@ export const SummaryPage = () => {
     const firstSceneCabinetConfig = cabinetConfigs[0];
     const sceneCountertopColor =
       firstSceneCabinetConfig && typeof firstSceneCabinetConfig.CountertopColor === "string"
-        ? firstSceneCabinetConfig.CountertopColor
+        ? configurationValueOf(
+            runtimeBindings,
+            "CountertopColor",
+            firstSceneCabinetConfig.CountertopColor,
+            countertopColor,
+          )
         : null;
     const sceneSinkType =
       firstSceneCabinetConfig && typeof firstSceneCabinetConfig.sinkType === "string"
@@ -1443,6 +1452,7 @@ export const SummaryPage = () => {
     resolveSwatch,
     buildCabinetDescription,
     activeProfile,
+    runtimeBindings,
   ]);
 
   const fullSkuJson = useMemo(() => {

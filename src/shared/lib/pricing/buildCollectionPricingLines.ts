@@ -2,6 +2,7 @@ import {
   hasOwnCountertop,
   normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
+  selectDefaultValue,
   selectOption,
 } from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
@@ -135,7 +136,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const startingCabinetColor = asText(input.cabinetColor);
 
   // A value of one cabinet: its own, the configuration's, else what the state holds for them all —
-  // the composition's value, recorded at the first cabinet (a Mako model's handle colour).
+  // the composition's value, recorded at the first cabinet (a Mako model's handle colour) — else
+  // the collection's default, as a Class frame colour nobody has chosen yet.
   const readerOf = (entry: CabinetEntry): CollectionValueReader => {
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     return (attributeId) => {
@@ -146,7 +148,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
       if (attributeId === "HandleGrooveColor") return asText(input.handleGrooveColor);
       if (attributeId === "CabinetColor") return startingCabinetColor;
-      return asText(compositionValueOf(values[attributeId], cabinets[0]?.stableKey));
+      return (
+        asText(compositionValueOf(values[attributeId], cabinets[0]?.stableKey)) ??
+        asText(selectDefaultValue(profile, attributeId))
+      );
     };
   };
 

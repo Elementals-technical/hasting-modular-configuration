@@ -46,6 +46,7 @@ const configurator9Catalog: ConfiguratorGroupCatalog = {
  */
 const CLASS_OWN_FRONTS: readonly { value: string; sku: string; material: string }[] = [
   { value: "CALACATTA BLACK 338", sku: "POR", material: "Porcelain" },
+  { value: "NERO ATLANTE LUCIDO 326", sku: "POR", material: "Porcelain" },
   { value: "Fume", sku: "SGLS", material: "Smoke Glass" },
   { value: "GGrigio Argento 403 GL", sku: "GLSG", material: "Glass GL" },
   { value: "Nativo Cotto 961", sku: "LAM", material: "Laminates" },
