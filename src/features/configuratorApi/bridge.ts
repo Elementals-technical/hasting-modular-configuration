@@ -28,11 +28,46 @@ export type ConfiguratorBridgeOptions = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-const readWindowApi = (): ConfiguratorApi | null => {
+const readWindowTarget = (): { api: ConfiguratorApi; parse: (json: string) => unknown } | null => {
   const host = window as unknown as PlayCanvasHost;
   const contentWindow = host.containerRef?.current?.contentWindow;
   if (!isRecord(contentWindow) || !isRecord(contentWindow.ConfiguratorAPI)) return null;
-  return contentWindow.ConfiguratorAPI as unknown as ConfiguratorApi;
+  const json = contentWindow.JSON as JSON | undefined;
+  return {
+    api: contentWindow.ConfiguratorAPI as unknown as ConfiguratorApi,
+    parse: json ? json.parse.bind(json) : JSON.parse,
+  };
+};
+
+/** Validate before JSON encoding so NaN, undefined, class instances and cycles cannot silently
+ * change meaning. Parse in the receiving window: its runtime checks local Object.prototype. */
+const encodeData = (value: unknown, ancestors = new Set<object>()): unknown => {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "object" || value === null || ancestors.has(value)) {
+    throw new ConfiguratorError("INVALID_INPUT", "Expected finite JSON data for the configurator.");
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (!Array.isArray(value) && prototype !== null && Object.getPrototypeOf(prototype) !== null) {
+    throw new ConfiguratorError("INVALID_INPUT", "Expected a plain JSON object for the configurator.");
+  }
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) return Array.from(value, (item) => encodeData(item, ancestors));
+    const copy: Record<string, unknown> = Object.create(null);
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key !== "string" || ["__proto__", "prototype", "constructor"].includes(key)) {
+        throw new ConfiguratorError("INVALID_INPUT", "Unsupported configurator data key.");
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+      if (!descriptor.enumerable) continue;
+      if (!("value" in descriptor)) throw new ConfiguratorError("INVALID_INPUT", "Configurator data must not contain accessors.");
+      copy[key] = encodeData(descriptor.value, ancestors);
+    }
+    return copy;
+  } finally {
+    ancestors.delete(value);
+  }
 };
 
 const toBridgeError = (error: unknown, operation: string): ConfiguratorError => {
@@ -40,7 +75,7 @@ const toBridgeError = (error: unknown, operation: string): ConfiguratorError => 
 
   const detail = isRecord(error) ? error : undefined;
   const code = typeof detail?.code === "string" ? detail.code : "API_UNAVAILABLE";
-  const message = error instanceof Error ? error.message : typeof error === "string" ? error : code;
+  const message = typeof detail?.message === "string" ? detail.message : typeof error === "string" ? error : code;
 
   return new ConfiguratorError(code, message, {
     operation,
@@ -62,22 +97,27 @@ const unavailable = (operation: string, code: "API_UNAVAILABLE" | "API_METHOD_UN
 export const createConfiguratorBridge = (
   options: ConfiguratorBridgeOptions = {},
 ): ConfiguratorBridge => {
-  const getApi = options.getApi ?? readWindowApi;
+  const getTarget = options.getApi
+    ? () => { const api = options.getApi!(); return api ? { api, parse: JSON.parse } : null; }
+    : readWindowTarget;
 
   const call = <T>(operation: string, resolveMethod: (api: ConfiguratorApi) => ApiMethod | null, args: unknown[]) =>
     runInBatchQueue(async (): Promise<T> => {
-      const api = getApi();
-      if (!api) {
+      const target = getTarget();
+      if (!target) {
         throw unavailable(operation, "API_UNAVAILABLE", "The PlayCanvas ConfiguratorAPI is not available.");
       }
 
-      const method = resolveMethod(api);
+      const method = resolveMethod(target.api);
       if (!method) {
         throw unavailable(operation, "API_METHOD_UNAVAILABLE", `${operation} is not available in this runtime.`);
       }
 
       try {
-        return (await method(...(args as never[]))) as T;
+        // Functions are subscription callbacks, undefined preserves optional positional args.
+        const runtimeArgs = args.map((value) => value === undefined || typeof value === "function"
+          ? value : target.parse(JSON.stringify(encodeData(value))));
+        return (await method(...(runtimeArgs as never[]))) as T;
       } catch (error) {
         throw toBridgeError(error, operation);
       }

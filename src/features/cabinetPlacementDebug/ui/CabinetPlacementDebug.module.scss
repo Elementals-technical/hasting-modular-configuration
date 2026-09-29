@@ -33,3 +33,12 @@
 }
 
 .buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+
+@media (max-width: 1024px) {
+  .panel {
+    // The mobile step navigation overlays the first 58px of the canvas.
+    top: 74px;
+    max-height: calc(100% - 130px);
+    overflow-y: auto;
+  }
+}

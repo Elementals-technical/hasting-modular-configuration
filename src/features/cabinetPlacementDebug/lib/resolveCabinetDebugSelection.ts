@@ -4,7 +4,7 @@ import { resolveProductConfig } from "@/entities/collection";
 export const isCabinetPlacementDebugEnabled = (search: string): boolean => {
   const params = new URLSearchParams(search);
   if (params.has("cabinetEngineering") || params.has("cabinetFromLine")) return false;
-  return params.get("debug") === "true" && params.get("local") === "true";
+  return true;
 };
 
 /** Reuse the active collection's type/value translation, preserving the current scene config. */

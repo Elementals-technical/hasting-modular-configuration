@@ -155,7 +155,7 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
 
   getCapabilities(options: ConfiguratorCapabilitiesOptions = {}): Promise<ConfiguratorCapabilities> {
     return this.enqueue(async () => {
-      if (!options.refresh && this.capabilities) return this.capabilities;
+      if (options.refresh === false && this.capabilities) return this.capabilities;
       return this.readCapabilities();
     });
   }
@@ -169,16 +169,18 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
     globalConfig?: Record<string, unknown>,
   ): Promise<string[]> {
     return this.enqueue(async () => {
-      await this.ensureScope();
       const args = globalConfig === undefined ? [products] : [products, globalConfig];
-      return this.bridge.callLegacy<string[]>("presetProducts", ...args);
+      const productIds = await this.bridge.callLegacy<string[]>("presetProducts", ...args);
+      this.invalidateRuntimeCache();
+      return productIds;
     });
   }
 
   addProduct(productType: string, config: CabinetSelection = {}): Promise<string> {
     return this.enqueue(async () => {
-      await this.ensureScope();
-      return this.bridge.callLegacy<string>("addProduct", productType, config);
+      const productId = await this.bridge.callLegacy<string>("addProduct", productType, config);
+      this.invalidateRuntimeCache();
+      return productId;
     });
   }
 
@@ -402,8 +404,18 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
   private async readCapabilities(): Promise<ConfiguratorCapabilities> {
     const result = await this.bridge.callNamespace<ConfiguratorApiResult<ConfiguratorCapabilities>>("cabinets", "getCapabilities");
     const capabilities = unwrap(result, "cabinets.getCapabilities");
+    const scopeStillCurrent =
+      capabilities.readiness === "ready" &&
+      this.activeScope?.apiInstanceId === capabilities.apiInstanceId &&
+      this.activeScope.compositionId === capabilities.activeCompositionId;
+    if (!scopeStillCurrent) this.activeScope = null;
     this.capabilities = capabilities;
     return capabilities;
+  }
+
+  private invalidateRuntimeCache(): void {
+    this.capabilities = null;
+    this.activeScope = null;
   }
 
   private async waitUntilReady(): Promise<ConfiguratorScope> {

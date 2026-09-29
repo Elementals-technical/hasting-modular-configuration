@@ -20,15 +20,12 @@ import { setOpenStyleSidebar } from "../../model/store/slice";
 import {
   getDimensionOptions,
   getDrawerProduct,
-  getCabinetColor,
+  getCabinetBuilderProductConfig,
   getCountertopColorSku,
   getCountertopStyle,
-  getHandleGrooveColor,
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getActiveCabinetRule,
-  getDrawerPanelFluting,
-  getGrainDirection,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedSceneProduct,
@@ -106,16 +103,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const heightLocked = useAppSelector(getHeightLocked);
-  const cabinetColor = useAppSelector(getCabinetColor);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
-  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const grainDirection = useAppSelector(getGrainDirection);
   const sinkType = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
@@ -356,34 +350,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       })),
     [depthOptions],
   );
-
-  const productConfig = useMemo(() => {
-    if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {
-      return null;
-    }
-
-    return {
-      ...selectedProductConfig,
-      Width: selectedDimensions.width,
-      Height: selectedDimensions.height,
-      Depth: selectedDimensions.depth,
-      CabinetColor: cabinetColor,
-      CountertopColor: countertopColor,
-      HandleGrooveColor: handleGrooveColor,
-      DrawerPanelFluting: drawerPanelFluting,
-      GrainDirection: grainDirection,
-    };
-  }, [
-    cabinetColor,
-    countertopColor,
-    handleGrooveColor,
-    drawerPanelFluting,
-    grainDirection,
-    selectedDimensions.depth,
-    selectedDimensions.height,
-    selectedDimensions.width,
-    selectedProductConfig,
-  ]);
 
   const handleCloseSidebar = () => {
     if (isStyleSidebarTutorialStepActive) return;

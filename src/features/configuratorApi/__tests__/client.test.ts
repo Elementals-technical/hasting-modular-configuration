@@ -188,6 +188,41 @@ describe("ConfiguratorClient", () => {
     expect(reads).toBe(2);
   });
 
+  it("reads capabilities fresh by default and only uses the cache when refresh is explicitly false", async () => {
+    const getCapabilities = vi
+      .fn<() => Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>>()
+      .mockResolvedValueOnce(ok(readyCapabilities("api-1")))
+      .mockResolvedValueOnce(ok(readyCapabilities("api-2")));
+    const client = createConfiguratorClient({ getApi: () => makeApi({ getCapabilities }) });
+
+    await expect(client.getCapabilities()).resolves.toMatchObject({ apiInstanceId: "api-1" });
+    await expect(client.getCapabilities()).resolves.toMatchObject({ apiInstanceId: "api-2" });
+    await expect(client.getCapabilities({ refresh: false })).resolves.toMatchObject({ apiInstanceId: "api-2" });
+    expect(getCapabilities).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    {
+      label: "readiness is no longer ready",
+      next: { ...readyCapabilities(), readiness: "initializing" as const },
+    },
+    {
+      label: "runtime identity changes",
+      next: readyCapabilities("api-reloaded", "composition-reloaded"),
+    },
+  ])("invalidates the active scope when $label", async ({ next }) => {
+    const getCapabilities = vi
+      .fn<() => Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>>()
+      .mockResolvedValueOnce(ok(readyCapabilities()))
+      .mockResolvedValueOnce(ok(next));
+    const client = createConfiguratorClient({ getApi: () => makeApi({ getCapabilities }) });
+
+    await client.connect();
+    expect(client.scope).toEqual({ apiInstanceId: "api-1", compositionId: "composition-1" });
+    await client.getCapabilities();
+    expect(client.scope).toBeNull();
+  });
+
   it("distinguishes an unsupported runtime from a readiness timeout", async () => {
     const unsupported = createConfiguratorClient({
       getApi: () => makeApi({ getCapabilities: async () => ok({ ...readyCapabilities(), readiness: "unsupported" }) }),
@@ -227,9 +262,13 @@ describe("ConfiguratorClient", () => {
   it("exposes the general top-level presetProducts and addProduct calls", async () => {
     const presetProducts = vi.fn(async () => ["cabinet-a"]);
     const addProduct = vi.fn(async () => "cabinet-b");
-    const client = createConfiguratorClient({ getApi: () => makeApi({ presetProducts, addProduct }) });
+    const getCapabilities = vi.fn(async () => {
+      throw new Error("legacy writes must not bootstrap namespaced capabilities");
+    });
+    const client = createConfiguratorClient({
+      getApi: () => makeApi({ presetProducts, addProduct, getCapabilities }),
+    });
 
-    await client.connect();
     await expect(
       client.presetProducts([{ name: "test-cabinet", Width: 60 }], { CabinetColor: "white" }),
     ).resolves.toEqual(["cabinet-a"]);
@@ -239,6 +278,38 @@ describe("ConfiguratorClient", () => {
       { CabinetColor: "white" },
     );
     expect(addProduct).toHaveBeenCalledWith("test-cabinet", { Width: 80 });
+    expect(getCapabilities).not.toHaveBeenCalled();
+  });
+
+  it("invalidates cached capabilities and scope after a confirmed legacy write without a follow-up read", async () => {
+    const getCapabilities = vi
+      .fn<() => Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>>()
+      .mockResolvedValueOnce(ok(readyCapabilities()))
+      .mockRejectedValueOnce(new Error("runtime is rebuilding"));
+    const addProduct = vi.fn(async () => "cabinet-added");
+    const client = createConfiguratorClient({ getApi: () => makeApi({ getCapabilities, addProduct }) });
+
+    await client.connect();
+    await expect(client.addProduct("test-cabinet", { Width: 80 })).resolves.toBe("cabinet-added");
+    expect(addProduct).toHaveBeenCalledOnce();
+    expect(getCapabilities).toHaveBeenCalledOnce();
+    expect(client.scope).toBeNull();
+
+    await expect(client.getCapabilities({ refresh: false })).rejects.toThrow("runtime is rebuilding");
+    expect(getCapabilities).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the current scope when a legacy write is rejected", async () => {
+    const addProduct = vi.fn(async () => {
+      throw Object.assign(new Error("unsupported cabinet"), { code: "CATALOG_UNSUPPORTED" });
+    });
+    const client = createConfiguratorClient({ getApi: () => makeApi({ addProduct }) });
+
+    await client.connect();
+    await expect(client.addProduct("unsupported-cabinet")).rejects.toMatchObject({
+      code: "CATALOG_UNSUPPORTED",
+    });
+    expect(client.scope).toEqual({ apiInstanceId: "api-1", compositionId: "composition-1" });
   });
 
   it("adds command metadata from the latest composition revision", async () => {

@@ -35,6 +35,7 @@ import {
   getSelectedDimensions,
   getIsDrawerOpen,
   getSelectedSceneProduct,
+  getCabinetBuilderProductConfig,
   getSelectedProductConfig,
   getActiveCabinetRule,
   getSinkBaseCount,
@@ -386,13 +387,14 @@ export const PlayCanvasIntegration = ({
   });
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const cabinetBuilderProductConfig = useAppSelector(getCabinetBuilderProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
   const cabinetPlacementDebugEnabled = isCabinetPlacementDebugEnabled(location.search);
-  const playCanvasSrc = cabinetPlacementDebugEnabled ? `${PLAYCANVAS_SRC}&debug=true&local=true` : PLAYCANVAS_SRC;
+  const playCanvasSrc = PLAYCANVAS_SRC;
   const cabinetDebugSelection = resolveCabinetDebugSelection({
-    config: selectedProductConfig,
+    config: cabinetBuilderProductConfig,
     selectedProductId: selectedSceneProduct,
     activeCabinetType,
     bindings: runtimeBindings,
