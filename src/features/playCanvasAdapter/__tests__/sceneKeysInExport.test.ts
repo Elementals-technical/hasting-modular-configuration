@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import type { RuntimeBinding } from "@/entities/collection/model/runtimeBindings";
 
@@ -44,5 +45,20 @@ describe("USH scene keys in the scene code", () => {
     const notRead = boundSceneKeys.filter((key) => !isReadByScene(key));
 
     expect(notRead).toEqual(Object.keys(NOT_READ_BY_SCENE));
+  });
+});
+
+describe("Mako sink and countertop rules in the scene code", () => {
+  it("ships the mapped sink key, vessel colour, sink swap rule and 0.75-inch top offset", () => {
+    expect(makoRuntimeBindings.bindings.flatMap(sceneKeysOf)).toEqual(
+      expect.arrayContaining(["sinkType", "VesselColor", "Thickness"]),
+    );
+    expect(sceneCode).toContain(
+      "rules:[{rule:RuleInitCabinetMako,priority:10},{rule:RuleChangeSinkType,priority:15}",
+    );
+    expect(sceneCode).toContain(".75:{y:.00635}");
+    expect(sceneCode).toContain(
+      "CountertopColor:firstCabinet.CountertopColor,Thickness:firstCabinet.Thickness??productMeta.defaultConfig?.Thickness??.5",
+    );
   });
 });
