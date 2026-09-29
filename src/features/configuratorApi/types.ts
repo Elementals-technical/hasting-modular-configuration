@@ -192,6 +192,70 @@ export type PlacementOverlayApi = {
   setPlaceholdersEnabled(enabled: boolean): void;
 };
 
+/**
+ * Screen frame of the countertop in Drag & Drop mode (`ConfiguratorAPI.countertopOverlay`), in the
+ * configurator iframe's viewport px like `PlacementOverlayFrame`. `lengthAxisPx` is the screen
+ * vector of one metre along the countertop's length axis (left end -> right end).
+ */
+export type CountertopOverlayPointName =
+  | PlacementOverlayPointName
+  | "leftEnd"
+  | "rightEnd"
+  | "lengthLabel"
+  | "depthLabel";
+export type CountertopOverlayReason = { code: string; message: string };
+export type CountertopResizeSide = "left" | "right";
+/** Ghost length preview drawn in the overlay frames only (`countertopOverlay.previewLength`). */
+export type CountertopLengthPreview = { side: CountertopResizeSide; lengthM: number };
+/** `countertopOverlay.lengthAtPointer`: the length a one-sided resize would get at a frame point. */
+export type CountertopLengthAtPointer = {
+  lengthM: number;
+  rawLengthM: number;
+  snappedTo: { kind: string; xM: number } | null;
+  limits: { minLengthM: number; maxLengthM: number };
+};
+export type CountertopOverlayFrame = {
+  active: boolean;
+  /** clear: green; colliding: red, Apply blocked; unknown: geometry not measurable. */
+  status: "clear" | "colliding" | "unknown";
+  reasons: CountertopOverlayReason[];
+  collidesWith: string[];
+  attached: boolean;
+  lengthM: number | null;
+  depthM: number | null;
+  limits: { minLengthM: number; maxLengthM: number } | null;
+  canApply: boolean;
+  dragging: boolean;
+  visible: boolean;
+  viewport: { width: number; height: number } | null;
+  hull: PlacementOverlayPoint[];
+  bounds: { left: number; top: number; right: number; bottom: number; width: number; height: number } | null;
+  points: Partial<Record<CountertopOverlayPointName, PlacementOverlayPoint>> | null;
+  lengthAxisPx: PlacementOverlayPoint | null;
+  /** Set while a ghost preview is shown; `lengthM` is then the preview length. */
+  preview?: CountertopLengthPreview | null;
+};
+export type CountertopOverlayApi = {
+  setActive(active: boolean): void;
+  getState(): CountertopOverlayFrame | null;
+  on(
+    event: "change",
+    callback: (frame: CountertopOverlayFrame | null) => void,
+    options?: { emitCurrent?: boolean },
+  ): ConfiguratorUnsubscribe;
+  setPlaceholdersEnabled(enabled: boolean): void;
+  /** Newer builds only (feature-detect). */
+  previewLength?(preview: CountertopLengthPreview | null): void;
+  /** Newer builds only (feature-detect). `point` is in frame (iframe viewport px) coordinates. */
+  lengthAtPointer?(
+    side: CountertopResizeSide,
+    point: PlacementOverlayPoint,
+    options?: { snap?: boolean },
+  ): CountertopLengthAtPointer | null;
+};
+/** Effective countertop length limits in metres; null restores the runtime defaults. */
+export type CountertopLengthLimitsM = { minM: number; maxM: number };
+
 export type ConfiguratorNamespace = "cabinets" | "cabinetPlacement" | "composition";
 export type ConfiguratorUnsubscribe = () => void;
 
@@ -241,6 +305,14 @@ export interface ConfiguratorApi {
   addProduct: (productType: string, config: CabinetSelection) => Promise<string>;
   /** Present only in PlayCanvas builds with the draft overlay (feature-detect). */
   placementOverlay?: PlacementOverlayApi;
+  /** Present only in PlayCanvas builds with the countertop Drag & Drop overlay (feature-detect). */
+  countertopOverlay?: CountertopOverlayApi;
+  /** Only the members the typed layer uses; the rest of the namespace is read by the countertop feature. */
+  countertop?: {
+    setLengthLimits?: (limits: CountertopLengthLimitsM | null) => unknown;
+    /** Newer builds only: resize a moved-off top from one end, the other end fixed. */
+    resizeFrom?: (side: CountertopResizeSide, lengthM: number) => unknown;
+  };
   cabinets: {
     getCapabilities(): Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>;
     getCatalog(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CabinetCatalogEntry[]>>;

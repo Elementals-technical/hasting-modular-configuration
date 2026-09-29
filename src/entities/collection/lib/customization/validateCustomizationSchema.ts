@@ -341,6 +341,45 @@ const validateOptionImageVariants = (optionImageVariants: unknown, diagnostics: 
   }
 };
 
+const validateCountertopSettings = (countertop: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (countertop === undefined) return;
+  if (!isRecord(countertop)) {
+    diagnostics.push({ code: "invalid-schema", dataPath: "countertop", message: "countertop must be an object" });
+    return;
+  }
+  const limits = countertop.lengthLimitsIn;
+  const valid =
+    limits === undefined ||
+    (isRecord(limits) &&
+    typeof limits.min === "number" &&
+    typeof limits.max === "number" &&
+    Number.isFinite(limits.min) &&
+    Number.isFinite(limits.max) &&
+    limits.min > 0 &&
+    limits.max >= limits.min);
+  if (!valid) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "countertop.lengthLimitsIn",
+      message: "countertop.lengthLimitsIn must be { min, max } in inches with 0 < min <= max",
+    });
+  }
+  const presets = countertop.lengthPresetsIn;
+  if (
+    presets !== undefined &&
+    !(
+      Array.isArray(presets) &&
+      presets.every((preset) => typeof preset === "number" && Number.isFinite(preset) && preset > 0)
+    )
+  ) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "countertop.lengthPresetsIn",
+      message: "countertop.lengthPresetsIn must be an array of positive lengths in inches",
+    });
+  }
+};
+
 export const validateCustomizationSchema = (input: unknown): ValidateCustomizationSchemaResult => {
   if (!isRecord(input) || !isRecord(input.flows) || !isRecord(input.steps) || !isRecord(input.sections)) {
     return {
@@ -366,6 +405,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateSections(input.sections, diagnostics);
   validateOptionImages(input.optionImages, diagnostics);
   validateOptionImageVariants(input.optionImageVariants, diagnostics);
+  validateCountertopSettings(input.countertop, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

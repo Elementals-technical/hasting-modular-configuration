@@ -124,6 +124,20 @@ export type CustomizationSchema = {
   sections: Record<string, CustomizationSectionDefinition>;
   optionImages?: CustomizationOptionImages;
   optionImageVariants?: OptionImageVariants;
+  /** Countertop editing settings of the collection; every field is optional. */
+  countertop?: CustomizationCountertopSettings;
+};
+
+/**
+ * `lengthLimitsIn`: the length range (inches) the countertop Drag & Drop mode allows. Without it
+ * the UI uses one 60 cm cabinet (60 / 2.54 ≈ 23.6 in, i.e. 0.6 m) to 120 in.
+ * `lengthPresetsIn`: the length presets (inches) offered on the length chip; the UI keeps only those
+ * inside the effective limits (±0.05 in). Without it the UI offers 23.6 (one 60 cm cabinet), 48, 60, 72,
+ * 84, 96 and 120 in.
+ */
+export type CustomizationCountertopSettings = {
+  lengthLimitsIn?: { min: number; max: number };
+  lengthPresetsIn?: number[];
 };
 
 /** Properties of a configurator colour the colour grid filters and prices by. */

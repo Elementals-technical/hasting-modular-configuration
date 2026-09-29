@@ -2,35 +2,16 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 
 import s from "./CountertopPlacementControls.module.scss";
 
-export type CountertopState = {
-  readiness: string;
-  productId: string | null;
-  compositionId?: string | null;
-  attached?: boolean;
-  canResize?: boolean;
-  offset?: { x: number; y: number };
-  customLength?: number | null;
-  autoLength?: number | null;
-  size?: { length?: number | null; depth?: number | null };
-  thickness?: number | null;
-  dragEnabled?: boolean;
-  dragging?: boolean;
-  moving?: boolean;
-};
-type CountertopEvent = { reason?: string; type?: string; state: CountertopState };
-export type CountertopApi = {
-  getState(): CountertopState | Promise<CountertopState>;
-  setDragEnabled(enabled: boolean): unknown;
-  setOffset(offset: { x: number; y: number }): unknown;
-  resetOffset(): unknown;
-  setSize(size: { length: number | null }): unknown;
-  whenSettled(): CountertopState | Promise<CountertopState>;
-  on(
-    event: "change" | "action",
-    callback: (event: CountertopEvent) => void,
-    options?: { emitCurrent: boolean },
-  ): () => void;
-};
+import {
+  countertopErrorMessage,
+  restoreCountertopSnapshot,
+  sameCountertopTarget,
+  type CountertopApi,
+  type CountertopSnapshot,
+  type CountertopState,
+} from "../lib/countertopSession";
+
+export type { CountertopApi, CountertopState } from "../lib/countertopSession";
 export type CountertopPlacementHandle = { open(): void };
 export type CountertopPlacementAvailability = { supported: boolean; available: boolean; editing: boolean };
 type Props = {
@@ -41,15 +22,7 @@ type Props = {
   onCommitted?: (state: CountertopState) => void | Promise<void>;
   onSelect?: (productId: string) => void;
 };
-type Snapshot = {
-  api: CountertopApi;
-  productId: string;
-  compositionId: string;
-  offset: { x: number; y: number };
-  attached: boolean;
-  customLength: number | null;
-  dragEnabled: boolean;
-};
+type Snapshot = CountertopSnapshot & { api: CountertopApi };
 const requiredMethods = [
   "getState",
   "setDragEnabled",
@@ -59,17 +32,10 @@ const requiredMethods = [
   "whenSettled",
   "on",
 ] as const;
-const sameTarget = (state: CountertopState, original: Snapshot) =>
-  state.productId === original.productId && state.compositionId === original.compositionId;
-const near = (left: number, right: number) => Math.abs(left - right) < 1e-6;
+const sameTarget = sameCountertopTarget;
 const metres = (value: number | null | undefined) =>
   typeof value === "number" && Number.isFinite(value) ? String(Number(value.toFixed(4))) : "";
-const messageOf = (error: unknown) => {
-  if (typeof error !== "object" || !error) return typeof error === "string" ? error : "Countertop command failed";
-  const detail = error as { code?: unknown; message?: unknown };
-  const message = typeof detail.message === "string" ? detail.message : "Countertop command failed";
-  return detail.code ? `${String(detail.code)}: ${message}` : message;
-};
+const messageOf = countertopErrorMessage;
 
 /** Countertop edits are live API writes. The snapshot provides explicit UI Apply/Cancel semantics. */
 export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle, Props>(
@@ -293,25 +259,10 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
     const cancel = () =>
       void run(async (api) => {
         await readTarget(api);
-        const original = snapshotRef.current!;
-        await api.setDragEnabled(false);
-        await readTarget(api);
-        if (original.attached) await api.resetOffset();
-        else await api.setOffset({ ...original.offset });
-        const positioned = await settled(api);
-        if (
-          !positioned.offset ||
-          !near(positioned.offset.x, original.offset.x) ||
-          !near(positioned.offset.y, original.offset.y)
-        ) {
-          throw new Error("The original offset could not be restored exactly; the runtime constrained the position");
-        }
-        await api.setSize({ length: original.customLength });
-        const restored = await settled(api);
-        if ((restored.customLength ?? null) !== original.customLength)
-          throw new Error("The original custom length could not be restored");
-        await api.setDragEnabled(original.dragEnabled);
-        await readTarget(api);
+        await restoreCountertopSnapshot(api, snapshotRef.current!, {
+          read: () => readTarget(api),
+          settled: () => settled(api),
+        });
         finish();
         setStatus("Edits cancelled");
       });

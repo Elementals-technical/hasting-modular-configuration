@@ -31,6 +31,12 @@ import type {
   CabinetSelection,
   ConfiguratorUnsubscribe,
   PlacementOverlayFrame,
+  CountertopLengthAtPointer,
+  CountertopLengthLimitsM,
+  CountertopLengthPreview,
+  CountertopOverlayFrame,
+  CountertopResizeSide,
+  PlacementOverlayPoint,
 } from "./types";
 
 export type ConfiguratorCapabilitiesOptions = { refresh?: boolean };
@@ -86,6 +92,24 @@ export interface ConfiguratorClient {
   onPlacementOverlay(callback: (frame: PlacementOverlayFrame | null) => void): Promise<ConfiguratorUnsubscribe | null>;
   /** Switch PlayCanvas' temporary overlay icons on/off. Resolves false when the build has none. */
   setPlacementOverlayPlaceholders(enabled: boolean): Promise<boolean>;
+  /** Countertop Drag & Drop frames. Resolves null when the build has no `countertopOverlay`. */
+  onCountertopOverlay(callback: (frame: CountertopOverlayFrame | null) => void): Promise<ConfiguratorUnsubscribe | null>;
+  /** Resolves false when the build has no `countertopOverlay`. */
+  setCountertopOverlayActive(active: boolean): Promise<boolean>;
+  /** Resolves false when the build has no `countertopOverlay`. */
+  setCountertopOverlayPlaceholders(enabled: boolean): Promise<boolean>;
+  /** Resolves false when the build has no `countertop.setLengthLimits`. */
+  setCountertopLengthLimits(limits: CountertopLengthLimitsM | null): Promise<boolean>;
+  /** Resolves false when the build has no `countertopOverlay.previewLength`. */
+  previewCountertopLength(preview: CountertopLengthPreview | null): Promise<boolean>;
+  /** Resolves null when the build has no `countertopOverlay.lengthAtPointer`. */
+  countertopLengthAtPointer(
+    side: CountertopResizeSide,
+    point: PlacementOverlayPoint,
+    options?: { snap?: boolean },
+  ): Promise<CountertopLengthAtPointer | null>;
+  /** Rejects with API_METHOD_UNAVAILABLE when the build has no `countertop.resizeFrom`. */
+  resizeCountertopFrom(side: CountertopResizeSide, lengthM: number): Promise<unknown>;
   dispose(): void;
 }
 
@@ -403,6 +427,61 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
 
   setPlacementOverlayPlaceholders(enabled: boolean): Promise<boolean> {
     return this.enqueue(async () => (await this.bridge.setPlacementOverlayPlaceholders?.(enabled)) ?? false);
+  }
+
+  onCountertopOverlay(callback: (frame: CountertopOverlayFrame | null) => void): Promise<ConfiguratorUnsubscribe | null> {
+    return this.enqueue(async () => {
+      if (!this.bridge.subscribeCountertopOverlay) return null;
+      let active = true;
+      const rawUnsubscribe = await this.bridge.subscribeCountertopOverlay((frame) => {
+        if (active) callback(frame);
+      });
+      if (!rawUnsubscribe) return null;
+      const unsubscribe = () => {
+        if (!active) return;
+        active = false;
+        this.subscriptions.delete(unsubscribe);
+        rawUnsubscribe();
+      };
+      this.subscriptions.add(unsubscribe);
+      return unsubscribe;
+    });
+  }
+
+  setCountertopOverlayActive(active: boolean): Promise<boolean> {
+    return this.enqueue(async () => (await this.bridge.setCountertopOverlayActive?.(active)) ?? false);
+  }
+
+  setCountertopOverlayPlaceholders(enabled: boolean): Promise<boolean> {
+    return this.enqueue(async () => (await this.bridge.setCountertopOverlayPlaceholders?.(enabled)) ?? false);
+  }
+
+  setCountertopLengthLimits(limits: CountertopLengthLimitsM | null): Promise<boolean> {
+    return this.enqueue(async () => (await this.bridge.setCountertopLengthLimits?.(limits)) ?? false);
+  }
+
+  previewCountertopLength(preview: CountertopLengthPreview | null): Promise<boolean> {
+    return this.enqueue(async () => (await this.bridge.previewCountertopLength?.(preview)) ?? false);
+  }
+
+  countertopLengthAtPointer(
+    side: CountertopResizeSide,
+    point: PlacementOverlayPoint,
+    options?: { snap?: boolean },
+  ): Promise<CountertopLengthAtPointer | null> {
+    return this.enqueue(async () => (await this.bridge.countertopLengthAtPointer?.(side, point, options)) ?? null);
+  }
+
+  resizeCountertopFrom(side: CountertopResizeSide, lengthM: number): Promise<unknown> {
+    return this.enqueue(async () => {
+      if (!this.bridge.resizeCountertopFrom) {
+        throw new ConfiguratorError("API_METHOD_UNAVAILABLE", "countertop.resizeFrom is not available in this runtime.", {
+          operation: "countertop.resizeFrom",
+          retryable: true,
+        });
+      }
+      return this.bridge.resizeCountertopFrom(side, lengthM);
+    });
   }
 
   dispose(): void {

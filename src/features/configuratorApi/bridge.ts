@@ -1,7 +1,18 @@
 import { runInBatchQueue } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { ConfiguratorError } from "./types";
-import type { ConfiguratorApi, ConfiguratorNamespace, ConfiguratorUnsubscribe, PlacementOverlayFrame } from "./types";
+import type {
+  ConfiguratorApi,
+  ConfiguratorNamespace,
+  ConfiguratorUnsubscribe,
+  CountertopLengthAtPointer,
+  CountertopLengthLimitsM,
+  CountertopLengthPreview,
+  CountertopOverlayFrame,
+  CountertopResizeSide,
+  PlacementOverlayFrame,
+  PlacementOverlayPoint,
+} from "./types";
 
 type PlayCanvasHost = {
   containerRef?: { current?: { contentWindow?: unknown } | null };
@@ -24,6 +35,29 @@ export type ConfiguratorBridge = {
   ): Promise<ConfiguratorUnsubscribe | null>;
   /** Resolves false when the build has no `placementOverlay`. */
   setPlacementOverlayPlaceholders?(enabled: boolean): Promise<boolean>;
+  /** Countertop Drag & Drop frames; resolves null when this build has no `countertopOverlay`. */
+  subscribeCountertopOverlay?(
+    callback: (frame: CountertopOverlayFrame | null) => void,
+  ): Promise<ConfiguratorUnsubscribe | null>;
+  /** Resolves false when the build has no `countertopOverlay`. */
+  setCountertopOverlayActive?(active: boolean): Promise<boolean>;
+  /** Resolves false when the build has no `countertopOverlay`. */
+  setCountertopOverlayPlaceholders?(enabled: boolean): Promise<boolean>;
+  /** Resolves false when the build has no `countertop.setLengthLimits`. */
+  setCountertopLengthLimits?(limits: CountertopLengthLimitsM | null): Promise<boolean>;
+  /** Ghost length preview in the overlay frames; resolves false when the build has no
+   * `countertopOverlay.previewLength`. */
+  previewCountertopLength?(preview: CountertopLengthPreview | null): Promise<boolean>;
+  /** One-sided resize length at a frame point; resolves null when the build has no
+   * `countertopOverlay.lengthAtPointer`. */
+  countertopLengthAtPointer?(
+    side: CountertopResizeSide,
+    point: PlacementOverlayPoint,
+    options?: { snap?: boolean },
+  ): Promise<CountertopLengthAtPointer | null>;
+  /** Resize from one end, the other fixed; rejects with API_METHOD_UNAVAILABLE when the build
+   * has no `countertop.resizeFrom`. */
+  resizeCountertopFrom?(side: CountertopResizeSide, lengthM: number): Promise<unknown>;
 };
 
 export type ConfiguratorBridgeOptions = {
@@ -176,6 +210,96 @@ export const createConfiguratorBridge = (
         return true;
       } catch (error) {
         throw toBridgeError(error, "placementOverlay.setPlaceholdersEnabled");
+      }
+    },
+
+    // Countertop overlay and limits: presentation / session settings, feature-detected like
+    // placementOverlay and never queued behind cabinet commands.
+    async subscribeCountertopOverlay(callback) {
+      const overlay = getTarget()?.api.countertopOverlay;
+      if (!isRecord(overlay) || typeof overlay.on !== "function") return null;
+      try {
+        const unsubscribe = overlay.on("change", callback, { emitCurrent: true });
+        return typeof unsubscribe === "function" ? unsubscribe : null;
+      } catch (error) {
+        throw toBridgeError(error, "countertopOverlay.on");
+      }
+    },
+
+    async setCountertopOverlayActive(active) {
+      const overlay = getTarget()?.api.countertopOverlay;
+      if (!isRecord(overlay) || typeof overlay.setActive !== "function") return false;
+      try {
+        overlay.setActive(active);
+        return true;
+      } catch (error) {
+        throw toBridgeError(error, "countertopOverlay.setActive");
+      }
+    },
+
+    async setCountertopOverlayPlaceholders(enabled) {
+      const overlay = getTarget()?.api.countertopOverlay;
+      if (!isRecord(overlay) || typeof overlay.setPlaceholdersEnabled !== "function") return false;
+      try {
+        overlay.setPlaceholdersEnabled(enabled);
+        return true;
+      } catch (error) {
+        throw toBridgeError(error, "countertopOverlay.setPlaceholdersEnabled");
+      }
+    },
+
+    async setCountertopLengthLimits(limits) {
+      const target = getTarget();
+      const countertop = target?.api.countertop;
+      if (!target || !isRecord(countertop) || typeof countertop.setLengthLimits !== "function") return false;
+      try {
+        await countertop.setLengthLimits(limits === null ? null : target.parse(JSON.stringify(encodeData(limits))) as CountertopLengthLimitsM);
+        return true;
+      } catch (error) {
+        throw toBridgeError(error, "countertop.setLengthLimits");
+      }
+    },
+
+    async previewCountertopLength(preview) {
+      const target = getTarget();
+      const overlay = target?.api.countertopOverlay;
+      if (!target || !isRecord(overlay) || typeof overlay.previewLength !== "function") return false;
+      try {
+        overlay.previewLength(preview === null ? null : target.parse(JSON.stringify(encodeData(preview))) as CountertopLengthPreview);
+        return true;
+      } catch (error) {
+        throw toBridgeError(error, "countertopOverlay.previewLength");
+      }
+    },
+
+    async countertopLengthAtPointer(side, point, pointerOptions) {
+      const target = getTarget();
+      const overlay = target?.api.countertopOverlay;
+      if (!target || !isRecord(overlay) || typeof overlay.lengthAtPointer !== "function") return null;
+      try {
+        const result = overlay.lengthAtPointer(
+          side,
+          target.parse(JSON.stringify(encodeData(point))) as PlacementOverlayPoint,
+          pointerOptions === undefined ? undefined : target.parse(JSON.stringify(encodeData(pointerOptions))) as { snap?: boolean },
+        );
+        return isRecord(result) ? (result as CountertopLengthAtPointer) : null;
+      } catch (error) {
+        throw toBridgeError(error, "countertopOverlay.lengthAtPointer");
+      }
+    },
+
+    async resizeCountertopFrom(side, lengthM) {
+      const operation = "countertop.resizeFrom";
+      const target = getTarget();
+      if (!target) throw unavailable(operation, "API_UNAVAILABLE", "The PlayCanvas ConfiguratorAPI is not available.");
+      const countertop = target.api.countertop;
+      if (!isRecord(countertop) || typeof countertop.resizeFrom !== "function") {
+        throw unavailable(operation, "API_METHOD_UNAVAILABLE", `${operation} is not available in this runtime.`);
+      }
+      try {
+        return await countertop.resizeFrom(encodeData(side) as CountertopResizeSide, encodeData(lengthM) as number);
+      } catch (error) {
+        throw toBridgeError(error, operation);
       }
     },
 
