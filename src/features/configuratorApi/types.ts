@@ -148,6 +148,50 @@ export type ConfiguratorEventEnvelope<T> = ConfiguratorScope & {
   data: T;
 };
 
+/**
+ * Screen frame of an open cabinet draft, published by PlayCanvas (`ConfiguratorAPI.placementOverlay`)
+ * every time it changes. Coordinates are CSS px of the configurator iframe's viewport, so they map
+ * 1:1 onto an absolutely positioned layer that covers the iframe.
+ */
+export type PlacementOverlayPoint = { x: number; y: number };
+export type PlacementOverlayPointName =
+  | "center"
+  | "frontCenter"
+  | "topLeft"
+  | "topRight"
+  | "bottomLeft"
+  | "bottomRight"
+  | "topCenter"
+  | "bottomCenter";
+export type PlacementOverlayFrame = {
+  sessionId: string;
+  kind: "add" | "move" | null;
+  lifecycle: CabinetDraftState["lifecycle"];
+  /** clear: green; colliding: red, Apply blocked; unknown: geometry not measurable (not blocking). */
+  status: "clear" | "colliding" | "unknown";
+  collidesWith: string[];
+  canApply: boolean;
+  canCancel: boolean;
+  /** A pointer drag of the draft is in progress. */
+  dragging: boolean;
+  /** False when the draft is (partly) behind the camera: no anchors. */
+  visible: boolean;
+  viewport: { width: number; height: number } | null;
+  hull: PlacementOverlayPoint[];
+  bounds: { left: number; top: number; right: number; bottom: number; width: number; height: number } | null;
+  points: Record<PlacementOverlayPointName, PlacementOverlayPoint> | null;
+};
+export type PlacementOverlayApi = {
+  getState(): PlacementOverlayFrame | null;
+  on(
+    event: "change",
+    callback: (frame: PlacementOverlayFrame | null) => void,
+    options?: { emitCurrent?: boolean },
+  ): ConfiguratorUnsubscribe;
+  /** PlayCanvas draws temporary icons until the UI switches them off. */
+  setPlaceholdersEnabled(enabled: boolean): void;
+};
+
 export type ConfiguratorNamespace = "cabinets" | "cabinetPlacement" | "composition";
 export type ConfiguratorUnsubscribe = () => void;
 
@@ -195,6 +239,8 @@ export interface ConfiguratorApi {
     globalConfig?: Record<string, unknown>,
   ) => Promise<string[]>;
   addProduct: (productType: string, config: CabinetSelection) => Promise<string>;
+  /** Present only in PlayCanvas builds with the draft overlay (feature-detect). */
+  placementOverlay?: PlacementOverlayApi;
   cabinets: {
     getCapabilities(): Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>;
     getCatalog(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CabinetCatalogEntry[]>>;

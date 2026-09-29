@@ -43,4 +43,8 @@ export type {
   ConfiguratorScope,
   CabinetSelection,
   ConfiguratorUnsubscribe,
+  PlacementOverlayApi,
+  PlacementOverlayFrame,
+  PlacementOverlayPoint,
+  PlacementOverlayPointName,
 } from "./types";
