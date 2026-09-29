@@ -6,7 +6,12 @@ import { validateCustomizationSchema } from "@/features/collectionCustomization"
 import ushUiDocument from "../../../../../../public/collections/urban-standard-height/ui.json";
 
 import { normalizeOptionValue } from "../../productProfileSelectors";
-import { findMissingBindings, isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import {
+  configurationValueOf,
+  findMissingBindings,
+  isStateOnlyResolution,
+  resolveRuntimeBinding,
+} from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 import type { ProductProfile } from "../../../model/productProfile";
 import type { RuntimeBindingSet } from "../../../model/runtimeBindings";
@@ -219,6 +224,15 @@ describe("resolveRuntimeBinding", () => {
     expect(resolveRuntimeBinding(ushRuntimeBindings, "CountertopColor", "Cacao Orinoco FF MT")).toMatchObject({
       patch: { CountertopColor: "Cacao Orinoco FF MT" },
     });
+  });
+
+  it("reads the chosen countertop color back from the Tekorlux name the scene holds", () => {
+    const read = (chosenValue: string) =>
+      configurationValueOf(ushRuntimeBindings, "CountertopColor", "Bianco Gloss TAL", chosenValue);
+
+    expect(read("Bianco Gloss TAN")).toBe("Bianco Gloss TAN");
+    expect(read("Bianco Gloss TAL")).toBe("Bianco Gloss TAL");
+    expect(read("Cacao Orinoco FF MT")).toBe("Bianco Gloss TAL");
   });
 
   it("sends the vessel placeholder when no basin is chosen", () => {

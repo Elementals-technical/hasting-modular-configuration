@@ -57,7 +57,7 @@ describe("resolveProductConfig", () => {
       HandleStyle: "G50",
       Drawers: "1D",
       ShowLegs: "Disable",
-      CabinetColor: "Nebbia 402 MT",
+      CabinetColor: "Nebbia 402 Lacquered MT",
     });
   });
 
