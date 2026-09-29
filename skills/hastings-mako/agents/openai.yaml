@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hastings Mako"
+  short_description: "Work safely on the Mako collection"
+  default_prompt: "Use $hastings-mako to analyze or change the Mako collection behavior."

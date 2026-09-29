@@ -35,6 +35,7 @@ import {
   getSelectedDimensions,
   getIsDrawerOpen,
   getSelectedSceneProduct,
+  getCabinetBuilderProductConfig,
   getSelectedProductConfig,
   getActiveCabinetRule,
   getSinkBaseCount,
@@ -86,7 +87,21 @@ import {
 } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
-import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
+import { getActiveProductProfile, getActiveRuntimeBindings, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
+import {
+  CabinetPlacementDebug,
+  type CabinetPlacementControls,
+} from "@/features/cabinetPlacementDebug/ui/CabinetPlacementDebug";
+import {
+  CountertopPlacementControls,
+  type CountertopApi,
+  type CountertopState,
+  type CountertopPlacementHandle,
+} from "@/features/countertopPlacement/ui/CountertopPlacementControls";
+import { isCabinetPlacementDebugEnabled, resolveCabinetDebugSelection } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
+import type { CabinetsState } from "@/features/configuratorApi";
+import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
+import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
 import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
 import { buildStepPathById, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
@@ -383,7 +398,103 @@ export const PlayCanvasIntegration = ({
   });
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const cabinetBuilderProductConfig = useAppSelector(getCabinetBuilderProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
+  const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
+  const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
+  const cabinetPlacementDebugEnabled = isCabinetPlacementDebugEnabled(location.search);
+  const cabinetPlacementRef = useRef<CabinetPlacementControls>(null);
+  const [repositionStatus, setRepositionStatus] = useState({ supported: false, available: false });
+  const countertopPlacementRef = useRef<CountertopPlacementHandle>(null);
+  const [countertopPlacementStatus, setCountertopPlacementStatus] = useState({
+    supported: false,
+    available: false,
+    editing: false,
+  });
+  const countertopEditingRef = useRef(false);
+  countertopEditingRef.current = countertopPlacementStatus.editing;
+  const [cabinetPlacementBusy, setCabinetPlacementBusy] = useState(false);
+  const placementHostRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (countertopPlacementStatus.editing && placementHostRef.current) {
+      return lockCountertopInteraction(placementHostRef.current);
+    }
+  }, [countertopPlacementStatus.editing]);
+  const playCanvasSrc = PLAYCANVAS_SRC;
+  const cabinetDebugSelection = resolveCabinetDebugSelection({
+    config: cabinetBuilderProductConfig,
+    selectedProductId: selectedSceneProduct,
+    activeCabinetType,
+    bindings: runtimeBindings,
+  });
+  const getCountertopApi = useCallback((): CountertopApi | null => {
+    const runtimeWindow = containerRef.current?.contentWindow as (Window & { ConfiguratorAPI?: { countertop?: Partial<CountertopApi> } }) | null;
+    const api = runtimeWindow?.ConfiguratorAPI?.countertop;
+    return api && [api.getState, api.setDragEnabled, api.setSize, api.setOffset, api.resetOffset, api.whenSettled, api.on]
+      .every((method) => typeof method === "function") ? api as CountertopApi : null;
+  }, []);
+  const selectCountertopForPlacement = useCallback((productId: string) => {
+    countertopEditingRef.current = true;
+    setDropdownState((current) => ({ ...current, visible: false }));
+    setCountertopPopoverState((current) => ({ ...current, visible: false }));
+    getSelectTool()?.setSelectedByName(productId, { mode: "replace" });
+  }, []);
+  const publishCountertopSize = useCallback((state: CountertopState) => {
+    const length = state.size?.length;
+    setCountertopRuntimeSize(
+      state.readiness === "ready" && state.productId && state.compositionId &&
+      typeof length === "number" && Number.isFinite(length) && length > 0
+        ? { productId: state.productId, compositionId: state.compositionId, lengthCm: Number((length * 100).toFixed(4)) }
+        : null,
+    );
+  }, []);
+  useEffect(() => {
+    setCountertopRuntimeSize(null);
+    if (!isPlayCanvasReady) return;
+    let disposed = false;
+    const api = getCountertopApi();
+    if (!api) return;
+    const update = (state: CountertopState) => {
+      const applied = getCountertopRuntimeSize();
+      if (!disposed && applied && (applied.productId !== state.productId || applied.compositionId !== state.compositionId)) {
+        setCountertopRuntimeSize(null);
+      }
+      if (!disposed && (!countertopEditingRef.current || state.readiness !== "ready")) publishCountertopSize(state);
+    };
+    const stop = api.on("change", ({ state }) => update(state), { emitCurrent: true });
+    void Promise.resolve().then(() => api.getState()).then(update).catch(() => {
+      if (!disposed) setCountertopRuntimeSize(null);
+    });
+    return () => {
+      disposed = true;
+      stop();
+      setCountertopRuntimeSize(null);
+    };
+  }, [countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
+  useEffect(() => {
+    if (!isPlayCanvasReady || countertopPlacementStatus.editing) return;
+    let disposed = false;
+    void Promise.resolve().then(() => getCountertopApi()?.getState()).then((state) => {
+      if (!disposed && state) publishCountertopSize(state);
+    }).catch(() => { /* The editor reports runtime failures; do not publish a guessed size. */ });
+    return () => { disposed = true; };
+  }, [countertopPlacementStatus.editing, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
+  const adoptCommittedCabinetComposition = useCallback(async (state: CabinetsState) => {
+    const result = await composition.adopt({
+      runtimeIds: state.cabinets.map((cabinet) => cabinet.id),
+      products: state.cabinets.map((cabinet) => ({
+        productType: Object.entries(runtimeBindings?.productTypes ?? {})
+          .find(([, definitionId]) => definitionId === cabinet.definitionId)?.[0] ?? cabinet.definitionId,
+        config: cabinet.selection,
+      })),
+    });
+    if (result.status === "error" || result.status === "partial") {
+      throw new Error(`Placement committed; UI synchronisation failed: ${result.message}`);
+    }
+    dispatch(setSelectedSceneProduct(state.selectedCabinetId ?? ""));
+    const selected = state.cabinets.find((cabinet) => cabinet.id === state.selectedCabinetId);
+    if (selected) dispatch(setSelectedProductConfig(selected.selection));
+  }, [composition, dispatch, runtimeBindings]);
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -656,6 +767,19 @@ export const PlayCanvasIntegration = ({
     },
     [activeCountertopThickness],
   );
+
+  const syncCommittedCountertop = useCallback(async (state: CountertopState) => {
+    if (!state.productId || state.readiness !== "ready") return;
+    const config = await getConfig(state.productId);
+    if (config) {
+      setCountertopDimensionData(state.productId, {
+        ...config,
+        ...(typeof state.size?.length === "number" ? { Width: state.size.length * 100 } : {}),
+        ...(typeof state.size?.depth === "number" ? { Depth: state.size.depth * 100 } : {}),
+      });
+    }
+    publishCountertopSize(state);
+  }, [setCountertopDimensionData, publishCountertopSize]);
 
   const syncCountertopConfig = useCallback(async () => {
     const syncData = getCountertopSyncData();
@@ -2487,6 +2611,13 @@ export const PlayCanvasIntegration = ({
     selectToolAttachedRef.current = true;
 
     selectTool.on("select", (selectedEntity, selectionInfo) => {
+      // A countertop edit owns the preview. Do not run legacy auto-fit or open
+      // competing context menus while its drag tool changes selection.
+      if (countertopEditingRef.current) {
+        setDropdownState((current) => ({ ...current, visible: false }));
+        setCountertopPopoverState((current) => ({ ...current, visible: false }));
+        return;
+      }
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
       const vesselBasinInfo = findVesselBasinSelectionInfo(selectionInfo);
 
@@ -2528,8 +2659,12 @@ export const PlayCanvasIntegration = ({
           const configForDimensions = { ...config };
 
           if (isCountertopEntity(firstSelected.name ?? "", configForDimensions)) {
+            const runtimeTop = await getCountertopApi()?.getState();
+            const managedTop = runtimeTop?.readiness === "ready" && runtimeTop.productId === firstSelected.name;
             const syncData = getCountertopSyncData();
-            if (syncData && syncData.countertopId === (firstSelected.name ?? "")) {
+            if (managedTop && typeof runtimeTop.size?.length === "number") {
+              configForDimensions.Width = runtimeTop.size.length * 100;
+            } else if (syncData && syncData.countertopId === (firstSelected.name ?? "")) {
               const nextCountertopConfig: { Width?: number; Height?: number } = {};
 
               if (
@@ -2831,10 +2966,26 @@ export const PlayCanvasIntegration = ({
     selectedSceneProduct,
   ]);
 
+  const handleDragReposition = useCallback(() => {
+    if (!repositionStatus.available || !selectedSceneProduct || !productIds.includes(selectedSceneProduct)) return;
+    setDropdownState((current) => ({ ...current, visible: false }));
+    cabinetPlacementRef.current?.reposition(selectedSceneProduct);
+  }, [repositionStatus.available, selectedSceneProduct, productIds]);
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
     const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
+    const dragRepositionItem: DropdownItem = {
+      id: "reposition",
+      label: "Reposition",
+      trailing: <ArrowTopRight color={"#333"} />,
+      disabled: !repositionStatus.available || !productIds.includes(selectedSceneProduct),
+      disabledReason: !repositionStatus.available
+        ? "Finish the current placement before repositioning a cabinet."
+        : undefined,
+      onClick: handleDragReposition,
+    };
 
     if (isPrebuilt) {
       if (isTowelBarEntity) {
@@ -2851,7 +3002,7 @@ export const PlayCanvasIntegration = ({
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleResizeFromPrebuilt,
         },
-        ...(canRepositionSelectedCabinet
+        ...(repositionStatus.supported ? [dragRepositionItem] : canRepositionSelectedCabinet
           ? [
               {
                 id: "reposition",
@@ -2985,7 +3136,7 @@ export const PlayCanvasIntegration = ({
           },
         ],
       },
-      ...(canMoveLeft || canMoveRight
+      ...(repositionStatus.supported ? [dragRepositionItem] : canMoveLeft || canMoveRight
         ? [
             {
               id: "reposition",
@@ -3090,6 +3241,8 @@ export const PlayCanvasIntegration = ({
 
     return items;
   }, [
+    repositionStatus,
+    handleDragReposition,
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
@@ -3216,8 +3369,20 @@ export const PlayCanvasIntegration = ({
   }, [customStepPathById, navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
+    const placementItems: DropdownItem[] = countertopPlacementStatus.supported ? [{
+      id: "countertop-position-size",
+      label: "Position & Size",
+      disabled: !countertopPlacementStatus.available,
+      trailing: <ArrowTopRight color={"#333"} />,
+      onClick: () => {
+        setDropdownState((current) => ({ ...current, visible: false }));
+        setCountertopPopoverState((current) => ({ ...current, visible: false }));
+        countertopPlacementRef.current?.open();
+      },
+    }] : [];
     if (isPrebuilt) {
       return [
+        ...placementItems,
         {
           id: "countertop-color",
           label: "Color",
@@ -3246,6 +3411,7 @@ export const PlayCanvasIntegration = ({
     }
 
     return [
+      ...placementItems,
       {
         id: "countertop-color",
         label: "Color",
@@ -3296,6 +3462,7 @@ export const PlayCanvasIntegration = ({
       },
     ];
   }, [
+    countertopPlacementStatus,
     isPrebuilt,
     handleOpenBasinStyle,
     handleOpenCountertopColor,
@@ -3332,14 +3499,14 @@ export const PlayCanvasIntegration = ({
     : dropdownItems;
 
   return (
-    <div style={{ position: "relative", height: "100%" }}>
+    <div ref={placementHostRef} style={{ position: "relative", height: "100%" }}>
       <iframe
         ref={containerRef}
         title="scene"
         id="demo"
         width="100%"
         height="100%"
-        src={PLAYCANVAS_SRC}
+        src={playCanvasSrc}
         style={{
           width: "100%",
           height: "100%",
@@ -3348,6 +3515,28 @@ export const PlayCanvasIntegration = ({
           display: "block",
         }}
       />
+
+      {cabinetPlacementDebugEnabled && <CabinetPlacementDebug
+        key={playCanvasSrc}
+        ref={cabinetPlacementRef}
+        onRepositionAvailabilityChange={setRepositionStatus}
+        onPlacementBusyChange={setCabinetPlacementBusy}
+        externalBusy={countertopPlacementStatus.editing}
+        ready={isPlayCanvasReady}
+        selection={cabinetDebugSelection}
+        selectedProductId={selectedSceneProduct}
+        onCompositionCommitted={adoptCommittedCabinetComposition}
+      />}
+
+      {cabinetPlacementDebugEnabled && <CountertopPlacementControls
+        ref={countertopPlacementRef}
+        ready={isPlayCanvasReady}
+        disabled={cabinetPlacementBusy}
+        getApi={getCountertopApi}
+        onAvailabilityChange={setCountertopPlacementStatus}
+        onSelect={selectCountertopForPlacement}
+        onCommitted={syncCommittedCountertop}
+      />}
 
       {shouldShowEmptySceneRedirectButton && (
         <button

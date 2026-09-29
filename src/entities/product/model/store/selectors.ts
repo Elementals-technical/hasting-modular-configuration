@@ -1,3 +1,5 @@
+import { createSelector } from "@reduxjs/toolkit";
+
 import type { RootState } from "@/app/store";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
@@ -62,6 +64,51 @@ export const getActiveCountertopThickness = (state: RootState) => state.rootStat
 export const getDrawerPanelFluting = (state: RootState) => state.rootStateUI.product.productOptions.DrawerPanelFluting;
 
 export const getGrainDirection = (state: RootState) => state.rootStateUI.product.productOptions.GrainDirection;
+
+/**
+ * Complete config used when the cabinet builder creates a product. The raw style config
+ * may lag behind dimension and material controls, so their dedicated state is authoritative.
+ */
+export const getCabinetBuilderProductConfig = createSelector(
+  [
+    getSelectedProductConfig,
+    getSelectedDimensions,
+    getCabinetColor,
+    getActiveCountertopColor,
+    getHandleGrooveColor,
+    getDrawerPanelFluting,
+    getGrainDirection,
+  ],
+  (
+    selectedProductConfig,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    drawerPanelFluting,
+    grainDirection,
+  ) => {
+    if (
+      selectedDimensions.width === null ||
+      selectedDimensions.height === null ||
+      selectedDimensions.depth === null
+    ) {
+      return null;
+    }
+
+    return {
+      ...selectedProductConfig,
+      Width: selectedDimensions.width,
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+      CabinetColor: cabinetColor,
+      CountertopColor: countertopColor,
+      HandleGrooveColor: handleGrooveColor,
+      DrawerPanelFluting: drawerPanelFluting,
+      GrainDirection: grainDirection,
+    };
+  },
+);
 
 export const getBookMatching = (state: RootState) => state.rootStateUI.product.productOptions.BookMatching;
 

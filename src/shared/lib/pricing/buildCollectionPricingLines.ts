@@ -178,6 +178,12 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     const width = dimensionsByCabinet[entry.stableKey]?.width;
     return sum === null || width == null ? null : sum + width;
   }, 0);
+  const committedCountertopLengthCm = input.committedCountertopLengthCm;
+  const hasCommittedCountertopLength =
+    typeof committedCountertopLengthCm === "number" &&
+    Number.isFinite(committedCountertopLengthCm) &&
+    committedCountertopLengthCm > 0;
+  const ownCountertopWidthCm = hasCommittedCountertopLength ? committedCountertopLengthCm : widthCm;
   const basinOf = (entry: CabinetEntry) =>
     valueAt(values, "sinkType", { scope: "basin", sinkBaseId: entry.stableKey }) ??
     valueAt(values, "sinkType", { scope: "basin" }) ??
@@ -191,13 +197,13 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       style: countertopStyle,
       color: countertopColor,
       basins: sinkBases.map(basinOf),
-      widthCm: cabinets.length > 0 ? widthCm : null,
+      widthCm: cabinets.length > 0 ? ownCountertopWidthCm : null,
       faucetHoles,
       readConfiguratorColor,
     });
 
-    if (countertop.top && widthCm != null) {
-      add({ id: "countertop:0", group: "countertop", sku: countertop.top, quantity: 1, widthCm });
+    if (countertop.top && ownCountertopWidthCm != null) {
+      add({ id: "countertop:0", group: "countertop", sku: countertop.top, quantity: 1, widthCm: ownCountertopWidthCm });
     }
     sinkBases.forEach((entry, index) => {
       const basinSku = countertop.basins[index];
@@ -235,7 +241,11 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       style: countertopStyle ?? "",
       faucetHolesAmount: faucetHoles ?? "",
       sinkType,
-      widthCm: widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight),
+      widthCm: hasCommittedCountertopLength
+        ? committedCountertopLengthCm
+        : widthCm === null
+          ? null
+          : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight),
       depthCm: firstSize?.depth ?? null,
       sinkBases: sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
       sinkBaseCount: sinkBases.length,

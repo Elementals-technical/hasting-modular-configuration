@@ -510,7 +510,14 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   // 2) Countertop SKUs — Resolver 2
   // Add aggregate (full composition) countertop SKU so Summary line has a matching price key.
   const cabinetWidthSum = productDimsList.reduce((sum, dims) => sum + (dims.width ?? 0), 0);
-  const totalCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
+  const compositionCountertopWidth = calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
+  const committedCountertopLengthCm = input.committedCountertopLengthCm;
+  const pricedCountertopWidth =
+    typeof committedCountertopLengthCm === "number" &&
+    Number.isFinite(committedCountertopLengthCm) &&
+    committedCountertopLengthCm > 0
+      ? committedCountertopLengthCm
+      : compositionCountertopWidth;
 
   buildUshCountertopLines({
     series: profile.series,
@@ -518,7 +525,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
     style: countertopStyle,
     faucetHolesAmount,
     sinkType: resolvedSinkType,
-    widthCm: totalCountertopWidth,
+    widthCm: pricedCountertopWidth,
     depthCm: selectedDimensions.depth,
     sinkBases: sinkBaseEntriesForPricing,
     sinkBaseCount: sinkBaseCountForPricing,
@@ -533,7 +540,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   if (vesselType) {
     const vesselSku = skuBuilders.buildVesselSku({
       vesselType,
-      width: totalCountertopWidth,
+      width: compositionCountertopWidth,
       height: vesselHeightCmMap[vesselType] ?? null,
       depth: selectedDimensions.depth,
       materialSku: resolvedVesselMaterialSku,

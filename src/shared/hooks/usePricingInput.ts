@@ -40,6 +40,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useCountertopRules } from "@/features/configurator-rule-core/countertop";
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useCountertopRuntimeSize } from "@/shared/hooks/useCountertopRuntimeSize";
 import { useSceneProductConfigs } from "@/shared/hooks/useSceneProductConfigs";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import { buildColorSkuMaps, type PricingInput } from "@/shared/lib/pricing";
@@ -59,6 +60,7 @@ export const usePricingInput = () => {
   const colorSkuMaps = useMemo(() => buildColorSkuMaps(configuratorGroups), [configuratorGroups]);
   const countertopRules = useCountertopRules();
   const { sceneConfigs, refresh: refreshSceneConfigs } = useSceneProductConfigs();
+  const countertopRuntimeSize = useCountertopRuntimeSize();
 
   const activeProfile = useAppSelector(getActiveProductProfile);
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
@@ -128,6 +130,7 @@ export const usePricingInput = () => {
       sceneConfigs,
       cabinetEntries,
       dimensionsByCabinet,
+      committedCountertopLengthCm: countertopRuntimeSize?.lengthCm,
       configurationValues,
       activeCabinetType,
       selectedDimensions,
@@ -168,6 +171,7 @@ export const usePricingInput = () => {
       sceneConfigs,
       cabinetEntries,
       dimensionsByCabinet,
+      countertopRuntimeSize?.lengthCm,
       configurationValues,
       activeCabinetType,
       selectedDimensions,
