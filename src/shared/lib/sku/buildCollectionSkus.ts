@@ -166,6 +166,8 @@ export type CollectionCountertopSkuInput = {
   style: string | null;
   /** `CountertopColor` value. */
   color: string | null;
+  /** `Thickness` value; while none is chosen, the thickness of the material. */
+  thickness: string | null;
   /** `sinkType` of each sink base, in composition order. */
   basins: readonly (string | null)[];
   widthCm: number | null;
@@ -191,7 +193,15 @@ export const buildCollectionCountertopSkus = (
   /** A collection that spells its countertop itself (`hasOwnCountertop`). */
   skuProfile: CollectionSkuProfile & { countertop: CollectionCountertop },
   productProfile: ProductProfile | null,
-  { style, color, basins, widthCm, faucetHoles, readConfiguratorColor }: CollectionCountertopSkuInput,
+  {
+    style,
+    color,
+    thickness: chosenThickness,
+    basins,
+    widthCm,
+    faucetHoles,
+    readConfiguratorColor,
+  }: CollectionCountertopSkuInput,
 ): CollectionCountertopSkus => {
   const { countertop } = skuProfile;
   // A style recorded in the scene's spelling ("Integrated") reads as its option, as a cabinet's values do.
@@ -210,7 +220,11 @@ export const buildCollectionCountertopSkus = (
     colorSku ??
     (colorCategory ? countertop.materialByColorCategory[colorCategory] : undefined) ??
     null;
-  const thickness = material ? (countertop.thicknessByMaterial[material] ?? null) : null;
+  const thickness = !material
+    ? null
+    : chosenThickness
+      ? (countertop.thicknessCodes[chosenThickness] ?? null)
+      : (countertop.thicknessByMaterial[material] ?? null);
   const series = material ? `${COUNTERTOP_CATEGORY}-${countertop.series}${material}` : null;
   const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;
 

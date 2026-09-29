@@ -118,6 +118,17 @@
       "optionsSource": "configurator:Select Countertop Color"
     },
     {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        { "value": "0.5", "label": "0.5\"", "order": 10 },
+        { "value": "0.75", "label": "0.8\"", "order": 20 },
+        { "value": "3.125", "label": "3.1\"", "order": 30 },
+        { "value": "4", "label": "4\"", "order": 40 },
+        { "value": "4.75", "label": "4.7\"", "order": 50 }
+      ]
+    },
+    {
       "attributeId": "sinkType",
       "scope": "basin",
       "noneValue": "None",

@@ -47,7 +47,8 @@
       "GLSG": ".5",
       "GLSM": ".5",
       "HPL": ".5"
-    }
+    },
+    "thicknessCodes": { "0.5": ".5", "0.75": ".8" }
   },
   "dividers": {
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",

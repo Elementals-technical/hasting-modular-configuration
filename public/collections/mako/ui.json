@@ -110,7 +110,7 @@
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
-      "sectionIds": ["countertop-color", "countertop-style", "basin-style", "vessel-color"]
+      "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
     },
     "faucet-holes": {
       "label": "Faucet Details",
@@ -183,6 +183,17 @@
           "attributeId": "CountertopColor",
           "control": "colors",
           "optionsRef": "CountertopColor"
+        }
+      ]
+    },
+    "thickness": {
+      "label": "Thickness",
+      "fields": [
+        {
+          "attributeId": "Thickness",
+          "control": "swatches",
+          "availabilityRef": "Thickness.allowed",
+          "autoSelect": "firstAllowed"
         }
       ]
     },

@@ -185,12 +185,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     (input.sinkType || null);
   const countertopStyle = countertopValue("CountertopStyle", input.countertopStyle);
   const countertopColor = countertopValue("CountertopColor", input.countertopColor);
+  const countertopThickness = countertopValue("Thickness", input.countertopThickness);
   const faucetHoles = countertopValue("FaucetHolesAmount", input.faucetHolesAmount);
 
   if (hasOwnCountertop(skuProfile)) {
     const countertop = buildCollectionCountertopSkus(skuProfile, profile, {
       style: countertopStyle,
       color: countertopColor,
+      thickness: countertopThickness,
       basins: sinkBases.map(basinOf),
       widthCm: cabinets.length > 0 ? widthCm : null,
       faucetHoles,

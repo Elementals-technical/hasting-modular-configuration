@@ -193,6 +193,7 @@ describe("the Mako countertop step keeps its basin on one table 577 allows", () 
 
   it("replaces the default glass basin with the one an HPL top takes", () => {
     // VA005 is the Mako default, for its black glass top; table 577 gives an HPL top VA024 only.
+    store.dispatch(setActiveCountertopThickness("0.5"));
     store.dispatch(setActiveBasinStyle("VA005"));
 
     renderCountertopStep(mako);
@@ -221,15 +222,17 @@ describe("the Mako countertop step keeps its basin on one table 577 allows", () 
   });
 });
 
-describe("a countertop field that declares no autoSelect", () => {
+describe("the Class countertop step", () => {
   beforeEach(() => {
     startWith(classProfile, classRuntimeBindings, "Class-sink-cabinet-1", "CALACATTA 259");
     store.dispatch(setSelectedDimensions({ depth: 52 }));
   });
 
-  it("leaves the Class basin as it is", () => {
+  it("chooses the first thickness table 578 gives an HPL top, and leaves the basin, which declares no autoSelect", () => {
     renderCountertopStep(classCollection);
 
-    expect(changeMock).not.toHaveBeenCalled();
+    expect(changeMock.mock.calls.map(([request]) => request)).toEqual([
+      { attributeId: "Thickness", value: "0.5", scope: "countertop" },
+    ]);
   });
 });

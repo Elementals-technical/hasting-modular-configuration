@@ -72,9 +72,9 @@ describe("page option lists of another collection", () => {
       ),
     );
     expect(buildDividerStyleOptions(makoProfile).map(({ title }) => title)).toEqual(["Metal", "Oak"]);
-    // Mako declares no side panels, thickness or towel bar: the lists are empty, not USH's.
+    // Mako declares no side panels or towel bar: the lists are empty, not USH's. Its thicknesses are its own.
     expect(buildSidePanelOptions(makoProfile)).toEqual([]);
-    expect(buildThicknessOptions(makoProfile)).toEqual([]);
+    expect(buildThicknessOptions(makoProfile).map(({ value }) => value)).toEqual(["0.5", "0.75"]);
     expect(buildTowelBarOptions(makoProfile)).toEqual([]);
   });
 

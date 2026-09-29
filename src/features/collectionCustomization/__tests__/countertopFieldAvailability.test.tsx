@@ -211,6 +211,23 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
   });
 });
 
+describe("Class and Mako offer the thicknesses their countertop tables give", () => {
+  it.each([
+    // Table 578: a Class Porcelain top is 3/4" or 4-3/4", an HPL one 1/2" or 4".
+    ["class", "ARDESIA NERA 328", ["0.75", "4.75"]],
+    ["class", "CALACATTA 259", ["0.5", "4"]],
+    // Table 577: a Mako HPL top is 1/2" only.
+    ["mako", "CALACATTA 259", ["0.5"]],
+  ] as const)("%s, %s", (collectionId, color, thicknesses) => {
+    const collection = collections[collectionId];
+    startWith(collection);
+    store.dispatch(setCountertopStyle("integrated"));
+    store.dispatch(setActiveCountertopColor(color));
+
+    expect(fieldsOf(collection).enabledValues("thickness")).toEqual(thicknesses);
+  });
+});
+
 describe("Urban Low Height offers the thicknesses the countertop matrix gives, as the USH countertop step", () => {
   const { shownValues, enabledValues } = fieldsOf(urbanLowHeight);
 

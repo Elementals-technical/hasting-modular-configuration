@@ -151,7 +151,7 @@
     {
       "attributeId": "Thickness",
       "status": "state-only",
-      "reason": "Class declares no thickness option (thin countertops only); recorded only."
+      "reason": "The scene's countertop has no mounting offset for the Class thicknesses (3/4, 3-1/8, 4-3/4); recorded only, for the price."
     },
     {
       "attributeId": "Handle",

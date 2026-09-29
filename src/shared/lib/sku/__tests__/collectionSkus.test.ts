@@ -121,6 +121,7 @@ describe("countertop SKUs", () => {
     return buildCollectionCountertopSkus(skuProfile, collection.profile, {
       style: "integrated",
       color: null,
+      thickness: null,
       basins: [],
       widthCm: 120,
       faucetHoles: null,
