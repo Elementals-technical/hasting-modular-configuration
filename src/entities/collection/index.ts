@@ -151,6 +151,7 @@ export type {
   CustomizationFlowId,
   CustomizationFlowStepRef,
   CustomizationOptionImages,
+  CustomizationCountertopSettings,
   CustomizationScreenId,
   CustomizationScreenKind,
   CustomizationSchema,
