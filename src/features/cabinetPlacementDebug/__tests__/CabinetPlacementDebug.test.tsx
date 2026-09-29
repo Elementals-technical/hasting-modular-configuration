@@ -5,11 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ConfiguratorClient } from "@/features/configuratorApi";
 import type { RuntimeBindingSet } from "@/entities/collection";
-import {
-  CabinetPlacementDebug,
-  type CabinetDebugCountertopApi,
-  type CabinetPlacementControls,
-} from "../ui/CabinetPlacementDebug";
+import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
 import { isCabinetPlacementDebugEnabled, resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
 
 const selection = {
@@ -483,49 +479,24 @@ describe("Cabinet drag and drop test controls", () => {
     expect(add.disabled).toBe(false);
   });
 
-  it("uses the available countertop contract, with lengths in metres and resize eligibility", async () => {
-    const { createClient } = fixture();
-    const stop = vi.fn();
-    let countertopChanged: Parameters<NonNullable<CabinetDebugCountertopApi["on"]>>[1] | undefined;
-    const api: CabinetDebugCountertopApi = {
-      getState: vi.fn(() => ({ readiness: "ready", canResize: true, dragEnabled: false })),
-      setDragEnabled: vi.fn(),
-      setSize: vi.fn(),
-      on: vi.fn((_event, callback) => {
-        countertopChanged = callback;
-        return stop;
-      }),
-    };
-    const getApi = () => api;
-    const { unmount } = render(
+  it("blocks cabinet commands while the countertop is being edited", async () => {
+    const { client, createClient } = fixture();
+    const controls = createRef<CabinetPlacementControls>();
+    render(
       <CabinetPlacementDebug
+        ref={controls}
         ready
+        externalBusy
         selection={selection}
-        selectedProductId={null}
+        selectedProductId="runtime-selected"
         createClient={createClient}
-        getCountertopApi={getApi}
       />,
     );
-    await screen.findByText("Countertop test controls");
-    fireEvent.click(screen.getByText("Countertop test controls"));
-    fireEvent.click(screen.getByRole("button", { name: "Enable countertop drag" }));
-    await waitFor(() => expect(api.setDragEnabled).toHaveBeenCalledWith(true));
-    fireEvent.change(screen.getByLabelText("Length (metres)"), { target: { value: "1.2" } });
-    await waitFor(() =>
-      expect((screen.getByRole("button", { name: "Set countertop length" }) as HTMLButtonElement).disabled).toBe(false),
-    );
-    act(() =>
-      countertopChanged?.({ reason: "attached", state: { readiness: "ready", canResize: false, dragEnabled: true } }),
-    );
-    expect((screen.getByRole("button", { name: "Set countertop length" }) as HTMLButtonElement).disabled).toBe(true);
-    act(() =>
-      countertopChanged?.({ reason: "offset", state: { readiness: "ready", canResize: true, dragEnabled: true } }),
-    );
-    expect((screen.getByRole("button", { name: "Set countertop length" }) as HTMLButtonElement).disabled).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: "Set countertop length" }));
-    await waitFor(() => expect(api.setSize).toHaveBeenCalledExactlyOnceWith({ length: 1.2 }));
-    unmount();
-    expect(stop).toHaveBeenCalledOnce();
+    await screen.findByRole("button", { name: "Move selected cabinet" });
+    expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Move selected cabinet" }) as HTMLButtonElement).disabled).toBe(true);
+    act(() => controls.current?.reposition("runtime-selected"));
+    expect(client.beginMove).not.toHaveBeenCalled();
   });
 });
 

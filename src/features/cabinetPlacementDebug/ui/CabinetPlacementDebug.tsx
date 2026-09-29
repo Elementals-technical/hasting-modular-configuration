@@ -11,31 +11,13 @@ import {
 
 import s from "./CabinetPlacementDebug.module.scss";
 
-type CountertopState = {
-  readiness?: string;
-  dragEnabled?: boolean;
-  canResize?: boolean;
-  size?: { length?: number | null };
-};
-
-/** The countertop namespace uses its existing legacy contract, without cabinet scope. */
-export type CabinetDebugCountertopApi = {
-  getState: () => CountertopState | Promise<CountertopState>;
-  setDragEnabled: (enabled: boolean) => unknown;
-  setSize: (size: { length: number }) => unknown;
-  on?: (
-    event: "change",
-    callback: (event: { reason: string; state: CountertopState }) => void,
-    options?: { emitCurrent: boolean },
-  ) => () => void;
-};
-
 type Props = {
   ready: boolean;
   selection: { definitionId: string; selection: Record<string, unknown> } | null;
   selectedProductId: string | null;
   createClient?: () => ConfiguratorClient;
-  getCountertopApi?: () => CabinetDebugCountertopApi | null;
+  externalBusy?: boolean;
+  onPlacementBusyChange?: (busy: boolean) => void;
   onCompositionCommitted?: (state: CabinetsState) => void | Promise<void>;
   onRepositionAvailabilityChange?: (status: CabinetRepositionAvailability) => void;
 };
@@ -70,7 +52,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     selection,
     selectedProductId,
     createClient = createConfiguratorClient,
-    getCountertopApi,
+    externalBusy = false,
+    onPlacementBusyChange,
     onCompositionCommitted,
     onRepositionAvailabilityChange,
   },
@@ -91,8 +74,6 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   const [draft, setDraft] = useState<CabinetDraftState | null>(null);
   const [status, setStatus] = useState("Waiting for cabinet runtime…");
   const [error, setError] = useState<string | null>(null);
-  const [countertop, setCountertop] = useState<CountertopState | null>(null);
-  const [length, setLength] = useState("");
   const [compositionStatus, setCompositionStatus] = useState("initializing");
   const [side, setSide] = useState("right");
   const [presetJson, setPresetJson] = useState(() => {
@@ -103,35 +84,6 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     }
   });
   const [restoreConfirmed, setRestoreConfirmed] = useState(false);
-
-  useEffect(() => {
-    if (!ready) return;
-    let disposed = false;
-    let stopCountertop: (() => void) | undefined;
-    void (async () => {
-      try {
-        const api = getCountertopApi?.();
-        if (api) {
-          const state = await api.getState();
-          if (disposed) return;
-          setCountertop(state);
-          stopCountertop = api.on?.(
-            "change",
-            (event) => {
-              if (!disposed) setCountertop(event.state);
-            },
-            { emitCurrent: true },
-          );
-        }
-      } catch (failure) {
-        if (!disposed) setError(errorMessage(failure));
-      }
-    })();
-    return () => {
-      disposed = true;
-      stopCountertop?.();
-    };
-  }, [ready, getCountertopApi]);
 
   const syncCommitted = useCallback((client: ConfiguratorClient, receipt: ConfiguratorReceipt): Promise<void> => {
     const previous = receiptSyncRef.current.get(receipt.requestId);
@@ -317,7 +269,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
 
   const command = async (run: (client: ConfiguratorClient | null) => Promise<void>) => {
     const client = clientRef.current;
-    if (pendingRef.current) return;
+    if (externalBusy || pendingRef.current) return;
     pendingRef.current = true;
     setPending(true);
     setError(null);
@@ -400,9 +352,13 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       setStatus(action === "apply" ? "Placement applied" : "Placement cancelled");
       if (action === "apply") await syncCommitted(client, result as ConfiguratorReceipt);
     });
-  const busy = !connected || capabilitiesRefreshing || pending || Boolean(sessionId) || compositionStatus !== "ready";
-  const sceneBusy =
-    !ready || capabilitiesRefreshing || pending || Boolean(sessionId) || (connected && compositionStatus !== "ready");
+  const busy =
+    externalBusy ||
+    !connected ||
+    capabilitiesRefreshing ||
+    pending ||
+    Boolean(sessionId) ||
+    compositionStatus !== "ready";
   const canAdd = supported.includes("cabinetPlacement.beginAdd");
   const canMove = supported.includes("cabinetPlacement.beginMove");
   const repositionSupported = ready && connected && canMove;
@@ -418,6 +374,12 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     onRepositionAvailabilityChange?.({ supported: repositionSupported, available: canReposition });
     return () => onRepositionAvailabilityChange?.({ supported: false, available: false });
   }, [repositionSupported, canReposition, onRepositionAvailabilityChange]);
+
+  const placementBusy = pending || Boolean(sessionId);
+  useEffect(() => {
+    onPlacementBusyChange?.(placementBusy);
+    return () => onPlacementBusyChange?.(false);
+  }, [placementBusy, onPlacementBusyChange]);
 
   return (
     <section className={s.panel} aria-label="Cabinet placement test controls">
@@ -527,51 +489,6 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
           >
             Restore JSON
           </button>
-        </details>
-      )}
-      {countertop && (
-        <details>
-          <summary>Countertop test controls</summary>
-          <button
-            type="button"
-            disabled={sceneBusy || countertop.readiness !== "ready"}
-            onClick={() =>
-              void command(async () => {
-                const api = getCountertopApi?.();
-                if (!api) return;
-                await api.setDragEnabled(!countertop.dragEnabled);
-                setCountertop(await api.getState());
-              })
-            }
-          >
-            {countertop.dragEnabled ? "Disable countertop drag" : "Enable countertop drag"}
-          </button>
-          <label>
-            Length (metres)
-            <input
-              type="number"
-              min="0.3048"
-              step="0.01"
-              value={length}
-              onChange={(event) => setLength(event.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            disabled={sceneBusy || !countertop.canResize || Number(length) < 0.3048 || !Number.isFinite(Number(length))}
-            onClick={() =>
-              void command(async () => {
-                const api = getCountertopApi?.();
-                if (!api) return;
-                await api.setSize({ length: Number(length) });
-                setCountertop(await api.getState());
-                setStatus("Countertop length updated");
-              })
-            }
-          >
-            Set countertop length
-          </button>
-          {!countertop.canResize && <p>Move the countertop away from the cabinets in the canvas to edit its length.</p>}
         </details>
       )}
     </section>

@@ -119,6 +119,24 @@ describe("Class and Mako order lines", () => {
     expect(gaps).toEqual([]);
   });
 
+  it.each(["class-porcelain-integrated", "mako-vessel-with-legs"] as const)(
+    "uses the committed top length for %s without changing cabinet or basin lines",
+    (scenario) => {
+      const input = COLLECTION_PRICING_SCENARIOS[scenario].input;
+      const fallback = buildCollectionPricingLines(input).lines;
+      const resized = buildCollectionPricingLines({ ...input, committedCountertopLengthCm: 137.5 }).lines;
+      const top = (lines: PricingLine[]) => lines.find(({ group }) => group === "countertop");
+      const geometryLines = (lines: PricingLine[]) =>
+        lines
+          .filter(({ group }) => group === "cabinet" || group === "basin")
+          .map(({ id, sku, quantity }) => ({ id, sku, quantity }));
+
+      expect(top(resized)).toMatchObject({ widthCm: 137.5 });
+      expect(top(resized)?.sku).not.toBe(top(fallback)?.sku);
+      expect(geometryLines(resized)).toEqual(geometryLines(fallback));
+    },
+  );
+
   it("cuts a vessel top once per sink base, adds the organizer and names what the order uses unconfirmed", () => {
     const { lines, gaps } = buildCollectionPricingLines(COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"].input);
 
@@ -414,6 +432,21 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
 
     const entries = Object.fromEntries(lines.map(({ sku }) => [sku, { status: "ready" as const, value: 100 }]));
     expect(derivePriceStatus({ isUnavailable: false, isLoading: false, lines, entries, gaps })).toBe("ready");
+  });
+
+  it("uses the committed runtime length only for the ULH top", () => {
+    const fallback = ulhOrder([sinkBase("ulh-sb")]).lines;
+    const resized = ulhOrder([sinkBase("ulh-sb")], {}, { committedCountertopLengthCm: 137.5 }).lines;
+    const top = (lines: PricingLine[]) => lines.find(({ group }) => group === "countertop");
+    const cabinetAndBasinLines = (lines: PricingLine[]) =>
+      lines
+        .filter(({ group }) => group === "cabinet" || group === "basin")
+        .map(({ id, sku, quantity }) => ({ id, sku, quantity }));
+
+    expect(top(fallback)?.widthCm).toBe(60);
+    expect(top(resized)).toMatchObject({ widthCm: 137.5 });
+    expect(top(resized)?.sku).not.toBe(top(fallback)?.sku);
+    expect(cabinetAndBasinLines(resized)).toEqual(cabinetAndBasinLines(fallback));
   });
 
   it("sizes the top by its sink base when a narrower cabinet stands first, as a side cabinet added on the left", () => {

@@ -4,6 +4,8 @@ export { buildCollectionPricingLines, type CollectionPricingResult } from "./bui
 export { buildColorSkuMaps } from "./buildColorSkuMaps";
 export { expandLineSkus } from "./pricingLines";
 export {
+  LatestPriceRequestCache,
+  priceRequestCacheKey,
   resolvePriceFromResponse,
   resolvePriceRequest,
   type PriceRequest,
