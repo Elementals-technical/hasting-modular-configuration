@@ -29,6 +29,22 @@ The composition saves these fields on the countertop product snapshot:
 | `SupportGroupId` | support plane used by this countertop; currently defaults to `group-1` |
 | `SpatialOffsetM: { x, y }` | manual offset from the standard X/Y produced by `RuleCountertopLayout` |
 | `CountertopLengthM` | custom length, only meaningful while the countertop is moved |
+| `positionX/positionY` | standard world position the offset is measured from (export format); kept current for a remote top in modular compositions |
+
+### Remote countertop (modular / free-layout compositions)
+
+When `compositionManager.preserveCabinetPositions` is on (ULH), a moved countertop is *remote*:
+
+- detaching it (a committed non-zero offset) without a custom length freezes the current length
+  into `CountertopLengthM`; re-attaching clears it as before;
+- when the standard base moves (a cabinet of the support group is resized, removed or moved), the
+  adapter re-expresses `SpatialOffsetM` against the new base so the WORLD pose stays fixed, and
+  notifies the cover source once the pose has landed; the part of the row the top no longer
+  covers is covered by `Cabinet_Cover` (whole row when the top is raised);
+- after a full re-import (local-runtime Apply) the saved `positionX/positionY` is the reference
+  base, so the pose survives the round trip.
+
+Attached tops and legacy (Urban / Class / Mako) compositions keep following the standard layout.
 
 Cabinet snapshots must also preserve their registry `productType`. The positioning profile reads
 `snapshot.productType` and then resolves `countertopSupport` from `ProductRegistry_V2`; entity
