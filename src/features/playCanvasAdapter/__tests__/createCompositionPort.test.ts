@@ -181,6 +181,7 @@ describe("createCompositionPort", () => {
           HandleStyle: "G50",
           Drawers: "2D",
           ShowLegs: "Disable",
+          sinkType: "Top_HPLPrisma",
           ProductType: "Mako-sink-cabinet",
           productType: "Mako-sink-cabinet",
         },

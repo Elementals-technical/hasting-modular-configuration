@@ -2,6 +2,7 @@ import {
   hasOwnCountertop,
   normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
+  selectDefaultValue,
   selectOption,
 } from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
@@ -17,6 +18,7 @@ import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
+  buildVesselSku,
   createConfiguratorColorReader,
   isChosenColor,
   resolveCollectionColorCode,
@@ -135,7 +137,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const startingCabinetColor = asText(input.cabinetColor);
 
   // A value of one cabinet: its own, the configuration's, else what the state holds for them all —
-  // the composition's value, recorded at the first cabinet (a Mako model's handle colour).
+  // the composition's value, recorded at the first cabinet (a Mako model's handle colour) — else
+  // the collection's default, as a Class frame colour nobody has chosen yet.
   const readerOf = (entry: CabinetEntry): CollectionValueReader => {
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     return (attributeId) => {
@@ -146,7 +149,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
       if (attributeId === "HandleGrooveColor") return asText(input.handleGrooveColor);
       if (attributeId === "CabinetColor") return startingCabinetColor;
-      return asText(compositionValueOf(values[attributeId], cabinets[0]?.stableKey));
+      return (
+        asText(compositionValueOf(values[attributeId], cabinets[0]?.stableKey)) ??
+        asText(selectDefaultValue(profile, attributeId))
+      );
     };
   };
 
@@ -189,6 +195,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     valueAt(values, "sinkType", { scope: "basin", sinkBaseId: entry.stableKey }) ??
     valueAt(values, "sinkType", { scope: "basin" }) ??
     (input.sinkType || null);
+  const vesselColorOf = (entry: CabinetEntry) =>
+    valueAt(values, "VesselColor", { scope: "basin", sinkBaseId: entry.stableKey }) ??
+    valueAt(values, "VesselColor", { scope: "basin" }) ??
+    asText(input.vesselColor);
   const countertopStyle = countertopValue("CountertopStyle", input.countertopStyle);
   const countertopColor = countertopValue("CountertopColor", input.countertopColor);
   const countertopThickness = countertopValue("Thickness", input.countertopThickness);
@@ -224,6 +234,31 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         group: "bracket",
         sku: countertop.bracket.sku,
         quantity: countertop.bracket.quantity,
+      });
+    }
+
+    const firstVessel = sinkBases
+      .map((entry) => ({ entry, definition: skuProfile.vessels?.[basinOf(entry) ?? ""] }))
+      .find(({ definition }) => definition);
+    if (countertopStyle === "vessel" && firstVessel?.definition) {
+      const color = vesselColorOf(firstVessel.entry);
+      const materialSku = color
+        ? resolveCollectionColorMaterial(skuProfile, profile, "VesselColor", color, readConfiguratorColor)
+        : null;
+      const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;
+      add({
+        id: "vessel",
+        group: "vessel",
+        sku: buildVesselSku({
+          vesselType: firstVessel.definition.sceneType,
+          series: firstVessel.definition.series,
+          width: null,
+          height: null,
+          depth: null,
+          materialSku,
+          colorCode,
+        }),
+        quantity: sinkBases.length,
       });
     }
   } else if (countertopColor && cabinets.length > 0) {

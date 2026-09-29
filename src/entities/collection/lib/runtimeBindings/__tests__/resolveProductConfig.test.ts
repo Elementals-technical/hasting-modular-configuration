@@ -57,7 +57,7 @@ describe("resolveProductConfig", () => {
       HandleStyle: "G50",
       Drawers: "1D",
       ShowLegs: "Disable",
-      CabinetColor: "Nebbia 402 MT",
+      CabinetColor: "Nebbia 402 Lacquered MT",
     });
   });
 
@@ -80,7 +80,7 @@ describe("resolveProductConfig", () => {
     });
   });
 
-  it("sends nothing the collection only records or does not bind", () => {
+  it("sends the mapped Mako basin but not values the collection only records or does not bind", () => {
     expect(
       resolveProductConfig(makoRuntimeBindings, {
         sinkType: "LB440",
@@ -88,7 +88,7 @@ describe("resolveProductConfig", () => {
         GrainDirection: "Vertical",
         Width: 60,
       }),
-    ).toEqual({ Width: 60 });
+    ).toEqual({ sinkType: "Top_HPLPrisma", Width: 60 });
   });
 
   it("keeps an Urban handle a Mako cabinet cannot take under its own key, which the Mako scene ignores", () => {

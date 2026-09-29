@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
 import { selectOptionValues } from "../../productProfileSelectors";
-import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import { configurationValueOf, isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 import { makoProfile } from "../../../__tests__/makoProfileFixture";
@@ -70,13 +70,46 @@ describe("mako runtime bindings", () => {
   });
 
   it("send the colours as material names", () => {
-    expect(patchOf("CabinetColor", "Nebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 MT" });
+    expect(patchOf("CabinetColor", "Nebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("CabinetColor", "GNebbia 402 MT")).toEqual({ CabinetColor: "Nebbia 402 Glass MT" });
+    expect(patchOf("HandleColor", "Nebbia 402 MT")).toEqual({ HandleColor: "Nebbia 402 Lacquered MT" });
     expect(patchOf("HandleColor", "Silver")).toEqual({ HandleColor: "Silver" });
+    expect(patchOf("LegColor", "Nebbia 402 MT")).toEqual({ ShowLegs: "Enable", LegColor: "Nebbia 402 Lacquered MT" });
+    expect(patchOf("CountertopColor", "Nero 433 GL")).toEqual({ CountertopColor: "Nero 433 Glass GL" });
   });
 
-  it("record the basin and the groove colour without a scene call", () => {
-    for (const attributeId of ["sinkType", "VesselColor", "HandleGrooveColor"]) {
-      expect(isStateOnlyResolution(resolveRuntimeBinding(makoRuntimeBindings, attributeId, "x"))).toBe(true);
-    }
+  it("read the chosen colour back from the material name the scene holds", () => {
+    const read = (sceneValue: string, chosenValue: string) =>
+      configurationValueOf(makoRuntimeBindings, "CabinetColor", sceneValue, chosenValue);
+
+    expect(read("Nebbia 402 Lacquered MT", "Nebbia 402 MT")).toBe("Nebbia 402 MT");
+    // A scene value the chosen colour is not sent as stays as it was read.
+    expect(read("Nebbia 402 Lacquered MT", "Acqua 419 MT")).toBe("Nebbia 402 Lacquered MT");
+    expect(configurationValueOf(null, "CabinetColor", "Nebbia 402 Lacquered MT", "Nebbia 402 MT")).toBe(
+      "Nebbia 402 Lacquered MT",
+    );
+  });
+
+  it("maps every Mako basin to its scene sub-product and sends the vessel colour", () => {
+    expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
+    expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_HPLPrisma" });
+    expect(patchOf("sinkType", "LB175")).toEqual({ sinkType: "Top_Tekorlux_Ron" });
+    expect(patchOf("sinkType", "LB575")).toEqual({ sinkType: "Top_Tekorlux_Quadra" });
+    expect(patchOf("sinkType", "LB856")).toEqual({ sinkType: "Top_HPLStrip" });
+    expect(patchOf("sinkType", "VA024")).toEqual({ sinkType: "Top_HPLCover" });
+    expect(patchOf("sinkType", "LV890")).toEqual({ sinkType: "Top_Tekorlux_Trip" });
+    expect(patchOf("sinkType", "LV892")).toEqual({ sinkType: "Top_Ocritech_Orion" });
+    expect(patchOf("sinkType", "VA002")).toEqual({ sinkType: "Top_Ocritech_Oly55" });
+    expect(patchOf("sinkType", "VA005")).toEqual({ sinkType: "Top_Tekorlux_Rectangular" });
+    expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
+    expect(patchOf("sinkType", "Frame")).toEqual({ sinkType: "Vessel_Frame" });
+    expect(patchOf("sinkType", "Plaza")).toEqual({ sinkType: "Vessel_Blade11" });
+    expect(patchOf("VesselColor", "Grigio Argento 403 GL")).toEqual({
+      VesselColor: "Grigio Argento 403 GL",
+    });
+  });
+
+  it("keeps the unsupported groove colour in state only", () => {
+    expect(isStateOnlyResolution(resolveRuntimeBinding(makoRuntimeBindings, "HandleGrooveColor", "x"))).toBe(true);
   });
 });

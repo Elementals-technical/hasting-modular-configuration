@@ -46,6 +46,7 @@ const configurator9Catalog: ConfiguratorGroupCatalog = {
  */
 const CLASS_OWN_FRONTS: readonly { value: string; sku: string; material: string }[] = [
   { value: "CALACATTA BLACK 338", sku: "POR", material: "Porcelain" },
+  { value: "NERO ATLANTE LUCIDO 326", sku: "POR", material: "Porcelain" },
   { value: "Fume", sku: "SGLS", material: "Smoke Glass" },
   { value: "GGrigio Argento 403 GL", sku: "GLSG", material: "Glass GL" },
   { value: "Nativo Cotto 961", sku: "LAM", material: "Laminates" },
@@ -190,6 +191,7 @@ export const COLLECTION_PRICING_SCENARIOS: Record<
       CountertopStyle: [at(COUNTERTOP, "vessel")],
       CountertopColor: [at(COUNTERTOP, "Matte White")],
       sinkType: [at({ scope: "basin", sinkBaseId: "mko-sb" }, "Iris")],
+      VesselColor: [at({ scope: "basin", sinkBaseId: "mko-sb" }, "Grigio Argento 403 GL")],
       FaucetHolesAmount: [at(COUNTERTOP, "3")],
       DividersStyle: [at({ scope: "drawer", cabinetId: "mko-sb", drawerType: "Top" }, "Oak")],
     }),

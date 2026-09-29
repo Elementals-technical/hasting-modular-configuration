@@ -295,6 +295,13 @@
         "matchedSku": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
       },
       "error": null
+    },
+    "VES-IRIS-X-XW-XH-XD-LACG-403": {
+      "price": null,
+      "resolver": "VES/matrix",
+      "parsed": null,
+      "metadata": null,
+      "error": "No confirmed product price"
     }
   }
 }

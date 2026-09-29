@@ -61,11 +61,12 @@ profile keeps the product values; `runtime-bindings.json` says how each reaches 
 | `Height` | 26 / 52 only |
 | `Width`, `Depth` | as they are, in cm (the scene takes 40–120 and 52) |
 | `LegColor` | no colour: legs hidden and their colour cleared; a colour: legs shown in it. `None` shows them in the cabinet colour |
-| `CabinetColor`, `HandleColor`, `CountertopColor` | as they are: the scene takes the exact material name |
+| `CabinetColor`, `HandleColor`, `CountertopColor`, a `LegColor` colour | the exact scene material name, which names the material: `overrides` send `Acqua 419 MT` as `Acqua 419 Lacquered MT`, the glass `GAcqua 419 MT` as `Acqua 419 Glass MT`; `Gold` / `Silver` as they are |
 | `sinkType`, `VesselColor`, `HandleGrooveColor` | recorded only: no Mako basin in the scene, no groove on Mako handles |
 
-The scene does not have the Mako materials yet (it has `Antracite Matte OCF` only), so a colour is sent but not shown
-until the scene adds it.
+Since the canvas update of 2026-09-29 the scene has the lacquered and glass materials and four HPL countertops
+(`Bianco Kos 250`, `Grigio Bromo 253`, `Grigio London 252`, `Nero Ingo 251`). It has no Porcelain, Laminate, Solid
+Surface or other HPL material yet: such a colour is sent as it is and not shown.
 
 ## Master File values left out
 

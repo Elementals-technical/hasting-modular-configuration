@@ -109,9 +109,10 @@ describe("mako model compositions", () => {
         const drawers = normalizeOptionValue(makoProfile, "Drawers", config.Drawers);
 
         expect(makoRuntimeBindings.productTypes[name]).toMatch(/^Mako-(sink|side)-cabinet$/);
+        // "Antracite 400 MT" reaches the scene under its material name.
         expect(resolveProductConfig(makoRuntimeBindings, { ...config, Drawers: drawers }), title).toMatchObject({
-          CabinetColor: "Antracite 400 MT",
-          HandleColor: "Antracite 400 MT",
+          CabinetColor: "Antracite 400 Lacquered MT",
+          HandleColor: "Antracite 400 Lacquered MT",
           HandleStyle: "G57",
           ShowLegs: legs ? "Enable" : "Disable",
         });

@@ -90,7 +90,7 @@ Listed in `excludedFromThisProfile`:
 
 | Owner | What is needed |
 |---|---|
-| Product | A Class configurator and Class rows in the cabinet and countertop tables; approved `defaults`; the colour → CABF/CABS/FRM code join and the /B, /C rule; model recipes for the 44 models; thickness decision; vessel SKUs and assets. Whether integrated basins are held back as undetermined until the countertop table has Class rows (one `undeterminedRules` entry, but it disables every integrated basin). |
+| Product | A Class configurator and Class rows in the cabinet and countertop tables; the colour → CABF/CABS/FRM code join and the /B, /C rule; model recipes for the 44 models; thickness decision; vessel SKUs and assets. Whether integrated basins are held back as undetermined until the countertop table has Class rows (one `undeterminedRules` entry, but it disables every integrated basin). |
 | A | Load Class sources instead of 4 / 438 / 439. |
 | B | Fields for Cabinet Side Color and Frame Color, no handle step, the vessel styles. |
 | I | Scene bindings for the side and frame colour slots, the basins and the frame grip. |
