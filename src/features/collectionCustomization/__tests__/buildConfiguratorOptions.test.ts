@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import { resolveCountertopFallbackTexture } from "@/entities/countertop";
 
 import { buildConfiguratorOptions } from "../lib/buildConfiguratorOptions";
 
@@ -132,5 +134,19 @@ describe("buildConfiguratorOptions", () => {
         "SSTL",
       ]);
     });
+  });
+
+  it("pictures a colour configurator 4 leaves without one by its colour code, as the countertop swatches", () => {
+    // Configurator 4 gives its Ceramic vessel colours neither a picture nor a hex.
+    const vessels = configurator4.availableOptions.find(
+      ({ proxyName }) => proxyName === "Vessels",
+    ) as ConfiguratorAvailableOption;
+    const options = buildConfiguratorOptions(vessels);
+
+    expect(options.map(({ value, image }) => [value, image])).toEqual([
+      ["Antracite Matte OCF", resolveCountertopFallbackTexture("Antracite Matte OCF")],
+      ["Cemento Matte OCD", resolveCountertopFallbackTexture("Cemento Matte OCD")],
+    ]);
+    expect(options.every(({ image }) => Boolean(image))).toBe(true);
   });
 });

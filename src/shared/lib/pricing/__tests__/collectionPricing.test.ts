@@ -187,6 +187,27 @@ describe("Class and Mako order lines", () => {
     ]);
   });
 
+  it.each([
+    ["Mako", MAKO],
+    ["Class", CLASS],
+  ] as const)("prices a %s vessel top without a vessel sink in full, the cutout included", (_, collection) => {
+    // Switching to vessel clears the basin of the sink base: the top is ordered with its cutout alone.
+    const { lines, gaps } = buildCollectionPricingLines(
+      collectionPricingInput(
+        collection,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+        {
+          CountertopStyle: [at({ scope: "countertop" }, "vessel")],
+          CountertopColor: [at({ scope: "countertop" }, "Nero 433 GL")],
+          sinkType: [at({ scope: "basin", sinkBaseId: "sb" }, "")],
+        },
+      ),
+    );
+
+    expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBGLSG-HCUT", quantity: 1 });
+    expect(gaps.map(({ group }) => group)).not.toContain("vessel");
+  });
+
   it("reads the Mako cabinets the scene placed as its Mako products", () => {
     const { input } = COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"];
     const sceneIds = ["Mako-sink-cabinet-k3j4h5g6f", "Mako-side-cabinet-a1b2c3d4e"];
@@ -408,12 +429,9 @@ describe("Class and Mako order lines", () => {
       "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
     );
 
-    const vessel = withStyle("Vessel");
-    expect(vessel.lines.find(({ group }) => group === "countertop")?.sku).toBe(
+    expect(withStyle("Vessel").lines.find(({ group }) => group === "countertop")?.sku).toBe(
       "CT-GBGLSG-VES-23.6W-.5H-20.7D-GLSG-433",
     );
-    // The vessel sink Mako has no price for keeps the total incomplete.
-    expect(vessel.gaps.map(({ group }) => group)).toContain("vessel");
   });
 
   it("leaves a model without legs without a legs line", () => {
@@ -648,14 +666,32 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(gaps).toEqual([]);
   });
 
-  it("cuts a vessel top once per sink base and keeps the vessel sink unpriced", () => {
+  it("cuts a vessel top once per sink base and orders the vessel of each in its colour, as USH does", () => {
     const { lines, gaps } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
       CountertopStyle: [at(countertop, "vessel")],
+      sinkType: [at({ scope: "basin" }, "Vessel_Blade11")],
+      VesselColor: [at({ scope: "basin" }, "Antracite Matte OCF")],
     });
 
     expect(lines.find(({ group }) => group === "countertop")?.sku).toBe("CT-URHPL-VES-47.2W-.5H-18.1D-HPL-TKF");
     expect(skusOf(lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 2 }]);
-    expect(gaps.map(({ group }) => group)).toEqual(["vessel"]);
+    // Blade 11 is ceramic, 19.7" wide and 15" deep whatever the top it stands on.
+    expect(skusOf(lines, "vessel")).toEqual([{ sku: "VES-BLD11-X-19.7W-6.1H-15D-CER-OCF", quantity: 2 }]);
+    expect(gaps).toEqual([]);
+  });
+
+  it("leaves out the basin a switch to vessel cleared, although the model recorded one for the composition", () => {
+    // Placing a model records its basin for the composition; switching to vessel clears it at each
+    // sink base (buildChangePlan), and the cleared one is what the sink base has.
+    const { lines, gaps } = ulhOrder([sinkBase("ulh-sb")], {
+      CountertopStyle: [at(countertop, "vessel")],
+      sinkType: [at({ scope: "basin" }, "Top_Porcelain_Cover"), at({ scope: "basin", sinkBaseId: "ulh-sb" }, "")],
+    });
+
+    expect(skusOf(lines, "basin")).toEqual([]);
+    expect(skusOf(lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 1 }]);
+    // No vessel sink is ordered, and a 60 cm sink base takes none (table 438): nothing is left unpriced.
+    expect(gaps).toEqual([]);
   });
 
   it("says so when the countertop table gives the material no thickness at the cabinets' depth", () => {

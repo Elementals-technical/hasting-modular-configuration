@@ -61,7 +61,7 @@
       "blocksTotal": true,
       "owner": "product",
       "reason": "Iris, Frame and Plaza have no SKU or price yet; the vessel cutout of each sink base is priced.",
-      "appliesWhen": { "attributeId": "CountertopStyle", "values": ["vessel"] }
+      "appliesWhen": { "attributeId": "sinkType", "values": ["Iris", "Frame", "Plaza"] }
     },
     {
       "group": "solidSurfaceGroup",

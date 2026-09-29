@@ -33,6 +33,7 @@ import type { PricingGap, PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
 import { buildUshTowelBarLines } from "./ushTowelBarLines";
+import { buildUshVesselLines } from "./ushVesselLines";
 
 /**
  * Order lines of a collection priced from its `sku-profile.json` (D04): Class, Mako and Urban Low
@@ -41,8 +42,8 @@ import { buildUshTowelBarLines } from "./ushTowelBarLines";
  * Read from C's state — cabinets, their sizes and the values addressed to each cabinet, basin
  * and drawer — rather than the scene, which these collections do not have yet (I07). The lines
  * have the shape and ids of the USH lines, so the price store, the bottom bar and Summary
- * treat them alike. Quantities follow USH: a basin and a vessel cutout per sink base, the top
- * and the faucet holes once. What the collection has not confirmed comes back as gaps.
+ * treat them alike. Quantities follow USH: a basin, a vessel cutout and a vessel per sink base, the
+ * top and the faucet holes once. What the collection has not confirmed comes back as gaps.
  */
 
 export type CollectionPricingResult = { lines: PricingLine[]; gaps: PricingGap[] };
@@ -190,10 +191,16 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     Number.isFinite(committedCountertopLengthCm) &&
     committedCountertopLengthCm > 0;
   const ownCountertopWidthCm = hasCommittedCountertopLength ? committedCountertopLengthCm : widthCm;
-  const basinOf = (entry: CabinetEntry) =>
-    valueAt(values, "sinkType", { scope: "basin", sinkBaseId: entry.stableKey }) ??
-    valueAt(values, "sinkType", { scope: "basin" }) ??
-    (input.sinkType || null);
+  // A value of the basin of one sink base: its own, a cleared one too, as a switch to vessel clears
+  // the basin there; else the composition's, recorded when a model was placed; else the builder's.
+  const basinValueOf = (entry: CabinetEntry, attributeId: string, legacy: string | null) => {
+    const own = values[attributeId]?.find(({ target }) =>
+      isSameTarget(target, { scope: "basin", sinkBaseId: entry.stableKey }),
+    );
+    if (own) return asText(own.value);
+    return valueAt(values, attributeId, { scope: "basin" }) ?? (legacy || null);
+  };
+  const basinOf = (entry: CabinetEntry) => basinValueOf(entry, "sinkType", input.sinkType);
   const countertopStyle = countertopValue("CountertopStyle", input.countertopStyle);
   const countertopColor = countertopValue("CountertopColor", input.countertopColor);
   const countertopThickness = countertopValue("Thickness", input.countertopThickness);
@@ -238,22 +245,21 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : null;
     // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
     const sinkBaseWidth = sinkBases.length > 0 ? (dimensionsByCabinet[sinkBases[0].stableKey]?.width ?? null) : null;
+    const compositionWidthCm =
+      widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight);
+    const countertop = resolveUshCountertop(input, {
+      color: countertopColor,
+      sinkType,
+      width: sinkBaseWidth,
+      depth: firstSize?.depth ?? null,
+    });
     const countertopLines = buildUshCountertopLines({
       series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
-      countertop: resolveUshCountertop(input, {
-        color: countertopColor,
-        sinkType,
-        width: sinkBaseWidth,
-        depth: firstSize?.depth ?? null,
-      }),
+      countertop,
       style: countertopStyle ?? "",
       faucetHolesAmount: faucetHoles ?? "",
       sinkType,
-      widthCm: hasCommittedCountertopLength
-        ? committedCountertopLengthCm
-        : widthCm === null
-          ? null
-          : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight),
+      widthCm: hasCommittedCountertopLength ? committedCountertopLengthCm : compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
       sinkBases: sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
       sinkBaseCount: sinkBases.length,
@@ -265,6 +271,16 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (!countertopLines.some(({ group }) => group === "countertop")) {
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
+    buildUshVesselLines({
+      profile,
+      countertop,
+      countertopColorSkuCandidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
+      sinkType,
+      vesselColor: sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor", input.vesselColor) : null,
+      widthCm: compositionWidthCm,
+      depthCm: firstSize?.depth ?? null,
+      sinkBaseCount: sinkBases.length,
+    }).forEach(add);
   }
 
   // 3) Legs: the collection's own number of them, in their colour or the cabinet's, as the whole

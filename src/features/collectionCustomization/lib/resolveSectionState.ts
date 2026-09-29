@@ -28,6 +28,8 @@ export type FieldAvailability = {
   visibleValues?: readonly string[];
   /** The option shown as chosen while nothing is stored, e.g. None for a vessel without a basin. */
   valueWhenEmpty?: string;
+  /** The allowed value `autoSelect` takes before the first one, e.g. the default finish of a vessel. */
+  preferredValue?: string;
 };
 
 // Keyed by availabilityRef as spelled in ui.json.
@@ -55,7 +57,7 @@ const resolveFieldAvailability = (
 const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
 
 // An optionsRef field takes the configurator section its profile attribute names in optionsSource.
-const resolveConfiguratorOptions = (
+export const resolveConfiguratorOptions = (
   profile: ProductProfile | null,
   attributeId: string,
   configurator: ConfiguratorGroupCatalog | null,
@@ -141,6 +143,7 @@ export const resolveSectionFields = (
       reasonCode: availability.reasonCode,
       reasonParams: availability.reasonParams,
       hint: value === null ? undefined : definition.hints?.[String(value)],
+      preferredValue: availability.preferredValue,
     };
 
     return { definition, field };

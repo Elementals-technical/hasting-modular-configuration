@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
@@ -45,9 +45,9 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
-// Configurator 4 as Urban Low Height loads it, with one live Tekorlux colour: its material is
-// "Lacquered MT" (LACM), which the recorded fixture leaves out.
-const ulhConfiguratorGroups = configuratorSchema.parse(configurator4).availableOptions.map((group) =>
+// Configurator 4 as Urban Low Height loads it, with live colours the recorded fixture leaves out: its
+// vessel colours by material, and one Tekorlux countertop colour, whose material is "Lacquered MT" (LACM).
+const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions.map((group) =>
   group.proxyName === "Countertop Color"
     ? {
         ...group,
@@ -311,5 +311,37 @@ describe.each(Object.entries(collections))("%s vessel choice follows the USH cou
     expect(fieldOf("vessel-color")?.visible).toBe(true);
     expect(vesselColors?.length).toBeGreaterThan(0);
     expect(vesselColors).toEqual(fieldOf("cabinet-color", "color")?.options.map(({ value }) => value));
+  });
+});
+
+// The Urban Standard Height vessels take the colours its vesselCompatibility names, judged by the
+// material a colour is listed under and its colour code, as the USH countertop step judges them.
+describe("Urban Low Height vessel colours follow the chosen vessel, as the USH countertop step", () => {
+  const { fieldOf, enabledValues } = fieldsOf(urbanLowHeight);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("vessel"));
+  });
+
+  it("offers the colour once a vessel is chosen: the empty cutout has none", () => {
+    store.dispatch(setActiveBasinStyle(""));
+    expect(fieldOf("vessel-color")?.visible).toBe(false);
+
+    store.dispatch(setActiveBasinStyle("Vessel_Blade11"));
+    expect(fieldOf("vessel-color")?.visible).toBe(true);
+  });
+
+  it.each([
+    ["Vessel_Blade11", ["Antracite Matte OCF", "Cemento Matte OCD"]],
+    ["Vessel_UrbanModo", ["Matte Black T1D", "Matte White T1C"]],
+    ["Vessel_UrbanMorris", ["Bianco Gloss TAL", "Bianco Matte TAM"]],
+    ["Vessel_Aquarius", ["Agata BD MT", "Bianco Gloss TAL", "Bianco Matte TAM"]],
+  ])("enables the colours %s takes", (vessel, colors) => {
+    store.dispatch(setActiveBasinStyle(vessel));
+
+    expect(enabledValues("vessel-color")).toEqual(colors);
   });
 });

@@ -5,7 +5,6 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
@@ -21,6 +20,7 @@ import ulhUiDocument from "../../../../public/collections/urban-low-height/ui.js
 import { store } from "@/app/store";
 import { parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -36,6 +36,7 @@ import {
   setActiveProfile,
   setCountertopStyle,
   setSelectedDimensions,
+  setVesselColor,
 } from "@/entities/product/model/store/slice";
 import type { AttributeChange, ChangeResult } from "@/features/configurationCommands";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
@@ -102,7 +103,7 @@ const urbanLowHeight = readyCollectionOf(
   "urban-low-height",
   ulhManifestDocument,
   ulhUiDocument,
-  configurator4,
+  configurator4WithLiveVessels,
   datatable438,
 );
 const mako = readyCollectionOf("mako", makoManifestDocument, makoUiDocument, configurator9, datatable577);
@@ -181,6 +182,41 @@ describe("the Urban Low Height countertop step keeps its thickness and basin on 
     renderCountertopStep(urbanLowHeight);
 
     expect(changeMock).not.toHaveBeenCalled();
+  });
+
+  it("gives a chosen vessel the first colour it takes, as the USH vessel step does, and keeps one it takes", () => {
+    store.dispatch(setActiveCountertopThickness("0.5"));
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle("Vessel_Blade11"));
+
+    renderCountertopStep(urbanLowHeight);
+
+    // Blade 11 is ceramic only. The colour of the composition's vessel: the command puts it on every Sink Base.
+    expect(changeMock).toHaveBeenCalledWith({
+      attributeId: "VesselColor",
+      value: "Antracite Matte OCF",
+      scope: "basin",
+    });
+    expect(changedAttributes()).toEqual(["VesselColor"]);
+
+    cleanup();
+    changeMock.mockClear();
+    store.dispatch(setVesselColor("Cemento Matte OCD"));
+    renderCountertopStep(urbanLowHeight);
+
+    expect(changeMock).not.toHaveBeenCalled();
+  });
+
+  it("gives Urban Modo its default finish, as the USH vessel step does, over the first colour it takes", () => {
+    store.dispatch(setActiveCountertopThickness("0.5"));
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanModo"));
+    store.dispatch(setVesselColor("Antracite Matte OCF"));
+
+    renderCountertopStep(urbanLowHeight);
+
+    // Urban Modo takes Matte Black T1D and Matte White T1C; its default finish is T1C (vesselCompatibility).
+    expect(changeMock).toHaveBeenCalledWith({ attributeId: "VesselColor", value: "Matte White T1C", scope: "basin" });
   });
 });
 

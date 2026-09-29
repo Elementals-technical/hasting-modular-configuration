@@ -4,6 +4,7 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+import { resolveCountertopFallbackTexture } from "@/entities/countertop";
 
 import type { FieldOptionState } from "@/entities/collection";
 
@@ -47,7 +48,12 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
           value,
           label,
           enabled: true,
-          image: overrides.image ?? pick(nested.image, meta.image, variant.image),
+          // Configurator 4 leaves some colours without a picture (the Ceramic vessels); their colour
+          // code names the swatch the countertop pages show for it.
+          image:
+            overrides.image ??
+            pick(nested.image, meta.image, variant.image) ??
+            resolveCountertopFallbackTexture(variant.name),
           desc: optionMaterial ?? materials[0] ?? group.proxyName,
           traits: {
             sku: pick(meta.sku, nested.sku),
