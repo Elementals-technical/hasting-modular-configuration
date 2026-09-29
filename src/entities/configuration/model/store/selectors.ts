@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
+import { isSinkBaseRuntimeId } from "@/entities/collection";
 import type { ProductProfile } from "@/entities/collection";
 
 import { compositionValueOf } from "../compositionValue";
@@ -89,6 +90,14 @@ export const getAttributeValue = (
  */
 export const getActiveProductProfile = (state: RootState): ProductProfile | null =>
   state.rootStateUI.product.activeProfile;
+
+/**
+ * Whether a placed product is a Sink Base of the active collection, from its runtime id or its
+ * scene type. The scene names a product after its scene type (`Sink-Base-…` in Urban,
+ * `Mako-sink-cabinet-…` in Mako); the runtime bindings map it back.
+ */
+export const isSinkBase = (state: RootState, runtimeId: string): boolean =>
+  isSinkBaseRuntimeId(getActiveProductProfile(state), getActiveRuntimeBindings(state), runtimeId);
 
 /**
  * One serialized form shared by Save/Share, history and the price consumer.

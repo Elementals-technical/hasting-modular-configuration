@@ -86,6 +86,7 @@ import {
 } from "@/utils/functions/getDropdownPosition";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
+import { useIsSinkBase } from "@/entities/configuration";
 import { getActiveProductProfile, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
 import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
 import { buildStepPathById, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
@@ -389,7 +390,7 @@ export const PlayCanvasIntegration = ({
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const placedDividers = useAppSelector(getPlacedDividers);
   const selectedProducts = useAppSelector(getSelectedProducts);
-  const sinkBaseDims = useSinkBaseDimensions(selectedProducts);
+  const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   const productIds = useAppSelector((store) => store.rootStateUI.product.productIds);
 
   const shouldShowEmptySceneRedirectButton =

@@ -134,7 +134,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   // Until a cabinet colour is chosen, the one the builder starts from: the collection's default.
   const startingCabinetColor = asText(input.cabinetColor);
 
-  // A value of one cabinet: its own, the configuration's, else what the state holds for them all.
+  // A value of one cabinet: its own, the configuration's, else what the state holds for them all —
+  // the composition's value, recorded at the first cabinet (a Mako model's handle colour).
   const readerOf = (entry: CabinetEntry): CollectionValueReader => {
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     return (attributeId) => {
@@ -145,7 +146,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
       if (attributeId === "HandleGrooveColor") return asText(input.handleGrooveColor);
       if (attributeId === "CabinetColor") return startingCabinetColor;
-      return null;
+      return asText(compositionValueOf(values[attributeId], cabinets[0]?.stableKey));
     };
   };
 

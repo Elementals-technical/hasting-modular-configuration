@@ -284,7 +284,7 @@ describe("buildChangePlan", () => {
 
   describe("countertop style", () => {
     const basinTarget: ValueTarget = { scope: "basin", sinkBaseId: "cab-1" };
-    const stylePlan = (value: string, sinkType: string, vesselColor: string) =>
+    const stylePlan = (value: string, sinkType: string, vesselColor: string, sinkBaseIds = ["cab-1"]) =>
       buildChangePlan({
         attributeId: "CountertopStyle",
         value,
@@ -294,8 +294,19 @@ describe("buildChangePlan", () => {
         catalog,
         profile,
         handleGrooveColor: null,
-        basin: { sinkBaseId: "cab-1", sinkType, vesselColor },
+        basin: { sinkBaseIds, sinkType, vesselColor },
       });
+
+    it("clears the basin of every Sink Base, as a basin goes on every one", () => {
+      expect(stylePlan("vessel", "Top_HPLPrisma", "", ["cab-1", "cab-2"])).toMatchObject({
+        ok: true,
+        plan: [
+          { attributeId: "CountertopStyle" },
+          { attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-1" }, value: "" },
+          { attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-2" }, value: "" },
+        ],
+      });
+    });
 
     it("clears an integrated basin when the style changes to vessel", () => {
       expect(stylePlan("vessel", "Top_HPLPrisma", "")).toEqual({

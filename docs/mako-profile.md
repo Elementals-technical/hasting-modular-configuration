@@ -38,7 +38,7 @@ its material group. Mako glass keys have no `G` prefix, unlike Class (Q-MAKO-010
 | `LegColor` | cabinet | 22: Metal 2, Lacquered MT 20 | §6, CSV L201–L222 |
 | `CountertopStyle` | countertop | `integrated`, `vessel` | §8 |
 | `CountertopColor` | countertop | 70: Solid Surface 1, HPL 14, Porcelain 15, Glass MT 20, Glass GL 20 | §7, CSV L120–L190 |
-| `sinkType` | basin | integrated: LB440, LB175, LB575, LB856, VA024, LV890, LV892, VA002, VA005; vessel: Iris, Frame, Plaza | §9–10 |
+| `sinkType` | basin | integrated: LB440, LB175, LB575, LB856, VA024, LV890, LV892, VA002, VA005; vessel: Iris, Frame, Plaza. On the Countertop & Basin step a basin table 577 does not allow the colour takes the first it allows (`autoSelect: "firstAllowed"` in `ui.json`), as in Urban Standard Height — VA005 becomes VA024 on an HPL top | §9–10 |
 | `FaucetHolesAmount` | countertop | `0`–`3` | §11 |
 | `DividersStyle` | drawer | `Metal`, `Oak` | §13 |
 

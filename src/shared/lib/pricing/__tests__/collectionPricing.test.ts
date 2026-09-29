@@ -244,6 +244,37 @@ describe("Class and Mako order lines", () => {
     expect(lines[0].sku).toBe("VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400");
   });
 
+  it("spells the handle colour of the composition on every cabinet, and a cabinet's own where it has one", () => {
+    // A model and the Handle Color field record the composition's colour once, at the first cabinet.
+    const first: ValueTarget = { scope: "cabinet", cabinetId: "mko-1" };
+    const second: ValueTarget = { scope: "cabinet", cabinetId: "mko-2" };
+    const cabinetSkus = (handleColors: ScopedValue[]) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          MAKO,
+          [
+            { stableKey: "mko-1", runtimeId: "Sink-Base-aaa111", size: { width: 60, height: 26, depth: 52 } },
+            { stableKey: "mko-2", runtimeId: "Sink-Base-bbb222", size: { width: 60, height: 26, depth: 52 } },
+          ],
+          {
+            Drawers: [at(first, "1"), at(second, "1")],
+            Handle: [at(first, "G57"), at(second, "G57")],
+            HandleColor: handleColors,
+            CabinetColor: [at({ scope: "global" }, "Antracite 400 MT")],
+          },
+        ),
+      ).lines.flatMap(({ group, sku }) => (group === "cabinet" ? [sku] : []));
+
+    expect(cabinetSkus([at(first, "Antracite 400 MT")])).toEqual([
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+    ]);
+    expect(cabinetSkus([at(first, "Antracite 400 MT"), at(second, "Silver")])).toEqual([
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+      "VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
+    ]);
+  });
+
   it("stands a shipped Mako model on its pair of legs, in the cabinet's colour", () => {
     if (!modelWithLegs) throw new Error("No Mako model carries legs");
     const { lines, gaps } = buildCollectionPricingLines(makoModelInput(modelWithLegs));

@@ -203,7 +203,8 @@
         {
           "attributeId": "sinkType",
           "control": "options-grid",
-          "availabilityRef": "sinkType.allowed"
+          "availabilityRef": "sinkType.allowed",
+          "autoSelect": "firstAllowed"
         }
       ]
     },
