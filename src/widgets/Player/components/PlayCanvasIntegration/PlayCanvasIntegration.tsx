@@ -154,7 +154,7 @@ import {
 } from "./lib/vesselBasinSelection";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "034";
+const PLAYCANVAS_VERSION = "035";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 /** Stable code; the text comes from the collection's `messages`. */
@@ -411,6 +411,8 @@ export const PlayCanvasIntegration = ({
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
   const cabinetPlacementDebugEnabled = isCabinetPlacementDebugEnabled(location.search);
+  // Engineering tools of the Drag & Drop (Move selected, add side, Save/Restore JSON): ?placementDebug
+  const cabinetPlacementDebugTools = new URLSearchParams(location.search).has("placementDebug");
   const cabinetPlacementRef = useRef<CabinetPlacementControls>(null);
   const [repositionStatus, setRepositionStatus] = useState({ supported: false, available: false });
   const countertopPlacementRef = useRef<CountertopPlacementHandle>(null);
@@ -3578,6 +3580,7 @@ export const PlayCanvasIntegration = ({
           selection={cabinetDebugSelection}
           selectedProductId={selectedSceneProduct}
           onCompositionCommitted={adoptCommittedCabinetComposition}
+          showDebugTools={cabinetPlacementDebugTools}
         />
       )}
 

@@ -1,7 +1,7 @@
 import { runInBatchQueue } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { ConfiguratorError } from "./types";
-import type { ConfiguratorApi, ConfiguratorNamespace, ConfiguratorUnsubscribe } from "./types";
+import type { ConfiguratorApi, ConfiguratorNamespace, ConfiguratorUnsubscribe, PlacementOverlayFrame } from "./types";
 
 type PlayCanvasHost = {
   containerRef?: { current?: { contentWindow?: unknown } | null };
@@ -18,6 +18,12 @@ export type ConfiguratorBridge = {
     callback: (event: unknown) => void,
     options?: unknown,
   ): Promise<ConfiguratorUnsubscribe>;
+  /** Draft overlay frames; resolves null when this PlayCanvas build has no `placementOverlay`. */
+  subscribePlacementOverlay?(
+    callback: (frame: PlacementOverlayFrame | null) => void,
+  ): Promise<ConfiguratorUnsubscribe | null>;
+  /** Resolves false when the build has no `placementOverlay`. */
+  setPlacementOverlayPlaceholders?(enabled: boolean): Promise<boolean>;
 };
 
 export type ConfiguratorBridgeOptions = {
@@ -147,6 +153,30 @@ export const createConfiguratorBridge = (
         },
         args,
       );
+    },
+
+    // The overlay is presentation only: it is not scope-bound and never joins the batch queue.
+    // It is read from the current iframe at call time, like every other call.
+    async subscribePlacementOverlay(callback) {
+      const overlay = getTarget()?.api.placementOverlay;
+      if (!isRecord(overlay) || typeof overlay.on !== "function") return null;
+      try {
+        const unsubscribe = overlay.on("change", callback, { emitCurrent: true });
+        return typeof unsubscribe === "function" ? unsubscribe : null;
+      } catch (error) {
+        throw toBridgeError(error, "placementOverlay.on");
+      }
+    },
+
+    async setPlacementOverlayPlaceholders(enabled) {
+      const overlay = getTarget()?.api.placementOverlay;
+      if (!isRecord(overlay) || typeof overlay.setPlaceholdersEnabled !== "function") return false;
+      try {
+        overlay.setPlaceholdersEnabled(enabled);
+        return true;
+      } catch (error) {
+        throw toBridgeError(error, "placementOverlay.setPlaceholdersEnabled");
+      }
     },
 
     subscribe(

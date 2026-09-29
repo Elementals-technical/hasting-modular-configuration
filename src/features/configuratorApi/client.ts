@@ -30,6 +30,7 @@ import type {
   ConfiguratorScope,
   CabinetSelection,
   ConfiguratorUnsubscribe,
+  PlacementOverlayFrame,
 } from "./types";
 
 export type ConfiguratorCapabilitiesOptions = { refresh?: boolean };
@@ -81,6 +82,10 @@ export interface ConfiguratorClient {
     callback: (event: ConfiguratorEventEnvelope<ConfiguratorEventPayload<N, E>>) => void,
     options?: unknown,
   ): Promise<ConfiguratorUnsubscribe>;
+  /** Draft overlay frames (anchors for the UI's icons). Resolves null when the build has none. */
+  onPlacementOverlay(callback: (frame: PlacementOverlayFrame | null) => void): Promise<ConfiguratorUnsubscribe | null>;
+  /** Switch PlayCanvas' temporary overlay icons on/off. Resolves false when the build has none. */
+  setPlacementOverlayPlaceholders(enabled: boolean): Promise<boolean>;
   dispose(): void;
 }
 
@@ -375,6 +380,29 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
       this.subscriptions.add(unsubscribe);
       return unsubscribe;
     });
+  }
+
+  onPlacementOverlay(callback: (frame: PlacementOverlayFrame | null) => void): Promise<ConfiguratorUnsubscribe | null> {
+    return this.enqueue(async () => {
+      if (!this.bridge.subscribePlacementOverlay) return null;
+      let active = true;
+      const rawUnsubscribe = await this.bridge.subscribePlacementOverlay((frame) => {
+        if (active) callback(frame);
+      });
+      if (!rawUnsubscribe) return null;
+      const unsubscribe = () => {
+        if (!active) return;
+        active = false;
+        this.subscriptions.delete(unsubscribe);
+        rawUnsubscribe();
+      };
+      this.subscriptions.add(unsubscribe);
+      return unsubscribe;
+    });
+  }
+
+  setPlacementOverlayPlaceholders(enabled: boolean): Promise<boolean> {
+    return this.enqueue(async () => (await this.bridge.setPlacementOverlayPlaceholders?.(enabled)) ?? false);
   }
 
   dispose(): void {
