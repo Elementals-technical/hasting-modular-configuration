@@ -2,6 +2,15 @@
   "collectionId": "class",
   "optionImages": {
     "sinkType": {
+      "LB440": "images/basin/prisma.jpg",
+      "LB175": "images/basin/Ron.jpg",
+      "LB575": "images/basin/quadro.jpg",
+      "LB856": "images/basin/strip.jpg",
+      "VA024": "images/basin/cover.jpg",
+      "LV890": "images/basin/Trip.jpg",
+      "LV892": "images/basin/Orion.jpg",
+      "VA002": "images/basin/Olly_55.jpg",
+      "VA005": "images/basin/Rectangular.jpg",
       "Iris": "images/vessel/Iris.png",
       "Frame": "images/vessel/Frame.png"
     },
