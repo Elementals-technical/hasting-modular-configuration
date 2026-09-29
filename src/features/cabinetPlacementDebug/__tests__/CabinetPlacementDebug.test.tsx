@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
+import { createRef } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ConfiguratorClient } from "@/features/configuratorApi";
 import type { RuntimeBindingSet } from "@/entities/collection";
-import { CabinetPlacementDebug, type CabinetDebugCountertopApi } from "../ui/CabinetPlacementDebug";
+import {
+  CabinetPlacementDebug,
+  type CabinetDebugCountertopApi,
+  type CabinetPlacementControls,
+} from "../ui/CabinetPlacementDebug";
 import { isCabinetPlacementDebugEnabled, resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
 
 const selection = {
@@ -72,6 +77,100 @@ afterEach(() => {
 });
 
 describe("Cabinet drag and drop test controls", () => {
+  it("repositions the explicit context-menu cabinet even when runtime selection differs, then applies through the existing controls", async () => {
+    const { client, createClient } = fixture();
+    client.getCabinetsState.mockResolvedValue({
+      cabinets: [{ id: "runtime-selected" }, { id: "context-menu-target" }],
+      selectedCabinetId: "runtime-selected",
+    });
+    const controls = createRef<CabinetPlacementControls>();
+    const available = vi.fn();
+    const committed = vi.fn();
+    const { unmount } = render(
+      <CabinetPlacementDebug
+        ref={controls}
+        ready
+        selection={selection}
+        selectedProductId="old-redux-id"
+        createClient={createClient}
+        onRepositionAvailabilityChange={available}
+        onCompositionCommitted={committed}
+      />,
+    );
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    act(() => {
+      controls.current?.reposition("context-menu-target");
+      controls.current?.reposition("runtime-selected");
+    });
+    await screen.findByRole("button", { name: "Apply" });
+    expect(client.beginMove).toHaveBeenCalledExactlyOnceWith("context-menu-target");
+    expect(client.getCabinetsState).toHaveBeenCalledOnce();
+    expect(available).toHaveBeenLastCalledWith({ supported: true, available: false });
+    act(() => controls.current?.reposition("runtime-selected"));
+    expect(client.beginMove).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(client.apply).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await waitFor(() => expect(committed).toHaveBeenCalledOnce());
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    unmount();
+    expect(available).toHaveBeenLastCalledWith({ supported: false, available: false });
+    expect(controls.current).toBeNull();
+  });
+
+  it("rejects a missing explicit cabinet ID without moving the selected cabinet", async () => {
+    const { client, createClient } = fixture();
+    const controls = createRef<CabinetPlacementControls>();
+    const available = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        ref={controls}
+        ready
+        selection={selection}
+        selectedProductId="runtime-selected"
+        createClient={createClient}
+        onRepositionAvailabilityChange={available}
+      />,
+    );
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    act(() => controls.current?.reposition("missing-cabinet"));
+    expect((await screen.findByRole("alert")).textContent).toContain("Cabinet not found");
+    expect(client.beginMove).not.toHaveBeenCalled();
+    expect(client.apply).not.toHaveBeenCalled();
+  });
+
+  it("cancels context-menu reposition without committing and re-enables availability", async () => {
+    const { client, createClient } = fixture();
+    const controls = createRef<CabinetPlacementControls>();
+    const available = vi.fn();
+    const committed = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        ref={controls}
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onRepositionAvailabilityChange={available}
+        onCompositionCommitted={committed}
+      />,
+    );
+    act(() => controls.current?.reposition("runtime-selected"));
+    expect(client.beginMove).not.toHaveBeenCalled();
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    act(() => controls.current?.reposition("runtime-selected"));
+    const cancel = (await screen.findByRole("button", { name: "Cancel" })) as HTMLButtonElement;
+    await waitFor(() => expect(cancel.disabled).toBe(false));
+    fireEvent.click(cancel);
+    await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    expect(committed).not.toHaveBeenCalled();
+    expect(client.apply).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+  });
+
   it("uses the runtime seed pose instead of an option invalidated by the first collection claim", async () => {
     const { client, createClient } = fixture();
     client.getCabinetsState.mockResolvedValueOnce({ cabinets: [], selectedCabinetId: "" });

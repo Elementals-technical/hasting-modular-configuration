@@ -88,7 +88,11 @@ import {
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { getActiveProductProfile, getActiveRuntimeBindings, getStableKeyForRuntimeId } from "@/entities/configuration/model/store/selectors";
-import { CabinetPlacementDebug, type CabinetDebugCountertopApi } from "@/features/cabinetPlacementDebug/ui/CabinetPlacementDebug";
+import {
+  CabinetPlacementDebug,
+  type CabinetDebugCountertopApi,
+  type CabinetPlacementControls,
+} from "@/features/cabinetPlacementDebug/ui/CabinetPlacementDebug";
 import { isCabinetPlacementDebugEnabled, resolveCabinetDebugSelection } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import type { CabinetsState } from "@/features/configuratorApi";
 import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
@@ -392,6 +396,8 @@ export const PlayCanvasIntegration = ({
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
   const cabinetPlacementDebugEnabled = isCabinetPlacementDebugEnabled(location.search);
+  const cabinetPlacementRef = useRef<CabinetPlacementControls>(null);
+  const [repositionStatus, setRepositionStatus] = useState({ supported: false, available: false });
   const playCanvasSrc = PLAYCANVAS_SRC;
   const cabinetDebugSelection = resolveCabinetDebugSelection({
     config: cabinetBuilderProductConfig,
@@ -2868,10 +2874,26 @@ export const PlayCanvasIntegration = ({
     selectedSceneProduct,
   ]);
 
+  const handleDragReposition = useCallback(() => {
+    if (!repositionStatus.available || !selectedSceneProduct || !productIds.includes(selectedSceneProduct)) return;
+    setDropdownState((current) => ({ ...current, visible: false }));
+    cabinetPlacementRef.current?.reposition(selectedSceneProduct);
+  }, [repositionStatus.available, selectedSceneProduct, productIds]);
+
   const dropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
     const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
+    const dragRepositionItem: DropdownItem = {
+      id: "reposition",
+      label: "Reposition",
+      trailing: <ArrowTopRight color={"#333"} />,
+      disabled: !repositionStatus.available || !productIds.includes(selectedSceneProduct),
+      disabledReason: !repositionStatus.available
+        ? "Finish the current placement before repositioning a cabinet."
+        : undefined,
+      onClick: handleDragReposition,
+    };
 
     if (isPrebuilt) {
       if (isTowelBarEntity) {
@@ -2888,7 +2910,7 @@ export const PlayCanvasIntegration = ({
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleResizeFromPrebuilt,
         },
-        ...(canRepositionSelectedCabinet
+        ...(repositionStatus.supported ? [dragRepositionItem] : canRepositionSelectedCabinet
           ? [
               {
                 id: "reposition",
@@ -3022,7 +3044,7 @@ export const PlayCanvasIntegration = ({
           },
         ],
       },
-      ...(canMoveLeft || canMoveRight
+      ...(repositionStatus.supported ? [dragRepositionItem] : canMoveLeft || canMoveRight
         ? [
             {
               id: "reposition",
@@ -3127,6 +3149,8 @@ export const PlayCanvasIntegration = ({
 
     return items;
   }, [
+    repositionStatus,
+    handleDragReposition,
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
@@ -3388,6 +3412,8 @@ export const PlayCanvasIntegration = ({
 
       {cabinetPlacementDebugEnabled && <CabinetPlacementDebug
         key={playCanvasSrc}
+        ref={cabinetPlacementRef}
+        onRepositionAvailabilityChange={setRepositionStatus}
         ready={isPlayCanvasReady}
         selection={cabinetDebugSelection}
         selectedProductId={selectedSceneProduct}

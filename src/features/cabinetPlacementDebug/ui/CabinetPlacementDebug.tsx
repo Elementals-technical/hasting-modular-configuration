@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import {
   createConfiguratorClient,
@@ -37,6 +37,16 @@ type Props = {
   createClient?: () => ConfiguratorClient;
   getCountertopApi?: () => CabinetDebugCountertopApi | null;
   onCompositionCommitted?: (state: CabinetsState) => void | Promise<void>;
+  onRepositionAvailabilityChange?: (status: CabinetRepositionAvailability) => void;
+};
+
+export type CabinetPlacementControls = {
+  reposition(productId: string): void;
+};
+
+export type CabinetRepositionAvailability = {
+  supported: boolean;
+  available: boolean;
 };
 
 const dataOf = (event: unknown): Record<string, unknown> => {
@@ -54,14 +64,18 @@ const errorMessage = (error: unknown): string => {
 };
 const isTerminal = (lifecycle: unknown) => ["committed", "cancelled", "error"].includes(String(lifecycle));
 
-export function CabinetPlacementDebug({
-  ready,
-  selection,
-  selectedProductId,
-  createClient = createConfiguratorClient,
-  getCountertopApi,
-  onCompositionCommitted,
-}: Props) {
+export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>(function CabinetPlacementDebug(
+  {
+    ready,
+    selection,
+    selectedProductId,
+    createClient = createConfiguratorClient,
+    getCountertopApi,
+    onCompositionCommitted,
+    onRepositionAvailabilityChange,
+  },
+  ref,
+) {
   const clientRef = useRef<ConfiguratorClient | null>(null);
   const pendingRef = useRef(false);
   const activeSessionRef = useRef<string | null>(null);
@@ -70,6 +84,7 @@ export function CabinetPlacementDebug({
   const receiptSyncRef = useRef(new Map<string, Promise<void>>());
   const refreshCapabilitiesRef = useRef<(() => Promise<void>) | null>(null);
   const [connected, setConnected] = useState(false);
+  const [capabilitiesRefreshing, setCapabilitiesRefreshing] = useState(false);
   const [supported, setSupported] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -182,7 +197,7 @@ export function CabinetPlacementDebug({
     const refreshCapabilities = (): Promise<void> => {
       if (disposed) return Promise.resolve();
       if (refreshInFlight) return refreshInFlight;
-      setConnected(false);
+      setCapabilitiesRefreshing(true);
       refreshInFlight = (async () => {
         try {
           const capabilities = await client.getCapabilities({ refresh: true });
@@ -279,6 +294,7 @@ export function CabinetPlacementDebug({
         }
       })().finally(() => {
         refreshInFlight = null;
+        if (!disposed) setCapabilitiesRefreshing(false);
       });
       return refreshInFlight;
     };
@@ -315,7 +331,7 @@ export function CabinetPlacementDebug({
       setPending(false);
     }
   };
-  const start = (kind: "add" | "move") => {
+  const start = (kind: "add" | "move", explicitProductId?: string) => {
     if (activeSessionRef.current) return;
     void command(async (client) => {
       if (!client) return;
@@ -352,9 +368,13 @@ export function CabinetPlacementDebug({
       } else {
         // Local runtime does not publish cabinet selection events: read it at click time.
         const state = await client.getCabinetsState();
-        const id = state.selectedCabinetId ?? selectedProductId;
+        const id = explicitProductId !== undefined ? explicitProductId : (state.selectedCabinetId ?? selectedProductId);
         if (!id || !state.cabinets.some((cabinet) => cabinet.id === id))
-          throw new Error("Select a cabinet in the canvas first");
+          throw new Error(
+            explicitProductId !== undefined
+              ? "Cabinet not found in the current composition"
+              : "Select a cabinet in the canvas first",
+          );
         next = await client.beginMove(id);
       }
       activeSessionRef.current = next.sessionId;
@@ -380,10 +400,24 @@ export function CabinetPlacementDebug({
       setStatus(action === "apply" ? "Placement applied" : "Placement cancelled");
       if (action === "apply") await syncCommitted(client, result as ConfiguratorReceipt);
     });
-  const busy = !connected || pending || Boolean(sessionId) || compositionStatus !== "ready";
-  const sceneBusy = !ready || pending || Boolean(sessionId) || (connected && compositionStatus !== "ready");
+  const busy = !connected || capabilitiesRefreshing || pending || Boolean(sessionId) || compositionStatus !== "ready";
+  const sceneBusy =
+    !ready || capabilitiesRefreshing || pending || Boolean(sessionId) || (connected && compositionStatus !== "ready");
   const canAdd = supported.includes("cabinetPlacement.beginAdd");
   const canMove = supported.includes("cabinetPlacement.beginMove");
+  const repositionSupported = ready && connected && canMove;
+  const canReposition = repositionSupported && !busy;
+
+  useImperativeHandle(ref, () => ({
+    reposition: (productId) => {
+      if (canReposition) start("move", productId);
+    },
+  }));
+
+  useEffect(() => {
+    onRepositionAvailabilityChange?.({ supported: repositionSupported, available: canReposition });
+    return () => onRepositionAvailabilityChange?.({ supported: false, available: false });
+  }, [repositionSupported, canReposition, onRepositionAvailabilityChange]);
 
   return (
     <section className={s.panel} aria-label="Cabinet placement test controls">
@@ -401,7 +435,11 @@ export function CabinetPlacementDebug({
             <button
               type="button"
               disabled={
-                !connected || pending || !supported.includes("cabinetPlacement.apply") || draft?.canApply !== true
+                !connected ||
+                capabilitiesRefreshing ||
+                pending ||
+                !supported.includes("cabinetPlacement.apply") ||
+                draft?.canApply !== true
               }
               onClick={() => finish("apply")}
             >
@@ -410,7 +448,11 @@ export function CabinetPlacementDebug({
             <button
               type="button"
               disabled={
-                !connected || pending || !supported.includes("cabinetPlacement.cancel") || draft?.canCancel !== true
+                !connected ||
+                capabilitiesRefreshing ||
+                pending ||
+                !supported.includes("cabinetPlacement.cancel") ||
+                draft?.canCancel !== true
               }
               onClick={() => finish("cancel")}
             >
@@ -534,4 +576,4 @@ export function CabinetPlacementDebug({
       )}
     </section>
   );
-}
+});
