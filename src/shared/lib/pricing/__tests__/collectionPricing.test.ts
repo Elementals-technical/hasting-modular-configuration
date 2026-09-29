@@ -242,15 +242,42 @@ describe("Class and Mako order lines", () => {
   });
 
   it("marks a Class front without a frame colour as an input the price cannot do without", () => {
+    // A collection that declares no frame colour to start from.
+    const withoutDefaults = { ...CLASS, profile: { ...CLASS.profile, defaults: {} } };
     const { gaps } = buildCollectionPricingLines(
       collectionPricingInput(
-        CLASS,
+        withoutDefaults,
         [{ stableKey: "a", runtimeId: "Sink-Base-a1", size: { width: 60, height: 52, depth: 52 } }],
         { CabinetColor: [at({ scope: "global" }, "Nero 433 MT")] },
       ),
     );
 
     expect(gaps).toEqual([expect.objectContaining({ group: "input", blocksTotal: true })]);
+  });
+
+  it("prices a Class model before a colour is chosen, from the collection's defaults", () => {
+    // What switching to Class leaves in the state: the profile's defaults (replaceCollectionData).
+    const store = configureStore({ reducer: rootReducer });
+    store.dispatch(replaceCollectionData({ profile: CLASS.profile, cabinetCatalog: null }));
+    const { CabinetColor, CountertopColor, CountertopStyle, sinkType } =
+      store.getState().rootStateUI.product.productOptions;
+
+    const { lines, gaps } = buildCollectionPricingLines(
+      collectionPricingInput(
+        CLASS,
+        [{ stableKey: "a", runtimeId: "Sink-Base-a1", size: { width: 60, height: 52, depth: 52 } }],
+        { Drawers: [at({ scope: "cabinet", cabinetId: "a" }, "2")] },
+        { cabinetColor: CabinetColor, countertopColor: CountertopColor, countertopStyle: CountertopStyle, sinkType },
+      ),
+    );
+
+    // The Class of the site: a Nero Atlante porcelain front in a black frame and sides, on a black glass top.
+    expect(lines.map(({ sku }) => sku)).toEqual([
+      "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-326-CABS-LACM-433-FRM-LACM-433",
+      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
+      "CT-GBGLSG-VA005-.5H",
+    ]);
+    expect(gaps).toEqual([]);
   });
 
   it("builds nothing without a collection SKU profile", () => {
