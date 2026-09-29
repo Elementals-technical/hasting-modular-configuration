@@ -110,6 +110,16 @@ import {
 import type { CabinetsState } from "@/features/configuratorApi";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
+import {
+  CountertopDragMode,
+  type CountertopDragModeHandle,
+  type CountertopDragStatus,
+} from "@/features/countertopPlacement/ui/CountertopDragMode";
+import {
+  buildCountertopPositionItems,
+  isCountertopSettingsMode,
+} from "@/features/countertopPlacement/lib/positionMenuItems";
+import { resolveCountertopLengthLimitsIn } from "@/features/countertopPlacement/lib/countertopLength";
 import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
 import { buildStepPathById, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
@@ -376,6 +386,16 @@ export const PlayCanvasIntegration = ({
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
   const customizationSchema = useActiveCollection((collection) => collection.catalog.customization ?? null);
+  const countertopLengthSettings = customizationSchema?.countertop;
+  const countertopLengthLimitsIn = useMemo(
+    () => resolveCountertopLengthLimitsIn(countertopLengthSettings),
+    [countertopLengthSettings],
+  );
+  // Raw collection presets (optional schema field); the overlay validates and clamps them.
+  const countertopLengthPresetsIn = useMemo(() => {
+    const raw = (countertopLengthSettings as { lengthPresetsIn?: unknown } | null | undefined)?.lengthPresetsIn;
+    return Array.isArray(raw) ? raw.filter((value): value is number => typeof value === "number") : undefined;
+  }, [countertopLengthSettings]);
   const location = useLocation();
   const navigate = useCollectionNavigate();
   const changeDimension = useChangeDimension();
@@ -421,8 +441,17 @@ export const PlayCanvasIntegration = ({
     available: false,
     editing: false,
   });
+  // Test mode only: the metre-based Position & Size modal (`?countertopSettings`).
+  const countertopSettingsMode = isCountertopSettingsMode(location.search);
+  const countertopDragRef = useRef<CountertopDragModeHandle>(null);
+  const [countertopDragStatus, setCountertopDragStatus] = useState<CountertopDragStatus>({
+    supported: false,
+    available: false,
+    active: false,
+    busy: false,
+  });
   const countertopEditingRef = useRef(false);
-  countertopEditingRef.current = countertopPlacementStatus.editing;
+  countertopEditingRef.current = countertopPlacementStatus.editing || countertopDragStatus.busy;
   const [cabinetPlacementBusy, setCabinetPlacementBusy] = useState(false);
   const placementHostRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -3418,7 +3447,21 @@ export const PlayCanvasIntegration = ({
   }, [customStepPathById, navigate]);
 
   const countertopPopoverItems: DropdownItem[] = useMemo(() => {
-    const placementItems: DropdownItem[] = countertopPlacementStatus.supported
+    const closeCountertopMenus = () => {
+      setDropdownState((current) => ({ ...current, visible: false }));
+      setCountertopPopoverState((current) => ({ ...current, visible: false }));
+    };
+    const positionItems = buildCountertopPositionItems(countertopDragStatus, {
+      onStandard: () => {
+        closeCountertopMenus();
+        countertopDragRef.current?.standard();
+      },
+      onDragDrop: () => {
+        closeCountertopMenus();
+        countertopDragRef.current?.enter();
+      },
+    });
+    const placementItems: DropdownItem[] = countertopSettingsMode && countertopPlacementStatus.supported
       ? [
           {
             id: "countertop-position-size",
@@ -3460,6 +3503,7 @@ export const PlayCanvasIntegration = ({
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleBasinStyleFromPrebuilt,
         },
+        ...positionItems,
       ];
     }
 
@@ -3513,9 +3557,12 @@ export const PlayCanvasIntegration = ({
           },
         ],
       },
+      ...positionItems,
     ];
   }, [
     countertopPlacementStatus,
+    countertopDragStatus,
+    countertopSettingsMode,
     isPrebuilt,
     handleOpenBasinStyle,
     handleOpenCountertopColor,
@@ -3575,7 +3622,7 @@ export const PlayCanvasIntegration = ({
           ref={cabinetPlacementRef}
           onRepositionAvailabilityChange={setRepositionStatus}
           onPlacementBusyChange={setCabinetPlacementBusy}
-          externalBusy={countertopPlacementStatus.editing}
+          externalBusy={countertopPlacementStatus.editing || countertopDragStatus.busy}
           ready={isPlayCanvasReady}
           selection={cabinetDebugSelection}
           selectedProductId={selectedSceneProduct}
@@ -3585,10 +3632,25 @@ export const PlayCanvasIntegration = ({
       )}
 
       {cabinetPlacementDebugEnabled && (
+        <CountertopDragMode
+          key={playCanvasSrc}
+          ref={countertopDragRef}
+          ready={isPlayCanvasReady}
+          disabled={cabinetPlacementBusy || countertopPlacementStatus.editing}
+          getApi={getCountertopApi}
+          lengthLimitsIn={countertopLengthLimitsIn}
+          lengthPresetsIn={countertopLengthPresetsIn}
+          onStatusChange={setCountertopDragStatus}
+          onSelect={selectCountertopForPlacement}
+          onCommitted={syncCommittedCountertop}
+        />
+      )}
+
+      {cabinetPlacementDebugEnabled && countertopSettingsMode && (
         <CountertopPlacementControls
           ref={countertopPlacementRef}
           ready={isPlayCanvasReady}
-          disabled={cabinetPlacementBusy}
+          disabled={cabinetPlacementBusy || countertopDragStatus.busy}
           getApi={getCountertopApi}
           onAvailabilityChange={setCountertopPlacementStatus}
           onSelect={selectCountertopForPlacement}
