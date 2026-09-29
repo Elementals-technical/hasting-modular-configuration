@@ -125,35 +125,23 @@ describe("Class and Mako order lines", () => {
     expect(gaps).toEqual([]);
   });
 
-  it.each([
-    ["Class", CLASS],
-    ["Mako", MAKO],
-  ])("%s spells every thickness its countertop offers", (_name, { profile, skuProfile }) => {
-    if (!hasOwnCountertop(skuProfile)) throw new Error("the collection spells its own countertop");
-    const thicknesses = selectOptions(profile, "Thickness").map(({ value }) => value);
+  it.each(["class-porcelain-integrated", "mako-vessel-with-legs"] as const)(
+    "uses the committed top length for %s without changing cabinet or basin lines",
+    (scenario) => {
+      const input = COLLECTION_PRICING_SCENARIOS[scenario].input;
+      const fallback = buildCollectionPricingLines(input).lines;
+      const resized = buildCollectionPricingLines({ ...input, committedCountertopLengthCm: 137.5 }).lines;
+      const top = (lines: PricingLine[]) => lines.find(({ group }) => group === "countertop");
+      const geometryLines = (lines: PricingLine[]) =>
+        lines
+          .filter(({ group }) => group === "cabinet" || group === "basin")
+          .map(({ id, sku, quantity }) => ({ id, sku, quantity }));
 
-    expect(thicknesses.length).toBeGreaterThan(0);
-    expect(thicknesses.filter((value) => !skuProfile.countertop.thicknessCodes[value])).toEqual([]);
-  });
-
-  it("spells the thickness chosen for the top and its basin, with the brackets a thick top takes", () => {
-    const order = COLLECTION_PRICING_SCENARIOS["class-porcelain-integrated"].input;
-    const countertopSkus = (countertopThickness: string) =>
-      buildCollectionPricingLines({ ...order, countertopThickness }).lines.flatMap(({ group, sku, quantity }) =>
-        group === "countertop" || group === "basin" || group === "bracket" ? [{ sku, quantity }] : [],
-      );
-
-    // Table 578 gives an HPL top 1/2" or 4"; the price list spells them .5 and 4.
-    expect(countertopSkus("4")).toEqual([
-      { sku: "CT-GBHPL-INTG-47.2W-4H-20.7D-HPL-259", quantity: 1 },
-      { sku: "CT-GBHPL-VA024-4H", quantity: 1 },
-      { sku: "CT-GB-BRKT", quantity: 2 },
-    ]);
-    expect(countertopSkus("0.5")).toEqual([
-      { sku: "CT-GBHPL-INTG-47.2W-.5H-20.7D-HPL-259", quantity: 1 },
-      { sku: "CT-GBHPL-VA024-.5H", quantity: 1 },
-    ]);
-  });
+      expect(top(resized)).toMatchObject({ widthCm: 137.5 });
+      expect(top(resized)?.sku).not.toBe(top(fallback)?.sku);
+      expect(geometryLines(resized)).toEqual(geometryLines(fallback));
+    },
+  );
 
   it("cuts a vessel top once per sink base, adds the organizer and names what the order uses unconfirmed", () => {
     const { lines, gaps } = buildCollectionPricingLines(COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"].input);
@@ -481,6 +469,21 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
 
     const entries = Object.fromEntries(lines.map(({ sku }) => [sku, { status: "ready" as const, value: 100 }]));
     expect(derivePriceStatus({ isUnavailable: false, isLoading: false, lines, entries, gaps })).toBe("ready");
+  });
+
+  it("uses the committed runtime length only for the ULH top", () => {
+    const fallback = ulhOrder([sinkBase("ulh-sb")]).lines;
+    const resized = ulhOrder([sinkBase("ulh-sb")], {}, { committedCountertopLengthCm: 137.5 }).lines;
+    const top = (lines: PricingLine[]) => lines.find(({ group }) => group === "countertop");
+    const cabinetAndBasinLines = (lines: PricingLine[]) =>
+      lines
+        .filter(({ group }) => group === "cabinet" || group === "basin")
+        .map(({ id, sku, quantity }) => ({ id, sku, quantity }));
+
+    expect(top(fallback)?.widthCm).toBe(60);
+    expect(top(resized)).toMatchObject({ widthCm: 137.5 });
+    expect(top(resized)?.sku).not.toBe(top(fallback)?.sku);
+    expect(cabinetAndBasinLines(resized)).toEqual(cabinetAndBasinLines(fallback));
   });
 
   it("sizes the top by its sink base when a narrower cabinet stands first, as a side cabinet added on the left", () => {

@@ -43,6 +43,19 @@ describe("buildPricingLines", () => {
     expect(top(wide)?.sku).not.toBe(top(narrow)?.sku);
   });
 
+  it("prices only the countertop top at the committed runtime length", () => {
+    const fallback = buildPricingLines(pricingInput());
+    const resized = buildPricingLines(pricingInput({ committedCountertopLengthCm: 137.5 }));
+    const top = (lines: ReturnType<typeof buildPricingLines>) => lines.find(({ id }) => id === "countertop:0");
+    const nonTop = (lines: ReturnType<typeof buildPricingLines>) =>
+      lines.filter(({ id }) => id !== "countertop:0").map(({ id, sku, quantity }) => ({ id, sku, quantity }));
+
+    expect(top(fallback)?.widthCm).toBe(calcTotalCountertopWidthCm(120, "none", "none"));
+    expect(top(resized)).toMatchObject({ widthCm: 137.5 });
+    expect(top(resized)?.sku).not.toBe(top(fallback)?.sku);
+    expect(nonTop(resized)).toEqual(nonTop(fallback));
+  });
+
   it("gives every sink base its basin and spells the faucet holes with the collection series", () => {
     const lines = buildPricingLines(pricingInput());
 

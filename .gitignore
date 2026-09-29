@@ -112,5 +112,8 @@ docs/*
 !docs/urban-low-height-profile.md
 !docs/product-profile-migration.md
 !docs/runtime-bindings-migration.md
+# Maintained product integration guides used by the project skills.
+!docs/products/
+!docs/products/*.md
 
 iphone-safari-debugging

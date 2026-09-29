@@ -47,6 +47,27 @@ export type PriceRequestInput = {
   pricedPerCm?: boolean;
 };
 
+/** A width-sensitive request identity, even when rounding leaves the rendered SKU unchanged. */
+export const priceRequestCacheKey = (sku: string, widthCm?: number | null): string =>
+  widthCm == null ? sku : `${sku}@${widthCm}`;
+
+/** Keeps only the request identity whose result may currently back each SKU in the price store. */
+export class LatestPriceRequestCache {
+  private readonly keyBySku = new Map<string, string>();
+
+  has(sku: string, widthCm?: number | null): boolean {
+    return this.keyBySku.get(sku) === priceRequestCacheKey(sku, widthCm);
+  }
+
+  mark(sku: string, widthCm?: number | null): void {
+    this.keyBySku.set(sku, priceRequestCacheKey(sku, widthCm));
+  }
+
+  clear(): void {
+    this.keyBySku.clear();
+  }
+}
+
 export const resolvePriceRequest = ({
   sku,
   widthCm,

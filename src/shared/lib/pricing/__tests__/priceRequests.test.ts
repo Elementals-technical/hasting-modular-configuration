@@ -1,11 +1,35 @@
 import { describe, expect, it } from "vitest";
 
-import { resolvePriceFromResponse, resolvePriceRequest } from "../priceRequests";
+import {
+  LatestPriceRequestCache,
+  priceRequestCacheKey,
+  resolvePriceFromResponse,
+  resolvePriceRequest,
+} from "../priceRequests";
 
 const USH = { countertopPrefix: "UR", bookMatchingSkuPrefix: "VAN-URBMG-" };
 const DYNAMIC_TOP = "CT-URSSTKR-INTG-75.2W-.5H-19.9D-SSTKR-FF";
 
 describe("resolvePriceRequest", () => {
+  it("invalidates a top request when its priced length changes without changing its SKU", () => {
+    expect(priceRequestCacheKey(DYNAMIC_TOP, 120)).not.toBe(priceRequestCacheKey(DYNAMIC_TOP, 120.1));
+    expect(priceRequestCacheKey(DYNAMIC_TOP)).toBe(DYNAMIC_TOP);
+  });
+
+  it("re-fetches A after the same SKU was priced at A, then B", () => {
+    const cache = new LatestPriceRequestCache();
+    const shouldFetch = (widthCm: number) => !cache.has(DYNAMIC_TOP, widthCm);
+    const completeRequest = (widthCm: number) => cache.mark(DYNAMIC_TOP, widthCm);
+
+    expect(shouldFetch(100)).toBe(true);
+    completeRequest(100);
+    expect(shouldFetch(100)).toBe(false);
+
+    expect(shouldFetch(120)).toBe(true);
+    completeRequest(120);
+    expect(shouldFetch(100)).toBe(true);
+  });
+
   it("prices the countertop top per cm, with the width of the composition", () => {
     expect(resolvePriceRequest({ sku: DYNAMIC_TOP, widthCm: 191, ...USH })).toEqual({
       kind: "countertopTop",

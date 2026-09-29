@@ -21,6 +21,7 @@ import {
   buildCollectionPricingLines,
   buildPricingLines,
   expandLineSkus,
+  LatestPriceRequestCache,
   resolvePriceFromResponse,
   resolvePriceRequest,
   type CollectionPricingResult,
@@ -66,7 +67,7 @@ export function usePriceCalculation() {
 
   // ── Stable key for the lines (avoid effect re-runs on same content) ─
 
-  const linesKey = lines.map(({ id, sku, quantity }) => `${id}=${sku}*${quantity}`).join("|");
+  const linesKey = lines.map(({ id, sku, quantity, widthCm }) => `${id}=${sku}*${quantity}@${widthCm ?? ""}`).join("|");
   const countertopPrefix = skuBuilders.profile?.series.countertopPrefix ?? null;
   // The top of a collection priced from its SKU profile is priced per cm of the composition.
   const pricedPerCmSkus = useMemo(
@@ -87,7 +88,7 @@ export function usePriceCalculation() {
 
   // ── Fetch prices for new/changed SKUs ─────────────────
 
-  const fetchedRef = useRef<Set<string>>(new Set());
+  const fetchedRef = useRef(new LatestPriceRequestCache());
 
   // The unconfirmed parts the order uses keep the total incomplete even when every line is priced.
   const gapsKey = gaps.map(({ group, reason }) => `${group}:${reason}`).join("|");
@@ -110,7 +111,7 @@ export function usePriceCalculation() {
 
     dispatch(setPricingLines(lines));
 
-    const pending = [...new Set(currentSkus.filter((sku) => !fetchedRef.current.has(sku)))];
+    const pending = [...new Set(currentSkus)].filter((sku) => !fetchedRef.current.has(sku, widthCmBySku.get(sku)));
     if (!pending.length) {
       dispatch(setPriceLoading(false));
       return;
@@ -118,10 +119,8 @@ export function usePriceCalculation() {
     dispatch(setPriceLoading(true));
     dispatch(setSkusLoading(pending));
 
+    let cancelled = false;
     const timer = setTimeout(() => {
-      // Mark immediately to prevent duplicate fetches
-      pending.forEach((sku) => fetchedRef.current.add(sku));
-
       const loadPrices = async () => {
         const next: Record<string, SkuPriceEntry> = {};
 
@@ -160,9 +159,13 @@ export function usePriceCalculation() {
             }),
           );
         } finally {
-          dispatch(setPriceLoading(false));
+          if (!cancelled) dispatch(setPriceLoading(false));
         }
 
+        if (cancelled) return;
+        // The cache mirrors the result that is about to back this SKU in Redux. Marking before
+        // completion could make a replacement effect skip a request whose stale response it ignores.
+        pending.forEach((sku) => fetchedRef.current.mark(sku, widthCmBySku.get(sku)));
         console.log(LOG_PREFIX, "Resolved prices:", next);
         dispatch(setSkuPriceEntries(next));
       };
@@ -170,7 +173,10 @@ export function usePriceCalculation() {
       loadPrices();
     }, DEBOUNCE_MS);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     linesKey,
