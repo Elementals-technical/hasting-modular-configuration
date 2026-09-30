@@ -305,13 +305,29 @@
         "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
-    "drawerStyleGroups": [["1", "1+inner"], ["2"]]
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "vesselCompatibility": {
+      "hiddenStyles": [],
+      "allowedMaterialsByStyle": {
+        "Iris": ["lacqueredmt"],
+        "Frame": ["lacqueredmt"],
+        "Plaza": ["lacqueredmt", "lacqueredgl"]
+      },
+      "allowedColorCodesByStyle": {},
+      "unavailableColorCodesByStyle": {},
+      "defaultFinishByStyle": {
+        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
+        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
+        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+      }
+    }
   },
   "messages": {
     "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
     "change.notAvailable": "This option is not available for the current selection.",
     "change.valueNotInCatalog": "This option is not available in this collection.",
-    "drawers.requiredHeight": "Required for selected drawers"
+    "drawers.requiredHeight": "Required for selected drawers",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style."
   },
   "excludedFromThisProfile": {
     "handle": "Class has no handle choice: the grip is part of the frame (CLS-WGL-003). No Handle attribute is declared.",
@@ -328,6 +344,6 @@
     "solidSurfaceAliases": "Matte White and Matte White 8cm are not joined to SSTL / SSTM / SSTEX / SSTMT (Q-CLASS-016).",
     "va030": "VA030 is priced for SSTEX but absent from the Master File, so it is not offered (section 6.6).",
     "faucetHolePositions": "Only the counts 0-3 are confirmed; positions, spacing and diameters are not (section 0.8).",
-    "vesselStyleAssets": "Iris, Frame and Plaza are named; their SKU, prices, colours and assets are not given (Q-CLASS-043). No source names their colours, so VesselColor offers the cabinet palette until the product gives the vessel palettes."
+    "vesselStyleAssets": "Iris, Frame and Plaza are named; their assets are not given (Q-CLASS-043). Their palettes follow the price list and the Threekit tables, which agree, but the product has not confirmed them: Iris and Frame take the 20 lacquered matt colours, Plaza those and the 20 lacquered gloss ones (vesselCompatibility). The colour a vessel starts with is Threekit's: Salvia 415 MT for Iris, Fumo 401 MT for Frame, Antracite 400 MT for Plaza (team, 30.09.2026)."
   }
 }

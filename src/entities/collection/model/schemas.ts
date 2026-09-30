@@ -307,6 +307,23 @@ export const collectionSkuProfileSchema = z
       })
       .strict()
       .optional(),
+    /**
+     * The vessels the collection prices, by `sinkType` value: the series and the fixed size of
+     * `VES-{series}-X-{W}W-{H}H-{D}D-{material}-{colour}`, in inches as the SKU spells them.
+     */
+    vessels: z
+      .record(
+        z.string(),
+        z
+          .object({
+            series: z.string().trim().min(1),
+            widthIn: z.string().trim().min(1),
+            heightIn: z.string().trim().min(1),
+            depthIn: z.string().trim().min(1),
+          })
+          .strict(),
+      )
+      .optional(),
     gaps: z.array(
       z
         .object({

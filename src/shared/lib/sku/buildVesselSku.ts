@@ -59,8 +59,32 @@ export const formatVesselDimensionLabel = (value: string | null | undefined): st
   return normalized ? `${normalized}"` : null;
 };
 
+export type VesselSkuParts = {
+  series: string | null;
+  model?: string | null;
+  dimensions: VesselDimensionTokens;
+  materialSku: string | null;
+  colorCode: string | null;
+};
+
 /**
- * Returns a SKU line for a vessel sink:
+ * The grammar of a vessel SKU, whatever the collection:
+ *   VES-{SERIES}-{MODEL}-{W}W-{H}H-{D}D[-{MaterialSKU}[-{ColorCode}]]
+ *
+ * A missing series, model or size is written X. The material block is appended only when the
+ * material is known.
+ */
+export const formatVesselSku = ({ series, model, dimensions, materialSku, colorCode }: VesselSkuParts): string => {
+  const w = dimensions.width ? `${dimensions.width}W` : `${FALLBACK}W`;
+  const h = dimensions.height ? `${dimensions.height}H` : `${FALLBACK}H`;
+  const d = dimensions.depth ? `${dimensions.depth}D` : `${FALLBACK}D`;
+  const matBlock = materialSku ? `-${materialSku}${colorCode ? `-${colorCode}` : ""}` : "";
+
+  return `${CATEGORY}-${series ?? FALLBACK}-${model?.trim() || "X"}-${w}-${h}-${d}${matBlock}`;
+};
+
+/**
+ * Returns a SKU line for an Urban vessel sink:
  *   VES-{SERIES}-X-{W}W-{H}H-{D}D[-{MaterialSKU}-{ColorCode}]
  *
  * SERIES is derived from vessel type (e.g. Vessel_Blade11 → BLD11, Vessel_UrbanModo → URMOD).
@@ -68,20 +92,15 @@ export const formatVesselDimensionLabel = (value: string | null | undefined): st
  * Material block is appended only when materialSku is provided.
  */
 export function buildVesselSku(input: VesselSkuInput): string {
-  const series = (input.vesselType ? vesselSeriesSkuMap[input.vesselType] : null) ?? FALLBACK;
-  const model = input.model?.trim() || "X";
-  const dimensions = resolveVesselDimensionTokens(input);
-
-  const w = dimensions.width ? `${dimensions.width}W` : `${FALLBACK}W`;
-  const h = dimensions.height ? `${dimensions.height}H` : `${FALLBACK}H`;
-  const d = dimensions.depth ? `${dimensions.depth}D` : `${FALLBACK}D`;
-
   // Fixed material SKU per vessel type takes priority over the passed-in value
   const fixedMat = input.vesselType ? vesselMaterialSkuMap[input.vesselType] : undefined;
   const rawMat = fixedMat ?? input.materialSku?.trim() ?? null;
-  const mat = rawMat ? (vesselMaterialSkuAliasMap[rawMat.toUpperCase()] ?? rawMat) : null;
-  const color = extractColorCode(input.colorCode)?.trim() || null;
-  const matBlock = mat ? `-${mat}${color ? `-${color}` : ""}` : "";
 
-  return `${CATEGORY}-${series}-${model}-${w}-${h}-${d}${matBlock}`;
+  return formatVesselSku({
+    series: (input.vesselType ? vesselSeriesSkuMap[input.vesselType] : null) ?? null,
+    model: input.model,
+    dimensions: resolveVesselDimensionTokens(input),
+    materialSku: rawMat ? (vesselMaterialSkuAliasMap[rawMat.toUpperCase()] ?? rawMat) : null,
+    colorCode: extractColorCode(input.colorCode)?.trim() || null,
+  });
 }

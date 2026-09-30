@@ -29,6 +29,7 @@ export {
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
+  resolveCollectionVessel,
   type CollectionCabinetSku,
   type CollectionCabinetSkuGap,
   type CollectionCabinetSkuInput,
@@ -36,6 +37,8 @@ export {
   type CollectionCountertopSkus,
   type CollectionLegsSkuInput,
   type CollectionValueReader,
+  type CollectionVessel,
+  type CollectionVesselInput,
 } from "./buildCollectionSkus";
 export {
   countertopStyleSkuMap,
@@ -46,9 +49,11 @@ export {
 } from "./countertopSkuMaps";
 export {
   buildVesselSku,
+  formatVesselSku,
   resolveVesselDimensionTokens,
   formatVesselDimensionLabel,
   type VesselSkuInput,
+  type VesselSkuParts,
   type VesselDimensionInput,
   type VesselDimensionTokens,
 } from "./buildVesselSku";

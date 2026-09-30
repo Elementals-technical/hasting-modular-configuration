@@ -231,6 +231,8 @@
         { "legacyId": 3028, "value": "Top_Tekormud_Tivi", "label": "Tekormud TIVI", "kind": "integrated", "category": "integrated", "order": 280 },
         { "legacyId": 3029, "value": "Vessel_Blade11", "label": "Vessel Blade 11", "kind": "vessel", "category": "vessel", "order": 290 },
         { "legacyId": 3030, "value": "Vessel_Blade18", "label": "Vessel Blade 18", "kind": "vessel", "category": "vessel", "order": 300 },
+        { "legacyId": 3031, "value": "Vessel_Iris", "label": "Vessel Iris", "kind": "vessel", "category": "vessel", "order": 303, "visibility": "hiddenLegacy" },
+        { "legacyId": 3032, "value": "Vessel_Frame", "label": "Vessel Frame", "kind": "vessel", "category": "vessel", "order": 306, "visibility": "hiddenLegacy" },
         { "legacyId": 3033, "value": "Vessel_UrbanModo", "label": "Vessel Urban Modo", "kind": "vessel", "category": "vessel", "order": 310 },
         { "legacyId": 3034, "value": "Vessel_UrbanModo_Flat", "label": "Vessel Urban Modo Flat", "kind": "vessel", "category": "vessel", "order": 320, "visibility": "hiddenLegacy" },
         { "legacyId": 3035, "value": "Vessel_UrbanModo_Seam", "label": "Vessel Urban Modo Seam", "kind": "vessel", "category": "vessel", "order": 330, "visibility": "hiddenLegacy" },
@@ -412,7 +414,7 @@
       "excludedMaterialFilterTokens": ["lacqueredmt", "lacqueredgl"]
     },
     "vesselCompatibility": {
-      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"],
+      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat", "Vessel_Iris", "Vessel_Frame"],
       "allowedMaterialsByStyle": {
         "Vessel_Blade11": ["ceramic"],
         "Vessel_Blade18": ["ceramic"],

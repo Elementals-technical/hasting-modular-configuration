@@ -41,7 +41,7 @@ export const evaluateMaterialOption = (option: ProductOptionData, inputs: Materi
   });
   if (!composition.isWithinCabinetLimit) return { isCompatible: false, failedBy: "composition" };
 
-  const widthRuleStyle = resolveCountertopWidthRuleStyle(inputs);
+  const widthRuleStyle = resolveCountertopWidthRuleStyle({ ...inputs, profile: inputs.activeProfile });
   const materialRules = inputs.countertopRules.filter((rule) =>
     optionMaterials.some((material) => materialMatchesRule(material, rule.material)),
   );
@@ -61,6 +61,7 @@ export const evaluateMaterialOption = (option: ProductOptionData, inputs: Materi
         style: widthRuleStyle,
         context,
         activeBasinStyle: inputs.activeBasinStyle,
+        profile: inputs.activeProfile,
       }),
     );
   if (typeof inputs.sinkBaseWidth === "number" && !matchesWidth(inputs.sinkBaseWidth, "sink-base")) {
@@ -82,7 +83,7 @@ export const reasonForFailure = (failedBy: MaterialFailure, messages: Messages) 
 
 /** The widest countertop the rules allow for a material at the current depth. */
 const maxMaterialWidth = (materialValue: string, inputs: MaterialRuleInputs): number | null => {
-  const widthRuleStyle = resolveCountertopWidthRuleStyle(inputs);
+  const widthRuleStyle = resolveCountertopWidthRuleStyle({ ...inputs, profile: inputs.activeProfile });
   const limits = inputs.countertopRules
     .filter(
       (rule) =>

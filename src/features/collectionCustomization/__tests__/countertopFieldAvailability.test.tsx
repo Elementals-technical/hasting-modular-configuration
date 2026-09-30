@@ -192,7 +192,7 @@ describe("Class countertop fields follow the countertop matrix", () => {
   });
 
   it("shows the integrated basins of the chosen material only", () => {
-    // Table 578 names its glass rows as configurator 9 names the material (Glass GL, Glass MT).
+    // Table 578 names its rows as configurator 9 names the material (Glass GL, Glass MT, Solid Surface).
     store.dispatch(setActiveCountertopColor("Nero 433 GL"));
     expect(shownValues("basin-style")).toEqual(["VA002", "VA005"]);
 
@@ -201,6 +201,10 @@ describe("Class countertop fields follow the countertop matrix", () => {
 
     store.dispatch(setActiveCountertopColor("CALACATTA 259"));
     expect(shownValues("basin-style")).toEqual(["VA024"]);
+
+    // VA030, Texturizzato, is in the table but not among the Class basins.
+    store.dispatch(setActiveCountertopColor("Matte White"));
+    expect(shownValues("basin-style")).toEqual(["LB440", "LB175", "LB575", "LB856", "VA023"]);
   });
 });
 
@@ -232,11 +236,32 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
   });
 });
 
+// As after the "Model Compatibility Restriction" confirm, which clears the countertop.
+describe.each([
+  ["Mako", collections.mako, 52],
+  ["Class", collections.class, 52],
+  ["Urban Low Height", urbanLowHeight, 46],
+] as const)("%s offers no integrated basin before a countertop colour is chosen", (_name, collection, depth) => {
+  const { shownValues, enabledValues } = fieldsOf(collection);
+
+  it("shows the basins but enables none, as the Urban Standard Height step waits for a material", () => {
+    startWith(collection);
+    store.dispatch(setSelectedDimensions({ width: 80, depth }));
+    store.dispatch(setCountertopStyle("integrated"));
+    store.dispatch(setActiveCountertopColor(""));
+
+    expect(shownValues("basin-style")?.length).toBeGreaterThan(0);
+    expect(enabledValues("basin-style")).toEqual([]);
+  });
+});
+
 describe("Class and Mako offer the thicknesses their countertop tables give", () => {
   it.each([
-    // Table 578: a Class Porcelain top is 3/4" or 4-3/4", an HPL one 1/2" or 4".
+    // Table 578: a Class Porcelain top is 3/4" or 4-3/4", an HPL one 1/2" or 4", a Solid Surface one
+    // 1/2", 4-3/4" or, with VA023 on a Sink Base of 80 cm or more, 3-1/8".
     ["class", "ARDESIA NERA 328", ["0.75", "4.75"]],
     ["class", "CALACATTA 259", ["0.5", "4"]],
+    ["class", "Matte White", ["0.5", "3.125", "4.75"]],
     // Table 577: a Mako HPL top is 1/2" only.
     ["mako", "CALACATTA 259", ["0.5"]],
   ] as const)("%s, %s", (collectionId, color, thicknesses) => {
@@ -301,16 +326,37 @@ describe.each(Object.entries(collections))("%s vessel choice follows the USH cou
     expect(fieldOf("basin-style")?.value).toBe("");
   });
 
-  it("shows the vessel colour for the vessel style only, in the cabinet palette", () => {
+  it("offers the vessel colour once a vessel is chosen: the empty cutout and an integrated top have none", () => {
     store.dispatch(setCountertopStyle("integrated"));
     expect(fieldOf("vessel-color")?.visible).toBe(false);
 
     store.dispatch(setCountertopStyle("vessel"));
-    const vesselColors = shownValues("vessel-color");
+    store.dispatch(setActiveBasinStyle(""));
+    expect(fieldOf("vessel-color")?.visible).toBe(false);
 
+    store.dispatch(setActiveBasinStyle("Iris"));
     expect(fieldOf("vessel-color")?.visible).toBe(true);
-    expect(vesselColors?.length).toBeGreaterThan(0);
-    expect(vesselColors).toEqual(fieldOf("cabinet-color", "color")?.options.map(({ value }) => value));
+  });
+
+  // The recorded configurator lists the 20 lacquered matt and 20 lacquered gloss colours.
+  it.each([
+    ["Iris", / MT$/, 20],
+    ["Frame", / MT$/, 20],
+    ["Plaza", / (MT|GL)$/, 40],
+  ])("offers %s the lacquers of its palette, and shows the rest with the reason", (vessel, finish, count) => {
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle(vessel));
+    const field = fieldOf("vessel-color");
+    const enabled = enabledValues("vessel-color") ?? [];
+
+    expect(enabled).toHaveLength(count);
+    expect(enabled.every((value) => finish.test(value))).toBe(true);
+    expect(shownValues("vessel-color")).toEqual(fieldOf("cabinet-color", "color")?.options.map(({ value }) => value));
+    expect(
+      field?.options
+        .filter(({ enabled: isEnabled }) => !isEnabled)
+        .every(({ reasonCode }) => reasonCode === "vessel.colorUnavailable"),
+    ).toBe(true);
   });
 });
 

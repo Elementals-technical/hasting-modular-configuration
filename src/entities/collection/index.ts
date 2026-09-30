@@ -61,6 +61,7 @@ export {
   hasCapability,
   isDrawerStyleMixingRestricted,
   isKnownOption,
+  isVesselBasin,
   normalizeOptionValue,
   selectAttribute,
   selectConfiguratorSection,

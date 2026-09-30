@@ -1,12 +1,13 @@
 import type { ProductProfile } from "@/entities/collection";
-import { selectRuleData } from "@/entities/collection";
+import { isVesselBasin, selectRuleData } from "@/entities/collection";
 
-import { getMaterialAliases, normalizeMaterialToken, selectMaterialAliasTable, type MaterialAliasTable } from "./parse";
+import { getMaterialAliases, normalizeMaterialToken, selectMaterialAliasTable } from "./parse";
 
 /**
  * Which countertop materials and colours a vessel basin accepts, and which vessel styles are
  * hidden. The lists come from `ruleData.vesselCompatibility` of the active collection; without
- * that section every vessel style is shown and no material is restricted.
+ * that section every vessel style is shown and no material is restricted. A vessel is a basin of
+ * the profile's vessel category (isVesselBasin), whatever the collection names it.
  */
 
 export const REASON_VESSEL_COLOR_UNAVAILABLE = "vessel.colorUnavailable";
@@ -23,15 +24,11 @@ type VesselFinishPreference = {
 
 const selectVesselCompatibility = (profile: ProductProfile | null) => selectRuleData(profile, "vesselCompatibility");
 
-export const isVesselSinkStyle = (value?: string | null): boolean => {
-  return Boolean(value?.trim().startsWith("Vessel_"));
-};
-
 export const isVisibleVesselSinkStyle = (value: string | null | undefined, profile: ProductProfile | null): boolean => {
   const normalizedValue = value?.trim();
   const hiddenStyles = selectVesselCompatibility(profile)?.hiddenStyles ?? [];
 
-  return Boolean(normalizedValue && isVesselSinkStyle(normalizedValue) && !hiddenStyles.includes(normalizedValue));
+  return Boolean(normalizedValue && isVesselBasin(profile, normalizedValue) && !hiddenStyles.includes(normalizedValue));
 };
 
 const resolveVesselStyleRule = <T,>(ruleMap: Record<string, T> | undefined, vesselStyle: string): T | null => {
@@ -51,7 +48,7 @@ export const getAllowedVesselMaterialTokens = (
   vesselStyle: string | null | undefined,
   profile: ProductProfile | null,
 ): Set<string> | null => {
-  if (!isVesselSinkStyle(vesselStyle)) return null;
+  if (!isVesselBasin(profile, vesselStyle)) return null;
 
   const allowedTokens = resolveVesselStyleRule(
     selectVesselCompatibility(profile)?.allowedMaterialsByStyle,
@@ -71,7 +68,7 @@ const getDefaultVesselFinishPreference = (
   vesselStyle: string | null | undefined,
   profile: ProductProfile | null,
 ): VesselFinishPreference | null => {
-  if (!isVesselSinkStyle(vesselStyle)) return null;
+  if (!isVesselBasin(profile, vesselStyle)) return null;
 
   const rawPreference = resolveVesselStyleRule(
     selectVesselCompatibility(profile)?.defaultFinishByStyle,
@@ -95,10 +92,11 @@ const getDefaultVesselFinishPreference = (
 const getMaterialColorCodeRules = (
   ruleMap: Record<string, Record<string, string[]>> | undefined,
   vesselStyle: string | null | undefined,
-  aliasTable: MaterialAliasTable,
+  profile: ProductProfile | null,
 ): VesselMaterialColorCodeRule[] => {
-  if (!isVesselSinkStyle(vesselStyle)) return [];
+  if (!isVesselBasin(profile, vesselStyle)) return [];
 
+  const aliasTable = selectMaterialAliasTable(profile);
   const rawRules = resolveVesselStyleRule(ruleMap, vesselStyle?.trim() ?? "");
   if (!rawRules) return [];
 
@@ -188,11 +186,10 @@ export const isMaterialCompatibleWithVesselStyle = ({
 
   const compatibility = selectVesselCompatibility(profile);
 
-  const aliasTable = selectMaterialAliasTable(profile);
   const unavailableMaterialColorCodeRules = getMaterialColorCodeRules(
     compatibility?.unavailableColorCodesByStyle,
     vesselStyle,
-    aliasTable,
+    profile,
   );
   if (
     normalizedColorCode &&
@@ -206,7 +203,7 @@ export const isMaterialCompatibleWithVesselStyle = ({
   const materialColorCodeRules = getMaterialColorCodeRules(
     compatibility?.allowedColorCodesByStyle,
     vesselStyle,
-    aliasTable,
+    profile,
   );
   if (!materialColorCodeRules.length) return true;
 

@@ -233,7 +233,8 @@
         {
           "attributeId": "sinkType",
           "control": "options-grid",
-          "availabilityRef": "sinkType.allowed"
+          "availabilityRef": "sinkType.allowed",
+          "autoSelect": "firstAllowed"
         }
       ]
     },
@@ -244,7 +245,8 @@
           "attributeId": "VesselColor",
           "control": "colors",
           "optionsRef": "VesselColor",
-          "availabilityRef": "Countertop.isVesselStyle"
+          "availabilityRef": "VesselColor.allowed",
+          "autoSelect": "firstAllowed"
         }
       ]
     },

@@ -60,6 +60,8 @@ import {
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
+  createConfiguratorColorReader,
+  resolveCollectionVessel,
   resolveVesselDimensionTokens,
   formatVesselDimensionLabel,
   vesselHeightCmMap,
@@ -403,6 +405,7 @@ export const CustomSummaryPage = () => {
   );
 
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const configuratorCatalog = useActiveCollection((collection) => collection.catalog.configurator);
   const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
   const countertopRules = useCountertopRules();
 
@@ -938,6 +941,15 @@ export const CustomSummaryPage = () => {
         ? (materialSkuLabelMap[resolvedCountertopMaterialSku] ?? resolvedCountertopMaterialSku)
         : null;
     const resolvedVesselColor = vesselColor;
+    // A vessel the collection prices from its SKU profile (Mako, Class) is kept in the state only: its type,
+    // size and material are read from the state, as its order line is.
+    const collectionVessel = skuBuilders.collectionProfile
+      ? resolveCollectionVessel(skuBuilders.collectionProfile, activeProfile, {
+          basin: sinkType || null,
+          color: vesselColor || null,
+          readConfiguratorColor: createConfiguratorColorReader(activeProfile, configuratorCatalog),
+        })
+      : null;
     const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
     const allowedVesselMaterialTokens = vesselTypeForTokens
       ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
@@ -997,8 +1009,9 @@ export const CustomSummaryPage = () => {
     const displayCountertopThickness = formatCountertopThicknessLabel(resolvedCountertopThickness);
     const countertopSwatch = resolveSwatch(displayCountertopColor);
     const vesselSwatch = resolvedVesselColor ? resolveSwatch(resolvedVesselColor) : null;
-    const displayVesselMaterial = resolvedVesselMaterialSku
-      ? (materialSkuLabelMap[resolvedVesselMaterialSku] ?? resolvedVesselMaterialSku)
+    const vesselMaterialSku = collectionVessel ? collectionVessel.material : resolvedVesselMaterialSku;
+    const displayVesselMaterial = vesselMaterialSku
+      ? (materialSkuLabelMap[vesselMaterialSku] ?? vesselMaterialSku)
       : null;
 
     const bookMatchingInfo = deriveBookMatchingChargeInfo({
@@ -1074,6 +1087,8 @@ export const CustomSummaryPage = () => {
         })
       : null;
     const basinStyleLabel = formatBasinStyle(resolvedSinkType);
+    const vesselStyleLabel = collectionVessel ? formatBasinStyle(sinkType) : basinStyleLabel;
+    const vesselSize = collectionVessel?.dimensions ?? vesselDimensionTokens;
 
     const basinItem = (id: string, basinType: string | null) => ({
       id,
@@ -1358,7 +1373,7 @@ export const CustomSummaryPage = () => {
               items: Array.from({ length: vesselLine.quantity }, (_, index) => ({
                 id: `basin-vessel-sku-${index}`,
                 title: "Vessel",
-                subtitle: basinStyleLabel ?? "Vessel",
+                subtitle: vesselStyleLabel ?? "Vessel",
                 ...priceOfLines([vesselLine]),
                 swatch: vesselSwatch
                   ? {
@@ -1366,17 +1381,17 @@ export const CustomSummaryPage = () => {
                       value: vesselSwatch.value,
                       color: vesselSwatch.color,
                       image: vesselSwatch.image,
-                      materialSku: resolvedVesselMaterialSku,
+                      materialSku: vesselMaterialSku,
                     }
                   : undefined,
                 copyable: true,
                 showInfo: true,
                 description: {
                   "Product Category": "Vessel",
-                  Type: basinStyleLabel ?? resolvedSinkType,
-                  Width: formatVesselDimensionLabel(vesselDimensionTokens?.width),
-                  Height: formatVesselDimensionLabel(vesselDimensionTokens?.height),
-                  Depth: formatVesselDimensionLabel(vesselDimensionTokens?.depth),
+                  Type: vesselStyleLabel ?? resolvedSinkType,
+                  Width: formatVesselDimensionLabel(vesselSize?.width),
+                  Height: formatVesselDimensionLabel(vesselSize?.height),
+                  Depth: formatVesselDimensionLabel(vesselSize?.depth),
                   Material: displayVesselMaterial,
                   "Color Code": resolvedVesselColor,
                 },
@@ -1445,6 +1460,7 @@ export const CustomSummaryPage = () => {
     buildCabinetDescription,
     activeProfile,
     runtimeBindings,
+    configuratorCatalog,
   ]);
 
   const fullSkuJson = useMemo(() => {
