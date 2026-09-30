@@ -108,6 +108,7 @@ import {
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import type { CabinetsState } from "@/features/configuratorApi";
+import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
 import {
@@ -419,6 +420,8 @@ export const PlayCanvasIntegration = ({
   const isSummaryPage = navigation?.isSummary ?? false;
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
+  const activeCollectionId = useActiveCollection((collection) => collection.id);
+  useSceneRoomCollection(activeCollectionId, isPlayCanvasReady);
   const quickEditorNotification = useInSceneQuickEditorNotification({
     initialState: {
       hasSeen: typeof window !== "undefined" && getInSceneQuickEditorNotificationSeen(window.sessionStorage),
