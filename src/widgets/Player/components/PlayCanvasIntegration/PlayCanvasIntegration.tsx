@@ -108,6 +108,7 @@ import {
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import type { CabinetsState } from "@/features/configuratorApi";
+import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
 import {
@@ -164,7 +165,7 @@ import {
 } from "./lib/vesselBasinSelection";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "036";
+const PLAYCANVAS_VERSION = "037";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 /** Stable code; the text comes from the collection's `messages`. */
@@ -419,6 +420,8 @@ export const PlayCanvasIntegration = ({
   const isSummaryPage = navigation?.isSummary ?? false;
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
+  const activeCollectionId = useActiveCollection((collection) => collection.id);
+  useSceneRoomCollection(activeCollectionId, isPlayCanvasReady);
   const quickEditorNotification = useInSceneQuickEditorNotification({
     initialState: {
       hasSeen: typeof window !== "undefined" && getInSceneQuickEditorNotificationSeen(window.sessionStorage),

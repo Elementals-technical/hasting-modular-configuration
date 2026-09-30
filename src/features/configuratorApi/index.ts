@@ -47,6 +47,7 @@ export type {
   CountertopLengthLimitsM,
   CountertopLengthPreview,
   CountertopOverlayApi,
+  RoomApi,
   CountertopOverlayFrame,
   CountertopOverlayPointName,
   CountertopOverlayReason,

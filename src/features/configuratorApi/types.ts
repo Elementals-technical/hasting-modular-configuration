@@ -235,6 +235,13 @@ export type CountertopOverlayFrame = {
   /** Set while a ghost preview is shown; `lengthM` is then the preview length. */
   preview?: CountertopLengthPreview | null;
 };
+/** `ConfiguratorAPI.room`: the UI names the open collection; the scene places the room for it. */
+export type RoomApi = {
+  setCollection?: (collectionId: string | null) => unknown;
+  clearCollection?: () => unknown;
+  getState?: () => unknown;
+};
+
 export type CountertopOverlayApi = {
   setActive(active: boolean): void;
   getState(): CountertopOverlayFrame | null;
@@ -307,6 +314,8 @@ export interface ConfiguratorApi {
   placementOverlay?: PlacementOverlayApi;
   /** Present only in PlayCanvas builds with the countertop Drag & Drop overlay (feature-detect). */
   countertopOverlay?: CountertopOverlayApi;
+  /** Room height per open collection (ULH lowers the room). Newer builds only (feature-detect). */
+  room?: RoomApi;
   /** Only the members the typed layer uses; the rest of the namespace is read by the countertop feature. */
   countertop?: {
     setLengthLimits?: (limits: CountertopLengthLimitsM | null) => unknown;

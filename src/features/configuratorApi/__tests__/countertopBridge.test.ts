@@ -52,3 +52,17 @@ describe("countertop length bridge (v2)", () => {
     await expect(bridge.resizeCountertopFrom!("left", Number.POSITIVE_INFINITY)).rejects.toMatchObject({ code: "INVALID_INPUT" });
   });
 });
+
+describe("room bridge", () => {
+  it("setRoomCollection resolves false without room.setCollection and forwards the collection id", async () => {
+    expect(await bridgeFor({}).setRoomCollection!("urban-low-height")).toBe(false);
+    expect(await bridgeFor(null).setRoomCollection!(null)).toBe(false);
+    const setCollection = vi.fn();
+    const bridge = bridgeFor({ room: { setCollection } });
+    expect(await bridge.setRoomCollection!("urban-low-height")).toBe(true);
+    expect(await bridge.setRoomCollection!(null)).toBe(true);
+    expect(setCollection.mock.calls).toEqual([["urban-low-height"], [null]]);
+    setCollection.mockImplementationOnce(() => { throw Object.assign(new Error("bad"), { code: "INVALID_INPUT" }); });
+    await expect(bridge.setRoomCollection!("x")).rejects.toBeInstanceOf(ConfiguratorError);
+  });
+});

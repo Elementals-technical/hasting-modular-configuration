@@ -102,6 +102,8 @@ export interface ConfiguratorClient {
   setCountertopLengthLimits(limits: CountertopLengthLimitsM | null): Promise<boolean>;
   /** Resolves false when the build has no `countertopOverlay.previewLength`. */
   previewCountertopLength(preview: CountertopLengthPreview | null): Promise<boolean>;
+  /** Resolves false when the build has no `room.setCollection`. */
+  setRoomCollection(collectionId: string | null): Promise<boolean>;
   /** Resolves null when the build has no `countertopOverlay.lengthAtPointer`. */
   countertopLengthAtPointer(
     side: CountertopResizeSide,
@@ -462,6 +464,10 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
 
   previewCountertopLength(preview: CountertopLengthPreview | null): Promise<boolean> {
     return this.enqueue(async () => (await this.bridge.previewCountertopLength?.(preview)) ?? false);
+  }
+
+  setRoomCollection(collectionId: string | null): Promise<boolean> {
+    return this.enqueue(async () => (await this.bridge.setRoomCollection?.(collectionId)) ?? false);
   }
 
   countertopLengthAtPointer(
