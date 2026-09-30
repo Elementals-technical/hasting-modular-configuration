@@ -90,9 +90,26 @@ describe("mako runtime bindings", () => {
     );
   });
 
-  it("record the basin and the groove colour without a scene call", () => {
-    for (const attributeId of ["sinkType", "VesselColor", "HandleGrooveColor"]) {
-      expect(isStateOnlyResolution(resolveRuntimeBinding(makoRuntimeBindings, attributeId, "x"))).toBe(true);
-    }
+  it("maps every Mako basin to its scene sub-product and sends the vessel colour", () => {
+    expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
+    expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_HPLPrisma" });
+    expect(patchOf("sinkType", "LB175")).toEqual({ sinkType: "Top_Tekorlux_Ron" });
+    expect(patchOf("sinkType", "LB575")).toEqual({ sinkType: "Top_Tekorlux_Quadra" });
+    expect(patchOf("sinkType", "LB856")).toEqual({ sinkType: "Top_HPLStrip" });
+    expect(patchOf("sinkType", "VA024")).toEqual({ sinkType: "Top_HPLCover" });
+    expect(patchOf("sinkType", "LV890")).toEqual({ sinkType: "Top_Tekorlux_Trip" });
+    expect(patchOf("sinkType", "LV892")).toEqual({ sinkType: "Top_Ocritech_Orion" });
+    expect(patchOf("sinkType", "VA002")).toEqual({ sinkType: "Top_Ocritech_Oly55" });
+    expect(patchOf("sinkType", "VA005")).toEqual({ sinkType: "Top_Tekorlux_Rectangular" });
+    expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
+    expect(patchOf("sinkType", "Frame")).toEqual({ sinkType: "Vessel_Frame" });
+    expect(patchOf("sinkType", "Plaza")).toEqual({ sinkType: "Vessel_Blade11" });
+    expect(patchOf("VesselColor", "Grigio Argento 403 GL")).toEqual({
+      VesselColor: "Grigio Argento 403 GL",
+    });
+  });
+
+  it("keeps the unsupported groove colour in state only", () => {
+    expect(isStateOnlyResolution(resolveRuntimeBinding(makoRuntimeBindings, "HandleGrooveColor", "x"))).toBe(true);
   });
 });

@@ -11,6 +11,8 @@ import {
 export type VesselSkuInput = {
   /** PlayCanvas vessel type, e.g. "Vessel_Blade11", "Vessel_UrbanModo" */
   vesselType: string | null;
+  /** Collection-owned SKU series when it is not part of the shared vessel map. */
+  series?: string | null;
   /** Model/style code — "X" (default) or "URSTD" */
   model?: string | null;
   width: number | null;
@@ -40,8 +42,7 @@ const resolveFixedDimensionToken = (value: string | undefined): string | null =>
   return normalized ? normalized : null;
 };
 
-const resolveCmDimensionToken = (value: number | null): string | null =>
-  value != null ? cmToInches(value) : null;
+const resolveCmDimensionToken = (value: number | null): string | null => (value != null ? cmToInches(value) : null);
 
 export const resolveVesselDimensionTokens = (input: VesselDimensionInput): VesselDimensionTokens => {
   const fixedWidth = input.vesselType ? resolveFixedDimensionToken(vesselFixedWidthInMap[input.vesselType]) : null;

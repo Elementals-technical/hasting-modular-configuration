@@ -314,7 +314,10 @@ describe("Cabinet drag and drop test controls", () => {
       kind: "option",
       optionId: "right-option",
     });
-    expect(add.disabled).toBe(true);
+    expect(
+      screen.queryByRole("button", { name: "Drag & Drop" }),
+      "Cancel replaces Drag & Drop in drag mode",
+    ).toBeNull();
     expect(client.apply).not.toHaveBeenCalled();
     expect(committed).not.toHaveBeenCalled();
     emit("cabinetPlacement.change", { ...preview, canApply: false });
@@ -322,7 +325,9 @@ describe("Cabinet drag and drop test controls", () => {
     emit("cabinetPlacement.change", preview);
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     await waitFor(() => expect(client.apply).toHaveBeenCalledExactlyOnceWith("draft-1"));
-    await waitFor(() => expect(add.disabled).toBe(false));
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(false),
+    );
     expect(screen.getByRole("status").textContent).toBe("Placement applied");
     expect(committed).toHaveBeenCalledExactlyOnceWith(await client.getCabinetsState());
     emit("cabinetPlacement.action", { status: "committed", sessionId: "draft-1", receipt: { requestId: "apply-1" } });
@@ -348,7 +353,7 @@ describe("Cabinet drag and drop test controls", () => {
     fireEvent.click(screen.getByRole("button", { name: "Drag & Drop" }));
     fireEvent.click(await screen.findByRole("button", { name: "Apply" }));
     expect((await screen.findByRole("alert")).textContent).toContain("APPLY_UNAVAILABLE");
-    expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole("button", { name: "Drag & Drop" }), "the draft stays open").toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
     await waitFor(() => expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull());
@@ -360,6 +365,7 @@ describe("Cabinet drag and drop test controls", () => {
     render(
       <CabinetPlacementDebug
         ready
+        showDebugTools
         selection={selection}
         selectedProductId="old-redux-id"
         createClient={createClient}
@@ -384,7 +390,7 @@ describe("Cabinet drag and drop test controls", () => {
     await waitFor(() =>
       expect((screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement).disabled).toBe(false),
     );
-    expect(add.disabled).toBe(true);
+    expect(screen.queryByRole("button", { name: "Drag & Drop" })).toBeNull();
     expect(screen.getByRole("button", { name: "Apply" })).toBeTruthy();
   });
 
@@ -411,6 +417,7 @@ describe("Cabinet drag and drop test controls", () => {
     render(
       <CabinetPlacementDebug
         ready
+        showDebugTools
         selection={selection}
         selectedProductId={null}
         createClient={createClient}
@@ -486,6 +493,7 @@ describe("Cabinet drag and drop test controls", () => {
       <CabinetPlacementDebug
         ref={controls}
         ready
+        showDebugTools
         externalBusy
         selection={selection}
         selectedProductId="runtime-selected"
@@ -497,6 +505,127 @@ describe("Cabinet drag and drop test controls", () => {
     expect((screen.getByRole("button", { name: "Move selected cabinet" }) as HTMLButtonElement).disabled).toBe(true);
     act(() => controls.current?.reposition("runtime-selected"));
     expect(client.beginMove).not.toHaveBeenCalled();
+  });
+});
+
+describe("Cabinet drag and drop overlay", () => {
+  const frame = (overrides: Record<string, unknown> = {}) => ({
+    sessionId: "draft-1",
+    kind: "add",
+    lifecycle: "preview",
+    status: "clear",
+    collidesWith: [],
+    canApply: true,
+    canCancel: true,
+    dragging: false,
+    visible: true,
+    viewport: { width: 800, height: 600 },
+    hull: [],
+    bounds: { left: 300, top: 100, right: 500, bottom: 220, width: 200, height: 120 },
+    points: {
+      center: { x: 400, y: 160 },
+      frontCenter: { x: 400, y: 170 },
+      topLeft: { x: 300, y: 100 },
+      topRight: { x: 500, y: 100 },
+      bottomLeft: { x: 300, y: 220 },
+      bottomRight: { x: 500, y: 220 },
+      topCenter: { x: 400, y: 100 },
+      bottomCenter: { x: 400, y: 220 },
+    },
+    ...overrides,
+  });
+  const overlayFixture = () => {
+    const base = fixture();
+    let publish: ((value: unknown) => void) | null = null;
+    const stopOverlay = vi.fn(() => {
+      publish = null;
+    });
+    const client = Object.assign(base.client, {
+      onPlacementOverlay: vi.fn(async (callback: (value: unknown) => void) => {
+        publish = callback;
+        return stopOverlay;
+      }),
+      setPlacementOverlayPlaceholders: vi.fn(async () => true),
+    });
+    const emitFrame = (value: unknown) => act(() => publish?.(value));
+    return { ...base, client, emitFrame, stopOverlay };
+  };
+
+  it("starts dragging straight from Drag & Drop and puts Apply / discard at the PlayCanvas anchors", async () => {
+    const { client, createClient, emit, emitFrame, stopOverlay } = overlayFixture();
+    const { unmount } = render(
+      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />,
+    );
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(client.setPlacementOverlayPlaceholders).toHaveBeenCalledExactlyOnceWith(false);
+    expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(client.beginAdd).toHaveBeenCalledOnce();
+    emitFrame(frame());
+    const overlay = screen.getByTestId("cabinet-draft-overlay");
+    expect(overlay.dataset.status).toBe("clear");
+    const apply = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect(overlay.contains(apply), "a single Apply, at the anchor, not in the toolbar").toBe(true);
+    expect([apply.style.left, apply.style.top]).toEqual(["497px", "225px"]);
+    const discard = screen.getByRole("button", { name: "Discard cabinet placement" }) as HTMLButtonElement;
+    expect([discard.style.left, discard.style.top]).toEqual(["503px", "223px"]);
+    expect(apply.disabled).toBe(false);
+
+    // Red: the runtime blocks Apply while the cabinet overlaps another one.
+    emit("cabinetPlacement.change", {
+      ...preview,
+      canApply: false,
+      collision: { status: "colliding", collidesWith: ["cab-a"] },
+    });
+    emitFrame(frame({ status: "colliding", collidesWith: ["cab-a"], canApply: false }));
+    expect(screen.getByTestId("cabinet-draft-overlay").dataset.status).toBe("colliding");
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/overlaps another cabinet/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(client.apply).not.toHaveBeenCalled();
+
+    // A corner at the viewport edge: Apply / discard stay on screen.
+    emit("cabinetPlacement.change", preview);
+    emitFrame(frame({ points: { ...frame().points, bottomRight: { x: 795, y: 598 } } }));
+    const edgeApply = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect([edgeApply.style.left, edgeApply.style.top]).toEqual(["767px", "575px"]);
+
+    // Off screen: no anchors, Apply falls back next to Cancel.
+    emit("cabinetPlacement.change", preview);
+    emitFrame(frame({ visible: false, points: null }));
+    expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
+    emitFrame(frame());
+    fireEvent.click(screen.getByRole("button", { name: "Discard cabinet placement" }));
+    await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await screen.findByRole("button", { name: "Drag & Drop" });
+    unmount();
+    expect(stopOverlay).toHaveBeenCalled();
+    expect(client.setPlacementOverlayPlaceholders).toHaveBeenLastCalledWith(true);
+  });
+
+  it("ignores overlay frames of another session", async () => {
+    const { createClient, emitFrame } = overlayFixture();
+    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Cancel" });
+    emitFrame(frame({ sessionId: "someone-else" }));
+    expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
+    expect(screen.getByRole("button", { name: "Apply" }), "fallback Apply next to Cancel").toBeTruthy();
+  });
+
+  it("leaves PlayCanvas' placeholders on for a build without the overlay", async () => {
+    const { client, createClient } = overlayFixture();
+    client.onPlacementOverlay.mockResolvedValueOnce(null as never);
+    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(client.onPlacementOverlay).toHaveBeenCalledOnce();
+    expect(client.setPlacementOverlayPlaceholders).not.toHaveBeenCalled();
   });
 });
 

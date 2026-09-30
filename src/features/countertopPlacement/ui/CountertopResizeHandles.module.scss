@@ -1,0 +1,65 @@
+$clear: #39d080;
+$colliding: #e5484d;
+$ink: #282828;
+
+// Same look as `.handle` in CountertopDragMode.module.scss (anchors are overlay-frame px).
+.handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: $clear;
+  box-shadow: 0 1px 3px #0004;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+  touch-action: none;
+  pointer-events: auto;
+
+  &:focus-visible {
+    outline: 2px solid $ink;
+    outline-offset: 2px;
+  }
+
+  &[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.colliding {
+  background: $colliding;
+}
+
+.active {
+  width: 20px;
+  height: 20px;
+  box-shadow: 0 0 0 4px rgba($clear, 0.35), 0 1px 3px #0004;
+}
+
+.colliding.active {
+  box-shadow: 0 0 0 4px rgba($colliding, 0.35), 0 1px 3px #0004;
+}
+
+.tooltip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: $ink;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 14px));
+  pointer-events: none;
+}
+
+.snap {
+  font-weight: 500;
+  opacity: 0.8;
+}

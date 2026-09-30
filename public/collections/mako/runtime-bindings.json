@@ -471,13 +471,45 @@
     },
     {
       "attributeId": "sinkType",
-      "status": "state-only",
-      "reason": "The Mako cabinets have no basin sub-product in the scene; the basin is recorded for pricing only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Mako-sink-cabinet"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "None": { "sinkType": "Vessel" },
+          "LB440": { "sinkType": "Top_HPLPrisma" },
+          "LB175": { "sinkType": "Top_Tekorlux_Ron" },
+          "LB575": { "sinkType": "Top_Tekorlux_Quadra" },
+          "LB856": { "sinkType": "Top_HPLStrip" },
+          "VA024": { "sinkType": "Top_HPLCover" },
+          "LV890": { "sinkType": "Top_Tekorlux_Trip" },
+          "LV892": { "sinkType": "Top_Ocritech_Orion" },
+          "VA002": { "sinkType": "Top_Ocritech_Oly55" },
+          "VA005": { "sinkType": "Top_Tekorlux_Rectangular" },
+          "Iris": { "sinkType": "Vessel_Iris" },
+          "Frame": { "sinkType": "Vessel_Frame" },
+          "Plaza": { "sinkType": "Vessel_Blade11" }
+        }
+      },
+      "order": 40,
+      "note": "Mako UI basin names are translated to the corresponding sink sub-products under ClMa_Sink_Point. Vessel clears the integrated basin; RuleChangeSinkType swaps the selected sub-product."
     },
     {
       "attributeId": "VesselColor",
-      "status": "state-only",
-      "reason": "The Mako cabinets have no basin sub-product in the scene; recorded only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Mako-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor"
+      },
+      "order": 60,
+      "note": "The composition sink-material rule paints the active vessel descendant under the Mako sink mount."
     },
     {
       "attributeId": "HandleGrooveColor",

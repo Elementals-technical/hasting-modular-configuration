@@ -19,6 +19,7 @@ import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
+  buildVesselSku,
   createConfiguratorColorReader,
   isChosenColor,
   resolveCollectionColorCode,

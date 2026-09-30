@@ -77,6 +77,7 @@ import {
   resolveCabinetPricingMaterialSku,
   resolveCountertopMaterialSkuFromBasinType,
   resolveCountertopMaterialSkuFromColorCode,
+  resolveCollectionColorCode,
 } from "@/shared/lib/sku";
 import { useSaveConfigurationMutation } from "@/entities";
 import { configurationValueOf, useActiveCollection } from "@/entities/collection";
@@ -89,10 +90,7 @@ import {
   type PricingLine,
   type SummaryPriceState,
 } from "@/shared/lib/pricing";
-import {
-  calcTotalCountertopWidthCm,
-  formatCountertopThicknessLabel,
-} from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
 import { buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import { hashConfigurationRequest, useBuildConfigurationRequest } from "@/features/saveConfiguration";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
@@ -295,8 +293,7 @@ export const CustomSummaryPage = () => {
 
   const [productConfigs, setProductConfigs] = useState<NormalizedProductConfigSnapshot[]>([]);
   const [generatedConfigId, setGeneratedConfigId] = useState<string | null>(null);
-  const [configurationLinkStatus, setConfigurationLinkStatus] =
-    useState<QuoteConfigurationLinkStatus>("idle");
+  const [configurationLinkStatus, setConfigurationLinkStatus] = useState<QuoteConfigurationLinkStatus>("idle");
   const [saveConfiguration] = useSaveConfigurationMutation();
   const quoteConfigurationId = useMemo(
     () => resolveQuoteConfigurationId(location.search, generatedConfigId),
@@ -593,11 +590,10 @@ export const CustomSummaryPage = () => {
     });
     const sceneProductConfigs = shouldUsePresets ? productConfigs.slice(productsPresets.length) : productConfigs;
     const orderedProductIds = getOrderedProductIds(selectedProducts);
-    const productOrder = new Map((orderedProductIds.length ? orderedProductIds : selectedProducts).map((id, index) => [id, index]));
-    const sortBySceneOrder = (
-      left: NormalizedProductConfigSnapshot,
-      right: NormalizedProductConfigSnapshot,
-    ) =>
+    const productOrder = new Map(
+      (orderedProductIds.length ? orderedProductIds : selectedProducts).map((id, index) => [id, index]),
+    );
+    const sortBySceneOrder = (left: NormalizedProductConfigSnapshot, right: NormalizedProductConfigSnapshot) =>
       (productOrder.get(left.id) ?? productOrder.get(left._productId) ?? Number.MAX_SAFE_INTEGER) -
       (productOrder.get(right.id) ?? productOrder.get(right._productId) ?? Number.MAX_SAFE_INTEGER);
     const sceneProductConfigsInSceneOrder = [...sceneProductConfigs].sort(sortBySceneOrder);
@@ -671,7 +667,11 @@ export const CustomSummaryPage = () => {
     });
     const presetCabinetItems = shouldUsePresets
       ? productsPresets.map((preset, index) => {
-          const recordedDimensions = resolveCabinetDimensions(cabinetEntries, dimensionsByCabinet, selectedProducts[index]);
+          const recordedDimensions = resolveCabinetDimensions(
+            cabinetEntries,
+            dimensionsByCabinet,
+            selectedProducts[index],
+          );
           const presetHeight = recordedDimensions?.height ?? preset.Height ?? undefined;
           const presetDepth = recordedDimensions?.depth ?? preset.Depth ?? undefined;
           const swatchValue = preset.CabinetColor ?? cabinetColor;
@@ -957,24 +957,24 @@ export const CustomSummaryPage = () => {
     const vesselPreferredMaterialTokens =
       allowedVesselMaterialTokens.length > 0
         ? allowedVesselMaterialTokens
-        : [
-            ...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku),
-            ...preferredCountertopMaterialTokens,
-          ];
+        : [...getCountertopMaterialTokensBySku(resolvedCountertopMaterialSku), ...preferredCountertopMaterialTokens];
     const resolvedVesselColorCode = resolvedVesselColor
-      ? resolveCountertopColorCodeFromCandidates({
+      ? ((skuBuilders.collectionProfile
+          ? resolveCollectionColorCode(skuBuilders.collectionProfile, resolvedVesselColor)
+          : null) ??
+        resolveCountertopColorCodeFromCandidates({
           value: resolvedVesselColor,
           candidatesByValue: countertopColorSkuCandidatesByValue,
           preferredMaterialTokens: vesselPreferredMaterialTokens,
-        })
+        }))
       : null;
     const resolvedVesselMaterialSku = resolvedVesselColor
-      ? resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
+      ? (resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
         resolveCountertopColorSkuFromCandidates({
           value: resolvedVesselColor,
           candidatesByValue: countertopColorSkuCandidatesByValue,
           preferredMaterialTokens: vesselPreferredMaterialTokens,
-        })
+        }))
       : null;
     const effectiveCountertopColorCode = extractColorCode(displayCountertopColor);
     const effectiveCountertopMaterialSku =
@@ -1067,7 +1067,7 @@ export const CustomSummaryPage = () => {
     // selectedDimensions. See slice.ts setSelectedDimensions note.
     const cabinetWidthSum = shouldUsePresets
       ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
-          cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
+        cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
       : cabinetConfigs.length > 0
         ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
         : (selectedDimensions.width ?? 0);
@@ -1076,7 +1076,7 @@ export const CustomSummaryPage = () => {
     const totalCountertopWidth =
       countertopTopLine?.widthCm ?? calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
 
-    const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
+    const vesselType = vesselTypeForTokens;
     const vesselLine = lineById("vessel");
     const vesselDimensionTokens = vesselType
       ? resolveVesselDimensionTokens({
@@ -1106,7 +1106,8 @@ export const CustomSummaryPage = () => {
       .filter(({ group }) => group === "basin")
       .flatMap((line) => {
         const entryId = line.id.startsWith("countertop:basin:") ? line.id.slice("countertop:basin:".length) : null;
-        const basinType = (entryId ? sinkBaseEntries.find(({ id }) => id === entryId)?.sinkType : null) ?? resolvedSinkType;
+        const basinType =
+          (entryId ? sinkBaseEntries.find(({ id }) => id === entryId)?.sinkType : null) ?? resolvedSinkType;
         return Array.from({ length: line.quantity }, (_, index) => ({
           ...basinItem(`countertop-${line.id}-${index}`, basinType),
           ...priceOfLines([line]),
@@ -1393,7 +1394,7 @@ export const CustomSummaryPage = () => {
                   Height: formatVesselDimensionLabel(vesselSize?.height),
                   Depth: formatVesselDimensionLabel(vesselSize?.depth),
                   Material: displayVesselMaterial,
-                  "Color Code": resolvedVesselColor,
+                  "Color Code": resolvedVesselColorCode,
                 },
               })),
             },
@@ -1820,9 +1821,7 @@ export const CustomSummaryPage = () => {
                     );
                   }
 
-                  const tooltipLabel = swatch.materialLabel
-                    ? `${swatch.label} ${swatch.materialLabel}`
-                    : swatch.label;
+                  const tooltipLabel = swatch.materialLabel ? `${swatch.label} ${swatch.materialLabel}` : swatch.label;
 
                   return (
                     <div key={swatch.identity} className={s.swatchTile}>

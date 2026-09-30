@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, useSyncExternalStore } from "react";
 
 import {
   createConfiguratorClient,
@@ -9,6 +9,9 @@ import {
   type ConfiguratorPreset,
 } from "@/features/configuratorApi";
 
+import { createPlacementOverlayStore, visibleOverlayFrame } from "../lib/placementOverlayStore";
+import { CabinetDraftOverlay } from "./CabinetDraftOverlay";
+import { MoveIcon } from "./placementIcons";
 import s from "./CabinetPlacementDebug.module.scss";
 
 type Props = {
@@ -20,6 +23,8 @@ type Props = {
   onPlacementBusyChange?: (busy: boolean) => void;
   onCompositionCommitted?: (state: CabinetsState) => void | Promise<void>;
   onRepositionAvailabilityChange?: (status: CabinetRepositionAvailability) => void;
+  /** Engineering tools (Move selected, add side, Save/Restore JSON): `?placementDebug` in the URL. */
+  showDebugTools?: boolean;
 };
 
 export type CabinetPlacementControls = {
@@ -46,6 +51,13 @@ const errorMessage = (error: unknown): string => {
 };
 const isTerminal = (lifecycle: unknown) => ["committed", "cancelled", "error"].includes(String(lifecycle));
 
+/**
+ * Cabinet Drag & Drop. "Drag & Drop" (top-right of the canvas) opens an Add draft of the configured
+ * cabinet right away: PlayCanvas tints it green (free spot) or red (overlaps a cabinet; Apply blocked)
+ * and publishes screen anchors, where this component puts the move icon, Apply and discard (x).
+ * "Cancel" replaces the button while the draft is open. A PlayCanvas build without the overlay (or a
+ * draft off screen) falls back to Apply next to Cancel.
+ */
 export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>(function CabinetPlacementDebug(
   {
     ready,
@@ -56,6 +68,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     onPlacementBusyChange,
     onCompositionCommitted,
     onRepositionAvailabilityChange,
+    showDebugTools = false,
   },
   ref,
 ) {
@@ -84,6 +97,12 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     }
   });
   const [restoreConfirmed, setRestoreConfirmed] = useState(false);
+  const [overlayStore] = useState(createPlacementOverlayStore);
+  // A primitive snapshot: re-render when the anchored session changes, not on every overlay frame.
+  const anchoredSessionId = useSyncExternalStore(
+    overlayStore.subscribe,
+    () => visibleOverlayFrame(overlayStore.get(), overlayStore.get()?.sessionId ?? null)?.sessionId ?? null,
+  );
 
   const syncCommitted = useCallback((client: ConfiguratorClient, receipt: ConfiguratorReceipt): Promise<void> => {
     const previous = receiptSyncRef.current.get(receipt.requestId);
@@ -109,6 +128,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     let lastReadiness = "initializing";
     let readinessError = false;
     let refreshInFlight: Promise<void> | null = null;
+    let placeholdersDisabled = false;
     const unsubscribe: (() => void)[] = [];
     const setSession = (id: string | null) => {
       activeSessionRef.current = id;
@@ -206,6 +226,21 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 void refreshCapabilities();
               }),
             );
+            if (typeof client.onPlacementOverlay === "function") {
+              const stopOverlay = await client.onPlacementOverlay((frame) => {
+                if (!disposed) overlayStore.set(frame);
+              });
+              if (stopOverlay) {
+                unsubscribe.push(() => {
+                  stopOverlay();
+                  overlayStore.set(null);
+                });
+                // This UI draws the icons: PlayCanvas' temporary placeholders go away. Repeated on every
+                // (re)subscription: a re-created runtime starts with its placeholders on.
+                placeholdersDisabled = true;
+                void client.setPlacementOverlayPlaceholders(false).catch(() => undefined);
+              }
+            }
             subscriptionScope = nextScope;
             subscriptionsInstalled = true;
             const state = dataOf(await client.getCompositionState());
@@ -256,6 +291,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       disposed = true;
       if (retryTimer) clearTimeout(retryTimer);
       stopSubscriptions();
+      overlayStore.set(null);
+      if (placeholdersDisabled) void client.setPlacementOverlayPlaceholders(true).catch(() => undefined);
       client.dispose();
       if (clientRef.current === client) clientRef.current = null;
       if (refreshCapabilitiesRef.current === refreshCapabilities) refreshCapabilitiesRef.current = null;
@@ -265,7 +302,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       setDraft(null);
       setConnected(false);
     };
-  }, [ready, createClient, syncCommitted]);
+  }, [ready, createClient, syncCommitted, overlayStore]);
 
   const command = async (run: (client: ConfiguratorClient | null) => Promise<void>) => {
     const client = clientRef.current;
@@ -381,116 +418,161 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     return () => onPlacementBusyChange?.(false);
   }, [placementBusy, onPlacementBusyChange]);
 
+  const applyDisabled =
+    !connected ||
+    capabilitiesRefreshing ||
+    pending ||
+    !supported.includes("cabinetPlacement.apply") ||
+    draft?.canApply !== true;
+  const cancelDisabled =
+    !connected ||
+    capabilitiesRefreshing ||
+    pending ||
+    !supported.includes("cabinetPlacement.cancel") ||
+    draft?.canCancel !== true;
+  const colliding = (draft?.collision as { status?: unknown } | undefined)?.status === "colliding";
+  const anchored = Boolean(sessionId) && anchoredSessionId === sessionId;
+  const collisionHint = "This cabinet overlaps another cabinet. Move it to a free spot to apply.";
+
   return (
-    <section className={s.panel} aria-label="Cabinet placement test controls">
-      <div className={s.buttons}>
-        <button type="button" disabled={busy || !canAdd || !selection} onClick={() => start("add")}>
-          Drag &amp; Drop
-        </button>
-        {connected && canMove && (
-          <button type="button" disabled={busy} onClick={() => start("move")}>
-            Move selected cabinet
-          </button>
-        )}
-        {sessionId && (
-          <>
+    <>
+      <div className={s.toolbar}>
+        <div className={s.toolbarButtons}>
+          {sessionId ? (
+            <>
+              {!anchored && (
+                <button
+                  type="button"
+                  className={s.primaryPill}
+                  disabled={applyDisabled}
+                  title={colliding ? collisionHint : undefined}
+                  onClick={() => finish("apply")}
+                >
+                  Apply
+                </button>
+              )}
+              <button
+                type="button"
+                className={s.secondaryPill}
+                disabled={cancelDisabled}
+                onClick={() => finish("cancel")}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
             <button
               type="button"
-              disabled={
-                !connected ||
-                capabilitiesRefreshing ||
-                pending ||
-                !supported.includes("cabinetPlacement.apply") ||
-                draft?.canApply !== true
-              }
-              onClick={() => finish("apply")}
+              className={s.primaryPill}
+              disabled={busy || !canAdd || !selection}
+              title={!selection ? "Choose a cabinet configuration first" : undefined}
+              onClick={() => start("add")}
             >
-              Apply
+              <MoveIcon size={16} />
+              Drag &amp; Drop
             </button>
-            <button
-              type="button"
-              disabled={
-                !connected ||
-                capabilitiesRefreshing ||
-                pending ||
-                !supported.includes("cabinetPlacement.cancel") ||
-                draft?.canCancel !== true
-              }
-              onClick={() => finish("cancel")}
-            >
-              Cancel
-            </button>
-          </>
+          )}
+        </div>
+        {sessionId && colliding && <p className={s.hint}>{collisionHint}</p>}
+        {error && (
+          <p role="alert" className={s.error}>
+            {error}
+          </p>
         )}
+        <p role="status" className={s.srOnly}>
+          {status}
+        </p>
       </div>
-      <label>
-        Add on
-        <select aria-label="Add on side" value={side} disabled={busy} onChange={(event) => setSide(event.target.value)}>
-          <option value="left">Left</option>
-          <option value="right">Right</option>
-        </select>
-      </label>
-      {!selection && connected && <p>Select a cabinet configuration to add.</p>}
-      <p role="status">{status}</p>
-      {error && <p role="alert">{error}</p>}
-      {(supported.includes("composition.exportPreset") || supported.includes("composition.importPreset")) && (
-        <details>
-          <summary>Save / Restore JSON</summary>
-          <button
-            type="button"
-            disabled={busy || !supported.includes("composition.exportPreset")}
-            onClick={() =>
-              void command(async (client) => {
-                if (!client) return;
-                const json = JSON.stringify(await client.exportPreset(), null, 2);
-                localStorage.setItem("cabinet-placement-debug-preset", json);
-                setPresetJson(json);
-                setRestoreConfirmed(false);
-                setStatus("Preset JSON saved in this browser");
-              })
-            }
-          >
-            Save JSON
-          </button>
+      <CabinetDraftOverlay
+        store={overlayStore}
+        sessionId={sessionId}
+        applyDisabled={applyDisabled}
+        cancelDisabled={cancelDisabled}
+        onApply={() => finish("apply")}
+        onCancel={() => finish("cancel")}
+      />
+      {showDebugTools && (
+        <section className={s.panel} aria-label="Cabinet placement test controls">
+          {connected && canMove && (
+            <div className={s.buttons}>
+              <button type="button" disabled={busy} onClick={() => start("move")}>
+                Move selected cabinet
+              </button>
+            </div>
+          )}
           <label>
-            Preset JSON
-            <textarea
-              value={presetJson}
+            Add on
+            <select
+              aria-label="Add on side"
+              value={side}
               disabled={busy}
-              onChange={(event) => {
-                setPresetJson(event.target.value);
-                setRestoreConfirmed(false);
-              }}
-            />
+              onChange={(event) => setSide(event.target.value)}
+            >
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
           </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={restoreConfirmed}
-              disabled={busy}
-              onChange={(event) => setRestoreConfirmed(event.target.checked)}
-            />
-            Replace the current composition with this JSON
-          </label>
-          <button
-            type="button"
-            disabled={
-              busy || !restoreConfirmed || !presetJson.trim() || !supported.includes("composition.importPreset")
-            }
-            onClick={() =>
-              void command(async (client) => {
-                if (!client || !restoreConfirmed) return;
-                const receipt = await client.importPreset(JSON.parse(presetJson) as ConfiguratorPreset);
-                await syncCommitted(client, receipt);
-                setRestoreConfirmed(false);
-                setStatus("Preset restored; cabinet IDs refreshed");
-              })
-            }
-          >
-            Restore JSON
-          </button>
-        </details>
+          {!selection && connected && <p>Select a cabinet configuration to add.</p>}
+          {(supported.includes("composition.exportPreset") || supported.includes("composition.importPreset")) && (
+            <details>
+              <summary>Save / Restore JSON</summary>
+              <button
+                type="button"
+                disabled={busy || !supported.includes("composition.exportPreset")}
+                onClick={() =>
+                  void command(async (client) => {
+                    if (!client) return;
+                    const json = JSON.stringify(await client.exportPreset(), null, 2);
+                    localStorage.setItem("cabinet-placement-debug-preset", json);
+                    setPresetJson(json);
+                    setRestoreConfirmed(false);
+                    setStatus("Preset JSON saved in this browser");
+                  })
+                }
+              >
+                Save JSON
+              </button>
+              <label>
+                Preset JSON
+                <textarea
+                  value={presetJson}
+                  disabled={busy}
+                  onChange={(event) => {
+                    setPresetJson(event.target.value);
+                    setRestoreConfirmed(false);
+                  }}
+                />
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={restoreConfirmed}
+                  disabled={busy}
+                  onChange={(event) => setRestoreConfirmed(event.target.checked)}
+                />
+                Replace the current composition with this JSON
+              </label>
+              <button
+                type="button"
+                disabled={
+                  busy || !restoreConfirmed || !presetJson.trim() || !supported.includes("composition.importPreset")
+                }
+                onClick={() =>
+                  void command(async (client) => {
+                    if (!client || !restoreConfirmed) return;
+                    const receipt = await client.importPreset(JSON.parse(presetJson) as ConfiguratorPreset);
+                    await syncCommitted(client, receipt);
+                    setRestoreConfirmed(false);
+                    setStatus("Preset restored; cabinet IDs refreshed");
+                  })
+                }
+              >
+                Restore JSON
+              </button>
+            </details>
+          )}
+        </section>
       )}
-    </section>
+    </>
   );
 });

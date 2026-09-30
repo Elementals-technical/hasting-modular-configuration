@@ -178,6 +178,10 @@ describe("Class and Mako order lines", () => {
     const { lines, gaps } = buildCollectionPricingLines(COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"].input);
 
     expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBSSTL-HCUT", quantity: 1 });
+    expect(lines.find(({ group }) => group === "vessel")).toMatchObject({
+      sku: "VES-IRIS-X-XW-XH-XD-LACG-403",
+      quantity: 1,
+    });
     expect(lines.find(({ group }) => group === "divider")).toMatchObject({ id: "divider:mko-sb:Top", quantity: 1 });
     expect(lines.some(({ group }) => group === "basin")).toBe(false);
     expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
@@ -852,7 +856,10 @@ describe("Class and Mako reference orders", () => {
     "the server charges the workbook price of every SKU of %s",
     (scenario) => {
       const recorded = Object.fromEntries(
-        Object.entries(RECORDED[scenario].answers).map(([sku, answer]) => [sku, resolvePriceFromResponse(answer)]),
+        Object.entries(RECORDED[scenario].answers).flatMap(([sku, answer]) => {
+          const price = resolvePriceFromResponse(answer);
+          return typeof price === "number" ? [[sku, price]] : [];
+        }),
       );
 
       expect(recorded).toEqual(WORKBOOK_PRICES[scenario]);
