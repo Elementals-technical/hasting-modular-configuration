@@ -305,15 +305,9 @@ describe("Cabinet drag and drop test controls", () => {
     fireEvent.click(add);
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Apply" });
-    expect(client.getPlacementOptions).toHaveBeenCalledExactlyOnceWith({
-      ...selection,
-      operation: "add",
-      anchorCabinetId: "runtime-selected",
-    });
-    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
-      kind: "option",
-      optionId: "right-option",
-    });
+    // Normal (non-debug) path: the runtime picks the best free end-of-row slot.
+    expect(client.getPlacementOptions).not.toHaveBeenCalled();
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
     expect(
       screen.queryByRole("button", { name: "Drag & Drop" }),
       "Cancel replaces Drag & Drop in drag mode",
@@ -399,12 +393,34 @@ describe("Cabinet drag and drop test controls", () => {
     client.getPlacementOptions.mockResolvedValueOnce([
       { id: "left-only", kind: "left", availability: "available", frameId: "wall", positionM: { x: 0, y: 0, z: 0 } },
     ]);
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
+    render(
+      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} showDebugTools />,
+    );
     const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     expect((await screen.findByRole("alert")).textContent).toContain("No available placement");
     expect(client.beginAdd).not.toHaveBeenCalled();
+  });
+
+  it("uses the debug side selector's explicit option anchored at the runtime selection", async () => {
+    const { client, createClient } = fixture();
+    render(
+      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} showDebugTools />,
+    );
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    expect(client.getPlacementOptions).toHaveBeenCalledExactlyOnceWith({
+      ...selection,
+      operation: "add",
+      anchorCabinetId: "runtime-selected",
+    });
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "right-option",
+    });
   });
 
   it("saves the full JSON and restores only after explicit confirmation while idle", async () => {
