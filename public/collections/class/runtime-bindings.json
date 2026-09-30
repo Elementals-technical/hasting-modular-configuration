@@ -617,8 +617,16 @@
     },
     {
       "attributeId": "Thickness",
-      "status": "state-only",
-      "reason": "The scene's countertop has no mounting offset for the Class thicknesses (3/4, 3-1/8, 4-3/4); recorded only, for the price."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "Broadcast to the composition countertop and Class sink cabinet so TopSolid and ClMa_Sink_Point stay aligned for every supported thickness."
     },
     {
       "attributeId": "Handle",
