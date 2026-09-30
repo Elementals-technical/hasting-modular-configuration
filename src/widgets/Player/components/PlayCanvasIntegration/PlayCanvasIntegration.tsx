@@ -165,7 +165,7 @@ import {
 } from "./lib/vesselBasinSelection";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "037";
+const PLAYCANVAS_VERSION = "038";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 /** Stable code; the text comes from the collection's `messages`. */
