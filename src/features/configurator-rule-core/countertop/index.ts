@@ -4,6 +4,7 @@ export * from "./rules";
 export * from "./sizeFilters";
 export * from "./lengthLimits";
 export * from "./compositionConstraints";
+export * from "./materialAvailability";
 export * from "./findCountertopSkuByColorName";
 export * from "./prebuiltModelCompatibility";
 export * from "./basinSelection";

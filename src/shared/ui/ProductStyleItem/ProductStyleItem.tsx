@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, type To } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import none_img from "../../assets/images/png/img_png.png";
@@ -17,7 +17,7 @@ interface ProductStyleItemI {
   value: string;
   title: string;
   imageSrc?: string;
-  detailsTo?: string;
+  detailsTo?: To;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
   onSelectStyle?: (value: string) => void;

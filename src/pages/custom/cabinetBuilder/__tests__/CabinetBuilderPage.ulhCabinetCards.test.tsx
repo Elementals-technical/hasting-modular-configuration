@@ -109,6 +109,19 @@ describe("Urban Low Height cabinet types", () => {
   });
 });
 
+// The collection lives in the URL: an address without it reads as another collection.
+describe("Urban Low Height cabinet style details", () => {
+  it("opens Product Details in the collection of the session", () => {
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    store.dispatch(setSelectedDimensions({ height: 38 }));
+    renderBuilder();
+
+    expect(screen.getByText("Product Details").closest("a")?.getAttribute("href")).toBe(
+      "/custom/cabinet-builder/details/style?style=1&title=1+Drawer&cabinetType=Sink-Base&height=38&collectionId=urban-low-height",
+    );
+  });
+});
+
 describe("Urban Low Height cabinet pictures", () => {
   it("shows the cabinets with the upper groove while no push-to-open height is chosen", () => {
     renderBuilder();

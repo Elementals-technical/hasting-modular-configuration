@@ -24,12 +24,15 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
 import {
+  evaluateCountertopMaterial,
   filterThicknessValuesByCountertopRules,
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
   isMaterialCompatibleWithVesselStyle,
   isPreferredVesselFinish,
   normalizeBasinKey,
+  REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
+  REASON_COUNTERTOP_MATERIAL_SELECTION,
   REASON_VESSEL_COLOR_UNAVAILABLE,
   selectMaterialAliasTable,
   useCountertopRules,
@@ -80,6 +83,34 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
     reason: refused?.disabledReason,
     reasonCode: refused?.reasonCode,
     reasonParams: refused?.reasonParams,
+  };
+};
+
+// The countertop colours the matrix makes at the current depth, widths and composition, as the USH
+// countertop screen enables them. Each option is judged by its own material, so a colour two
+// materials list (an MT lacquer, as Tekorlux and as Glass MT) is refused where only one of them is
+// made. The reason names the check every refused colour failed, or the selection when they differ.
+const resolveCountertopColorAvailability = (
+  profile: ProductProfile | null,
+  configurator: ConfiguratorGroupCatalog | null,
+  { materialRuleInputs }: CountertopRuleState,
+): FieldAvailability => {
+  const judge = ({ traits }: FieldOptionState) =>
+    evaluateCountertopMaterial(traits?.materials ?? [], materialRuleInputs);
+  const failures = new Set(
+    resolveConfiguratorOptions(profile, "CountertopColor", configurator).flatMap(
+      (option) => judge(option).failedBy ?? [],
+    ),
+  );
+  const [failure] = failures;
+
+  return {
+    available: true,
+    isOptionAllowed: (option) => judge(option).isCompatible,
+    reasonCode:
+      failures.size === 1 && failure
+        ? REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failure]
+        : REASON_COUNTERTOP_MATERIAL_SELECTION,
   };
 };
 
@@ -229,6 +260,7 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
       "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
+      "CountertopColor.allowed": resolveCountertopColorAvailability(profile, configurator, countertopRuleState),
       "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
       "sinkType.allowed": resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
       "VesselColor.allowed": resolveVesselColorAvailability(profile, configurator, sinkType),

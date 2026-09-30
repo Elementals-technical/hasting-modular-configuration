@@ -46,7 +46,8 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
 // Configurator 4 as Urban Low Height loads it, with live colours the recorded fixture leaves out: its
-// vessel colours by material, and one Tekorlux countertop colour, whose material is "Lacquered MT" (LACM).
+// vessel colours by material, two Tekorlux countertop colours, whose material is "Lacquered MT" (LACM),
+// one of them listed as Glass MT too, and a Glass GL colour.
 const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions.map((group) =>
   group.proxyName === "Countertop Color"
     ? {
@@ -72,6 +73,66 @@ const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveVess
                   Material: "Lacquered MT",
                   label: "Agata BD MT",
                   value: "Agata BD MT",
+                },
+              },
+              {
+                id: 3099,
+                name: "Bianco 0B MT",
+                image: null,
+                enabled: true,
+                description: "",
+                metadata: {
+                  sku: "SSTKR",
+                  codeColor: "0B MT",
+                  Material: "Lacquered MT",
+                  label: "Bianco 0B MT",
+                  value: "Bianco 0B MT",
+                },
+              },
+            ],
+          },
+          {
+            id: 291,
+            name: "Glass MT",
+            resource: null,
+            paramString: "",
+            playcanvasString: "",
+            variants: [
+              {
+                id: 3153,
+                name: "Bianco 0B MT",
+                image: null,
+                enabled: true,
+                description: "",
+                metadata: {
+                  sku: "GLSM",
+                  codeColor: "0B MT",
+                  Material: "Lacquered MT",
+                  label: "Bianco 0B MT",
+                  value: "Bianco 0B MT",
+                },
+              },
+            ],
+          },
+          {
+            id: 292,
+            name: "Glass GL",
+            resource: null,
+            paramString: "",
+            playcanvasString: "",
+            variants: [
+              {
+                id: 3211,
+                name: "Bianco 0B GL",
+                image: null,
+                enabled: true,
+                description: "",
+                metadata: {
+                  sku: "GLSG",
+                  codeColor: "0B GL",
+                  Material: "Lacquered GL",
+                  label: "Bianco 0B GL",
+                  value: "Bianco 0B GL",
                 },
               },
             ],
@@ -233,6 +294,36 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
     store.dispatch(setActiveCountertopColor("Ardesia TKF"));
 
     expect(shownValues("basin-style")).toEqual(["Top_HPLPrisma", "Top_HPLQuadra", "Top_HPLCover", "Top_HPLStrip"]);
+  });
+});
+
+// Table 438 makes glass 50.5 cm deep only, so at the 46 cm of Urban Low Height a glass colour stays in
+// the grid, refused with the depth reason, as the USH countertop step refuses it.
+describe("Urban Low Height countertop colours follow the countertop matrix, as the USH countertop step", () => {
+  const { fieldOf } = fieldsOf(urbanLowHeight);
+  // Bianco 0B MT is listed twice, as Tekorlux and as Glass MT: each is judged by its own material.
+  const colorOf = (material: string, value: string) =>
+    fieldOf("countertop-color")?.options.find((option) => option.desc === material && option.value === value);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("refuses the glass colours at 46 cm with the depth reason, and keeps the Tekorlux one of the same name", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+
+    const refusedForDepth = { enabled: false, reasonCode: "countertop.materialNotAvailableForDepth" };
+    expect(colorOf("Glass GL", "Bianco 0B GL")).toMatchObject(refusedForDepth);
+    expect(colorOf("Glass MT", "Bianco 0B MT")).toMatchObject(refusedForDepth);
+    expect(colorOf("Tekorlux", "Bianco 0B MT")?.enabled).toBe(true);
+  });
+
+  it("offers the glass colours at 50.5 cm", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+
+    expect(colorOf("Glass GL", "Bianco 0B GL")?.enabled).toBe(true);
+    expect(colorOf("Glass MT", "Bianco 0B MT")?.enabled).toBe(true);
   });
 });
 

@@ -28,6 +28,7 @@ import datatable578 from "./fixtures/remote/datatable-578.json";
 import datatable579 from "./fixtures/remote/datatable-579.json";
 import datatable580 from "./fixtures/remote/datatable-580.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
+import datatable589 from "./fixtures/remote/datatable-589.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -64,8 +65,8 @@ const fetchJson = vi.fn(async (url: string) => {
   return sources[url];
 });
 
-/** Tables of their own: Mako (577, 581), Class (578, 579) and Urban Low Height (580); the rest share USH's 438 / 439. */
-const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578 };
+/** Tables of their own: Mako (577, 581), Class (578, 579) and Urban Low Height (589, 580); the rest share USH's 438 / 439. */
+const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578, 589: datatable589 };
 const cabinetTables: Record<string, unknown> = { 579: datatable579, 580: datatable580, 581: datatable581 };
 
 const makeRemote = (): RemoteCollectionLoader => ({
@@ -94,7 +95,7 @@ describe("partial production collection packages", () => {
     expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
     expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCountertopTable).toHaveBeenCalledWith(438, abortSignal);
+    expect(remote.loadCountertopTable).toHaveBeenCalledWith(589, abortSignal);
     expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(580, abortSignal);
 

@@ -10,7 +10,7 @@ import { ProductModelsGrid } from "../ProductModelsGrid";
 
 afterEach(cleanup);
 
-const MODEL_STEP_PATH = "/prebuilt/model";
+const detailsTo = (presetId: number) => `/prebuilt/model/${presetId}`;
 
 const renderGrid = (ui: React.ReactElement) => render(<MemoryRouter>{ui}</MemoryRouter>);
 
@@ -31,7 +31,7 @@ describe("ProductModelsGrid", () => {
     renderGrid(
       <ProductModelsGrid
         data={[preset, second]}
-        modelStepPath={MODEL_STEP_PATH}
+        detailsTo={detailsTo}
         handleAddPreset={vi.fn()}
         handleCustomizePreset={vi.fn()}
         activePresetId={null}
@@ -42,27 +42,24 @@ describe("ProductModelsGrid", () => {
     expect(screen.getByText("Second Fixture Model")).toBeTruthy();
   });
 
-  it("links Product Details to the given model step's own path, not a hardcoded one", () => {
+  it("links Product Details to the address the page gives the preset, not a hardcoded one", () => {
     renderGrid(
       <ProductModelsGrid
         data={[preset]}
-        modelStepPath="/prebuilt/models"
+        detailsTo={(presetId) => `/prebuilt/models/${presetId}?collectionId=fixture-ui`}
         handleAddPreset={vi.fn()}
         handleCustomizePreset={vi.fn()}
       />,
     );
 
-    expect(screen.getByText("Product Details").closest("a")?.getAttribute("href")).toBe("/prebuilt/models/901");
+    expect(screen.getByText("Product Details").closest("a")?.getAttribute("href")).toBe(
+      "/prebuilt/models/901?collectionId=fixture-ui",
+    );
   });
 
   it("shows the default empty message when a collection has no presets", () => {
     renderGrid(
-      <ProductModelsGrid
-        data={[]}
-        modelStepPath={MODEL_STEP_PATH}
-        handleAddPreset={vi.fn()}
-        handleCustomizePreset={vi.fn()}
-      />,
+      <ProductModelsGrid data={[]} detailsTo={detailsTo} handleAddPreset={vi.fn()} handleCustomizePreset={vi.fn()} />,
     );
 
     expect(screen.getByText("No preset compositions available for this collection")).toBeTruthy();
@@ -72,7 +69,7 @@ describe("ProductModelsGrid", () => {
     renderGrid(
       <ProductModelsGrid
         data={[]}
-        modelStepPath={MODEL_STEP_PATH}
+        detailsTo={detailsTo}
         handleAddPreset={vi.fn()}
         handleCustomizePreset={vi.fn()}
         emptyMessage="No preset compositions available for Urban Low Height"
@@ -86,7 +83,7 @@ describe("ProductModelsGrid", () => {
     renderGrid(
       <ProductModelsGrid
         data={[]}
-        modelStepPath={MODEL_STEP_PATH}
+        detailsTo={detailsTo}
         handleAddPreset={vi.fn()}
         handleCustomizePreset={vi.fn()}
         emptyMessage="No preset compositions available for Class"
@@ -100,7 +97,7 @@ describe("ProductModelsGrid", () => {
     renderGrid(
       <ProductModelsGrid
         data={[]}
-        modelStepPath={MODEL_STEP_PATH}
+        detailsTo={detailsTo}
         handleAddPreset={vi.fn()}
         handleCustomizePreset={vi.fn()}
         emptyMessage="No preset compositions available for Mako"
