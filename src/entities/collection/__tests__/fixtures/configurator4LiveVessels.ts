@@ -50,3 +50,31 @@ export const configurator4WithLiveVessels = {
       : group,
   ),
 };
+
+const lacquer = (id: number, name: string, sku: string, codeColor: string, material: string) =>
+  variant(id, name, sku, codeColor, { Material: material, label: name, value: name });
+
+/**
+ * Configurator 4 with lacquered countertop colours the recorded sample leaves out, as the live
+ * configurator gives them (2026-09-30): an MT lacquer is listed twice under one value, as Tekorlux
+ * (SSTKR) and as Glass MT (GLSM); a GL lacquer as Glass GL (GLSG).
+ */
+export const configurator4WithLiveCountertops = {
+  ...configurator4WithLiveVessels,
+  availableOptions: configurator4WithLiveVessels.availableOptions.map((group) =>
+    group.proxyName === "Countertop Color"
+      ? {
+          ...group,
+          options: [
+            ...group.options,
+            option(289, "Tekorlux", [
+              lacquer(3094, "Agata BD MT", "SSTKR", "BD MT", "Lacquered MT"),
+              lacquer(3099, "Bianco 0B MT", "SSTKR", "0B MT", "Lacquered MT"),
+            ]),
+            option(290, "Glass MT", [lacquer(3153, "Bianco 0B MT", "GLSM", "0B MT", "Lacquered MT")]),
+            option(291, "Glass GL", [lacquer(3211, "Bianco 0B GL", "GLSG", "0B GL", "Lacquered GL")]),
+          ],
+        }
+      : group,
+  ),
+};
