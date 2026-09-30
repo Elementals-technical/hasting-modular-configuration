@@ -24,6 +24,8 @@ export type FieldAvailability = {
   visible?: boolean;
   /** When set, only these option values stay enabled. */
   allowedValues?: readonly string[];
+  /** When set, only the options it accepts stay enabled: options that share a value can differ. */
+  isOptionAllowed?: (option: FieldOptionState) => boolean;
   /** When set, only these option values are shown; a hidden one keeps its stored value. */
   visibleValues?: readonly string[];
   /** The option shown as chosen while nothing is stored, e.g. None for a vessel without a basin. */
@@ -119,7 +121,9 @@ export const resolveSectionFields = (
       : declaredOptions;
 
     const options = shownOptions.map((option) => {
-      const enabled = !availability.allowedValues || availability.allowedValues.includes(option.value);
+      const enabled =
+        (!availability.allowedValues || availability.allowedValues.includes(option.value)) &&
+        (!availability.isOptionAllowed || availability.isOptionAllowed(option));
       return {
         ...option,
         enabled,

@@ -552,6 +552,10 @@
     "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Open Side Shelf cabinets are positioned at both ends.",
     "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
     "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
+    "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
+    "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
+    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {

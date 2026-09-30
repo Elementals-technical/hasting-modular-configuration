@@ -6,11 +6,16 @@ import {
   getActiveCountertopThickness,
   getCountertopColorSku,
   getCountertopStyle,
+  getProductsPresets,
   getSelectedDimensions,
   getSelectedProducts,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
-import { buildCountertopRuleState, useCountertopRules } from "@/features/configurator-rule-core/countertop";
+import {
+  buildCountertopRuleState,
+  useCountertopRules,
+  type CountertopMaterialRuleInputs,
+} from "@/features/configurator-rule-core/countertop";
 import { getActiveProductProfile, useIsSinkBase } from "@/entities/configuration";
 import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
 import { useAppSelector } from "@/shared/hooks/store/redux";
@@ -21,7 +26,11 @@ import {
   resolveCountertopMaterialTokensFromCandidates,
 } from "@/shared/lib/sku";
 
-export type CountertopRuleState = ReturnType<typeof buildCountertopRuleState> & { activeMaterialTokens: string[] };
+export type CountertopRuleState = ReturnType<typeof buildCountertopRuleState> & {
+  activeMaterialTokens: string[];
+  /** The sizes, style and composition the rules above were judged for, to judge any other colour by. */
+  materialRuleInputs: CountertopMaterialRuleInputs;
+};
 
 /** The countertop matrix judged for the current colour, sizes, style, basin and thickness. */
 export const useCountertopRuleState = (): CountertopRuleState => {
@@ -35,6 +44,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
   const basinStyle = useAppSelector(getSinkType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
+  const presetsProducts = useAppSelector(getProductsPresets);
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
 
@@ -46,20 +56,35 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(basinStyle),
     });
 
+    const sinkBaseWidth = sinkBaseDims.width ?? selectedDimensions.width;
+    const totalWidth = sceneTotalWidth ?? selectedDimensions.width;
+    const depth = sinkBaseDims.depth ?? selectedDimensions.depth;
+
     const ruleState = buildCountertopRuleState({
       rules,
       activeMaterialTokens,
-      width: sinkBaseDims.width ?? selectedDimensions.width,
-      sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width,
-      totalWidth: sceneTotalWidth ?? selectedDimensions.width,
-      depth: sinkBaseDims.depth ?? selectedDimensions.depth,
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth,
+      depth,
       activeCountertopStyle: countertopStyle,
       activeBasinStyle: basinStyle,
       activeThickness: thickness,
       profile: activeProfile,
     });
 
-    return { ...ruleState, activeMaterialTokens };
+    const materialRuleInputs: CountertopMaterialRuleInputs = {
+      activeBasinStyle: basinStyle,
+      activeCountertopStyle: countertopStyle,
+      activeProfile,
+      cabinetCompositionCount: selectedProducts.length > 0 ? selectedProducts.length : presetsProducts.length,
+      countertopRules: rules,
+      depth: depth ?? null,
+      sinkBaseWidth,
+      totalWidth,
+    };
+
+    return { ...ruleState, activeMaterialTokens, materialRuleInputs };
   }, [
     activeProfile,
     basinStyle,
@@ -67,10 +92,12 @@ export const useCountertopRuleState = (): CountertopRuleState => {
     countertopColor,
     countertopColorSku,
     countertopStyle,
+    presetsProducts.length,
     rules,
     sceneTotalWidth,
     selectedDimensions.depth,
     selectedDimensions.width,
+    selectedProducts.length,
     sinkBaseDims.depth,
     sinkBaseDims.width,
     thickness,

@@ -10,6 +10,7 @@ These sanitized fixtures were captured from the public Render Admin API on 2026-
 - `datatable-580.json`: `GET /datatables/580`; frozen complete Urban Low Height cabinet matrix response (`matrix-cabinet-urban-low-height`), captured 2026-09-24.
 - `datatable-578.json`: `GET /datatables/578`; frozen complete Class countertop matrix response (`matrix-counter-top-class`), re-captured 2026-09-30 after its glass rows (2026-09-29: Glass GL, Glass MT) and its Solid Surface rows (the SS family names: Solid Surface) were renamed to the configurator's materials.
 - `datatable-577.json`: `GET /datatables/577`; frozen complete Mako countertop matrix response (`matrix-counter-top-mako`), re-captured 2026-09-24 after its materials were renamed to the configurator's (Solid Surface, Porcelain, Glass GL, Glass MT, HPL).
+- `datatable-589.json`: `GET /datatables/589`; frozen complete Urban Low Height countertop matrix response (`datatable-countertop-ULH`), captured 2026-09-30. It replaces the shared 438 for Urban Low Height.
 - `configurator-9.json`: `GET /configurators/9?view=full&serialize=true` (`modular-config-phase-2 (Mako)`), captured 2026-09-23; every colour it offers, plus three per section that it does not. Unlike configurator 4 it keeps one option per section and names the material on the variant, and it carries colours of other collections that have no SKU and are not offered. Both traits are kept on purpose: they are what the fixture is for.
 
 Automated tests import these files directly and never call the live API.
