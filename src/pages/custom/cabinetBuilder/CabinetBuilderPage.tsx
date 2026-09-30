@@ -118,6 +118,7 @@ import {
   useOptionImageVariants,
   useOptionImages,
   useStepPathById,
+  withPreservedCollectionId,
 } from "@/features/collectionCustomization";
 
 type AccordionConfig = {
@@ -1666,7 +1667,7 @@ export const CabinetBuilderPage = () => {
           <ProductStyleGrid
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             data={cabinetStyleOptions}
-            styleDetailsPath={cabinetStyleDetailsPath}
+            detailsTo={(query) => withPreservedCollectionId(`${cabinetStyleDetailsPath}?${query}`, search)}
             requiresActiveCabinet
             isActive={isStyleDrawerActive}
             activeValue={activeStyleValue}

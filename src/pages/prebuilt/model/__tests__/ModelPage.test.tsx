@@ -55,6 +55,17 @@ describe("ModelPage against a non-USH collection", () => {
     expect(screen.queryByText("Product Details")).toBeNull();
   });
 
+  // The collection lives in the URL: an address without it reads as another collection.
+  it("opens Product Details in the collection of the session", async () => {
+    renderModelPage({ extra: <LocationProbe /> });
+
+    fireEvent.click(screen.getByText("Product Details"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("location").textContent).toBe("/fixture/models/901?collectionId=fixture-ui"),
+    );
+  });
+
   it("Customize carries the picked preset's products into Custom and leaves the Prebuilt flow", async () => {
     renderModelPage({ extra: <LocationProbe /> });
 

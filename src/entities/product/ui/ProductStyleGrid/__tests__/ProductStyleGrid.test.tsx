@@ -21,6 +21,8 @@ const DATA = [
   { value: "1+inner", title: "1 Drawer With Inner Drawer", isShortDesc: false, isMixingRestricted: true },
 ];
 
+const detailsTo = (query: string) => `/custom/cabinet-builder/details/style?${query}`;
+
 const renderGrid = (children: ReactNode) =>
   render(
     <Provider store={store}>
@@ -42,7 +44,7 @@ describe("ProductStyleGrid", () => {
     renderGrid(
       <ProductStyleGrid
         data={DATA}
-        styleDetailsPath="/custom/cabinet-builder/details/style"
+        detailsTo={detailsTo}
         handleOpenStyleSidebar={() => {}}
         onSelectStyle={onSelectStyle}
       />,
@@ -54,13 +56,7 @@ describe("ProductStyleGrid", () => {
 
   it("marks the card whose value is active", () => {
     const { container } = renderGrid(
-      <ProductStyleGrid
-        data={DATA}
-        styleDetailsPath="/custom/cabinet-builder/details/style"
-        handleOpenStyleSidebar={() => {}}
-        isActive
-        activeValue="1"
-      />,
+      <ProductStyleGrid data={DATA} detailsTo={detailsTo} handleOpenStyleSidebar={() => {}} isActive activeValue="1" />,
     );
 
     const active = container.querySelectorAll('[class*="activeItem"]');
@@ -75,7 +71,7 @@ describe("ProductStyleGrid", () => {
     renderGrid(
       <ProductStyleGrid
         data={DATA}
-        styleDetailsPath="/custom/cabinet-builder/details/style"
+        detailsTo={detailsTo}
         handleOpenStyleSidebar={() => {}}
         onSelectStyle={onSelectStyle}
         onMixingRestrictedSelect={onMixingRestrictedSelect}
@@ -88,13 +84,7 @@ describe("ProductStyleGrid", () => {
   });
 
   it("carries the value into the details link", () => {
-    renderGrid(
-      <ProductStyleGrid
-        data={DATA}
-        styleDetailsPath="/custom/cabinet-builder/details/style"
-        handleOpenStyleSidebar={() => {}}
-      />,
-    );
+    renderGrid(<ProductStyleGrid data={DATA} detailsTo={detailsTo} handleOpenStyleSidebar={() => {}} />);
 
     const links = screen.getAllByText("Product Details").map((node) => node.closest("a")?.getAttribute("href"));
     expect(links[0]).toContain("style=2");

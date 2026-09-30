@@ -1,3 +1,5 @@
+import type { To } from "react-router-dom";
+
 import { ProductModelItem } from "@/shared/ui/ProductModelItem/ProductModelItem";
 
 import { type ProductModel, type PresetProduct } from "@/entities/product/types";
@@ -6,7 +8,8 @@ import s from "./ProductModelsGrid.module.scss";
 
 interface ProductModelsGridI {
   data: ProductModel[];
-  modelStepPath: string;
+  /** The address of a preset's details, in the collection of the session. */
+  detailsTo: (presetId: number) => To;
   createModelBtn?: React.ReactNode;
   handleAddPreset: (presetProducts?: PresetProduct[], presetId?: number) => void;
   handleCustomizePreset: (presetProducts?: PresetProduct[]) => void;
@@ -16,7 +19,7 @@ interface ProductModelsGridI {
 
 export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
   data,
-  modelStepPath,
+  detailsTo,
   createModelBtn,
   handleAddPreset,
   handleCustomizePreset,
@@ -41,7 +44,7 @@ export const ProductModelsGrid: React.FC<ProductModelsGridI> = ({
                 desc={preset.desc}
                 price={preset.price}
                 isProductModel={true}
-                detailsPath={`${modelStepPath}/${preset.id}`}
+                detailsTo={detailsTo(preset.id)}
                 presetProducts={preset.presetProducts}
                 onSelect={handleAddPreset}
                 onCustomize={handleCustomizePreset}

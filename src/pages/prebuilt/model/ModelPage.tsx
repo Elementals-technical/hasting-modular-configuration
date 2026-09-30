@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Outlet, useMatch, useSearchParams } from "react-router-dom";
+import { Outlet, useLocation, useMatch, useSearchParams } from "react-router-dom";
 
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import {
@@ -29,7 +29,11 @@ import {
   useActiveCollection,
   useCollectionPresets,
 } from "@/entities/collection";
-import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
+import {
+  useCollectionNavigation,
+  useStepNavigate,
+  withPreservedCollectionId,
+} from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -203,6 +207,7 @@ export const ModelPage = () => {
   const navigate = useStepNavigate();
   const { composition, replay, record } = useChangeAttribute();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { search } = useLocation();
   const modelStepPath = useCollectionNavigation()?.currentStep?.path ?? "/prebuilt/model";
   const detailMatch = useMatch(`${modelStepPath}/:modelId`);
   const detailModelId = detailMatch?.params.modelId;
@@ -1134,7 +1139,7 @@ export const ModelPage = () => {
 
             <ProductModelsGrid
               data={filteredData}
-              modelStepPath={modelStepPath}
+              detailsTo={(presetId) => withPreservedCollectionId(`${modelStepPath}/${presetId}`, search)}
               handleAddPreset={handleAddPreset}
               handleCustomizePreset={handleCustomizePreset}
               createModelBtn={<CreateModelBtn onCreate={handleCreateOwnComposition} />}

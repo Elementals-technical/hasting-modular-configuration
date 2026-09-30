@@ -12,7 +12,8 @@
       "VA002": "images/basin/Olly_55.jpg",
       "VA005": "images/basin/Rectangular.jpg",
       "Iris": "images/vessel/Iris.png",
-      "Frame": "images/vessel/Frame.png"
+      "Frame": "images/vessel/Frame.png",
+      "Plaza": "images/vessel/Plaza.png"
     },
     "CountertopStyle": {
       "integrated": "images/countertop-style/Integrated.png",
