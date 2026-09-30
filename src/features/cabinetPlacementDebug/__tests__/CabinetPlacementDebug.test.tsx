@@ -6,7 +6,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ConfiguratorClient } from "@/features/configuratorApi";
 import type { RuntimeBindingSet } from "@/entities/collection";
 import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
-import { isCabinetPlacementDebugEnabled, resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
+import {
+  isCabinetPlacementDebugEnabled,
+  isDragDropCollection,
+  resolveCabinetDebugSelection,
+} from "../lib/resolveCabinetDebugSelection";
 
 const selection = {
   definitionId: "Example-side-cabinet",
@@ -707,5 +711,14 @@ describe("Cabinet debug selection and mode", () => {
     expect(isCabinetPlacementDebugEnabled("?debug=true")).toBe(true);
     expect(isCabinetPlacementDebugEnabled("?debug=true&local=true&cabinetEngineering=true")).toBe(false);
     expect(isCabinetPlacementDebugEnabled("?debug=true&local=true&cabinetFromLine=true")).toBe(false);
+  });
+});
+
+describe("Drag & Drop collections", () => {
+  it("enables cabinet/countertop Drag & Drop for ULH only", () => {
+    expect(isDragDropCollection("urban-low-height")).toBe(true);
+    for (const id of ["urban-standard-height", "class", "mako", "", null, undefined]) {
+      expect(isDragDropCollection(id)).toBe(false);
+    }
   });
 });
