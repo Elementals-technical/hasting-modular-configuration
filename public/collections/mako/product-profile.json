@@ -324,7 +324,22 @@
         "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
-    "drawerStyleGroups": [["1"], ["2"]]
+    "drawerStyleGroups": [["1"], ["2"]],
+    "vesselCompatibility": {
+      "hiddenStyles": [],
+      "allowedMaterialsByStyle": {
+        "Iris": ["lacqueredmt"],
+        "Frame": ["lacqueredmt"],
+        "Plaza": ["lacqueredmt", "lacqueredgl"]
+      },
+      "allowedColorCodesByStyle": {},
+      "unavailableColorCodesByStyle": {},
+      "defaultFinishByStyle": {
+        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
+        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
+        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+      }
+    }
   },
   "messages": {
     "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
@@ -332,7 +347,8 @@
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
-    "drawers.requiredHeight": "Required for selected drawers"
+    "drawers.requiredHeight": "Required for selected drawers",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style."
   },
   "excludedFromThisProfile": {
     "sourceRefs": "Configurator 9 and cabinet table 581 come from the manifest and hold Mako data, so the colour catalogs are read from configurator 9 instead of being listed here; a colour it offers without a SKU is not offered. Countertop table 577 comes from the manifest and holds Mako data.",
@@ -353,7 +369,7 @@
     "floating": "Mentioned, but it needs a thick countertop and Mako has thin ones only, so no floating option is valid today (section 12).",
     "vesselCutoutPerSb": "A vessel needs a cutout per Sink Base (section 11, D-P0191). An order line, not an option.",
     "solidSurfaceGroups": "Technolite, Technomood and Texturizzato are separate price groups with no palette of their own; the Master File has Matte White only (section 7).",
-    "vesselAssets": "Iris, Frame and Plaza are named; their colours, minimum Sink Base, cutout drawings and prices are not given (section 10). Each has 20 exterior colours (Plaza matte or gloss), but no source names them, so VesselColor offers the cabinet palette until the product gives the vessel palettes.",
+    "vesselAssets": "Iris, Frame and Plaza are named; their minimum Sink Base and cutout drawings are not given (section 10). Their palettes follow the price list and the Threekit tables, which agree, but the product has not confirmed them: Iris and Frame take the 20 lacquered matt colours, Plaza those and the 20 lacquered gloss ones (vesselCompatibility). The colour a vessel starts with is Threekit's: Salvia 415 MT for Iris, Fumo 401 MT for Frame, Antracite 400 MT for Plaza (team, 30.09.2026).",
     "productIdGap": "Master File row L100 has an empty ProductID (Q-MAKO-001)."
   }
 }

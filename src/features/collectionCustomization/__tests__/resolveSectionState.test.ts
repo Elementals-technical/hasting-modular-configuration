@@ -186,8 +186,13 @@ describe("resolveSectionFields", () => {
     expect(options.find((option) => option.value === "Top_HPLPrisma")?.image).toBe(
       schema.optionImages?.sinkType?.Top_HPLPrisma,
     );
-    // Every basin has one; "Vessel" is the plain cutout the collection declares no picture for.
-    expect(options.filter((option) => option.image === undefined).map((option) => option.value)).toEqual(["Vessel"]);
+    // Every basin has one but the hidden Iris and Frame, which left with their pictures; "Vessel" is
+    // the plain cutout the collection declares no picture for.
+    expect(options.filter((option) => option.image === undefined).map((option) => option.value)).toEqual([
+      "Vessel_Iris",
+      "Vessel_Frame",
+      "Vessel",
+    ]);
   });
 
   it("leaves an option the collection declares no picture for without one, and keeps it listed", () => {

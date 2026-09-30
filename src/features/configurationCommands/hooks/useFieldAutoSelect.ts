@@ -11,8 +11,9 @@ import { useChangeAttribute } from "./useChangeAttribute";
 
 /**
  * Keeps a field that declares `autoSelect: "firstAllowed"` on a value its rules allow, as the Urban
- * Standard Height countertop step keeps its thickness and basin: while the value shown is none of the
- * enabled options, the command sets the first enabled one. With no option enabled nothing changes.
+ * Standard Height countertop step keeps its thickness, basin and vessel colour: while the value shown
+ * is none of the enabled options, the command sets the one the rules prefer, else the first enabled
+ * one. With no option enabled nothing changes.
  *
  * The change is the field's own, not the user's, so it takes no history step. As the availability
  * resets, it waits for the scene and for a restore or undo to finish.
@@ -30,7 +31,9 @@ export const useFieldAutoSelect = (
   const enabledValues = field.options.filter(({ enabled }) => enabled).map(({ value }) => value);
   const isAllowed = enabledValues.some((value) => value === field.value);
   const next =
-    autoSelect === "firstAllowed" && field.visible && field.enabled && !isAllowed ? enabledValues[0] : undefined;
+    autoSelect === "firstAllowed" && field.visible && field.enabled && !isAllowed
+      ? (enabledValues.find((value) => value === field.preferredValue) ?? enabledValues[0])
+      : undefined;
   const { attributeId } = field;
 
   useEffect(() => {

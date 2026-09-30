@@ -1,19 +1,13 @@
 import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
-import { getAllowedVesselMaterialTokens } from "@/features/configurator-rule-core/countertop";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 import {
   extractColorCode,
-  getCountertopMaterialTokensBySku,
   resolveCabinetPricingMaterialSku,
-  resolveCountertopColorCodeFromCandidates,
-  resolveCountertopColorSkuFromCandidates,
-  resolveCountertopMaterialSkuFromColorCode,
   resolveDefaultBasinByCountertopColor,
   resolveHandleGroovePricingMaterialSku,
   resolveOpenSideShelfSide,
-  vesselHeightCmMap,
 } from "@/shared/lib/sku";
 
 import { expandLineSkus } from "./pricingLines";
@@ -21,6 +15,7 @@ import type { PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
 import { buildUshTowelBarLines } from "./ushTowelBarLines";
+import { buildUshVesselLines } from "./ushVesselLines";
 
 /**
  * The order lines of the current configuration (D02).
@@ -141,30 +136,6 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
       sceneConfigs[0]?.Depth ??
       null,
   });
-  const resolvedVesselColor = vesselColor;
-  const vesselTypeForTokens = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
-  const allowedVesselMaterialTokens = vesselTypeForTokens
-    ? Array.from(getAllowedVesselMaterialTokens(vesselTypeForTokens, activeProfile) ?? [])
-    : [];
-  const vesselPreferredMaterialTokens =
-    allowedVesselMaterialTokens.length > 0
-      ? allowedVesselMaterialTokens
-      : [...getCountertopMaterialTokensBySku(countertop.materialSku), ...countertop.preferredMaterialTokens];
-  const resolvedVesselColorCode = resolvedVesselColor
-    ? resolveCountertopColorCodeFromCandidates({
-        value: resolvedVesselColor,
-        candidatesByValue: countertopColorSkuCandidatesByValue,
-        preferredMaterialTokens: vesselPreferredMaterialTokens,
-      })
-    : null;
-  const resolvedVesselMaterialSku = resolvedVesselColor
-    ? (resolveCountertopMaterialSkuFromColorCode(resolvedVesselColorCode) ??
-      resolveCountertopColorSkuFromCandidates({
-        value: resolvedVesselColor,
-        candidatesByValue: countertopColorSkuCandidatesByValue,
-        preferredMaterialTokens: vesselPreferredMaterialTokens,
-      }))
-    : null;
   const resolveNameFromRaw = (value: string) => {
     const lastDash = value.lastIndexOf("-");
     if (lastDash > 0 && value.slice(lastDash + 1).length >= 6) return value.slice(0, lastDash);
@@ -536,19 +507,16 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   // (e.g. counting both CT-UR...INTG-70.9W and CT-UR...INTG-23.6W).
 
   // 2b) Vessel basin SKU — Resolver 2b (when sinkType is a vessel type)
-  const vesselType = resolvedSinkType?.startsWith("Vessel_") ? resolvedSinkType : null;
-  if (vesselType) {
-    const vesselSku = skuBuilders.buildVesselSku({
-      vesselType,
-      width: compositionCountertopWidth,
-      height: vesselHeightCmMap[vesselType] ?? null,
-      depth: selectedDimensions.depth,
-      materialSku: resolvedVesselMaterialSku,
-      colorCode: resolvedVesselColorCode,
-    });
-    console.log(LOG_PREFIX, "Resolver 2b (Vessel):", vesselSku, "×", sinkBaseCountForPricing);
-    add({ id: "vessel", group: "vessel", sku: vesselSku, quantity: sinkBaseCountForPricing });
-  }
+  buildUshVesselLines({
+    profile: activeProfile,
+    countertop,
+    countertopColorSkuCandidatesByValue,
+    sinkType: resolvedSinkType,
+    vesselColor,
+    widthCm: compositionCountertopWidth,
+    depthCm: selectedDimensions.depth,
+    sinkBaseCount: sinkBaseCountForPricing,
+  }).forEach((line) => add(line));
 
   // 3) Towel bar SKUs — Resolver 3 (global, same for all products)
   buildUshTowelBarLines({ series: profile.series, towelBarOption, towelBarColor }).forEach((line) => add(line));

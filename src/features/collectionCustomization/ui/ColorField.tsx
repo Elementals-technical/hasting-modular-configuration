@@ -58,7 +58,8 @@ const toProductOptionData = (option: FieldOptionState, index: number): ProductOp
   id: index,
   title: option.label ?? option.value,
   desc: option.desc,
-  // The colour grid shows every option; only the text of a rule's reason travels with it.
+  // The colour grid shows every option; one its rules refuse stays in it, unavailable, with their reason.
+  isAvailable: option.enabled,
   disabledReason: option.reason,
   disabledReasonCode: option.reasonCode,
   isShortDesc: false,

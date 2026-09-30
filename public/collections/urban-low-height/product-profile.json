@@ -473,6 +473,36 @@
       "restrictedIntegratedBasinKeys": [],
       "excludedMaterialFilterTokens": ["tekorlux", "tekormud", "glassmt", "glassgl", "lacqueredmt", "lacqueredgl"]
     },
+    "vesselCompatibility": {
+      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"],
+      "allowedMaterialsByStyle": {
+        "Vessel_Blade11": ["ceramic"],
+        "Vessel_Blade18": ["ceramic"],
+        "Vessel_UrbanModo": ["solidsurface", "hpl", "porcelain"],
+        "Vessel_UrbanMorris": ["tekorlux", "sstkr", "tal", "tam"],
+        "Vessel_Aquarius": ["tekorlux", "sstkr", "tal", "tam"]
+      },
+      "allowedColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "solidsurface": ["T1C", "T1D"],
+          "hpl": ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"]
+        },
+        "Vessel_UrbanMorris": {
+          "tekorlux": ["TAL", "TAM"]
+        }
+      },
+      "unavailableColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "porcelain": ["TQ2"]
+        }
+      },
+      "defaultFinishByStyle": {
+        "Vessel_UrbanModo": {
+          "materialTokens": ["solidsurface", "ocritech", "ssocr", "sst1c"],
+          "colorCodes": ["T1C"]
+        }
+      }
+    },
     "sidePanels": {
       "heightTokenByCm": {
         "25": "25H",
@@ -521,6 +551,7 @@
     "sidePanel.exactLengthBlocked": "Side panels are not available when total vanity length is exactly {lengthCm} cm ({lengthIn}\").",
     "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Open Side Shelf cabinets are positioned at both ends.",
     "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {

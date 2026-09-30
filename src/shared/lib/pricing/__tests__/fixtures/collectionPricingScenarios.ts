@@ -191,7 +191,6 @@ export const COLLECTION_PRICING_SCENARIOS: Record<
       CountertopStyle: [at(COUNTERTOP, "vessel")],
       CountertopColor: [at(COUNTERTOP, "Matte White")],
       sinkType: [at({ scope: "basin", sinkBaseId: "mko-sb" }, "Iris")],
-      VesselColor: [at({ scope: "basin", sinkBaseId: "mko-sb" }, "Grigio Argento 403 GL")],
       FaucetHolesAmount: [at(COUNTERTOP, "3")],
       DividersStyle: [at({ scope: "drawer", cabinetId: "mko-sb", drawerType: "Top" }, "Oak")],
     }),

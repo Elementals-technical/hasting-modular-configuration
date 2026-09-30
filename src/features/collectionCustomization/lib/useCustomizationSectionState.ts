@@ -1,6 +1,12 @@
 import { useMemo } from "react";
 
-import { hasCapability, selectAttribute, selectOptions, useActiveCollection } from "@/entities/collection";
+import {
+  hasCapability,
+  isVesselBasin,
+  selectAttribute,
+  selectOptions,
+  useActiveCollection,
+} from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries, getCompositionValues } from "@/entities/configuration";
 import {
   selectBookMatchingState,
@@ -8,10 +14,12 @@ import {
   selectGrainDirectionState,
 } from "@/entities/product/model/store/derivedSelectors";
 import {
+  getActiveCountertopColor,
   getCountertopStyle,
   getDividersOption,
   getProductsPresets,
   getSelectedProductConfig,
+  getSinkType,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
@@ -19,17 +27,22 @@ import {
   filterThicknessValuesByCountertopRules,
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
+  isMaterialCompatibleWithVesselStyle,
+  isPreferredVesselFinish,
   normalizeBasinKey,
+  REASON_VESSEL_COLOR_UNAVAILABLE,
   selectMaterialAliasTable,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { extractColorCode } from "@/shared/lib/sku";
 
 import { useCountertopRuleState } from "./useCountertopRuleState";
-import { resolveSectionFields } from "./resolveSectionState";
+import { resolveConfiguratorOptions, resolveSectionFields } from "./resolveSectionState";
 
-import type { ProductProfile } from "@/entities/collection";
+import type { FieldOptionState, ProductProfile } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 
 import type { FieldAvailability, FieldAvailabilityResults, ResolvedCustomizationField } from "./resolveSectionState";
 import type { CountertopRuleState } from "./useCountertopRuleState";
@@ -90,12 +103,14 @@ const resolveThicknessAvailability = (
 // Only the basins of the chosen style are shown, as the USH countertop screen shows them: an
 // integrated basin needs a matrix row for the current colour, and is enabled when the thickness
 // and Sink Base width fit it too; a vessel has no rows and follows the vessel Sink Base minimum.
-// A vessel countertop without a basin keeps its cutout: the profile's noneValue, chosen until
-// a vessel is.
+// Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
+// the USH screen offers none before a material. A vessel countertop without a basin keeps its
+// cutout: the profile's noneValue, chosen until a vessel is.
 const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
   countertopStyle: string | null | undefined,
+  countertopColor: string | null | undefined,
 ): FieldAvailability => {
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
   const noneValue = selectAttribute(profile, "sinkType")?.noneValue;
@@ -115,15 +130,45 @@ const resolveBasinAvailability = (
     allowedValues: valuesWhere((basin) =>
       basin.category === "vessel"
         ? isVesselStyle && (basin.value === noneValue || vesselSinkAvailability.isAvailable)
-        : !isVesselStyle && rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),
+        : !isVesselStyle &&
+          Boolean(countertopColor) &&
+          rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),
     ),
     reasonCode: "change.notAvailable",
     valueWhenEmpty: isVesselStyle ? noneValue : undefined,
   };
 };
 
+// The colours of the chosen vessel, as the USH countertop step offers them: those its compatibility
+// allows by the material a colour is listed under and its colour code, its default finish first. The
+// colour is the vessel's, so it is offered once a vessel is chosen; the empty cutout has none.
+const resolveVesselColorAvailability = (
+  profile: ProductProfile | null,
+  configurator: ConfiguratorGroupCatalog | null,
+  vesselStyle: string | null | undefined,
+): FieldAvailability => {
+  if (!isVesselBasin(profile, vesselStyle)) return { available: false, visible: false };
+
+  const finishOf = ({ value, traits }: FieldOptionState) => ({
+    vesselStyle,
+    materialTokens: traits?.materials ?? [],
+    colorCode: extractColorCode(value),
+    profile,
+  });
+  const allowed = resolveConfiguratorOptions(profile, "VesselColor", configurator).filter((option) =>
+    isMaterialCompatibleWithVesselStyle(finishOf(option)),
+  );
+
+  return {
+    available: true,
+    allowedValues: allowed.map(({ value }) => value),
+    preferredValue: allowed.find((option) => isPreferredVesselFinish(finishOf(option)))?.value,
+    reasonCode: REASON_VESSEL_COLOR_UNAVAILABLE,
+  };
+};
+
 // Keyed by the availabilityRef values of ui.json; each entry is a result an existing module already computes.
-const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
+const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | null): FieldAvailabilityResults => {
   const profile = useAppSelector(getActiveProductProfile);
   const fluting = useAppSelector(selectFlutingState);
   const grainDirection = useAppSelector(selectGrainDirectionState);
@@ -132,6 +177,8 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
   const towelBarOption = useAppSelector(getTowelBarOption);
   const dividersOption = useAppSelector(getDividersOption);
   const countertopStyle = useAppSelector(getCountertopStyle);
+  const countertopColor = useAppSelector(getActiveCountertopColor);
+  const sinkType = useAppSelector(getSinkType);
   const selectedHandle = useAppSelector((state) => getSelectedProductConfig(state)?.Handle);
   const presetHandle = useAppSelector((state) => getProductsPresets(state)[0]?.Handle);
   const countertopRuleState = useCountertopRuleState();
@@ -183,13 +230,16 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
       "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
       "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
-      "sinkType.allowed": resolveBasinAvailability(profile, countertopRuleState, countertopStyle),
+      "sinkType.allowed": resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
+      "VesselColor.allowed": resolveVesselColorAvailability(profile, configurator, sinkType),
     }),
     [
       allowedFaucetHoles,
       bookMatching.enabled,
       bookMatching.reason,
       bookMatching.reasonCode,
+      configurator,
+      countertopColor,
       countertopRuleState,
       countertopStyle,
       fluting,
@@ -200,6 +250,7 @@ const useFieldAvailabilityResults = (): FieldAvailabilityResults => {
       legColorDetermined,
       profile,
       sidePanels,
+      sinkType,
       supportsGrooveColor,
     ],
   );
@@ -214,7 +265,7 @@ const useSectionInputs = () => {
   // An attribute that left the typed options (Mako's leg and handle colours, Class's side and frame
   // colours) is shown as the composition holds it; the typed options keep their own values.
   const values = useMemo(() => ({ ...compositionValues, ...productOptions }), [compositionValues, productOptions]);
-  const availabilityResults = useFieldAvailabilityResults();
+  const availabilityResults = useFieldAvailabilityResults(configurator);
 
   return { schema, configurator, profile, values, availabilityResults };
 };

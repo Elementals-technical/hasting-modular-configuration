@@ -297,18 +297,6 @@ export const collectionSkuProfileSchema = z
     sidePanel: pricedAsSchema.optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
-    /** Vessel metadata by the collection's semantic `sinkType` value. */
-    vessels: z
-      .record(
-        z.string(),
-        z
-          .object({
-            sceneType: z.string().trim().min(1),
-            series: z.string().trim().min(1),
-          })
-          .strict(),
-      )
-      .optional(),
     /** The legs a composition stands on, for a collection that offers them. */
     legs: z
       .object({
@@ -318,6 +306,23 @@ export const collectionSkuProfileSchema = z
         cabinetColorValue: z.string().trim().min(1).optional(),
       })
       .strict()
+      .optional(),
+    /**
+     * The vessels the collection prices, by `sinkType` value: the series and the fixed size of
+     * `VES-{series}-X-{W}W-{H}H-{D}D-{material}-{colour}`, in inches as the SKU spells them.
+     */
+    vessels: z
+      .record(
+        z.string(),
+        z
+          .object({
+            series: z.string().trim().min(1),
+            widthIn: z.string().trim().min(1),
+            heightIn: z.string().trim().min(1),
+            depthIn: z.string().trim().min(1),
+          })
+          .strict(),
+      )
       .optional(),
     gaps: z.array(
       z

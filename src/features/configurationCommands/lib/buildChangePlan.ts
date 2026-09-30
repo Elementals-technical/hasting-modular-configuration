@@ -90,11 +90,13 @@ const resolveDrawersTargets = (
 /**
  * Sink Bases a basin value reaches. A value that names no Sink Base is the composition's basin,
  * the one a field picks, and an integrated basin names each sink base it fits: it goes on every
- * placed Sink Base, over the basin each had. A value addressed at one Sink Base stays there.
+ * placed Sink Base, over the basin each had, and stays the composition's, which a Sink Base
+ * without a basin of its own reads (one Custom re-keys, one added later). A value addressed at
+ * one Sink Base stays there.
  */
 const resolveBasinTargets = (target: ValueTarget, sinkBaseIds: readonly StableCabinetKey[] = []): ValueTarget[] =>
-  target.scope === "basin" && !target.sinkBaseId && sinkBaseIds.length > 0
-    ? sinkBaseIds.map((sinkBaseId) => ({ scope: "basin", sinkBaseId }))
+  target.scope === "basin" && !target.sinkBaseId
+    ? [target, ...sinkBaseIds.map((sinkBaseId): ValueTarget => ({ scope: "basin", sinkBaseId }))]
     : [target];
 
 /** Leaving a handle that supports a groove for one that does not clears the colour. */

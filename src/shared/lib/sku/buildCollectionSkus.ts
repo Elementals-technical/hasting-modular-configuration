@@ -7,6 +7,7 @@ import {
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
 import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
+import { formatVesselSku, type VesselDimensionTokens } from "./buildVesselSku";
 import { cmToInches } from "./cmToInches";
 import type { ConfiguratorColorReader } from "./configuratorColors";
 
@@ -185,6 +186,8 @@ export type CollectionCountertopSkus = {
   basins: (string | null)[];
   /** The vessel cutout, one per sink base, vessel tops only. */
   holeCut: string | null;
+  /** A vessel top, whether or not its colour prices the top and the cutout yet. */
+  isVessel: boolean;
   faucetHoles: string | null;
   bracket: { sku: string; quantity: number } | null;
 };
@@ -235,14 +238,63 @@ export const buildCollectionCountertopSkus = (
   const basinSkus = basins.map((basin) =>
     series && thickness && isIntegrated && basin ? `${series}-${basin}-${thickness}H` : null,
   );
-  const holeCut = series && styleCode === countertop.styles.vessel ? `${series}-HCUT` : null;
+  const isVessel = styleCode !== null && styleCode === countertop.styles.vessel;
+  const holeCut = series && isVessel ? `${series}-HCUT` : null;
   const faucetSku = series && faucetHoles && /^\d+$/.test(faucetHoles) ? `${series}-FAHO/${faucetHoles}` : null;
   const bracket =
     countertop.bracket && thickness && countertop.bracket.thicknesses.includes(thickness)
       ? { sku: countertop.bracket.sku, quantity: countertop.bracket.quantity }
       : null;
 
-  return { material, thickness, top, basins: basinSkus, holeCut, faucetHoles: faucetSku, bracket };
+  return { material, thickness, top, basins: basinSkus, holeCut, isVessel, faucetHoles: faucetSku, bracket };
+};
+
+export type CollectionVesselInput = {
+  /** `sinkType` of the sink base. */
+  basin: string | null;
+  /** `VesselColor` of the sink base. */
+  color: string | null;
+  /** Set when the collection takes its colours from the configurator. */
+  readConfiguratorColor?: ConfiguratorColorReader;
+};
+
+export type CollectionVessel = {
+  /** The vessel's own size, in inches as its SKU spells it. */
+  dimensions: VesselDimensionTokens;
+  /** The material of its colour (`LACM`), null while no colour is chosen or it names none. */
+  material: string | null;
+  /** Null until the colour gives both a material and a code: the price server prices no vessel without. */
+  sku: string | null;
+};
+
+/**
+ * `VES-{series}-X-{W}W-{H}H-{D}D-{material}-{colour}`: a vessel the collection declares in its SKU
+ * profile, in the colour of `VesselColor`. Null for a basin that is not one of them.
+ */
+export const resolveCollectionVessel = (
+  skuProfile: CollectionSkuProfile,
+  productProfile: ProductProfile | null,
+  { basin, color, readConfiguratorColor }: CollectionVesselInput,
+): CollectionVessel | null => {
+  const value = normalizeOptionValue(productProfile, "sinkType", basin) ?? basin;
+  const vessel = value ? skuProfile.vessels?.[value] : undefined;
+  if (!vessel) return null;
+
+  const dimensions = { width: vessel.widthIn, height: vessel.heightIn, depth: vessel.depthIn };
+  const chosenColor = isChosenColor(productProfile, "VesselColor", color) ? color : null;
+  const material = chosenColor
+    ? resolveCollectionColorMaterial(skuProfile, productProfile, "VesselColor", chosenColor, readConfiguratorColor)
+    : null;
+  const colorCode = chosenColor ? resolveCollectionColorCode(skuProfile, chosenColor) : null;
+
+  return {
+    dimensions,
+    material,
+    sku:
+      material && colorCode
+        ? formatVesselSku({ series: vessel.series, model: FALLBACK, dimensions, materialSku: material, colorCode })
+        : null,
+  };
 };
 
 /** The organizer SKU of a `DividersStyle` value. */

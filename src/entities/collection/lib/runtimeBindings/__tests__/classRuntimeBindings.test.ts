@@ -68,9 +68,16 @@ describe("class runtime bindings", () => {
     expect(patchOf("CountertopColor", "Matte White")).toEqual({ CountertopColor: "Matte White" });
   });
 
-  it("record the countertop style, basin and faucet holes without a scene call", () => {
-    for (const attributeId of ["CountertopStyle", "sinkType", "FaucetHolesAmount"]) {
+  it("record the countertop style and faucet holes without a scene call", () => {
+    for (const attributeId of ["CountertopStyle", "FaucetHolesAmount"]) {
       expect(isStateOnlyResolution(resolveRuntimeBinding(classRuntimeBindings, attributeId, "x"))).toBe(true);
     }
+  });
+
+  it("send the basin as its scene sub-product, a cleared one as the empty cutout", () => {
+    expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
+    expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
+    // As a switch of countertop style leaves it: without a translation the whole switch is refused.
+    expect(patchOf("sinkType", "")).toEqual({ sinkType: "Vessel" });
   });
 });

@@ -23,8 +23,9 @@ export type DrawerType = "Top" | "TopFull" | "Bot";
 export type ValueTarget =
   | { scope: "global" | "countertop" }
   /**
-   * A legacy save can address the whole composition's basin. New writes always carry
-   * the sink-base stable key so two basins cannot overwrite one another.
+   * Without a sink-base key it is the whole composition's basin: a model, the builder and a field
+   * record it, and a Sink Base without a basin of its own reads it. A value for one Sink Base
+   * carries its stable key, so two basins cannot overwrite one another.
    */
   | { scope: "basin"; sinkBaseId?: StableCabinetKey }
   | { scope: "cabinet"; cabinetId: StableCabinetKey }

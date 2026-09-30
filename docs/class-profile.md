@@ -31,7 +31,8 @@ the category its material group (`SelectionType`).
 | `CountertopStyle` | countertop | `integrated`, `vessel` | §0.8, CLS-XLS-015 |
 | `CountertopColor` | countertop | 71: Solid Surface 2, HPL 14, Porcelain 15, Glass MT 20, Glass GL 20 | A7 |
 | `Thickness` | countertop | `0.5` (1/2″), `0.75` (3/4″), `3.125` (3-1/8″), `4` (4″), `4.75` (4-3/4″); the Thickness section enables those table 578 gives the colour, and follows the material (`autoSelect`) | Table 578. Added on request (team, 29.09.2026). The SKU spells them `.5`, `.8`, `3.1`, `4`, `4.7` as the price workbook does (`thicknessCodes`), until Q-CLASS-033/042 settle 4 vs 4.7; a thick top (3.1, 4, 4.7) takes two brackets. Recorded only in the scene: its countertop has no mounting for these thicknesses |
-| `sinkType` | basin | integrated: LB440, LB175, LB575, LB856, VA024, LV890, LV892, VA002, VA005, VA023; vessel: Iris, Frame, Plaza | A8, CLS-WGL-012 |
+| `sinkType` | basin | integrated: LB440, LB175, LB575, LB856, VA024, LV890, LV892, VA002, VA005, VA023; vessel: Iris, Frame, Plaza. On the Countertop & Basin step an integrated countertop without a basin table 578 allows, as after a switch to vessel and back, takes the first it allows (`autoSelect: "firstAllowed"` in `ui.json`), as in Mako and Urban Standard Height (team, 30.09.2026) | A8, CLS-WGL-012 |
+| `VesselColor` | basin | no list — `optionsSource: "configurator:Select Cabinet Color"` | Shown once a vessel is chosen: Iris and Frame take the 20 lacquered matt colours, Plaza those and the 20 lacquered gloss ones; the rest are shown unavailable. Set to the vessel's starting colour, Salvia 415 MT (Iris), Fumo 401 MT (Frame) or Antracite 400 MT (Plaza), as Threekit has them (`ruleData.vesselCompatibility`, `autoSelect` in `ui.json`, team, 30.09.2026). The palettes follow the price list and the Threekit tables; the product has not confirmed them |
 | `FaucetHolesAmount` | countertop | `0`–`3` | §0.8 (GB O5:O21), CLS-XLS-024 |
 | `DividersStyle` | drawer | `Metal` (ROW-MTL-43), `Oak` (ROW-OAK-43) | CLS-WGL-014, §6.7 |
 
@@ -76,7 +77,7 @@ Listed in `excludedFromThisProfile`:
 - **Colour → SKU material** — CABF/CABS/FRM codes and the /B or /C price class (Q-CLASS-004/006/032).
 - **Solid Surface** — `Matte White` / `Matte White 8cm` are not joined to SSTL/SSTM/SSTEX/SSTMT (Q-CLASS-016).
 - **VA030** — priced for SSTEX, absent from the Master File (§6.6).
-- **Vessel assets** — Iris, Frame, Plaza have no SKU, price, colour or asset (Q-CLASS-043).
+- **Vessel assets** — Iris, Frame, Plaza have no assets (Q-CLASS-043). Their SKUs and prices come from table 542 and pricing-v2 (`sku-profile.json`); their palettes and starting colours follow the price list and Threekit and await the product's confirmation.
 - **Model filter of `Class 87 2DW 1_80`** is empty in the Master File (Q-CLASS-001) — matters for presets, not the profile.
 
 ## Not from the documents
@@ -90,7 +91,7 @@ Listed in `excludedFromThisProfile`:
 
 | Owner | What is needed |
 |---|---|
-| Product | A Class configurator and Class rows in the cabinet and countertop tables; the colour → CABF/CABS/FRM code join and the /B, /C rule; model recipes for the 44 models; thickness decision; vessel SKUs and assets. Whether integrated basins are held back as undetermined until the countertop table has Class rows (one `undeterminedRules` entry, but it disables every integrated basin). |
+| Product | A Class configurator and Class rows in the cabinet and countertop tables; the colour → CABF/CABS/FRM code join and the /B, /C rule; model recipes for the 44 models; thickness decision; vessel palettes and assets. Whether integrated basins are held back as undetermined until the countertop table has Class rows (one `undeterminedRules` entry, but it disables every integrated basin). |
 | A | Load Class sources instead of 4 / 438 / 439. |
 | B | Fields for Cabinet Side Color and Frame Color, no handle step, the vessel styles. |
 | I | Scene bindings for the side and frame colour slots, the basins and the frame grip. |

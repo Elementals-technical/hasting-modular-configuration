@@ -20,7 +20,15 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
-import { selectAttribute, selectOptions, useActiveCollection, useCollectionPresets } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  selectAttribute,
+  selectDefaultValue,
+  selectOptions,
+  selectRuntimeBinding,
+  useActiveCollection,
+  useCollectionPresets,
+} from "@/entities/collection";
 import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
@@ -56,6 +64,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
 import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
+import { readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
@@ -152,6 +161,17 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   return globalConfig;
 };
 
+/**
+ * The basin a configuration was saved with, read as the price reads it: the first Sink Base's own,
+ * else the composition's. Undefined when the save holds none.
+ */
+const readSavedBasin = (fragment: RestorePlan["fragment"]): string | undefined =>
+  [...fragment.cabinets]
+    .sort((a, b) => a.index - b.index)
+    .map(({ stableKey }) => readFragmentValue(fragment, "sinkType", { scope: "basin", sinkBaseId: stableKey }))
+    .concat(readFragmentValue(fragment, "sinkType", { scope: "basin" }))
+    .find((value): value is string => typeof value === "string");
+
 const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
   const totalWidthValues = presetProducts.map((preset) =>
     typeof preset.Width === "number" && Number.isFinite(preset.Width) ? preset.Width : null,
@@ -201,6 +221,7 @@ export const ModelPage = () => {
   const vesselColor = useAppSelector(getVesselColor);
   const spGroove = useAppSelector(getSidePanelsOption);
   const configuratorGroups = activeCollection.catalog.configurator.groups;
+  const runtimeBindings = activeCollection.catalog.runtimeBindings ?? null;
   const countertopRules = useCountertopRules();
   const [pendingModelSelection, setPendingModelSelection] = useState<PendingModelSelection | null>(null);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
@@ -646,7 +667,14 @@ export const ModelPage = () => {
 
     record({
       ...(color ? { CountertopColor: color } : {}),
-      ...(sinkType ? { sinkType, CountertopStyle: inferCountertopStyleFromSinkType(sinkType) } : {}),
+      ...(sinkType
+        ? { sinkType, CountertopStyle: inferCountertopStyleFromSinkType(sinkType) }
+        : {
+            // Products that carry no basin start from the collection's, which reset() leaves on the
+            // page: the configuration records it too, or it would keep a basin picked earlier.
+            sinkType: selectDefaultValue(activeProfileRef.current, "sinkType"),
+            CountertopStyle: selectDefaultValue(activeProfileRef.current, "CountertopStyle"),
+          }),
     });
     if (color) dispatch(setCountertopColorSku(resolveCountertopSkuForSelection(color, sinkType)));
   };
@@ -768,11 +796,36 @@ export const ModelPage = () => {
           typeof uiStateValues?.VesselColor === "string" ? (uiStateValues.VesselColor as string) : undefined;
         const restoredBookMatching =
           typeof uiStateValues?.BookMatching === "string" ? (uiStateValues.BookMatching as string) : undefined;
+        // The products hold the order's basin only where the scene takes it as the configuration's own
+        // value (USH, ULH). A collection that keeps it in the state only, or sends the scene a token of its
+        // own (Mako, Class: Iris → Vessel_Iris), finds another value there, or the scene's default basin in
+        // an order saved before; its basin and style are the ones the configuration was saved with, which
+        // the price reads too. A save made before the configuration has them in uiState only.
+        const sinkTypeBinding = runtimeBindings ? selectRuntimeBinding(runtimeBindings, "sinkType") : null;
+        const basinInScene =
+          !runtimeBindings || (sinkTypeBinding?.status === "bound" && sinkTypeBinding.values.kind === "identity");
+        const savedBasin = basinInScene
+          ? undefined
+          : (readSavedBasin(plan.fragment) ??
+            (typeof uiStateValues?.sinkType === "string" ? uiStateValues.sinkType : undefined));
+        const restoredCountertopStyle = basinInScene
+          ? undefined
+          : (normalizeOptionValue(
+              activeProfileRef.current,
+              "CountertopStyle",
+              readFragmentValue(plan.fragment, "CountertopStyle", { scope: "countertop" }),
+            ) ?? normalizeOptionValue(activeProfileRef.current, "CountertopStyle", uiStateValues?.CountertopStyle));
+        const {
+          sinkType: sceneBasin,
+          CountertopStyle: sceneBasinStyle,
+          ...sceneDefaults
+        } = resolvePresetSceneDefaults(presetProducts);
         const globalConfig = resolveCompatibleCountertopSceneConfig(
           {
-            ...resolvePresetSceneDefaults(presetProducts),
+            ...sceneDefaults,
+            ...(basinInScene && sceneBasin ? { sinkType: sceneBasin, CountertopStyle: sceneBasinStyle } : {}),
             ...(restoredCountertopColor ? { CountertopColor: restoredCountertopColor } : {}),
-            ...(restoredSinkType ? { sinkType: restoredSinkType } : {}),
+            ...(basinInScene && restoredSinkType ? { sinkType: restoredSinkType } : {}),
             ...(restoredVesselColor ? { VesselColor: restoredVesselColor } : {}),
           },
           presetProducts,
@@ -840,6 +893,9 @@ export const ModelPage = () => {
             sinkType: globalConfig.sinkType,
             CountertopStyle: globalConfig.CountertopStyle,
           }),
+          // Recorded even when empty: a vessel saved without a vessel keeps no basin.
+          ...(savedBasin !== undefined ? { sinkType: savedBasin } : {}),
+          ...(restoredCountertopStyle ? { CountertopStyle: restoredCountertopStyle } : {}),
           ...(restoredFaucetHolesAmount ? { FaucetHolesAmount: restoredFaucetHolesAmount } : {}),
           ...(restoredFaucetHolesSpacing !== undefined ? { FaucetHolesSpacing: restoredFaucetHolesSpacing } : {}),
           ...(restoredVesselColor !== undefined ? { VesselColor: restoredVesselColor } : {}),
@@ -904,6 +960,7 @@ export const ModelPage = () => {
       record,
       replay,
       resolveCompatibleCountertopSceneConfig,
+      runtimeBindings,
       updateSelectedDimensionsFromScene,
     ],
   );

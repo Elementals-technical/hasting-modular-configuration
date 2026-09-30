@@ -1,5 +1,5 @@
 import type { ProductProfile } from "@/entities/collection";
-import { selectRuleData } from "@/entities/collection";
+import { isVesselBasin, selectRuleData } from "@/entities/collection";
 
 import type { CountertopMatrixRule } from "./types";
 import {
@@ -12,7 +12,6 @@ import {
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
 } from "./parse";
-import { isVesselSinkStyle } from "./vesselCompatibility";
 
 const WIDTH_EPSILON = 0.01;
 
@@ -36,8 +35,11 @@ type FilterWidthValuesParams = {
   activeCountertopStyle?: string | null;
   activeBasinStyle?: string | null;
   activeThickness?: string | null;
-  /** Active collection: its `ruleData.materialNormalization` decides which materials match. */
-  profile?: ProductProfile | null;
+  /**
+   * Active collection: its `ruleData.materialNormalization` decides which materials match, and its
+   * basin catalog which basins are vessels.
+   */
+  profile: ProductProfile | null;
 };
 
 export type CountertopWidthRuleStyle = "integrated" | "vessel" | "undermount" | "plain";
@@ -46,13 +48,14 @@ export type CountertopWidthRuleContext = "sink-base" | "generic";
 export const resolveCountertopWidthRuleStyle = ({
   activeCountertopStyle,
   activeBasinStyle,
+  profile,
 }: {
   activeCountertopStyle?: string | null;
   activeBasinStyle?: string | null;
+  profile: ProductProfile | null;
 }): CountertopWidthRuleStyle => {
   const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
-  const basinLooksIntegrated =
-    Boolean(activeBasinStyle) && !String(activeBasinStyle).trim().toLowerCase().startsWith("vessel_");
+  const basinLooksIntegrated = Boolean(activeBasinStyle) && !isVesselBasin(profile, activeBasinStyle);
 
   if (normalizedStyle === "integrated" || basinLooksIntegrated) return "integrated";
   if (normalizedStyle === "vessel") return "vessel";
@@ -80,16 +83,18 @@ export const isCountertopRuleWidthAllowed = ({
   style,
   context,
   activeBasinStyle,
+  profile,
 }: {
   rule: CountertopMatrixRule;
   width: number;
   style: CountertopWidthRuleStyle;
   context: CountertopWidthRuleContext;
   activeBasinStyle?: string | null;
+  profile: ProductProfile | null;
 }): boolean => {
   const isIntegratedSinkBaseContext = style === "integrated" && context === "sink-base";
   const isActiveVesselSinkBaseContext =
-    style === "vessel" && context === "sink-base" && isVesselSinkStyle(activeBasinStyle);
+    style === "vessel" && context === "sink-base" && isVesselBasin(profile, activeBasinStyle);
 
   if (isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm) return false;
   if (isActiveVesselSinkBaseContext && rule.minVesselCm !== null && width + WIDTH_EPSILON < rule.minVesselCm) {
@@ -132,6 +137,7 @@ export const filterWidthValuesByCountertopRules = ({
   const widthRuleStyle = resolveCountertopWidthRuleStyle({
     activeCountertopStyle,
     activeBasinStyle,
+    profile,
   });
   const matchingRules = rules.filter((rule) => {
     if (!matchesDepthForStyle(rule, selectedDepth, widthRuleStyle)) return false;
@@ -171,6 +177,7 @@ export const filterWidthValuesByCountertopRules = ({
         style: widthRuleStyle,
         context: shouldEnforceMinSb ? "sink-base" : "generic",
         activeBasinStyle,
+        profile,
       });
     });
 
@@ -249,8 +256,7 @@ export const filterDepthValuesByCountertopRules = ({
   const aliasTable = selectMaterialAliasTable(profile);
 
   const normalizedStyle = activeCountertopStyle?.trim().toLowerCase() ?? "";
-  const basinLooksIntegrated =
-    Boolean(activeBasinStyle) && !String(activeBasinStyle).trim().toLowerCase().startsWith("vessel_");
+  const basinLooksIntegrated = Boolean(activeBasinStyle) && !isVesselBasin(profile, activeBasinStyle);
   const isIntegratedStyle = normalizedStyle === "integrated" || basinLooksIntegrated;
 
   const allowedDepths = new Set<number>();

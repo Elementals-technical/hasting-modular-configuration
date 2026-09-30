@@ -4,7 +4,7 @@ import makoProfileDocument from "../../../../public/collections/mako/product-pro
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { isDrawerStyleMixingRestricted, selectOptionValues } from "../lib/productProfileSelectors";
+import { isDrawerStyleMixingRestricted, selectBasinOptions, selectOptionValues } from "../lib/productProfileSelectors";
 
 /**
  * The Mako product profile carries only what the Mako documents confirm: the WebGL Logic, the Mako price
@@ -136,15 +136,24 @@ describe("mako product profile", () => {
     expect(attribute("LegColor")?.defaultValue).toBe("None");
   });
 
-  it("declares the drawer style groups and the changes the product has not decided yet", () => {
+  it("declares the drawer style groups, the vessel colours and the changes the product has not decided yet", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual([
       "cabinetMatrixLegacyAdapter",
       "drawerStyleGroups",
       "undeterminedRules",
+      "vesselCompatibility",
     ]);
     expect(profile().ruleData.undeterminedRules).toEqual([
       expect.objectContaining({ ruleId: "MAKO-LEG-002", attributeId: "LegColor", whenCabinet: { Drawers: ["1"] } }),
     ]);
+  });
+
+  it("gives each of its vessels, and only them, a palette and a starting colour", () => {
+    const vessels = selectBasinOptions(profile(), "vessel").map(({ value }) => value);
+    const rules = profile().ruleData.vesselCompatibility;
+
+    expect(Object.keys(rules?.allowedMaterialsByStyle ?? {})).toEqual(vessels);
+    expect(Object.keys(rules?.defaultFinishByStyle ?? {})).toEqual(vessels);
   });
 
   it("records the confirmed rules it cannot express yet", () => {

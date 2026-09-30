@@ -91,3 +91,29 @@ describe("command reason codes have a text in every production collection", () =
     },
   );
 });
+
+/** A collection whose Vessel Color field follows `VesselColor.allowed` greys out the colours a vessel does not take. */
+const judgesVesselColours = new Set(
+  Object.entries(
+    import.meta.glob("/public/collections/*/ui.json", { eager: true, import: "default", query: "?raw" }) as Record<
+      string,
+      string
+    >,
+  )
+    .filter(([, source]) => source.includes('"VesselColor.allowed"'))
+    .map(([path]) => path.split("/").at(-2)),
+);
+
+describe("a collection that judges vessel colours says why a colour is unavailable", () => {
+  it("finds the collections that judge them", () => {
+    expect([...judgesVesselColours].sort()).toEqual(["class", "mako", "urban-low-height"]);
+  });
+
+  it.each(
+    productionProfiles
+      .filter(({ collectionId }) => judgesVesselColours.has(collectionId))
+      .map((profile) => [profile.collectionId, profile] as const),
+  )("%s declares the reason", (_, profile) => {
+    expect(selectMessage(profile, "vessel.colorUnavailable")).not.toBe("vessel.colorUnavailable");
+  });
+});
