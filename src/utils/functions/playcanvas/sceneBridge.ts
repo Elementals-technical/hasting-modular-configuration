@@ -216,7 +216,12 @@ export type SceneOperationResult =
   | { status: "failed"; code: SceneCallFailureCode; message: string };
 
 export type SceneAddProductResult =
-  | { status: "applied"; runtimeId: string }
+  | {
+      status: "applied";
+      runtimeId: string;
+      /** Insert only: true when the scene created the product with the given config (before its first layout). */
+      configApplied?: boolean;
+    }
   | { status: "not-ready" }
   | { status: "failed"; code: SceneCallFailureCode; message: string };
 
@@ -330,21 +335,31 @@ export const setSceneProductConfig = (
     }
   });
 
-/** Places a product next to a placed one (or first, without an anchor) and returns its runtime id. */
+/**
+ * Places a product next to a placed one (or first, without an anchor) and returns its runtime id.
+ * With a config, the scene creates the product with it (setProductByParams' initialConfig is merged
+ * before the first layout), so a row does not first lay out the registry default width.
+ */
 export const insertSceneProduct = (
   productType: string,
   anchorRuntimeId: string | null,
   side: "left" | "right",
+  config?: Record<string, unknown>,
 ): Promise<SceneAddProductResult> =>
   runSceneOperation("setProductByParams", async (call): Promise<SceneAddProductResult> => {
     try {
-      const runtimeId = await call(productType, anchorRuntimeId, side);
+      const runtimeId = config
+        ? await call(productType, anchorRuntimeId, side, config)
+        : await call(productType, anchorRuntimeId, side);
 
       if (typeof runtimeId !== "string" || !runtimeId) {
         return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
       }
 
-      return { status: "applied", runtimeId };
+      if (!config) return { status: "applied", runtimeId };
+
+      updateDimensionDataForProduct(runtimeId, config);
+      return { status: "applied", runtimeId, configApplied: true };
     } catch (error) {
       return toSceneError(error);
     }

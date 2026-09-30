@@ -51,6 +51,7 @@ export type SceneCompositionBridge = {
     productType: string,
     anchorRuntimeId: string | null,
     side: "left" | "right",
+    config?: Record<string, unknown>,
   ): Promise<SceneAddProductResult>;
   setProductConfig(runtimeId: string, config: Record<string, unknown>): Promise<SceneOperationResult>;
   removeProduct(runtimeId: string): Promise<SceneOperationResult>;
@@ -201,11 +202,22 @@ export const createCompositionPort = ({
       return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
     }
 
-    const created = await scene.insertProduct(placed.sceneType, placement.anchorRuntimeId, placement.side);
+    // The config goes with the insert: the scene lays the product out once, at its real size.
+    // A second width change would make a new row head "grow left" and shift the row.
+    const created = await scene.insertProduct(
+      placed.sceneType,
+      placement.anchorRuntimeId,
+      placement.side,
+      placed.config,
+    );
     if (created.status === "not-ready") return { status: "not-ready" };
     if (created.status === "failed") return { status: "failed", message: created.message };
 
-    // The scene places a product beside another with its defaults; its own config follows.
+    if (created.configApplied) {
+      return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
+    }
+
+    // Fallback: the scene placed the product with its defaults; its own config follows.
     const configured = await scene.setProductConfig(created.runtimeId, placed.config);
     const sceneState = await readAfter([created.runtimeId]);
 

@@ -40,9 +40,9 @@ const createFakeScene = (answers: Answers = {}) => {
       calls.push(["add", productType, config]);
       return answers.add ?? { status: "applied", runtimeId: `${productType}-added` };
     },
-    async insertProduct(productType, anchorRuntimeId, side) {
-      calls.push(["insert", productType, anchorRuntimeId, side]);
-      return answers.insert ?? { status: "applied", runtimeId: `${productType}-inserted` };
+    async insertProduct(productType, anchorRuntimeId, side, config) {
+      calls.push(["insert", productType, anchorRuntimeId, side, config]);
+      return answers.insert ?? { status: "applied", runtimeId: `${productType}-inserted`, configApplied: true };
     },
     async setProductConfig(runtimeId, config) {
       calls.push(["setConfig", runtimeId, config]);
@@ -144,7 +144,7 @@ describe("createCompositionPort", () => {
     expect(result).toMatchObject({ status: "partial", placed: [], message: "boom" });
   });
 
-  it("places a cabinet beside another, then gives it its own config", async () => {
+  it("places a cabinet beside another with its own config in one call (no follow-up width change)", async () => {
     const { port, calls } = createPort();
 
     const result = await port.add(
@@ -154,7 +154,21 @@ describe("createCompositionPort", () => {
 
     expect(result).toMatchObject({ status: "applied", placed: ["Sink-Base-inserted"] });
     expect(calls).toEqual([
-      ["insert", "Sink-Base", "cab-a", "left"],
+      ["insert", "Sink-Base", "cab-a", "left", { Width: 60, ProductType: "Sink-Base", productType: "Sink-Base" }],
+    ]);
+  });
+
+  it("falls back to a follow-up config when the scene placed the cabinet with its defaults", async () => {
+    const { port, calls } = createPort({ insert: { status: "applied", runtimeId: "Sink-Base-inserted" } });
+
+    const result = await port.add(
+      { productType: "Sink-Base", config: { Width: 60 } },
+      { kind: "beside", anchorRuntimeId: "cab-a", side: "left" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["Sink-Base-inserted"] });
+    expect(calls).toEqual([
+      ["insert", "Sink-Base", "cab-a", "left", { Width: 60, ProductType: "Sink-Base", productType: "Sink-Base" }],
       ["setConfig", "Sink-Base-inserted", { Width: 60, ProductType: "Sink-Base", productType: "Sink-Base" }],
     ]);
   });
@@ -199,10 +213,11 @@ describe("createCompositionPort", () => {
 
     expect(result).toMatchObject({ status: "applied", placed: ["Mako-side-cabinet-inserted"] });
     expect(calls).toEqual([
-      ["insert", "Mako-side-cabinet", "cab-a", "right"],
       [
-        "setConfig",
-        "Mako-side-cabinet-inserted",
+        "insert",
+        "Mako-side-cabinet",
+        "cab-a",
+        "right",
         {
           Width: 40,
           Height: 26,
@@ -238,10 +253,11 @@ describe("createCompositionPort", () => {
 
     expect(result).toMatchObject({ status: "applied", placed: ["ULH-sink-cabinet-inserted"] });
     expect(calls).toEqual([
-      ["insert", "ULH-sink-cabinet", "cab-a", "left"],
       [
-        "setConfig",
-        "ULH-sink-cabinet-inserted",
+        "insert",
+        "ULH-sink-cabinet",
+        "cab-a",
+        "left",
         {
           Width: 80,
           Height: 35,
@@ -294,7 +310,10 @@ describe("createCompositionPort", () => {
   });
 
   it("reports a cabinet placed without its config as partial", async () => {
-    const { port } = createPort({ setConfig: { status: "failed", code: "product-not-found", message: "gone" } });
+    const { port } = createPort({
+      insert: { status: "applied", runtimeId: "Sink-Base-inserted" },
+      setConfig: { status: "failed", code: "product-not-found", message: "gone" },
+    });
 
     const result = await port.add(
       { productType: "Sink-Base", config: {} },
