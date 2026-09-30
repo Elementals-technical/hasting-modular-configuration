@@ -45,6 +45,9 @@ export type ConfiguratorBridge = {
   setCountertopOverlayPlaceholders?(enabled: boolean): Promise<boolean>;
   /** Resolves false when the build has no `countertop.setLengthLimits`. */
   setCountertopLengthLimits?(limits: CountertopLengthLimitsM | null): Promise<boolean>;
+  /** Tells the scene which collection is open (room height); resolves false when the build has no
+   * `room.setCollection`. */
+  setRoomCollection?(collectionId: string | null): Promise<boolean>;
   /** Ghost length preview in the overlay frames; resolves false when the build has no
    * `countertopOverlay.previewLength`. */
   previewCountertopLength?(preview: CountertopLengthPreview | null): Promise<boolean>;
@@ -257,6 +260,17 @@ export const createConfiguratorBridge = (
         return true;
       } catch (error) {
         throw toBridgeError(error, "countertop.setLengthLimits");
+      }
+    },
+
+    async setRoomCollection(collectionId) {
+      const room = getTarget()?.api.room;
+      if (!isRecord(room) || typeof room.setCollection !== "function") return false;
+      try {
+        room.setCollection(collectionId);
+        return true;
+      } catch (error) {
+        throw toBridgeError(error, "room.setCollection");
       }
     },
 
