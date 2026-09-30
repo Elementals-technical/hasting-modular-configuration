@@ -297,18 +297,6 @@ export const collectionSkuProfileSchema = z
     sidePanel: pricedAsSchema.optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
-    /** Vessel metadata by the collection's semantic `sinkType` value. */
-    vessels: z
-      .record(
-        z.string(),
-        z
-          .object({
-            sceneType: z.string().trim().min(1),
-            series: z.string().trim().min(1),
-          })
-          .strict(),
-      )
-      .optional(),
     /** The legs a composition stands on, for a collection that offers them. */
     legs: z
       .object({

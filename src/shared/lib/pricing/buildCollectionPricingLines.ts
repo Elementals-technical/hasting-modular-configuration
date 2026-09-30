@@ -19,7 +19,6 @@ import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
-  buildVesselSku,
   createConfiguratorColorReader,
   isChosenColor,
   resolveCollectionColorCode,
@@ -251,9 +250,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         quantity: countertop.bracket.quantity,
       });
     }
-    // The vessel of each sink base of a vessel top, as its cutout is ordered. Sink bases with the same
-    // vessel in the same colour order it once, as many pieces as there are; Summary reads the first.
-    if (countertop.holeCut) {
+    // The vessel of each sink base of a vessel top, even before a colour prices the top and its cutout.
+    // Sink bases with the same vessel in the same colour order it once, as many pieces as there are;
+    // Summary reads the first.
+    if (countertop.isVessel) {
       const vessels = new Map<string, { id: string; quantity: number }>();
       let unpricedVessel: CollectionCabinetSkuGap["cause"] | null = null;
       for (const entry of sinkBases) {

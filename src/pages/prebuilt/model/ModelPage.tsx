@@ -796,10 +796,14 @@ export const ModelPage = () => {
           typeof uiStateValues?.VesselColor === "string" ? (uiStateValues.VesselColor as string) : undefined;
         const restoredBookMatching =
           typeof uiStateValues?.BookMatching === "string" ? (uiStateValues.BookMatching as string) : undefined;
-        // A collection that keeps its basin in the state only (Mako, Class) saves the scene's own default
-        // basin with its products, not the order's: its basin and style are the ones the configuration
-        // was saved with, which the price reads too. A save made before it has them in uiState only.
-        const basinInScene = !runtimeBindings || selectRuntimeBinding(runtimeBindings, "sinkType")?.status === "bound";
+        // The products hold the order's basin only where the scene takes it as the configuration's own
+        // value (USH, ULH). A collection that keeps it in the state only, or sends the scene a token of its
+        // own (Mako, Class: Iris → Vessel_Iris), finds another value there, or the scene's default basin in
+        // an order saved before; its basin and style are the ones the configuration was saved with, which
+        // the price reads too. A save made before the configuration has them in uiState only.
+        const sinkTypeBinding = runtimeBindings ? selectRuntimeBinding(runtimeBindings, "sinkType") : null;
+        const basinInScene =
+          !runtimeBindings || (sinkTypeBinding?.status === "bound" && sinkTypeBinding.values.kind === "identity");
         const savedBasin = basinInScene
           ? undefined
           : (readSavedBasin(plan.fragment) ??

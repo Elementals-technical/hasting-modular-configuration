@@ -186,6 +186,8 @@ export type CollectionCountertopSkus = {
   basins: (string | null)[];
   /** The vessel cutout, one per sink base, vessel tops only. */
   holeCut: string | null;
+  /** A vessel top, whether or not its colour prices the top and the cutout yet. */
+  isVessel: boolean;
   faucetHoles: string | null;
   bracket: { sku: string; quantity: number } | null;
 };
@@ -236,14 +238,15 @@ export const buildCollectionCountertopSkus = (
   const basinSkus = basins.map((basin) =>
     series && thickness && isIntegrated && basin ? `${series}-${basin}-${thickness}H` : null,
   );
-  const holeCut = series && styleCode === countertop.styles.vessel ? `${series}-HCUT` : null;
+  const isVessel = styleCode !== null && styleCode === countertop.styles.vessel;
+  const holeCut = series && isVessel ? `${series}-HCUT` : null;
   const faucetSku = series && faucetHoles && /^\d+$/.test(faucetHoles) ? `${series}-FAHO/${faucetHoles}` : null;
   const bracket =
     countertop.bracket && thickness && countertop.bracket.thicknesses.includes(thickness)
       ? { sku: countertop.bracket.sku, quantity: countertop.bracket.quantity }
       : null;
 
-  return { material, thickness, top, basins: basinSkus, holeCut, faucetHoles: faucetSku, bracket };
+  return { material, thickness, top, basins: basinSkus, holeCut, isVessel, faucetHoles: faucetSku, bracket };
 };
 
 export type CollectionVesselInput = {

@@ -55,11 +55,6 @@
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
     "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
   },
-  "vessels": {
-    "Iris": { "sceneType": "Vessel_Iris", "series": "IRIS" },
-    "Frame": { "sceneType": "Vessel_Frame", "series": "FRAME" },
-    "Plaza": { "sceneType": "Vessel_Blade11", "series": "BLD11" }
-  },
   "legs": { "quantity": 2, "cabinetColorValue": "None" },
   "vessels": {
     "Iris": { "series": "IRIS", "widthIn": "16.5", "heightIn": "4.3", "depthIn": "16.5" },

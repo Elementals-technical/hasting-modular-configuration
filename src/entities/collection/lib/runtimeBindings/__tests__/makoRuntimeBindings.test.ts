@@ -104,8 +104,12 @@ describe("mako runtime bindings", () => {
     expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
     expect(patchOf("sinkType", "Frame")).toEqual({ sinkType: "Vessel_Frame" });
     expect(patchOf("sinkType", "Plaza")).toEqual({ sinkType: "Vessel_Blade11" });
+    // A cleared basin, as a switch of countertop style leaves, is the empty cutout: without it the scene
+    // has no translation and the whole switch is refused.
+    expect(patchOf("sinkType", "")).toEqual({ sinkType: "Vessel" });
+    // The vessel is painted with the scene's material, named as for the cabinet colours.
     expect(patchOf("VesselColor", "Grigio Argento 403 GL")).toEqual({
-      VesselColor: "Grigio Argento 403 GL",
+      VesselColor: "Grigio Argento 403 Lacquered GL",
     });
   });
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
@@ -148,5 +149,36 @@ describe("buildConfiguratorOptions", () => {
       ["Cemento Matte OCD", resolveCountertopFallbackTexture("Cemento Matte OCD")],
     ]);
     expect(options.every(({ image }) => Boolean(image))).toBe(true);
+  });
+
+  it("colours a white configurator 4 leaves without a picture or a hex white, as the countertop swatches", () => {
+    // The white Tekorlux vessels and Mineralmarmo tops come with neither; their colour code is white.
+    const vessels = configurator4WithLiveVessels.availableOptions.find(
+      ({ proxyName }) => proxyName === "Vessels",
+    ) as ConfiguratorAvailableOption;
+    const mineralmarmo = {
+      ...vessels,
+      proxyName: "Countertop Color",
+      options: [
+        {
+          ...vessels.options[0],
+          name: "Mineralmarmo",
+          variants: ["Gloss White TMO", "Matte White TNO"].map((name, index) => ({
+            ...vessels.options[0].variants[0],
+            id: 3200 + index,
+            name,
+            image: null,
+            metadata: { sku: "SSMMO" },
+          })),
+        },
+      ],
+    } as ConfiguratorAvailableOption;
+    const whites = ["Bianco Gloss TAL", "Bianco Matte TAM", "Gloss White TMO", "Matte White TNO"];
+
+    expect(
+      [...buildConfiguratorOptions(vessels), ...buildConfiguratorOptions(mineralmarmo)]
+        .filter(({ value }) => whites.includes(value))
+        .map(({ value, image, traits }) => [value, image, traits?.hex]),
+    ).toEqual(whites.map((value) => [value, undefined, "#FFFFFF"]));
   });
 });

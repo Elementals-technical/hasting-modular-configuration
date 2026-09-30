@@ -178,10 +178,6 @@ describe("Class and Mako order lines", () => {
     const { lines, gaps } = buildCollectionPricingLines(COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"].input);
 
     expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBSSTL-HCUT", quantity: 1 });
-    expect(lines.find(({ group }) => group === "vessel")).toMatchObject({
-      sku: "VES-IRIS-X-XW-XH-XD-LACG-403",
-      quantity: 1,
-    });
     expect(lines.find(({ group }) => group === "divider")).toMatchObject({ id: "divider:mko-sb:Top", quantity: 1 });
     expect(lines.some(({ group }) => group === "basin")).toBe(false);
     expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
@@ -336,6 +332,26 @@ describe("Class and Mako order lines", () => {
 
       expect(vesselLinesOf(order)).toEqual([]);
       expect(vesselGapsOf(order)).toEqual([
+        {
+          group: "input",
+          blocksTotal: true,
+          owner: "C",
+          reason: "VesselColor is not chosen, so the vessel has no price.",
+        },
+      ]);
+    });
+
+    it("is ordered before a countertop colour prices the top, and flagged without a colour of its own", () => {
+      // As after the "Model Compatibility Restriction" confirm, which clears the countertop colour.
+      const noTopColour = { CountertopColor: [] as ScopedValue[], sinkType: [at({ scope: "basin" }, "Iris")] };
+      const withColour = orderOf("vessel", { ...noTopColour, VesselColor: [at({ scope: "basin" }, "Latte 417 MT")] }, [
+        "sb",
+      ]);
+
+      expect(vesselLinesOf(withColour)).toEqual([
+        { id: "vessel", sku: "VES-IRIS-X-16.5W-4.3H-16.5D-LACM-417", quantity: 1 },
+      ]);
+      expect(vesselGapsOf(orderOf("vessel", noTopColour, ["sb"]))).toEqual([
         {
           group: "input",
           blocksTotal: true,

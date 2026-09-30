@@ -498,6 +498,7 @@
       "values": {
         "kind": "map",
         "patches": {
+          "": { "sinkType": "Vessel" },
           "None": { "sinkType": "Vessel" },
           "LB440": { "sinkType": "Top_HPLPrisma" },
           "LB175": { "sinkType": "Top_Tekorlux_Ron" },
@@ -515,7 +516,7 @@
         }
       },
       "order": 40,
-      "note": "Class uses the authored sink sub-products under ClMa_Sink_Point. None clears the integrated basin for a vessel cutout; a vessel choice installs its matching sub-product."
+      "note": "Class uses the authored sink sub-products under ClMa_Sink_Point. None clears the integrated basin for a vessel cutout; a vessel choice installs its matching sub-product. A cleared basin (\"\"), as a switch of countertop style leaves, is the same empty cutout."
     },
     {
       "attributeId": "VesselColor",

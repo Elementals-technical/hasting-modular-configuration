@@ -139,6 +139,7 @@ describe("countertop SKUs", () => {
       top: "CT-GBHPL-INTG-47.2W-.5H-20.7D-HPL-259",
       basins: ["CT-GBHPL-VA024-.5H"],
       holeCut: null,
+      isVessel: false,
       faucetHoles: "CT-GBHPL-FAHO/1",
       bracket: null,
     });

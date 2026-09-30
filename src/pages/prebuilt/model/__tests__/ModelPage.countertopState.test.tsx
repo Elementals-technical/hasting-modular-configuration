@@ -177,17 +177,18 @@ const IRIS: SavedBasin = { style: "vessel", basin: "Iris", vesselColor: "Acqua 4
 
 /**
  * A 60 cm Sink Base on a black glass top, as Save writes it: the configuration with `saved`, the page
- * with `shown` (the same unless a restore left another one on it).
+ * with `shown` (the same unless a restore left another one on it), the Sink Base with the scene's basin.
+ * That is the scene's own default in an order saved before the basin reached the Mako and Class scene,
+ * and the vessel's scene token (Vessel_Iris) since.
  */
 const savedOrder = (
   { collectionId, sinkBaseSceneType }: Case,
   saved: SavedBasin,
   shown: SavedBasin = saved,
+  sceneBasin = "Top_HPLPrisma",
 ): ConfigurationRecord => {
   const sourceId = `${sinkBaseSceneType}-aaa111`;
   return {
-    // The scene saves its own default basin with the Sink Base: sinkType never reaches the Mako and
-    // Class scene, so it does not hold the order's.
     configuration: {
       [sourceId]: {
         ProductType: sinkBaseSceneType,
@@ -195,7 +196,7 @@ const savedOrder = (
         Height: 26,
         Depth: 52,
         Drawers: "1D",
-        sinkType: "Top_HPLPrisma",
+        sinkType: sceneBasin,
       },
     },
     metadata: {
@@ -310,6 +311,15 @@ describe.each(CASES)("$collectionId: a Prebuilt order opened from its link", (te
 
     expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("integrated");
     expect(getSinkType(store.getState())).toBe("VA002");
+  });
+
+  it("comes back as a vessel with its Iris from an order whose scene holds the vessel's token", async () => {
+    mocks.record = savedOrder(testCase, IRIS, IRIS, "Vessel_Iris");
+
+    await restore("7005");
+
+    expect(getCountertopStyle(store.getState())).toBe("vessel");
+    expect(getSinkType(store.getState())).toBe("Iris");
   });
 });
 

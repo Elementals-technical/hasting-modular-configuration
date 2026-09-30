@@ -4,7 +4,7 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
-import { resolveCountertopFallbackTexture } from "@/entities/countertop";
+import { resolveCountertopFallbackHex, resolveCountertopFallbackTexture } from "@/entities/countertop";
 
 import type { FieldOptionState } from "@/entities/collection";
 
@@ -48,8 +48,9 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
           value,
           label,
           enabled: true,
-          // Configurator 4 leaves some colours without a picture (the Ceramic vessels); their colour
-          // code names the swatch the countertop pages show for it.
+          // Configurator 4 leaves some colours without a picture (the Ceramic vessels) or without a picture
+          // and a hex (the white Tekorlux and Mineralmarmo ones); their colour code names the swatch or the
+          // colour the countertop pages show for it.
           image:
             overrides.image ??
             pick(nested.image, meta.image, variant.image) ??
@@ -61,7 +62,7 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
             materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
             colors: fromCsv(pick(nested.Color, meta.Color)),
             looks: fromCsv(pick(nested.Look, meta.Look)),
-            hex: pick(nested.hex, meta.hex)?.trim(),
+            hex: pick(nested.hex, meta.hex)?.trim() ?? resolveCountertopFallbackHex(variant.name),
           },
         },
       ];

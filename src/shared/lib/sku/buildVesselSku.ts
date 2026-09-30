@@ -11,8 +11,6 @@ import {
 export type VesselSkuInput = {
   /** PlayCanvas vessel type, e.g. "Vessel_Blade11", "Vessel_UrbanModo" */
   vesselType: string | null;
-  /** Collection-owned SKU series when it is not part of the shared vessel map. */
-  series?: string | null;
   /** Model/style code — "X" (default) or "URSTD" */
   model?: string | null;
   width: number | null;
