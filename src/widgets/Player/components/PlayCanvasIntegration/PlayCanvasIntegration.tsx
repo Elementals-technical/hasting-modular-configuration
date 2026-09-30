@@ -105,6 +105,7 @@ import {
 } from "@/features/countertopPlacement/ui/CountertopPlacementControls";
 import {
   isCabinetPlacementDebugEnabled,
+  isDragDropCollection,
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import type { CabinetsState } from "@/features/configuratorApi";
@@ -433,7 +434,9 @@ export const PlayCanvasIntegration = ({
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
-  const cabinetPlacementDebugEnabled = isCabinetPlacementDebugEnabled(location.search);
+  // Cabinet & countertop Drag & Drop: ULH only; other collections keep the classic menus.
+  const cabinetPlacementDebugEnabled =
+    isCabinetPlacementDebugEnabled(location.search) && isDragDropCollection(activeCollectionId);
   // Engineering tools of the Drag & Drop (Move selected, add side, Save/Restore JSON): ?placementDebug
   const cabinetPlacementDebugTools = new URLSearchParams(location.search).has("placementDebug");
   const cabinetPlacementRef = useRef<CabinetPlacementControls>(null);
@@ -456,6 +459,14 @@ export const PlayCanvasIntegration = ({
   const countertopEditingRef = useRef(false);
   countertopEditingRef.current = countertopPlacementStatus.editing || countertopDragStatus.busy;
   const [cabinetPlacementBusy, setCabinetPlacementBusy] = useState(false);
+  // Unmounted D&D widgets never report again: drop their last status so no D&D menu item lingers.
+  useEffect(() => {
+    if (cabinetPlacementDebugEnabled) return;
+    setRepositionStatus({ supported: false, available: false });
+    setCountertopDragStatus({ supported: false, available: false, active: false, busy: false });
+    setCountertopPlacementStatus({ supported: false, available: false, editing: false });
+    setCabinetPlacementBusy(false);
+  }, [cabinetPlacementDebugEnabled]);
   const placementHostRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (countertopPlacementStatus.editing && placementHostRef.current) {

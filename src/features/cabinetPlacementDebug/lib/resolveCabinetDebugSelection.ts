@@ -7,6 +7,12 @@ export const isCabinetPlacementDebugEnabled = (search: string): boolean => {
   return true;
 };
 
+/** Collections with cabinet/countertop Drag & Drop. Others keep the classic Resize/Reposition menus. */
+export const DRAG_DROP_COLLECTION_IDS: readonly string[] = ["urban-low-height"];
+
+export const isDragDropCollection = (collectionId: string | null | undefined): boolean =>
+  typeof collectionId === "string" && DRAG_DROP_COLLECTION_IDS.includes(collectionId);
+
 /** Reuse the active collection's type/value translation, preserving the current scene config. */
 export const resolveCabinetDebugSelection = ({
   config,
