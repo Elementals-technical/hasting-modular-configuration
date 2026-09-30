@@ -130,9 +130,16 @@ describe("urban-low-height product profile", () => {
     expect(selectOptionValues(profile(), "CabinetType")).not.toContain("Side-Shelf");
   });
 
-  it("declares the rule sections the product map confirms, and the side panels added on request", () => {
+  it("declares the rule sections the product map confirms, and the side panels and vessel compatibility added on request", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual(
-      ["cabinetColorTraits", "cabinetMatrixLegacyAdapter", "countertopFallbacks", "fluting", "sidePanels"].sort(),
+      [
+        "cabinetColorTraits",
+        "cabinetMatrixLegacyAdapter",
+        "countertopFallbacks",
+        "fluting",
+        "sidePanels",
+        "vesselCompatibility",
+      ].sort(),
     );
   });
 

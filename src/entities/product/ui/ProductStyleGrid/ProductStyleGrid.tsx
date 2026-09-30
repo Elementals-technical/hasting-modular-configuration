@@ -1,3 +1,5 @@
+import type { To } from "react-router-dom";
+
 import { ProductStyleItem } from "@/shared/ui/ProductStyleItem/ProductStyleItem";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 
@@ -23,7 +25,8 @@ interface ProductStyleGridI {
       image?: string;
     };
   }[];
-  styleDetailsPath: string;
+  /** The address of a style's details for its query, in the collection of the session. */
+  detailsTo: (query: string) => To;
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
@@ -34,7 +37,7 @@ interface ProductStyleGridI {
 
 export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   data,
-  styleDetailsPath,
+  detailsTo,
   requiresActiveCabinet,
   handleOpenStyleSidebar,
   isActive = false,
@@ -61,15 +64,13 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
         if (activeCabinet) detailsParams.set("cabinetType", activeCabinet);
         if (typeof selectedDimensions.height === "number") detailsParams.set("height", String(selectedDimensions.height));
 
-        const detailsTo = `${styleDetailsPath}?${detailsParams.toString()}`;
-
         return (
           <ProductStyleItem
             key={i.value}
             value={i.value}
             title={i.title}
             imageSrc={i.metadata?.image}
-            detailsTo={detailsTo}
+            detailsTo={detailsTo(detailsParams.toString())}
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             isActive={isItemActive}
             isAvailable={i.isAvailable}

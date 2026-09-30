@@ -172,6 +172,7 @@ const isMaterialCompatible = ({
   const widthRuleStyle = resolveCountertopWidthRuleStyle({
     activeCountertopStyle,
     activeBasinStyle,
+    profile,
   });
 
   const aliasTable = selectMaterialAliasTable(profile);
@@ -203,6 +204,7 @@ const isMaterialCompatible = ({
         style: widthRuleStyle,
         context: context === "sb" ? "sink-base" : "generic",
         activeBasinStyle,
+        profile,
       }),
     );
 

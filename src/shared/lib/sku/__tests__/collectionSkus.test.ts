@@ -7,8 +7,10 @@ import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   resolveCollectionDividerSku,
+  resolveCollectionVessel,
   type CollectionValueReader,
 } from "../buildCollectionSkus";
+import { formatVesselSku } from "../buildVesselSku";
 import { createConfiguratorColorReader } from "../configuratorColors";
 
 /**
@@ -137,6 +139,7 @@ describe("countertop SKUs", () => {
       top: "CT-GBHPL-INTG-47.2W-.5H-20.7D-HPL-259",
       basins: ["CT-GBHPL-VA024-.5H"],
       holeCut: null,
+      isVessel: false,
       faucetHoles: "CT-GBHPL-FAHO/1",
       bracket: null,
     });
@@ -181,5 +184,69 @@ describe("organizer SKUs", () => {
     expect(resolveCollectionDividerSku(MAKO.skuProfile, "Metal")).toBe("VAN-GBDIV-MTL-3.9W-2H-16.9D");
     expect(resolveCollectionDividerSku(CLASS.skuProfile, "Oak")).toBe("VAN-GBDIV-OAK-3.8W-2.6H-16.9D");
     expect(resolveCollectionDividerSku(CLASS.skuProfile, "A")).toBeNull();
+  });
+});
+
+describe("vessel SKUs", () => {
+  const IRIS_SIZE = { width: "16.5", height: "4.3", depth: "16.5" };
+
+  it("spells a vessel as every collection does: X for what is missing, the material only when known", () => {
+    expect(
+      formatVesselSku({ series: "IRIS", model: "X", dimensions: IRIS_SIZE, materialSku: "LACM", colorCode: "417" }),
+    ).toBe("VES-IRIS-X-16.5W-4.3H-16.5D-LACM-417");
+    expect(formatVesselSku({ series: "IRIS", dimensions: IRIS_SIZE, materialSku: null, colorCode: "417" })).toBe(
+      "VES-IRIS-X-16.5W-4.3H-16.5D",
+    );
+    expect(
+      formatVesselSku({
+        series: null,
+        dimensions: { width: null, height: null, depth: null },
+        materialSku: "CER",
+        colorCode: null,
+      }),
+    ).toBe("VES-X-X-XW-XH-XD-CER");
+  });
+
+  // The forms table 542 names and the price server resolved on 2026-09-30.
+  it.each([
+    {
+      name: "Mako",
+      collection: MAKO,
+      read: readMakoColor,
+      basin: "Iris",
+      color: "Latte 417 MT",
+      sku: "VES-IRIS-X-16.5W-4.3H-16.5D-LACM-417",
+    },
+    {
+      name: "Mako",
+      collection: MAKO,
+      read: readMakoColor,
+      basin: "Frame",
+      color: "Antracite 400 MT",
+      sku: "VES-FRM-X-19.7W-4.3H-13.8D-LACM-400",
+    },
+    {
+      name: "Class",
+      collection: CLASS,
+      read: readClassColor,
+      basin: "Plaza",
+      color: "Zaffiro 411 GL",
+      sku: "VES-PLZ-X-23.6W-4.7H-18.9D-LACG-411",
+    },
+  ])("spells a $name $basin in $color", ({ collection, read, basin, color, sku }) => {
+    expect(
+      resolveCollectionVessel(collection.skuProfile, collection.profile, { basin, color, readConfiguratorColor: read })
+        ?.sku,
+    ).toBe(sku);
+  });
+
+  it("gives a vessel without a colour its size but no SKU, and a basin that is not a vessel nothing", () => {
+    const vessel = (basin: string, color: string | null) =>
+      resolveCollectionVessel(MAKO.skuProfile, MAKO.profile, { basin, color, readConfiguratorColor: readMakoColor });
+
+    expect(vessel("Iris", null)).toEqual({ dimensions: IRIS_SIZE, material: null, sku: null });
+    expect(vessel("Iris", "None")?.sku).toBeNull();
+    expect(vessel("None", "Latte 417 MT")).toBeNull();
+    expect(vessel("VA005", "Latte 417 MT")).toBeNull();
   });
 });

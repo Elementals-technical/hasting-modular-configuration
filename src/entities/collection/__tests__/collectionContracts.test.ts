@@ -69,7 +69,7 @@ describe("collection contracts", () => {
     expect(urbanLowHeight.defaultPresetId).toBeUndefined();
     expect(urbanLowHeight.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
-      countertopTable: { id: 438 },
+      countertopTable: { id: 589 },
       cabinetTable: { id: 580 },
     });
     expect(urbanLowHeightUi.collectionId).toBe("urban-low-height");

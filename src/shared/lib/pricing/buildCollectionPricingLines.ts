@@ -2,6 +2,7 @@ import {
   hasOwnCountertop,
   normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
+  selectAttribute,
   selectDefaultValue,
   selectOption,
 } from "@/entities/collection";
@@ -18,12 +19,12 @@ import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
-  buildVesselSku,
   createConfiguratorColorReader,
   isChosenColor,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
+  resolveCollectionVessel,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
   type CollectionValueReader,
@@ -34,6 +35,7 @@ import type { PricingGap, PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
 import { buildUshTowelBarLines } from "./ushTowelBarLines";
+import { buildUshVesselLines } from "./ushVesselLines";
 
 /**
  * Order lines of a collection priced from its `sku-profile.json` (D04): Class, Mako and Urban Low
@@ -42,8 +44,8 @@ import { buildUshTowelBarLines } from "./ushTowelBarLines";
  * Read from C's state — cabinets, their sizes and the values addressed to each cabinet, basin
  * and drawer — rather than the scene, which these collections do not have yet (I07). The lines
  * have the shape and ids of the USH lines, so the price store, the bottom bar and Summary
- * treat them alike. Quantities follow USH: a basin and a vessel cutout per sink base, the top
- * and the faucet holes once. What the collection has not confirmed comes back as gaps.
+ * treat them alike. Quantities follow USH: a basin, a vessel cutout and a vessel per sink base, the
+ * top and the faucet holes once. What the collection has not confirmed comes back as gaps.
  */
 
 export type CollectionPricingResult = { lines: PricingLine[]; gaps: PricingGap[] };
@@ -71,22 +73,30 @@ const INPUT_GAP: Record<CollectionCabinetSkuGap["cause"], InputGap> = {
   },
 };
 
+/** Why a vessel the collection prices has no line: its colour does not give the SKU a material and a code. */
+const UNPRICED_VESSEL: Record<CollectionCabinetSkuGap["cause"], { owner: string; reason: string }> = {
+  "not-chosen": { owner: "C", reason: "VesselColor is not chosen, so the vessel has no price." },
+  "no-material": {
+    owner: "product",
+    reason: "VesselColor is set to a value the collection names no material for, so the vessel has no price.",
+  },
+};
+
 /** Why a countertop priced as Urban Standard Height's has no top line. */
 const UNPRICED_USH_COUNTERTOP =
   "The countertop has no Urban Standard Height price here: the countertop table gives no thickness for its material at this depth, or its colour names no material.";
 
-/** A gap concerns this order when the attribute it names has a value it covers. */
+/** A gap concerns this order when a value the order uses for the attribute it names is one it covers. */
 const gapApplies = (
   { appliesWhen }: CollectionSkuProfile["gaps"][number],
-  values: Values,
+  usedValuesOf: (attributeId: string) => (string | null)[],
   profile: ProductProfile | null,
   readConfiguratorColor: ConfiguratorColorReader,
 ): boolean => {
   if (!appliesWhen) return false;
   const { attributeId, values: coveredValues, categories } = appliesWhen;
 
-  return (values[attributeId] ?? []).some(({ value }) => {
-    const text = asText(value);
+  return usedValuesOf(attributeId).some((text) => {
     if (!text) return false;
     // A value recorded in the scene's spelling ("Vessel") reads as its option.
     const option = normalizeOptionValue(profile, attributeId, text) ?? text;
@@ -191,14 +201,18 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     Number.isFinite(committedCountertopLengthCm) &&
     committedCountertopLengthCm > 0;
   const ownCountertopWidthCm = hasCommittedCountertopLength ? committedCountertopLengthCm : widthCm;
-  const basinOf = (entry: CabinetEntry) =>
-    valueAt(values, "sinkType", { scope: "basin", sinkBaseId: entry.stableKey }) ??
-    valueAt(values, "sinkType", { scope: "basin" }) ??
-    (input.sinkType || null);
-  const vesselColorOf = (entry: CabinetEntry) =>
-    valueAt(values, "VesselColor", { scope: "basin", sinkBaseId: entry.stableKey }) ??
-    valueAt(values, "VesselColor", { scope: "basin" }) ??
-    asText(input.vesselColor);
+  // The basin and vessel colour the builder shows, for a sink base C holds none for.
+  const builderBasinValues: Record<string, string> = { sinkType: input.sinkType, VesselColor: input.vesselColor };
+  // A value of the basin of one sink base: its own, a cleared one too, as a switch to vessel clears
+  // the basin there; else the composition's, which a model and a field record; else the builder's.
+  const basinValueOf = (entry: CabinetEntry, attributeId: string) => {
+    const own = values[attributeId]?.find(({ target }) =>
+      isSameTarget(target, { scope: "basin", sinkBaseId: entry.stableKey }),
+    );
+    if (own) return asText(own.value);
+    return valueAt(values, attributeId, { scope: "basin" }) ?? (builderBasinValues[attributeId] || null);
+  };
+  const basinOf = (entry: CabinetEntry) => basinValueOf(entry, "sinkType");
   const countertopStyle = countertopValue("CountertopStyle", input.countertopStyle);
   const countertopColor = countertopValue("CountertopColor", input.countertopColor);
   const countertopThickness = countertopValue("Thickness", input.countertopThickness);
@@ -236,30 +250,32 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         quantity: countertop.bracket.quantity,
       });
     }
-
-    const firstVessel = sinkBases
-      .map((entry) => ({ entry, definition: skuProfile.vessels?.[basinOf(entry) ?? ""] }))
-      .find(({ definition }) => definition);
-    if (countertopStyle === "vessel" && firstVessel?.definition) {
-      const color = vesselColorOf(firstVessel.entry);
-      const materialSku = color
-        ? resolveCollectionColorMaterial(skuProfile, profile, "VesselColor", color, readConfiguratorColor)
-        : null;
-      const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;
-      add({
-        id: "vessel",
-        group: "vessel",
-        sku: buildVesselSku({
-          vesselType: firstVessel.definition.sceneType,
-          series: firstVessel.definition.series,
-          width: null,
-          height: null,
-          depth: null,
-          materialSku,
-          colorCode,
-        }),
-        quantity: sinkBases.length,
-      });
+    // The vessel of each sink base of a vessel top, even before a colour prices the top and its cutout.
+    // Sink bases with the same vessel in the same colour order it once, as many pieces as there are;
+    // Summary reads the first.
+    if (countertop.isVessel) {
+      const vessels = new Map<string, { id: string; quantity: number }>();
+      let unpricedVessel: CollectionCabinetSkuGap["cause"] | null = null;
+      for (const entry of sinkBases) {
+        const color = basinValueOf(entry, "VesselColor");
+        const vessel = resolveCollectionVessel(skuProfile, profile, {
+          basin: basinOf(entry),
+          color,
+          readConfiguratorColor,
+        });
+        if (!vessel) continue;
+        if (!vessel.sku) {
+          unpricedVessel ??= isChosenColor(profile, "VesselColor", color) ? "no-material" : "not-chosen";
+          continue;
+        }
+        const ordered = vessels.get(vessel.sku);
+        vessels.set(vessel.sku, {
+          id: ordered?.id ?? (vessels.size === 0 ? "vessel" : `vessel:${entry.stableKey}`),
+          quantity: (ordered?.quantity ?? 0) + 1,
+        });
+      }
+      vessels.forEach(({ id, quantity }, sku) => add({ id, group: "vessel", sku, quantity }));
+      if (unpricedVessel) gaps.push({ group: "input", blocksTotal: true, ...UNPRICED_VESSEL[unpricedVessel] });
     }
   } else if (countertopColor && cabinets.length > 0) {
     // A countertop priced as Urban Standard Height's (Urban Low Height): its SKUs and rules, on this
@@ -268,22 +284,21 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : null;
     // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
     const sinkBaseWidth = sinkBases.length > 0 ? (dimensionsByCabinet[sinkBases[0].stableKey]?.width ?? null) : null;
+    const compositionWidthCm =
+      widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight);
+    const countertop = resolveUshCountertop(input, {
+      color: countertopColor,
+      sinkType,
+      width: sinkBaseWidth,
+      depth: firstSize?.depth ?? null,
+    });
     const countertopLines = buildUshCountertopLines({
       series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
-      countertop: resolveUshCountertop(input, {
-        color: countertopColor,
-        sinkType,
-        width: sinkBaseWidth,
-        depth: firstSize?.depth ?? null,
-      }),
+      countertop,
       style: countertopStyle ?? "",
       faucetHolesAmount: faucetHoles ?? "",
       sinkType,
-      widthCm: hasCommittedCountertopLength
-        ? committedCountertopLengthCm
-        : widthCm === null
-          ? null
-          : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight),
+      widthCm: hasCommittedCountertopLength ? committedCountertopLengthCm : compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
       sinkBases: sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
       sinkBaseCount: sinkBases.length,
@@ -295,6 +310,16 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (!countertopLines.some(({ group }) => group === "countertop")) {
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
+    buildUshVesselLines({
+      profile,
+      countertop,
+      countertopColorSkuCandidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
+      sinkType,
+      vesselColor: sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null,
+      widthCm: compositionWidthCm,
+      depthCm: firstSize?.depth ?? null,
+      sinkBaseCount: sinkBases.length,
+    }).forEach(add);
   }
 
   // 3) Legs: the collection's own number of them, in their colour or the cabinet's, as the whole
@@ -357,9 +382,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     }).forEach(add);
   }
 
-  // 7) What the order uses and the collection has not confirmed.
+  // 7) What the order uses and the collection has not confirmed. The basins it uses are those of its
+  // sink bases, read as the lines read them: a basin left by a sink base that is gone does not count.
+  const usedValuesOf = (attributeId: string) =>
+    selectAttribute(profile, attributeId)?.scope === "basin"
+      ? sinkBases.map((entry) => basinValueOf(entry, attributeId))
+      : (values[attributeId] ?? []).map(({ value }) => asText(value));
   skuProfile.gaps.forEach((gap) => {
-    if (gapApplies(gap, values, profile, readConfiguratorColor)) {
+    if (gapApplies(gap, usedValuesOf, profile, readConfiguratorColor)) {
       gaps.push({ group: gap.group, blocksTotal: gap.blocksTotal, owner: gap.owner, reason: gap.reason });
     }
   });

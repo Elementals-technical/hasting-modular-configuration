@@ -1,11 +1,11 @@
 import {
+  evaluateCountertopMaterial,
   getCountertopRuleMaxWidthsForStyle,
-  isCountertopRuleWidthAllowed,
   matchesDepthForStyle,
   materialMatchesRule,
-  normalizeMaterialToken,
-  resolveCountertopCabinetCompositionConstraint,
   resolveCountertopWidthRuleStyle,
+  type CountertopMaterialEvaluation,
+  type CountertopMaterialFailure,
 } from "@/features/configurator-rule-core/countertop";
 import { cmToInches } from "@/shared/lib/sku";
 
@@ -13,9 +13,9 @@ import type { MaterialFilterOption } from "./countertopColorOptions";
 import type { CountertopContext } from "./useCountertopContext";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
-type MaterialFailure = "total" | "selected" | "depth" | "composition" | null;
+type MaterialFailure = CountertopMaterialFailure;
 
-type MaterialEvaluation = { isCompatible: boolean; failedBy: MaterialFailure };
+type MaterialEvaluation = CountertopMaterialEvaluation;
 
 /** What the countertop matrix is judged against for one colour: sizes, style and composition. */
 export type MaterialRuleInputs = Pick<
@@ -30,47 +30,8 @@ export type MaterialRuleInputs = Pick<
 type Messages = CountertopContext["messages"];
 
 /** Whether a colour's materials pass the composition, depth and width rules, and which check failed first. */
-export const evaluateMaterialOption = (option: ProductOptionData, inputs: MaterialRuleInputs): MaterialEvaluation => {
-  const optionMaterials = option.metadata?.materials ?? [];
-  if (!optionMaterials.length) return { isCompatible: true, failedBy: null };
-
-  const composition = resolveCountertopCabinetCompositionConstraint({
-    materialTokens: optionMaterials,
-    cabinetCount: inputs.cabinetCompositionCount,
-    profile: inputs.activeProfile,
-  });
-  if (!composition.isWithinCabinetLimit) return { isCompatible: false, failedBy: "composition" };
-
-  const widthRuleStyle = resolveCountertopWidthRuleStyle(inputs);
-  const materialRules = inputs.countertopRules.filter((rule) =>
-    optionMaterials.some((material) => materialMatchesRule(material, rule.material)),
-  );
-  const applicableRules = materialRules.filter((rule) => matchesDepthForStyle(rule, inputs.depth, widthRuleStyle));
-
-  if (!applicableRules.length) {
-    if (materialRules.length > 0) return { isCompatible: false, failedBy: "depth" };
-    const isCeramic = optionMaterials.some((material) => normalizeMaterialToken(material) === "ceramic");
-    return { isCompatible: isCeramic, failedBy: isCeramic ? null : "total" };
-  }
-
-  const matchesWidth = (width: number, context: "generic" | "sink-base") =>
-    applicableRules.some((rule) =>
-      isCountertopRuleWidthAllowed({
-        rule,
-        width,
-        style: widthRuleStyle,
-        context,
-        activeBasinStyle: inputs.activeBasinStyle,
-      }),
-    );
-  if (typeof inputs.sinkBaseWidth === "number" && !matchesWidth(inputs.sinkBaseWidth, "sink-base")) {
-    return { isCompatible: false, failedBy: "selected" };
-  }
-  if (typeof inputs.totalWidth === "number" && !matchesWidth(inputs.totalWidth, "generic")) {
-    return { isCompatible: false, failedBy: "total" };
-  }
-  return { isCompatible: true, failedBy: null };
-};
+export const evaluateMaterialOption = (option: ProductOptionData, inputs: MaterialRuleInputs): MaterialEvaluation =>
+  evaluateCountertopMaterial(option.metadata?.materials ?? [], inputs);
 
 export const reasonForFailure = (failedBy: MaterialFailure, messages: Messages) => {
   if (failedBy === "total") return messages.totalWidth;
@@ -82,7 +43,7 @@ export const reasonForFailure = (failedBy: MaterialFailure, messages: Messages) 
 
 /** The widest countertop the rules allow for a material at the current depth. */
 const maxMaterialWidth = (materialValue: string, inputs: MaterialRuleInputs): number | null => {
-  const widthRuleStyle = resolveCountertopWidthRuleStyle(inputs);
+  const widthRuleStyle = resolveCountertopWidthRuleStyle({ ...inputs, profile: inputs.activeProfile });
   const limits = inputs.countertopRules
     .filter(
       (rule) =>

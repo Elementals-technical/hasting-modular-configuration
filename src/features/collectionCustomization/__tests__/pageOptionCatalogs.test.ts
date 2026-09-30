@@ -29,8 +29,12 @@ describe("page option lists from the USH profile", () => {
     const expected = [...selectBasinOptions(ushProfile, "integrated"), ...selectBasinOptions(ushProfile, "vessel")];
 
     expect(basins.map(({ name, title }) => [name, title])).toEqual(expected.map(({ value, label }) => [value, label]));
-    expect(basins).toHaveLength(36);
-    expect(basins.filter(({ metadata }) => !("image" in metadata)).map(({ name }) => name)).toEqual([]);
+    expect(basins).toHaveLength(38);
+    // Iris and Frame left Urban Standard Height with their pictures; they stay hidden for old orders.
+    expect(basins.filter(({ metadata }) => !("image" in metadata)).map(({ name }) => name)).toEqual([
+      "Vessel_Iris",
+      "Vessel_Frame",
+    ]);
     expect(basins.filter(({ isShortDesc }) => isShortDesc).map(({ name }) => name)).toEqual(["Top_HPLPrisma"]);
   });
 

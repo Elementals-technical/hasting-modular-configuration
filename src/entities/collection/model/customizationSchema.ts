@@ -58,8 +58,9 @@ export type CustomizationFieldDefinition = {
    */
   toggle?: { label: string };
   /**
-   * `firstAllowed`: while the value shown is none of the enabled options, the field takes the first
-   * enabled one, as the Urban Standard Height countertop step keeps its thickness and basin.
+   * `firstAllowed`: while the value shown is none of the enabled options, the field takes the one its
+   * rules prefer, else the first enabled one, as the Urban Standard Height countertop step keeps its
+   * thickness, basin and vessel colour.
    */
   autoSelect?: "firstAllowed";
 };
@@ -181,6 +182,8 @@ export type FieldRuntimeState = {
   reasonParams?: MessageParams;
   /** The hint ui.json declares for the current value. */
   hint?: string;
+  /** The enabled option `autoSelect` takes before the first one, e.g. the default finish of a vessel. */
+  preferredValue?: string;
   loading?: boolean;
   error?: string;
 };

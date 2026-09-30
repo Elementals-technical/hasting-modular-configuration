@@ -11,6 +11,7 @@ import {
   hasOwnCountertop,
   normalizeOptionValue,
   presetsSchema,
+  selectBasinOptions,
   selectOptions,
 } from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -177,18 +178,199 @@ describe("Class and Mako order lines", () => {
     const { lines, gaps } = buildCollectionPricingLines(COLLECTION_PRICING_SCENARIOS["mako-vessel-with-legs"].input);
 
     expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBSSTL-HCUT", quantity: 1 });
-    expect(lines.find(({ group }) => group === "vessel")).toMatchObject({
-      sku: "VES-IRIS-X-XW-XH-XD-LACG-403",
-      quantity: 1,
-    });
     expect(lines.find(({ group }) => group === "divider")).toMatchObject({ id: "divider:mko-sb:Top", quantity: 1 });
     expect(lines.some(({ group }) => group === "basin")).toBe(false);
     expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+    // The Iris is priced in its colour, and this order has chosen none.
+    expect(lines.some(({ group }) => group === "vessel")).toBe(false);
     expect(gaps.map(({ group, blocksTotal }) => [group, blocksTotal])).toEqual([
-      ["vessel", true],
+      ["input", true],
+      ["vessel", false],
       ["solidSurfaceGroup", false],
       ["divider", false],
     ]);
+    expect(gaps[0]?.reason).toBe("VesselColor is not chosen, so the vessel has no price.");
+  });
+
+  it.each([
+    ["Mako", MAKO],
+    ["Class", CLASS],
+  ] as const)("prices a %s vessel top without a vessel sink in full, the cutout included", (_, collection) => {
+    // Switching to vessel clears the basin of the sink base: the top is ordered with its cutout alone.
+    const { lines, gaps } = buildCollectionPricingLines(
+      collectionPricingInput(
+        collection,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+        {
+          CountertopStyle: [at({ scope: "countertop" }, "vessel")],
+          CountertopColor: [at({ scope: "countertop" }, "Nero 433 GL")],
+          sinkType: [at({ scope: "basin", sinkBaseId: "sb" }, "")],
+        },
+      ),
+    );
+
+    expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBGLSG-HCUT", quantity: 1 });
+    expect(gaps.map(({ group }) => group)).not.toContain("vessel");
+  });
+
+  it.each([
+    ["Mako", MAKO],
+    ["Class", CLASS],
+  ] as const)("names the %s vessel gap only for a vessel on a sink base the order has", (_, collection) => {
+    const gapsOf = (style: string, sinkType: ScopedValue[]) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          collection,
+          [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+          {
+            CountertopStyle: [at({ scope: "countertop" }, style)],
+            CountertopColor: [at({ scope: "countertop" }, "Nero 433 GL")],
+            sinkType,
+          },
+        ),
+      ).gaps.map(({ group }) => group);
+
+    // An Iris left by a sink base the composition no longer has, as after another model is placed.
+    expect(
+      gapsOf("integrated", [
+        at({ scope: "basin", sinkBaseId: "gone" }, "Iris"),
+        at({ scope: "basin", sinkBaseId: "sb" }, "VA005"),
+      ]),
+    ).not.toContain("vessel");
+    // An Iris recorded for the composition, cleared at the sink base by the switch back to integrated.
+    expect(
+      gapsOf("integrated", [at({ scope: "basin" }, "Iris"), at({ scope: "basin", sinkBaseId: "sb" }, "")]),
+    ).not.toContain("vessel");
+    expect(gapsOf("vessel", [at({ scope: "basin", sinkBaseId: "sb" }, "Iris")])).toContain("vessel");
+  });
+
+  it.each([
+    ["Mako", MAKO],
+    ["Class", CLASS],
+  ] as const)(
+    "names the %s vessel gap for a sink base with no basin recorded by the one the page shows",
+    (_, collection) => {
+      // A restored order records its basin at each restored sink base only: a sink base added beside one
+      // and left alone once that one is removed has none, while the page shows the Iris.
+      const { gaps } = buildCollectionPricingLines(
+        collectionPricingInput(
+          collection,
+          [{ stableKey: "added", runtimeId: "Sink-Base-added", size: { width: 60, height: 52, depth: 52 } }],
+          {
+            CountertopStyle: [at({ scope: "countertop" }, "vessel")],
+            CountertopColor: [at({ scope: "countertop" }, "Nero 433 GL")],
+            sinkType: [at({ scope: "basin", sinkBaseId: "restored" }, "Iris")],
+          },
+          { sinkType: "Iris" },
+        ),
+      );
+
+      expect(gaps.map(({ group }) => group)).toContain("vessel");
+    },
+  );
+
+  it.each([
+    ["Mako", MAKO],
+    ["Class", CLASS],
+  ] as const)("gives every %s vessel, and only them, a SKU", (_, { profile, skuProfile }) => {
+    expect(Object.keys(skuProfile.vessels ?? {})).toEqual(
+      selectBasinOptions(profile, "vessel").map(({ value }) => value),
+    );
+  });
+
+  describe.each([
+    ["Mako", MAKO],
+    ["Class", CLASS],
+  ] as const)("the %s vessel", (_, collection) => {
+    const sinkBaseAt = (stableKey: string) => ({
+      stableKey,
+      runtimeId: `Sink-Base-${stableKey}`,
+      size: { width: 60, height: 52, depth: 52 },
+    });
+    const orderOf = (style: string, values: Record<string, ScopedValue[]>, stableKeys = ["sb-1", "sb-2"]) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(collection, stableKeys.map(sinkBaseAt), {
+          CountertopStyle: [at({ scope: "countertop" }, style)],
+          CountertopColor: [at({ scope: "countertop" }, "Nero 433 GL")],
+          ...values,
+        }),
+      );
+    const vesselLinesOf = ({ lines }: { lines: PricingLine[] }) =>
+      lines.filter(({ group }) => group === "vessel").map(({ id, sku, quantity }) => ({ id, sku, quantity }));
+    const vesselGapsOf = ({ gaps }: ReturnType<typeof buildCollectionPricingLines>) =>
+      gaps.filter(({ reason }) => reason.startsWith("VesselColor"));
+
+    it("is ordered once for sink bases that share it, in its colour", () => {
+      // A field records the basin and its colour for the composition, which each sink base reads.
+      const order = orderOf("vessel", {
+        sinkType: [at({ scope: "basin" }, "Iris")],
+        VesselColor: [at({ scope: "basin" }, "Latte 417 MT")],
+      });
+
+      expect(vesselLinesOf(order)).toEqual([
+        { id: "vessel", sku: "VES-IRIS-X-16.5W-4.3H-16.5D-LACM-417", quantity: 2 },
+      ]);
+      expect(vesselGapsOf(order)).toEqual([]);
+      expect(order.gaps.find(({ group }) => group === "vessel")?.blocksTotal).toBe(false);
+    });
+
+    it("is a line of its own on a sink base with another vessel", () => {
+      const sinkBase = (sinkBaseId: string, value: string) => at({ scope: "basin", sinkBaseId }, value);
+      const order = orderOf("vessel", {
+        sinkType: [sinkBase("sb-1", "Frame"), sinkBase("sb-2", "Plaza")],
+        VesselColor: [sinkBase("sb-1", "Antracite 400 MT"), sinkBase("sb-2", "Zaffiro 411 GL")],
+      });
+
+      expect(vesselLinesOf(order)).toEqual([
+        { id: "vessel", sku: "VES-FRM-X-19.7W-4.3H-13.8D-LACM-400", quantity: 1 },
+        { id: "vessel:sb-2", sku: "VES-PLZ-X-23.6W-4.7H-18.9D-LACG-411", quantity: 1 },
+      ]);
+    });
+
+    it("is not ordered without a colour, and the price says why", () => {
+      const order = orderOf("vessel", { sinkType: [at({ scope: "basin" }, "Iris")] }, ["sb"]);
+
+      expect(vesselLinesOf(order)).toEqual([]);
+      expect(vesselGapsOf(order)).toEqual([
+        {
+          group: "input",
+          blocksTotal: true,
+          owner: "C",
+          reason: "VesselColor is not chosen, so the vessel has no price.",
+        },
+      ]);
+    });
+
+    it("is ordered before a countertop colour prices the top, and flagged without a colour of its own", () => {
+      // As after the "Model Compatibility Restriction" confirm, which clears the countertop colour.
+      const noTopColour = { CountertopColor: [] as ScopedValue[], sinkType: [at({ scope: "basin" }, "Iris")] };
+      const withColour = orderOf("vessel", { ...noTopColour, VesselColor: [at({ scope: "basin" }, "Latte 417 MT")] }, [
+        "sb",
+      ]);
+
+      expect(vesselLinesOf(withColour)).toEqual([
+        { id: "vessel", sku: "VES-IRIS-X-16.5W-4.3H-16.5D-LACM-417", quantity: 1 },
+      ]);
+      expect(vesselGapsOf(orderOf("vessel", noTopColour, ["sb"]))).toEqual([
+        {
+          group: "input",
+          blocksTotal: true,
+          owner: "C",
+          reason: "VesselColor is not chosen, so the vessel has no price.",
+        },
+      ]);
+    });
+
+    it("is not ordered on an integrated top", () => {
+      const order = orderOf(
+        "integrated",
+        { sinkType: [at({ scope: "basin" }, "Iris")], VesselColor: [at({ scope: "basin" }, "Latte 417 MT")] },
+        ["sb"],
+      );
+
+      expect(vesselLinesOf(order)).toEqual([]);
+      expect(vesselGapsOf(order)).toEqual([]);
+    });
   });
 
   it("reads the Mako cabinets the scene placed as its Mako products", () => {
@@ -412,12 +594,9 @@ describe("Class and Mako order lines", () => {
       "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
     );
 
-    const vessel = withStyle("Vessel");
-    expect(vessel.lines.find(({ group }) => group === "countertop")?.sku).toBe(
+    expect(withStyle("Vessel").lines.find(({ group }) => group === "countertop")?.sku).toBe(
       "CT-GBGLSG-VES-23.6W-.5H-20.7D-GLSG-433",
     );
-    // The vessel sink Mako has no price for keeps the total incomplete.
-    expect(vessel.gaps.map(({ group }) => group)).toContain("vessel");
   });
 
   it("leaves a model without legs without a legs line", () => {
@@ -652,14 +831,32 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(gaps).toEqual([]);
   });
 
-  it("cuts a vessel top once per sink base and keeps the vessel sink unpriced", () => {
+  it("cuts a vessel top once per sink base and orders the vessel of each in its colour, as USH does", () => {
     const { lines, gaps } = ulhOrder([sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2")], {
       CountertopStyle: [at(countertop, "vessel")],
+      sinkType: [at({ scope: "basin" }, "Vessel_Blade11")],
+      VesselColor: [at({ scope: "basin" }, "Antracite Matte OCF")],
     });
 
     expect(lines.find(({ group }) => group === "countertop")?.sku).toBe("CT-URHPL-VES-47.2W-.5H-18.1D-HPL-TKF");
     expect(skusOf(lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 2 }]);
-    expect(gaps.map(({ group }) => group)).toEqual(["vessel"]);
+    // Blade 11 is ceramic, 19.7" wide and 15" deep whatever the top it stands on.
+    expect(skusOf(lines, "vessel")).toEqual([{ sku: "VES-BLD11-X-19.7W-6.1H-15D-CER-OCF", quantity: 2 }]);
+    expect(gaps).toEqual([]);
+  });
+
+  it("leaves out the basin a switch to vessel cleared, although the model recorded one for the composition", () => {
+    // Placing a model records its basin for the composition; switching to vessel clears it at each
+    // sink base (buildChangePlan), and the cleared one is what the sink base has.
+    const { lines, gaps } = ulhOrder([sinkBase("ulh-sb")], {
+      CountertopStyle: [at(countertop, "vessel")],
+      sinkType: [at({ scope: "basin" }, "Top_Porcelain_Cover"), at({ scope: "basin", sinkBaseId: "ulh-sb" }, "")],
+    });
+
+    expect(skusOf(lines, "basin")).toEqual([]);
+    expect(skusOf(lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 1 }]);
+    // No vessel sink is ordered, and a 60 cm sink base takes none (table 438): nothing is left unpriced.
+    expect(gaps).toEqual([]);
   });
 
   it("says so when the countertop table gives the material no thickness at the cabinets' depth", () => {

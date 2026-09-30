@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { isDrawerStyleMixingRestricted, selectMessage, selectRuleData } from "../lib/productProfileSelectors";
+import classProfileDocument from "../../../../public/collections/class/product-profile.json";
+import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import { parseProductProfile } from "../lib/parseProductProfile";
+import {
+  isDrawerStyleMixingRestricted,
+  isVesselBasin,
+  selectMessage,
+  selectRuleData,
+} from "../lib/productProfileSelectors";
 import type { ProductProfile } from "../model/productProfile";
+import { makoProfile } from "./makoProfileFixture";
 import { ushProfile } from "./ushProfileFixture";
 
 const withMessages = (messages: Record<string, string>): ProductProfile => ({ ...ushProfile, messages });
@@ -85,4 +94,31 @@ describe("selectRuleData", () => {
     expect(selectRuleData(withoutVessels, "vesselCompatibility")).toBeUndefined();
     expect(selectRuleData(null, "fluting")).toBeUndefined();
   });
+});
+
+describe("isVesselBasin", () => {
+  const parsed = (document: unknown) => {
+    const result = parseProductProfile(document);
+    if (!result.ok) throw new Error("profile must parse");
+    return result.profile;
+  };
+
+  it.each([
+    ["Urban Standard Height", ushProfile, ["Vessel_Blade11", "Vessel_UrbanModo_Flat", "Vessel_Iris", "Vessel_Frame"]],
+    ["Urban Low Height", parsed(ulhProfileDocument), ["Vessel_Blade11", "Vessel_Aquarius"]],
+    ["Mako", makoProfile, ["Iris", "Frame", "Plaza"]],
+    ["Class", parsed(classProfileDocument), ["Iris", "Frame", "Plaza"]],
+  ] as const)("reads the %s vessels from the profile, whatever their name", (_name, profile, vessels) => {
+    vessels.forEach((value) => expect(isVesselBasin(profile, value)).toBe(true));
+  });
+
+  it.each([
+    ["Urban Standard Height", ushProfile, ["Vessel", "Top_Tekorlux_Rectangular"]],
+    ["Mako", makoProfile, ["None", "VA005"]],
+  ] as const)(
+    "leaves the %s cutout without a basin, an integrated basin and no basin out",
+    (_name, profile, others) => {
+      [...others, "", null, undefined].forEach((value) => expect(isVesselBasin(profile, value)).toBe(false));
+    },
+  );
 });

@@ -8,6 +8,7 @@
     "Configurator 4: the material SKU of each cabinet and countertop colour",
     "pricing-v2/resolve answers for every cabinet form, checked 2026-09-25",
     "Team, 2026-09-28: the Urban Low Height countertop is Urban Standard Height's — its SKUs, the thickness table 438 gives, as deep as the cabinets",
+    "Team, 2026-09-29: the vessel sinks Urban Low Height offers are Urban Standard Height's, ordered as USH orders them (VES-…) in a colour each vessel takes",
     "Price list, Formula Generator SKU (team, 2026-09-28): product element #2 HDL-{material}-{colour code}, the handle groove; an Upper Groove cabinet carries it, in the cabinet colour until a groove colour is chosen"
   ],
   "cabinet": {
@@ -210,13 +211,6 @@
   "sidePanel": { "pricedAs": "urban-standard-height" },
   "dividers": {},
   "gaps": [
-    {
-      "group": "vessel",
-      "blocksTotal": true,
-      "owner": "product",
-      "reason": "The vessel sinks Urban Low Height offers from Urban Standard Height have no SKU in its price list; the vessel cutout of each sink base is priced.",
-      "appliesWhen": { "attributeId": "CountertopStyle", "values": ["vessel"] }
-    },
     {
       "group": "openSideShelf",
       "blocksTotal": true,

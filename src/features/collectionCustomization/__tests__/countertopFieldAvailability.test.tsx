@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
+import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
@@ -45,41 +45,9 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
-// Configurator 4 as Urban Low Height loads it, with one live Tekorlux colour: its material is
-// "Lacquered MT" (LACM), which the recorded fixture leaves out.
-const ulhConfiguratorGroups = configuratorSchema.parse(configurator4).availableOptions.map((group) =>
-  group.proxyName === "Countertop Color"
-    ? {
-        ...group,
-        options: [
-          ...group.options,
-          {
-            id: 290,
-            name: "Tekorlux",
-            resource: null,
-            paramString: "",
-            playcanvasString: "",
-            variants: [
-              {
-                id: 3094,
-                name: "Agata BD MT",
-                image: null,
-                enabled: true,
-                description: "",
-                metadata: {
-                  sku: "SSTKR",
-                  codeColor: "BD MT",
-                  Material: "Lacquered MT",
-                  label: "Agata BD MT",
-                  value: "Agata BD MT",
-                },
-              },
-            ],
-          },
-        ],
-      }
-    : group,
-);
+// Configurator 4 as Urban Low Height loads it, with the live vessel and lacquered countertop colours
+// the recorded sample leaves out.
+const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveCountertops).availableOptions;
 
 const readyCollectionOf = (
   collectionId: string,
@@ -192,7 +160,7 @@ describe("Class countertop fields follow the countertop matrix", () => {
   });
 
   it("shows the integrated basins of the chosen material only", () => {
-    // Table 578 names its glass rows as configurator 9 names the material (Glass GL, Glass MT).
+    // Table 578 names its rows as configurator 9 names the material (Glass GL, Glass MT, Solid Surface).
     store.dispatch(setActiveCountertopColor("Nero 433 GL"));
     expect(shownValues("basin-style")).toEqual(["VA002", "VA005"]);
 
@@ -201,6 +169,10 @@ describe("Class countertop fields follow the countertop matrix", () => {
 
     store.dispatch(setActiveCountertopColor("CALACATTA 259"));
     expect(shownValues("basin-style")).toEqual(["VA024"]);
+
+    // VA030, Texturizzato, is in the table but not among the Class basins.
+    store.dispatch(setActiveCountertopColor("Matte White"));
+    expect(shownValues("basin-style")).toEqual(["LB440", "LB175", "LB575", "LB856", "VA023"]);
   });
 });
 
@@ -232,11 +204,62 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
   });
 });
 
+// Table 438 makes glass 50.5 cm deep only, so at the 46 cm of Urban Low Height a glass colour stays in
+// the grid, refused with the depth reason, as the USH countertop step refuses it.
+describe("Urban Low Height countertop colours follow the countertop matrix, as the USH countertop step", () => {
+  const { fieldOf } = fieldsOf(urbanLowHeight);
+  // Bianco 0B MT is listed twice, as Tekorlux and as Glass MT: each is judged by its own material.
+  const colorOf = (material: string, value: string) =>
+    fieldOf("countertop-color")?.options.find((option) => option.desc === material && option.value === value);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("refuses the glass colours at 46 cm with the depth reason, and keeps the Tekorlux one of the same name", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+
+    const refusedForDepth = { enabled: false, reasonCode: "countertop.materialNotAvailableForDepth" };
+    expect(colorOf("Glass GL", "Bianco 0B GL")).toMatchObject(refusedForDepth);
+    expect(colorOf("Glass MT", "Bianco 0B MT")).toMatchObject(refusedForDepth);
+    expect(colorOf("Tekorlux", "Bianco 0B MT")?.enabled).toBe(true);
+  });
+
+  it("offers the glass colours at 50.5 cm", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+
+    expect(colorOf("Glass GL", "Bianco 0B GL")?.enabled).toBe(true);
+    expect(colorOf("Glass MT", "Bianco 0B MT")?.enabled).toBe(true);
+  });
+});
+
+// As after the "Model Compatibility Restriction" confirm, which clears the countertop.
+describe.each([
+  ["Mako", collections.mako, 52],
+  ["Class", collections.class, 52],
+  ["Urban Low Height", urbanLowHeight, 46],
+] as const)("%s offers no integrated basin before a countertop colour is chosen", (_name, collection, depth) => {
+  const { shownValues, enabledValues } = fieldsOf(collection);
+
+  it("shows the basins but enables none, as the Urban Standard Height step waits for a material", () => {
+    startWith(collection);
+    store.dispatch(setSelectedDimensions({ width: 80, depth }));
+    store.dispatch(setCountertopStyle("integrated"));
+    store.dispatch(setActiveCountertopColor(""));
+
+    expect(shownValues("basin-style")?.length).toBeGreaterThan(0);
+    expect(enabledValues("basin-style")).toEqual([]);
+  });
+});
+
 describe("Class and Mako offer the thicknesses their countertop tables give", () => {
   it.each([
-    // Table 578: a Class Porcelain top is 3/4" or 4-3/4", an HPL one 1/2" or 4".
+    // Table 578: a Class Porcelain top is 3/4" or 4-3/4", an HPL one 1/2" or 4", a Solid Surface one
+    // 1/2", 4-3/4" or, with VA023 on a Sink Base of 80 cm or more, 3-1/8".
     ["class", "ARDESIA NERA 328", ["0.75", "4.75"]],
     ["class", "CALACATTA 259", ["0.5", "4"]],
+    ["class", "Matte White", ["0.5", "3.125", "4.75"]],
     // Table 577: a Mako HPL top is 1/2" only.
     ["mako", "CALACATTA 259", ["0.5"]],
   ] as const)("%s, %s", (collectionId, color, thicknesses) => {
@@ -301,15 +324,68 @@ describe.each(Object.entries(collections))("%s vessel choice follows the USH cou
     expect(fieldOf("basin-style")?.value).toBe("");
   });
 
-  it("shows the vessel colour for the vessel style only, in the cabinet palette", () => {
+  it("offers the vessel colour once a vessel is chosen: the empty cutout and an integrated top have none", () => {
     store.dispatch(setCountertopStyle("integrated"));
     expect(fieldOf("vessel-color")?.visible).toBe(false);
 
     store.dispatch(setCountertopStyle("vessel"));
-    const vesselColors = shownValues("vessel-color");
+    store.dispatch(setActiveBasinStyle(""));
+    expect(fieldOf("vessel-color")?.visible).toBe(false);
 
+    store.dispatch(setActiveBasinStyle("Iris"));
     expect(fieldOf("vessel-color")?.visible).toBe(true);
-    expect(vesselColors?.length).toBeGreaterThan(0);
-    expect(vesselColors).toEqual(fieldOf("cabinet-color", "color")?.options.map(({ value }) => value));
+  });
+
+  // The recorded configurator lists the 20 lacquered matt and 20 lacquered gloss colours.
+  it.each([
+    ["Iris", / MT$/, 20],
+    ["Frame", / MT$/, 20],
+    ["Plaza", / (MT|GL)$/, 40],
+  ])("offers %s the lacquers of its palette, and shows the rest with the reason", (vessel, finish, count) => {
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle(vessel));
+    const field = fieldOf("vessel-color");
+    const enabled = enabledValues("vessel-color") ?? [];
+
+    expect(enabled).toHaveLength(count);
+    expect(enabled.every((value) => finish.test(value))).toBe(true);
+    expect(shownValues("vessel-color")).toEqual(fieldOf("cabinet-color", "color")?.options.map(({ value }) => value));
+    expect(
+      field?.options
+        .filter(({ enabled: isEnabled }) => !isEnabled)
+        .every(({ reasonCode }) => reasonCode === "vessel.colorUnavailable"),
+    ).toBe(true);
+  });
+});
+
+// The Urban Standard Height vessels take the colours its vesselCompatibility names, judged by the
+// material a colour is listed under and its colour code, as the USH countertop step judges them.
+describe("Urban Low Height vessel colours follow the chosen vessel, as the USH countertop step", () => {
+  const { fieldOf, enabledValues } = fieldsOf(urbanLowHeight);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("vessel"));
+  });
+
+  it("offers the colour once a vessel is chosen: the empty cutout has none", () => {
+    store.dispatch(setActiveBasinStyle(""));
+    expect(fieldOf("vessel-color")?.visible).toBe(false);
+
+    store.dispatch(setActiveBasinStyle("Vessel_Blade11"));
+    expect(fieldOf("vessel-color")?.visible).toBe(true);
+  });
+
+  it.each([
+    ["Vessel_Blade11", ["Antracite Matte OCF", "Cemento Matte OCD"]],
+    ["Vessel_UrbanModo", ["Matte Black T1D", "Matte White T1C"]],
+    ["Vessel_UrbanMorris", ["Bianco Gloss TAL", "Bianco Matte TAM"]],
+    ["Vessel_Aquarius", ["Agata BD MT", "Bianco Gloss TAL", "Bianco Matte TAM"]],
+  ])("enables the colours %s takes", (vessel, colors) => {
+    store.dispatch(setActiveBasinStyle(vessel));
+
+    expect(enabledValues("vessel-color")).toEqual(colors);
   });
 });

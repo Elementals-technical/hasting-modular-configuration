@@ -227,7 +227,8 @@
         {
           "attributeId": "CountertopColor",
           "control": "colors",
-          "optionsRef": "CountertopColor"
+          "optionsRef": "CountertopColor",
+          "availabilityRef": "CountertopColor.allowed"
         }
       ]
     },
@@ -270,7 +271,8 @@
           "attributeId": "VesselColor",
           "control": "colors",
           "optionsRef": "VesselColor",
-          "availabilityRef": "Countertop.isVesselStyle"
+          "availabilityRef": "VesselColor.allowed",
+          "autoSelect": "firstAllowed"
         }
       ]
     },

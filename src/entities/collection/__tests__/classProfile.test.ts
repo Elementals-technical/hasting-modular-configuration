@@ -4,7 +4,7 @@ import classProfileDocument from "../../../../public/collections/class/product-p
 import classManifest from "../../../../public/collections/class/manifest.json";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { isDrawerStyleMixingRestricted, selectOptionValues } from "../lib/productProfileSelectors";
+import { isDrawerStyleMixingRestricted, selectBasinOptions, selectOptionValues } from "../lib/productProfileSelectors";
 
 /**
  * The Class product profile carries only what the Class documents confirm: the WebGL Scoping rules,
@@ -125,8 +125,20 @@ describe("class product profile", () => {
     expect(selectOptionValues(profile(), "Height")).not.toContain("53");
   });
 
-  it("declares only the drawer style groups as a rule section", () => {
-    expect(Object.keys(profile().ruleData).sort()).toEqual(["cabinetMatrixLegacyAdapter", "drawerStyleGroups"]);
+  it("declares the drawer style groups and the vessel colours as rule sections", () => {
+    expect(Object.keys(profile().ruleData).sort()).toEqual([
+      "cabinetMatrixLegacyAdapter",
+      "drawerStyleGroups",
+      "vesselCompatibility",
+    ]);
+  });
+
+  it("gives each of its vessels, and only them, a palette and a starting colour", () => {
+    const vessels = selectBasinOptions(profile(), "vessel").map(({ value }) => value);
+    const rules = profile().ruleData.vesselCompatibility;
+
+    expect(Object.keys(rules?.allowedMaterialsByStyle ?? {})).toEqual(vessels);
+    expect(Object.keys(rules?.defaultFinishByStyle ?? {})).toEqual(vessels);
   });
 
   it("records the confirmed rules it cannot express yet", () => {

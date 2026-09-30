@@ -5,7 +5,8 @@
   "sources": [
     "Class Vanities - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Curation, CabinetPricing, CountertopPricing, Basin StylePricing, AccessoriesPricing",
     "Countertop | Basin Styles Rules Logic - GB",
-    "pricing-v2/resolve answers for every SKU form, checked 2026-09-18"
+    "pricing-v2/resolve answers for every SKU form, checked 2026-09-18",
+    "SKU_Vessels_V2 (table 542) rows 28-30 for the vessel series and sizes, and pricing-v2/resolve for the vessel SKUs, checked 2026-09-30"
   ],
   "cabinet": {
     "series": "CLSV",
@@ -64,13 +65,18 @@
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
     "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
   },
+  "vessels": {
+    "Iris": { "series": "IRIS", "widthIn": "16.5", "heightIn": "4.3", "depthIn": "16.5" },
+    "Frame": { "series": "FRM", "widthIn": "19.7", "heightIn": "4.3", "depthIn": "13.8" },
+    "Plaza": { "series": "PLZ", "widthIn": "23.6", "heightIn": "4.7", "depthIn": "18.9" }
+  },
   "gaps": [
     {
       "group": "vessel",
-      "blocksTotal": true,
+      "blocksTotal": false,
       "owner": "product",
-      "reason": "Iris, Frame and Plaza have no SKU or price yet; the vessel cutout of each sink base is priced.",
-      "appliesWhen": { "attributeId": "CountertopStyle", "values": ["vessel"] }
+      "reason": "Iris, Frame and Plaza are priced from their SKUs (table 542, pricing-v2), but the product has not confirmed their palettes, nor the $990 price of a white Frame against the Hastings site.",
+      "appliesWhen": { "attributeId": "sinkType", "values": ["Iris", "Frame", "Plaza"] }
     },
     {
       "group": "solidSurfaceGroup",

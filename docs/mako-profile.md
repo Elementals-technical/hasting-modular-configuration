@@ -40,6 +40,7 @@ its material group. Mako glass keys have no `G` prefix, unlike Class (Q-MAKO-010
 | `CountertopColor` | countertop | 70: Solid Surface 1, HPL 14, Porcelain 15, Glass MT 20, Glass GL 20 | §7, CSV L120–L190 |
 | `Thickness` | countertop | `0.5` (1/2″), `0.75` (3/4″): table 577 gives each material one, so the Thickness section shows the colour's and takes it by itself (`autoSelect`) | Table 577. Added on request (team, 29.09.2026). The SKU spells them `.5` and `.8` (`thicknessCodes`), as before |
 | `sinkType` | basin | integrated: LB440, LB175, LB575, LB856, VA024, LV890, LV892, VA002, VA005; vessel: Iris, Frame, Plaza. On the Countertop & Basin step a basin table 577 does not allow the colour takes the first it allows (`autoSelect: "firstAllowed"` in `ui.json`), as in Urban Standard Height — VA005 becomes VA024 on an HPL top | §9–10 |
+| `VesselColor` | basin | no list — `optionsSource: "configurator:Select Cabinet Color"` | Shown once a vessel is chosen: Iris and Frame take the 20 lacquered matt colours, Plaza those and the 20 lacquered gloss ones; the rest are shown unavailable. Set to the vessel's starting colour, Salvia 415 MT (Iris), Fumo 401 MT (Frame) or Antracite 400 MT (Plaza), as Threekit has them (`ruleData.vesselCompatibility`, `autoSelect` in `ui.json`, team, 30.09.2026). The palettes follow the price list and the Threekit tables; the product has not confirmed them |
 | `FaucetHolesAmount` | countertop | `0`–`3` | §11 |
 | `DividersStyle` | drawer | `Metal`, `Oak` | §13 |
 
@@ -108,7 +109,7 @@ Listed in `excludedFromThisProfile`:
 - **Thickness** — Porcelain 0.8″ in the tables vs 3/4″ in the catalog (§7); the profile declares 1/2″ and 3/4″ from table 577, spelled `.5` and `.8`.
 - **Floating** — needs a thick top, Mako has thin ones only, so it is not valid today (§12).
 - **Solid Surface** — Technolite / Technomood / Texturizzato have no palettes (§7).
-- **Vessels** — Iris / Frame / Plaza colours, minimum SB, cutouts and prices (§10).
+- **Vessels** — Iris / Frame / Plaza minimum SB and cutouts (§10). Their SKUs and prices come from table 542 and pricing-v2 (`sku-profile.json`); their palettes and starting colours follow the price list and Threekit and await the product's confirmation.
 - **Master File L100** has an empty ProductID (Q-MAKO-001).
 
 ## Blockers, by owner

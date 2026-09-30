@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import type { RuntimeBinding } from "@/entities/collection/model/runtimeBindings";
@@ -60,5 +61,21 @@ describe("Mako sink and countertop rules in the scene code", () => {
     expect(sceneCode).toContain(
       "CountertopColor:firstCabinet.CountertopColor,Thickness:firstCabinet.Thickness??productMeta.defaultConfig?.Thickness??.5",
     );
+  });
+});
+
+describe("Class sink and countertop rules in the scene code", () => {
+  it("ships the Class thickness binding, calibrated offsets and combined sink mount rule", () => {
+    expect(classRuntimeBindings.bindings.flatMap(sceneKeysOf)).toContain("Thickness");
+
+    const classSinkRegistration = sceneCode.match(
+      /registerProduct\("Class-sink-cabinet".*?registerProduct\("Class-side-cabinet"/,
+    )?.[0];
+
+    expect(classSinkRegistration).toContain("heightLocalY:{40:{y:-0.16},52:{y:-0.04}}");
+    expect(classSinkRegistration).toContain("{rule:RuleSinkMountPosition,priority:70}");
+    expect(classSinkRegistration).toContain("Thickness:.5");
+    expect(sceneCode).toContain("3.125:{y:.066675}");
+    expect(sceneCode).toContain("4.75:{y:.10795}");
   });
 });

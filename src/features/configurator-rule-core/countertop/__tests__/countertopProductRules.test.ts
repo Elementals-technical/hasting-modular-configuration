@@ -6,6 +6,7 @@ import type {
   SyntesiRuleData,
   VesselCompatibilityRuleData,
 } from "@/entities/collection";
+import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 
 import { resolveCountertopCabinetCompositionConstraint } from "../compositionConstraints";
@@ -15,7 +16,12 @@ import {
   isIntegratedCountertopDepthRestrictedByMaterial,
 } from "../sizeFilters";
 import { findSyntesiCountertopUiValue, isSyntesiCountertopMaterialSku } from "../syntesiOptions";
-import { isMaterialCompatibleWithVesselStyle, isVisibleVesselSinkStyle } from "../vesselCompatibility";
+import {
+  getAllowedVesselMaterialTokens,
+  isMaterialCompatibleWithVesselStyle,
+  isPreferredVesselFinish,
+  isVisibleVesselSinkStyle,
+} from "../vesselCompatibility";
 
 /**
  * Countertop product rules on the USH profile must behave as the constants they replaced did:
@@ -200,6 +206,9 @@ describe("vessel compatibility", () => {
     ["Vessel_UrbanModo_Cover", false],
     ["Vessel_UrbanModo_Seam", false],
     ["Vessel_UrbanModo_Flat", false],
+    // Legacy vessels kept in the catalog for old orders only.
+    ["Vessel_Iris", false],
+    ["Vessel_Frame", false],
     ["Top_HPLPrisma", false],
     [null, false],
   ])("shows the vessel style %j: %j", (style, visible) => {
@@ -252,6 +261,41 @@ describe("vessel compatibility", () => {
     expect(
       isMaterialCompatibleWithVesselStyle({ vesselStyle: "Vessel_Blade11", materialTokens: ["tekorlux"], profile }),
     ).toBe(true);
+  });
+});
+
+// Mako's vessels take the lacquers of their palettes, as the price list and the Threekit tables give them.
+describe("Mako vessel colours", () => {
+  it.each([
+    ["Iris", ["Lacquered MT"], "415", true],
+    ["Iris", ["Lacquered GL"], "433", false],
+    ["Iris", ["Glass MT"], "406", false],
+    ["Frame", ["Lacquered MT"], "401", true],
+    ["Frame", ["Porcelain"], null, false],
+    ["Plaza", ["Lacquered MT"], "400", true],
+    ["Plaza", ["Lacquered GL"], "433", true],
+    ["Plaza", ["Smoke Glass"], null, false],
+  ])("decides %s in %j %s: %j", (vesselStyle, materialTokens, colorCode, compatible) => {
+    expect(isMaterialCompatibleWithVesselStyle({ vesselStyle, materialTokens, colorCode, profile: makoProfile })).toBe(
+      compatible,
+    );
+  });
+
+  it.each(["None", "", "VA005"])("restricts no colour for %j, which is not a vessel", (basin) => {
+    expect(getAllowedVesselMaterialTokens(basin, makoProfile)).toBeNull();
+  });
+
+  it.each([
+    ["Iris", "415"],
+    ["Frame", "401"],
+    ["Plaza", "400"],
+  ])("starts %s at the lacquered matt %s", (vesselStyle, colorCode) => {
+    expect(
+      isPreferredVesselFinish({ vesselStyle, materialTokens: ["Lacquered MT"], colorCode, profile: makoProfile }),
+    ).toBe(true);
+    expect(
+      isPreferredVesselFinish({ vesselStyle, materialTokens: ["Lacquered GL"], colorCode, profile: makoProfile }),
+    ).toBe(false);
   });
 });
 

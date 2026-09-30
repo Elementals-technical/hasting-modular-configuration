@@ -297,11 +297,12 @@ describe("buildChangePlan", () => {
         basin: { sinkBaseIds, sinkType, vesselColor },
       });
 
-    it("clears the basin of every Sink Base, as a basin goes on every one", () => {
+    it("clears the basin of every Sink Base and of the composition, as a basin goes on every one", () => {
       expect(stylePlan("vessel", "Top_HPLPrisma", "", ["cab-1", "cab-2"])).toMatchObject({
         ok: true,
         plan: [
           { attributeId: "CountertopStyle" },
+          { attributeId: "sinkType", target: { scope: "basin" }, value: "" },
           { attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-1" }, value: "" },
           { attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-2" }, value: "" },
         ],
@@ -313,6 +314,7 @@ describe("buildChangePlan", () => {
         ok: true,
         plan: [
           { attributeId: "CountertopStyle", target: { scope: "countertop" }, value: "vessel", origin: "requested" },
+          { attributeId: "sinkType", target: { scope: "basin" }, value: "", origin: "dependency" },
           { attributeId: "sinkType", target: basinTarget, value: "", origin: "dependency" },
         ],
       });
@@ -323,7 +325,9 @@ describe("buildChangePlan", () => {
         ok: true,
         plan: [
           { attributeId: "CountertopStyle", value: "integrated" },
+          { attributeId: "sinkType", target: { scope: "basin" }, value: "", origin: "dependency" },
           { attributeId: "sinkType", target: basinTarget, value: "", origin: "dependency" },
+          { attributeId: "VesselColor", target: { scope: "basin" }, value: "", origin: "dependency" },
           { attributeId: "VesselColor", target: basinTarget, value: "", origin: "dependency" },
         ],
       });

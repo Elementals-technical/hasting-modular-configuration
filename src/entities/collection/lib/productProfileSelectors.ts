@@ -104,6 +104,20 @@ export const normalizeOptionValue = (
 };
 
 /**
+ * Whether a basin value is a vessel sink: an option of the vessel category other than the
+ * attribute's noneValue, the cutout without a basin. Read from the profile, so a collection's own
+ * vessels (Iris) count as the Urban ones (Vessel_Blade11) do.
+ */
+export const isVesselBasin = (profile: ProductProfile | null, value: string | null | undefined): boolean => {
+  const option = normalizeOptionValue(profile, "sinkType", value);
+  return (
+    option !== null &&
+    option !== selectAttribute(profile, "sinkType")?.noneValue &&
+    selectOption(profile, "sinkType", option)?.category === "vessel"
+  );
+};
+
+/**
  * The spelling legacy state stores for a canonical option value: its first alias
  * (Drawers "1" -> "1D"). The value itself when the option declares no alias.
  */
