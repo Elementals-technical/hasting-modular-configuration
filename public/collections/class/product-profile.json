@@ -18,10 +18,10 @@
     "cabinetMatrixTableId": 579
   },
   "defaults": {
-    "CabinetColor": "NERO ATLANTE LUCIDO 326",
+    "CabinetColor": "INVISIBLE WHITE LUCIDO 334",
+    "CountertopColor": "INVISIBLE WHITE LUCIDO 334",
     "CabinetSideColor": "Nero 433 MT",
     "FrameColor": "Nero 433 MT",
-    "CountertopColor": "Nero 433 GL",
     "CountertopStyle": "integrated",
     "sinkType": "VA005"
   },
@@ -54,19 +54,28 @@
           "value": "1",
           "label": "1 Drawer",
           "order": 10,
-          "aliases": ["1D", "1DW"]
+          "aliases": [
+            "1D",
+            "1DW"
+          ]
         },
         {
           "value": "2",
           "label": "2 Drawer",
           "order": 20,
-          "aliases": ["2D", "2DW"]
+          "aliases": [
+            "2D",
+            "2DW"
+          ]
         },
         {
           "value": "1+inner",
           "label": "1 Drawer With Inner Drawer",
           "order": 30,
-          "aliases": ["1DWID", "1+INNER"]
+          "aliases": [
+            "1DWID",
+            "1+INNER"
+          ]
         }
       ]
     },
@@ -109,13 +118,19 @@
           "value": "integrated",
           "label": "Integrated",
           "order": 10,
-          "aliases": ["Integrated", "INTG"]
+          "aliases": [
+            "Integrated",
+            "INTG"
+          ]
         },
         {
           "value": "vessel",
           "label": "Vessel",
           "order": 20,
-          "aliases": ["Vessel", "VES"]
+          "aliases": [
+            "Vessel",
+            "VES"
+          ]
         }
       ]
     },
@@ -128,11 +143,31 @@
       "attributeId": "Thickness",
       "scope": "countertop",
       "options": [
-        { "value": "0.5", "label": "0.5\"", "order": 10 },
-        { "value": "0.75", "label": "0.8\"", "order": 20 },
-        { "value": "3.125", "label": "3.1\"", "order": 30 },
-        { "value": "4", "label": "4\"", "order": 40 },
-        { "value": "4.75", "label": "4.7\"", "order": 50 }
+        {
+          "value": "0.5",
+          "label": "0.5\"",
+          "order": 10
+        },
+        {
+          "value": "0.75",
+          "label": "0.8\"",
+          "order": 20
+        },
+        {
+          "value": "3.125",
+          "label": "3.1\"",
+          "order": 30
+        },
+        {
+          "value": "4",
+          "label": "4\"",
+          "order": 40
+        },
+        {
+          "value": "4.75",
+          "label": "4.7\"",
+          "order": 50
+        }
       ]
     },
     {
@@ -305,7 +340,15 @@
         "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
-    "drawerStyleGroups": [["1", "1+inner"], ["2"]]
+    "drawerStyleGroups": [
+      [
+        "1",
+        "1+inner"
+      ],
+      [
+        "2"
+      ]
+    ]
   },
   "messages": {
     "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
