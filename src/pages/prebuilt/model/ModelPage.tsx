@@ -35,6 +35,7 @@ import {
   withPreservedCollectionId,
 } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
+import { applyCompactPresetWithBridge, hasCompactRows } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductPreset,
@@ -526,6 +527,24 @@ export const ModelPage = () => {
           effectivePresetProducts,
         );
         await clearSidePanels(dispatch);
+        // Compact presets (format "ulh-compact-v1") replace the composition via composition.importCompactPreset.
+        const selectedPreset = presetId === undefined ? null : (presets.find((preset) => preset.id === presetId) ?? null);
+        if (hasCompactRows(selectedPreset)) {
+          try {
+            await applyCompactPresetWithBridge(selectedPreset);
+          } catch (error) {
+            console.warn("[Prebuilt] The compact preset was not applied", error);
+            return;
+          }
+          if (requestId !== presetSelectionRequestIdRef.current) return;
+          dispatch(clearHistory());
+          if (presetId && options?.syncUrl !== false) {
+            const nextSearchParams = new URLSearchParams(searchParams);
+            nextSearchParams.set("preset", String(presetId));
+            setSearchParams(nextSearchParams);
+          }
+          return;
+        }
         const placed = await composition.applyPreset({
           products: toCompositionProducts(effectivePresetProducts),
           shared: toConfigurationValues(globalConfig),
@@ -598,6 +617,7 @@ export const ModelPage = () => {
       colorTransferableOverrides,
       composition,
       dispatch,
+      presets,
       record,
       resetRestrictedCountertopSelections,
       resolveCompatibleCountertopSceneConfig,
@@ -990,6 +1010,19 @@ export const ModelPage = () => {
       presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : (defaultPreset?.presetProducts ?? []));
 
     const run = async () => {
+      // Compact presets (format "ulh-compact-v1") carry rows, not presetProducts: import them via the bridge.
+      if (hasCompactRows(presetFromUrl)) {
+        try {
+          await applyCompactPresetWithBridge(presetFromUrl);
+          sessionStorage.setItem("prebuiltModelInitialized", "1");
+          dispatch(clearHistory());
+        } catch (error) {
+          // Nothing was placed: a later run of this effect may try again.
+          isDefinedProductsRef.current = false;
+          console.warn("[Prebuilt] The compact preset was not applied", error);
+        }
+        return;
+      }
       try {
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
         const globalConfig = resolveCompatibleCountertopSceneConfig(

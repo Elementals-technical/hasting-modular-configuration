@@ -37,6 +37,8 @@ export type {
   CabinetPlacementOptionsInput,
   CabinetPositionM,
   ConfiguratorPreset,
+  ConfiguratorCompactPreset,
+  ConfiguratorCompactPresetRow,
   ConfiguratorPresetProduct,
   ConfiguratorReadiness,
   ConfiguratorReceipt,

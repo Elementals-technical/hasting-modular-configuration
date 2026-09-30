@@ -153,6 +153,23 @@ export const presetsSchema = z.array(
       presetProducts: z.array(presetProductSchema),
       size: z.enum(["24_29", "30_39", "40_49", "50_59", "60_69", "70_79", "80_89", "90_plus"]),
       style: z.array(productStyleSchema),
+      // Compact preset (format "ulh-compact-v1"), applied via composition.importCompactPreset when `rows` is present.
+      format: z.string().optional(),
+      collection: z.string().optional(),
+      shared: z.record(z.string(), z.unknown()).optional(),
+      rows: z
+        .array(
+          z
+            .object({
+              elevation: z.number().optional(),
+              offsetX: z.number().optional(),
+              products: z.array(presetProductSchema),
+            })
+            .strict(),
+        )
+        .optional(),
+      top: z.object({}).passthrough().optional(),
+      featureSettings: z.record(z.string(), z.unknown()).optional(),
     })
     .strict(),
 );

@@ -16,7 +16,10 @@
       }
     ],
     "size": "24_29",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 2,
@@ -35,7 +38,10 @@
       }
     ],
     "size": "24_29",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 3,
@@ -54,7 +60,10 @@
       }
     ],
     "size": "24_29",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 4,
@@ -73,7 +82,10 @@
       }
     ],
     "size": "24_29",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 5,
@@ -92,7 +104,10 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 6,
@@ -111,7 +126,10 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 7,
@@ -139,7 +157,11 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 8,
@@ -167,7 +189,11 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 9,
@@ -186,7 +212,10 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 10,
@@ -205,7 +234,10 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 11,
@@ -233,7 +265,11 @@
       }
     ],
     "size": "30_39",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 12,
@@ -261,7 +297,11 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 13,
@@ -287,7 +327,12 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 14,
@@ -306,7 +351,10 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 15,
@@ -332,7 +380,12 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 16,
@@ -360,7 +413,11 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 17,
@@ -388,7 +445,10 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 18,
@@ -407,7 +467,10 @@
       }
     ],
     "size": "40_49",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 19,
@@ -435,7 +498,11 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 20,
@@ -472,7 +539,10 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 21,
@@ -500,7 +570,10 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 22,
@@ -526,7 +599,12 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 23,
@@ -561,7 +639,11 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "double_basin", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "double_basin",
+      "open_shelving"
+    ]
   },
   {
     "id": 24,
@@ -598,7 +680,10 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 25,
@@ -626,7 +711,11 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 26,
@@ -661,7 +750,12 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 27,
@@ -689,7 +783,11 @@
       }
     ],
     "size": "50_59",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 28,
@@ -698,7 +796,64 @@
     "isProductModel": true,
     "presetProducts": [],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "multi_level"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "multi_level"
+    ],
+    "format": "ulh-compact-v1",
+    "collection": "ULH",
+    "shared": {
+      "Width": 90,
+      "Height": 38,
+      "Drawers": "1D",
+      "Handle": "handle_urban_topcut",
+      "Thickness": 0.5,
+      "CountertopColor": "Bianco Male TFA",
+      "CabinetColor": "Rox Black TKQ"
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "ULH-sink-cabinet",
+            "sinkType": "Top_HPL/Fenix_Cover_Gres"
+          }
+        ]
+      },
+      {
+        "elevation": -38,
+        "offsetX": 61,
+        "products": [
+          {
+            "name": "ULH-side-cabinet"
+          }
+        ]
+      }
+    ],
+    "top": {
+      "productType": "Top_Solid",
+      "CountertopColor": "Bianco Male TFA",
+      "Thickness": 0.5,
+      "sinkType": "Top_HPL/Fenix_Cover_Gres",
+      "CountertopPositioning": "support-plane",
+      "CountertopPlacement": "supported",
+      "CountertopRole": "basinTop"
+    },
+    "featureSettings": {
+      "cabinetCover": {
+        "enabled": true,
+        "profileId": "ulh-v1",
+        "eligibilityMode": "all",
+        "thicknessM": 0.012700083809585871,
+        "tolerances": {
+          "contactM": 0.001,
+          "adjacencyM": 0.001,
+          "numericalM": 1e-06
+        }
+      }
+    }
   },
   {
     "id": 29,
@@ -707,7 +862,71 @@
     "isProductModel": true,
     "presetProducts": [],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving", "multi_level"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving",
+      "multi_level"
+    ],
+    "format": "ulh-compact-v1",
+    "collection": "ULH",
+    "shared": {
+      "Height": 38,
+      "Handle": "handle_urban_topcut",
+      "Thickness": 0.5,
+      "CountertopColor": "Bianco Male TFA",
+      "CabinetColor": "Rox Black TKQ"
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "ULH-sink-cabinet",
+            "Width": 90,
+            "Drawers": "1D",
+            "sinkType": "Top_HPL/Fenix_Cover_Gres"
+          }
+        ]
+      },
+      {
+        "elevation": -38,
+        "offsetX": 61,
+        "products": [
+          {
+            "name": "ULH-side-cabinet",
+            "Width": 90,
+            "Drawers": "1D"
+          },
+          {
+            "name": "ULH-Open-Shelf",
+            "topDrawerType": "Top"
+          }
+        ]
+      }
+    ],
+    "top": {
+      "productType": "Top_Solid",
+      "CountertopColor": "Bianco Male TFA",
+      "Thickness": 0.5,
+      "sinkType": "Top_HPL/Fenix_Cover_Gres",
+      "CountertopPositioning": "support-plane",
+      "CountertopPlacement": "supported",
+      "CountertopRole": "basinTop"
+    },
+    "featureSettings": {
+      "cabinetCover": {
+        "enabled": true,
+        "profileId": "ulh-v1",
+        "eligibilityMode": "all",
+        "thicknessM": 0.012700083809585871,
+        "tolerances": {
+          "contactM": 0.001,
+          "adjacencyM": 0.001,
+          "numericalM": 1e-06
+        }
+      }
+    }
   },
   {
     "id": 30,
@@ -735,7 +954,11 @@
       }
     ],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 31,
@@ -763,7 +986,10 @@
       }
     ],
     "size": "60_69",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 32,
@@ -798,7 +1024,12 @@
       }
     ],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 33,
@@ -826,7 +1057,11 @@
       }
     ],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 34,
@@ -863,7 +1098,11 @@
       }
     ],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 35,
@@ -891,7 +1130,11 @@
       }
     ],
     "size": "60_69",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 36,
@@ -900,7 +1143,70 @@
     "isProductModel": true,
     "presetProducts": [],
     "size": "70_79",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving", "multi_level"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving",
+      "multi_level"
+    ],
+    "format": "ulh-compact-v1",
+    "collection": "ULH",
+    "shared": {
+      "Height": 38,
+      "Handle": "handle_urban_topcut",
+      "Thickness": 0.5,
+      "CountertopColor": "Bianco Male TFA",
+      "CabinetColor": "Rox Black TKQ"
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "ULH-sink-cabinet",
+            "Width": 120,
+            "Drawers": "1D",
+            "sinkType": "Top_HPL/Fenix_Cover_Gres"
+          }
+        ]
+      },
+      {
+        "elevation": -38,
+        "offsetX": 91,
+        "products": [
+          {
+            "name": "ULH-side-cabinet",
+            "Drawers": "1D"
+          },
+          {
+            "name": "ULH-Open-Shelf",
+            "topDrawerType": "Top"
+          }
+        ]
+      }
+    ],
+    "top": {
+      "productType": "Top_Solid",
+      "CountertopColor": "Bianco Male TFA",
+      "Thickness": 0.5,
+      "sinkType": "Top_HPL/Fenix_Cover_Gres",
+      "CountertopPositioning": "support-plane",
+      "CountertopPlacement": "supported",
+      "CountertopRole": "basinTop"
+    },
+    "featureSettings": {
+      "cabinetCover": {
+        "enabled": true,
+        "profileId": "ulh-v1",
+        "eligibilityMode": "all",
+        "thicknessM": 0.012700083809585871,
+        "tolerances": {
+          "contactM": 0.001,
+          "adjacencyM": 0.001,
+          "numericalM": 1e-06
+        }
+      }
+    }
   },
   {
     "id": 37,
@@ -928,7 +1234,10 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 38,
@@ -956,7 +1265,11 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 39,
@@ -965,7 +1278,64 @@
     "isProductModel": true,
     "presetProducts": [],
     "size": "70_79",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "multi_level"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "multi_level"
+    ],
+    "format": "ulh-compact-v1",
+    "collection": "ULH",
+    "shared": {
+      "Width": 120,
+      "Height": 38,
+      "Drawers": "1D",
+      "Handle": "handle_urban_topcut",
+      "Thickness": 0.5,
+      "CountertopColor": "Bianco Male TFA",
+      "CabinetColor": "Rox Black TKQ"
+    },
+    "rows": [
+      {
+        "elevation": -38,
+        "products": [
+          {
+            "name": "ULH-side-cabinet"
+          }
+        ]
+      },
+      {
+        "offsetX": 102,
+        "products": [
+          {
+            "name": "ULH-sink-cabinet",
+            "sinkType": "Top_HPL/Fenix_Cover_Gres"
+          }
+        ]
+      }
+    ],
+    "top": {
+      "productType": "Top_Solid",
+      "CountertopColor": "Bianco Male TFA",
+      "Thickness": 0.5,
+      "sinkType": "Top_HPL/Fenix_Cover_Gres",
+      "CountertopPositioning": "support-plane",
+      "CountertopPlacement": "supported",
+      "CountertopRole": "basinTop"
+    },
+    "featureSettings": {
+      "cabinetCover": {
+        "enabled": true,
+        "profileId": "ulh-v1",
+        "eligibilityMode": "all",
+        "thicknessM": 0.012700083809585871,
+        "tolerances": {
+          "contactM": 0.001,
+          "adjacencyM": 0.001,
+          "numericalM": 1e-06
+        }
+      }
+    }
   },
   {
     "id": 40,
@@ -1002,7 +1372,11 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 41,
@@ -1037,7 +1411,12 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 42,
@@ -1074,7 +1453,10 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 43,
@@ -1109,7 +1491,12 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 44,
@@ -1146,7 +1533,11 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 45,
@@ -1174,7 +1565,10 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 46,
@@ -1183,7 +1577,70 @@
     "isProductModel": true,
     "presetProducts": [],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "multi_level"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "multi_level"
+    ],
+    "format": "ulh-compact-v1",
+    "collection": "ULH",
+    "shared": {
+      "Height": 38,
+      "Drawers": "1D",
+      "Handle": "handle_urban_topcut",
+      "CountertopColor": "Bianco Male TFA",
+      "CabinetColor": "Rox Black TKQ"
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "ULH-sink-cabinet",
+            "Width": 120,
+            "sinkType": "Top_HPL/Fenix_Cover_Gres",
+            "Thickness": 0.5
+          }
+        ]
+      },
+      {
+        "elevation": -38,
+        "offsetX": 95,
+        "products": [
+          {
+            "name": "ULH-side-cabinet",
+            "Width": 80,
+            "Thickness": 0.5
+          },
+          {
+            "name": "ULH-side-cabinet",
+            "Width": 80
+          }
+        ]
+      }
+    ],
+    "top": {
+      "productType": "Top_Solid",
+      "CountertopColor": "Bianco Male TFA",
+      "Thickness": 0.5,
+      "sinkType": "Top_HPL/Fenix_Cover_Gres",
+      "CountertopPositioning": "support-plane",
+      "CountertopPlacement": "supported",
+      "CountertopRole": "basinTop"
+    },
+    "featureSettings": {
+      "cabinetCover": {
+        "enabled": true,
+        "profileId": "ulh-v1",
+        "eligibilityMode": "all",
+        "thicknessM": 0.012700083809585871,
+        "tolerances": {
+          "contactM": 0.001,
+          "adjacencyM": 0.001,
+          "numericalM": 1e-06
+        }
+      }
+    }
   },
   {
     "id": 47,
@@ -1192,7 +1649,64 @@
     "isProductModel": true,
     "presetProducts": [],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "multi_level"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "multi_level"
+    ],
+    "format": "ulh-compact-v1",
+    "collection": "ULH",
+    "shared": {
+      "Width": 120,
+      "Height": 38,
+      "Drawers": "1D",
+      "Handle": "handle_urban_topcut",
+      "Thickness": 0.5,
+      "CountertopColor": "Bianco Male TFA",
+      "CabinetColor": "Rox Black TKQ"
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "ULH-sink-cabinet",
+            "sinkType": "Top_HPL/Fenix_Cover_Gres"
+          }
+        ]
+      },
+      {
+        "elevation": -38,
+        "offsetX": 95,
+        "products": [
+          {
+            "name": "ULH-side-cabinet"
+          }
+        ]
+      }
+    ],
+    "top": {
+      "productType": "Top_Solid",
+      "CountertopColor": "Bianco Male TFA",
+      "Thickness": 0.5,
+      "sinkType": "Top_HPL/Fenix_Cover_Gres",
+      "CountertopPositioning": "support-plane",
+      "CountertopPlacement": "supported",
+      "CountertopRole": "basinTop"
+    },
+    "featureSettings": {
+      "cabinetCover": {
+        "enabled": true,
+        "profileId": "ulh-v1",
+        "eligibilityMode": "all",
+        "thicknessM": 0.012700083809585871,
+        "tolerances": {
+          "contactM": 0.001,
+          "adjacencyM": 0.001,
+          "numericalM": 1e-06
+        }
+      }
+    }
   },
   {
     "id": 48,
@@ -1229,7 +1743,11 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 49,
@@ -1264,7 +1782,12 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 50,
@@ -1301,7 +1824,10 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 51,
@@ -1338,7 +1864,11 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 52,
@@ -1375,7 +1905,10 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 53,
@@ -1403,7 +1936,10 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 54,
@@ -1440,7 +1976,10 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "double_basin"]
+    "style": [
+      "1_drawer",
+      "double_basin"
+    ]
   },
   {
     "id": 55,
@@ -1475,7 +2014,12 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 56,
@@ -1512,7 +2056,10 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "single_basin"]
+    "style": [
+      "1_drawer",
+      "single_basin"
+    ]
   },
   {
     "id": 57,
@@ -1554,7 +2101,12 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   },
   {
     "id": 58,
@@ -1591,7 +2143,11 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "single_basin", "asymmetrical"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical"
+    ]
   },
   {
     "id": 59,
@@ -1635,6 +2191,11 @@
       }
     ],
     "size": "90_plus",
-    "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
+    "style": [
+      "1_drawer",
+      "single_basin",
+      "asymmetrical",
+      "open_shelving"
+    ]
   }
 ]
