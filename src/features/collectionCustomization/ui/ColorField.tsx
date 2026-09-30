@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   ProductOptionsGrid,
   type ProductOptionData,
+  type ProductOptionMetadata,
 } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { BaseButton } from "@/shared";
@@ -27,7 +28,8 @@ import s from "./ColorField.module.scss";
 type ColorFieldProps = {
   field: FieldRuntimeState;
   title: string;
-  onChange: (value: string) => void | Promise<void>;
+  /** The value of the swatch picked and its SKU: two swatches can share a value (as Tekorlux and as Glass MT). */
+  onChange: (value: string, sku?: string) => void | Promise<void>;
   onOrderSwatches: () => void;
   sortByTitle?: boolean;
 };
@@ -101,6 +103,9 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
   );
 
   const activeValue = typeof field.value === "string" ? field.value : null;
+  // The grids and the full mode hand over the swatch picked, with the SKU of its configurator variant.
+  const pickSwatch = (value: string, _config?: unknown, metadata?: ProductOptionMetadata) =>
+    onChange(value, metadata?.sku);
   const select = (key: keyof MaterialFilterSelection) => (value?: string | number) =>
     setSelectedFilter((prev) => ({ ...prev, [key]: value === undefined ? undefined : String(value) }));
 
@@ -111,7 +116,7 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
         fullModeTitle={title}
         fullModeOptions={allOptions}
         fullModeActiveValue={activeValue}
-        onFullModeSelect={onChange}
+        onFullModeSelect={pickSwatch}
         fullModeGroupByDesc
         fullModeMaterialFilterOptions={filters.materials}
         fullModeColorFilterOptions={filters.colors}
@@ -135,9 +140,9 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
         )}
       </FilterRow>
       {leadingOptions.length > 0 && (
-        <ProductOptionsGrid data={leadingOptions} handleAdd={onChange} activeValue={activeValue} />
+        <ProductOptionsGrid data={leadingOptions} handleAdd={pickSwatch} activeValue={activeValue} />
       )}
-      <ProductOptionsGrid data={visibleOptions} handleAdd={onChange} activeValue={activeValue} groupByDesc />
+      <ProductOptionsGrid data={visibleOptions} handleAdd={pickSwatch} activeValue={activeValue} groupByDesc />
     </>
   );
 };

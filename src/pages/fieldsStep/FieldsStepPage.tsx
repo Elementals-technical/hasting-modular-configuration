@@ -1,9 +1,11 @@
 import { getActiveProductProfile } from "@/entities/configuration";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
+import { setCountertopColorSku } from "@/entities/product/model/store/slice";
 import {
   selectConfiguratorSection,
   useAttributeChangeHandler,
   useFieldAutoSelect,
+  type ChangeResult,
 } from "@/features/configurationCommands";
 import {
   ColorField,
@@ -30,7 +32,7 @@ const ColorSectionField = ({
   field,
   section,
   onChange,
-}: SectionFieldProps & { onChange: (value: string) => void }) => {
+}: SectionFieldProps & { onChange: (value: string) => Promise<ChangeResult> }) => {
   const dispatch = useAppDispatch();
   const profile = useAppSelector(getActiveProductProfile);
   const flowId = useCollectionNavigation()?.flowId;
@@ -46,7 +48,16 @@ const ColorSectionField = ({
     dispatch(openSwatchOrder(configuratorSection ?? undefined));
   };
 
-  return <ColorField field={field} title={section.label} onChange={onChange} onOrderSwatches={orderSwatches} />;
+  // The countertop rules and price tell a colour two materials list (an MT lacquer, as Tekorlux and as
+  // Glass MT) by the SKU of the swatch picked, which the USH countertop step records the same way.
+  const select = async (value: string, sku?: string) => {
+    const result = await onChange(value);
+    if (definition.attributeId === "CountertopColor" && result.status === "applied") {
+      dispatch(setCountertopColorSku(sku ?? ""));
+    }
+  };
+
+  return <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />;
 };
 
 const SectionField = (props: SectionFieldProps) => {

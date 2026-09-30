@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,7 +20,7 @@ import ulhUiDocument from "../../../../public/collections/urban-low-height/ui.js
 import { store } from "@/app/store";
 import { parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -28,12 +28,14 @@ import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import type { RuntimeBindingSet } from "@/entities/collection/model/runtimeBindings";
 import { resetConfiguration, setActiveRuntimeBindings, syncCabinets } from "@/entities/configuration";
+import { getCountertopColorSku } from "@/entities/product/model/store/selectors";
 import {
   reset,
   setActiveBasinStyle,
   setActiveCountertopColor,
   setActiveCountertopThickness,
   setActiveProfile,
+  setCountertopColorSku,
   setCountertopStyle,
   setSelectedDimensions,
   setVesselColor,
@@ -103,7 +105,7 @@ const urbanLowHeight = readyCollectionOf(
   "urban-low-height",
   ulhManifestDocument,
   ulhUiDocument,
-  configurator4WithLiveVessels,
+  configurator4WithLiveCountertops,
   datatable438,
 );
 const mako = readyCollectionOf("mako", makoManifestDocument, makoUiDocument, configurator9, datatable577);
@@ -221,6 +223,50 @@ describe("the Urban Low Height countertop step keeps its thickness and basin on 
 });
 
 // Mako and Class stand 52 cm deep, the depth of their countertop tables.
+// Configurator 4 lists an MT lacquer twice under one value, as Tekorlux and as Glass MT, and table 438
+// makes glass 50.5 cm deep only: the swatch picked decides the material, by the SKU recorded with it.
+describe("an Urban Low Height lacquer listed as Tekorlux and as Glass MT", () => {
+  // As a placed model leaves it: the colour picked, the SKU still that of the model's own colour.
+  beforeEach(() => {
+    startWith(parsedUlhProfile.profile, ulhRuntimeBindings, "ULH-sink-cabinet-1", "Bianco 0B MT");
+    store.dispatch(setCountertopColorSku("POR"));
+  });
+
+  const swatchOf = (material: string, color: string) => {
+    const group = screen.getByText(material, { selector: '[class*="groupTitle"]' }).closest("section");
+    if (!group) throw new Error(`No ${material} swatches`);
+    return within(group).getByText(color);
+  };
+
+  it("takes the Tekorlux thickness and basin once the Tekorlux swatch is picked", async () => {
+    renderCountertopStep(urbanLowHeight);
+    // Read as glass, the 46 cm top has no thickness or basin to take.
+    expect(changeMock).not.toHaveBeenCalled();
+
+    fireEvent.click(swatchOf("Tekorlux", "Bianco 0B MT"));
+
+    await waitFor(() =>
+      expect(changeMock).toHaveBeenCalledWith({
+        attributeId: "sinkType",
+        value: "Top_Tekorlux_Quadra",
+        scope: "basin",
+      }),
+    );
+    expect(changeMock).toHaveBeenCalledWith({ attributeId: "Thickness", value: "0.5", scope: "countertop" });
+    expect(getCountertopColorSku(store.getState())).toBe("SSTKR");
+  });
+
+  it("records the SKU of the swatch picked, not of the value: Glass MT where both are made", async () => {
+    store.dispatch(setSelectedDimensions({ depth: 50.5 }));
+    store.dispatch(setCountertopColorSku("SSTKR"));
+    renderCountertopStep(urbanLowHeight);
+
+    fireEvent.click(swatchOf("Glass MT", "Bianco 0B MT"));
+
+    await waitFor(() => expect(getCountertopColorSku(store.getState())).toBe("GLSM"));
+  });
+});
+
 describe("the Mako countertop step keeps its basin on one table 577 allows", () => {
   beforeEach(() => {
     startWith(makoProfile, makoRuntimeBindings, "Mako-sink-cabinet-1", "CALACATTA 259");

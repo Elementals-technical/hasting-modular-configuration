@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
@@ -45,102 +45,9 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
-// Configurator 4 as Urban Low Height loads it, with live colours the recorded fixture leaves out: its
-// vessel colours by material, two Tekorlux countertop colours, whose material is "Lacquered MT" (LACM),
-// one of them listed as Glass MT too, and a Glass GL colour.
-const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions.map((group) =>
-  group.proxyName === "Countertop Color"
-    ? {
-        ...group,
-        options: [
-          ...group.options,
-          {
-            id: 290,
-            name: "Tekorlux",
-            resource: null,
-            paramString: "",
-            playcanvasString: "",
-            variants: [
-              {
-                id: 3094,
-                name: "Agata BD MT",
-                image: null,
-                enabled: true,
-                description: "",
-                metadata: {
-                  sku: "SSTKR",
-                  codeColor: "BD MT",
-                  Material: "Lacquered MT",
-                  label: "Agata BD MT",
-                  value: "Agata BD MT",
-                },
-              },
-              {
-                id: 3099,
-                name: "Bianco 0B MT",
-                image: null,
-                enabled: true,
-                description: "",
-                metadata: {
-                  sku: "SSTKR",
-                  codeColor: "0B MT",
-                  Material: "Lacquered MT",
-                  label: "Bianco 0B MT",
-                  value: "Bianco 0B MT",
-                },
-              },
-            ],
-          },
-          {
-            id: 291,
-            name: "Glass MT",
-            resource: null,
-            paramString: "",
-            playcanvasString: "",
-            variants: [
-              {
-                id: 3153,
-                name: "Bianco 0B MT",
-                image: null,
-                enabled: true,
-                description: "",
-                metadata: {
-                  sku: "GLSM",
-                  codeColor: "0B MT",
-                  Material: "Lacquered MT",
-                  label: "Bianco 0B MT",
-                  value: "Bianco 0B MT",
-                },
-              },
-            ],
-          },
-          {
-            id: 292,
-            name: "Glass GL",
-            resource: null,
-            paramString: "",
-            playcanvasString: "",
-            variants: [
-              {
-                id: 3211,
-                name: "Bianco 0B GL",
-                image: null,
-                enabled: true,
-                description: "",
-                metadata: {
-                  sku: "GLSG",
-                  codeColor: "0B GL",
-                  Material: "Lacquered GL",
-                  label: "Bianco 0B GL",
-                  value: "Bianco 0B GL",
-                },
-              },
-            ],
-          },
-        ],
-      }
-    : group,
-);
+// Configurator 4 as Urban Low Height loads it, with the live vessel and lacquered countertop colours
+// the recorded sample leaves out.
+const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveCountertops).availableOptions;
 
 const readyCollectionOf = (
   collectionId: string,
