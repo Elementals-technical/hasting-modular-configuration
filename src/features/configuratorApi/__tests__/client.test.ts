@@ -10,6 +10,7 @@ import type {
   ConfiguratorApi,
   CabinetDraftState,
   ConfiguratorPreset,
+  ConfiguratorCompactPreset,
   ConfiguratorReceipt,
 } from "..";
 
@@ -455,6 +456,51 @@ describe("ConfiguratorClient", () => {
       expectedCompositionRevision: 11,
       preset,
       anchorPositionM: { x: 1, y: 2, z: 3 },
+    });
+  });
+
+  it("exports and imports a compact preset", async () => {
+    const compact = {
+      format: "ulh-compact-v1",
+      collection: "ULH",
+      rows: [{ products: [{ name: "ULH-sink-cabinet", Width: 60 }] }],
+    } satisfies ConfiguratorCompactPreset;
+    const exportCompactPreset = vi.fn(async () => ok(compact));
+    const importCompactPreset = vi.fn(async () => ok({ ...receipt, keyToProductId: { cabinet0: "cabinet-new" } }));
+    const api = makeApi({
+      getCabinetsState: async () =>
+        ok({
+          cabinets: [
+            { id: "cabinet-anchor", definitionId: "test-side-cabinet", selection: {}, positionM: { x: 0, y: 0, z: 0 } },
+          ],
+          connections: [],
+          selectedCabinetId: null,
+        }),
+    });
+    api.composition.exportCompactPreset = exportCompactPreset as ConfiguratorApi["composition"]["exportCompactPreset"];
+    api.composition.importCompactPreset = importCompactPreset as ConfiguratorApi["composition"]["importCompactPreset"];
+    const client = createConfiguratorClient({ getApi: () => api, createId: () => "request-compact" });
+
+    await client.connect();
+    await expect(client.exportCompactPreset()).resolves.toEqual(compact);
+    expect(exportCompactPreset).toHaveBeenLastCalledWith({
+      apiInstanceId: "api-1",
+      compositionId: "composition-1",
+    });
+    await client.exportCompactPreset("cabinet-anchor");
+    expect(exportCompactPreset).toHaveBeenLastCalledWith({
+      apiInstanceId: "api-1",
+      compositionId: "composition-1",
+      anchorCabinetId: "cabinet-anchor",
+    });
+
+    await client.importCompactPreset(compact);
+    expect(importCompactPreset).toHaveBeenCalledWith({
+      apiInstanceId: "api-1",
+      compositionId: "composition-1",
+      requestId: "request-compact",
+      expectedCompositionRevision: 11,
+      preset: compact,
     });
   });
 

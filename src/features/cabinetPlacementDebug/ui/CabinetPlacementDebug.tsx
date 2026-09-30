@@ -7,6 +7,7 @@ import {
   type CabinetDraftState,
   type ConfiguratorReceipt,
   type ConfiguratorPreset,
+  type ConfiguratorCompactPreset,
 } from "@/features/configuratorApi";
 
 import { draftInvalidHint, draftValidationStatus } from "../lib/draftValidationMessage";
@@ -576,6 +577,48 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 }
               >
                 Restore JSON
+              </button>
+              <button
+                type="button"
+                disabled={busy || !supported.includes("composition.exportCompactPreset")}
+                onClick={() =>
+                  void command(async (client) => {
+                    if (!client) return;
+                    const json = JSON.stringify(await client.exportCompactPreset(), null, 2);
+                    setPresetJson(json);
+                    setRestoreConfirmed(false);
+                    try {
+                      await navigator.clipboard?.writeText(json);
+                      setStatus("Compact preset exported and copied to clipboard");
+                    } catch {
+                      setStatus("Compact preset exported (clipboard unavailable)");
+                    }
+                  })
+                }
+              >
+                Export compact preset
+              </button>
+              <button
+                type="button"
+                disabled={
+                  busy ||
+                  !restoreConfirmed ||
+                  !presetJson.trim() ||
+                  !supported.includes("composition.importCompactPreset")
+                }
+                onClick={() =>
+                  void command(async (client) => {
+                    if (!client || !restoreConfirmed) return;
+                    const receipt = await client.importCompactPreset(
+                      JSON.parse(presetJson) as ConfiguratorCompactPreset,
+                    );
+                    await syncCommitted(client, receipt);
+                    setRestoreConfirmed(false);
+                    setStatus("Compact preset imported; cabinet IDs refreshed");
+                  })
+                }
+              >
+                Import compact preset
               </button>
             </details>
           )}
