@@ -31,24 +31,6 @@ export const vesselMaterialSkuAliasMap: Record<string, string> = {
   SSOCR: "SS",
 };
 
-export type VesselDefaultFinishRule = {
-  materialTokens: string[];
-  colorCodes: string[];
-};
-
-/**
- * PlayCanvas vessel type → preferred default finish.
- *
- * The selected value is still resolved from live configurator options; this map
- * only declares which compatible option should win over raw API ordering.
- */
-export const vesselDefaultFinishMap: Record<string, VesselDefaultFinishRule> = {
-  Vessel_UrbanModo: {
-    materialTokens: ["solidsurface", "ocritech", "ssocr", "sst1c"],
-    colorCodes: ["T1C"],
-  },
-};
-
 /** PlayCanvas vessel type → vessel basin height in cm (used for H dimension in SKU) */
 export const vesselHeightCmMap: Record<string, number> = {
   Vessel_UrbanModo: 14,
@@ -76,58 +58,6 @@ export const vesselFixedDepthInMap: Record<string, string> = {
   Vessel_Blade18: "15",
 };
 
-/**
- * PlayCanvas vessel type → allowed countertop material tokens (pre-normalized).
- *
- * Vessel color/material options are available when they match at least one token.
- * Tokens use the same format as normalizeMaterialToken() (lowercase,
- * alphanumeric only).
- *
- * Series mapping:
- *   BLD  (Blade11/18)   → ceramic
- *   URMOD (UrbanModo)   → solidsurface, selected hpl finishes, porcelain
- *   URMORS (UrbanMorris) → selected tekorlux finishes
- */
-export const vesselAllowedMaterialsMap: Record<string, string[] | null> = {
-  // BLD — Ceramic only, hidden when other materials are selected
-  Vessel_Blade11: ["ceramic"],
-  Vessel_Blade18: ["ceramic"],
-
-  // URMOD — Solid Surface T1C (Matte White) / T1D (Matte Black), selected HPL finishes, Porcelain
-  Vessel_UrbanModo: ["solidsurface", "hpl", "porcelain"],
-
-  // URMORS — Tekorlux TAL / TAM only
-  Vessel_UrbanMorris: ["tekorlux", "sstkr", "tal", "tam"],
-
-  // ACQS — Tekorlux (TAL / TAM + all SSTKR colors)
-  Vessel_Aquarius: ["tekorlux", "sstkr", "tal", "tam"],
-};
-
-/**
- * Optional PlayCanvas vessel type → material token → allowed color codes.
- *
- * If a vessel style has no entry here, material-level compatibility is enough.
- * If a candidate color belongs to a constrained material, it must match one of
- * the listed finish codes.
- */
-export const vesselAllowedMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
-  Vessel_UrbanModo: {
-    solidsurface: ["T1C", "T1D"],
-    hpl: ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"],
-  },
-  Vessel_UrbanMorris: {
-    tekorlux: ["TAL", "TAM"],
-  },
-};
-
-/**
- * Optional PlayCanvas vessel type → material token → unavailable color codes.
- *
- * This complements the allow-list above when product availability excludes a
- * specific finish inside an otherwise supported material family.
- */
-export const vesselUnavailableMaterialColorCodesMap: Record<string, Record<string, string[]>> = {
-  Vessel_UrbanModo: {
-    porcelain: ["TQ2"],
-  },
-};
+// Which countertop materials and colours each vessel accepts, and its preferred default finish,
+// are product compatibility rather than SKU data: they live in the collection profile under
+// ruleData.vesselCompatibility and are read by configurator-rule-core/countertop/vesselCompatibility.

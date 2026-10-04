@@ -1,28 +1,40 @@
-const HANDLE_GROOVE_COLOR_RESET_VALUE = "None";
+import { hasCapability, selectResetValue, type ProductProfile } from "@/entities/collection";
+
+/**
+ * Scene value that means "no groove color". Distinct from the empty Redux value:
+ * an empty string in state and `None` in PlayCanvas do not substitute for each other.
+ */
+const FALLBACK_GROOVE_RESET_VALUE = "None";
 
 export type HandleStyleConfigPatch = {
   Handle: string;
-  HandleGrooveColor?: typeof HANDLE_GROOVE_COLOR_RESET_VALUE;
+  HandleGrooveColor?: string;
 };
 
-const isGrooveHandle = (handle: string): boolean =>
-  handle === "handle_urban_topcut" || handle === "handle_urban_botcut";
-
-const hasActiveHandleGrooveColor = (value: string | null | undefined): boolean => {
+const hasActiveHandleGrooveColor = (value: string | null | undefined, resetValue: string): boolean => {
   const normalized = value?.trim();
-  return Boolean(normalized && normalized !== HANDLE_GROOVE_COLOR_RESET_VALUE);
+  return Boolean(normalized && normalized !== resetValue);
 };
 
+/**
+ * Builds the scene patch for a handle change.
+ *
+ * Whether the groove color applies is read from the option capability
+ * `supportsGrooveColor`, so a new groove-capable handle needs no id in this file.
+ */
 export const buildHandleStyleConfigPatch = (
   handle: string,
   handleGrooveColor: string | null | undefined,
+  profile: ProductProfile | null,
 ): HandleStyleConfigPatch => {
-  if (isGrooveHandle(handle) && hasActiveHandleGrooveColor(handleGrooveColor)) {
+  const resetValue = selectResetValue(profile, "HandleGrooveColor") ?? FALLBACK_GROOVE_RESET_VALUE;
+
+  if (hasCapability(profile, "Handle", handle, "supportsGrooveColor") && hasActiveHandleGrooveColor(handleGrooveColor, resetValue)) {
     return { Handle: handle };
   }
 
   return {
     Handle: handle,
-    HandleGrooveColor: HANDLE_GROOVE_COLOR_RESET_VALUE,
+    HandleGrooveColor: resetValue,
   };
 };

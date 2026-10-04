@@ -1,0 +1,208 @@
+.panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 25;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 12px;
+  border: 1px solid #d2ccc7;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #282828;
+  font-size: 12px;
+  box-shadow: 0 2px 8px #0002;
+
+  p { margin: 8px 0 0; }
+  [role="alert"] { color: #a02e20; }
+  button {
+    min-height: 32px;
+    border: 1px solid #ac5331;
+    border-radius: 4px;
+    padding: 4px 10px;
+    background: white;
+    color: #69341f;
+    cursor: pointer;
+    &:disabled { opacity: 0.5; cursor: default; }
+  }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; margin-bottom: 8px; }
+  label { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  input { width: 90px; }
+  input[type="checkbox"] { width: auto; }
+  textarea { width: 100%; min-height: 120px; font: 11px monospace; }
+}
+
+.buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+
+// ---- Drag & Drop -----------------------------------------------------------------------------
+$accent: #ac5331;
+$ink: #282828;
+$clear: #39d080;
+$colliding: #e5484d;
+
+.toolbar {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: min(320px, calc(100% - 48px));
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.toolbarButtons {
+  display: flex;
+  gap: 8px;
+}
+
+%pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.primaryPill {
+  @extend %pill;
+  border: 1px solid $accent;
+  background: $accent;
+  color: #fff;
+}
+
+.secondaryPill {
+  @extend %pill;
+  border: 1px solid $ink;
+  background: #fff;
+  color: $ink;
+}
+
+.hint,
+.error {
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: right;
+  box-shadow: 0 1px 4px #0002;
+}
+
+.hint {
+  color: $colliding;
+}
+
+.error {
+  color: #a02e20;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Draft overlay: anchors come from PlayCanvas in iframe px; this layer covers the iframe exactly.
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.moveMarker {
+  position: absolute;
+  display: block;
+  line-height: 0;
+  color: $clear;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.moveMarkerColliding {
+  color: $colliding;
+}
+
+.applyChip {
+  position: absolute;
+  transform: translateX(-100%);
+  padding: 3px 12px;
+  border: none;
+  border-radius: 999px;
+  background: $accent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.discardChip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid $ink;
+  border-radius: 50%;
+  background: #fff;
+  color: $ink;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+@media (max-width: 1024px) {
+  .panel {
+    // The mobile step navigation overlays the first 58px of the canvas.
+    top: 74px;
+    max-height: calc(100% - 130px);
+    overflow-y: auto;
+  }
+
+  .toolbar {
+    top: 74px;
+    right: 16px;
+  }
+}

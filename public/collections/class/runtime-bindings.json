@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "class",
+  "productTypes": {
+    "Sink-Base": "Class-sink-cabinet",
+    "Sink-Cabinet": "Class-side-cabinet"
+  },
+  "bindings": [
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "40": {
+            "Height": 40
+          },
+          "52": {
+            "Height": 52
+          }
+        }
+      },
+      "order": 30,
+      "note": "The Class scene takes 40 and 52 only (RuleHeightCabinetClass, docs/class-collection-runtime-facts.md). Class styles are never mixed (drawerStyleGroups), so the composition shares one height."
+    },
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Width"
+      },
+      "order": 30,
+      "note": "Number in cm, set on one cabinet. The Class scene takes 40, 60, 80, 100 and 120 (RuleWidthCabinetClass)."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Depth"
+      },
+      "order": 30,
+      "note": "Number in cm; Class has one depth, 52."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "1": {
+            "Drawers": "1D",
+            "Height": 40,
+            "InnerDrawer": "Disable"
+          },
+          "1D": {
+            "Drawers": "1D",
+            "Height": 40,
+            "InnerDrawer": "Disable"
+          },
+          "2": {
+            "Drawers": "2D",
+            "Height": 52,
+            "InnerDrawer": "Disable"
+          },
+          "2D": {
+            "Drawers": "2D",
+            "Height": 52,
+            "InnerDrawer": "Disable"
+          },
+          "1+inner": {
+            "Drawers": "1DWID",
+            "Height": 40,
+            "InnerDrawer": "Enable"
+          },
+          "1DWID": {
+            "Drawers": "1DWID",
+            "Height": 40,
+            "InnerDrawer": "Enable"
+          }
+        }
+      },
+      "order": 40,
+      "note": "The Class scene lays out drawers from Drawers, Height and InnerDrawer (RuleDrawersCabinetClass): 1DW and 1DWID are 40 cm, 2DW 52 cm (cabinet table 579, forced_height_cm); InnerDrawer shows only for 1DWID. Both semantic UI values and legacy preset scene tokens resolve to the complete patch. Sent after Height, so the style decides the height."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fume": "Smoke Glass Fume",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "GAcqua 419 GL": "Acqua 419 Glass GL",
+          "GAcqua 419 MT": "Acqua 419 Glass MT",
+          "GAgata 407 GL": "Agata 407 Glass GL",
+          "GAgata 407 MT": "Agata 407 Glass MT",
+          "GAmbra 413 GL": "Ambra 413 Glass GL",
+          "GAmbra 413 MT": "Ambra 413 Glass MT",
+          "GAntracite 400 GL": "Antracite 400 Glass GL",
+          "GAntracite 400 MT": "Antracite 400 Glass MT",
+          "GAsparago 414 GL": "Asparago 414 Glass GL",
+          "GAsparago 414 MT": "Asparago 414 Glass MT",
+          "GCreta 416 GL": "Creta 416 Glass GL",
+          "GCreta 416 MT": "Creta 416 Glass MT",
+          "GFumo 401 GL": "Fumo 401 Glass GL",
+          "GFumo 401 MT": "Fumo 401 Glass MT",
+          "GGrigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "GGrigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "GLatte 417 GL": "Latte 417 Glass GL",
+          "GLatte 417 MT": "Latte 417 Glass MT",
+          "GMetropoli 404 GL": "Metropoli 404 Glass GL",
+          "GMetropoli 404 MT": "Metropoli 404 Glass MT",
+          "GMoka 408 GL": "Moka 408 Glass GL",
+          "GMoka 408 MT": "Moka 408 Glass MT",
+          "GNebbia 402 GL": "Nebbia 402 Glass GL",
+          "GNebbia 402 MT": "Nebbia 402 Glass MT",
+          "GNero 433 GL": "Nero 433 Glass GL",
+          "GNero 433 MT": "Nero 433 Glass MT",
+          "GPonente 418 GL": "Ponente 418 Glass GL",
+          "GPonente 418 MT": "Ponente 418 Glass MT",
+          "GSabbia 405 GL": "Sabbia 405 Glass GL",
+          "GSabbia 405 MT": "Sabbia 405 Glass MT",
+          "GSalvia 415 GL": "Salvia 415 Glass GL",
+          "GSalvia 415 MT": "Salvia 415 Glass MT",
+          "GSeta 406 GL": "Seta 406 Glass GL",
+          "GSeta 406 MT": "Seta 406 Glass MT",
+          "GTurchese 410 GL": "Turchese 410 Glass GL",
+          "GTurchese 410 MT": "Turchese 410 Glass MT",
+          "GZafferano 412 GL": "Zafferano 412 Glass GL",
+          "GZafferano 412 MT": "Zafferano 412 Glass MT",
+          "GZaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 50,
+      "note": "Front insert material (RuleMaterialsCabinetClass). The scene looks a material up by its exact name, and its names carry the material: overrides send \"Acqua 419 MT\" as \"Acqua 419 Lacquered MT\", the glass \"GAcqua 419 MT\" as \"Acqua 419 Glass MT\" and \"Fume\" as \"Smoke Glass Fume\". A colour without an override goes as it is; the scene has no Porcelain or Laminate material yet, so the material stays as it is."
+    },
+    {
+      "attributeId": "CabinetSideColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetSideColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fume": "Smoke Glass Fume",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "GAcqua 419 GL": "Acqua 419 Glass GL",
+          "GAcqua 419 MT": "Acqua 419 Glass MT",
+          "GAgata 407 GL": "Agata 407 Glass GL",
+          "GAgata 407 MT": "Agata 407 Glass MT",
+          "GAmbra 413 GL": "Ambra 413 Glass GL",
+          "GAmbra 413 MT": "Ambra 413 Glass MT",
+          "GAntracite 400 GL": "Antracite 400 Glass GL",
+          "GAntracite 400 MT": "Antracite 400 Glass MT",
+          "GAsparago 414 GL": "Asparago 414 Glass GL",
+          "GAsparago 414 MT": "Asparago 414 Glass MT",
+          "GCreta 416 GL": "Creta 416 Glass GL",
+          "GCreta 416 MT": "Creta 416 Glass MT",
+          "GFumo 401 GL": "Fumo 401 Glass GL",
+          "GFumo 401 MT": "Fumo 401 Glass MT",
+          "GGrigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "GGrigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "GLatte 417 GL": "Latte 417 Glass GL",
+          "GLatte 417 MT": "Latte 417 Glass MT",
+          "GMetropoli 404 GL": "Metropoli 404 Glass GL",
+          "GMetropoli 404 MT": "Metropoli 404 Glass MT",
+          "GMoka 408 GL": "Moka 408 Glass GL",
+          "GMoka 408 MT": "Moka 408 Glass MT",
+          "GNebbia 402 GL": "Nebbia 402 Glass GL",
+          "GNebbia 402 MT": "Nebbia 402 Glass MT",
+          "GNero 433 GL": "Nero 433 Glass GL",
+          "GNero 433 MT": "Nero 433 Glass MT",
+          "GPonente 418 GL": "Ponente 418 Glass GL",
+          "GPonente 418 MT": "Ponente 418 Glass MT",
+          "GSabbia 405 GL": "Sabbia 405 Glass GL",
+          "GSabbia 405 MT": "Sabbia 405 Glass MT",
+          "GSalvia 415 GL": "Salvia 415 Glass GL",
+          "GSalvia 415 MT": "Salvia 415 Glass MT",
+          "GSeta 406 GL": "Seta 406 Glass GL",
+          "GSeta 406 MT": "Seta 406 Glass MT",
+          "GTurchese 410 GL": "Turchese 410 Glass GL",
+          "GTurchese 410 MT": "Turchese 410 Glass MT",
+          "GZafferano 412 GL": "Zafferano 412 Glass GL",
+          "GZafferano 412 MT": "Zafferano 412 Glass MT",
+          "GZaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 50,
+      "note": "Cabinet wall and bottom material (RuleMaterialsCabinetClass). Same colours and scene names as CabinetColor (overrides)."
+    },
+    {
+      "attributeId": "FrameColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "FrameColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fume": "Smoke Glass Fume",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "GAcqua 419 GL": "Acqua 419 Glass GL",
+          "GAcqua 419 MT": "Acqua 419 Glass MT",
+          "GAgata 407 GL": "Agata 407 Glass GL",
+          "GAgata 407 MT": "Agata 407 Glass MT",
+          "GAmbra 413 GL": "Ambra 413 Glass GL",
+          "GAmbra 413 MT": "Ambra 413 Glass MT",
+          "GAntracite 400 GL": "Antracite 400 Glass GL",
+          "GAntracite 400 MT": "Antracite 400 Glass MT",
+          "GAsparago 414 GL": "Asparago 414 Glass GL",
+          "GAsparago 414 MT": "Asparago 414 Glass MT",
+          "GCreta 416 GL": "Creta 416 Glass GL",
+          "GCreta 416 MT": "Creta 416 Glass MT",
+          "GFumo 401 GL": "Fumo 401 Glass GL",
+          "GFumo 401 MT": "Fumo 401 Glass MT",
+          "GGrigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "GGrigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "GLatte 417 GL": "Latte 417 Glass GL",
+          "GLatte 417 MT": "Latte 417 Glass MT",
+          "GMetropoli 404 GL": "Metropoli 404 Glass GL",
+          "GMetropoli 404 MT": "Metropoli 404 Glass MT",
+          "GMoka 408 GL": "Moka 408 Glass GL",
+          "GMoka 408 MT": "Moka 408 Glass MT",
+          "GNebbia 402 GL": "Nebbia 402 Glass GL",
+          "GNebbia 402 MT": "Nebbia 402 Glass MT",
+          "GNero 433 GL": "Nero 433 Glass GL",
+          "GNero 433 MT": "Nero 433 Glass MT",
+          "GPonente 418 GL": "Ponente 418 Glass GL",
+          "GPonente 418 MT": "Ponente 418 Glass MT",
+          "GSabbia 405 GL": "Sabbia 405 Glass GL",
+          "GSabbia 405 MT": "Sabbia 405 Glass MT",
+          "GSalvia 415 GL": "Salvia 415 Glass GL",
+          "GSalvia 415 MT": "Salvia 415 Glass MT",
+          "GSeta 406 GL": "Seta 406 Glass GL",
+          "GSeta 406 MT": "Seta 406 Glass MT",
+          "GTurchese 410 GL": "Turchese 410 Glass GL",
+          "GTurchese 410 MT": "Turchese 410 Glass MT",
+          "GZafferano 412 GL": "Zafferano 412 Glass GL",
+          "GZafferano 412 MT": "Zafferano 412 Glass MT",
+          "GZaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 50,
+      "note": "Front frame material (RuleMaterialsCabinetClass). Same colours and scene names as CabinetColor (overrides)."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Glass GL",
+          "Acqua 419 MT": "Acqua 419 Glass MT",
+          "Agata 407 GL": "Agata 407 Glass GL",
+          "Agata 407 MT": "Agata 407 Glass MT",
+          "Ambra 413 GL": "Ambra 413 Glass GL",
+          "Ambra 413 MT": "Ambra 413 Glass MT",
+          "Antracite 400 GL": "Antracite 400 Glass GL",
+          "Antracite 400 MT": "Antracite 400 Glass MT",
+          "Asparago 414 GL": "Asparago 414 Glass GL",
+          "Asparago 414 MT": "Asparago 414 Glass MT",
+          "BIANCO KOS 250": "Bianco Kos 250",
+          "Creta 416 GL": "Creta 416 Glass GL",
+          "Creta 416 MT": "Creta 416 Glass MT",
+          "Fumo 401 GL": "Fumo 401 Glass GL",
+          "Fumo 401 MT": "Fumo 401 Glass MT",
+          "GAcqua 419 GL": "Acqua 419 Glass GL",
+          "GAcqua 419 MT": "Acqua 419 Glass MT",
+          "GAgata 407 GL": "Agata 407 Glass GL",
+          "GAgata 407 MT": "Agata 407 Glass MT",
+          "GAmbra 413 GL": "Ambra 413 Glass GL",
+          "GAmbra 413 MT": "Ambra 413 Glass MT",
+          "GAntracite 400 GL": "Antracite 400 Glass GL",
+          "GAntracite 400 MT": "Antracite 400 Glass MT",
+          "GAsparago 414 GL": "Asparago 414 Glass GL",
+          "GAsparago 414 MT": "Asparago 414 Glass MT",
+          "GCreta 416 GL": "Creta 416 Glass GL",
+          "GCreta 416 MT": "Creta 416 Glass MT",
+          "GFumo 401 GL": "Fumo 401 Glass GL",
+          "GFumo 401 MT": "Fumo 401 Glass MT",
+          "GGrigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "GGrigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "GLatte 417 GL": "Latte 417 Glass GL",
+          "GLatte 417 MT": "Latte 417 Glass MT",
+          "GMetropoli 404 GL": "Metropoli 404 Glass GL",
+          "GMetropoli 404 MT": "Metropoli 404 Glass MT",
+          "GMoka 408 GL": "Moka 408 Glass GL",
+          "GMoka 408 MT": "Moka 408 Glass MT",
+          "GNebbia 402 GL": "Nebbia 402 Glass GL",
+          "GNebbia 402 MT": "Nebbia 402 Glass MT",
+          "GNero 433 GL": "Nero 433 Glass GL",
+          "GNero 433 MT": "Nero 433 Glass MT",
+          "GPonente 418 GL": "Ponente 418 Glass GL",
+          "GPonente 418 MT": "Ponente 418 Glass MT",
+          "GRIGIO BROMO 253": "Grigio Bromo 253",
+          "GRIGIO LONDON 252": "Grigio London 252",
+          "GSabbia 405 GL": "Sabbia 405 Glass GL",
+          "GSabbia 405 MT": "Sabbia 405 Glass MT",
+          "GSalvia 415 GL": "Salvia 415 Glass GL",
+          "GSalvia 415 MT": "Salvia 415 Glass MT",
+          "GSeta 406 GL": "Seta 406 Glass GL",
+          "GSeta 406 MT": "Seta 406 Glass MT",
+          "GTurchese 410 GL": "Turchese 410 Glass GL",
+          "GTurchese 410 MT": "Turchese 410 Glass MT",
+          "GZafferano 412 GL": "Zafferano 412 Glass GL",
+          "GZafferano 412 MT": "Zafferano 412 Glass MT",
+          "GZaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "Latte 417 GL": "Latte 417 Glass GL",
+          "Latte 417 MT": "Latte 417 Glass MT",
+          "Metropoli 404 GL": "Metropoli 404 Glass GL",
+          "Metropoli 404 MT": "Metropoli 404 Glass MT",
+          "Moka 408 GL": "Moka 408 Glass GL",
+          "Moka 408 MT": "Moka 408 Glass MT",
+          "NERO INGO 251": "Nero Ingo 251",
+          "Nebbia 402 GL": "Nebbia 402 Glass GL",
+          "Nebbia 402 MT": "Nebbia 402 Glass MT",
+          "Nero 433 GL": "Nero 433 Glass GL",
+          "Nero 433 MT": "Nero 433 Glass MT",
+          "Ponente 418 GL": "Ponente 418 Glass GL",
+          "Ponente 418 MT": "Ponente 418 Glass MT",
+          "Sabbia 405 GL": "Sabbia 405 Glass GL",
+          "Sabbia 405 MT": "Sabbia 405 Glass MT",
+          "Salvia 415 GL": "Salvia 415 Glass GL",
+          "Salvia 415 MT": "Salvia 415 Glass MT",
+          "Seta 406 GL": "Seta 406 Glass GL",
+          "Seta 406 MT": "Seta 406 Glass MT",
+          "Turchese 410 GL": "Turchese 410 Glass GL",
+          "Turchese 410 MT": "Turchese 410 Glass MT",
+          "Zafferano 412 GL": "Zafferano 412 Glass GL",
+          "Zafferano 412 MT": "Zafferano 412 Glass MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Glass MT"
+        }
+      },
+      "order": 50,
+      "note": "The countertop is placed at composition level, as for Mako; the Class cabinets ignore the key. Same colours and scene names as the Mako countertop (overrides)."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "state-only",
+      "reason": "The scene export has no CountertopStyle key; recorded for the countertop rules and pricing only."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Class-sink-cabinet"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "": { "sinkType": "Vessel" },
+          "None": { "sinkType": "Vessel" },
+          "LB440": { "sinkType": "Top_HPLPrisma" },
+          "LB175": { "sinkType": "Top_Tekorlux_Ron" },
+          "LB575": { "sinkType": "Top_Tekorlux_Quadra" },
+          "LB856": { "sinkType": "Top_HPLStrip" },
+          "VA024": { "sinkType": "Top_HPLCover" },
+          "LV890": { "sinkType": "Top_Tekorlux_Trip" },
+          "LV892": { "sinkType": "Top_Ocritech_Orion" },
+          "VA002": { "sinkType": "Top_Ocritech_Oly55" },
+          "VA005": { "sinkType": "Top_Tekorlux_Rectangular" },
+          "VA023": { "sinkType": "Top_Tekormud_Tivi" },
+          "Iris": { "sinkType": "Vessel_Iris" },
+          "Frame": { "sinkType": "Vessel_Frame" },
+          "Plaza": { "sinkType": "Vessel_Blade11" }
+        }
+      },
+      "order": 40,
+      "note": "Class uses the authored sink sub-products under ClMa_Sink_Point. None clears the integrated basin for a vessel cutout; a vessel choice installs its matching sub-product. A cleared basin (\"\"), as a switch of countertop style leaves, is the same empty cutout."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Class-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fume": "Smoke Glass Fume",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "GAcqua 419 GL": "Acqua 419 Glass GL",
+          "GAcqua 419 MT": "Acqua 419 Glass MT",
+          "GAgata 407 GL": "Agata 407 Glass GL",
+          "GAgata 407 MT": "Agata 407 Glass MT",
+          "GAmbra 413 GL": "Ambra 413 Glass GL",
+          "GAmbra 413 MT": "Ambra 413 Glass MT",
+          "GAntracite 400 GL": "Antracite 400 Glass GL",
+          "GAntracite 400 MT": "Antracite 400 Glass MT",
+          "GAsparago 414 GL": "Asparago 414 Glass GL",
+          "GAsparago 414 MT": "Asparago 414 Glass MT",
+          "GCreta 416 GL": "Creta 416 Glass GL",
+          "GCreta 416 MT": "Creta 416 Glass MT",
+          "GFumo 401 GL": "Fumo 401 Glass GL",
+          "GFumo 401 MT": "Fumo 401 Glass MT",
+          "GGrigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "GGrigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "GLatte 417 GL": "Latte 417 Glass GL",
+          "GLatte 417 MT": "Latte 417 Glass MT",
+          "GMetropoli 404 GL": "Metropoli 404 Glass GL",
+          "GMetropoli 404 MT": "Metropoli 404 Glass MT",
+          "GMoka 408 GL": "Moka 408 Glass GL",
+          "GMoka 408 MT": "Moka 408 Glass MT",
+          "GNebbia 402 GL": "Nebbia 402 Glass GL",
+          "GNebbia 402 MT": "Nebbia 402 Glass MT",
+          "GNero 433 GL": "Nero 433 Glass GL",
+          "GNero 433 MT": "Nero 433 Glass MT",
+          "GPonente 418 GL": "Ponente 418 Glass GL",
+          "GPonente 418 MT": "Ponente 418 Glass MT",
+          "GSabbia 405 GL": "Sabbia 405 Glass GL",
+          "GSabbia 405 MT": "Sabbia 405 Glass MT",
+          "GSalvia 415 GL": "Salvia 415 Glass GL",
+          "GSalvia 415 MT": "Salvia 415 Glass MT",
+          "GSeta 406 GL": "Seta 406 Glass GL",
+          "GSeta 406 MT": "Seta 406 Glass MT",
+          "GTurchese 410 GL": "Turchese 410 Glass GL",
+          "GTurchese 410 MT": "Turchese 410 Glass MT",
+          "GZafferano 412 GL": "Zafferano 412 Glass GL",
+          "GZafferano 412 MT": "Zafferano 412 Glass MT",
+          "GZaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 60,
+      "note": "The composition sink-material rule paints the active vessel descendant under the Class sink mount. Supported Glass MT/GL semantic values are translated to the exact PlayCanvas material asset names."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "Broadcast to the composition countertop and Class sink cabinet so TopSolid and ClMa_Sink_Point stay aligned for every supported thickness."
+    },
+    {
+      "attributeId": "Handle",
+      "status": "state-only",
+      "reason": "Class has no handle option in the profile and the Class scene reads no handle key. Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "state-only",
+      "reason": "Class has no handle groove. Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no BookMatching key in the scene export."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no LED key in the scene export."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The Class scene products of each value are in productTypes."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "unbound",
+      "reason": "Not a Class option; the Class cabinets have no fluting in the scene."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not a Class option; the Class cabinets have no grain direction in the scene."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile; the scene side panels are the Urban ones."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Not a Class option in the profile."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Class drawers have no divider zones in the scene yet."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Class drawers have no divider zones in the scene yet."
+    }
+  ]
+}

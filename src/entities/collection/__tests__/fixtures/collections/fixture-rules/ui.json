@@ -1,0 +1,35 @@
+{
+  "collectionId": "fixture-rules",
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "finish",
+      "steps": [{ "stepId": "finish", "path": "/prebuilt/finish" }]
+    },
+    "custom": {
+      "entryStepId": "finish-custom",
+      "steps": [{ "stepId": "finish-custom", "path": "/custom/finish" }]
+    }
+  },
+  "steps": {
+    "finish": { "label": "Finish", "kind": "fields", "sectionIds": ["handle", "drawers", "height"] },
+    "finish-custom": {
+      "label": "Finish",
+      "kind": "fields",
+      "sectionIds": ["handle", "drawers", "height"]
+    }
+  },
+  "sections": {
+    "handle": {
+      "label": "Handle",
+      "fields": [{ "attributeId": "Handle", "control": "options-grid", "optionsRef": "Handle" }]
+    },
+    "drawers": {
+      "label": "Drawers",
+      "fields": [{ "attributeId": "Drawers", "control": "options-grid", "optionsRef": "Drawers" }]
+    },
+    "height": {
+      "label": "Height",
+      "fields": [{ "attributeId": "Height", "control": "options-grid", "optionsRef": "Height" }]
+    }
+  }
+}

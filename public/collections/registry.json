@@ -1,0 +1,21 @@
+{
+  "defaultCollectionId": "urban-standard-height",
+  "collections": [
+    {
+      "id": "urban-standard-height",
+      "manifest": "urban-standard-height/manifest.json"
+    },
+    {
+      "id": "urban-low-height",
+      "manifest": "urban-low-height/manifest.json"
+    },
+    {
+      "id": "class",
+      "manifest": "class/manifest.json"
+    },
+    {
+      "id": "mako",
+      "manifest": "mako/manifest.json"
+    }
+  ]
+}

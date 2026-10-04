@@ -1,4 +1,8 @@
-const RUNTIME_SUFFIX_PATTERN = /^[a-z0-9]{6,}$/i;
+/**
+ * The random tail the scene gives a product id (`${type}-${Math.random().toString(36).substr(2, 9)}`).
+ * A digit tells it from the last word of a type: "Mako-sink-cabinet" keeps its "cabinet".
+ */
+const RUNTIME_SUFFIX_PATTERN = /^(?=[a-z]*\d)[a-z0-9]{6,}$/i;
 
 type RuntimeProductType = "Sink-Base" | "Sink-Cabinet" | "Open-Shelf" | "Side-Shelf";
 
@@ -33,8 +37,10 @@ const resolveCompactRuntimeProductTypeAlias = (compact: string): RuntimeProductT
     EXACT_RUNTIME_PRODUCT_TYPE_ALIASES[compact] ?? NAMED_RUNTIME_PRODUCT_TYPE_ALIASES[compact];
   if (exactMatch) return exactMatch;
 
+  // Only a leading alias: "Sink-Base-new-1" is a Sink-Base, but "Mako-sink-cabinet" is a scene type of
+  // its own, not an Urban Sink-Cabinet.
   for (const [alias, productType] of Object.entries(NAMED_RUNTIME_PRODUCT_TYPE_ALIASES)) {
-    if (compact.includes(alias)) return productType;
+    if (compact.startsWith(alias)) return productType;
   }
 
   return null;

@@ -101,5 +101,21 @@ docs/*
 !docs/parent-configurator-integration.md
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
+!docs/cabinet-drag-and-drop-ui.md
+!docs/countertop-position-ui.md
+!docs/collection-data-migration-status-v1.md
+!docs/collection-data-migration-status-v2.md
+# Developer C reports: residue, acceptance, handoffs and collection profiles.
+!docs/dev-residue-report.md
+!docs/c12-state-acceptance.md
+!docs/b06-profile-options-handoff.md
+!docs/class-profile.md
+!docs/mako-profile.md
+!docs/urban-low-height-profile.md
+!docs/product-profile-migration.md
+!docs/runtime-bindings-migration.md
+# Maintained product integration guides used by the project skills.
+!docs/products/
+!docs/products/*.md
 
 iphone-safari-debugging

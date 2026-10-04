@@ -22,6 +22,8 @@ export type OptionState<TValue> = {
   label?: string;
   enabled: boolean;
   reason?: string;
+  /** Stable code of `reason`; the text comes from the collection's `messages`. */
+  reasonCode?: string;
   deferAutoChange?: boolean;
 };
 
@@ -36,6 +38,7 @@ export type AvailableOptions = {
 export type Violation = {
   field: IntentField;
   reason: string;
+  reasonCode?: string;
 };
 
 export type RuleResult = {

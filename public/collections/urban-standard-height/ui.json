@@ -1,0 +1,406 @@
+{
+  "collectionId": "urban-standard-height",
+  "optionImages": {
+    "sinkType": {
+      "Top_HPLPrisma": "images/basin/prisma.jpg",
+      "Top_HPLQuadra": "images/basin/quadro.jpg",
+      "Top_HPLCover": "images/basin/cover.jpg",
+      "Top_HPLStrip": "images/basin/strip.jpg",
+      "Top_HPL/Fenix_Cover_Gres": "images/basin/fenix_Cover.jpg",
+      "Top_HPL/Fenix_Prisma_Gres": "images/basin/fenix_Prisma.jpg",
+      "Top_HPL/Fenix_Quadra_Gres": "images/basin/fenix_Quadra.jpg",
+      "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Top_Glass_Nettuno": "images/basin/Nettuno.png",
+      "Top_Glass_Ovale": "images/basin/Ovale.png",
+      "Top_Mineralmarmo_Diamond": "images/basin/Diamond.jpg",
+      "Top_Ocritech_Oly55": "images/basin/Olly_55.jpg",
+      "Top_Ocritech_Oly56": "images/basin/Olly_56.jpg",
+      "Top_Ocritech_Orion": "images/basin/Orion.jpg",
+      "Top_Ocritech_Quadra": "images/basin/Quadra.jpg",
+      "Top_Ocritech_Rayo": "images/basin/Rayo.jpg",
+      "Top_Ocritech_Roll": "images/basin/Roll.jpg",
+      "Top_Porcelain_Cover": "images/basin/cover.jpg",
+      "Top_Porcelain_Prisma": "images/basin/prisma.jpg",
+      "Top_Porcelain_Quadra": "images/basin/quadro.jpg",
+      "Top_Porcelain_Strip": "images/basin/strip.jpg",
+      "Top_Tekorlux_Syntesi": "images/basin/Syntesi.jpg",
+      "Top_Tekorlux_Quadra": "images/basin/Quadra.jpg",
+      "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
+      "Top_Tekorlux_Ron": "images/basin/Ron.jpg",
+      "Top_Tekorlux_Trip": "images/basin/Trip.jpg",
+      "Top_Tekormud_Tivi": "images/basin/Tivi.jpg",
+      "Vessel_Blade11": "images/vessel/Vessel_Blade11.png",
+      "Vessel_Blade18": "images/vessel/Vessel_Blade18.png",
+      "Vessel_UrbanModo": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanModo_Flat": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanModo_Seam": "images/vessel/Vessel_UrbanModo_Seam.png",
+      "Vessel_UrbanModo_Cover": "images/vessel/Vessel_UrbanModo_Cover.png",
+      "Vessel_UrbanMorris": "images/vessel/Vessel_UrbanMorris.png",
+      "Vessel_Aquarius": "images/vessel/Vessel_Aquarius48.png"
+    },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
+    },
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base/SinkBase2D_upperG.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png",
+      "Side-Cabinet": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png",
+      "Open-Shelf": "images/cabinet/OpenShelves.png",
+      "Side-Shelf": "images/cabinet/SideShelves_Trans.png"
+    },
+    "Drawers": {
+      "1": "images/cabinet/side-cabinet/SinkBase1D_upperG.png",
+      "1+inner": "images/cabinet/side-cabinet/SinkBase1D_upperG.png",
+      "2": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png"
+    },
+    "Handle": {
+      "handle_urban_topcut": "images/handle/UpperGHandle.jpg",
+      "handle_urban_botcut": "images/handle/CentralGHandle.jpg",
+      "handle_pto": "images/handle/PTOHandle.jpg"
+    }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "2", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase2D_PTO.png"
+      },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "2", "Height": "53" },
+        "image": "images/cabinet/sink-base/SinkBase2D_centralG.png"
+      },
+      { "value": "Sink-Base", "when": { "Drawers": "2" }, "image": "images/cabinet/sink-base/SinkBase2D_upperG.png" },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "1", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      { "value": "Sink-Base", "when": { "Drawers": "1" }, "image": "images/cabinet/sink-base/SinkBase1D_upperG.png" },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "1+inner", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "Sink-Base",
+        "when": { "Drawers": "1+inner" },
+        "image": "images/cabinet/sink-base/SinkBase1D_upperG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "2", "Height": "50" },
+        "image": "images/cabinet/side-cabinet/SinkBase2D_PTO.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "2", "Height": "53" },
+        "image": "images/cabinet/side-cabinet/SinkBase2D_centralG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "2" },
+        "image": "images/cabinet/side-cabinet/SideCabinet2D_upperG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1", "Height": "50" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_upperG.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1+inner", "Height": "50" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "Sink-Cabinet",
+        "when": { "Drawers": "1+inner" },
+        "image": "images/cabinet/side-cabinet/SinkBase1D_upperG.png"
+      }
+    ],
+    "Drawers": [
+      {
+        "value": "2",
+        "when": { "CabinetType": "Sink-Base", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase2D_PTO.png"
+      },
+      {
+        "value": "2",
+        "when": { "CabinetType": "Sink-Base", "Height": "53" },
+        "image": "images/cabinet/sink-base/SinkBase2D_centralG.png"
+      },
+      {
+        "value": "2",
+        "when": { "CabinetType": "Sink-Base" },
+        "image": "images/cabinet/sink-base/SinkBase2D_upperG.png"
+      },
+      { "value": "2", "when": { "Height": "50" }, "image": "images/cabinet/side-cabinet/SinkBase2D_PTO.png" },
+      { "value": "2", "when": { "Height": "53" }, "image": "images/cabinet/side-cabinet/SinkBase2D_centralG.png" },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base" },
+        "image": "images/cabinet/sink-base/SinkBase1D_upperG.png"
+      },
+      { "value": "1", "when": { "Height": "50" }, "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png" },
+      {
+        "value": "1+inner",
+        "when": { "CabinetType": "Sink-Base", "Height": "50" },
+        "image": "images/cabinet/sink-base/SinkBase1D_PTO.png"
+      },
+      {
+        "value": "1+inner",
+        "when": { "CabinetType": "Sink-Base" },
+        "image": "images/cabinet/sink-base/SinkBase1D_upperG.png"
+      },
+      { "value": "1+inner", "when": { "Height": "50" }, "image": "images/cabinet/side-cabinet/SinkBase1D_PTO.png" }
+    ]
+  },
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "model",
+      "steps": [
+        { "stepId": "model", "path": "/prebuilt/model" },
+        { "stepId": "cabinet", "path": "/prebuilt/color", "screen": "prebuilt-cabinet" },
+        { "stepId": "countertop", "path": "/prebuilt/countertop", "screen": "countertop" },
+        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
+        { "stepId": "summary", "path": "/prebuilt/summary" }
+      ]
+    },
+    "custom": {
+      "entryStepId": "cabinet-builder",
+      "steps": [
+        { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
+        { "stepId": "cabinet-colors", "path": "/custom/cabinet-colors", "screen": "custom-cabinet-colors" },
+        { "stepId": "countertop-custom", "path": "/custom/countertop", "screen": "countertop" },
+        { "stepId": "accessories-custom", "path": "/custom/accessories", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
+        { "stepId": "summary", "path": "/custom/summary", "screen": "custom-summary" }
+      ]
+    }
+  },
+  "steps": {
+    "model": { "label": "Model", "kind": "preset-picker" },
+    "cabinet-builder": {
+      "label": "Cabinet Builder",
+      "headerPrefix": null,
+      "kind": "cabinet-builder",
+      "sectionIds": ["cabinet-type", "cabinet-style"]
+    },
+    "cabinet": {
+      "label": "Color",
+      "kind": "fields",
+      "sectionIds": ["cabinet-color", "handle-groove", "drawer-panel", "grain-direction"]
+    },
+    "cabinet-colors": {
+      "label": "Color",
+      "kind": "fields",
+      "sectionIds": ["cabinet-color-custom", "groove-color", "drawer-panel-custom", "grain-direction-custom"]
+    },
+    "countertop": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": ["countertop-color", "thickness", "countertop-styles", "basin-style", "vessel-color"]
+    },
+    "countertop-custom": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": [
+        "counter-top-color",
+        "thickness-custom",
+        "countertop-style",
+        "basin-style-custom",
+        "vessel-color-custom"
+      ]
+    },
+    "accessories": { "label": "Accessories", "kind": "fields", "sectionIds": ["side-panels", "dividers", "towel-bar"] },
+    "accessories-custom": {
+      "label": "Accessories",
+      "kind": "fields",
+      "sectionIds": ["side-panels-custom", "dividers-custom", "towel-bar"]
+    },
+    "faucet-holes": { "label": "Faucet Details", "kind": "fields", "sectionIds": ["faucet-holes-amount"] },
+    "summary": { "label": "Summary", "kind": "summary" }
+  },
+  "sections": {
+    "cabinet-color": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetColor", "control": "swatches", "optionsRef": "CabinetColor" }]
+    },
+    "handle-groove": {
+      "label": "Handle Groove Color (Optional)",
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "swatches",
+          "optionsRef": "configurator:Handle Groove Color",
+          "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "drawer-panel": {
+      "label": "Drawer Panel Fluting",
+      "fields": [
+        {
+          "attributeId": "DrawerPanelFluting",
+          "control": "options-grid",
+          "availabilityRef": "DrawerPanelFluting.available"
+        }
+      ]
+    },
+    "grain-direction": {
+      "label": "Grain Direction",
+      "fields": [
+        { "attributeId": "GrainDirection", "control": "options-grid", "availabilityRef": "GrainDirection.available" },
+        { "attributeId": "BookMatching", "control": "checkbox", "availabilityRef": "BookMatching.available" }
+      ]
+    },
+    "cabinet-color-custom": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetColor", "control": "swatches", "optionsRef": "CabinetColor" }]
+    },
+    "groove-color": {
+      "label": "Handle Groove Color (Optional)",
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "swatches",
+          "optionsRef": "configurator:Handle Groove Color",
+          "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "drawer-panel-custom": {
+      "label": "Drawer Panel Fluting",
+      "fields": [
+        {
+          "attributeId": "DrawerPanelFluting",
+          "control": "options-grid",
+          "availabilityRef": "DrawerPanelFluting.available"
+        }
+      ]
+    },
+    "grain-direction-custom": {
+      "label": "Grain Direction",
+      "fields": [
+        { "attributeId": "GrainDirection", "control": "options-grid", "availabilityRef": "GrainDirection.available" },
+        { "attributeId": "BookMatching", "control": "checkbox", "availabilityRef": "BookMatching.available" }
+      ]
+    },
+    "countertop-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CountertopColor", "control": "swatches", "optionsRef": "CountertopColor" }]
+    },
+    "thickness": {
+      "label": "Thickness",
+      "fields": [{ "attributeId": "Thickness", "control": "swatches" }]
+    },
+    "countertop-styles": {
+      "label": "Countertop Style",
+      "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
+    },
+    "basin-style": {
+      "label": "Basin style",
+      "labelWhenVessel": "Vessel Sink Style",
+      "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
+    },
+    "vessel-color": {
+      "label": "Vessel Color",
+      "fields": [{ "attributeId": "VesselColor", "control": "swatches", "availabilityRef": "Countertop.isVesselStyle" }]
+    },
+    "counter-top-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CountertopColor", "control": "swatches", "optionsRef": "CountertopColor" }]
+    },
+    "thickness-custom": {
+      "label": "Thickness",
+      "fields": [{ "attributeId": "Thickness", "control": "swatches" }]
+    },
+    "countertop-style": {
+      "label": "Countertop Style",
+      "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
+    },
+    "basin-style-custom": {
+      "label": "Basin style",
+      "labelWhenVessel": "Vessel Sink Style",
+      "fields": [{ "attributeId": "sinkType", "control": "options-grid" }]
+    },
+    "vessel-color-custom": {
+      "label": "Vessel Color",
+      "fields": [{ "attributeId": "VesselColor", "control": "swatches", "availabilityRef": "Countertop.isVesselStyle" }]
+    },
+    "side-panels": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
+    },
+    "dividers": {
+      "label": "Dividers",
+      "fields": [
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
+      ]
+    },
+    "towel-bar": {
+      "label": "Towel Bar",
+      "fields": [
+        { "attributeId": "TowelBarOption", "control": "swatches" },
+        { "attributeId": "TowelBarColor", "control": "options-grid", "availabilityRef": "TowelBarColor.available" }
+      ]
+    },
+    "side-panels-custom": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
+    },
+    "dividers-custom": {
+      "label": "Dividers",
+      "fields": [
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
+      ]
+    },
+    "cabinet-type": {
+      "label": "Cabinet Type",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetType", "control": "options-grid" }]
+    },
+    "cabinet-style": {
+      "label": "Cabinet Style",
+      "fields": [{ "attributeId": "Drawers", "control": "options-grid", "availabilityRef": "CabinetStyle.available" }]
+    },
+    "faucet-holes-amount": {
+      "label": "Faucet Holes",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed",
+          "hints": {
+            "1": "Faucet hole placement to be specified at time of order.",
+            "2": "Faucet hole placement and spacing to be specified at time of order.",
+            "3": "Faucet hole placement and spacing to be specified at time of order."
+          }
+        }
+      ]
+    }
+  }
+}

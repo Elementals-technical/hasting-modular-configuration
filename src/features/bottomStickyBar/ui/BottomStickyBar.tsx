@@ -2,13 +2,17 @@ import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 
 import s from "./BottomStickyBar.module.scss";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
-import { type PropsWithChildren, useEffect, useState, useSyncExternalStore } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useCollectionNavigation, useStepNavigate } from "@/features/collectionCustomization";
+import { type PropsWithChildren, useEffect, useState } from "react";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { getActiveSkus, getPriceLoading, getPriceTotal } from "@/entities/product/model/store/selectors";
+import {
+  getActiveSkus,
+  getPriceLoading,
+  getPriceStatus,
+  getPriceTotal,
+} from "@/entities/product/model/store/selectors";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
-import { getSummaryTotal, subscribeSummaryStore } from "@/shared/lib/summarySkuStore";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
@@ -23,7 +27,6 @@ const formatPrice = (value?: number | null) => {
 };
 
 type BottomStickyBarProps = PropsWithChildren<{
-  flow?: "prebuilt" | "custom";
   nextButtonDataTarget?: string;
 }>;
 
@@ -32,17 +35,17 @@ const HOW_TO_BUY_HUBSPOT_FORM_ID = "e12e000d-b948-4749-b10c-f31f364299b9";
 const isMobileQuoteButtonVisible = () =>
   typeof window.matchMedia === "function" && window.matchMedia("(max-width: 767px)").matches;
 
-export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarProps) => {
+export const BottomStickyBar = ({ nextButtonDataTarget }: BottomStickyBarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
+  const navigate = useStepNavigate();
+  const navigation = useCollectionNavigation();
 
   const priceTotal = useAppSelector(getPriceTotal);
   const activeSkus = useAppSelector(getActiveSkus);
   const isPriceLoading = useAppSelector(getPriceLoading);
-  const isSummaryPage = location.pathname.includes("/summary");
-  const summaryTotal = useSyncExternalStore(subscribeSummaryStore, getSummaryTotal, getSummaryTotal);
-  const displayedTotal = isSummaryPage ? summaryTotal : priceTotal;
+  const priceStatus = useAppSelector(getPriceStatus);
+  const isSummaryPage = navigation?.isSummary ?? false;
+  const summaryStep = navigation?.summaryStep ?? null;
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false);
   const [isNavigatingToQuote, setIsNavigatingToQuote] = useState(false);
   const [isHowToBuyOpen, setIsHowToBuyOpen] = useState(false);
@@ -53,12 +56,16 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
   const { createCurrentConfigurationLink } = useCurrentConfigurationLink();
   const isQuotePrintRequested = new URLSearchParams(location.search).get("print") === "1";
   const isQuotePending = isGeneratingQuote || isNavigatingToQuote || isQuotePrintRequested;
-  const isDisplayedPriceLoading = isPriceLoading || (isSummaryPage && typeof displayedTotal !== "number");
-  const fullPriceLabel = activeSkus.length ? formatPrice(displayedTotal) : "$0.00";
+  // One total everywhere, the Summary pages included (D02).
+  const isDisplayedPriceLoading = isPriceLoading || priceStatus === "loading";
+  const fullPriceLabel =
+    priceStatus === "unavailable" ? "Price unavailable" : activeSkus.length ? formatPrice(priceTotal) : "$0.00";
+  // Some lines have no price: the total leaves them out and must not read as complete.
+  const isPriceIncomplete = !isDisplayedPriceLoading && priceStatus === "partial";
 
-  const currentIndex = steps.findIndex((s) => location.pathname.startsWith(s.path));
-  const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : undefined;
-  const previousStep = currentIndex > 0 ? steps[currentIndex - 1] : undefined;
+  const nextStep = navigation?.nextStep ?? undefined;
+  const previousStep = navigation?.previousStep ?? undefined;
+  const hasNextAction = !!nextStep || isSummaryPage;
 
   useEffect(() => {
     if (!isQuotePrintRequested) {
@@ -85,7 +92,6 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
       return;
     }
 
-    const summaryStep = steps[steps.length - 1];
     if (summaryStep) {
       setIsNavigatingToQuote(true);
       closeDrawerInteraction();
@@ -120,7 +126,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
     } else {
       trackModularHowToBuyClick({
         cta_location: "bottom_sticky_bar",
-        configurator_flow: flow,
+        configurator_flow: navigation?.flowId,
       });
       void prepareHowToBuyConfiguration();
     }
@@ -137,53 +143,54 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
       <div className={s.bottomBar}>
         <div className={s.total}>
           <span className={s.total_text}>Total List Price</span>
-          <span className={s.priceValue} aria-label={isDisplayedPriceLoading ? undefined : fullPriceLabel}>
-            {isDisplayedPriceLoading ? (
-              <span className={s.priceSpinner} />
-            ) : (
-              fullPriceLabel
-            )}
+          <span className={s.priceBlock}>
+            <span className={s.priceValue} aria-label={isDisplayedPriceLoading ? undefined : fullPriceLabel}>
+              {isDisplayedPriceLoading ? <span className={s.priceSpinner} /> : fullPriceLabel}
+            </span>
+            {isPriceIncomplete && <span className={s.priceIncomplete}>Incomplete price</span>}
           </span>
-          <span className={s.showroom_link}>
-            <Link
-              to="#"
-              aria-disabled={isQuotePending}
-              onClick={(e) => {
-                e.preventDefault();
-                if (isQuotePending) return;
-                if (isMobileQuoteButtonVisible()) {
-                  setIsQuoteDownloadModalOpen(true);
-                }
-                void handleQuoteClick();
-              }}
-              aria-label={isQuotePending ? "Generating quote" : "Quote"}
-            >
-              <span className={s.quoteDesktopContent}>
-                <span>{isQuotePending ? "Generating..." : "Quote"}</span>
-                <span className={s.icon}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-download-icon lucide-download"
-                  >
-                    <path d="M12 15V3" />
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <path d="m7 10 5 5 5-5" />
-                  </svg>
+          {summaryStep && (
+            <span className={s.showroom_link}>
+              <Link
+                to="#"
+                aria-disabled={isQuotePending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (isQuotePending) return;
+                  if (isMobileQuoteButtonVisible()) {
+                    setIsQuoteDownloadModalOpen(true);
+                  }
+                  void handleQuoteClick();
+                }}
+                aria-label={isQuotePending ? "Generating quote" : "Quote"}
+              >
+                <span className={s.quoteDesktopContent}>
+                  <span>{isQuotePending ? "Generating..." : "Quote"}</span>
+                  <span className={s.icon}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="17"
+                      height="17"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-download-icon lucide-download"
+                    >
+                      <path d="M12 15V3" />
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <path d="m7 10 5 5 5-5" />
+                    </svg>
+                  </span>
                 </span>
-              </span>
-              <span className={s.quoteMobileIcon} aria-hidden="true">
-                <FileDollarIcon />
-              </span>
-            </Link>
-          </span>
+                <span className={s.quoteMobileIcon} aria-hidden="true">
+                  <FileDollarIcon />
+                </span>
+              </Link>
+            </span>
+          )}
         </div>
         <div
           className={`${s.nextStepWrapp} ${!previousStep ? s.nextStepWrappNoBack : ""}`}
@@ -199,28 +206,36 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
               <ArrowLeft fill="#1f2933" />
             </button>
           )}
-          <BaseButton
-            className={s.desktopNextButton}
-            onClick={handleNavigate}
-            disabled={!nextStep && isPreparingHowToBuyConfiguration}
-            fullWidth={true}
-          >
-            <span className={s.nextButtonDesktopLabel}>
-              {nextStep ? `Next: ${nextStep.label}` : isPreparingHowToBuyConfiguration ? "Preparing..." : "How to Buy"}
-            </span>
-            <span className={s.nextButtonMobileLabel}>
-              {nextStep ? nextStep.label : isPreparingHowToBuyConfiguration ? "Preparing..." : "How to Buy"}
-            </span>
-          </BaseButton>
-          <button
-            type="button"
-            className={`${s.backButton} ${s.mobileNextButton}`}
-            onClick={handleNavigate}
-            disabled={!nextStep && isPreparingHowToBuyConfiguration}
-            aria-label={nextStep ? `Next to ${nextStep.label}` : "How to Buy"}
-          >
-            <ArrowLeft fill="#1f2933" />
-          </button>
+          {hasNextAction && (
+            <>
+              <BaseButton
+                className={s.desktopNextButton}
+                onClick={handleNavigate}
+                disabled={!nextStep && isPreparingHowToBuyConfiguration}
+                fullWidth={true}
+              >
+                <span className={s.nextButtonDesktopLabel}>
+                  {nextStep
+                    ? `Next: ${nextStep.label}`
+                    : isPreparingHowToBuyConfiguration
+                      ? "Preparing..."
+                      : "How to Buy"}
+                </span>
+                <span className={s.nextButtonMobileLabel}>
+                  {nextStep ? nextStep.label : isPreparingHowToBuyConfiguration ? "Preparing..." : "How to Buy"}
+                </span>
+              </BaseButton>
+              <button
+                type="button"
+                className={`${s.backButton} ${s.mobileNextButton}`}
+                onClick={handleNavigate}
+                disabled={!nextStep && isPreparingHowToBuyConfiguration}
+                aria-label={nextStep ? `Next to ${nextStep.label}` : "How to Buy"}
+              >
+                <ArrowLeft fill="#1f2933" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 

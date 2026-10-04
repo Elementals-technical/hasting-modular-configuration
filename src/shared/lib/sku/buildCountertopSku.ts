@@ -1,4 +1,5 @@
 import { cmToInches } from "./cmToInches";
+import type { SkuProfile } from "./skuProfile";
 import {
   countertopStyleSkuMap,
   countertopMaterialSkuMap,
@@ -121,10 +122,10 @@ export const canBuildCountertopSku = (input: CountertopSkuInput): boolean => {
  *  [2] Faucet Qty — if faucet holes > 0  CT-{SERIES}-FAHO/{QTY}
  *  [3] Hole Cut   — if style is vessel   CT-{SERIES}-HCUT
  *
- * SERIES is derived from material SKU: "UR" + materialSku (e.g. FX → URFX, HPL → URHPL)
+ * SERIES is the collection countertop prefix + material SKU (USH: FX → URFX, HPL → URHPL). Only the
+ * series is read, so a collection whose countertop is priced as USH's passes USH's series alone.
  */
-export function buildCountertopSku(input: CountertopSkuInput): string[] {
-  console.log(LOG_PREFIX, "buildCountertopSku input", input);
+export function buildCountertopSku(profile: Pick<SkuProfile, "series">, input: CountertopSkuInput): string[] {
   const styleValue = input.style?.trim() || "plain";
   if (!hasKnownCountertopStyle(styleValue)) {
     throw new Error(INVALID_COUNTERTOP_STYLE_ERROR);
@@ -143,10 +144,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const colorMaterial = resolveCountertopMaterialSkuFromColorCode(input.countertopColorCode);
   // Syntesi finish codes are the strongest signal because API/scene state can still
   // carry the generic Tekorlux material SKU while the selected color is TAN/TAP.
-  const mat =
-    colorMaterial ??
-    inferredMaterial ??
-    (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
+  const mat = colorMaterial ?? inferredMaterial ?? (resolvedMaterial !== FALLBACK ? resolvedMaterial : null);
   const color = input.countertopColorCode?.trim() || null;
   if (!mat && !color) {
     throw new Error(MISSING_COUNTERTOP_MATERIAL_ERROR);
@@ -158,7 +156,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
     throw new Error(MISSING_COUNTERTOP_MATERIAL_ERROR);
   }
 
-  const vesselMaterial = isVessel ? mat ?? "FX" : mat;
+  const vesselMaterial = isVessel ? (mat ?? profile.series.countertopDefaultMaterial) : mat;
 
   // Dimensions: converted from cm to inches (÷ 2.54, 1 decimal)
   const parsedT = parseThicknessValue(input.thickness);
@@ -172,8 +170,11 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   const t = `${formatThicknessToken(thicknessForSku)}H`;
   const matBlock = formatTopMaterialBlock(vesselMaterial, color);
 
-  // Series is dynamic: "UR" + materialSku (e.g. "URFX", "URHPL", "URPOR")
-  const series = vesselMaterial ? `UR${vesselMaterial}` : "URFX";
+  // Series is dynamic: the collection prefix + materialSku (USH: "URFX", "URHPL", "URPOR")
+  const { countertopPrefix, countertopDefaultMaterial } = profile.series;
+  const series = vesselMaterial
+    ? `${countertopPrefix}${vesselMaterial}`
+    : `${countertopPrefix}${countertopDefaultMaterial}`;
   console.log(LOG_PREFIX, "material resolution", {
     basinType: input.basinType,
     countertopMaterialSkuInput: input.countertopMaterialSku,
@@ -216,5 +217,7 @@ export function buildCountertopSku(input: CountertopSkuInput): string[] {
   return lines;
 }
 
-export const buildCountertopSkuIfComplete = (input: CountertopSkuInput): string[] =>
-  canBuildCountertopSku(input) ? buildCountertopSku(input) : [];
+export const buildCountertopSkuIfComplete = (
+  profile: Pick<SkuProfile, "series">,
+  input: CountertopSkuInput,
+): string[] => (canBuildCountertopSku(input) ? buildCountertopSku(profile, input) : []);

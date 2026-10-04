@@ -13,7 +13,6 @@ export { getAvailableDividerTypes } from "./getAvailableDividerTypes";
 export type { DividerSlotKey } from "./getAvailableDividerTypes";
 export {
   getAvailableDividerTypesForDrawer,
-  getDividerTypeFromOptionTitle,
   type DividerType,
 } from "./getAvailableDividerTypesForDrawer";
 export {

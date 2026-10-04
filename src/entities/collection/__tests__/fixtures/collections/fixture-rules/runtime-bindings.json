@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "fixture-rules",
+  "productTypes": { "Fixture-Cabinet": "Fixture-Cabinet" },
+  "bindings": [
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": { "kind": "product" },
+      "values": { "kind": "map", "patches": { "2": { "Drawers": "2D" } } },
+      "order": 10
+    },
+    {
+      "attributeId": "Handle",
+      "status": "bound",
+      "target": { "kind": "all" },
+      "values": { "kind": "identity", "sceneKey": "Handle" },
+      "order": 20
+    },
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": { "kind": "all" },
+      "values": { "kind": "identity", "sceneKey": "Height" },
+      "order": 30
+    },
+    { "attributeId": "CabinetType", "status": "unbound", "reason": "Placed by product type" },
+    { "attributeId": "CabinetColor", "status": "unbound", "reason": "Synthetic fixture does not paint a scene" },
+    { "attributeId": "CabinetColorSku", "status": "unbound", "reason": "Synthetic fixture has no pricing" },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Synthetic fixture has no material metadata"
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Synthetic fixture has no finish metadata"
+    },
+    { "attributeId": "sinkType", "status": "unbound", "reason": "Synthetic fixture has no basin" },
+    { "attributeId": "CountertopColor", "status": "unbound", "reason": "Synthetic fixture has no countertop" },
+    { "attributeId": "CountertopColorSku", "status": "unbound", "reason": "Synthetic fixture has no pricing" },
+    { "attributeId": "VesselColor", "status": "unbound", "reason": "Synthetic fixture has no vessel" },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "unbound",
+      "reason": "Synthetic fixture checks handle rules only"
+    },
+    { "attributeId": "HandleGrooveColorSku", "status": "unbound", "reason": "Synthetic fixture has no pricing" },
+    { "attributeId": "Thickness", "status": "unbound", "reason": "Synthetic fixture has no countertop" },
+    { "attributeId": "DrawerPanelFluting", "status": "unbound", "reason": "Synthetic fixture has no fluting" },
+    { "attributeId": "GrainDirection", "status": "unbound", "reason": "Synthetic fixture has no grain" },
+    { "attributeId": "BookMatching", "status": "unbound", "reason": "Synthetic fixture has no book matching" },
+    { "attributeId": "CountertopStyle", "status": "unbound", "reason": "Synthetic fixture has no countertop" },
+    { "attributeId": "SidePanels", "status": "unbound", "reason": "Synthetic fixture has no side panels" },
+    { "attributeId": "SidePanelLeft", "status": "unbound", "reason": "Synthetic fixture has no side panels" },
+    { "attributeId": "SidePanelRight", "status": "unbound", "reason": "Synthetic fixture has no side panels" },
+    { "attributeId": "LedOption", "status": "unbound", "reason": "Synthetic fixture has no LED" },
+    { "attributeId": "DividersOption", "status": "unbound", "reason": "Synthetic fixture has no dividers" },
+    { "attributeId": "DividersStyle", "status": "unbound", "reason": "Synthetic fixture has no dividers" },
+    { "attributeId": "TowelBarOption", "status": "unbound", "reason": "Synthetic fixture has no towel bar" },
+    { "attributeId": "TowelBarColor", "status": "unbound", "reason": "Synthetic fixture has no towel bar" },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "unbound",
+      "reason": "Synthetic fixture has no faucet holes"
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "unbound",
+      "reason": "Synthetic fixture has no faucet holes"
+    },
+    { "attributeId": "Width", "status": "unbound", "reason": "Width is fixed in this synthetic fixture" },
+    { "attributeId": "Depth", "status": "unbound", "reason": "Depth is fixed in this synthetic fixture" }
+  ]
+}

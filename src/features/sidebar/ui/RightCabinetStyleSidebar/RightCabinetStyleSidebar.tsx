@@ -12,9 +12,6 @@ import { FilterSelection } from "@/shared/ui/Filter/FilterSelection";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
 import image from "../../../../shared/assets/images/png/img_png.png";
-import upperHandleImage from "@/shared/assets/images/jpeg/UpperGHandle.jpg";
-import centralHandleImage from "@/shared/assets/images/jpeg/CentralGHandle.jpg";
-import ptoHandleImage from "@/shared/assets/images/jpeg/PTOHandle.jpg";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
@@ -23,45 +20,43 @@ import { setOpenStyleSidebar } from "../../model/store/slice";
 import {
   getDimensionOptions,
   getDrawerProduct,
-  getCabinetColor,
+  getCabinetBuilderProductConfig,
   getCountertopColorSku,
   getCountertopStyle,
-  getHandleGrooveColor,
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getActiveCabinetRule,
-  getDrawerPanelFluting,
-  getGrainDirection,
   getSelectedDimensions,
   getSelectedProducts,
+  getSelectedSceneProduct,
   getSelectedProductConfig,
   getHeightLocked,
   getSinkType,
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
-  addProductId,
-  removeProductId,
   setHasBootstrappedCabinetBuilder,
-  setPlacedCabinetStyle,
   setSelectedDimensions,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setProductByParams } from "@/utils/functions/playcanvas/setProductByParams";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { setConfig } from "@/utils/functions/playcanvas/setConfig";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
-import { removeProduct } from "@/utils/functions/playcanvas/removeProduct";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
-import { useGetConfiguratorQuery } from "@/entities";
-import { buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
-import { withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
+import { hasCapability, selectEffectiveFallback, selectOptions, useActiveCollection } from "@/entities/collection";
+import { useOptionImages } from "@/features/collectionCustomization";
+import {
+  getActiveProductProfile,
+  getCabinetDimensionsByRuntimeId,
+  getCabinetEntries,
+} from "@/entities/configuration/model/store/selectors";
+import { useChangeAttribute } from "@/features/configurationCommands";
+import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
@@ -69,7 +64,10 @@ import {
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
+import { REASON_HANDLE_HEIGHT_LOCKED } from "@/features/configurator-rule-core/cabinetBuilder";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
+
+import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -81,24 +79,8 @@ const STYLE_SIDEBAR_LOCKED_TUTORIAL_STEP_IDS: ReadonlySet<string> = new Set([
   INTERACTIVE_CONFIGURATOR_TUTORIAL_STEP_IDS.customPlaceCabinet,
 ]);
 
-interface PendingHandleChange {
-  next: string;
-  previous: string | undefined;
-  previousDimensions: {
-    width: number | null;
-    height: number | null;
-    depth: number | null;
-  };
-}
-
 interface PendingOssHandleChange {
   next: string;
-  previous: string | undefined;
-  previousDimensions: {
-    width: number | null;
-    height: number | null;
-    depth: number | null;
-  };
   ossIds: string[];
 }
 
@@ -109,6 +91,8 @@ interface PendingDepthChange {
 
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
+  const activeProfile = useAppSelector(getActiveProductProfile);
+  const optionImages = useOptionImages();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
@@ -119,16 +103,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
+  const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const heightLocked = useAppSelector(getHeightLocked);
-  const cabinetColor = useAppSelector(getCabinetColor);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
-  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const grainDirection = useAppSelector(getGrainDirection);
   const sinkType = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
@@ -136,19 +117,23 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const maxCountertopLength = lengthGuard.max;
 
   const saveSnapshot = useHistorySnapshot();
-  const { data: counterTopMaterials } = useGetConfiguratorQuery({
-    id: 4,
-    view: "full",
-    serialize: true,
-  });
+  const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
-  const [pendingHandleChange, setPendingHandleChange] = useState<PendingHandleChange | null>(null);
+  const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
   const [isStyleSidebarTutorialStepActive, setIsStyleSidebarTutorialStepActive] = useState(false);
+  const {
+    change: changeAttributeValue,
+    confirm: confirmAttributeValue,
+    getState: getCommandState,
+    composition,
+  } = useChangeAttribute();
+  /** Height the command service is applying; the dimensions effect must not send it again. */
+  const commandHeightRef = useRef<number | null>(null);
   const hasModalOpen =
-    pendingHandleChange !== null ||
+    pendingHandlePreview !== null ||
     pendingOssHandleChange !== null ||
     pendingDepthChange !== null ||
     handleLockNotice !== null;
@@ -159,21 +144,21 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         ? dimensionOptions.handles
         : handlesDisabled
           ? []
-          : [
-              { label: "Push to open", value: "handle_pto" },
-              { label: "Upper Groove", value: "handle_urban_topcut" },
-              { label: "Central Groove", value: "handle_urban_botcut" },
-            ],
-    [dimensionOptions.handles, handlesDisabled],
+          : // Fallback before the rules produced availability: the catalog of the active
+            // collection, never a local list of handle ids.
+            selectOptions(activeProfile, "Handle").map((option) => ({
+              label: option.label,
+              value: option.value,
+            })),
+    [dimensionOptions.handles, handlesDisabled, activeProfile],
   );
 
+  // The picture of a handle is the collection's; an id it declares none for falls back to the
+  // generic image instead of gating behaviour, so a new handle renders without a change here.
   const handleImage = useMemo(() => {
     const value = selectedProductConfig?.Handle;
-    if (value === "handle_urban_topcut") return upperHandleImage;
-    if (value === "handle_urban_botcut") return centralHandleImage;
-    if (value === "handle_pto") return ptoHandleImage;
-    return image;
-  }, [selectedProductConfig?.Handle]);
+    return (typeof value === "string" ? optionImages?.Handle?.[value] : undefined) ?? image;
+  }, [optionImages, selectedProductConfig?.Handle]);
 
   useEffect(
     () =>
@@ -204,9 +189,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   const countertopOptionsFromApi = useMemo(() => {
-    const availableOptions = ((counterTopMaterials as { availableOptions?: Array<Record<string, unknown>> } | undefined)
-      ?.availableOptions ?? []) as Array<Record<string, unknown>>;
-    const groups = availableOptions.filter((group) => group.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((group) => group.proxyName === "Countertop Color");
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
@@ -271,7 +254,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           });
       });
     });
-  }, [counterTopMaterials]);
+  }, [configuratorGroups]);
 
   const activeMaterialTokens = useMemo(() => {
     if (!countertopColor) return [];
@@ -298,6 +281,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const widthOptions = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({
+      profile: activeProfile,
       values,
       activeCabinetCode: activeCabinetRule?.code,
       isSinkBaseCabinet: activeDrawerProduct?.toLowerCase().includes("sink-base"),
@@ -320,6 +304,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return numericWidth <= maxAddableWidth + 0.01;
     });
   }, [
+    activeProfile,
     activeCabinetRule?.code,
     activeDrawerProduct,
     activeMaterialTokens,
@@ -342,10 +327,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
+      profile: activeProfile,
     });
     const allowedValues = new Set(filteredValues.map((value) => String(value)));
     return dimensionOptions.depth.filter((option) => !option.disabled && allowedValues.has(String(option.value)));
-  }, [activeMaterialTokens, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
+  }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, sinkType, dimensionOptions.depth]);
 
   const widthDisplayOptions = useMemo(
     () =>
@@ -364,34 +350,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       })),
     [depthOptions],
   );
-
-  const productConfig = useMemo(() => {
-    if (selectedDimensions.width === null || selectedDimensions.height === null || selectedDimensions.depth === null) {
-      return null;
-    }
-
-    return {
-      ...selectedProductConfig,
-      Width: selectedDimensions.width,
-      Height: selectedDimensions.height,
-      Depth: selectedDimensions.depth,
-      CabinetColor: cabinetColor,
-      CountertopColor: countertopColor,
-      HandleGrooveColor: handleGrooveColor,
-      DrawerPanelFluting: drawerPanelFluting,
-      GrainDirection: grainDirection,
-    };
-  }, [
-    cabinetColor,
-    countertopColor,
-    handleGrooveColor,
-    drawerPanelFluting,
-    grainDirection,
-    selectedDimensions.depth,
-    selectedDimensions.height,
-    selectedDimensions.width,
-    selectedProductConfig,
-  ]);
 
   const handleCloseSidebar = () => {
     if (isStyleSidebarTutorialStepActive) return;
@@ -441,62 +399,70 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   //   dispatch(setSelectedDimensions({ height: Number(value) }));
   // };
 
-  const applyHandleType = async (handleType: string) => {
+  /** Shows what the command service answered; an applied change needs nothing more. */
+  const showHandleChangeResult = (result: ChangeResult) => {
+    switch (result.status) {
+      case "confirmation-required":
+        setPendingHandlePreview(result.preview);
+        return;
+      case "blocked":
+        setHandleLockNotice(result.reason);
+        return;
+      case "error":
+        setHandleLockNotice(result.message);
+        return;
+      case "partial":
+        setHandleLockNotice(
+          `The handle was applied, but ${result.failed.map(({ change }) => change.attributeId).join(", ")} could not be updated.`,
+        );
+        return;
+      case "applied":
+        return;
+    }
+  };
+
+  /**
+   * A handle change goes through the command service: it checks the rules, asks for
+   * confirmation when the profile says so, and sends the agreed set to the scene once.
+   * Nothing changes before Confirm, so Cancel has nothing to revert.
+   */
+  const requestHandleChange = async (handleType: string) => {
+    // Read at the moment of the change: removing Side Shelves just before changes the list.
+    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+
+    // No cabinet placed yet: this is the choice for the next cabinet; there is nothing to send.
+    if (!cabinetId) {
+      await saveSnapshot();
+      dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+      return;
+    }
+
+    showHandleChangeResult(
+      await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+    );
+  };
+
+  const closePendingHandlePreview = () => {
+    setPendingHandlePreview(null);
+  };
+
+  const confirmPendingHandlePreview = async () => {
+    if (!pendingHandlePreview) return;
+    const preview = pendingHandlePreview;
+    setPendingHandlePreview(null);
+
     await saveSnapshot();
-    dispatch(
-      setSelectedProductConfig({
-        ...(selectedProductConfig ?? {}),
-        Handle: handleType,
-      }),
-    );
 
-    if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
-    }
-  };
+    const plannedHeight = preview.plan.find(({ attributeId }) => attributeId === "Height")?.value;
+    commandHeightRef.current = typeof plannedHeight === "number" ? plannedHeight : null;
 
-  const restoreHandleType = async (
-    handleType: string | undefined,
-    previousDimensions: { width: number | null; height: number | null; depth: number | null },
-  ) => {
-    if (!handleType) return;
+    const result = await confirmAttributeValue(preview);
 
-    dispatch(
-      setSelectedProductConfig({
-        ...(selectedProductConfig ?? {}),
-        Handle: handleType,
-      }),
-    );
-
-    if (selectedProducts.length) {
-      await setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(handleType, handleGrooveColor));
+    if (result.status !== "applied" && result.status !== "partial") {
+      commandHeightRef.current = null;
     }
 
-    dispatch(setSelectedDimensions(previousDimensions));
-
-    const dimConfig: { Height?: number; Depth?: number } = {};
-    if (typeof previousDimensions.height === "number") {
-      dimConfig.Height = previousDimensions.height;
-    }
-    if (typeof previousDimensions.depth === "number") {
-      dimConfig.Depth = previousDimensions.depth;
-    }
-
-    if (selectedProducts.length && Object.keys(dimConfig).length > 0) {
-      await setConfigBatch({}, dimConfig);
-      selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-    }
-  };
-
-  const closePendingHandleChange = async (isConfirmed = false) => {
-    if (!pendingHandleChange) return;
-
-    const { previous, next, previousDimensions } = pendingHandleChange;
-    setPendingHandleChange(null);
-
-    if (isConfirmed || previous === next) return;
-
-    await restoreHandleType(previous, previousDimensions);
+    showHandleChangeResult(result);
   };
 
   const handleSetHandleType = async (handleType: string) => {
@@ -504,19 +470,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (typeof heightLocked === "number") {
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
-      if (option?.disabled && option.reason?.startsWith("Not available for current configuration height")) {
+      if (option?.disabled && option.reasonCode === REASON_HANDLE_HEIGHT_LOCKED) {
         const ossIdsForLock = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
-        if (ossIdsForLock.length > 0 && handleType !== "handle_pto" && previousHandle === "handle_pto") {
-          setPendingOssHandleChange({
-            next: handleType,
-            previous: previousHandle,
-            previousDimensions: {
-              width: selectedDimensions.width,
-              height: selectedDimensions.height,
-              depth: selectedDimensions.depth,
-            },
-            ossIds: ossIdsForLock,
-          });
+        const leavingNonGroove =
+          !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
+          hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
+
+        if (ossIdsForLock.length > 0 && leavingNonGroove) {
+          setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock });
           return;
         }
 
@@ -529,35 +490,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (previousHandle === handleType) return;
 
-    const isSwitchingAwayFromPto = previousHandle === "handle_pto" && handleType !== "handle_pto";
+    const isSwitchingAwayFromPto =
+      !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
+      hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
     const ossIds = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
-      setPendingOssHandleChange({
-        next: handleType,
-        previous: previousHandle,
-        previousDimensions: {
-          width: selectedDimensions.width,
-          height: selectedDimensions.height,
-          depth: selectedDimensions.depth,
-        },
-        ossIds,
-      });
+      setPendingOssHandleChange({ next: handleType, ossIds });
       return;
     }
 
-    await applyHandleType(handleType);
-
-    if (selectedProducts.length > 0) {
-      setPendingHandleChange({
-        next: handleType,
-        previous: previousHandle,
-        previousDimensions: {
-          width: selectedDimensions.width,
-          height: selectedDimensions.height,
-          depth: selectedDimensions.depth,
-        },
-      });
-    }
+    await requestHandleChange(handleType);
   };
 
   const closePendingOssHandleChange = () => {
@@ -566,23 +508,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const confirmPendingOssHandleChange = async () => {
     if (!pendingOssHandleChange) return;
-    const { next, previous, previousDimensions, ossIds } = pendingOssHandleChange;
+    const { next, ossIds } = pendingOssHandleChange;
     setPendingOssHandleChange(null);
 
-    for (const ossId of ossIds) {
-      await removeProduct(ossId);
-      dispatch(removeProductId(ossId));
+    // The side shelves go through the composition command, which removes them from the scene
+    // and records what the scene kept; the handle only changes once they are gone.
+    const removed = await composition.removeCabinets(ossIds);
+    if (removed.status === "error") {
+      console.warn("[Sidebar] The side shelves were not removed", removed);
+      return;
     }
 
-    await applyHandleType(next);
-
-    if (selectedProducts.length - ossIds.length > 0) {
-      setPendingHandleChange({
-        next,
-        previous,
-        previousDimensions,
-      });
-    }
+    await requestHandleChange(next);
   };
 
   useEffect(() => {
@@ -592,37 +529,51 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
+    // A height the command service just applied is already in the scene.
+    if (commandHeightRef.current !== null && commandHeightRef.current === selectedDimensions.height) {
+      commandHeightRef.current = null;
+      return;
+    }
+
+    // Selecting another cabinet copies its actual size into the selection. That is not a change
+    // to send: it would give every cabinet the selected one's height and depth (I04).
+    const state = getCommandState();
+    const hasSize = (dimensions: ReturnType<typeof getCabinetDimensionsByRuntimeId>) =>
+      dimensions?.height === selectedDimensions.height && dimensions?.depth === selectedDimensions.depth;
+
+    if (hasSize(getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state)))) return;
+
+    // Opening the sidebar re-runs this effect; when every cabinet already has this size there is nothing to send.
+    const placedCabinets = getCabinetEntries(state);
+    if (
+      placedCabinets.length > 0 &&
+      placedCabinets.every(({ runtimeId }) => hasSize(getCabinetDimensionsByRuntimeId(state, runtimeId)))
+    ) {
+      return;
+    }
+
     const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
     setConfigBatch({}, dimConfig);
 
     selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar]);
-
-  const prevHandleRef = useRef<string | undefined>(undefined);
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
-    if (!handlesDisabled && !selectedProductConfig?.Handle && selectedProductConfig !== null) {
+    const fallbackHandle = selectEffectiveFallback(activeProfile, "Handle");
+
+    if (!handlesDisabled && fallbackHandle && !selectedProductConfig?.Handle && selectedProductConfig !== null) {
       dispatch(
         setSelectedProductConfig({
           ...selectedProductConfig,
-          Handle: "handle_urban_topcut",
+          Handle: fallbackHandle,
         }),
       );
     }
-  }, [dispatch, selectedProductConfig, handlesDisabled]);
+  }, [dispatch, selectedProductConfig, handlesDisabled, activeProfile]);
 
-  // Sync handle to PlayCanvas when it changes (e.g. auto-reset due to rule change)
-  useEffect(() => {
-    const currentHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : undefined;
-    const prevHandle = prevHandleRef.current;
-    prevHandleRef.current = currentHandle;
-
-    if (!currentHandle || currentHandle === prevHandle) return;
-    if (!selectedProducts.length) return;
-
-    setConfigBatch(selectedProducts, buildHandleStyleConfigPatch(currentHandle, handleGrooveColor));
-  }, [handleGrooveColor, selectedProductConfig?.Handle, selectedProducts]);
+  // A handle changed by the rules reaches the scene through the handle listener in
+  // optionsListener.ts; a user choice goes through the command service above.
 
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
@@ -674,6 +625,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       if (!activeDrawerProduct) return;
       const availableAddWidths = filterWidthValuesByCountertopRules({
+        profile: activeProfile,
         values: dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value),
         activeCabinetCode: activeCabinetRule?.code,
         isSinkBaseCabinet: activeDrawerProduct?.toLowerCase().includes("sink-base"),
@@ -724,45 +676,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       }
 
       await saveSnapshot();
-      const productId = await setProductByParams(activeDrawerProduct, entityId, side);
 
+      // The collection's scene product goes beside the clicked one and is recorded there with its
+      // drawer style, as a duplicated cabinet is.
+      const added = await composition.addCabinet(
+        buildAddedCabinetRequest({
+          cabinetType: activeDrawerProduct,
+          config: productConfig,
+          width: widthForAddedCabinet,
+          sinkType,
+          countertopStyle,
+          vesselColor,
+          anchorRuntimeId: entityId,
+          side,
+        }),
+      );
+      const productId = added.status === "error" ? null : added.placed[0];
       if (!productId) return;
 
-      if (productConfig || widthForAddedCabinet !== null) {
-        const isSinkBase = activeDrawerProduct.toLowerCase().includes("sink-base");
-        const isVesselStyle = countertopStyle?.toLowerCase() === "vessel";
-        const resolvedSinkType = sinkType || (isVesselStyle ? "Vessel" : "");
-        const nextConfigBase: Record<string, unknown> =
-          isSinkBase && (resolvedSinkType || countertopStyle)
-            ? {
-                ...productConfig,
-                ...(resolvedSinkType ? { sinkType: resolvedSinkType } : {}),
-                ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}),
-              }
-            : { ...(productConfig ?? {}) };
-        const nextConfig = withRuntimeProductType(nextConfigBase, activeDrawerProduct);
-
-        if (widthForAddedCabinet !== null) {
-          nextConfig.Width = widthForAddedCabinet;
-        }
-
-        await setConfig(productId, nextConfig);
-
-        if (
-          vesselColor &&
-          typeof nextConfig.sinkType === "string" &&
-          String(nextConfig.sinkType).startsWith("Vessel")
-        ) {
-          await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: vesselColor });
-        }
-      }
-
-      dispatch(addProductId(productId));
       dispatch(setHasBootstrappedCabinetBuilder(true));
-
-      const drawers = (productConfig as Record<string, unknown>)?.Drawers as string | undefined;
-      const drawerRawValue = drawers === "1D" ? "1" : drawers === "2D" ? "2" : drawers === "1DWID" ? "1+inner" : null;
-      if (drawerRawValue) dispatch(setPlacedCabinetStyle({ id: productId, value: drawerRawValue }));
 
       // Close sidebar and reset accordion to default state
       dispatch(setOpenStyleSidebar(false));
@@ -774,8 +706,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     setHandleButtonClick(onPlusClick);
   }, [
+    activeProfile,
     isPlayCanvasReady,
     activeDrawerProduct,
+    composition,
     maxCountertopLength,
     maxAddableCabinetWidth,
     onProductAdded,
@@ -820,23 +754,23 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         </div>
       </PopupCenterContent>
 
-      <PopupCenterContent isOpening={pendingHandleChange !== null} onClose={() => void closePendingHandleChange()}>
+      <PopupCenterContent isOpening={pendingHandlePreview !== null} onClose={closePendingHandlePreview}>
         <div className={s.confirmPopup}>
           <div className={s.confirmHeader}>
-            <div className={s.confirmTitle}>Handle Style Updated</div>
-            <div className={s.confirmClose} onClick={() => void closePendingHandleChange()}>
+            <div className={s.confirmTitle}>Update Handle Style?</div>
+            <div className={s.confirmClose} onClick={closePendingHandlePreview}>
               <CloseBtnIcon />
             </div>
           </div>
           <div className={s.confirmContent}>
-            <p>The handle style has been updated for all drawer cabinets.</p>
+            <p>{pendingHandlePreview?.reasons[0]?.reason}</p>
           </div>
           <div className={s.confirmFooter}>
             <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <BaseButton variant="ghost" onClick={() => void closePendingHandleChange()} fullWidth={true}>
+              <BaseButton variant="ghost" onClick={closePendingHandlePreview} fullWidth={true}>
                 Cancel
               </BaseButton>
-              <BaseButton onClick={() => void closePendingHandleChange(true)} fullWidth={true}>
+              <BaseButton onClick={() => void confirmPendingHandlePreview()} fullWidth={true}>
                 Confirm
               </BaseButton>
             </div>

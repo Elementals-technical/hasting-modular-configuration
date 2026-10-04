@@ -1,0 +1,25 @@
+{
+  "id": "class",
+  "label": "Class",
+  "defaults": {},
+  "local": {
+    "presets": "presets.json",
+    "ui": "ui.json",
+    "productProfile": "product-profile.json",
+    "skuProfile": "sku-profile.json",
+    "runtimeBindings": "runtime-bindings.json"
+  },
+  "remote": {
+    "configurator": {
+      "id": 9,
+      "view": "full",
+      "serialize": true
+    },
+    "countertopTable": {
+      "id": 578
+    },
+    "cabinetTable": {
+      "id": 579
+    }
+  }
+}

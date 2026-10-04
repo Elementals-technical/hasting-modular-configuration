@@ -3,7 +3,6 @@ import type {
   IMapUIData,
   IMaterialMetadata,
   IProductElementOption,
-  IThreekitConfiguration,
 } from "../model/types";
 import {
   getCountertopMaterialTokensBySku,
@@ -20,6 +19,8 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+import type { ProductProfile } from "@/entities/collection";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
   appendSyntesiCountertopOptions,
   type CountertopMatrixRule,
@@ -53,6 +54,8 @@ const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
 
 type AdaptThreekitConfigOptions = {
   countertopRules?: CountertopMatrixRule[];
+  /** Active collection profile; its Syntesi data decides the rule-backed Syntesi swatches. */
+  profile: ProductProfile | null;
 };
 
 const inferCountertopMaterial = ({
@@ -174,6 +177,7 @@ const appendCountertopRuleBackedSwatches = (
   productElementOptions: IProductElementOption[],
   allMaterialValues: AttributeValue[],
   rules: CountertopMatrixRule[] | undefined,
+  profile: ProductProfile | null,
 ) => {
   if (!rules?.length) return;
 
@@ -181,7 +185,7 @@ const appendCountertopRuleBackedSwatches = (
   const sourceValues = countertopGroup?.valuesArray ?? [];
   const sourceOptions = sourceValues.map(toCountertopSourceOption);
   const sourceOptionIds = new Set(sourceOptions.map((option) => String(option.id)));
-  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules);
+  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules, profile);
   const syntheticValues = nextOptions
     .filter((option) => !sourceOptionIds.has(String(option.id)))
     .map(toCountertopAttributeValue);
@@ -203,17 +207,17 @@ const appendCountertopRuleBackedSwatches = (
 };
 
 export const adaptThreekitConfig = (
-  data: IThreekitConfiguration | null | undefined,
-  options: AdaptThreekitConfigOptions = {},
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
+  options: AdaptThreekitConfigOptions,
 ): IMapUIData => {
-  if (!data?.availableOptions?.length) {
+  if (!groups?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
   }
 
   const productElementOptions: IProductElementOption[] = [];
   const allMaterialValues: AttributeValue[] = [];
 
-  for (const group of data.availableOptions) {
+  for (const group of groups) {
     if (!group.enabled) continue;
     if (group.proxyType !== "material") continue;
 
@@ -222,7 +226,7 @@ export const adaptThreekitConfig = (
 
     for (const option of group.options ?? []) {
       for (const variant of option.variants ?? []) {
-        if (!isVisibleConfiguratorVariant({ proxyName: parentName, variant })) continue;
+        if (!isVisibleConfiguratorVariant(variant)) continue;
 
         const outer = (variant.metadata ?? {}) as Record<string, unknown>;
         const nested = (
@@ -340,6 +344,7 @@ export const adaptThreekitConfig = (
     productElementOptions,
     allMaterialValues,
     options.countertopRules,
+    options.profile,
   );
 
   allMaterialValues.sort((a, b) =>

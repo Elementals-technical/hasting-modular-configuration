@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "profileVersion": "0.1.0-draft",
+  "status": "draft-from-product-map",
+  "collectionId": "urban-low-height",
+  "label": "Urban Low Height",
+  "provenance": {
+    "source": "analysis/products-data/Urban Low Height/docs/URBAN-LOW-HEIGHT-PRODUCT-MAP-UA.md",
+    "auditedAt": "2026-09-09",
+    "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it. Exception, added on request: CountertopStyle, sinkType and VesselColor take the Urban Standard Height options."
+  },
+  "sourceRefs": {
+    "configuratorId": 4,
+    "countertopMatrixTableId": 438,
+    "cabinetMatrixTableId": 580
+  },
+  "defaults": {
+    "CabinetColor": "Rox Black TKQ",
+    "CountertopColor": "Pietra Di Savoia Antracite TQ6",
+    "CountertopStyle": "integrated",
+    "sinkType": "Top_Porcelain_Cover",
+    "TowelBarOption": "None"
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 10,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet with a basin (URLH-SB)"
+        },
+        {
+          "value": "Side-Cabinet",
+          "label": "Side Cabinet",
+          "order": 20,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Storage cabinet without a basin (URLH-SC)"
+        },
+        {
+          "value": "Open-Shelf",
+          "label": "Open Shelf",
+          "order": 30,
+          "category": "open-cabinet",
+          "legacyDescription": "Open module with one shelf (UROS)"
+        },
+        {
+          "value": "Open-Side-Shelf",
+          "label": "Open Side Shelf",
+          "order": 40,
+          "category": "open-cabinet",
+          "legacyDescription": "End module, left or right (UROSS)"
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 10,
+          "aliases": ["1D", "1DW"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Handle",
+      "scope": "cabinet",
+      "confirmation": { "when": "cabinetsPlaced", "reasonCode": "handle.appliesToAllCabinets" },
+      "initialValue": "",
+      "effectiveFallbackValue": "handle_urban_topcut",
+      "options": [
+        {
+          "value": "handle_urban_topcut",
+          "label": "Upper Groove",
+          "order": 10,
+          "capabilities": {
+            "supportsGrooveColor": true
+          }
+        },
+        {
+          "value": "handle_pto",
+          "label": "Push to open",
+          "order": 20,
+          "capabilities": {
+            "supportsGrooveColor": false
+          }
+        }
+      ]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "options": [
+        { "value": "38", "label": "38 cm", "order": 10 },
+        { "value": "35", "label": "35 cm", "order": 20 },
+        { "value": "28", "label": "28 cm", "order": 30 },
+        { "value": "25", "label": "25 cm", "order": 40 }
+      ]
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "scope": "cabinet",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10, "aliases": ["X"] },
+        { "value": "FlutingVerticalA", "label": "Vertical A", "order": 20, "aliases": ["CVA"] },
+        { "value": "FlutingVerticalB", "label": "Vertical B", "order": 30, "aliases": ["CVB"] },
+        { "value": "FlutingHorizontalA", "label": "Horizontal A", "order": 40, "aliases": ["CHA"] },
+        { "value": "FlutingHorizontalB", "label": "Horizontal B", "order": 50, "aliases": ["CHB"] }
+      ]
+    },
+    {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Cabinet Color"
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "scope": "cabinet",
+      "resetValue": "None",
+      "optionsSource": "configurator:Handle Groove Color"
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Countertop Color"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        { "value": "0.375", "label": "0.4\"", "order": 10 },
+        { "value": "0.4", "label": "0.4\"", "order": 20 },
+        { "value": "0.5", "label": "0.5\"", "order": 30 },
+        { "value": "2.4", "label": "2.4\"", "order": 40, "aliases": ["2.375", "2.5"] },
+        { "value": "4", "label": "4\"", "order": 50 },
+        { "value": "5.125", "label": "5.1\"", "order": 60 },
+        { "value": "5.5", "label": "5.5\"", "order": 70 }
+      ]
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "integrated",
+          "label": "Integrated",
+          "order": 10,
+          "aliases": ["Integrated"]
+        },
+        {
+          "value": "vessel",
+          "label": "Vessel",
+          "order": 20,
+          "aliases": ["Vessel"]
+        }
+      ]
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "noneValue": "Vessel",
+      "options": [
+        {
+          "value": "Top_HPLPrisma",
+          "label": "HPL Prisma 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 10
+        },
+        {
+          "value": "Top_HPLQuadra",
+          "label": "HPL Quadra 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 20
+        },
+        {
+          "value": "Top_HPLCover",
+          "label": "HPL Cover 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 30
+        },
+        {
+          "value": "Top_HPLStrip",
+          "label": "HPL Strip 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 40
+        },
+        {
+          "value": "Top_HPL/Fenix_Cover_Gres",
+          "label": "Fenix Cover 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 50
+        },
+        {
+          "value": "Top_HPL/Fenix_Prisma_Gres",
+          "label": "Fenix Prisma 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 60
+        },
+        {
+          "value": "Top_HPL/Fenix_Quadra_Gres",
+          "label": "Fenix Quadra 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 70
+        },
+        {
+          "value": "Top_HPL/Fenix_Strip_Gres",
+          "label": "Fenix Strip 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 80
+        },
+        {
+          "value": "Fenix_Strip_Gres",
+          "label": "Fenix Strip Gres",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 90
+        },
+        {
+          "value": "Top_Glass_Nettuno",
+          "label": "Glass Nettuno",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 100
+        },
+        {
+          "value": "Top_Glass_Ovale",
+          "label": "Glass Ovale",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 110
+        },
+        {
+          "value": "Top_Mineralmarmo_Diamond",
+          "label": "Mineralmarmo Diamond",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 120
+        },
+        {
+          "value": "Top_Ocritech_Oly55",
+          "label": "Ocritech Oly 55",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 130
+        },
+        {
+          "value": "Top_Ocritech_Oly56",
+          "label": "Ocritech Oly 56",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 140
+        },
+        {
+          "value": "Top_Ocritech_Orion",
+          "label": "Ocritech Orion",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 150
+        },
+        {
+          "value": "Top_Ocritech_Quadra",
+          "label": "Ocritech Quadra",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 160
+        },
+        {
+          "value": "Top_Ocritech_Rayo",
+          "label": "Ocritech Rayo",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 170
+        },
+        {
+          "value": "Top_Ocritech_Roll",
+          "label": "Ocritech Roll",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 180
+        },
+        {
+          "value": "Top_Porcelain_Cover",
+          "label": "Porcelain Cover 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 190
+        },
+        {
+          "value": "Top_Porcelain_Prisma",
+          "label": "Porcelain Prisma 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 200
+        },
+        {
+          "value": "Top_Porcelain_Quadra",
+          "label": "Porcelain Quadra 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 210
+        },
+        {
+          "value": "Top_Porcelain_Strip",
+          "label": "Porcelain Strip 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 220
+        },
+        {
+          "value": "Top_Tekorlux_Syntesi",
+          "label": "Syntesi 48",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 230
+        },
+        {
+          "value": "Top_Tekorlux_Quadra",
+          "label": "Tekorlux Quadra 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 240
+        },
+        {
+          "value": "Top_Tekorlux_Rectangular",
+          "label": "Tekorlux Rectangular 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 250
+        },
+        {
+          "value": "Top_Tekorlux_Ron",
+          "label": "Tekorlux Ron 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 260
+        },
+        {
+          "value": "Top_Tekorlux_Trip",
+          "label": "Tekorlux Trip 50",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 270
+        },
+        {
+          "value": "Top_Tekormud_Tivi",
+          "label": "Tekormud TIVI",
+          "kind": "integrated",
+          "category": "integrated",
+          "order": 280
+        },
+        { "value": "Vessel_Blade11", "label": "Vessel Blade 11", "kind": "vessel", "category": "vessel", "order": 290 },
+        { "value": "Vessel_Blade18", "label": "Vessel Blade 18", "kind": "vessel", "category": "vessel", "order": 300 },
+        {
+          "value": "Vessel_UrbanModo",
+          "label": "Vessel Urban Modo",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 310
+        },
+        {
+          "value": "Vessel_UrbanMorris",
+          "label": "Vessel Urban Morris",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 350
+        },
+        {
+          "value": "Vessel_Aquarius",
+          "label": "Vessel Acquarius",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 360
+        },
+        {
+          "value": "Vessel",
+          "label": "None",
+          "kind": "vessel",
+          "category": "vessel",
+          "order": 285,
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen: the scene placeholder the Urban Standard Height countertop step sends as None"
+        }
+      ]
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Vessels"
+    },
+    {
+      "attributeId": "SidePanels",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "NoG", "label": "No groove", "order": 20 },
+        { "value": "UpperG", "label": "1 groove (upper)", "order": 30 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "scope": "global",
+      "defaultValue": "None",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Left", "label": "Left", "order": 20 },
+        { "value": "Right", "label": "Right", "order": 30 },
+        { "value": "Both", "label": "Both", "order": 40 }
+      ]
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "scope": "global",
+      "optionsSource": "configurator:Towel Bar Color"
+    }
+  ],
+  "ruleData": {
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 580,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "handleDrawerConfigs": "handle_drawer_configs",
+        "heightsByHandle": {
+          "handle_urban_topcut": "handle_urban_topcut_heights_cm",
+          "handle_pto": "handle_pto_heights_cm"
+        }
+      }
+    },
+    "fluting": {
+      "eligibleMaterialAliases": ["LACM", "LACQUER MATTE", "LACQUERED MATTE", "LACQUERED MT", "LACQUER MT"],
+      "forbiddenTargetParts": []
+    },
+    "cabinetColorTraits": {
+      "materialBySku": {
+        "3D": "3D",
+        "LACM": "LACM",
+        "LACG": "LACG",
+        "ST": "ST",
+        "BM": "BM",
+        "HPL": "HPL",
+        "ESS": "Essenze"
+      },
+      "knownMaterials": ["3D", "LACM", "LACG", "ST", "BM", "HPL", "Essenze"],
+      "finishCodes": []
+    },
+    "countertopFallbacks": {
+      "needsConfirmation": true,
+      "restrictedIntegratedDepthsCm": [],
+      "restrictedIntegratedMaterialTokens": [],
+      "restrictedIntegratedBasinKeys": [],
+      "excludedMaterialFilterTokens": ["tekorlux", "tekormud", "glassmt", "glassgl", "lacqueredmt", "lacqueredgl"]
+    },
+    "vesselCompatibility": {
+      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"],
+      "allowedMaterialsByStyle": {
+        "Vessel_Blade11": ["ceramic"],
+        "Vessel_Blade18": ["ceramic"],
+        "Vessel_UrbanModo": ["solidsurface", "hpl", "porcelain"],
+        "Vessel_UrbanMorris": ["tekorlux", "sstkr", "tal", "tam"],
+        "Vessel_Aquarius": ["tekorlux", "sstkr", "tal", "tam"]
+      },
+      "allowedColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "solidsurface": ["T1C", "T1D"],
+          "hpl": ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"]
+        },
+        "Vessel_UrbanMorris": {
+          "tekorlux": ["TAL", "TAM"]
+        }
+      },
+      "unavailableColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "porcelain": ["TQ2"]
+        }
+      },
+      "defaultFinishByStyle": {
+        "Vessel_UrbanModo": {
+          "materialTokens": ["solidsurface", "ocritech", "ssocr", "sst1c"],
+          "colorCodes": ["T1C"]
+        }
+      }
+    },
+    "sidePanels": {
+      "heightTokenByCm": {
+        "25": "25H",
+        "28": "28H",
+        "35": "35H",
+        "38": "38H"
+      },
+      "blockedCabinetTypes": ["OS", "OSS"],
+      "cabinetGroups": {
+        "OSS": ["Open-Side-Shelf", "OSS"],
+        "OS": ["Open-Shelf", "ULH-Open-Shelf", "OS"],
+        "SBSC": ["Sink-Base", "Side-Cabinet", "ULH-sink-cabinet", "ULH-side-cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1D", "1DW", "1"]
+      },
+      "groovePriorityByHandle": {
+        "handle_urban_topcut": ["UpperG"],
+        "handle_pto": ["NoG"]
+      },
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        { "height": "38H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "28H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG", "UpperG"] },
+        { "height": "35H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] },
+        { "height": "25H", "handleType": "1D", "cabinetType": "SBSC", "allowed": ["NoG"] }
+      ]
+    }
+  },
+  "messages": {
+    "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option is not available in this collection.",
+    "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
+    "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
+    "handle.requiredHeight": "Required for selected handle",
+    "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
+    "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
+    "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
+    "fluting.notInCollection": "Fluting is not available in this collection.",
+    "sidePanel.notInCollection": "Side panels are not available in this collection.",
+    "sidePanel.openShelfUnavailable": "Side panels are not available for use with Open Shelf cabinets.",
+    "sidePanel.sideShelfUnavailable": "Side panels are not available for Open Side Shelf cabinets.",
+    "sidePanel.exactLengthBlocked": "Side panels are not available when total vanity length is exactly {lengthCm} cm ({lengthIn}\").",
+    "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Open Side Shelf cabinets are positioned at both ends.",
+    "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
+    "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
+    "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
+    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
+    "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
+  },
+  "excludedFromThisProfile": {
+    "handleGrooveColor": "Upper Groove offers a groove colour, spelled HDL-{material}-{code} as the price list's SKU formula names it (product element #2), but the ULH scene paints the groove in the cabinet colour: the choice reaches the SKU and the Summary, not the 3D model, until the scene export paints ULH_Cabinet_HGroove on its own.",
+    "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
+    "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
+    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438. Thickness takes the Urban Standard Height values, offered as table 438 gives them for the colour and depth (team, 28.09.2026).",
+    "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
+    "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
+    "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",
+    "composition": "Module counts, maximum composition length, mixing of handles, heights and depths are not described (§1, §2, §14)."
+  }
+}

@@ -1,8 +1,11 @@
-import type { DividerSlot, DividerType, PlacementDecision } from "./types";
+import { selectMessageOr, selectOption, type ProductProfile } from "@/entities/collection";
+
+import type { DividerSlot, DividerType, PlacementDecision, PlacementRejectionReason } from "./types";
 
 /**
- * User-facing warning texts. The strings below are UX-frozen — they must stay
- * byte-identical to the legacy page-level implementations.
+ * Legacy English texts, kept byte-identical to the former page-level implementations. They
+ * are the fallback for a collection without `messages`; the shown text comes from the
+ * collection through the reason codes below.
  */
 export const DIVIDER_NO_SELECTION_WARNING = "Select a Divider option before placing it.";
 
@@ -14,25 +17,81 @@ export const DIVIDER_CANNOT_PLACE_WARNING =
 
 export const DIVIDER_NO_CONTEXT_WARNING = "Open a drawer before placing a Divider.";
 
-const getDividerOptionLabel = (type: string) => `Option ${type}`;
+export const REASON_DIVIDER_NO_CONTEXT = "divider.noContext";
+export const REASON_DIVIDER_NO_SELECTION = "divider.noSelection";
+export const REASON_DIVIDER_TYPE_UNAVAILABLE = "divider.typeUnavailable";
+export const REASON_DIVIDER_NO_TYPE_AVAILABLE = "divider.noTypeAvailable";
+export const REASON_DIVIDER_CANNOT_PLACE = "divider.cannotPlace";
+export const REASON_DIVIDER_SLOT_MISMATCH = "divider.slotMismatch";
 
-const formatDividerOptionsList = (available: readonly string[]) =>
-  available.map(getDividerOptionLabel).join(", ");
+/** The divider style's label in the collection ("Option A" in USH, "Oak" in Class). */
+const getDividerOptionLabel = (type: string, profile: ProductProfile | null) =>
+  selectOption(profile, "DividersStyle", type)?.label ?? `Option ${type}`;
 
-export const buildUnavailableDividerWarning = (dividerType: string, available: readonly string[]) => {
+const formatDividerOptionsList = (available: readonly string[], profile: ProductProfile | null) =>
+  available.map((type) => getDividerOptionLabel(type, profile)).join(", ");
+
+type DividerReason = { reasonCode: string; message: string };
+
+/** Why this divider style does not fit the slot: the code and the text for it. */
+export const unavailableDividerReason = (
+  dividerType: string,
+  available: readonly string[],
+  profile: ProductProfile | null,
+): DividerReason => {
+  const option = getDividerOptionLabel(dividerType, profile);
+
   if (available.length > 0) {
-    return `${getDividerOptionLabel(dividerType)} does not fit here. Choose one of: ${formatDividerOptionsList(available)}.`;
+    const options = formatDividerOptionsList(available, profile);
+    return {
+      reasonCode: REASON_DIVIDER_TYPE_UNAVAILABLE,
+      message: selectMessageOr(
+        profile,
+        REASON_DIVIDER_TYPE_UNAVAILABLE,
+        `${option} does not fit here. Choose one of: ${options}.`,
+        { option, options },
+      ),
+    };
   }
 
-  return `${getDividerOptionLabel(dividerType)} does not fit here. No Divider option is available for this slot.`;
+  return {
+    reasonCode: REASON_DIVIDER_NO_TYPE_AVAILABLE,
+    message: selectMessageOr(
+      profile,
+      REASON_DIVIDER_NO_TYPE_AVAILABLE,
+      `${option} does not fit here. No Divider option is available for this slot.`,
+      { option },
+    ),
+  };
 };
+
+export const buildUnavailableDividerWarning = (
+  dividerType: string,
+  available: readonly string[],
+  profile: ProductProfile | null = null,
+) => unavailableDividerReason(dividerType, available, profile).message;
+
+const rejection = (
+  reason: Exclude<PlacementRejectionReason, "type-unavailable">,
+  reasonCode: string,
+  legacyText: string,
+  profile: ProductProfile | null,
+): PlacementDecision => ({
+  ok: false,
+  reason,
+  reasonCode,
+  message: selectMessageOr(profile, reasonCode, legacyText),
+});
 
 export const buildDividerPlacementWarning = (
   selectedDividerType: DividerType | null,
   available: readonly string[],
+  profile: ProductProfile | null = null,
 ) => {
-  if (!selectedDividerType) return DIVIDER_NO_SELECTION_WARNING;
-  if (!available.includes(selectedDividerType)) return buildUnavailableDividerWarning(selectedDividerType, available);
+  if (!selectedDividerType) return selectMessageOr(profile, REASON_DIVIDER_NO_SELECTION, DIVIDER_NO_SELECTION_WARNING);
+  if (!available.includes(selectedDividerType)) {
+    return buildUnavailableDividerWarning(selectedDividerType, available, profile);
+  }
 
   return null;
 };
@@ -55,29 +114,26 @@ export function validatePlacement(
   selectedType: DividerType | null,
   slot: DividerSlot | null,
   traceId?: string,
+  profile: ProductProfile | null = null,
 ): PlacementDecision {
   if (!slot) {
-    return { ok: false, reason: "no-context", message: DIVIDER_NO_CONTEXT_WARNING };
+    return rejection("no-context", REASON_DIVIDER_NO_CONTEXT, DIVIDER_NO_CONTEXT_WARNING, profile);
   }
 
   if (!selectedType) {
-    return { ok: false, reason: "no-selection", message: DIVIDER_NO_SELECTION_WARNING };
+    return rejection("no-selection", REASON_DIVIDER_NO_SELECTION, DIVIDER_NO_SELECTION_WARNING, profile);
   }
 
   if (!slot.availableTypes.includes(selectedType)) {
-    return {
-      ok: false,
-      reason: "type-unavailable",
-      message: buildUnavailableDividerWarning(selectedType, slot.availableTypes),
-    };
+    return { ok: false, reason: "type-unavailable", ...unavailableDividerReason(selectedType, slot.availableTypes, profile) };
   }
 
   if (slot.canPlace === false) {
-    return { ok: false, reason: "cannot-place", message: DIVIDER_CANNOT_PLACE_WARNING };
+    return rejection("cannot-place", REASON_DIVIDER_CANNOT_PLACE, DIVIDER_CANNOT_PLACE_WARNING, profile);
   }
 
   if (slot.placementType && slot.placementType !== selectedType) {
-    return { ok: false, reason: "slot-mismatch", message: DIVIDER_SLOT_MISMATCH_WARNING };
+    return rejection("slot-mismatch", REASON_DIVIDER_SLOT_MISMATCH, DIVIDER_SLOT_MISMATCH_WARNING, profile);
   }
 
   return {

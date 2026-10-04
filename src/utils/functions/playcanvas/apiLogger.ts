@@ -19,6 +19,15 @@ export const clearConfiguratorApiLogs = () => {
   window.__configuratorApiLogs = [];
 };
 
+/** The iframe replaces its API object when it reloads, so its wrapper must too. */
+export const resetConfiguratorApiLogger = () => {
+  if (typeof window === "undefined") return;
+
+  window.__configuratorApiLoggerInstalled = false;
+  clearConfiguratorApiLogs();
+  window.__clearConfiguratorApiLogs = clearConfiguratorApiLogs;
+};
+
 const MAX_LOG_ENTRIES = 1000;
 
 // Noisy read-only / high-frequency methods that flood the log without adding
@@ -52,10 +61,10 @@ const pushLog = (entry: ApiLogEntry) => {
   if (bucket.length > MAX_LOG_ENTRIES) bucket.splice(0, bucket.length - MAX_LOG_ENTRIES);
 };
 
-const wrapFunction = (fn: Function, target: unknown, method: string) => {
+const wrapFunction = (fn: (...args: unknown[]) => unknown, target: unknown, method: string) => {
   const skip = shouldSkipLogging(method);
   return function (this: unknown, ...args: unknown[]) {
-    if (skip) return (fn as (...a: unknown[]) => unknown).apply(target, args);
+    if (skip) return fn.apply(target, args);
 
     const started = Date.now();
     const entry: ApiLogEntry = { t: started, method, args: safeSerialize(args) };
@@ -96,6 +105,14 @@ const wrapObject = (obj: Record<string, unknown>, prefix: string): Record<string
     get(target, prop, receiver) {
       const value = Reflect.get(target, prop, receiver);
       if (typeof prop !== "string") return value;
+
+      // Proxy invariants require returning the exact value of a frozen data property.
+      // The cabinet namespaces expose their methods as non-configurable/read-only,
+      // so attempting to replace those functions with logging wrappers throws.
+      const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
+      if (descriptor && !descriptor.configurable && "value" in descriptor && !descriptor.writable) {
+        return value;
+      }
 
       const qualified = prefix ? `${prefix}.${prop}` : prop;
 

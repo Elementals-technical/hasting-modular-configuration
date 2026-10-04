@@ -1,4 +1,5 @@
 import type { RootState } from "@/app/store";
+import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
@@ -19,6 +20,7 @@ export async function captureSnapshot(getState: () => RootState): Promise<SceneS
   return {
     productIds: ids,
     productConfigs: configs,
+    cabinetKeys: Object.fromEntries(getCabinetEntries(getState()).map(({ runtimeId, stableKey }) => [runtimeId, stableKey])),
     productsPresets: state.productsPresets.map((preset) => ({ ...preset })),
     productOptions: { ...state.productOptions },
     activeCabinetType: state.activeCabinetType,

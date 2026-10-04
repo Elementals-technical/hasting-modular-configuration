@@ -1,11 +1,9 @@
+import type { ProductProfile } from "@/entities/collection";
+import { selectMessage, selectRuleData } from "@/entities/collection";
+
 import { normalizeMaterialToken } from "./parse";
-import { SYNTESI_MATERIAL } from "./syntesiOptions";
 
-export const SYNTESI_MAX_CABINET_COUNT = 1;
-export const SYNTESI_SINGLE_CABINET_REASON = "Syntesi is available for single cabinet configurations only.";
-export const SYNTESI_SIDE_PANEL_UNAVAILABLE_REASON = "Syntesi is not available with side panels.";
-
-const SYNTESI_NORMALIZED_TOKEN = normalizeMaterialToken(SYNTESI_MATERIAL);
+export const REASON_SYNTESI_SINGLE_CABINET = "syntesi.singleCabinetOnly";
 
 export interface CountertopCabinetCompositionConstraint {
   isSingleCabinetOnly: boolean;
@@ -15,19 +13,31 @@ export interface CountertopCabinetCompositionConstraint {
   reason?: string;
 }
 
-export const hasSyntesiMaterialToken = (materialTokens: readonly string[]): boolean =>
-  materialTokens.some((token) => normalizeMaterialToken(token) === SYNTESI_NORMALIZED_TOKEN);
+/** Whether the countertop materials include the collection's Syntesi material. */
+export const hasSyntesiMaterialToken = (materialTokens: readonly string[], profile: ProductProfile | null): boolean => {
+  const material = selectRuleData(profile, "syntesi")?.material;
+  if (!material) return false;
 
+  const syntesiToken = normalizeMaterialToken(material);
+  return materialTokens.some((token) => normalizeMaterialToken(token) === syntesiToken);
+};
+
+/**
+ * How many cabinets a countertop allows. A Syntesi countertop is limited to
+ * `ruleData.syntesi.maxCabinetCount`; a collection without Syntesi has no such limit.
+ */
 export const resolveCountertopCabinetCompositionConstraint = ({
   materialTokens,
   cabinetCount,
+  profile,
 }: {
   materialTokens: readonly string[];
   cabinetCount: number;
+  profile: ProductProfile | null;
 }): CountertopCabinetCompositionConstraint => {
-  const isSingleCabinetOnly = hasSyntesiMaterialToken(materialTokens);
+  const syntesi = selectRuleData(profile, "syntesi");
 
-  if (!isSingleCabinetOnly) {
+  if (!syntesi || !hasSyntesiMaterialToken(materialTokens, profile)) {
     return {
       isSingleCabinetOnly: false,
       isWithinCabinetLimit: true,
@@ -36,14 +46,14 @@ export const resolveCountertopCabinetCompositionConstraint = ({
     };
   }
 
-  const isWithinCabinetLimit = cabinetCount <= SYNTESI_MAX_CABINET_COUNT;
-  const canAddCabinet = cabinetCount < SYNTESI_MAX_CABINET_COUNT;
+  const isWithinCabinetLimit = cabinetCount <= syntesi.maxCabinetCount;
+  const canAddCabinet = cabinetCount < syntesi.maxCabinetCount;
 
   return {
-    isSingleCabinetOnly,
+    isSingleCabinetOnly: true,
     isWithinCabinetLimit,
     canAddCabinet,
     canRepositionCabinets: false,
-    reason: canAddCabinet ? undefined : SYNTESI_SINGLE_CABINET_REASON,
+    reason: canAddCabinet ? undefined : selectMessage(profile, REASON_SYNTESI_SINGLE_CABINET),
   };
 };

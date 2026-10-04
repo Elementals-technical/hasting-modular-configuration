@@ -1,4 +1,8 @@
+import { createSelector } from "@reduxjs/toolkit";
+
 import type { RootState } from "@/app/store";
+import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
+import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
 
@@ -61,6 +65,51 @@ export const getDrawerPanelFluting = (state: RootState) => state.rootStateUI.pro
 
 export const getGrainDirection = (state: RootState) => state.rootStateUI.product.productOptions.GrainDirection;
 
+/**
+ * Complete config used when the cabinet builder creates a product. The raw style config
+ * may lag behind dimension and material controls, so their dedicated state is authoritative.
+ */
+export const getCabinetBuilderProductConfig = createSelector(
+  [
+    getSelectedProductConfig,
+    getSelectedDimensions,
+    getCabinetColor,
+    getActiveCountertopColor,
+    getHandleGrooveColor,
+    getDrawerPanelFluting,
+    getGrainDirection,
+  ],
+  (
+    selectedProductConfig,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    drawerPanelFluting,
+    grainDirection,
+  ) => {
+    if (
+      selectedDimensions.width === null ||
+      selectedDimensions.height === null ||
+      selectedDimensions.depth === null
+    ) {
+      return null;
+    }
+
+    return {
+      ...selectedProductConfig,
+      Width: selectedDimensions.width,
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+      CabinetColor: cabinetColor,
+      CountertopColor: countertopColor,
+      HandleGrooveColor: handleGrooveColor,
+      DrawerPanelFluting: drawerPanelFluting,
+      GrainDirection: grainDirection,
+    };
+  },
+);
+
 export const getBookMatching = (state: RootState) => state.rootStateUI.product.productOptions.BookMatching;
 
 export const getCountertopStyle = (state: RootState) => state.rootStateUI.product.productOptions.CountertopStyle;
@@ -86,19 +135,6 @@ export const getSinkBaseCount = (state: RootState) =>
 export const getSideShelfCount = (state: RootState) =>
   state.rootStateUI.product.productIds.filter((id) => id.startsWith("Side-Shelf-")).length;
 
-/** Returns which drawer group currently dominates the scene.
- *  "single" = at least one 1DW or 1DWID placed (no 2DW)
- *  "double" = at least one 2DW placed
- *  null     = nothing placed yet (or all OS/OSS)
- */
-export const getDominantDrawerGroup = (state: RootState): "single" | "double" | null => {
-  const styles = Object.values(state.rootStateUI.product.placedCabinetStyles);
-  if (styles.length === 0) return null;
-  if (styles.some((v) => v === "2")) return "double";
-  if (styles.some((v) => v === "1" || v === "1+inner")) return "single";
-  return null;
-};
-
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 
 export const getTowelBarColor = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarColor;
@@ -114,6 +150,19 @@ export const getPriceTotal = (state: RootState) => state.rootStateUI.priceStore.
 export const getActiveSkus = (state: RootState) => state.rootStateUI.priceStore.activeSkus;
 
 export const getPriceLoading = (state: RootState) => state.rootStateUI.priceStore.isLoading;
+
+const NO_PRICING_LINES: PricingLine[] = [];
+const NO_PRICE_ENTRIES: Record<string, SkuPriceEntry> = {};
+const NO_PRICING_GAPS: PricingGap[] = [];
+
+export const getPricingLines = (state: RootState) => state.rootStateUI.priceStore.lines ?? NO_PRICING_LINES;
+
+export const getPriceEntries = (state: RootState) => state.rootStateUI.priceStore.entries ?? NO_PRICE_ENTRIES;
+
+export const getPriceStatus = (state: RootState): PriceStatus => derivePriceStatus(state.rootStateUI.priceStore);
+
+/** Why an incomplete total is incomplete beyond a missing price: the unconfirmed parts of the order (D04). */
+export const getPricingGaps = (state: RootState) => state.rootStateUI.priceStore.gaps ?? NO_PRICING_GAPS;
 
 // For attention popup in the prebuilt path.
 export const getHasPrebuiltSelections = (state: RootState) => {

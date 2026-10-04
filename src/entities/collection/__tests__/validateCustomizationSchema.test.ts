@@ -1,0 +1,342 @@
+import { describe, expect, it } from "vitest";
+
+import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
+import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
+
+describe("validateCustomizationSchema", () => {
+  it("accepts the real USH ui.json", () => {
+    const result = validateCustomizationSchema(uiJson);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects an unknown entryStepId", () => {
+    const broken = {
+      ...uiJson,
+      flows: { ...uiJson.flows, prebuilt: { ...uiJson.flows.prebuilt, entryStepId: "ghost" } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "missing-entry-step" }));
+  });
+
+  it("rejects an unknown stepId referenced from a flow", () => {
+    const broken = {
+      ...uiJson,
+      flows: {
+        ...uiJson.flows,
+        prebuilt: {
+          ...uiJson.flows.prebuilt,
+          steps: [...uiJson.flows.prebuilt.steps, { stepId: "ghost", path: "/prebuilt/ghost" }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unknown-step-id" }));
+  });
+
+  it("rejects a duplicate route within the same flow", () => {
+    const broken = {
+      ...uiJson,
+      flows: {
+        ...uiJson.flows,
+        prebuilt: {
+          ...uiJson.flows.prebuilt,
+          steps: [...uiJson.flows.prebuilt.steps, { stepId: "model", path: "/prebuilt/model" }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "duplicate-route" }));
+  });
+
+  it("rejects an unsupported screen kind", () => {
+    const broken = { ...uiJson, steps: { ...uiJson.steps, model: { ...uiJson.steps.model, kind: "wizard" } } };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-kind" }));
+  });
+
+  it("rejects a screen binding the router does not know", () => {
+    const broken = {
+      ...uiJson,
+      flows: {
+        ...uiJson.flows,
+        prebuilt: {
+          ...uiJson.flows.prebuilt,
+          steps: [{ stepId: "model", path: "/prebuilt/model", screen: "prebuilt-wizard" }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-screen" }));
+  });
+
+  it("rejects a sectionId that is not defined in sections", () => {
+    const broken = {
+      ...uiJson,
+      steps: { ...uiJson.steps, cabinet: { ...uiJson.steps.cabinet, sectionIds: ["ghost-section"] } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unknown-section-id" }));
+  });
+
+  it("rejects an unsupported field control", () => {
+    const broken = {
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "cabinet-color": {
+          ...uiJson.sections["cabinet-color"],
+          fields: [{ attributeId: "CabinetColor", control: "slider" }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "unsupported-control" }));
+  });
+
+  it("accepts a schema with no optionImages and one that declares them", () => {
+    expect(validateCustomizationSchema({ ...uiJson, optionImages: undefined }).ok).toBe(true);
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImages: { sinkType: { Top_HPLPrisma: "images/basin/prisma.jpg" } },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects optionImages that is not a record of records of references", () => {
+    const notARecord = validateCustomizationSchema({ ...uiJson, optionImages: [] });
+    const attributeNotARecord = validateCustomizationSchema({ ...uiJson, optionImages: { sinkType: "x.jpg" } });
+    const emptyReference = validateCustomizationSchema({
+      ...uiJson,
+      optionImages: { sinkType: { Top_HPLPrisma: "  " } },
+    });
+
+    expect(notARecord.ok).toBe(false);
+    expect(notARecord.ok === false && notARecord.diagnostics).toEqual([
+      { code: "invalid-schema", dataPath: "optionImages", message: expect.any(String) },
+    ]);
+    expect(attributeNotARecord.ok === false && attributeNotARecord.diagnostics[0]?.dataPath).toBe(
+      "optionImages.sinkType",
+    );
+    expect(emptyReference.ok === false && emptyReference.diagnostics[0]?.dataPath).toBe(
+      "optionImages.sinkType.Top_HPLPrisma",
+    );
+  });
+
+  it("accepts a schema with no optionImageVariants and one that declares them", () => {
+    expect(validateCustomizationSchema({ ...uiJson, optionImageVariants: undefined }).ok).toBe(true);
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImageVariants: {
+          CabinetType: [{ value: "Sink-Base", when: { Drawers: "2" }, image: "images/cabinet/x.png" }],
+        },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("accepts an empty string in when, which matches an attribute that is not set", () => {
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImageVariants: { Drawers: [{ value: "2", when: { LegColor: "" }, image: "images/cabinet/x.png" }] },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects optionImageVariants that is not a record of row arrays", () => {
+    const notARecord = validateCustomizationSchema({ ...uiJson, optionImageVariants: [] });
+    const notAnArray = validateCustomizationSchema({ ...uiJson, optionImageVariants: { CabinetType: {} } });
+
+    expect(notARecord.ok === false && notARecord.diagnostics).toEqual([
+      { code: "invalid-schema", dataPath: "optionImageVariants", message: expect.any(String) },
+    ]);
+    expect(notAnArray.ok === false && notAnArray.diagnostics[0]?.dataPath).toBe("optionImageVariants.CabinetType");
+  });
+
+  it("names the offending row and field of a broken variant", () => {
+    const rowOf = (row: unknown) =>
+      validateCustomizationSchema({
+        ...uiJson,
+        optionImageVariants: {
+          CabinetType: [{ value: "Sink-Base", when: { Drawers: "2" }, image: "images/cabinet/ok.png" }, row],
+        },
+      });
+
+    const missingValue = rowOf({ when: { Drawers: "2" }, image: "images/cabinet/x.png" });
+    const emptyImage = rowOf({ value: "Sink-Base", when: { Drawers: "2" }, image: "  " });
+    const whenNotARecord = rowOf({ value: "Sink-Base", when: [], image: "images/cabinet/x.png" });
+    const whenNotAString = rowOf({ value: "Sink-Base", when: { Drawers: 2 }, image: "images/cabinet/x.png" });
+
+    expect(missingValue.ok === false && missingValue.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].value",
+    );
+    expect(emptyImage.ok === false && emptyImage.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].image",
+    );
+    expect(whenNotARecord.ok === false && whenNotARecord.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].when",
+    );
+    expect(whenNotAString.ok === false && whenNotAString.diagnostics[0]?.dataPath).toBe(
+      "optionImageVariants.CabinetType[1].when.Drawers",
+    );
+  });
+
+  it("rejects an empty when, which would match every card and hide optionImages", () => {
+    const result = validateCustomizationSchema({
+      ...uiJson,
+      optionImageVariants: { CabinetType: [{ value: "Sink-Base", when: {}, image: "images/cabinet/x.png" }] },
+    });
+
+    expect(result.ok === false && result.diagnostics[0]?.dataPath).toBe("optionImageVariants.CabinetType[0].when");
+  });
+
+  it("rejects a non-boolean enabled on a step", () => {
+    const broken = {
+      ...uiJson,
+      steps: { ...uiJson.steps, accessories: { ...uiJson.steps.accessories, enabled: "no" } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "steps.accessories.enabled" }),
+    );
+  });
+
+  it("rejects a non-boolean enabled on a section", () => {
+    const broken = {
+      ...uiJson,
+      sections: { ...uiJson.sections, "towel-bar": { ...uiJson.sections["towel-bar"], enabled: "no" } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.towel-bar.enabled" }),
+    );
+  });
+
+  it("rejects field hints that are not strings", () => {
+    const broken = {
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", hints: { "1": 1 } }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.faucet-holes-amount.fields[0].hints" }),
+    );
+  });
+
+  it("rejects a field switch without the text above it", () => {
+    const broken = {
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", toggle: { label: "" } }],
+        },
+      },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.faucet-holes-amount.fields[0].toggle" }),
+    );
+  });
+
+  it("accepts a field that keeps its value allowed, and no other autoSelect", () => {
+    const withAutoSelect = (autoSelect: unknown) => ({
+      ...uiJson,
+      sections: {
+        ...uiJson.sections,
+        "faucet-holes-amount": {
+          ...uiJson.sections["faucet-holes-amount"],
+          fields: [{ attributeId: "FaucetHolesAmount", control: "swatches", autoSelect }],
+        },
+      },
+    });
+
+    expect(validateCustomizationSchema(withAutoSelect("firstAllowed")).ok).toBe(true);
+
+    const result = validateCustomizationSchema(withAutoSelect("lastAllowed"));
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "invalid-schema",
+        dataPath: "sections.faucet-holes-amount.fields[0].autoSelect",
+      }),
+    );
+  });
+
+  it("rejects a section label for the vessel style that is not a string", () => {
+    const broken = {
+      ...uiJson,
+      sections: { ...uiJson.sections, "basin-style": { ...uiJson.sections["basin-style"], labelWhenVessel: 3 } },
+    };
+
+    const result = validateCustomizationSchema(broken);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: "sections.basin-style.labelWhenVessel" }),
+    );
+  });
+
+  it("rejects a non-object input", () => {
+    const result = validateCustomizationSchema(null);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema" }));
+  });
+});

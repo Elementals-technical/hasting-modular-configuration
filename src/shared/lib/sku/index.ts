@@ -16,15 +16,30 @@ export { cmToInches } from "./cmToInches";
 export { toSkuDepth } from "./toSkuDepth";
 export { extractColorCode } from "./extractColorCode";
 export { resolveCabinetPricingMaterialSku, resolveHandleGroovePricingMaterialSku } from "./resolveCabinetPricingMaterialSku";
+export type { SkuProfile, SkuProfileResolution, SkuProfileUnsupportedReason, SkuSeries } from "./skuProfile";
+export { SKU_SERIES_BY_COLLECTION } from "./skuSeries";
+export { resolveSkuProfile, type SkuProfileSource } from "./resolveSkuProfile";
+export { createConfiguratorColorReader, type ConfiguratorColor, type ConfiguratorColorReader } from "./configuratorColors";
+export { createSkuBuilders, type SkuBuilders } from "./createSkuBuilders";
 export {
-  cabinetTypeSkuMap,
-  drawerSkuMap,
-  handleSkuMap,
-  patternSkuMap,
-  sidePanelSkuMap,
-  dividerSkuMap,
-  towelBarSkuMap,
-} from "./cabinetSkuMaps";
+  buildCollectionCabinetSku,
+  buildCollectionCountertopSkus,
+  buildCollectionLegsSku,
+  isChosenColor,
+  resolveCollectionColorCode,
+  resolveCollectionColorMaterial,
+  resolveCollectionDividerSku,
+  resolveCollectionVessel,
+  type CollectionCabinetSku,
+  type CollectionCabinetSkuGap,
+  type CollectionCabinetSkuInput,
+  type CollectionCountertopSkuInput,
+  type CollectionCountertopSkus,
+  type CollectionLegsSkuInput,
+  type CollectionValueReader,
+  type CollectionVessel,
+  type CollectionVesselInput,
+} from "./buildCollectionSkus";
 export {
   countertopStyleSkuMap,
   countertopMaterialSkuMap,
@@ -34,20 +49,17 @@ export {
 } from "./countertopSkuMaps";
 export {
   buildVesselSku,
+  formatVesselSku,
   resolveVesselDimensionTokens,
   formatVesselDimensionLabel,
   type VesselSkuInput,
+  type VesselSkuParts,
   type VesselDimensionInput,
   type VesselDimensionTokens,
 } from "./buildVesselSku";
 export {
   vesselSeriesSkuMap,
   vesselHeightCmMap,
-  vesselAllowedMaterialsMap,
-  vesselAllowedMaterialColorCodesMap,
-  vesselDefaultFinishMap,
-  vesselUnavailableMaterialColorCodesMap,
-  type VesselDefaultFinishRule,
 } from "./vesselSkuMaps";
 export {
   resolveDefaultBasinByCountertopColor,

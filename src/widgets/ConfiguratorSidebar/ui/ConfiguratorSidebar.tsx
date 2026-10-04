@@ -8,17 +8,13 @@ import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBa
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
-import { CUSTOM_STEPS, PREBUILT_STEPS, getStepHeaderLabel } from "@/shared/config/steps";
+import { useCollectionNavigation, withPreservedCollectionId } from "@/features/collectionCustomization";
 import { setIsDrawerOpen } from "@/entities/product/model/store/slice";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
 
 import s from "./ConfiguratorSidebar.module.scss";
 
-type ConfiguratorSidebarProps = PropsWithChildren<{
-  flow?: "prebuilt" | "custom";
-}>;
-
-export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: ConfiguratorSidebarProps) => {
+export const ConfiguratorSidebar = ({ children }: PropsWithChildren) => {
   const location = useLocation();
 
   const activeStep = useAppSelector(getActiveStep);
@@ -26,12 +22,13 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
 
   usePriceCalculation();
 
-  const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
-  const summaryStep = steps.find((step) => step.id === "summary");
-  const currentStep = steps.find((step) => location.pathname.startsWith(step.path));
-  const currentStepHeader = currentStep ? getStepHeaderLabel(currentStep) : null;
+  const navigation = useCollectionNavigation();
+  const flow = navigation?.flowId ?? "prebuilt";
+  const summaryStep = navigation?.summaryStep ?? null;
+  const currentStep = navigation?.currentStep ?? null;
+  const currentStepHeader = currentStep?.headerLabel ?? null;
   const previousStepPathRef = useRef<string | null>(null);
-  const isSummaryPage = !!summaryStep && location.pathname.startsWith(summaryStep.path);
+  const isSummaryPage = navigation?.isSummary ?? false;
 
   useEffect(() => {
     dispatch(setActiveStep(currentStepHeader));
@@ -50,14 +47,18 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
   return (
     <div className={s.configSidebar} data-flow={flow}>
       {summaryStep && !isSummaryPage && (
-        <Link className={s.summaryViewBtn} to={summaryStep.path} onClick={closeDrawerInteraction}>
+        <Link
+          className={s.summaryViewBtn}
+          to={withPreservedCollectionId(summaryStep.path, location.search)}
+          onClick={closeDrawerInteraction}
+        >
           <span>Summary View</span>
           <span aria-hidden="true">→</span>
         </Link>
       )}
 
       <div className={s.desktopStepNavigation}>
-        <StepNavigationBar title={activeStep} flow={flow} />
+        <StepNavigationBar title={activeStep} />
       </div>
 
       <div className={s.stepContent} data-scroll-container="step-content">
@@ -65,7 +66,6 @@ export const ConfiguratorSidebar = ({ flow = "prebuilt", children }: Configurato
       </div>
 
       <BottomStickyBar
-        flow={flow}
         nextButtonDataTarget={
           flow === "prebuilt" ? INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS.prebuiltNextButton : undefined
         }

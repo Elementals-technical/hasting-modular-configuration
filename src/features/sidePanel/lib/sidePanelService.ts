@@ -1,17 +1,23 @@
 /**
- * Side Panel Service — centralized business logic for side panel operations.
+ * Side Panel Service — the side panel rules: which panel goes on which side, and how each side
+ * is marked (C06).
  *
- * All SP mutations (groove change, per-side enable/disable, auto-remove/restore)
- * go through this service. Components should use the `useSidePanelActions` hook
- * which wraps these functions with dispatch.
+ * Every function plans one change and hands it to the side panel command, which places the
+ * panels through the scene adapter and records the groove and the per-side statuses once the
+ * scene took them. Nothing here calls the scene or writes the state itself. Components use the
+ * `useSidePanelActions` hook, which wraps these functions with dispatch.
  */
 
 import type { AppDispatch } from "@/app/store";
-import { setSidePanelsOption, setSidePanelSideStatus } from "@/entities/product/model/store/slice";
-import { setSidePanel } from "@/utils/functions/playcanvas/sidePanels";
+import type { ProductProfile } from "@/entities/collection";
+import { selectRuleData } from "@/entities/collection";
+import {
+  changeSidePanels,
+  type SidePanelChange,
+  type SidePanelChangeResult,
+} from "@/features/configurationCommands/lib/changeSidePanels";
 import { mapCabinetTypeToGroup } from "../model/selectors";
-import { mapSidePanelDrawersToHandleType } from "./sidePanelEdgeCompatibility";
-import { sidePanelAvailabilityRule } from "./sidePanelRules";
+import { mapSidePanelDrawersToHandleType, sidePanelAvailabilityRule } from "./sidePanelRules";
 
 export type SidePanelSide = "left" | "right";
 export type SidePanelStatus = "active" | "none" | "auto-removed";
@@ -42,40 +48,39 @@ export function isGrooveType(value: string): value is GrooveType {
 
 // ── Shared groove resolution ───────────────────────────────────────────
 
-const HANDLE_GROOVE_PRIORITY: Record<string, readonly string[]> = {
-  handle_urban_topcut: ["UpperG", "DoubleG"],
-  handle_urban_botcut: ["CenterG"],
-  handle_pto: ["NoG"],
-};
-
 const GROOVE_FALLBACK = ["UpperG", "CenterG", "DoubleG", "NoG"] as const;
 
 /**
  * Pick the best groove given allowed set, current groove, and handle style.
  * 1) Keep current if still allowed
- * 2) Pick preferred by handle priority
+ * 2) Pick preferred by the handle's priority in `ruleData.sidePanels.groovePriorityByHandle`
  * 3) Fallback to first available (NoG last)
  */
-export function resolveGroove(allowed: Set<string>, currentGroove: string | null, handle: string | null): GrooveType {
+export function resolveGroove(
+  allowed: Set<string>,
+  currentGroove: string | null,
+  handle: string | null,
+  profile: ProductProfile | null,
+): GrooveType {
   if (currentGroove && allowed.has(currentGroove) && isGrooveType(currentGroove)) return currentGroove;
 
-  const priorities = handle ? (HANDLE_GROOVE_PRIORITY[handle] ?? []) : [];
+  const priorityByHandle = selectRuleData(profile, "sidePanels")?.groovePriorityByHandle;
+  const priorities = handle ? (priorityByHandle?.[handle] ?? []) : [];
   const preferred = priorities.find((g) => allowed.has(g));
   if (preferred && isGrooveType(preferred)) return preferred;
 
   return GROOVE_FALLBACK.find((g) => allowed.has(g)) ?? "None";
 }
 
-// ── Internal helper ─────────────────────────────────────────────────────
+// ── Internal helpers ────────────────────────────────────────────────────
 
-function dispatchSideStatus(dispatch: AppDispatch, side: "left" | "right" | "both", status: SidePanelStatus) {
-  if (side === "both") {
-    dispatch(setSidePanelSideStatus({ side: "left", status }));
-    dispatch(setSidePanelSideStatus({ side: "right", status }));
-  } else {
-    dispatch(setSidePanelSideStatus({ side, status }));
-  }
-}
+/** Places the panels and records the values through the side panel command. */
+const change = (dispatch: AppDispatch, sidePanelChange: SidePanelChange): Promise<SidePanelChangeResult> =>
+  changeSidePanels(sidePanelChange, { dispatch });
+
+/** The status of each side a placement reaches. */
+const sideStatuses = (side: "left" | "right" | "both", status: SidePanelStatus) =>
+  side === "both" ? { left: status, right: status } : { [side]: status };
 
 const getPresetEdges = (presetProducts: PresetSidePanelProduct[], productIds?: string[]): PresetEdge[] => [
   { side: "left", product: presetProducts[0], productId: productIds?.[0] },
@@ -86,18 +91,15 @@ const getPresetEdges = (presetProducts: PresetSidePanelProduct[], productIds?: s
   },
 ];
 
-const isSidePanelEligiblePresetEdge = (product: PresetSidePanelProduct | undefined) =>
-  mapCabinetTypeToGroup(product?.name ?? null) === "SBSC";
+const isSidePanelEligiblePresetEdge = (product: PresetSidePanelProduct | undefined, profile: ProductProfile | null) =>
+  mapCabinetTypeToGroup(product?.name ?? null, profile) === "SBSC";
 
-const dispatchPresetEdgeStatuses = (
-  dispatch: AppDispatch,
-  edges: PresetEdge[],
-  activeSides: ReadonlySet<SidePanelSide>,
-) => {
-  edges.forEach(({ side }) => {
-    dispatch(setSidePanelSideStatus({ side, status: activeSides.has(side) ? "active" : "auto-removed" }));
-  });
-};
+/** Each preset edge is active when it received a panel, otherwise auto-removed. */
+const presetEdgeStatuses = (edges: PresetEdge[], activeSides: ReadonlySet<SidePanelSide>) =>
+  Object.fromEntries(edges.map(({ side }) => [side, activeSides.has(side) ? "active" : "auto-removed"] as const)) as {
+    left?: SidePanelStatus;
+    right?: SidePanelStatus;
+  };
 
 const normalizeProductIds = (productIds?: string[]) => productIds?.filter((productId) => productId.trim().length > 0);
 
@@ -116,17 +118,20 @@ export async function applyGroove(
   cabinetCount?: number,
   options?: ApplyGrooveOptions,
 ) {
-  await setSidePanel(groove, side, cabinetCount);
-  dispatchSideStatus(dispatch, side, groove === "None" ? "none" : "active");
-
   const changedSideStatus = groove === "None" ? "none" : "active";
   const nextLeftStatus = side === "both" || side === "left" ? changedSideStatus : options?.currentLeftStatus;
   const nextRightStatus = side === "both" || side === "right" ? changedSideStatus : options?.currentRightStatus;
   const hasActiveSideAfterChange = nextLeftStatus === "active" || nextRightStatus === "active";
 
-  if (groove !== "None" || !options || !hasActiveSideAfterChange) {
-    dispatch(setSidePanelsOption(groove));
-  }
+  return change(dispatch, {
+    placements: [{ panel: groove, side }],
+    cabinetCount,
+    record: {
+      ...sideStatuses(side, changedSideStatus),
+      // Removing one side keeps the groove the other side still shows.
+      ...(groove !== "None" || !options || !hasActiveSideAfterChange ? { panels: groove } : {}),
+    },
+  });
 }
 
 /**
@@ -143,11 +148,11 @@ export async function deleteSide(
   cabinetCount?: number,
   remainingSideStatus?: SidePanelStatus,
 ) {
-  await setSidePanel("None", side, cabinetCount);
-  dispatch(setSidePanelSideStatus({ side, status: "none" }));
-  if (remainingSideStatus !== "active") {
-    dispatch(setSidePanelsOption("None"));
-  }
+  return change(dispatch, {
+    placements: [{ panel: "None", side }],
+    cabinetCount,
+    record: { [side]: "none", ...(remainingSideStatus !== "active" ? { panels: "None" } : {}) },
+  });
 }
 
 /**
@@ -155,8 +160,7 @@ export async function deleteSide(
  * Will auto-restore when edge becomes eligible again (SB/SC).
  */
 export async function autoRemoveSide(dispatch: AppDispatch, side: SidePanelSide, cabinetCount?: number) {
-  await setSidePanel("None", side, cabinetCount);
-  dispatch(setSidePanelSideStatus({ side, status: "auto-removed" }));
+  return change(dispatch, { placements: [{ panel: "None", side }], cabinetCount, record: { [side]: "auto-removed" } });
 }
 
 /**
@@ -169,8 +173,7 @@ export async function autoRestoreSide(
   groove: GrooveType,
   cabinetCount?: number,
 ) {
-  await setSidePanel(groove, side, cabinetCount);
-  dispatch(setSidePanelSideStatus({ side, status: "active" }));
+  return change(dispatch, { placements: [{ panel: groove, side }], cabinetCount, record: { [side]: "active" } });
 }
 
 /**
@@ -178,9 +181,11 @@ export async function autoRestoreSide(
  * Sets groove + both sides active.
  */
 export async function bootBothSides(dispatch: AppDispatch, groove: GrooveType, cabinetCount?: number) {
-  await setSidePanel(groove, "both", cabinetCount);
-  dispatch(setSidePanelsOption(groove));
-  dispatchSideStatus(dispatch, "both", "active");
+  return change(dispatch, {
+    placements: [{ panel: groove, side: "both" }],
+    cabinetCount,
+    record: { panels: groove, left: "active", right: "active" },
+  });
 }
 
 /**
@@ -196,16 +201,15 @@ export async function applyGrooveToActiveSides(
   cabinetCount?: number,
 ) {
   const nextStatus: SidePanelStatus = groove === "None" ? "auto-removed" : "active";
+  const activeSides = (["left", "right"] as const).filter((side) =>
+    side === "left" ? leftStatus === "active" : rightStatus === "active",
+  );
 
-  if (leftStatus === "active") {
-    await setSidePanel(groove, "left", cabinetCount);
-    dispatch(setSidePanelSideStatus({ side: "left", status: nextStatus }));
-  }
-  if (rightStatus === "active") {
-    await setSidePanel(groove, "right", cabinetCount);
-    dispatch(setSidePanelSideStatus({ side: "right", status: nextStatus }));
-  }
-  dispatch(setSidePanelsOption(groove));
+  return change(dispatch, {
+    placements: activeSides.map((side) => ({ panel: groove, side })),
+    cabinetCount,
+    record: { ...Object.fromEntries(activeSides.map((side) => [side, nextStatus])), panels: groove },
+  });
 }
 
 /**
@@ -213,9 +217,19 @@ export async function applyGrooveToActiveSides(
  * Both sides marked "auto-removed" (will restore when width changes).
  */
 export async function autoRemoveBoth(dispatch: AppDispatch, cabinetCount?: number) {
-  await setSidePanel("None", "both", cabinetCount);
-  dispatch(setSidePanelsOption("None"));
-  dispatchSideStatus(dispatch, "both", "auto-removed");
+  return change(dispatch, {
+    placements: [{ panel: "None", side: "both" }],
+    cabinetCount,
+    record: { panels: "None", left: "auto-removed", right: "auto-removed" },
+  });
+}
+
+/**
+ * Removes the panels of both sides without touching the recorded values, e.g. before the
+ * composition is cleared or replaced; the caller records what the new composition gets.
+ */
+export async function clearSidePanels(dispatch: AppDispatch, cabinetCount?: number) {
+  return change(dispatch, { placements: [{ panel: "None", side: "both" }], cabinetCount });
 }
 
 /**
@@ -225,6 +239,7 @@ export async function autoRemoveBoth(dispatch: AppDispatch, cabinetCount?: numbe
  */
 export async function reapplySidePanelsForPreset(
   dispatch: AppDispatch,
+  profile: ProductProfile | null,
   currentGroove: string,
   presetProducts: PresetSidePanelProduct[],
   cabinetCount?: number,
@@ -232,66 +247,82 @@ export async function reapplySidePanelsForPreset(
 ) {
   if (!currentGroove || currentGroove === "None" || !isGrooveType(currentGroove)) return;
   if (!presetProducts.length) return;
+  // Without the collection's side panel data the new edges cannot be judged; keep the scene as it is.
+  if (!selectRuleData(profile, "sidePanels")) return;
 
   const count = cabinetCount ?? presetProducts.length;
   const scopedProductIds = normalizeProductIds(productIds);
   const edges = getPresetEdges(presetProducts, scopedProductIds);
-  const eligibleEdges = edges.filter(({ product }) => isSidePanelEligiblePresetEdge(product));
+  const eligibleEdges = edges.filter(({ product }) => isSidePanelEligiblePresetEdge(product, profile));
   const eligible = eligibleEdges[0]?.product;
 
   // Always clear stale physical panels before mapping the saved groove onto the
   // new preset edges. A preset with shelf ends may have no side that can receive SP.
-  await setSidePanel("None", "both", count);
+  const clearStale = { panel: "None", side: "both" } as const;
 
   if (!eligible) {
-    dispatchPresetEdgeStatuses(dispatch, edges, new Set());
-    dispatch(setSidePanelsOption(currentGroove));
-    return;
+    return change(dispatch, {
+      placements: [clearStale],
+      cabinetCount: count,
+      record: { ...presetEdgeStatuses(edges, new Set()), panels: currentGroove },
+    });
   }
 
-  const availability = sidePanelAvailabilityRule({
-    height: eligible.Height ?? null,
-    handleType: mapSidePanelDrawersToHandleType(eligible.Drawers),
-    cabinetType: "SBSC",
-  });
+  const availability = sidePanelAvailabilityRule(
+    {
+      height: eligible.Height ?? null,
+      handleType: mapSidePanelDrawersToHandleType(eligible.Drawers, profile),
+      cabinetType: "SBSC",
+    },
+    profile,
+  );
 
-  const groove = resolveGroove(availability.allowed as Set<string>, currentGroove, eligible.Handle ?? null);
+  const groove = resolveGroove(availability.allowed as Set<string>, currentGroove, eligible.Handle ?? null, profile);
 
   if (groove === "None") {
-    dispatchPresetEdgeStatuses(dispatch, edges, new Set());
-    dispatch(setSidePanelsOption(currentGroove));
-    return;
+    return change(dispatch, {
+      placements: [clearStale],
+      cabinetCount: count,
+      record: { ...presetEdgeStatuses(edges, new Set()), panels: currentGroove },
+    });
   }
 
-  const activeSides = new Set<SidePanelSide>();
+  const activeSides = new Set(eligibleEdges.map(({ side }) => side));
 
-  for (const { side } of eligibleEdges) {
-    if (activeSides.has(side)) continue;
-    await setSidePanel(groove, side, count);
-    activeSides.add(side);
-  }
-
-  dispatchPresetEdgeStatuses(dispatch, edges, activeSides);
-  dispatch(setSidePanelsOption(groove));
+  return change(dispatch, {
+    placements: [clearStale, ...[...activeSides].map((side) => ({ panel: groove, side }))],
+    cabinetCount: count,
+    record: { ...presetEdgeStatuses(edges, activeSides), panels: groove },
+  });
 }
 
+/**
+ * Puts back the saved panels: the groove on every side that was active. `record` names the
+ * values to record with them; an undo restores the state as a whole and records nothing.
+ */
 export async function restoreSidePanelState(
+  dispatch: AppDispatch,
   spGroove: string | undefined,
   spLeft: string | undefined,
   spRight: string | undefined,
   cabinetCount?: number,
+  record?: SidePanelChange["record"],
 ) {
   const left = spLeft ?? (spGroove && spGroove !== "None" ? "active" : "none");
   const right = spRight ?? (spGroove && spGroove !== "None" ? "active" : "none");
   const isSingleCabinet = cabinetCount === 1;
+  const clearBoth = { panel: "None", side: "both" } as const;
 
-  if (!spGroove || spGroove === "None") {
-    await setSidePanel("None", "both", cabinetCount);
-  } else if (isSingleCabinet && left === "active" && right === "active") {
-    await setSidePanel(spGroove, "both", cabinetCount);
-  } else {
-    await setSidePanel("None", "both", cabinetCount);
-    if (left === "active") await setSidePanel(spGroove, "left", cabinetCount);
-    if (right === "active") await setSidePanel(spGroove, "right", cabinetCount);
-  }
+  const placements =
+    !spGroove || spGroove === "None"
+      ? [clearBoth]
+      : isSingleCabinet && left === "active" && right === "active"
+        ? [{ panel: spGroove, side: "both" as const }]
+        : [
+            clearBoth,
+            ...(left === "active" ? [{ panel: spGroove, side: "left" as const }] : []),
+            ...(right === "active" ? [{ panel: spGroove, side: "right" as const }] : []),
+          ];
+
+  return change(dispatch, { placements, cabinetCount, record });
 }

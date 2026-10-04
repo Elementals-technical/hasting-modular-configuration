@@ -1,0 +1,148 @@
+# Urban Low Height product profile v3
+
+`product-profile.json` for the `urban-low-height` collection, built from
+`analysis/products-data/Urban Low Height/docs/URBAN-LOW-HEIGHT-PRODUCT-MAP-UA.md` (map dated 09.09.2026; re-checked
+17.09.2026 against the map and the live configurator 4).
+
+The map grades every fact as confirmed, inherited, inferred or undescribed. **Only the confirmed ones
+are in the profile.** Nothing was copied from Urban Standard Height: where Low Height has no confirmed
+rule, the profile simply does not declare it, and the collection behaves as a collection without that
+capability rather than as USH. One exception, added on request: `CountertopStyle`, `Thickness`, `sinkType` and
+`VesselColor` take the Urban Standard Height options and pictures, although the map does not describe the choice and
+names other basins.
+
+## What the profile declares
+
+| Attribute | Scope | Values | Source |
+|---|---|---|---|
+| `CabinetType` | cabinet | `Sink-Base` (URLH-SB), `Side-Cabinet` (URLH-SC), `Open-Shelf` (UROS), `Open-Side-Shelf` (UROSS) | §1, four module types over 664 base SKUs |
+| `Drawers` | cabinet | `1`, aliased `1D` / `1DW` | §2, every SB and SC is `1DW` |
+| `Handle` | cabinet | `handle_urban_topcut` (Upper Groove), which offers a groove colour; `handle_pto` (Push-to-Open), which has no groove | §2; §5. With cabinets placed, a change asks for confirmation first (`handle.appliesToAllCabinets`), as in Urban Standard Height (team, 29.09.2026). Until one is chosen, `effectiveFallbackValue: handle_urban_topcut` — the handle of the models — is the handle an empty builder places and shows, and the heights are the upper groove's (team, 29.09.2026) |
+| `HandleGrooveColor` | cabinet | no list — `optionsSource: "configurator:Handle Groove Color"`, `None` first (`resetValue`); shown as Handle Groove Color (Optional) on the Color step for Upper Groove only | Added on request (team, 28.09.2026), as in Urban Standard Height. The ULH scene paints the groove in the cabinet colour, so the choice reaches the SKU and the Summary, not the 3D model (binding `state-only`) |
+| `Height` | cabinet | `38`, `35`, `28`, `25` | §2–3 |
+| `DrawerPanelFluting` | cabinet | `None`, `Vertical A`, `Vertical B`, `Horizontal A`, `Horizontal B`, aliased to `X`, `CVA`, `CVB`, `CHA`, `CHB` | §4 |
+| `CabinetColor` | global | no list — `optionsSource: "configurator:Cabinet Color"` | §5; the 232 values come from configurator 4 |
+| `CountertopColor` | countertop | no list — `optionsSource: "configurator:Countertop Color"` | §11; the 61 values come from the same source |
+| `CountertopStyle` | countertop | `integrated`, `vessel` — the options and pictures of Urban Standard Height | Not from the map: §11 lists Integrated/Vessel/Undermount as not described. Added on request; recorded only, the scene has no key for it |
+| `Thickness` | countertop | `0.375`–`5.5`, the values of Urban Standard Height | Added on request (team, 28.09.2026), as the Countertop & Basin step of Urban Standard Height: the Thickness section enables what table 438 gives the colour at the cabinets' depth, and none where it gives none (the price then says the top is missing). The scene takes the value for the countertop and the basin mount |
+| `sinkType` | basin | the 28 integrated basins and 5 vessels Urban Standard Height shows, and `Vessel` (shown as None) for a vessel countertop without a basin | Not from the map: §12 names Rectangular, Strip, Cover, Prisma and Quadra. Added on request; integrated basins are filtered by the shared table 438, and the value reaches every ULH Sink Base as in USH. Default `Top_Porcelain_Cover`: the first Porcelain basin table 438 gives a 46 cm top, for the Porcelain default colour (team, 28.09.2026). On the Countertop & Basin step an empty basin or thickness, or one the table does not allow, takes the first the table allows (`autoSelect: "firstAllowed"` in `ui.json`), as in Urban Standard Height |
+| `VesselColor` | basin | no list — `optionsSource: "configurator:Vessels"` | Added on request with `sinkType`; shown once a vessel is chosen, with the colours that vessel takes, and set to one of them, its default finish first, as in Urban Standard Height (`ruleData.vesselCompatibility`, team, 29.09.2026) |
+| `SidePanels` | global | `None`, `NoG`, `UpperG` — the grooves the ULH side panels of the scene have | Not in the map. Added on request with `ruleData.sidePanels`: upper groove at 38 / 28 cm (the upper-groove heights, §2), no groove at 35 / 25 cm; open shelves take none. The height → groove table is inferred from §2 and the Urban Standard Height table, not confirmed |
+| `TowelBarOption`, `TowelBarColor` | global | `None`, `Left`, `Right`, `Both`; colour from `configurator:Towel Bar Color` | §13 reuses the Urban Standard Height towel bar; its fit to the Low Height heights is not confirmed |
+
+The Accessories step shows Side Panels and Towel Bar. Dividers are left out: the ULH drawer and cabinet templates of
+the scene have no divider points.
+
+Widths and depths (§3) are not in the profile: they are rows of the cabinet table, not product semantics.
+
+## Rules
+
+| Section | What it does | Source |
+|---|---|---|
+| `cabinetMatrixLegacyAdapter` | Required: which cabinet table columns carry types, drawers, handles and forced heights | Format of the table |
+| `fluting` | Fluting is offered only for a Lacquer Matte (`LACM`) cabinet; no part is excluded | §4 — fluted SKUs are priced only in the LACM column. Side panels are not mentioned for Low Height, so nothing is excluded by part |
+| `cabinetColorTraits` | Tells which material a cabinet colour belongs to, so the fluting rule can check it | §5 — the seven groups `3D`, `LACM`, `LACG`, `ST`, `BM`, `HPL`, `ESS` |
+| `countertopFallbacks` | Hides the countertop materials Low Height does not have: Tekorlux, Tekormud, Glass MT, Glass GL. Their colours carry `Lacquered MT/GL` as material, so those two tokens are excluded too. No integrated-basin restriction is declared (`needsConfirmation: true`) | §11 — four materials: Solid-Surface, Fenix, HPL, Porcelain. Configurator 4 is shared with USH and offers nine |
+
+`finishCodes` is empty: it drives the grain rule, and Low Height confirms no grain rule.
+
+Fluting only on Sink Base and Side Cabinet needs no rule of its own: fluting is a drawer front option, and
+open modules have no drawers.
+
+The countertop exclusion becomes visible once table 438 has Low Height rows: until then the countertop page has no
+Low Height basins to match.
+
+Solid-Surface is not narrowed: the map names Gloss White / Matte White, and configurator 4 has both in Mineralmarmo
+(TMO/TNO) and Ocritech (TD2/TD1).
+
+## Models (`presets.json`)
+
+The 59 models of the master file (§10) with their titles, size buckets and style tags; `Open Shelf` and
+`Open Shelving` are one tag, and `Multi-level` was added to the style filter. Every model has its picture in
+`images/`, checked against the SHA-256 in its Threekit URL.
+
+Compositions come from `URBAN_LOW_HEIGHT_MODEL_PRESET_MODULES` (team, 25.09.2026; the map itself has no BOM, §15.7):
+Sink Base, Side Cabinet and Open Shelf modules left to right, the price-list inches in centimetres (§3: 9.8″ → 25 …
+47.2″ → 120). Every module stands at 38 cm with the upper groove (`handle_urban_topcut`) and 46 cm deep — the first
+height and handle of the profile, and the depth the scene lays out — until the product names each model's height and
+handle; cabinets carry the one drawer (`1D`). Every module is in `Rox Black TKQ` (HPL, team, 28.09.2026), as the USH
+models carry their colour; the profile's `defaults` name the same colour, as USH's do, so prebuilt keeps it when a model is picked and a custom composition starts in it. The six Multi-Level models hang at two wall heights, which the scene
+cannot place yet, so they keep no composition. The `open_shelving` and `asymmetrical` tags now follow the compositions
+(ids 13, 15, 22, 26, 32, 41, 59 corrected).
+
+## Configurator 4 against the map
+
+| Catalogue | Map | Missing or disabled in configurator 4 |
+|---|---|---|
+| Cabinet colours | 232 | 16: five 3D (`Pietra Piasentina Grigio Chiaro 1AA`, `… Scuro 1AB`, `Paulownia Seppia 1F2`, `Pelle Pecari Tortora 1PE`, `Rovere Sherwood Chiaro 1S1`) and the metallic colours in GL/ST |
+| Countertop colours | 61 | 2: `Avenue Plumb TRB`, `Metal Grey TRD` |
+
+## Confirmed but not yet expressible
+
+Listed in `excludedFromThisProfile` with the section numbers:
+
+- **Handle decides the height** — Upper Groove 38/28, Push-to-Open 35/25 (§2). Read from table 580
+  (`cabinetMatrixLegacyAdapter.columns.heightsByHandle` → `handle_urban_topcut_heights_cm`, `handle_pto_heights_cm`):
+  the builder offers only the handle's heights, and a handle change moves the cabinet to the nearest one
+  (38 ↔ 35, 28 ↔ 25). The side panels follow the height, so Push-to-Open leaves no upper groove.
+- **Open Shelf width depends on height** — up to 70 cm at 38/35, up to 120 cm at 28/25 (§3, §6). The table keeps widths and heights as independent lists; this needs split rows or a new rule.
+- **Open Side Shelf sizes** — 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). A table row.
+
+## Not from the product map
+
+- Attribute and handle identifiers (`Sink-Base`, `handle_urban_topcut`, `handle_pto`) follow the platform and the scene; the map names the handles UG and PTO. Confirm with I.
+- The map confirms only `FlutingVerticalA → CVA` and `FlutingHorizontalB → CHB`; `CVB` and `CHA` follow the same pattern (§4 says their reading "follows from the Urban logic").
+- The Lacquer Matte spellings in `eligibleMaterialAliases` cover how configurator 4 writes the material; configurator 4 is shared with Urban Standard Height.
+- `sourceRefs` (4 / 438 / 439) come from the manifest; message texts are UI wording.
+
+## SKU profile (`sku-profile.json`)
+
+Priced the way Class and Mako are (D04). The price server already resolves the Low Height matrix (datatable 556); every
+form below was checked against the workbook's `Pricing` sheet on 25.09.2026.
+
+| Part | SKU | Status |
+|---|---|---|
+| Sink Base, Side Cabinet | `VAN-URLH-{SB\|SC}/1DW/{UG\|PTO}/{X\|CVA\|CVB\|CHA\|CHB}-{W}W-{H}H-{D}D-CAB-{material}-{code}` | Priced |
+| Countertop, integrated basin, vessel cutout, faucet holes | Urban Standard Height's (`countertop: { pricedAs: "urban-standard-height" }`, team, 28.09.2026): `CT-UR{material}-{INTG\|VES\|X}-{W}W-{T}H-{D}D-{material}-{code}` with the thickness table `438` gives and the cabinets' depth, `CT-UR{material}-{basin}-{T}H-{material}-{code}` per Sink Base, `-HCUT`, `-FAHO/{n}`. The workbook has no countertop of its own | Priced; gap `countertop` when table 438 gives no thickness for the material at that depth (Mineralmarmo at 46 cm) |
+| Vessel sink | Urban Standard Height's (team, 29.09.2026): `VES-{vessel}-X-{W}W-{H}H-{D}D-{material}-{code}` in the vessel colour, one per Sink Base. The workbook has none of its own | Priced as USH prices it |
+| Open Shelf | `VAN-UROS-1S-{W}W-{H}H-{D}D-CAB-{material}-{code}`, its own series under `cabinet.byCabinetType` | Priced |
+| Open Side Shelf | `VAN-UROSS-{L\|R}-…` | Gap `openSideShelf`: no attribute holds its side, and the scene has no ULH Open Side Shelf |
+| Side panels | Urban Standard Height's (`sidePanel: { pricedAs: "urban-standard-height" }`, team, 28.09.2026): `VAN-URSP-{0G\|1GU}-.4W-{H}H-{D}D-CAB-{material}-{code}`, an upper-groove panel with `-HDL-…` in the groove colour or the cabinet's, at the first cabinet's height and depth, one per active side | SKU built; USH `URSP` rows exist only for 19.7 / 20.9 / 22 in, so the price the server gives at 15 / 13.8 / 11 / 9.8 in is not checked |
+| Towel bar | Urban Standard Height's (`towelBar: { pricedAs: "urban-standard-height" }`): `VAN-URTWLBR-STB/{L\|R}-15.7W-1.4H-2D-LACM-{code}`, one per side, $380 each | Priced as USH prices it; its fit to the Low Height heights is not confirmed (§13) |
+
+- **Sizes are in inches.** The server takes a centimetre SKU as inches and snaps to the nearest row: `90W-38H-50D`
+  answers the 120 cm price.
+- **The colour code matters for white only.** The server prices `0B` in LACM or LACG from the `White GL/MT` column;
+  every other code has no effect on the price. The codes come from the colour names, as the workbook spells them
+  (`Arancio Zucca 09 MT` → `09`, `Castagno Malto 1C2` → `1C2`); configurator 4's `codeColor` is not used, since it
+  carries the finish (`0B MT`) and has wrong values (`Eucalipto Affumicato 1E2` → `100`).
+- **The server does not reject a combination the product does not sell.** Upper Groove at 35 cm or a 80 cm Open Shelf
+  at 38 cm resolve to the nearest row. Only cabinets the cabinet table allows must reach pricing.
+- **38 and 28 cm are written `15H` and `11H`** (team, 25.09.2026); the workbook writes `15.0H` and `11.0H`. The price
+  is the same.
+- **Until a cabinet colour is chosen, the cabinets are priced in the default** (`Rox Black TKQ`, HPL), as the
+  countertop already is in its default colour.
+- **An Upper Groove cabinet carries `HDL`**, product element #2 of the price list's SKU formula
+  (`…-CAB-{material}-{code}-HDL-{material}-{code}`): the groove colour chosen, or the cabinet colour until one is
+  (`None`). Push-to-Open and the Open Shelf have no groove and no `HDL`. The price columns depend on the cabinet
+  material only; that the server resolves these forms has not been checked.
+- Configurator 4 names one colour `Grigio Bromo` without a code (its `codeColor` is `DS MT`, the Torba DS the map
+  lists): it is priced as LACM with no colour code.
+
+## Blockers, by owner
+
+| Owner | What is needed |
+|---|---|
+| Product | Approval of the `defaults`: `CountertopColor: Pietra Di Savoia Antracite TQ6`, the material the scene's Top_Solid countertop is authored in, `CountertopStyle: integrated` as in Urban Standard Height (team, 28.09.2026), `sinkType: Top_Porcelain_Cover` (team, 28.09.2026), and `CabinetColor: Rox Black TKQ` (team, 28.09.2026; it was `Cemento Cenere 1A1`), the colour the models carry: prebuilt carries the current cabinet colour from model to model, so a default that differs from the models' colour would repaint them — the ULH cabinet is authored in `Antracite Matte OCF`, which configurator 4 does not offer; the height and handle of each model and the Multi-Level layout (the compositions came from the team, not the map, §15.7); which Solid-Surface (Mineralmarmo or Ocritech) Low Height uses; the 18 colours missing from configurator 4; the colour → price column map, including the separate `White GL/MT` column (§15.5); confirmation whether `ProductID = USTD` is intentional (§15.2). |
+| Product / A | **A cabinet table for Low Height.** Table `439` holds USH rows, with neither `URLH-SB/SC` nor the heights 38/35/28/25. Until Low Height rows exist, sizes, handle heights and shelf widths cannot be applied — and no cabinet can be placed. The manifest accepts a cabinet table only as a remote DataTable, so a local file is not an option without a change in A. **A countertop table for Low Height:** `438` has no Rectangular/Strip/Cover/Prisma/Quadra rows. |
+| B | A colour step and the fluting field in `ui.json`; until then the fluting rule is in the data but not visible. |
+| I | A scene product for Open Side Shelf: `runtime-bindings.json` places Sink Base, Side Cabinet and Open Shelf as `ULH-sink-cabinet`, `ULH-side-cabinet` and `ULH-Open-Shelf` and declares Open Side Shelf in `unplacedProductTypes`: its card is temporarily hidden in the builder until the scene has the product. With Product / A: table 580 lists the depth 50, but the ULH scene lays out 46 and 50.5 only. **The groove colour in the scene:** `RuleMaterialsCabinetULH` paints `ULH_Cabinet_HGroove` in `CabinetColor`, and `RuleChangeHandleGrooveColor` reaches Urban Standard Height meshes only. Once the export paints the ULH groove from `HandleGrooveColor`, its binding becomes `bound` (identity, `emptyValue: "None"`, as in USH). |
+| D | Open Side Shelf in the cabinet SKU (`VAN-UROSS-L\|R`, its side). With Product: the side panel price at the Low Height heights, which the USH `URSP` rows do not have. |
+
+## Evidence
+
+`entities/collection/__tests__/urbanLowHeightProfile.test.ts`: the profile validates without
+diagnostics, the manifest loads it, every attribute matches the tables above, no USH value leaks in, and
+only the confirmed rule sections are declared, and the countertop section hides exactly the USH-only materials. The fluting rule is offered for `LACM` with the five
+variants, refused with its reason for every other group, and a real configurator colour (`3D`) resolves
+to its material and is refused.

@@ -1,0 +1,18 @@
+[
+  {
+    "id": 901,
+    "img": "images/fixture-ui.svg",
+    "title": "Fixture UI · 31\" Demo",
+    "isProductModel": true,
+    "presetProducts": [
+      {
+        "name": "Fixture-Cabinet",
+        "Width": 79,
+        "CabinetColor": "Fixture Blue",
+        "fixtureExtension": "retained"
+      }
+    ],
+    "size": "30_39",
+    "style": []
+  }
+]

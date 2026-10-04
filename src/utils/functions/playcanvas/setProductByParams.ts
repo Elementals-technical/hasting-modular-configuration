@@ -2,7 +2,12 @@ import { normalizeRuntimeProductType } from "@/entities/product/lib/resolveRunti
 
 export type SetProductByParamsSide = "left" | "right";
 
-export async function setProductByParams(type: string, entityName: string | null, side: SetProductByParamsSide) {
+export async function setProductByParams(
+  type: string,
+  entityName: string | null,
+  side: SetProductByParamsSide,
+  initialConfig?: Record<string, unknown>,
+) {
   // @ts-ignore
   const containerRef = window.containerRef;
   const canvasIframe = containerRef?.current?.contentWindow as any;
@@ -21,7 +26,10 @@ export async function setProductByParams(type: string, entityName: string | null
   }
 
   try {
-    const productId = await setProductByParams(runtimeType, entityName, side);
+    // initialConfig is applied by the scene before the product's first layout.
+    const productId = initialConfig
+      ? await setProductByParams(runtimeType, entityName, side, initialConfig)
+      : await setProductByParams(runtimeType, entityName, side);
     console.log(productId);
 
     return productId;

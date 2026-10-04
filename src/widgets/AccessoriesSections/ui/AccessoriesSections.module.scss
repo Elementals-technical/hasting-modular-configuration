@@ -1,0 +1,55 @@
+.message {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.dividerStyles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dividerTypeHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dividerTypeLabel,
+.dividerHint,
+.openDrawerHint,
+.dividerWarning {
+  margin: 0;
+  font-family: Poppins;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.dividerTypeLabel {
+  color: #282828;
+  font-weight: 600;
+}
+
+.dividerHint {
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.openDrawerHint {
+  margin-top: 2px;
+  color: #8b3f24;
+  font-weight: 600;
+}
+
+.dividerWarning {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2b8a6;
+  border-radius: 6px;
+  background: #fff6f2;
+  color: #8b3f24;
+  font-weight: 600;
+}

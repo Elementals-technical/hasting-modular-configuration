@@ -1,10 +1,17 @@
+import type { ProductProfile } from "@/entities/collection";
+import { selectMessage, selectRuleData } from "@/entities/collection";
 import type { SidePanelAvailabilityResult, SidePanelReasonCode } from "@/features/configurator-rule-core/options/types";
 import { mapCabinetTypeToGroup } from "../model/selectors";
 import {
-  SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON,
-  SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON,
+  REASON_SIDE_PANEL_OPEN_SHELF,
+  REASON_SIDE_PANEL_SIDE_SHELF,
+  mapSidePanelDrawersToHandleType,
   sidePanelAvailabilityRule,
 } from "./sidePanelRules";
+
+export { mapSidePanelDrawersToHandleType };
+
+const REASON_SIDE_PANEL_SHELVES_AT_BOTH_ENDS = "sidePanel.shelvesAtBothEnds";
 
 export type SidePanelEdgeIds = {
   leftCabinetId: string | null;
@@ -28,20 +35,13 @@ const EMPTY_AVAILABILITY: SidePanelAvailabilityResult = {
   allowed: new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">(),
 };
 
-export const isShelfSidePanelReason = (reason?: string | null) =>
-  reason === SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON || reason === SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON;
+export const isShelfSidePanelReason = (reason: string | null | undefined, profile: ProductProfile | null) =>
+  reason === selectMessage(profile, REASON_SIDE_PANEL_OPEN_SHELF) ||
+  reason === selectMessage(profile, REASON_SIDE_PANEL_SIDE_SHELF);
 
 /** Structured (non-fragile) counterpart of {@link isShelfSidePanelReason}. */
 export const isShelfSidePanelReasonCode = (code?: SidePanelReasonCode | null) =>
   code === "open-shelf" || code === "side-shelf";
-
-export const mapSidePanelDrawersToHandleType = (drawers?: string | null) => {
-  if (!drawers) return null;
-
-  if (drawers === "1D" || drawers === "1DWID" || drawers === "1" || drawers === "1+inner") return "1D";
-  if (drawers === "2D" || drawers === "2") return "2D";
-  return null;
-};
 
 export const resolveSelectedSidePanelSide = (selectedId?: string | null): SidePanelEntitySide => {
   const normalized = (selectedId ?? "").toLowerCase().replace(/[\s_-]/g, "");
@@ -52,28 +52,29 @@ export const resolveSelectedSidePanelSide = (selectedId?: string | null): SidePa
 
 export const buildSidePanelEdgeState = (
   edges: SidePanelEdgeIds,
-  selectedCabinetId?: string | null,
+  selectedCabinetId: string | null | undefined,
+  profile: ProductProfile | null,
 ): SidePanelEdgeState => {
-  const leftGroup = mapCabinetTypeToGroup(edges.leftCabinetId);
-  const rightGroup = mapCabinetTypeToGroup(edges.rightCabinetId);
-  const leftBlocked = leftGroup === "OS" || leftGroup === "OSS";
-  const rightBlocked = rightGroup === "OS" || rightGroup === "OSS";
+  const blockedGroups = selectRuleData(profile, "sidePanels")?.blockedCabinetTypes ?? [];
+  const leftGroup = mapCabinetTypeToGroup(edges.leftCabinetId, profile);
+  const rightGroup = mapCabinetTypeToGroup(edges.rightCabinetId, profile);
+  const leftBlocked = leftGroup !== null && blockedGroups.includes(leftGroup);
+  const rightBlocked = rightGroup !== null && blockedGroups.includes(rightGroup);
   const selected = selectedCabinetId ?? null;
-  const selectedGroup = mapCabinetTypeToGroup(selected);
+  const selectedGroup = mapCabinetTypeToGroup(selected, profile);
   const isSelectedEdge = !!selected && (selected === edges.leftCabinetId || selected === edges.rightCabinetId);
 
   let bothEdgesBlockedReason: string | null = null;
   let bothEdgesBlockedReasonCode: SidePanelReasonCode | null = null;
   if (edges.leftCabinetId && edges.rightCabinetId && leftBlocked && rightBlocked) {
     if (leftGroup === "OS" && rightGroup === "OS") {
-      bothEdgesBlockedReason = SIDE_PANEL_OPEN_SHELF_UNAVAILABLE_REASON;
+      bothEdgesBlockedReason = selectMessage(profile, REASON_SIDE_PANEL_OPEN_SHELF);
       bothEdgesBlockedReasonCode = "both-open-shelf";
     } else if (leftGroup === "OSS" && rightGroup === "OSS") {
-      bothEdgesBlockedReason = SIDE_PANEL_SIDE_SHELF_UNAVAILABLE_REASON;
+      bothEdgesBlockedReason = selectMessage(profile, REASON_SIDE_PANEL_SIDE_SHELF);
       bothEdgesBlockedReasonCode = "both-side-shelf";
     } else {
-      bothEdgesBlockedReason =
-        "Side panels are not available when Open Shelf or Side-Shelf cabinets are positioned at both ends.";
+      bothEdgesBlockedReason = selectMessage(profile, REASON_SIDE_PANEL_SHELVES_AT_BOTH_ENDS);
       bothEdgesBlockedReasonCode = "mixed-open-side-shelf";
     }
   }
@@ -98,11 +99,13 @@ export const resolveSidePanelAvailabilityForEdges = ({
   edgeState,
   height,
   edgeDrawers,
+  profile,
 }: {
   selectedAvailability: SidePanelAvailabilityResult;
   edgeState: SidePanelEdgeState;
   height?: number | null;
   edgeDrawers?: string | null;
+  profile: ProductProfile | null;
 }): SidePanelAvailabilityResult => {
   if (edgeState.bothEdgesBlockedReason) {
     return {
@@ -120,11 +123,14 @@ export const resolveSidePanelAvailabilityForEdges = ({
     return selectedAvailability;
   }
 
-  return sidePanelAvailabilityRule({
-    height,
-    handleType: mapSidePanelDrawersToHandleType(edgeDrawers),
-    cabinetType: "SBSC",
-  });
+  return sidePanelAvailabilityRule(
+    {
+      height,
+      handleType: mapSidePanelDrawersToHandleType(edgeDrawers, profile),
+      cabinetType: "SBSC",
+    },
+    profile,
+  );
 };
 
 export const resolveSidePanelTargetSide = ({

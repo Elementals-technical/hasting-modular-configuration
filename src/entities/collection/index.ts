@@ -1,0 +1,175 @@
+// Collection data access — owned by A.
+export * from "./lib/collectionUrl";
+export * from "./lib/customization/deriveCollectionNavigation";
+export * from "./lib/customization/validateCustomizationSchema";
+export * from "./lib/loadCollection";
+export * from "./lib/paths";
+export * from "./lib/resolveCollection";
+export * from "./lib/resolveRestoredCollection";
+export * from "./lib/rtkRemoteLoader";
+export * from "./lib/validation";
+export * from "./model/constants";
+export * from "./model/diagnostics";
+export * from "./model/errors";
+export * from "./model/schemas";
+export * from "./model/types";
+export * from "./ui/ActiveCollectionProvider";
+export * from "./ui/CollectionReadinessGate";
+export * from "./ui/activeCollectionContext";
+
+// ProductProfile — owned by C: the semantic shape of the product data and the pure
+// transformations over it. A binds the sources and calls them while loading.
+//
+// Listed explicitly rather than re-exported wholesale: this barrel is edited by two
+// people, and an explicit list turns a name collision into a compile error here instead
+// of a silently missing export at the call site.
+export type {
+  AttributeConfirmation,
+  AttributeScope,
+  BookMatchingRuleData,
+  CabinetColorTraitsRuleData,
+  CabinetMatrixLegacyAdapter,
+  CountertopFallbacksRuleData,
+  DrawerStyleGroups,
+  UndeterminedRule,
+  FlutingRuleData,
+  GrainDirectionRuleData,
+  MaterialDisplayGroup,
+  MaterialNormalizationRuleData,
+  OptionCapabilities,
+  ProductProfile,
+  ProfileAttribute,
+  ProfileMessages,
+  ProfileOption,
+  ProfileRuleData,
+  ProfileSourceRefs,
+  SidePanelAvailabilityRow,
+  SidePanelsRuleData,
+  SyntesiFinishTransform,
+  SyntesiRuleData,
+  VesselCompatibilityRuleData,
+  VesselFinishPreference,
+} from "./model/productProfile";
+export { ATTRIBUTE_SCOPES } from "./model/productProfile";
+
+export type { CabinetHandleRelations, HandleHeightConstraint, NormalizedHandleProfile } from "./model/handleProfile";
+
+export { parseProductProfile } from "./lib/parseProductProfile";
+export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCode } from "./lib/parseProductProfile";
+
+export {
+  hasCapability,
+  isDrawerStyleMixingRestricted,
+  isKnownOption,
+  isVesselBasin,
+  normalizeOptionValue,
+  selectAttribute,
+  selectConfiguratorSection,
+  selectDefaultValue,
+  selectEffectiveFallback,
+  selectInitialValue,
+  selectLegacySpelling,
+  selectMessage,
+  selectMessageOr,
+  selectBasinOptions,
+  selectOption,
+  selectOptionValues,
+  selectOptions,
+  selectOptionsByCapability,
+  selectResetValue,
+  selectMaterialHierarchy,
+  selectRuleData,
+} from "./lib/productProfileSelectors";
+export type { MessageParams } from "./lib/productProfileSelectors";
+
+export {
+  isHandleAllowedForDrawers,
+  normalizeHandleProfile,
+  parseHeightMapping,
+  resolveDrawersForcedHeight,
+  resolveForcedHeight,
+  resolvePossibleForcedHeights,
+} from "./lib/normalizeHandleProfile";
+export type { NormalizedMatrixRow, NormalizeHandleProfileArgs } from "./lib/normalizeHandleProfile";
+
+// Runtime bindings — owned by I: how a semantic value reaches the PlayCanvas scene.
+export type {
+  BoundRuntimeBinding,
+  FlowTargets,
+  IdentityValues,
+  MappedValues,
+  RuntimeBinding,
+  RuntimeBindingSet,
+  RuntimeFlow,
+  RuntimeTarget,
+  SceneValue,
+  ScenePatch,
+  SemanticValue,
+  StateOnlyRuntimeBinding,
+  UnboundRuntimeBinding,
+} from "./model/runtimeBindings";
+
+export { parseRuntimeBindings } from "./lib/runtimeBindings/parseRuntimeBindings";
+export type {
+  ParseRuntimeBindingsResult,
+  RuntimeBindingsDiagnostic,
+  RuntimeBindingsDiagnosticCode,
+} from "./lib/runtimeBindings/parseRuntimeBindings";
+
+export {
+  configurationValueOf,
+  findMissingBindings,
+  isStateOnlyResolution,
+  resolveRuntimeBinding,
+  selectRuntimeBinding,
+} from "./lib/runtimeBindings/resolveRuntimeBinding";
+export type {
+  ResolvedRuntimeBinding,
+  RuntimeBindingFailure,
+  RuntimeBindingFailureReason,
+  RuntimeBindingRequest,
+  RuntimeBindingResolution,
+  StateOnlyRuntimeResolution,
+} from "./lib/runtimeBindings/resolveRuntimeBinding";
+export { resolveProductConfig } from "./lib/runtimeBindings/resolveProductConfig";
+export {
+  isSinkBaseRuntimeId,
+  resolveCabinetTypeOfRuntimeId,
+  resolveCabinetTypeOfSceneId,
+} from "./lib/runtimeBindings/resolveCabinetType";
+
+export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBindings";
+export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
+export {
+  collectCustomizationAttributeIds,
+  validateCollectionRuntimeContract,
+} from "./lib/runtimeBindings/collectionRuntimeContract";
+
+// Customization schema — owned by B: the UI description of steps, sections and fields.
+export type {
+  CustomizationFieldControl,
+  CustomizationFieldDefinition,
+  CustomizationFlow,
+  CustomizationFlowId,
+  CustomizationFlowStepRef,
+  CustomizationOptionImages,
+  CustomizationCountertopSettings,
+  CustomizationScreenId,
+  CustomizationScreenKind,
+  CustomizationSchema,
+  CustomizationSchemaDiagnostic,
+  CustomizationSchemaDiagnosticCode,
+  CustomizationSectionDefinition,
+  CustomizationStepDefinition,
+  FieldOptionState,
+  FieldOptionTraits,
+  FieldRuntimeState,
+  FieldToggleState,
+  OptionImageVariant,
+  OptionImageVariants,
+  ValidateCustomizationSchemaResult,
+} from "./model/customizationSchema";
+export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS } from "./model/customizationSchema";
+export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
+
+export { useCollectionPresets } from "./lib/useCollectionPresets";

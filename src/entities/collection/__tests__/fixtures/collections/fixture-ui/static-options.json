@@ -1,0 +1,7 @@
+{
+  "countertopThicknesses": ["fixture-thickness"],
+  "faucetHoleCounts": [7],
+  "cabinetTypes": ["Fixture-Cabinet"],
+  "drawerConfigurations": ["Fixture-Drawer"],
+  "handles": ["fixture-handle"]
+}

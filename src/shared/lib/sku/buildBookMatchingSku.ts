@@ -1,3 +1,5 @@
+import type { SkuProfile } from "./skuProfile";
+
 export type BookMatchingSkuInput = {
   /** "H" (horizontal) or "V" (vertical) */
   direction: "H" | "V";
@@ -6,7 +8,6 @@ export type BookMatchingSkuInput = {
 };
 
 const CATEGORY = "VAN";
-const SERIES = "URBMG";
 
 /**
  * Builds a pricing SKU for Book Matching.
@@ -16,8 +17,8 @@ const SERIES = "URBMG";
  *   VAN-URBMG-HOR
  *   VAN-URBMG-VER-HPL
  */
-export function buildBookMatchingSku(input: BookMatchingSkuInput): string {
+export function buildBookMatchingSku(profile: SkuProfile, input: BookMatchingSkuInput): string {
   const suffix = input.direction === "H" ? "HOR" : "VER";
-  const base = `${CATEGORY}-${SERIES}-${suffix}`;
+  const base = `${CATEGORY}-${profile.series.bookMatching}-${suffix}`;
   return input.materialSku ? `${base}-${input.materialSku}` : base;
 }

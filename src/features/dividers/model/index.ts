@@ -19,7 +19,6 @@ export type {
 export {
   dividerTypeSetsEqual,
   dividerTypesEqual,
-  getDividerTypeFromOptionTitle,
   isDividerType,
   normalizeDividerType,
   normalizeDividerTypes,

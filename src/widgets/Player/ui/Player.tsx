@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
 
@@ -7,13 +7,8 @@ import { BottomCanvasButtons } from "@/features/bottomCanvasButtons/BottomCanvas
 import { InteractiveConfiguratorTutorial } from "@/features/interactiveConfiguratorTutorial";
 import { IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT } from "@/features/inSceneQuickEditorNotification";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
-import {
-  openSwatchOrder,
-  getSelectedMaterials,
-  getManualSelectedMaterials,
-  getIsAutofillEnabled,
-  getHasSubmittedCart,
-} from "@/features/swatchOrder";
+import { useCollectionNavigate, useCollectionNavigation } from "@/features/collectionCustomization";
+import { openSwatchOrder } from "@/features/swatchOrder";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 
 import { Rotate360Icon } from "@/shared/assets/images/svg/Rotate360Icon";
@@ -29,33 +24,8 @@ import quickEditorStep from "@/shared/assets/images/png/popup/Step_3.png";
 import { HelpCenterPopup, type HelpCenterNode } from "@/widgets/helpCenter";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { useSaveConfigurationMutation } from "@/entities";
-import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
-import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
-import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import {
-  getActiveCountertopColor,
-  getCountertopColorSku,
-  getActiveCountertopThickness,
-  getBookMatching,
-  getCabinetColor,
-  getCountertopStyle,
-  getDividersOption,
-  getDividersStyle,
-  getDrawerPanelFluting,
-  getFaucetHolesAmount,
-  getFaucetHolesSpacing,
-  getGrainDirection,
-  getHandleGrooveColor,
-  getLedOption,
-  getSidePanelsOption,
-  getSidePanelLeftStatus,
-  getSidePanelRightStatus,
-  getSinkType,
-  getTowelBarColor,
-  getTowelBarOption,
-  getVesselColor,
-} from "@/entities/product/model/store/selectors";
+import { getSaveFailureMessage, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
+
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 
 import { onFirstOrbitRotation } from "@/utils/playcanvasRotation";
@@ -82,12 +52,13 @@ export function Player({
   onInteractiveTutorialClose,
 }: PlayerProps = {}) {
   const location = useLocation();
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
 
-  const isSummaryPage = pathname.includes("/summary");
+  const navigation = useCollectionNavigation();
+  const isSummaryPage = navigation?.isSummary ?? false;
+  const summaryViewPath = navigation?.summaryStep?.path ?? null;
 
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
@@ -95,95 +66,23 @@ export function Player({
   const [isCustomInstructionOpen, setIsCustomInstructionOpen] = useState(false);
   const [isInteractiveTutorialOpen, setIsInteractiveTutorialOpen] = useState(initialInteractiveTutorialOpen);
 
-  const cabinetColor = useAppSelector(getCabinetColor);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
-  const sinkType = useAppSelector(getSinkType);
-  const countertopColor = useAppSelector(getActiveCountertopColor);
-  const countertopColorSku = useAppSelector(getCountertopColorSku);
-  const vesselColor = useAppSelector(getVesselColor);
-  const countertopThickness = useAppSelector(getActiveCountertopThickness);
-  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const grainDirection = useAppSelector(getGrainDirection);
-  const bookMatching = useAppSelector(getBookMatching);
-  const countertopStyle = useAppSelector(getCountertopStyle);
-  const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
-  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const ledOption = useAppSelector(getLedOption);
-  const dividersOption = useAppSelector(getDividersOption);
-  const dividersStyle = useAppSelector(getDividersStyle);
-  const towelBarOption = useAppSelector(getTowelBarOption);
-  const towelBarColor = useAppSelector(getTowelBarColor);
-  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
-
-  const selectedMaterials = useAppSelector(getSelectedMaterials);
-  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
-  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
-  const hasSubmittedCart = useAppSelector(getHasSubmittedCart);
-
-  const [saveConfiguration] = useSaveConfigurationMutation();
   const activeStep = useAppSelector(getActiveStep);
+  const saveCurrentConfiguration = useSaveCurrentConfiguration();
 
   const handleSaveConfiguration = async () => {
-    const ids = getOrderedProductIds();
-
-    if (!ids.length) {
-      console.warn("[Configurations] No products to save");
-      setShareValue("No products to save");
-      setIsShareOpening(true);
-      return;
-    }
-
-    const configs = await Promise.all(ids.map((id) => getConfig(id)));
-    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-      acc[id] = configs[index];
-      return acc;
-    }, {});
-
-    const metadata = buildConfigurationMetadata({
-      path: pathname,
-      orderedProductIds: ids,
-      uiState: {
-        CabinetColor: cabinetColor,
-        HandleGrooveColor: handleGrooveColor,
-        sinkType,
-        CountertopColor: countertopColor,
-        CountertopColorSku: countertopColorSku,
-        VesselColor: vesselColor,
-        Thickness: countertopThickness,
-        DrawerPanelFluting: drawerPanelFluting,
-        GrainDirection: grainDirection,
-        BookMatching: bookMatching,
-        CountertopStyle: countertopStyle,
-        SidePanels: sidePanelsOption,
-        SidePanelLeft: sidePanelLeft,
-        SidePanelRight: sidePanelRight,
-        LedOption: ledOption,
-        DividersOption: dividersOption,
-        DividersStyle: dividersStyle,
-        TowelBarOption: towelBarOption,
-        TowelBarColor: towelBarColor,
-        FaucetHolesAmount: faucetHolesAmount,
-        FaucetHolesSpacing: faucetHolesSpacing,
-      },
-      swatchOrder: {
-        selectedMaterials,
-        manualSelectedMaterials,
-        isAutofillEnabled,
-        hasSubmittedCart,
-      },
-    });
-
     try {
-      const result = await saveConfiguration({ configuration, metadata }).unwrap();
-      const configId = result?.id;
+      const result = await saveCurrentConfiguration();
 
-      if (configId !== undefined && configId !== null) {
-        const url = buildConfigurationShareUrl(configId);
-        setShareValue(url);
+      if (!result.ok) {
+        const message = getSaveFailureMessage(result.reason);
+        console.warn(`[Configurations] ${message}`);
+        setShareValue(message);
         setIsShareOpening(true);
+        return;
       }
+
+      setShareValue(result.url);
+      setIsShareOpening(true);
     } catch (error) {
       console.error("[Configurations] Save failed", error);
     }
@@ -227,7 +126,6 @@ export function Player({
   const isOpening = searchParams.get("help") === "1";
   const locationState = location.state as PlayerLocationState | null;
   const hasHelpState = Boolean(locationState?.helpModal);
-  const summaryViewPath = pathname.includes("/custom") ? "/custom/summary" : "/prebuilt/summary";
   const helpPath = (searchParams.get("helpPath") ?? "")
     .split(".")
     .map((item) => item.trim())
@@ -309,6 +207,7 @@ export function Player({
   };
 
   const navigateToSummarySwatches = () => {
+    if (!summaryViewPath) return;
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("help");
     nextParams.delete("step");
@@ -416,7 +315,7 @@ export function Player({
             text: (
               <>
                 Share your design configuration through the <em>How to Buy</em> form on the{" "}
-                <Link to={summaryViewPath}>Summary View page</Link>. Our team receives your design and reaches out
+                <Link to={summaryViewPath ?? "#"}>Summary View page</Link>. Our team receives your design and reaches out
                 within 24 hours to get the ball rolling.
               </>
             ),
@@ -508,13 +407,10 @@ export function Player({
   return (
     <div className={`${s.player} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
       <div className={s.mobileStepNavigation}>
-        <StepNavigationBar title={activeStep} flow={pathname.includes("/custom") ? "custom" : "prebuilt"} />
+        <StepNavigationBar title={activeStep} />
       </div>
 
-      <PlayCanvasIntegration
-        isCanvasFullMode={isCanvasFullMode}
-        onCanvasFullModeClose={handleCanvasFullModeClose}
-      />
+      <PlayCanvasIntegration isCanvasFullMode={isCanvasFullMode} onCanvasFullModeClose={handleCanvasFullModeClose} />
 
       {onCanvasFullModeChange && (
         <button

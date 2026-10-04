@@ -1,5 +1,5 @@
 import { useEffect, useState, type MouseEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, type To } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import { type PresetProduct } from "@/entities/product/types";
@@ -22,6 +22,7 @@ interface ProductModelGridI {
   img: string;
   desc?: string;
   isProductModel: boolean;
+  detailsTo?: To;
   price?: string;
   presetProducts?: PresetProduct[];
   onSelect: (presetProducts?: PresetProduct[], presetId?: number) => void;
@@ -35,6 +36,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
   desc,
   img,
   isProductModel,
+  detailsTo,
   price,
   onSelect,
   onCustomize,
@@ -111,8 +113,8 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
       </div>
       {desc && <div className={s.desc}>{desc}</div>}
 
-      {isProductModel && (
-        <Link className={s.link} to={`/prebuilt/model/${id}`} onClick={handleDetailsClick}>
+      {isProductModel && detailsTo && (
+        <Link className={s.link} to={detailsTo} onClick={handleDetailsClick}>
           <span>Product Details</span>
           <span className={s.linkIcon}>
             <ArrowTopRight color={"#ad5534"} />

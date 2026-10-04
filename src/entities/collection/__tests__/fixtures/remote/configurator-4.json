@@ -1,0 +1,279 @@
+{
+  "id": 4,
+  "name": "Import Configurator New",
+  "enabled": true,
+  "organizationId": 5,
+  "description": "",
+  "createdAt": "2026-02-09T11:55:56.937Z",
+  "updatedAt": "2026-08-20T12:36:30.606Z",
+  "availableOptions": [
+    {
+      "id": 15,
+      "proxyName": "Cabinet Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 279,
+          "name": "3D",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 2872,
+              "name": "Castagno chiaro 1C1",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "3D",
+                "codeColor": "1C1",
+                "Color": "White ",
+                "Material": "3D",
+                "Look": "Wood-Look",
+                "image": "/api/files/hash/sha256-d11b75498d9c094da836240b1ae0e4cf7a0c017765fdeb3769084ae513caef1e",
+                "zoomIconColor": "Dark Grey",
+                "label": "Castagno Chiaro 1C1",
+                "value": "Castagno chiaro 1C1"
+              }
+            },
+            {
+              "id": 2873,
+              "name": "Castagno Malto 1C2",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "3D",
+                "codeColor": "1C2",
+                "Color": "Brown",
+                "Material": "3D",
+                "Look": "Wood-Look",
+                "image": "/api/files/hash/sha256-20e1b04e87bbc93d17c1ae374b12cf566d1a198c73c6f188884e5a71cd32942b",
+                "zoomIconColor": "White",
+                "label": "Castagno Malto 1C2",
+                "value": "Castagno Malto 1C2"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "proxyName": "Handle Groove Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 279,
+          "name": "3D",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 2872,
+              "name": "Castagno chiaro 1C1",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "3D",
+                "codeColor": "1C1",
+                "Color": "White ",
+                "Material": "3D",
+                "Look": "Wood-Look",
+                "image": "/api/files/hash/sha256-d11b75498d9c094da836240b1ae0e4cf7a0c017765fdeb3769084ae513caef1e",
+                "zoomIconColor": "Dark Grey",
+                "label": "Castagno Chiaro 1C1",
+                "value": "Castagno chiaro 1C1"
+              }
+            },
+            {
+              "id": 2873,
+              "name": "Castagno Malto 1C2",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "3D",
+                "codeColor": "1C2",
+                "Color": "Brown",
+                "Material": "3D",
+                "Look": "Wood-Look",
+                "image": "/api/files/hash/sha256-20e1b04e87bbc93d17c1ae374b12cf566d1a198c73c6f188884e5a71cd32942b",
+                "zoomIconColor": "White",
+                "label": "Castagno Malto 1C2",
+                "value": "Castagno Malto 1C2"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "proxyName": "Towel Bar Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 279,
+          "name": "3D",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 2872,
+              "name": "Castagno chiaro 1C1",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "3D",
+                "codeColor": "1C1",
+                "Color": "White ",
+                "Material": "3D",
+                "Look": "Wood-Look",
+                "image": "/api/files/hash/sha256-d11b75498d9c094da836240b1ae0e4cf7a0c017765fdeb3769084ae513caef1e",
+                "zoomIconColor": "Dark Grey",
+                "label": "Castagno Chiaro 1C1",
+                "value": "Castagno chiaro 1C1"
+              }
+            },
+            {
+              "id": 2873,
+              "name": "Castagno Malto 1C2",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "3D",
+                "codeColor": "1C2",
+                "Color": "Brown",
+                "Material": "3D",
+                "Look": "Wood-Look",
+                "image": "/api/files/hash/sha256-20e1b04e87bbc93d17c1ae374b12cf566d1a198c73c6f188884e5a71cd32942b",
+                "zoomIconColor": "White",
+                "label": "Castagno Malto 1C2",
+                "value": "Castagno Malto 1C2"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "proxyName": "Countertop Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 284,
+          "name": "HPL",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 3065,
+              "name": "Ardesia TKF",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "HPL",
+                "codeColor": "TKF",
+                "Color": "Black",
+                "Material": "HPL",
+                "Look": "Stone/Marble-Look",
+                "image": "/api/files/hash/sha256-8389293023e9622179eddefcf0e934a28fdc3f80207f62ab1aff4c79f96134d8",
+                "zoomIconColor": "White",
+                "label": "Ardesia TKF",
+                "value": "Ardesia TKF"
+              }
+            },
+            {
+              "id": 3072,
+              "name": "Brera Brown TKN",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "HPL",
+                "codeColor": "TKN",
+                "Color": "Brown",
+                "Material": "HPL",
+                "Look": "Metallic, Stone/Marble-Look",
+                "image": "/api/files/hash/sha256-176b100a4f17f7c9ec5717097a5ac79f91c524977307559300d0f63536acdff2",
+                "zoomIconColor": "White",
+                "label": "Brera Brown TKN",
+                "value": "Brera Brown TKN"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "proxyName": "Vessels",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 295,
+          "name": "Ceramic",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 3314,
+              "name": "Antracite Matte OCF",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "CER",
+                "codeColor": "OCF"
+              }
+            },
+            {
+              "id": 3312,
+              "name": "Cemento Matte OCD",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "sku": "CER",
+                "codeColor": "OCD"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "availableGeometryOptions": [],
+  "availableStandardOptions": []
+}

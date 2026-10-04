@@ -3,10 +3,11 @@ import { describe, expect, it } from "vitest";
 import { deriveDividerOptions } from "../deriveOptions";
 import type { DividerAvailability } from "../types";
 
+// As buildDividerStyleOptions lists them: the value is the style, the label is UI wording.
 const mockOptions = [
-  { id: 5000, title: "Option A", isShortDesc: false },
-  { id: 5001, title: "Option B", isShortDesc: false },
-  { id: 5002, title: "Option C", isShortDesc: false },
+  { id: 5000, name: "A", title: "Option A", isShortDesc: false },
+  { id: 5001, name: "B", title: "Option B", isShortDesc: false },
+  { id: 5002, name: "C", title: "Option C", isShortDesc: false },
 ];
 
 describe("deriveDividerOptions", () => {
@@ -53,8 +54,8 @@ describe("deriveDividerOptions", () => {
     );
   });
 
-  it("keeps non-divider options available", () => {
-    const result = deriveDividerOptions([{ title: "Something else" }], ["A"]);
+  it("keeps an option that is not a divider style available", () => {
+    const result = deriveDividerOptions([{ name: "something-else" }], ["A"]);
 
     expect(result[0]).toMatchObject({ isAvailable: true, disabledReason: undefined });
   });

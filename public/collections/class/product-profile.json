@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "profileVersion": "0.1.0-draft",
+  "status": "draft-from-product-docs",
+  "collectionId": "class",
+  "label": "Class",
+  "provenance": {
+    "sources": [
+      "analysis/products-data/Class/docs/CLASS-MODULAR-LOGIC-UA.md",
+      "analysis/products-data/Class/docs/COLLECTION-LOGIC-UA.md"
+    ],
+    "auditedAt": "2026-09-08",
+    "warning": "Only facts the Class documents confirm: the WebGL Scoping rules (CLS-WGL), the Class price workbook (CLS-XLS) and the Master File register (appendix A). Urban Standard Height values are not inherited."
+  },
+  "sourceRefs": {
+    "configuratorId": 4,
+    "countertopMatrixTableId": 578,
+    "cabinetMatrixTableId": 579
+  },
+  "defaults": {
+    "CabinetColor": "INVISIBLE WHITE LUCIDO 334",
+    "CountertopColor": "INVISIBLE WHITE LUCIDO 334",
+    "CabinetSideColor": "Nero 433 MT",
+    "FrameColor": "Nero 433 MT",
+    "CountertopStyle": "integrated",
+    "sinkType": "VA005"
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 10,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet with a basin (SB)"
+        },
+        {
+          "value": "Sink-Cabinet",
+          "label": "Side Cabinet",
+          "order": 20,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet without a basin (SC)"
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 10,
+          "aliases": ["1D", "1DW"]
+        },
+        {
+          "value": "2",
+          "label": "2 Drawer",
+          "order": 20,
+          "aliases": ["2D", "2DW"]
+        },
+        {
+          "value": "1+inner",
+          "label": "1 Drawer With Inner Drawer",
+          "order": 30,
+          "aliases": ["1DWID", "1+INNER"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "40",
+          "label": "40 cm",
+          "order": 10
+        },
+        {
+          "value": "52",
+          "label": "52 cm",
+          "order": 20
+        }
+      ]
+    },
+    {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color"
+    },
+    {
+      "attributeId": "CabinetSideColor",
+      "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color"
+    },
+    {
+      "attributeId": "FrameColor",
+      "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color"
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "integrated",
+          "label": "Integrated",
+          "order": 10,
+          "aliases": ["Integrated", "INTG"]
+        },
+        {
+          "value": "vessel",
+          "label": "Vessel",
+          "order": 20,
+          "aliases": ["Vessel", "VES"]
+        }
+      ]
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Select Countertop Color"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "0.5",
+          "label": "0.5\"",
+          "order": 10
+        },
+        {
+          "value": "0.75",
+          "label": "0.8\"",
+          "order": 20
+        },
+        {
+          "value": "3.125",
+          "label": "3.1\"",
+          "order": 30
+        },
+        {
+          "value": "4",
+          "label": "4\"",
+          "order": 40
+        },
+        {
+          "value": "4.75",
+          "label": "4.7\"",
+          "order": 50
+        }
+      ]
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "noneValue": "None",
+      "options": [
+        {
+          "value": "LB440",
+          "label": "LB440",
+          "order": 10,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "LB175",
+          "label": "LB175",
+          "order": 20,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "LB575",
+          "label": "LB575",
+          "order": 30,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "LB856",
+          "label": "LB856",
+          "order": 40,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "VA024",
+          "label": "VA024",
+          "order": 50,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "LV890",
+          "label": "LV890",
+          "order": 60,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "LV892",
+          "label": "LV892",
+          "order": 70,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "VA002",
+          "label": "VA002",
+          "order": 80,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "VA005",
+          "label": "VA005",
+          "order": 90,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "VA023",
+          "label": "VA023",
+          "order": 100,
+          "kind": "integrated",
+          "category": "integrated"
+        },
+        {
+          "value": "None",
+          "label": "None",
+          "order": 105,
+          "kind": "vessel",
+          "category": "vessel",
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen, as the USH countertop step offers it"
+        },
+        {
+          "value": "Iris",
+          "label": "Iris",
+          "order": 110,
+          "kind": "vessel",
+          "category": "vessel"
+        },
+        {
+          "value": "Frame",
+          "label": "Frame",
+          "order": 120,
+          "kind": "vessel",
+          "category": "vessel"
+        },
+        {
+          "value": "Plaza",
+          "label": "Plaza",
+          "order": 130,
+          "kind": "vessel",
+          "category": "vessel"
+        }
+      ]
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Select Cabinet Color"
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "0",
+          "label": "0",
+          "order": 10
+        },
+        {
+          "value": "1",
+          "label": "1",
+          "order": 20
+        },
+        {
+          "value": "2",
+          "label": "2",
+          "order": 30
+        },
+        {
+          "value": "3",
+          "label": "3",
+          "order": 40
+        }
+      ]
+    },
+    {
+      "attributeId": "DividersStyle",
+      "scope": "drawer",
+      "options": [
+        {
+          "value": "Metal",
+          "label": "Metal",
+          "order": 10,
+          "legacyDescription": "Metal tray with two movable dividers (ROW-MTL-43, VAN-GBDIV-MTL)"
+        },
+        {
+          "value": "Oak",
+          "label": "Oak",
+          "order": 20,
+          "legacyDescription": "Oak organizer with three black dividers (ROW-OAK-43, VAN-GBDIV-OAK)"
+        }
+      ]
+    }
+  ],
+  "ruleData": {
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 579,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "handleDrawerConfigs": "handle_drawer_configs"
+      }
+    },
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "vesselCompatibility": {
+      "hiddenStyles": [],
+      "allowedMaterialsByStyle": {
+        "Iris": ["lacqueredmt"],
+        "Frame": ["lacqueredmt"],
+        "Plaza": ["lacqueredmt", "lacqueredgl"]
+      },
+      "allowedColorCodesByStyle": {},
+      "unavailableColorCodesByStyle": {},
+      "defaultFinishByStyle": {
+        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
+        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
+        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+      }
+    }
+  },
+  "messages": {
+    "product.missingData": "Not available yet: the product has not defined this option for the current selection.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option is not available in this collection.",
+    "drawers.requiredHeight": "Required for selected drawers",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style."
+  },
+  "excludedFromThisProfile": {
+    "handle": "Class has no handle choice: the grip is part of the frame (CLS-WGL-003). No Handle attribute is declared.",
+    "sourceRefs": "Cabinet table 579 comes from the manifest and holds Class data; countertop table 578 comes from the manifest and holds Class data. The colour catalogs are read from the configurator the manifest names; Class has no configurator of its own yet, so it reads Mako's 9 and offers only the colours that appear there. Configurator 8 is named for Class but is still a copy of 9.",
+    "heightByStyle": "Confirmed: 1DW and 1DWID are 40 cm high, 2DW is 52 cm (CLS-XLS-005/006/007). The builder catalog gets it from the cabinet table rows (table 579, forced_height_cm 2:52|1:40|1+inner:40).",
+    "widths": "Confirmed: Sink Base 60/80/100/120 cm, Side Cabinet 40/60/80/100/120 cm, depth 52 cm (CLS-XLS-002/003/008). Cabinet table rows (table 579).",
+    "integratedSb60WithInnerDrawer": "Confirmed: a 60 cm Sink Base with 1DWID is not available with an Integrated countertop (CLS-WGL-006). The profile has no width x style x countertop style rule.",
+    "compositionLimits": "Confirmed: at most 220 cm long, at most two Sink Bases, cabinets abut only (CLS-WGL-007/008/009). Not expressible in the profile yet.",
+    "floatingCountertop": "Confirmed for thick countertops only (CLS-WGL-010); positions and the thick profile list are open (Q-CLASS-041/042).",
+    "thickness": "The GB table and the price workbook disagree (4 vs 4.7, .8 vs 3/4, 3.1 vs 3-1/8), so no thickness catalog is declared (Q-CLASS-033/042).",
+    "basinByMaterialAndMinWidth": "Confirmed in GB: material -> integrated basin codes and the minimum Sink Base width (60 cm, 80 cm for VA023) (section 0.8). Needs Class rows in the countertop table.",
+    "vesselCutoutAndBrackets": "A vessel cutout per Sink Base and two brackets for thick countertops are order lines, not options (CLS-WGL-013, CLS-XLS-022).",
+    "colorToSkuMaterial": "Cabinet Color, Cabinet Side Color and Frame Color map to CABF / CABS / FRM, but the value -> material code -> colour code join and the /B or /C price class are not given (Q-CLASS-004/006/032).",
+    "solidSurfaceAliases": "Matte White and Matte White 8cm are not joined to SSTL / SSTM / SSTEX / SSTMT (Q-CLASS-016).",
+    "va030": "VA030 is priced for SSTEX but absent from the Master File, so it is not offered (section 6.6).",
+    "faucetHolePositions": "Only the counts 0-3 are confirmed; positions, spacing and diameters are not (section 0.8).",
+    "vesselStyleAssets": "Iris, Frame and Plaza are named; their assets are not given (Q-CLASS-043). Their palettes follow the price list and the Threekit tables, which agree, but the product has not confirmed them: Iris and Frame take the 20 lacquered matt colours, Plaza those and the 20 lacquered gloss ones (vesselCompatibility). The colour a vessel starts with is Threekit's: Salvia 415 MT for Iris, Fumo 401 MT for Frame, Antracite 400 MT for Plaza (team, 30.09.2026)."
+  }
+}

@@ -1,18 +1,22 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { useLazyRestoreConfigurationQuery } from "@/entities";
+import { clearRestore, useLazyRestoreConfigurationQuery } from "@/entities";
 import {
   CONFIGURATION_ID_QUERY_PARAM,
-  HOST_URL_QUERY_PARAM,
+  buildConfigurationRestoreSearch,
   persistHostUrlFromSearch,
   readHostUrlFromSearch,
+  readSavedCollectionId,
 } from "@/features/saveConfiguration";
 import { ROUTES } from "@/shared";
+import { useAppDispatch } from "@/shared/hooks/store/redux";
+
+import { resolveRestoreNavigation } from "./lib/resolveRestoreNavigation";
 
 const RESTORE_TARGET = {
-  prebuilt: `${ROUTES.PREBUILT}/model`,
-  custom: `${ROUTES.CUSTOM}/cabinet-builder`,
+  prebuilt: ROUTES.PREBUILT,
+  custom: ROUTES.CUSTOM,
 } as const;
 
 const resolveRestoreTarget = (sourcePath: unknown): string => {
@@ -24,20 +28,13 @@ const resolveRestoreTarget = (sourcePath: unknown): string => {
   return RESTORE_TARGET.prebuilt;
 };
 
-const buildRestoreSearch = (configId: string, hostUrl: string | null): string => {
-  const params = new URLSearchParams();
-  params.set(CONFIGURATION_ID_QUERY_PARAM, configId);
-
-  if (hostUrl) {
-    params.set(HOST_URL_QUERY_PARAM, hostUrl);
-  }
-
-  return `?${params.toString()}`;
-};
+/** A restore that changes the collection starts a new session, so it reloads the app. */
+const reloadInto = (url: string) => window.location.assign(url);
 
 export const RestoreConfigurationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const [restoreConfiguration] = useLazyRestoreConfigurationQuery();
   const configId = searchParams.get(CONFIGURATION_ID_QUERY_PARAM)?.trim() ?? "";
@@ -58,19 +55,27 @@ export const RestoreConfigurationPage = () => {
         return;
       }
 
-      const restoreSearch = buildRestoreSearch(configId, hostUrl);
+      // Opening a link is a new restore, even of a configuration restored earlier in this session.
+      dispatch(clearRestore());
 
       try {
         const result = await restoreConfiguration(configId).unwrap();
         if (isCancelled) return;
 
-        navigate(
-          {
-            pathname: resolveRestoreTarget(result?.metadata?.path),
-            search: restoreSearch,
-          },
-          { replace: true },
-        );
+        const savedCollectionId = readSavedCollectionId(result?.metadata);
+        const pathname = resolveRestoreTarget(result?.metadata?.path);
+        const search = buildConfigurationRestoreSearch({ configId, hostUrl, collectionId: savedCollectionId });
+        const navigation = resolveRestoreNavigation({
+          sessionCollectionId: searchParams.get("collectionId"),
+          savedCollectionId,
+        });
+
+        if (navigation.kind === "reload") {
+          reloadInto(`${pathname}${search}`);
+          return;
+        }
+
+        navigate({ pathname, search }, { replace: true });
       } catch (error) {
         console.error("[Restore] Failed to resolve configuration route", error);
         if (isCancelled) return;
@@ -78,7 +83,7 @@ export const RestoreConfigurationPage = () => {
         navigate(
           {
             pathname: RESTORE_TARGET.prebuilt,
-            search: restoreSearch,
+            search: buildConfigurationRestoreSearch({ configId, hostUrl, collectionId: null }),
           },
           { replace: true },
         );
@@ -90,7 +95,7 @@ export const RestoreConfigurationPage = () => {
     return () => {
       isCancelled = true;
     };
-  }, [configId, hostUrl, navigate, restoreConfiguration]);
+  }, [configId, dispatch, hostUrl, navigate, restoreConfiguration, searchParams]);
 
   return null;
 };

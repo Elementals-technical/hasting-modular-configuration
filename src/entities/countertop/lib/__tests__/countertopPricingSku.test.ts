@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isCountertopTopDynamicCandidate } from "../countertopPricingSku";
 
 const widthCm = 191;
+const USH_COUNTERTOP_PREFIX = "UR";
 
 const buildTopSku = ({
   material = "SSTKR",
@@ -22,22 +23,22 @@ const buildTopSku = ({
 
 describe("isCountertopTopDynamicCandidate", () => {
   it("detects the documented dynamic SKU with CT category and UR material prefix", () => {
-    expect(isCountertopTopDynamicCandidate("CT-URSSTKR-INTG-75.2W-.5H-19.9D-SSTKR-FF", widthCm)).toBe(true);
+    expect(isCountertopTopDynamicCandidate("CT-URSSTKR-INTG-75.2W-.5H-19.9D-SSTKR-FF", widthCm, USH_COUNTERTOP_PREFIX)).toBe(true);
   });
 
   it.each([1, 87, 191])("accepts numeric widthCm=%i as a positive dynamic pricing input", (candidateWidthCm) => {
-    expect(isCountertopTopDynamicCandidate(buildTopSku(), candidateWidthCm)).toBe(true);
+    expect(isCountertopTopDynamicCandidate(buildTopSku(), candidateWidthCm, USH_COUNTERTOP_PREFIX)).toBe(true);
   });
 
   it.each(["FX", "HPL", "POR", "SSTM", "SSTKR", "SSOCR", "SSMMO", "GLSM", "GLSG", "SSSYN"])(
     "allows countertop material %s",
     (material) => {
-      expect(isCountertopTopDynamicCandidate(buildTopSku({ material }), widthCm)).toBe(true);
+      expect(isCountertopTopDynamicCandidate(buildTopSku({ material }), widthCm, USH_COUNTERTOP_PREFIX)).toBe(true);
     },
   );
 
   it.each(["INTG", "VES", "UDMT", "X"])("allows countertop top style token %s", (style) => {
-    expect(isCountertopTopDynamicCandidate(buildTopSku({ style }), widthCm)).toBe(true);
+    expect(isCountertopTopDynamicCandidate(buildTopSku({ style }), widthCm, USH_COUNTERTOP_PREFIX)).toBe(true);
   });
 
   it.each([
@@ -54,7 +55,7 @@ describe("isCountertopTopDynamicCandidate", () => {
     "2.375",
     "2.4",
   ])("treats thickness token %sH as valid when SKU has CT category and UR material prefix", (thickness) => {
-    expect(isCountertopTopDynamicCandidate(buildTopSku({ thickness }), widthCm)).toBe(true);
+    expect(isCountertopTopDynamicCandidate(buildTopSku({ thickness }), widthCm, USH_COUNTERTOP_PREFIX)).toBe(true);
   });
 
   it.each([
@@ -73,10 +74,15 @@ describe("isCountertopTopDynamicCandidate", () => {
     ["lowercase style", buildTopSku({ style: "intg" })],
     ["lowercase material", buildTopSku({ material: "sstkr" })],
   ])("rejects %s", (_caseName, sku) => {
-    expect(isCountertopTopDynamicCandidate(sku, widthCm)).toBe(false);
+    expect(isCountertopTopDynamicCandidate(sku, widthCm, USH_COUNTERTOP_PREFIX)).toBe(false);
+  });
+
+  it("rejects a top whose series belongs to another collection prefix", () => {
+    expect(isCountertopTopDynamicCandidate(buildTopSku(), widthCm, "MK")).toBe(false);
+    expect(isCountertopTopDynamicCandidate(buildTopSku(), widthCm, "")).toBe(false);
   });
 
   it.each([null, undefined, 0, -1, Number.NaN, Number.POSITIVE_INFINITY])("rejects widthCm %s", (candidateWidthCm) => {
-    expect(isCountertopTopDynamicCandidate(buildTopSku(), candidateWidthCm)).toBe(false);
+    expect(isCountertopTopDynamicCandidate(buildTopSku(), candidateWidthCm, USH_COUNTERTOP_PREFIX)).toBe(false);
   });
 });

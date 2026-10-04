@@ -3,6 +3,7 @@ import { useStore } from "react-redux";
 
 import type { RootState } from "@/app/store";
 import { replacePlacedDividersForDrawer } from "@/entities/product/model/store/slice";
+import { getActiveProductProfile } from "@/entities/configuration";
 import { getSelectedDividerType } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -36,7 +37,7 @@ export type UseDividerControllerOptions<T extends DividerOptionBase> = {
   isPlayCanvasReady: boolean;
   /** Current Dividers accordion selection; the controller is active only for "Customize". */
   dividerSelection: string;
-  /** UI mock options (dividersMockData) used to derive grid options with availability. */
+  /** DividersStyle options of the active collection, used to derive grid options with availability. */
   optionsSource: readonly T[];
   /** History snapshot saver — called before every place/remove. Read freshly (may be unstable). */
   saveSnapshot: () => Promise<void> | void;
@@ -117,6 +118,7 @@ export function useDividerController<T extends DividerOptionBase>(
 
   const dispatch = useAppDispatch();
   const selectedType = useAppSelector(getSelectedDividerType);
+  const profile = useAppSelector(getActiveProductProfile);
   // Store handle from the Provider (not a module import) — the dispatcher reads the
   // freshest selectedType at click time, and tests can supply a minimal store.
   const reduxStore = useStore();
@@ -267,7 +269,7 @@ export function useDividerController<T extends DividerOptionBase>(
         availability && sameContext(availability.context, context) ? availability.types : null;
 
       if (currentType && matchedTypes && !matchedTypes.includes(currentType)) {
-        showWarning(buildUnavailableDividerWarning(currentType, matchedTypes));
+        showWarning(buildUnavailableDividerWarning(currentType, matchedTypes, profile));
         warnDividerUiDebug("Controller.Overlay", "Skip showSlots: selected type unavailable", {
           traceId,
           cabinetId: context.cabinetId,
@@ -286,7 +288,7 @@ export function useDividerController<T extends DividerOptionBase>(
       });
       void adapter.execute({ kind: "showSlots", context, selectedType: currentType, traceId });
     },
-    [adapter, readSelectedType, showWarning],
+    [adapter, profile, readSelectedType, showWarning],
   );
 
   /** STABLE slot-click dispatcher — fresh state via store.getState() + latestRef. */
@@ -350,7 +352,7 @@ export function useDividerController<T extends DividerOptionBase>(
       const enrichedSlot =
         slot.availableTypes.length > 0 ? slot : { ...slot, availableTypes: adapter.fetchSlotTypes(slot) };
 
-      const decision = validatePlacement(readSelectedType(), enrichedSlot, traceId);
+      const decision = validatePlacement(readSelectedType(), enrichedSlot, traceId, profile);
 
       recordDividerUiDebug("Controller.AddSlot", "Resolved add slot decision", {
         traceId,
@@ -415,7 +417,7 @@ export function useDividerController<T extends DividerOptionBase>(
         setStatus("ready");
       }
     },
-    [adapter, clearWarning, readSelectedType, runSettle, setStatus, showWarning],
+    [adapter, clearWarning, profile, readSelectedType, runSettle, setStatus, showWarning],
   );
 
   /** STABLE active-context handler (select / after-select / exit / resize-restore). */
@@ -656,7 +658,7 @@ export function useDividerController<T extends DividerOptionBase>(
     const traceId = createDividerUiTraceId("controller-selected-type");
 
     if (matchedAvailability && !matchedAvailability.types.includes(selectedType)) {
-      const message = buildUnavailableDividerWarning(selectedType, matchedAvailability.types);
+      const message = buildUnavailableDividerWarning(selectedType, matchedAvailability.types, profile);
       showWarning(message);
       warnDividerUiDebug("Controller.SelectedType", "Selected divider type unavailable for active drawer", {
         traceId,
@@ -693,6 +695,7 @@ export function useDividerController<T extends DividerOptionBase>(
     matchedAvailability,
     state.activeContext,
     adapter,
+    profile,
     showWarning,
   ]);
 
@@ -715,8 +718,8 @@ export function useDividerController<T extends DividerOptionBase>(
   }, [adapter, refreshAvailability, showSlotsGuarded]);
 
   const derivedOptions = useMemo(
-    () => deriveDividerOptions(optionsSource, matchedAvailability),
-    [optionsSource, matchedAvailability],
+    () => deriveDividerOptions(optionsSource, matchedAvailability, profile),
+    [optionsSource, matchedAvailability, profile],
   );
 
   return {

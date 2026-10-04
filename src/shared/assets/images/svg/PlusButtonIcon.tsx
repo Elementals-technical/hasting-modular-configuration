@@ -11,9 +11,9 @@ export const PlusButtonIcon: React.FC<PlusButtonIconProps> = ({ color = "#AC5331
       <path
         d="M12.1665 18.0001H23.8332M17.9998 12.1667V23.8334"
         stroke="white"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

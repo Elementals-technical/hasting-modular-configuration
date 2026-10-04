@@ -1,6 +1,7 @@
+import type { To } from "react-router-dom";
+
 import { ProductStyleItem } from "@/shared/ui/ProductStyleItem/ProductStyleItem";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { ROUTES } from "@/shared";
 
 import { getActiveCabinetType, getSelectedDimensions } from "../../model/store/selectors";
 
@@ -8,33 +9,39 @@ import s from "./ProductStyleGrid.module.scss";
 
 interface ProductStyleGridI {
   data: {
-    id: number;
+    /** The option value this card stands for; it is the card's identity. */
+    value: string;
     title: string;
     name?: string | undefined;
     desc?: string | undefined;
     isAvailable?: boolean;
+    /** Text a rule resolved itself; used while it names no reason code. */
     disabledReason?: string;
+    /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+    disabledReasonCode?: string;
     isMixingRestricted?: boolean;
     isShortDesc: boolean;
-    value?: string;
     metadata?: {
       image?: string;
     };
   }[];
+  /** The address of a style's details for its query, in the collection of the session. */
+  detailsTo: (query: string) => To;
   requiresActiveCabinet?: boolean;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
-  activeStyleId?: number | null;
-  onSelectStyle?: (id: number) => void;
-  onMixingRestrictedSelect?: (id: number) => void;
+  activeValue?: string | null;
+  onSelectStyle?: (value: string) => void;
+  onMixingRestrictedSelect?: (value: string) => void;
 }
 
 export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   data,
+  detailsTo,
   requiresActiveCabinet,
   handleOpenStyleSidebar,
   isActive = false,
-  activeStyleId = null,
+  activeValue = null,
   onSelectStyle,
   onMixingRestrictedSelect,
 }) => {
@@ -49,28 +56,26 @@ export const ProductStyleGrid: React.FC<ProductStyleGridI> = ({
   return (
     <div className={s.optionsGrid}>
       {data.map((i) => {
-        const isItemActive = isActive && activeStyleId === i.id;
+        const isItemActive = isActive && activeValue === i.value;
         const detailsParams = new URLSearchParams();
 
-        if (i.value) detailsParams.set("style", i.value);
+        detailsParams.set("style", i.value);
         if (i.title) detailsParams.set("title", i.title);
         if (activeCabinet) detailsParams.set("cabinetType", activeCabinet);
         if (typeof selectedDimensions.height === "number") detailsParams.set("height", String(selectedDimensions.height));
-        if (i.metadata?.image) detailsParams.set("image", i.metadata.image);
-
-        const detailsTo = `${ROUTES.CUSTOM_CABINET_STYLE_DETAILS}?${detailsParams.toString()}`;
 
         return (
           <ProductStyleItem
-            key={i.id}
-            id={i.id}
+            key={i.value}
+            value={i.value}
             title={i.title}
             imageSrc={i.metadata?.image}
-            detailsTo={detailsTo}
+            detailsTo={detailsTo(detailsParams.toString())}
             handleOpenStyleSidebar={handleOpenStyleSidebar}
             isActive={isItemActive}
             isAvailable={i.isAvailable}
             disabledReason={i.disabledReason}
+            disabledReasonCode={i.disabledReasonCode}
             isMixingRestricted={i.isMixingRestricted}
             onSelectStyle={onSelectStyle}
             onMixingRestrictedSelect={onMixingRestrictedSelect}

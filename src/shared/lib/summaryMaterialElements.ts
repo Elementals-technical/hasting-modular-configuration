@@ -1,3 +1,17 @@
+export const materialSkuLabelMap: Record<string, string> = {
+  LACG: "Lacquered Gloss",
+  LACM: "Lacquered Matt",
+  FX: "Fenix",
+  HPL: "HPL",
+  POR: "Porcelain",
+  GLSM: "Glass Matt",
+  GLSG: "Glass Gloss",
+  SSMMO: "Minermalmaro",
+  SSTM: "Tekormud",
+  SSOCR: "Ocritech",
+  SSTKR: "Tekorlux",
+};
+
 export type SummaryMaterialElement = {
   "Product Elements": string;
   Material: string;
@@ -8,12 +22,9 @@ type SummaryMaterialElementInput = {
   productElement: string;
   materialSku?: string | null;
   colorCode?: string | null;
-  materialSkuLabelMap: Record<string, string>;
 };
 
-export const buildSummaryMaterialElements = (
-  inputs: SummaryMaterialElementInput[],
-): SummaryMaterialElement[] =>
+export const buildSummaryMaterialElements = (inputs: SummaryMaterialElementInput[]): SummaryMaterialElement[] =>
   inputs.flatMap((input) => {
     const materialSku = input.materialSku?.trim();
     if (!materialSku) return [];
@@ -21,7 +32,7 @@ export const buildSummaryMaterialElements = (
     return [
       {
         "Product Elements": input.productElement,
-        Material: input.materialSkuLabelMap[materialSku] ?? materialSku,
+        Material: materialSkuLabelMap[materialSku] ?? materialSku,
         "Color Code": input.colorCode ?? "",
       },
     ];

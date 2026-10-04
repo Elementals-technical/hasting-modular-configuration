@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
+import { selectOptionImageContext } from "@/entities/product/model/store/derivedSelectors";
 import {
   getCountertopColorSku,
   getCountertopStyle,
@@ -15,9 +15,16 @@ import {
   filterDepthValuesByCountertopRules,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { ROUTES } from "@/shared";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
+import {
+  resolveOptionImage,
+  useCollectionNavigate,
+  useCollectionNavigation,
+  useOptionImageVariants,
+  useOptionImages,
+} from "@/features/collectionCustomization";
 
 const CHARACTERISTICS = [
   "Soft-close, ergonomic drawer system",
@@ -108,7 +115,8 @@ const styleToDescription = (style?: string | null) => {
 const cmToInches = (cm: number) => Number((cm / 2.54).toFixed(1));
 
 export const CabinetStyleDetailsPage = () => {
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
+  const cabinetBuilderStepPath = useCollectionNavigation("custom")?.currentStep?.path;
   const [params] = useSearchParams();
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -116,11 +124,14 @@ export const CabinetStyleDetailsPage = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const sinkType = useAppSelector(getSinkType);
+  const activeProfile = useAppSelector(getActiveProductProfile);
+  const optionImages = useOptionImages();
+  const optionImageVariants = useOptionImageVariants();
+  const optionImageContext = useAppSelector(selectOptionImageContext);
   const countertopRules = useCountertopRules();
 
   const style = params.get("style");
   const cabinetType = params.get("cabinetType");
-  const imageFromQuery = params.get("image");
 
   const title = params.get("title")?.trim() || styleToLabel(style);
 
@@ -134,8 +145,16 @@ export const CabinetStyleDetailsPage = () => {
 
   const currentHeight = Number(params.get("height") ?? selectedDimensions.height ?? 56);
 
-  const previewImage =
-    imageFromQuery || resolveCabinetStyleImage(style ?? undefined, currentHeight, cabinetType ?? undefined, undefined);
+  // The same picture the grid showed, resolved from the collection again rather than carried in
+  // the URL: the type and the height the card was opened with come from the query, the rest of
+  // the configuration from the store.
+  const previewImage = resolveOptionImage({
+    optionImages,
+    variants: optionImageVariants,
+    attributeId: "Drawers",
+    value: style ?? "",
+    context: { ...optionImageContext, CabinetType: cabinetType ?? "", Height: String(currentHeight) },
+  });
 
   const widthsInches = useMemo(() => {
     const values = dimensionOptions.width
@@ -154,13 +173,14 @@ export const CabinetStyleDetailsPage = () => {
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
+      profile: activeProfile,
     })
       .map((option) => Number(option))
       .filter((value) => Number.isFinite(value));
 
     const uniqSorted = Array.from(new Set(values)).sort((a, b) => a - b);
     return uniqSorted.map(cmToInches);
-  }, [countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
+  }, [activeProfile, countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
 
   const cabinetLabel =
     cabinetType === "Sink-Base"
@@ -191,7 +211,7 @@ export const CabinetStyleDetailsPage = () => {
       <button
         type="button"
         className={s.backButton}
-        onClick={() => navigate(`${ROUTES.CUSTOM}/cabinet-builder?accordion=cabinet-style`)}
+        onClick={() => navigate(cabinetBuilderStepPath ? `${cabinetBuilderStepPath}?accordion=cabinet-style` : -1)}
       >
         <ArrowLeft width="18" height="18" />
         <span>{displayTitle}</span>

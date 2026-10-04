@@ -7,10 +7,22 @@ export type TypeCabinetRuleConfig = {
   hasSink?: boolean;
   isOpen?: boolean;
   handlesAllowed?: string[];
-  handleUrbanBotcutRequiresDrawers?: string[];
-  handlePtoForcedHeightCm?: string | null;
-  handleUrbanTopcutForcedHeightCm?: string | null;
-  handleUrbanBotcutForcedHeightCm?: string | null;
+  /**
+   * handleId -> drawers value -> forced height in cm.
+   * Replaces the per-handle `handle*ForcedHeightCm` fields, so a new handle is data only.
+   */
+  forcedHeightByHandle?: Record<string, Record<string, number>>;
+  /** drawers value -> forced height in cm whatever the handle; a handle's own entry wins. */
+  forcedHeightByDrawers?: Record<string, number>;
+  /** handleId -> drawers values that allow this handle. Absent/empty means no restriction. */
+  requiresDrawersByHandle?: Record<string, string[]>;
+  /** handleId -> heights in cm the handle allows. Absent means any height of the type. */
+  heightsByHandle?: Record<string, number[]>;
+  /**
+   * The scene product that places this type ("ULH-sink-cabinet"), from the collection's runtime
+   * bindings. A placed product's runtime id names it, not the cabinet type.
+   */
+  sceneProductType?: string;
   supportsHeight?: number[];
 };
 

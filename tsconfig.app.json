@@ -29,5 +29,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* Records the D03 price fixtures through Node APIs; run on demand, never bundled. */
+  "exclude": ["src/shared/lib/pricing/__tests__/recordPriceFixtures.test.ts"]
 }
