@@ -9,6 +9,8 @@ import classManifestDocument from "../../../../public/collections/class/manifest
 import classUi from "../../../../public/collections/class/ui.json";
 import makoManifestDocument from "../../../../public/collections/mako/manifest.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
+import urbanFreestandingManifestDocument from "../../../../public/collections/urban-freestanding/manifest.json";
+import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import { withCollectionId } from "../lib/collectionUrl";
@@ -24,6 +26,7 @@ const COLLECTION_UI_DOCUMENTS: [string, unknown][] = [
   ["urban-low-height", urbanLowHeightUi],
   ["class", classUi],
   ["mako", makoUi],
+  ["urban-freestanding", urbanFreestandingUi],
 ];
 
 describe("collection contracts", () => {
@@ -35,6 +38,7 @@ describe("collection contracts", () => {
       { id: "urban-low-height", manifest: "urban-low-height/manifest.json" },
       { id: "class", manifest: "class/manifest.json" },
       { id: "mako", manifest: "mako/manifest.json" },
+      { id: "urban-freestanding", manifest: "urban-freestanding/manifest.json" },
     ]);
 
     const manifest = validateCollectionManifest(
@@ -120,6 +124,30 @@ describe("collection contracts", () => {
       cabinetTable: { id: 581 },
     });
     expect(makoUi.collectionId).toBe("mako");
+
+    const urbanFreestandingManifest = validateCollectionManifest(
+      urbanFreestandingManifestDocument,
+      "urban-freestanding",
+      "https://app.test/collections/urban-freestanding/manifest.json",
+      rootUrl,
+    );
+    expect(urbanFreestandingManifest.defaults).toEqual({});
+    // No cabinet table in the API yet: a local one stands in for it.
+    expect(urbanFreestandingManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+      skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
+      cabinetTable: "cabinet-table.json",
+    });
+    expect(urbanFreestandingManifest.defaultPresetId).toBeUndefined();
+    expect(urbanFreestandingManifest.remote).toEqual({
+      configurator: { id: 4, view: "full", serialize: true },
+      // Urban Low Height's 589: table 438 at the 50 cm depth these cabinets have, where 438 says 50.5.
+      countertopTable: { id: 589 },
+    });
+    expect(urbanFreestandingUi.collectionId).toBe("urban-freestanding");
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {

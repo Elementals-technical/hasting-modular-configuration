@@ -78,6 +78,7 @@ describe("command reason codes have a text in every production collection", () =
     expect(productionProfiles.map(({ collectionId }) => collectionId).sort()).toEqual([
       "class",
       "mako",
+      "urban-freestanding",
       "urban-low-height",
       "urban-standard-height",
     ]);
@@ -106,7 +107,7 @@ const judgesVesselColours = new Set(
 
 describe("a collection that judges vessel colours says why a colour is unavailable", () => {
   it("finds the collections that judge them", () => {
-    expect([...judgesVesselColours].sort()).toEqual(["class", "mako", "urban-low-height"]);
+    expect([...judgesVesselColours].sort()).toEqual(["class", "mako", "urban-freestanding", "urban-low-height"]);
   });
 
   it.each(
