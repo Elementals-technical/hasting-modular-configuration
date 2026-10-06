@@ -2,7 +2,7 @@ import { baseApi } from "@/shared";
 
 import { routes } from "./routes";
 
-import type { ProductDatatable, ProductSkuPriceResponse, SkuResolveResponse, SkuSearchResponse } from "./types";
+import type { ProductDatatable, ProductSkuPriceResponse } from "./types";
 
 export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -24,16 +24,6 @@ export const productApi = baseApi.injectEndpoints({
         url: routes.priceBySkuV2Resolve(sku, widthCm),
       }),
     }),
-    resolveSkuPrice: builder.query<SkuResolveResponse, { containerId: string | number; sku: string }>({
-      query: ({ containerId, sku }) => ({
-        url: routes.resolveSkuPrice(containerId, sku),
-      }),
-    }),
-    debugSkuSearch: builder.query<SkuSearchResponse, { tableId: string | number; searchParts: string[] }>({
-      query: ({ tableId, searchParts }) => ({
-        url: routes.debugSkuSearch(tableId, searchParts),
-      }),
-    }),
   }),
 });
 
@@ -44,8 +34,4 @@ export const {
   useLazyGetProductPriceBySkuQuery,
   useGetProductPriceBySkuV2ResolveQuery,
   useLazyGetProductPriceBySkuV2ResolveQuery,
-  useResolveSkuPriceQuery,
-  useLazyResolveSkuPriceQuery,
-  useDebugSkuSearchQuery,
-  useLazyDebugSkuSearchQuery,
 } = productApi;
