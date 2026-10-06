@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { applySceneConfig, isSceneReady, normalizeSceneBatchResult } from "../sceneBridge";
+import { applySceneConfig, insertSceneProduct, isSceneReady, normalizeSceneBatchResult } from "../sceneBridge";
 import { setConfigBatch } from "../setConfigBatch";
 import { updateDimensionDataForProduct } from "../updateDimensionData";
 
@@ -104,5 +104,42 @@ describe("applySceneConfig", () => {
     await Promise.all([legacy, adapter]);
 
     expect(order).toEqual(["start Handle", "end Handle", "start Height", "end Height"]);
+  });
+});
+
+describe("insertSceneProduct", () => {
+  beforeEach(() => {
+    vi.mocked(updateDimensionDataForProduct).mockClear();
+  });
+
+  afterEach(() => {
+    delete host.containerRef;
+    delete host.playCanvasReady;
+  });
+
+  const installInsert = (api: (...args: never[]) => unknown) => {
+    host.containerRef = { current: { contentWindow: { ConfiguratorAPI: { setConfigBatch: vi.fn(), setProductByParams: api } } } };
+    host.playCanvasReady = true;
+  };
+
+  it("creates the product with its config in one call (the scene's initialConfig)", async () => {
+    const api = vi.fn(async () => "rt-new");
+    installInsert(api);
+
+    expect(await insertSceneProduct("ULH-sink-cabinet", "rt-a", "left", { Width: 80 })).toEqual({
+      status: "applied",
+      runtimeId: "rt-new",
+      configApplied: true,
+    });
+    expect(api).toHaveBeenCalledWith("ULH-sink-cabinet", "rt-a", "left", { Width: 80 });
+    expect(updateDimensionDataForProduct).toHaveBeenCalledWith("rt-new", { Width: 80 });
+  });
+
+  it("without a config, places the product with the scene defaults", async () => {
+    const api = vi.fn(async () => "rt-new");
+    installInsert(api);
+
+    expect(await insertSceneProduct("Sink-Base", null, "right")).toEqual({ status: "applied", runtimeId: "rt-new" });
+    expect(api).toHaveBeenCalledWith("Sink-Base", null, "right");
   });
 });

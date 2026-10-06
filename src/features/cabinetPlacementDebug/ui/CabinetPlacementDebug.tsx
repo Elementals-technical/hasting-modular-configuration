@@ -7,8 +7,10 @@ import {
   type CabinetDraftState,
   type ConfiguratorReceipt,
   type ConfiguratorPreset,
+  type ConfiguratorCompactPreset,
 } from "@/features/configuratorApi";
 
+import { draftInvalidHint, draftValidationStatus } from "../lib/draftValidationMessage";
 import { createPlacementOverlayStore, visibleOverlayFrame } from "../lib/placementOverlayStore";
 import { CabinetDraftOverlay } from "./CabinetDraftOverlay";
 import { MoveIcon } from "./placementIcons";
@@ -328,31 +330,37 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       if (kind === "add") {
         if (!selection) return;
         const state = await client.getCabinetsState();
-        const anchor = state.selectedCabinetId ?? selectedProductId;
-        const anchorCabinetId = state.cabinets.some((cabinet) => cabinet.id === anchor) ? anchor : null;
-        const options = await client.getPlacementOptions({
-          ...selection,
-          operation: "add",
-          ...(anchorCabinetId ? { anchorCabinetId } : {}),
-        });
-        const option =
-          options.find((item) => item.availability === "available" && item.kind === side) ??
-          options.find((item) => item.availability === "available" && item.kind === "seed");
-        if (!option) throw new Error("No available placement on the selected side");
-        if (state.cabinets.length === 0 && option.kind === "seed") {
-          // Claiming an empty composition changes its revision and invalidates option IDs.
-          // Use the runtime-provided seed pose through the public free-placement contract.
-          if (typeof option.frameId !== "string") throw new Error("The seed placement has no frame");
-          next = await client.beginAdd(selection.definitionId, selection.selection, {
-            kind: "free",
-            frameId: option.frameId,
-            positionM: option.positionM,
-          });
+        if (!showDebugTools && state.cabinets.length > 0) {
+          // Normal path: let the runtime start the draft at its best free end-of-row slot.
+          next = await client.beginAdd(selection.definitionId, selection.selection);
         } else {
-          next = await client.beginAdd(selection.definitionId, selection.selection, {
-            kind: "option",
-            optionId: option.id,
+          // Debug side selector (or empty-composition seed): resolve an explicit option.
+          const anchor = state.selectedCabinetId ?? selectedProductId;
+          const anchorCabinetId = state.cabinets.some((cabinet) => cabinet.id === anchor) ? anchor : null;
+          const options = await client.getPlacementOptions({
+            ...selection,
+            operation: "add",
+            ...(anchorCabinetId ? { anchorCabinetId } : {}),
           });
+          const option =
+            options.find((item) => item.availability === "available" && item.kind === side) ??
+            options.find((item) => item.availability === "available" && item.kind === "seed");
+          if (!option) throw new Error("No available placement on the selected side");
+          if (state.cabinets.length === 0 && option.kind === "seed") {
+            // Claiming an empty composition changes its revision and invalidates option IDs.
+            // Use the runtime-provided seed pose through the public free-placement contract.
+            if (typeof option.frameId !== "string") throw new Error("The seed placement has no frame");
+            next = await client.beginAdd(selection.definitionId, selection.selection, {
+              kind: "free",
+              frameId: option.frameId,
+              positionM: option.positionM,
+            });
+          } else {
+            next = await client.beginAdd(selection.definitionId, selection.selection, {
+              kind: "option",
+              optionId: option.id,
+            });
+          }
         }
       } else {
         // Local runtime does not publish cabinet selection events: read it at click time.
@@ -423,16 +431,16 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     capabilitiesRefreshing ||
     pending ||
     !supported.includes("cabinetPlacement.apply") ||
-    draft?.canApply !== true;
+    draft?.canApply !== true ||
+    draftValidationStatus(draft) === "invalid";
   const cancelDisabled =
     !connected ||
     capabilitiesRefreshing ||
     pending ||
     !supported.includes("cabinetPlacement.cancel") ||
     draft?.canCancel !== true;
-  const colliding = (draft?.collision as { status?: unknown } | undefined)?.status === "colliding";
   const anchored = Boolean(sessionId) && anchoredSessionId === sessionId;
-  const collisionHint = "This cabinet overlaps another cabinet. Move it to a free spot to apply.";
+  const collisionHint = draftInvalidHint(draft);
 
   return (
     <>
@@ -445,7 +453,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                   type="button"
                   className={s.primaryPill}
                   disabled={applyDisabled}
-                  title={colliding ? collisionHint : undefined}
+                  title={collisionHint ?? undefined}
                   onClick={() => finish("apply")}
                 >
                   Apply
@@ -473,7 +481,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
             </button>
           )}
         </div>
-        {sessionId && colliding && <p className={s.hint}>{collisionHint}</p>}
+        {sessionId && collisionHint && <p className={s.hint}>{collisionHint}</p>}
         {error && (
           <p role="alert" className={s.error}>
             {error}
@@ -488,6 +496,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
         sessionId={sessionId}
         applyDisabled={applyDisabled}
         cancelDisabled={cancelDisabled}
+        invalidHint={collisionHint}
         onApply={() => finish("apply")}
         onCancel={() => finish("cancel")}
       />
@@ -568,6 +577,48 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 }
               >
                 Restore JSON
+              </button>
+              <button
+                type="button"
+                disabled={busy || !supported.includes("composition.exportCompactPreset")}
+                onClick={() =>
+                  void command(async (client) => {
+                    if (!client) return;
+                    const json = JSON.stringify(await client.exportCompactPreset(), null, 2);
+                    setPresetJson(json);
+                    setRestoreConfirmed(false);
+                    try {
+                      await navigator.clipboard?.writeText(json);
+                      setStatus("Compact preset exported and copied to clipboard");
+                    } catch {
+                      setStatus("Compact preset exported (clipboard unavailable)");
+                    }
+                  })
+                }
+              >
+                Export compact preset
+              </button>
+              <button
+                type="button"
+                disabled={
+                  busy ||
+                  !restoreConfirmed ||
+                  !presetJson.trim() ||
+                  !supported.includes("composition.importCompactPreset")
+                }
+                onClick={() =>
+                  void command(async (client) => {
+                    if (!client || !restoreConfirmed) return;
+                    const receipt = await client.importCompactPreset(
+                      JSON.parse(presetJson) as ConfiguratorCompactPreset,
+                    );
+                    await syncCommitted(client, receipt);
+                    setRestoreConfirmed(false);
+                    setStatus("Compact preset imported; cabinet IDs refreshed");
+                  })
+                }
+              >
+                Import compact preset
               </button>
             </details>
           )}

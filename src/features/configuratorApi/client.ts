@@ -18,6 +18,7 @@ import type {
   ConfiguratorEventName,
   ConfiguratorEventPayload,
   ConfiguratorImportPresetInput,
+  ConfiguratorCompactPreset,
   ConfiguratorImportReceipt,
   ConfiguratorNamespace,
   CabinetPlacement,
@@ -80,6 +81,8 @@ export interface ConfiguratorClient {
   getCompositionRevision(): Promise<number>;
   exportPreset(anchorCabinetId?: string): Promise<ConfiguratorPreset>;
   importPreset(preset: ConfiguratorPreset, anchorPositionM?: CabinetPositionM): Promise<ConfiguratorImportReceipt>;
+  exportCompactPreset(anchorCabinetId?: string): Promise<ConfiguratorCompactPreset>;
+  importCompactPreset(preset: ConfiguratorCompactPreset, anchorPositionM?: CabinetPositionM): Promise<ConfiguratorImportReceipt>;
   getCommandResult(requestId: string): Promise<ConfiguratorCommandResult>;
 
   on<N extends ConfiguratorNamespace, E extends ConfiguratorEventName<N>>(
@@ -355,6 +358,33 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
           ...command,
           preset: input.preset,
           ...(input.anchorPositionM ? { anchorPositionM: input.anchorPositionM } : {}),
+        }),
+      ),
+    );
+  }
+
+  exportCompactPreset(anchorCabinetId?: string): Promise<ConfiguratorCompactPreset> {
+    // Without an explicit anchor the runtime picks the lowest-leftmost cabinet itself.
+    return this.enqueue(() =>
+      this.callScopedRead("composition.exportCompactPreset", (scope) =>
+        this.namespace("composition", "exportCompactPreset", {
+          ...scope,
+          ...(anchorCabinetId ? { anchorCabinetId } : {}),
+        }),
+      ),
+    );
+  }
+
+  importCompactPreset(
+    preset: ConfiguratorCompactPreset,
+    anchorPositionM?: CabinetPositionM,
+  ): Promise<ConfiguratorImportReceipt> {
+    return this.enqueue(() =>
+      this.runRevisionCommand("composition.importCompactPreset", (command) =>
+        this.namespace("composition", "importCompactPreset", {
+          ...command,
+          preset,
+          ...(anchorPositionM ? { anchorPositionM } : {}),
         }),
       ),
     );

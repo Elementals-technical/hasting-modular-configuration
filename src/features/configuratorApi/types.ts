@@ -126,6 +126,23 @@ export type ConfiguratorPreset = {
   [key: string]: unknown;
 };
 
+export type ConfiguratorCompactPresetRow = {
+  elevation?: number;
+  offsetX?: number;
+  products: ConfiguratorPresetProduct[];
+};
+
+/** Compact preset (format "ulh-compact-v1"); all lengths in cm. See scratch CONTRACT / compact-preset.mjs. */
+export type ConfiguratorCompactPreset = {
+  format: "ulh-compact-v1";
+  collection: string;
+  shared?: Record<string, unknown>;
+  rows: ConfiguratorCompactPresetRow[];
+  top?: { productType: string; positionM?: CabinetPositionM; [key: string]: unknown };
+  featureSettings?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
 export type ConfiguratorImportReceipt = ConfiguratorReceipt & {
   keyToProductId: Record<string, string>;
 };
@@ -351,6 +368,12 @@ export interface ConfiguratorApi {
     getState(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CompositionState>>;
     exportPreset(input: ConfiguratorScope & { anchorCabinetId: string }): Promise<ConfiguratorApiResult<ConfiguratorPreset>>;
     importPreset(input: ConfiguratorCommandMetadata & ConfiguratorImportPresetInput): Promise<ConfiguratorApiResult<ConfiguratorImportReceipt>>;
+    exportCompactPreset?(
+      input: ConfiguratorScope & { anchorCabinetId?: string },
+    ): Promise<ConfiguratorApiResult<ConfiguratorCompactPreset>>;
+    importCompactPreset?(
+      input: ConfiguratorCommandMetadata & { preset: ConfiguratorCompactPreset; anchorPositionM?: CabinetPositionM },
+    ): Promise<ConfiguratorApiResult<ConfiguratorImportReceipt>>;
     getCommandResult(scope: ConfiguratorScope, requestId: string): Promise<ConfiguratorApiResult<ConfiguratorCommandResult>>;
     on(event: string, callback: (event: ConfiguratorEventEnvelope<unknown>) => void, options?: unknown): ConfiguratorUnsubscribe;
   };

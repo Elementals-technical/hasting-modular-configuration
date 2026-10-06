@@ -13,6 +13,6 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ["hasting-modular-configuration-v3aur.ondigitalocean.app", "hastings-modular.vivid3d.tech","hasting-modular-phase-2-p98qb.ondigitalocean.app"],
+    allowedHosts: ["hasting-modular-configuration-v3aur.ondigitalocean.app", "hastings-modular.vivid3d.tech","hasting-modular-phase-2-p98qb.ondigitalocean.app","hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app"],
   },
 });

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import clsx from "clsx";
 
+import { DRAFT_HINTS } from "../lib/draftValidationMessage";
 import { actionAnchor, visibleOverlayFrame, type PlacementOverlayStore } from "../lib/placementOverlayStore";
 import { CloseIcon, MoveIcon } from "./placementIcons";
 
@@ -11,6 +12,8 @@ type Props = {
   sessionId: string | null;
   applyDisabled: boolean;
   cancelDisabled: boolean;
+  /** Why Apply is blocked (from the draft's validation reasons); shown as the Apply tooltip. */
+  invalidHint?: string | null;
   onApply: () => void;
   onCancel: () => void;
 };
@@ -21,7 +24,7 @@ type Props = {
  * the outline are drawn by PlayCanvas. The layer never takes pointer input except on the buttons,
  * so dragging the cabinet goes straight to the canvas underneath.
  */
-export function CabinetDraftOverlay({ store, sessionId, applyDisabled, cancelDisabled, onApply, onCancel }: Props) {
+export function CabinetDraftOverlay({ store, sessionId, applyDisabled, cancelDisabled, invalidHint, onApply, onCancel }: Props) {
   const frame = visibleOverlayFrame(useSyncExternalStore(store.subscribe, store.get), sessionId);
   if (!frame?.points) return null;
   const { frontCenter } = frame.points;
@@ -44,7 +47,7 @@ export function CabinetDraftOverlay({ store, sessionId, applyDisabled, cancelDis
             className={s.applyChip}
             style={{ left: bottomRight.x - 3, top: bottomRight.y + 5 }}
             disabled={applyDisabled || !frame.canApply}
-            title={colliding ? "This cabinet overlaps another cabinet. Move it to a free spot to apply." : undefined}
+            title={invalidHint ?? (colliding ? DRAFT_HINTS.cabinetCollision : undefined)}
             onClick={onApply}
           >
             Apply
