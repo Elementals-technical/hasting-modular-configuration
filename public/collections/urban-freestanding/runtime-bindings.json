@@ -107,7 +107,7 @@
         }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the UF cabinets ignore the key. Countertop table 589 has the rows of Urban Standard Height's 438, so its Syntesi finishes reuse the Tekorlux scene materials as there (TAL/TAM, not TAN/TAP)."
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the UF cabinets ignore the key. The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). Countertop table 591 has no Syntesi rows, so those finishes are not offered here."
     },
     {
       "attributeId": "Thickness",

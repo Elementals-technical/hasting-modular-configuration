@@ -115,4 +115,23 @@ describe("Urban Freestanding cabinet SKU", () => {
       "VAN-URFS-SB/2DW/UG/X-47.2W-35.8H-19.7D-CAB-3D-1A1-HDL-3D-1A1",
     );
   });
+
+  it("spells the open shelf with its own series and without the plinth its cabinets' height includes", () => {
+    const openShelf = (heightCm: number) =>
+      cabinet({ CabinetType: "Open-Shelf", CabinetColor: "Cemento Cenere 1A1" }, 25, heightCm).sku;
+
+    // VAN-UROS-3S-25W-88H-50D next to 91 cm grooved cabinets, VAN-UROS-3S-25W-85H-50D next to 88 cm ones.
+    expect(openShelf(91)).toBe("VAN-UROS-3S-9.8W-34.6H-19.7D-CAB-3D-1A1");
+    expect(openShelf(88)).toBe("VAN-UROS-3S-9.8W-33.5H-19.7D-CAB-3D-1A1");
+  });
+
+  it("spells the open side shelf with the end of the composition it stands at", () => {
+    const sideShelf = (side: string) =>
+      cabinet({ CabinetType: "Side-Shelf", OpenSideShelfSide: side, CabinetColor: "Cemento Cenere 1A1" }, 15, 88, 46)
+        .sku;
+
+    // VAN-UROSS-L-15W-85H-46D and VAN-UROSS-R-15W-85H-46D.
+    expect(sideShelf("L")).toBe("VAN-UROSS-L-5.9W-33.5H-18.1D-CAB-3D-1A1");
+    expect(sideShelf("R")).toBe("VAN-UROSS-R-5.9W-33.5H-18.1D-CAB-3D-1A1");
+  });
 });

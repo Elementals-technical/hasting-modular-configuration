@@ -26,6 +26,7 @@ export {
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
   isChosenColor,
+  OPEN_SIDE_SHELF_SIDE,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,

@@ -142,9 +142,8 @@ describe("collection contracts", () => {
     expect(urbanFreestandingManifest.defaultPresetId).toBeUndefined();
     expect(urbanFreestandingManifest.remote).toEqual({
       configurator: { id: 4, view: "full", serialize: true },
-      // Urban Low Height's 589: table 438 at the 50 cm depth these cabinets have, where 438 says 50.5.
-      countertopTable: { id: 589 },
-      // Its own cabinet table (matrix-cabinet-UFS).
+      // Its own countertop and cabinet tables (matrix-coutnertop-UFS, matrix-cabinet-UFS).
+      countertopTable: { id: 591 },
       cabinetTable: { id: 590 },
     });
     expect(urbanFreestandingUi.collectionId).toBe("urban-freestanding");

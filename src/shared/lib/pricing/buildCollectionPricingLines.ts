@@ -21,10 +21,12 @@ import {
   buildCollectionLegsSku,
   createConfiguratorColorReader,
   isChosenColor,
+  OPEN_SIDE_SHELF_SIDE,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
+  resolveOpenSideShelfSide,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
   type CollectionValueReader,
@@ -153,6 +155,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     return (attributeId) => {
       if (attributeId === "CabinetType") return cabinetTypeOf(entry.runtimeId);
+      // An open side shelf is spelled with the end it stands at: the first cabinet is L, any other R.
+      if (attributeId === OPEN_SIDE_SHELF_SIDE) {
+        return resolveOpenSideShelfSide({
+          productIds: [entry.runtimeId],
+          orderedProductIds: cabinets.map(({ runtimeId }) => runtimeId),
+          fallbackIndex: entry.index,
+        });
+      }
       const own = valueAt(values, attributeId, cabinetTarget) ?? globalValue(attributeId);
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;

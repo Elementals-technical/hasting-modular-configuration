@@ -36,6 +36,7 @@ import datatable580 from "./fixtures/remote/datatable-580.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
 import datatable589 from "./fixtures/remote/datatable-589.json";
 import datatable590 from "./fixtures/remote/datatable-590.json";
+import datatable591 from "./fixtures/remote/datatable-591.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -80,9 +81,14 @@ const fetchJson = vi.fn(async (url: string) => {
 
 /**
  * Tables of their own: Mako (577, 581), Class (578, 579), Urban Low Height (589, 580) and Urban Freestanding
- * (590, with Urban Low Height's 589); the rest share USH's 438 / 439.
+ * (591, 590); the rest share USH's 438 / 439.
  */
-const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578, 589: datatable589 };
+const countertopTables: Record<string, unknown> = {
+  577: datatable577,
+  578: datatable578,
+  589: datatable589,
+  591: datatable591,
+};
 const cabinetTables: Record<string, unknown> = {
   579: datatable579,
   580: datatable580,
@@ -287,9 +293,9 @@ describe("partial production collection packages", () => {
 
     expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
     expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
-    // Urban Low Height's countertop table: 438 at the 50 cm depth of these cabinets.
+    // Its own countertop table (matrix-coutnertop-UFS).
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCountertopTable).toHaveBeenCalledWith(589, abortSignal);
+    expect(remote.loadCountertopTable).toHaveBeenCalledWith(591, abortSignal);
     // Its own cabinet table (matrix-cabinet-UFS).
     expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(590, abortSignal);
@@ -360,6 +366,30 @@ describe("partial production collection packages", () => {
         ...common,
       }),
     ]);
+    // The countertops of the Master File as table 438 has them, thin only and at the cabinet depths:
+    // Solid-Surface as its Tekorlux Rectangular candidate (GEN-MAT-01), then HPL, Fenix and Porcelain.
+    expect(data.catalog.countertops?.map(({ material, basinStyle }) => `${material}::${basinStyle}`)).toEqual([
+      "Tekorlux::Rectangular 50",
+      "HPL::Cover 50",
+      "HPL::Prisma 50",
+      "HPL::Quadra 50",
+      "HPL::Strip 48",
+      "Fenix::Cover 50",
+      "Fenix::Prisma 50",
+      "Fenix::Quadra 50",
+      "Fenix::Strip 48",
+      "Porcelain::Cover 48",
+      "Porcelain::Strip 48",
+      "Porcelain::Quadra 48",
+      "Porcelain::Prisma 48",
+    ]);
+    for (const { topThicknesses, depths, maxUndermountCm } of data.catalog.countertops ?? []) {
+      expect({ topThicknesses, depths, maxUndermountCm }).toEqual({
+        topThicknesses: ["1/2"],
+        depths: [50, 46],
+        maxUndermountCm: null,
+      });
+    }
     expect(data.diagnostics).toEqual([]);
   });
 

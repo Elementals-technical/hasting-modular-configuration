@@ -2,6 +2,8 @@ import classProfileDocument from "../../../../../../public/collections/class/pro
 import classSkuProfileDocument from "../../../../../../public/collections/class/sku-profile.json";
 import makoProfileDocument from "../../../../../../public/collections/mako/product-profile.json";
 import makoSkuProfileDocument from "../../../../../../public/collections/mako/sku-profile.json";
+import urbanFreestandingProfileDocument from "../../../../../../public/collections/urban-freestanding/product-profile.json";
+import urbanFreestandingSkuProfileDocument from "../../../../../../public/collections/urban-freestanding/sku-profile.json";
 import urbanLowHeightProfileDocument from "../../../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightSkuProfileDocument from "../../../../../../public/collections/urban-low-height/sku-profile.json";
 
@@ -100,6 +102,16 @@ const configurator4Groups = configurator4.availableOptions as unknown as Configu
 export const URBAN_LOW_HEIGHT = {
   profile: parseProfile(urbanLowHeightProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(urbanLowHeightSkuProfileDocument),
+  configurator: {
+    groups: configurator4Groups,
+    groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),
+  },
+};
+
+/** Configurator 4: the colours Urban Freestanding shares with Urban Standard Height. */
+export const URBAN_FREESTANDING = {
+  profile: parseProfile(urbanFreestandingProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(urbanFreestandingSkuProfileDocument),
   configurator: {
     groups: configurator4Groups,
     groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),

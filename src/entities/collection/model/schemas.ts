@@ -292,6 +292,12 @@ export const collectionSkuProfileSchema = z
                 series: z.string().trim().min(1),
                 configBlock: skuConfigBlockSchema,
                 elements: skuElementsSchema.optional(),
+                /**
+                 * Added to the cabinet's height for its SKU: an Urban Freestanding shelf is spelled
+                 * without the 3 cm plinth the heights of the cabinet table include (`VAN-UROS-3S-…-88H`
+                 * stands next to a 91 cm cabinet).
+                 */
+                heightOffsetCm: z.number().optional(),
               })
               .strict(),
           )
