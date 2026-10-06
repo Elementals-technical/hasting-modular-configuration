@@ -4,7 +4,22 @@
     "img": "images/Urban Duplex · 24_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 24\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "24_29",
     "style": ["1_drawer", "single_basin"]
   },
@@ -13,7 +28,22 @@
     "img": "images/Urban Duplex · 24_ 2-Drawer.png",
     "title": "Urban Duplex · 24\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "24_29",
     "style": ["2_drawer", "single_basin"]
   },
@@ -22,7 +52,22 @@
     "img": "images/Urban Duplex · 28_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 28\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "24_29",
     "style": ["1_drawer", "single_basin"]
   },
@@ -31,7 +76,22 @@
     "img": "images/Urban Duplex · 28_ 1-Drawer.png",
     "title": "Urban Duplex · 28\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "24_29",
     "style": ["1_drawer", "single_basin"]
   },
@@ -40,7 +100,22 @@
     "img": "images/Urban Duplex · 28_ 2-Drawer.png",
     "title": "Urban Duplex · 28\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "24_29",
     "style": ["2_drawer", "single_basin"]
   },
@@ -49,7 +124,22 @@
     "img": "images/Urban Duplex · 32_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 32\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin"]
   },
@@ -58,7 +148,22 @@
     "img": "images/Urban Duplex · 32_ 1-Drawer.png",
     "title": "Urban Duplex · 32\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin"]
   },
@@ -67,7 +172,32 @@
     "img": "images/Urban Duplex · 34_ 1-Drawer OSS.png",
     "title": "Urban Duplex · 34\" 1-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 53,
+        "Depth": 50,
+        "OpenSideShelfSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin", "open_shelving", "asymmetrical"]
   },
@@ -76,7 +206,31 @@
     "img": "images/Urban Duplex · 34_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 34\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 25,
+        "Height": 28,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
@@ -85,7 +239,31 @@
     "img": "images/Urban Duplex · 34_ 1-Drawer.png",
     "title": "Urban Duplex · 34\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Open-Shelf",
+        "Width": 25,
+        "Height": 53,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
@@ -94,7 +272,32 @@
     "img": "images/Urban Duplex · 34_ 2-Drawer OSS.png",
     "title": "Urban Duplex · 34\" 2-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 56,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "30_39",
     "style": ["2_drawer", "single_basin", "open_shelving", "asymmetrical"]
   },
@@ -103,7 +306,22 @@
     "img": "images/Urban Duplex · 36_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 36\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "30_39",
     "style": ["1_drawer", "single_basin"]
   },
@@ -112,7 +330,22 @@
     "img": "images/Urban Duplex · 36_ 2-Drawer.png",
     "title": "Urban Duplex · 36\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "30_39",
     "style": ["2_drawer", "single_basin"]
   },
@@ -121,7 +354,22 @@
     "img": "images/Urban Duplex · 42_ 1-Drawer 1.png",
     "title": "Urban Duplex · 42\" 1-Drawer 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin"]
   },
@@ -130,7 +378,22 @@
     "img": "images/Urban Duplex · 42_ 1-Drawer Slim 1.png",
     "title": "Urban Duplex · 42\" 1-Drawer Slim 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin"]
   },
@@ -139,7 +402,32 @@
     "img": "images/Urban Duplex · 42_ 1-Drawer Slim OSS.png",
     "title": "Urban Duplex · 42\" 1-Drawer Slim OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 38,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin", "open_shelving", "asymmetrical"]
   },
@@ -148,7 +436,34 @@
     "img": "images/Urban Duplex · 42_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 42\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -157,7 +472,34 @@
     "img": "images/Urban Duplex · 42_ 1-Drawer.png",
     "title": "Urban Duplex · 42\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 35,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -166,7 +508,34 @@
     "img": "images/Urban Duplex · 46_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 46\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -175,7 +544,36 @@
     "img": "images/Urban Duplex · 48_ 1-Drawer Double.png",
     "title": "Urban Duplex · 48\" 1-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "double_basin"]
   },
@@ -184,7 +582,22 @@
     "img": "images/Urban Duplex · 48_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 48\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 120,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["1_drawer", "single_basin"]
   },
@@ -193,7 +606,36 @@
     "img": "images/Urban Duplex · 48_ 2-Drawer Double.png",
     "title": "Urban Duplex · 48\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["2_drawer", "double_basin"]
   },
@@ -202,7 +644,34 @@
     "img": "images/Urban Duplex · 48_ 2-Drawer.png",
     "title": "Urban Duplex · 48\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 50,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "40_49",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -211,7 +680,34 @@
     "img": "images/Urban Duplex · 51_ 2-Drawer.png",
     "title": "Urban Duplex · 51\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 50,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "50_59",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -220,7 +716,44 @@
     "img": "images/Urban Duplex · 53_ 1-Drawer OSS.png",
     "title": "Urban Duplex · 53\" 1-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 53,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 50,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
@@ -229,7 +762,34 @@
     "img": "images/Urban Duplex · 55_ 1-Drawer Slim 1.png",
     "title": "Urban Duplex · 55\" 1-Drawer Slim 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -238,7 +798,46 @@
     "img": "images/Urban Duplex · 55_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 55\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -247,7 +846,44 @@
     "img": "images/Urban Duplex · 55_ 2-Drawer OSS.png",
     "title": "Urban Duplex · 55\" 2-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 56,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 35,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "50_59",
     "style": ["2_drawer", "single_basin", "open_shelving", "asymmetrical"]
   },
@@ -257,6 +893,44 @@
     "title": "Urban Duplex · 57\" 1-Drawer Multi-level",
     "isProductModel": true,
     "presetProducts": [],
+    "format": "ulh-compact-v1",
+    "collection": "DPLX",
+    "shared": {
+      "BasePanelColor": "Bianco Calce DA ST",
+      "LateralPanelColor": "Pulpis Chiaro TKH",
+      "CountertopColor": "Pulpis Chiaro TKH",
+      "Handle": "UG",
+      "Depth": 50
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "Sink-Base",
+            "Series": "URDPX",
+            "Width": 70,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "L",
+            "sinkType": "Top_HPLStrip"
+          }
+        ]
+      },
+      {
+        "elevation": -28,
+        "offsetX": 55,
+        "products": [
+          {
+            "name": "Sink-Cabinet",
+            "Series": "URDPX",
+            "Width": 90,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "R"
+          }
+        ]
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "multi_level"]
   },
@@ -265,7 +939,56 @@
     "img": "images/Urban Duplex · 59_ 1-Drawer Double OSS.png",
     "title": "Urban Duplex · 59\" 1-Drawer Double OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 53,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 53,
+        "Depth": 50,
+        "OpenSideShelfSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "double_basin", "open_shelving"]
   },
@@ -274,7 +997,35 @@
     "img": "images/Urban Duplex · 59_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 59\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -283,7 +1034,35 @@
     "img": "images/Urban Duplex · 59_ 1-Drawer.png",
     "title": "Urban Duplex · 59\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "50_59",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -292,7 +1071,56 @@
     "img": "images/Urban Duplex · 59_ 2-Drawer Double.png",
     "title": "Urban Duplex · 59\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 56,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 56,
+        "Depth": 50,
+        "OpenSideShelfSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "50_59",
     "style": ["2_drawer", "double_basin"]
   },
@@ -302,6 +1130,49 @@
     "title": "Urban Duplex · 61\" 1-Drawer Multi-Level",
     "isProductModel": true,
     "presetProducts": [],
+    "format": "ulh-compact-v1",
+    "collection": "DPLX",
+    "shared": {
+      "BasePanelColor": "Bianco Calce DA ST",
+      "LateralPanelColor": "Pulpis Chiaro TKH",
+      "CountertopColor": "Pulpis Chiaro TKH",
+      "Handle": "UG",
+      "Depth": 50
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "Sink-Base",
+            "Series": "URDPX",
+            "Width": 70,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "R",
+            "sinkType": "Top_HPLStrip"
+          }
+        ]
+      },
+      {
+        "elevation": -28,
+        "offsetX": 47,
+        "products": [
+          {
+            "name": "Sink-Cabinet",
+            "Series": "URDPX",
+            "Width": 70,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "L"
+          },
+          {
+            "name": "Open-Shelf",
+            "Width": 35,
+            "Height": 28
+          }
+        ]
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "multi_level", "open_shelving"]
   },
@@ -310,7 +1181,36 @@
     "img": "images/Urban Duplex · 63_ 1-Drawer Double.png",
     "title": "Urban Duplex · 63\" 1-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "double_basin"]
   },
@@ -319,7 +1219,35 @@
     "img": "images/Urban Duplex · 63_ 1-Drawer Slim 1.png",
     "title": "Urban Duplex · 63\" 1-Drawer Slim 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -328,7 +1256,35 @@
     "img": "images/Urban Duplex · 63_ 1-Drawer Slim 2.png",
     "title": "Urban Duplex · 63\" 1-Drawer Slim 2",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -337,7 +1293,35 @@
     "img": "images/Urban Duplex · 63_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 63\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -346,7 +1330,43 @@
     "img": "images/Urban Duplex · 63_ 2-Drawer.png",
     "title": "Urban Duplex · 63\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 35,
+        "Height": 56,
+        "Depth": 46,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 35,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -355,7 +1375,45 @@
     "img": "images/Urban Duplex · 65_ 1-Drawer OSS.png",
     "title": "Urban Duplex · 65\" 1-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 53,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
@@ -364,7 +1422,35 @@
     "img": "images/Urban Duplex · 65_ 2-Drawer.png",
     "title": "Urban Duplex · 65\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -373,7 +1459,46 @@
     "img": "images/Urban Duplex · 67_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 67\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 50,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 50,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "60_69",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -382,7 +1507,48 @@
     "img": "images/Urban Duplex · 69_ 2-Drawer Double.png",
     "title": "Urban Duplex · 69\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 35,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "60_69",
     "style": ["2_drawer", "double_basin"]
   },
@@ -392,6 +1558,55 @@
     "title": "Urban Duplex · 70\" 1-Drawer Multi-Level",
     "isProductModel": true,
     "presetProducts": [],
+    "format": "ulh-compact-v1",
+    "collection": "DPLX",
+    "shared": {
+      "BasePanelColor": "Bianco Calce DA ST",
+      "LateralPanelColor": "Pulpis Chiaro TKH",
+      "CountertopColor": "Pulpis Chiaro TKH",
+      "Handle": "UG",
+      "Depth": 50
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "Side-Shelf",
+            "Width": 15,
+            "Height": 28,
+            "OpenSideShelfSide": "L"
+          },
+          {
+            "name": "Sink-Base",
+            "Series": "URDPX",
+            "Width": 70,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "L",
+            "sinkType": "Top_HPLStrip"
+          }
+        ]
+      },
+      {
+        "elevation": -28,
+        "offsetX": 51,
+        "products": [
+          {
+            "name": "Open-Shelf",
+            "Width": 35,
+            "Height": 28
+          },
+          {
+            "name": "Sink-Cabinet",
+            "Series": "URDPX",
+            "Width": 90,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "R"
+          }
+        ]
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "multi_level"]
   },
@@ -401,6 +1616,44 @@
     "title": "Urban Duplex · 71\" 1-Drawer Multi-Level",
     "isProductModel": true,
     "presetProducts": [],
+    "format": "ulh-compact-v1",
+    "collection": "DPLX",
+    "shared": {
+      "BasePanelColor": "Bianco Calce DA ST",
+      "LateralPanelColor": "Pulpis Chiaro TKH",
+      "CountertopColor": "Pulpis Chiaro TKH",
+      "Handle": "UG",
+      "Depth": 50
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "Sink-Base",
+            "Series": "URDPX",
+            "Width": 90,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "L",
+            "sinkType": "Top_HPLStrip"
+          }
+        ]
+      },
+      {
+        "elevation": -28,
+        "offsetX": 75,
+        "products": [
+          {
+            "name": "Sink-Cabinet",
+            "Series": "URDPX",
+            "Width": 105,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "R"
+          }
+        ]
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "multi_level"]
   },
@@ -409,7 +1662,45 @@
     "img": "images/Urban Duplex · 71_ 1-Drawer OSS.png",
     "title": "Urban Duplex · 71\" 1-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 53,
+        "Depth": 50,
+        "OpenSideShelfSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
@@ -418,7 +1709,36 @@
     "img": "images/Urban Duplex · 71_ 2-Drawer Double.png",
     "title": "Urban Duplex · 71\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "double_basin"]
   },
@@ -427,7 +1747,35 @@
     "img": "images/Urban Duplex · 71_ 2-Drawer.png",
     "title": "Urban Duplex · 71\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -436,7 +1784,47 @@
     "img": "images/Urban Duplex · 73_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 73\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -445,7 +1833,47 @@
     "img": "images/Urban Duplex · 73_ 2-Drawer.png",
     "title": "Urban Duplex · 73\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 35,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -454,7 +1882,46 @@
     "img": "images/Urban Duplex · 75_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 75\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 50,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 50,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -463,7 +1930,45 @@
     "img": "images/Urban Duplex · 77_ 2-Drawer Double.png",
     "title": "Urban Duplex · 77\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 35,
+        "Height": 56,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "double_basin"]
   },
@@ -472,7 +1977,48 @@
     "img": "images/Urban Duplex · 79_ 1-Drawer Double.png",
     "title": "Urban Duplex · 79\" 1-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "70_79",
     "style": ["1_drawer", "double_basin"]
   },
@@ -481,7 +2027,35 @@
     "img": "images/Urban Duplex · 79_ 2-Drawer.png",
     "title": "Urban Duplex · 79\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 120,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "70_79",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -490,7 +2064,57 @@
     "img": "images/Urban Duplex · 83_ 1-Drawer Slim Double 1.png",
     "title": "Urban Duplex · 83\" 1-Drawer Slim Double 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 25,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 25,
+        "Height": 38,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "double_basin"]
   },
@@ -499,7 +2123,48 @@
     "img": "images/Urban Duplex · 83_ 1-Drawer Slim Double.png",
     "title": "Urban Duplex · 83\" 1-Drawer Slim Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "double_basin"]
   },
@@ -508,7 +2173,47 @@
     "img": "images/Urban Duplex · 83_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 83\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URLH",
+        "Width": 90,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -517,7 +2222,36 @@
     "img": "images/Urban Duplex · 83_ 2-Drawer Double.png",
     "title": "Urban Duplex · 83\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "80_89",
     "style": ["2_drawer", "double_basin"]
   },
@@ -526,7 +2260,35 @@
     "img": "images/Urban Duplex · 83_ 2-Drawer.png",
     "title": "Urban Duplex · 83\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "80_89",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -535,7 +2297,57 @@
     "img": "images/Urban Duplex · 85_ 1-Drawer Slim OSS.png",
     "title": "Urban Duplex · 85\" 1-Drawer Slim OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 28,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 60,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
@@ -544,7 +2356,48 @@
     "img": "images/Urban Duplex · 87_ 1-Drawer Double.png",
     "title": "Urban Duplex · 87\" 1-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 53,
+        "Depth": 46,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 53,
+        "Depth": 46,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "80_89",
     "style": ["1_drawer", "double_basin"]
   },
@@ -553,7 +2406,48 @@
     "img": "images/Urban Duplex · 87_ 2-Drawer Double.png",
     "title": "Urban Duplex · 87\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "80_89",
     "style": ["2_drawer", "double_basin"]
   },
@@ -562,7 +2456,45 @@
     "img": "images/Urban Duplex · 89_ 2-Drawer.png",
     "title": "Urban Duplex · 89\" 2-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URSTD",
+        "Width": 105,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 60,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "80_89",
     "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
@@ -572,6 +2504,48 @@
     "title": "Urban Duplex · 94\" 1-Drawer Multi-Level",
     "isProductModel": true,
     "presetProducts": [],
+    "format": "ulh-compact-v1",
+    "collection": "DPLX",
+    "shared": {
+      "BasePanelColor": "Bianco Calce DA ST",
+      "LateralPanelColor": "Pulpis Chiaro TKH",
+      "CountertopColor": "Pulpis Chiaro TKH",
+      "Handle": "UG",
+      "Depth": 50
+    },
+    "rows": [
+      {
+        "products": [
+          {
+            "name": "Sink-Base",
+            "Series": "URDPX",
+            "Width": 105,
+            "Height": 28,
+            "Drawers": "1D",
+            "LateralPanelSide": "L",
+            "sinkType": "Top_HPLStrip"
+          }
+        ]
+      },
+      {
+        "elevation": -28,
+        "offsetX": 82,
+        "products": [
+          {
+            "name": "Sink-Cabinet",
+            "Series": "URLH",
+            "Width": 105,
+            "Height": 28,
+            "Drawers": "1D"
+          },
+          {
+            "name": "Open-Shelf",
+            "Width": 50,
+            "Height": 28
+          }
+        ]
+      }
+    ],
     "size": "90_plus",
     "style": ["1_drawer", "single_basin", "multi_level"]
   },
@@ -580,7 +2554,48 @@
     "img": "images/Urban Duplex · 95_ 1-Drawer Double.png",
     "title": "Urban Duplex · 95\" 1-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 60,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "90_plus",
     "style": ["1_drawer", "double_basin"]
   },
@@ -589,7 +2604,36 @@
     "img": "images/Urban Duplex · 95_ 2-Drawer Double 1.png",
     "title": "Urban Duplex · 95\" 2-Drawer Double 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 120,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 120,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "90_plus",
     "style": ["2_drawer", "double_basin"]
   },
@@ -598,7 +2642,48 @@
     "img": "images/Urban Duplex · 95_ 2-Drawer Double.png",
     "title": "Urban Duplex · 95\" 2-Drawer Double",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "90_plus",
     "style": ["2_drawer", "double_basin"]
   },
@@ -607,7 +2692,47 @@
     "img": "images/Urban Duplex · 97_ 1-Drawer Slim 1.png",
     "title": "Urban Duplex · 97\" 1-Drawer Slim 1",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 70,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 38,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "90_plus",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -616,7 +2741,56 @@
     "img": "images/Urban Duplex · 97_ 1-Drawer Slim.png",
     "title": "Urban Duplex · 97\" 1-Drawer Slim",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 35,
+        "Height": 28,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URLH",
+        "Width": 35,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 70,
+        "Height": 28,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "90_plus",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -625,7 +2799,44 @@
     "img": "images/Urban Duplex · 97_ 1-Drawer.png",
     "title": "Urban Duplex · 97\" 1-Drawer",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URDPX",
+        "Width": 90,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 50,
+        "Height": 53,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 105,
+        "Height": 53,
+        "Depth": 50,
+        "Drawers": "1D",
+        "Handle": "UG",
+        "LateralPanelSide": "R",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      }
+    ],
     "size": "90_plus",
     "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
@@ -634,7 +2845,53 @@
     "img": "images/Urban Duplex · 99_ 2-Drawer OSS.png",
     "title": "Urban Duplex · 99\" 2-Drawer OSS",
     "isProductModel": true,
-    "presetProducts": [],
+    "presetProducts": [
+      {
+        "name": "Side-Shelf",
+        "Width": 15,
+        "Height": 56,
+        "Depth": 50,
+        "OpenSideShelfSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Base",
+        "Series": "URDPX",
+        "Width": 120,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "LateralPanelSide": "L",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH",
+        "sinkType": "Top_HPLStrip"
+      },
+      {
+        "name": "Open-Shelf",
+        "Width": 35,
+        "Height": 56,
+        "Depth": 50,
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      },
+      {
+        "name": "Sink-Cabinet",
+        "Series": "URSTD",
+        "Width": 80,
+        "Height": 56,
+        "Depth": 50,
+        "Drawers": "2D",
+        "Handle": "UG",
+        "BasePanelColor": "Bianco Calce DA ST",
+        "LateralPanelColor": "Pulpis Chiaro TKH",
+        "CountertopColor": "Pulpis Chiaro TKH"
+      }
+    ],
     "size": "90_plus",
     "style": ["2_drawer", "single_basin", "asymmetrical", "open_shelving"]
   }
