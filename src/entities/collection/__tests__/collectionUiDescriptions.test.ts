@@ -4,6 +4,8 @@ import classProfile from "../../../../public/collections/class/product-profile.j
 import classUi from "../../../../public/collections/class/ui.json";
 import makoProfile from "../../../../public/collections/mako/product-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
+import urbanFreestandingProfile from "../../../../public/collections/urban-freestanding/product-profile.json";
+import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 import urbanLowHeightProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import ushProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
@@ -25,7 +27,12 @@ const ushDocuments: CollectionDocuments = ["urban-standard-height", ushUi, ushPr
 const urbanLowHeightDocuments: CollectionDocuments = ["urban-low-height", urbanLowHeightUi, urbanLowHeightProfile];
 const classDocuments: CollectionDocuments = ["class", classUi, classProfile];
 const makoDocuments: CollectionDocuments = ["mako", makoUi, makoProfile];
-const collections = [ushDocuments, urbanLowHeightDocuments, classDocuments, makoDocuments];
+const urbanFreestandingDocuments: CollectionDocuments = [
+  "urban-freestanding",
+  urbanFreestandingUi,
+  urbanFreestandingProfile,
+];
+const collections = [ushDocuments, urbanLowHeightDocuments, classDocuments, makoDocuments, urbanFreestandingDocuments];
 
 const parseCollection = ([collectionId, uiDocument, profileDocument]: CollectionDocuments) => {
   const validation = validateCustomizationSchema(uiDocument);

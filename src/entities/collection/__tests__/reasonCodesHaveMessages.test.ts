@@ -78,6 +78,7 @@ describe("command reason codes have a text in every production collection", () =
     expect(productionProfiles.map(({ collectionId }) => collectionId).sort()).toEqual([
       "class",
       "mako",
+      "urban-freestanding",
       "urban-low-height",
       "urban-standard-height",
     ]);
