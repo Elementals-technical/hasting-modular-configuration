@@ -365,7 +365,7 @@ describe("ConfiguratorClient", () => {
     const apply = vi.fn(async () => ok(receipt));
     const client = createConfiguratorClient({
       getApi: () => makeApi({
-        settleInput: async () => ok(draft({ canApply: false, validation: { collision: true } })),
+        settleInput: async () => ok(draft({ canApply: false, validation: { status: "invalid", reasons: [] } })),
         apply,
       }),
     });

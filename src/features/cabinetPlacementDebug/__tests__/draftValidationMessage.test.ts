@@ -25,6 +25,13 @@ describe("draftInvalidHint", () => {
     expect(draftInvalidHint(invalid({ code: "OUT_OF_ROOM", params: {} }))).toBe(DRAFT_HINTS.generic);
     expect(draftInvalidHint(invalid())).toBe(DRAFT_HINTS.generic);
   });
+  it("shows the rule's own message for placement rules; an open question is prefixed", () => {
+    const rule = { code: "NOTHING_ON_SINK_BASE", message: "A SC cannot be placed on or above a SB.", affectedProductIds: ["sb"] };
+    expect(draftInvalidHint(invalid(rule))).toBe("A SC cannot be placed on or above a SB.");
+    expect(draftInvalidHint(invalid(collision("cab-2"), rule))).toBe(DRAFT_HINTS.cabinetCollision);
+    expect(draftInvalidHint({ validation: { status: "unsupported", reasons: [rule] } })).toBe(DRAFT_HINTS.unsupported + rule.message);
+    expect(draftInvalidHint({ validation: { status: "pending", reasons: [] } })).toBe(DRAFT_HINTS.pending);
+  });
   it("falls back to state.collision ids when the reason has none", () => {
     const draft = { ...invalid({ code: "CABINET_COLLISION" }), collision: { status: "colliding", collidesWith: ["Floor_R1"] } };
     expect(draftInvalidHint(draft)).toBe(DRAFT_HINTS.belowFloor);
@@ -40,6 +47,7 @@ describe("draftValidationStatus", () => {
   it("reads validation.status, null when absent", () => {
     expect(draftValidationStatus(invalid())).toBe("invalid");
     expect(draftValidationStatus({ validation: { status: "valid" } })).toBe("valid");
+    expect(draftValidationStatus({ validation: { status: "unsupported" } })).toBe("unsupported");
     expect(draftValidationStatus({})).toBeNull();
   });
 });
