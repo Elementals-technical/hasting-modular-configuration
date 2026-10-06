@@ -3,6 +3,7 @@
   "label": "Urban Freestanding",
   "defaults": {},
   "local": {
-    "presets": "presets.json"
+    "presets": "presets.json",
+    "ui": "ui.json"
   }
 }

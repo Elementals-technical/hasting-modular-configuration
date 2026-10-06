@@ -10,6 +10,7 @@ import classUi from "../../../../public/collections/class/ui.json";
 import makoManifestDocument from "../../../../public/collections/mako/manifest.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
 import urbanFreestandingManifestDocument from "../../../../public/collections/urban-freestanding/manifest.json";
+import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import { withCollectionId } from "../lib/collectionUrl";
@@ -25,6 +26,7 @@ const COLLECTION_UI_DOCUMENTS: [string, unknown][] = [
   ["urban-low-height", urbanLowHeightUi],
   ["class", classUi],
   ["mako", makoUi],
+  ["urban-freestanding", urbanFreestandingUi],
 ];
 
 describe("collection contracts", () => {
@@ -130,10 +132,11 @@ describe("collection contracts", () => {
       rootUrl,
     );
     expect(urbanFreestandingManifest.defaults).toEqual({});
-    // Only the models so far: no UI description, profile, bindings or remote sources yet.
-    expect(urbanFreestandingManifest.local).toEqual({ presets: "presets.json" });
+    // The models and the UI description so far: no profile, bindings or remote sources yet.
+    expect(urbanFreestandingManifest.local).toEqual({ presets: "presets.json", ui: "ui.json" });
     expect(urbanFreestandingManifest.defaultPresetId).toBeUndefined();
     expect(urbanFreestandingManifest.remote).toBeUndefined();
+    expect(urbanFreestandingUi.collectionId).toBe("urban-freestanding");
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {
