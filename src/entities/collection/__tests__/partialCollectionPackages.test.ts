@@ -315,6 +315,16 @@ describe("partial production collection packages", () => {
     // The 54 models of the Master File, each composed as its render on the website shows it.
     expect(data.catalog.presets).toHaveLength(54);
     expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length > 0)).toBe(true);
+    // Its Style tags follow the composition. The Master File misses Open Shelving on four models and
+    // Asymmetrical on three whose renders show otherwise; they are corrected here until it is fixed.
+    for (const { style, presetProducts } of data.catalog.presets ?? []) {
+      const layout = presetProducts.map(({ name, Width }) => `${name}:${Width}`);
+      expect(style.includes("open_shelving")).toBe(presetProducts.some(({ name }) => name === "Open-Shelf"));
+      expect(style.includes("double_basin")).toBe(
+        presetProducts.filter(({ name }) => name === "Sink-Base").length === 2,
+      );
+      expect(style.includes("asymmetrical")).toBe(layout.join() !== [...layout].reverse().join());
+    }
     expect(data.catalog.productProfile?.collectionId).toBe("urban-freestanding");
     // Both drawer cabinets have their UF scene product (I); the open shelves have none yet.
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({

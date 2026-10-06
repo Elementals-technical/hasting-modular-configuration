@@ -110,7 +110,7 @@
       }
     ],
     "size": "30_39",
-    "style": ["2_drawer", "single_basin"]
+    "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
   {
     "id": 6,
@@ -462,7 +462,7 @@
       }
     ],
     "size": "50_59",
-    "style": ["2_drawer", "single_basin", "asymmetrical"]
+    "style": ["2_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
   {
     "id": 19,
@@ -850,7 +850,7 @@
       }
     ],
     "size": "60_69",
-    "style": ["2_drawer", "double_basin"]
+    "style": ["2_drawer", "double_basin", "open_shelving"]
   },
   {
     "id": 31,
@@ -941,7 +941,7 @@
       }
     ],
     "size": "70_79",
-    "style": ["2_drawer", "single_basin", "asymmetrical"]
+    "style": ["2_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
   {
     "id": 34,
@@ -1157,7 +1157,7 @@
       }
     ],
     "size": "80_89",
-    "style": ["2_drawer", "single_basin", "open_shelving"]
+    "style": ["2_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
   {
     "id": 40,
@@ -1285,7 +1285,7 @@
       }
     ],
     "size": "80_89",
-    "style": ["2_drawer", "single_basin", "asymmetrical"]
+    "style": ["2_drawer", "single_basin", "asymmetrical", "open_shelving"]
   },
   {
     "id": 44,
@@ -1684,6 +1684,6 @@
       }
     ],
     "size": "90_plus",
-    "style": ["2_drawer", "single_basin", "open_shelving"]
+    "style": ["2_drawer", "single_basin", "asymmetrical", "open_shelving"]
   }
 ]
