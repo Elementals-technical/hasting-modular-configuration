@@ -1,0 +1,8 @@
+{
+  "id": "urban-freestanding",
+  "label": "Urban Freestanding",
+  "defaults": {},
+  "local": {
+    "presets": "presets.json"
+  }
+}
