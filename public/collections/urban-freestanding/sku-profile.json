@@ -28,9 +28,9 @@
       {
         "attributeId": "Handle",
         "codes": {
-          "handle_urban_topcut": "UG",
-          "handle_pto": "PTO",
-          "handle_urban_botcut": "CG"
+          "UG": "UG",
+          "PTO": "PTO",
+          "CG": "CG"
         }
       },
       {

@@ -6,8 +6,8 @@
     "Sink-Cabinet": "UF-side-cabinet"
   },
   "unplacedProductTypes": {
-    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open shelf yet, and its height next to 91H cabinets waits for UFS-SIZ-02. Move it to productTypes once the scene has it and the cabinet table has its row.",
-    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open side shelf yet, and its height next to 91H cabinets waits for UFS-SIZ-02. Move it to productTypes once the scene has it and the cabinet table has its row."
+    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open shelf yet. Its row is in the cabinet table, at the heights the docs propose until UFS-SIZ-02. Move it to productTypes once the scene has it, and its card comes back.",
+    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open side shelf yet. Its row is in the cabinet table, at the height the docs propose until UFS-SIZ-02. Move it to productTypes once the scene has it, and its card comes back."
   },
   "bindings": [
     {

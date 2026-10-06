@@ -12,7 +12,7 @@
   "sourceRefs": {
     "configuratorId": 4,
     "countertopMatrixTableId": 438,
-    "cabinetMatrixTableId": 439
+    "cabinetMatrixTableId": 590
   },
   "defaults": {
     "CabinetColor": "Pulpis Chiaro TKH",
@@ -78,10 +78,10 @@
         "reasonCode": "handle.appliesToAllCabinets"
       },
       "initialValue": "",
-      "effectiveFallbackValue": "handle_urban_topcut",
+      "effectiveFallbackValue": "UG",
       "options": [
         {
-          "value": "handle_pto",
+          "value": "PTO",
           "label": "Push-to-Open",
           "order": 10,
           "capabilities": {
@@ -89,7 +89,7 @@
           }
         },
         {
-          "value": "handle_urban_topcut",
+          "value": "UG",
           "label": "Upper Groove",
           "order": 20,
           "capabilities": {
@@ -97,7 +97,7 @@
           }
         },
         {
-          "value": "handle_urban_botcut",
+          "value": "CG",
           "label": "Central Groove",
           "order": 30,
           "capabilities": {
@@ -414,20 +414,15 @@
   ],
   "ruleData": {
     "cabinetMatrixLegacyAdapter": {
-      "tableId": 439,
+      "tableId": 590,
       "columns": {
         "cabinetType": "cabinet_type",
         "drawers": "drawer_configs",
         "handlesAllowed": "handles_allowed",
         "supportsHeight": "supports_height",
-        "forcedHeightByHandle": {
-          "handle_pto": "handle_pto_forced_height_cm",
-          "handle_urban_topcut": "handle_urban_topcut_forced_height_cm",
-          "handle_urban_botcut": "handle_urban_botcut_forced_height_cm"
-        },
-        "requiresDrawersByHandle": {
-          "handle_urban_botcut": "handle_urban_botcut_requires_drawers"
-        }
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm"
       }
     },
     "drawerStyleGroups": [["2"]],
@@ -584,7 +579,7 @@
     "solidSurfaceBasin": "Solid-Surface: Rectangular has no row in table 438; it is the Urban Standard Height candidate Top_Tekorlux_Rectangular until GEN-MAT-01.",
     "vesselSinks": "The Master File lists no vessel sinks; only the vessel cutout is offered until the list is confirmed.",
     "sidePanelAvailability": "Side panels are as tall as the cabinet body without the plinth and come in two heights (P1125, Block2 Q0050). Their SKUs and allowed grooves wait for UFS-SP-01, so undeterminedRules UFS-SP-01 holds every groove back.",
-    "heightsAndDepths": "Heights 91H (Upper/Central Groove) and 88H (Push-to-Open), each with a 3 cm plinth, and depths 50/46 belong to the cabinet table. The scene registers UF-sink-cabinet and UF-side-cabinet at 88/82 and 45/50.",
-    "openShelves": "Open Shelf 25/35/50 cm at 88H or 85H and Open Side Shelf 15 cm at 85H (price list) belong to the cabinet table; their height next to 91H cabinets waits for UFS-SIZ-02."
+    "heightsAndDepths": "Heights 91H (Upper/Central Groove) and 88H (Push-to-Open), each with a 3 cm plinth, and depths 50/46 are in the cabinet table. The scene registers UF-sink-cabinet and UF-side-cabinet at 88/82 and 45/50.",
+    "openShelves": "Open Shelf 25/35/50 cm and Open Side Shelf 15 cm (price list) are in the cabinet table at their height with the 3 cm plinth: the 88H shelf as 91 next to Upper/Central Groove cabinets, the 85H shelf and the Open Side Shelf as 88 next to Push-to-Open, as the docs propose until UFS-SIZ-02. Hidden until the scene has their products; their SKU height is the table height less the plinth."
   }
 }

@@ -19,7 +19,6 @@ import makoProductProfile from "../../../../public/collections/mako/product-prof
 import makoRuntimeBindings from "../../../../public/collections/mako/runtime-bindings.json";
 import makoSkuProfile from "../../../../public/collections/mako/sku-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
-import urbanFreestandingCabinetTable from "../../../../public/collections/urban-freestanding/cabinet-table.json";
 import urbanFreestandingManifest from "../../../../public/collections/urban-freestanding/manifest.json";
 import urbanFreestandingPresets from "../../../../public/collections/urban-freestanding/presets.json";
 import urbanFreestandingProductProfile from "../../../../public/collections/urban-freestanding/product-profile.json";
@@ -36,6 +35,7 @@ import datatable579 from "./fixtures/remote/datatable-579.json";
 import datatable580 from "./fixtures/remote/datatable-580.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
 import datatable589 from "./fixtures/remote/datatable-589.json";
+import datatable590 from "./fixtures/remote/datatable-590.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -72,16 +72,23 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-freestanding/runtime-bindings.json`]: urbanFreestandingRuntimeBindings,
     [`${collectionsRootUrl}urban-freestanding/sku-profile.json`]: urbanFreestandingSkuProfile,
     [`${collectionsRootUrl}urban-freestanding/ui.json`]: urbanFreestandingUi,
-    [`${collectionsRootUrl}urban-freestanding/cabinet-table.json`]: urbanFreestandingCabinetTable,
   };
 
   if (!(url in sources)) throw new Error(`Unexpected local request: ${url}`);
   return sources[url];
 });
 
-/** Tables of their own: Mako (577, 581), Class (578, 579) and Urban Low Height (589, 580); Urban Freestanding reads 589 too. */
+/**
+ * Tables of their own: Mako (577, 581), Class (578, 579), Urban Low Height (589, 580) and Urban Freestanding
+ * (590, with Urban Low Height's 589); the rest share USH's 438 / 439.
+ */
 const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578, 589: datatable589 };
-const cabinetTables: Record<string, unknown> = { 579: datatable579, 580: datatable580, 581: datatable581 };
+const cabinetTables: Record<string, unknown> = {
+  579: datatable579,
+  580: datatable580,
+  581: datatable581,
+  590: datatable590,
+};
 
 const makeRemote = (): RemoteCollectionLoader => ({
   loadConfigurator: vi.fn(async () => configurator4),
@@ -262,7 +269,7 @@ describe("partial production collection packages", () => {
     ]);
   });
 
-  it("loads Urban Freestanding with its local cabinet table and the shared configurator and countertop table", async () => {
+  it("loads Urban Freestanding with its own cabinet table and the shared configurator and countertop table", async () => {
     const remote = makeRemote();
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -283,8 +290,9 @@ describe("partial production collection packages", () => {
     // Urban Low Height's countertop table: 438 at the 50 cm depth of these cabinets.
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(589, abortSignal);
-    // No Urban Freestanding cabinet table in the API yet: the local one stands in for it.
-    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+    // Its own cabinet table (matrix-cabinet-UFS).
+    expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
+    expect(remote.loadCabinetTable).toHaveBeenCalledWith(590, abortSignal);
 
     expect(data.id).toBe("urban-freestanding");
     expect(data.manifest.label).toBe("Urban Freestanding");
@@ -316,17 +324,26 @@ describe("partial production collection packages", () => {
       heights: [88, 91],
       drawers: ["2"],
       isOpen: false,
-      handlesAllowed: ["handle_pto", "handle_urban_topcut", "handle_urban_botcut"],
+      // The handle styles of the price list: Upper Groove, Push-to-Open, Central Groove.
+      handlesAllowed: ["UG", "PTO", "CG"],
       supportsHeight: [88, 91],
       // The height follows the handle, plinth included: Push-to-Open 88 cm, either groove 91 cm.
       forcedHeightByHandle: {
-        handle_pto: { "2": 88 },
-        handle_urban_topcut: { "2": 91 },
-        handle_urban_botcut: { "2": 91 },
+        UG: { "2": 91 },
+        PTO: { "2": 88 },
+        CG: { "2": 91 },
       },
-      requiresDrawersByHandle: { handle_urban_botcut: ["2"] },
+      // Two drawers only, so the Central Groove needs no drawers rule.
+      requiresDrawersByHandle: {},
     };
-    // Open Shelf and Open Side Shelf stay out of the table until their height is settled (UFS-SIZ-02).
+    // The table has the open shelves of the price list, but the scene has no UF shelf yet, so their
+    // cards stay hidden (unplacedProductTypes).
+    expect(data.sources.remote.cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
+      "Sink-Base",
+      "Sink-Cabinet",
+      "Open-Shelf",
+      "Side-Shelf",
+    ]);
     expect(data.catalog.cabinets?.typeCabinetRules).toEqual([
       expect.objectContaining({
         code: "Sink-Base",

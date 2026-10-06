@@ -67,7 +67,7 @@ describe("urban-freestanding runtime bindings", () => {
   });
 
   it("send the handle and the one drawer style in the spellings the scene config keeps", () => {
-    expect(patchOf("Handle", "handle_urban_topcut")).toEqual({ Handle: "handle_urban_topcut" });
+    expect(patchOf("Handle", "UG")).toEqual({ Handle: "UG" });
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
   });
 
