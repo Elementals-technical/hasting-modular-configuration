@@ -312,9 +312,9 @@ describe("partial production collection packages", () => {
       { id: "faucet-holes", label: "Faucet Details", path: "/prebuilt/faucet-holes" },
       { id: "summary", label: "Summary", path: "/prebuilt/summary" },
     ]);
-    // The 54 models of the Master File; their composition waits for the client (GEN-MOD-01).
+    // The 54 models of the Master File, each composed as its render on the website shows it.
     expect(data.catalog.presets).toHaveLength(54);
-    expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
+    expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length > 0)).toBe(true);
     expect(data.catalog.productProfile?.collectionId).toBe("urban-freestanding");
     // Both drawer cabinets have their UF scene product (I); the open shelves have none yet.
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
