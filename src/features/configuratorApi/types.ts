@@ -84,6 +84,26 @@ export type CabinetPlacement = {
   [key: string]: unknown;
 };
 
+/** One reason a draft cannot be applied (validation.reasons[]). `message` comes from the collection's rule pack. */
+export type CabinetDraftReason = {
+  code: string;
+  messageKey?: string;
+  message?: string | null;
+  params?: Record<string, unknown>;
+  affectedProductIds: string[];
+  decisionIds?: string[];
+  severity?: "invalid" | "unsupported" | "pending";
+  ruleId?: string;
+};
+
+export type CabinetDraftValidation = {
+  status: "valid" | "invalid" | "unsupported" | "pending";
+  reasons: CabinetDraftReason[];
+  requiredDecisionIds?: string[];
+  candidateRevision?: number;
+  [key: string]: unknown;
+};
+
 export type CabinetDraftState = {
   sessionId: string;
   kind: "add" | "move";
@@ -94,7 +114,7 @@ export type CabinetDraftState = {
     effectivePlacement?: { positionM?: CabinetPositionM; [key: string]: unknown };
     [key: string]: unknown;
   };
-  validation?: unknown;
+  validation?: CabinetDraftValidation;
   canApply: boolean;
   canCancel: boolean;
   [key: string]: unknown;

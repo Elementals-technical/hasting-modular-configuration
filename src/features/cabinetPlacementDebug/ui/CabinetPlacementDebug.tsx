@@ -432,7 +432,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     pending ||
     !supported.includes("cabinetPlacement.apply") ||
     draft?.canApply !== true ||
-    draftValidationStatus(draft) === "invalid";
+    (draftValidationStatus(draft) ?? "valid") !== "valid";
   const cancelDisabled =
     !connected ||
     capabilitiesRefreshing ||
