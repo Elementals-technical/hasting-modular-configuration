@@ -18,11 +18,13 @@ import type {
   CollectionPreset,
   CollectionRegistry,
   CollectionStaticOptions,
+  SourceCatalog,
 } from "./schemas";
 
 export type LocalCollectionSources = {
   navigation?: CollectionNavigation;
   presets?: CollectionPreset[];
+  sourceCatalog?: SourceCatalog;
   staticOptions?: CollectionStaticOptions;
   cabinetSkuMappings?: CabinetSkuMappings;
   skuProfile?: CollectionSkuProfile;
@@ -55,6 +57,7 @@ export type LoadedCollectionData = {
   catalog: {
     navigation?: CollectionNavigation;
     presets?: CollectionPreset[];
+    sourceCatalog?: SourceCatalog;
     staticOptions?: CollectionStaticOptions;
     cabinetSkuMappings?: CabinetSkuMappings;
     skuProfile?: CollectionSkuProfile;
@@ -83,7 +86,7 @@ export type ReadyCollectionData = Omit<LoadedCollectionData, "catalog"> & {
 };
 
 export const isReadyCollectionData = (data: LoadedCollectionData): data is ReadyCollectionData =>
-  data.catalog.configurator !== undefined;
+  !data.manifest.availability && data.catalog.configurator !== undefined;
 
 export type ActiveCollectionState =
   | { status: "resolving" }

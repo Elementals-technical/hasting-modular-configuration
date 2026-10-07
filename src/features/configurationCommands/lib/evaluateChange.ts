@@ -1,6 +1,6 @@
 import type { RootState } from "@/app/store";
 import { normalizeOptionValue } from "@/entities/collection";
-import { getActiveProductProfile, getCabinetEntries, isSinkBase } from "@/entities/configuration";
+import { getActiveProductProfile, getAttributeValue, getCabinetEntries, isSinkBase } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
@@ -11,6 +11,7 @@ import { findSinkBaseKeys } from "./isSinkBase";
 import { resolveTarget } from "./resolveTarget";
 import { checkUndetermined } from "./undeterminedGate";
 import { validateChange } from "./validateChange";
+import { evaluateCountertopChange } from "./countertopCompatibility";
 import type {
   AttributeChange,
   ChangeBlockedReason,
@@ -86,6 +87,8 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
   // Gate 4 for attributes outside the rule selection.
   const unavailable = checkAvailability(change.attributeId, change.value, state, activeProfile);
   if (unavailable) return { kind: "blocked", ...unavailable };
+  const countertop = evaluateCountertopChange(change, targetResult.target, state, activeProfile);
+  if (countertop.blocked) return { kind: "blocked", ...countertop.blocked };
 
   // Gate 4 for the rule selection, plus the dependent changes.
   const planResult = buildChangePlan({
@@ -98,6 +101,16 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
     profile: activeProfile,
     handleGrooveColor: state.rootStateUI.product.productOptions.HandleGrooveColor,
     cabinetColor: state.rootStateUI.product.productOptions.CabinetColor,
+    patternValues: Object.fromEntries(
+      cabinets.map(({ stableKey }) => [
+        stableKey,
+        String(
+          getAttributeValue(state, "DrawerPanelFluting", { scope: "cabinet", cabinetId: stableKey }) ??
+            state.rootStateUI.product.productOptions.DrawerPanelFluting ??
+            "",
+        ),
+      ]),
+    ),
     towelBarColor: state.rootStateUI.product.productOptions.TowelBarColor,
     basin: {
       sinkBaseIds: findSinkBaseKeys(state),
@@ -118,7 +131,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
 
   return {
     kind: "planned",
-    plan: planResult.plan,
+    plan: [...planResult.plan, ...countertop.dependencies],
     confirmation: resolveConfirmation(change, planResult.plan, activeProfile, cabinets.length),
     collectionId: activeProfile.collectionId,
   };

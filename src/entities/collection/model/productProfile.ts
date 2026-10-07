@@ -16,13 +16,7 @@
 /** Addressing target of an attribute value. Must stay in sync with ValueTarget in entities/configuration. */
 export type AttributeScope = "global" | "cabinet" | "countertop" | "basin" | "drawer";
 
-export const ATTRIBUTE_SCOPES: readonly AttributeScope[] = [
-  "global",
-  "cabinet",
-  "countertop",
-  "basin",
-  "drawer",
-];
+export const ATTRIBUTE_SCOPES: readonly AttributeScope[] = ["global", "cabinet", "countertop", "basin", "drawer"];
 
 /**
  * Product capabilities of a single option.
@@ -86,7 +80,8 @@ export type ProfileAttribute = {
  * The handle -> column map lives in data, so rule code never tests a handle id.
  */
 export type CabinetMatrixLegacyAdapter = {
-  tableId: number;
+  /** null while the corresponding API table has not been approved/published. */
+  tableId: number | null;
   columns: {
     cabinetType: string;
     drawers: string;
@@ -102,6 +97,8 @@ export type CabinetMatrixLegacyAdapter = {
      * shape needs no column per handle; the per-handle maps above stay for the Urban table.
      */
     forcedHeight?: string;
+    /** Width/drawer pairs that cannot carry an integrated basin: "60:1DWID". */
+    unavailableWithIntegrated?: string;
     /** One column of the drawers each handle allows: "handleId:drawers" ("handle_urban_botcut:2"). */
     handleDrawerConfigs?: string;
     /**
@@ -123,6 +120,8 @@ export type FlutingRuleData = {
   eligibleMaterialAliases: string[];
   /** Parts that never take fluting, e.g. "SIDE_PANEL". */
   forbiddenTargetParts: string[];
+  /** Per-option eligibility where patterns belong to different material families. */
+  eligibleMaterialAliasesByValue?: Record<string, string[]>;
 };
 
 export type GrainDirectionRuleData = {
@@ -249,6 +248,7 @@ export type VesselCompatibilityRuleData = {
 export type CabinetColorTraitsRuleData = {
   /** Variant SKU, compared trimmed and upper-cased -> material token ("ESS" -> "Essenze"). */
   materialBySku: Record<string, string>;
+  materialByCategory?: Record<string, string>;
   /** Material tokens preferred among the option's own material labels when the SKU is not mapped. */
   knownMaterials: string[];
   /** Finish codes found as whole words in the colour name, its label or its option name. */
@@ -265,6 +265,17 @@ export type CabinetColorTraitsRuleData = {
  */
 export type ProfileRuleData = {
   cabinetMatrixLegacyAdapter: CabinetMatrixLegacyAdapter;
+  /** Requires the loader's approved countertop matrix for command validation. */
+  countertopCompatibility?: { tableId: number };
+  /** Source-backed module catalog, usable before publication of a compatibility table. */
+  cabinetModules?: {
+    cabinetType: string;
+    widthsCm: number[];
+    heightsCm: number[];
+    depthsCm: number[];
+    drawerValues: string[];
+    hasSink: boolean;
+  }[];
   drawerStyleGroups?: DrawerStyleGroups;
   /** Changes the product has no rule for yet (CONTRACTS §8); the command holds them back. */
   undeterminedRules?: UndeterminedRule[];
@@ -283,9 +294,9 @@ export type ProfileRuleData = {
 export type ProfileMessages = Record<string, string>;
 
 export type ProfileSourceRefs = {
-  configuratorId: number;
-  countertopMatrixTableId: number;
-  cabinetMatrixTableId: number;
+  configuratorId: number | null;
+  countertopMatrixTableId: number | null;
+  cabinetMatrixTableId: number | null;
 };
 
 export type ProductProfile = {
@@ -298,4 +309,6 @@ export type ProductProfile = {
   attributes: ProfileAttribute[];
   ruleData: ProfileRuleData;
   messages: ProfileMessages;
+  /** Hydrated by the collection loader from the declared API table, never inferred from another collection. */
+  countertopRules?: import("@/features/configurator-rule-core/countertop/types").CountertopMatrixRule[];
 };

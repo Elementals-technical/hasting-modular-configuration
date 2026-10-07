@@ -45,11 +45,21 @@ export const collectionManifestSchema = z
     id: collectionIdSchema,
     label: z.string().trim().min(1),
     defaults: z.record(z.string(), jsonValueSchema),
+    requireSourceAgreement: z.boolean().optional(),
+    /** Explicit preparation state: remote overrides cannot turn an incomplete package into a live product. */
+    availability: z
+      .object({
+        status: z.literal("staged"),
+        dependencies: z.array(z.string().trim().min(1)).min(1),
+      })
+      .strict()
+      .optional(),
     defaultPresetId: z.union([z.string(), z.number()]).optional(),
     local: z
       .object({
         navigation: localJsonReferenceSchema.optional(),
         presets: localJsonReferenceSchema.optional(),
+        sourceCatalog: localJsonReferenceSchema.optional(),
         staticOptions: localJsonReferenceSchema.optional(),
         cabinetSkuMappings: localJsonReferenceSchema.optional(),
         /** Pricing SKU words of a collection priced from data (D04). */
@@ -145,7 +155,15 @@ export const presetsSchema = z.array(
   z
     .object({
       id: z.number(),
-      img: z.string().trim().min(1),
+      img: z.string().trim(),
+      sourceModel: z.string().trim().min(1).optional(),
+      availability: z
+        .object({
+          status: z.enum(["pending-handoff", "pending-image"]),
+          reason: z.string().trim().min(1),
+        })
+        .strict()
+        .optional(),
       title: z.string().trim().min(1),
       desc: z.string().optional(),
       isProductModel: z.boolean(),
@@ -171,8 +189,55 @@ export const presetsSchema = z.array(
       top: z.object({}).passthrough().optional(),
       featureSettings: z.record(z.string(), z.unknown()).optional(),
     })
-    .strict(),
+    .strict()
+    .superRefine((preset, context) => {
+      if (!preset.img && !preset.availability) {
+        context.addIssue({ code: "custom", path: ["img"], message: "A working preset requires an image" });
+      }
+      if (preset.availability?.status === "pending-handoff" && preset.presetProducts.length > 0) {
+        context.addIssue({
+          code: "custom",
+          path: ["presetProducts"],
+          message: "Pending presets must not contain guessed compositions",
+        });
+      }
+      if (
+        preset.availability?.status === "pending-image" &&
+        (!preset.sourceModel || !preset.presetProducts.length || preset.img)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "Pending-image presets require a source model and delivered composition, without a substitute image",
+        });
+      }
+    }),
 );
+
+/** Source inventory, not an approval of runtime values or compatibility combinations. */
+export const sourceCatalogSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    collectionId: collectionIdSchema,
+    productId: z.string().min(1),
+    source: z.string().min(1),
+    rowCount: z.number().int().positive(),
+    attributes: z.record(
+      z.string(),
+      z.array(
+        z
+          .object({
+            value: z.string().min(1),
+            label: z.string().min(1),
+            group: z.string(),
+            category: z.string(),
+            filters: z.array(z.string()),
+            order: z.number().int().nonnegative(),
+          })
+          .strict(),
+      ),
+    ),
+  })
+  .strict();
 
 export const staticOptionsSchema = z
   .object({
@@ -265,6 +330,33 @@ const collectionCountertopSchema = z
 /** A part that is another collection's and priced as that one's: Urban Low Height's countertop, towel bar and side panels are USH's. */
 const pricedAsSchema = z.object({ pricedAs: z.literal("urban-standard-height") }).strict();
 
+const ownSidePanelSchema = z
+  .object({
+    baseSku: z.string().trim().min(1),
+    status: z.enum(["confirmed", "unconfirmed"]),
+    reason: z.string().trim().min(1).optional(),
+    selection: z.object({ attributeId: z.string().min(1), enabledValues: z.array(z.string().min(1)).min(1) }).strict(),
+    /** Exactly one approved quantity source: an explicit attribute or actual side activation readback. */
+    quantityAttributeId: z.string().min(1).optional(),
+    quantitySource: z.literal("activeSides").optional(),
+    /** Opt-in Tricot policy; absent preserves existing own-countertop width semantics. */
+    countertopWidthOffsetCm: z.literal(1).optional(),
+    colorAttributeId: z.string().min(1).optional(),
+    elementCode: z.string().min(1).optional(),
+  })
+  .strict()
+  .superRefine((panel, context) => {
+    if (panel.quantityAttributeId && panel.quantitySource)
+      context.addIssue({ code: "custom", message: "Panel quantity sources must not be ambiguous" });
+    if (
+      panel.status === "confirmed" &&
+      (!(panel.quantityAttributeId || panel.quantitySource) || !panel.colorAttributeId || !panel.elementCode)
+    )
+      context.addIssue({ code: "custom", message: "Confirmed panels require quantity, color and suffix contracts" });
+    if (panel.status === "unconfirmed" && !panel.reason)
+      context.addIssue({ code: "custom", message: "Unconfirmed panels require an explicit dependency" });
+  });
+
 /**
  * How a collection spells its pricing SKUs, for collections whose SKU words are data (D04).
  * USH keeps its series in code (D01); a collection with this file is priced from it alone.
@@ -280,6 +372,8 @@ export const collectionSkuProfileSchema = z
       .object({
         series: z.string().trim().min(1),
         configBlock: skuConfigBlockSchema,
+        /** Reject incomplete requests before pricing rather than using its response as product validation. */
+        requireCompleteInput: z.boolean().optional(),
         /**
          * A cabinet type with a series of its own, e.g. the open shelf `VAN-UROS-1S-…`. It keeps the
          * cabinet's elements unless it names its own, as a shelf without a handle does.
@@ -313,11 +407,15 @@ export const collectionSkuProfileSchema = z
         codeByValue: stringMapSchema,
       })
       .strict(),
-    countertop: z.union([collectionCountertopSchema, pricedAsSchema]),
+    countertop: z.union([
+      collectionCountertopSchema,
+      pricedAsSchema,
+      z.object({ status: z.literal("unconfirmed"), reason: z.string().trim().min(1) }).strict(),
+    ]),
     /** The towel bar, for a collection that offers one. */
     towelBar: pricedAsSchema.optional(),
     /** The side panels, for a collection that offers them. */
-    sidePanel: pricedAsSchema.optional(),
+    sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
     /** The legs a composition stands on, for a collection that offers them. */
@@ -443,13 +541,15 @@ export type CollectionRegistry = z.infer<typeof collectionRegistrySchema>;
 export type CollectionManifest = z.infer<typeof collectionManifestSchema>;
 export type CollectionNavigation = z.infer<typeof navigationSchema>;
 export type CollectionPreset = z.infer<typeof presetsSchema>[number];
+export type SourceCatalog = z.infer<typeof sourceCatalogSchema>;
 export type CollectionStaticOptions = z.infer<typeof staticOptionsSchema>;
 export type CabinetSkuMappings = z.infer<typeof cabinetSkuMappingsSchema>;
 export type CollectionSkuProfile = z.infer<typeof collectionSkuProfileSchema>;
 export type CollectionCountertop = z.infer<typeof collectionCountertopSchema>;
+export type CollectionOwnSidePanel = z.infer<typeof ownSidePanelSchema>;
 
 /** Whether the collection spells its countertop itself, rather than pricing it as another collection's. */
 export const hasOwnCountertop = (
   skuProfile: CollectionSkuProfile,
-): skuProfile is CollectionSkuProfile & { countertop: CollectionCountertop } => !("pricedAs" in skuProfile.countertop);
+): skuProfile is CollectionSkuProfile & { countertop: CollectionCountertop } => "series" in skuProfile.countertop;
 export type PricingGapGroup = z.infer<typeof pricingGapGroupSchema>;

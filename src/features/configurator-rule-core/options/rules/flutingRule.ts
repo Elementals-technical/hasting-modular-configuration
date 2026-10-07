@@ -1,5 +1,6 @@
 import type { ProductProfile } from "@/entities/collection";
 import { selectMessage, selectOptions, selectRuleData } from "@/entities/collection";
+import { isPatternMaterialAllowed } from "@/entities/collection/lib/materialEligibility";
 
 import type { FlutingRuleInput, FlutingRuleResult } from "../types";
 
@@ -40,6 +41,10 @@ export const flutingRule = (
 
   return {
     available: true,
-    options: selectOptions(profile, "DrawerPanelFluting").map(({ value, label }) => ({ value, label, enabled: true })),
+    options: selectOptions(profile, "DrawerPanelFluting").map(({ value, label }) => ({
+      value,
+      label,
+      enabled: isPatternMaterialAllowed(profile, value, material),
+    })),
   };
 };

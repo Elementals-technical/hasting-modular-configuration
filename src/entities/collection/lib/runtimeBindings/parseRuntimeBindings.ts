@@ -189,7 +189,25 @@ const parseValues = (raw: unknown, path: string, collect: Collector): IdentityVa
       patches[value] = patch;
     }
 
-    return valid ? { kind: "map", patches } : null;
+    const unboundValues: Record<string, string> = {};
+    if (raw.unboundValues !== undefined) {
+      if (!isRecord(raw.unboundValues)) {
+        collect.add("binding.invalid_values", `${path}/unboundValues`, "unboundValues must map values to reasons");
+        valid = false;
+      } else {
+        for (const [value, reason] of Object.entries(raw.unboundValues)) {
+          if (!isNonEmptyString(reason) || Object.hasOwn(patches, value)) {
+            collect.add(
+              "binding.invalid_values",
+              `${path}/unboundValues/${value}`,
+              "A pending value needs a reason and cannot also have a patch",
+            );
+            valid = false;
+          } else unboundValues[value] = reason;
+        }
+      }
+    }
+    return valid ? { kind: "map", patches, ...(raw.unboundValues !== undefined ? { unboundValues } : {}) } : null;
   }
 
   collect.add("binding.invalid_values", `${path}/kind`, 'values kind must be "identity" or "map"');
@@ -283,6 +301,9 @@ export const parseRuntimeBindings = (input: unknown): ParseRuntimeBindingsResult
   }
 
   const { schemaVersion, collectionId } = input;
+  if (input.strictProductConfig !== undefined && typeof input.strictProductConfig !== "boolean") {
+    collect.add("bindings.invalid_field_type", "/strictProductConfig", "strictProductConfig must be a boolean");
+  }
 
   if (typeof schemaVersion !== "number") {
     collect.add("bindings.missing_field", "/schemaVersion", "schemaVersion must be a number");
@@ -323,6 +344,7 @@ export const parseRuntimeBindings = (input: unknown): ParseRuntimeBindingsResult
     bindings: {
       schemaVersion,
       collectionId,
+      ...(typeof input.strictProductConfig === "boolean" ? { strictProductConfig: input.strictProductConfig } : {}),
       productTypes,
       ...(unplacedProductTypes ? { unplacedProductTypes } : {}),
       bindings,

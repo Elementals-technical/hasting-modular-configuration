@@ -60,7 +60,7 @@ export const validateChange = (change: AttributeChange, profile: ProductProfile 
   // check against; A validates those values while loading them.
   const options = selectOptions(profile, change.attributeId);
 
-  if (options.length > 0) {
+  if (attribute.options !== undefined) {
     const value = asString(change.value);
     // A declared alias is a member too ("2.375" is Thickness "2.4"). The direct check stays
     // first because an empty string is a legitimate member that normalization rejects.

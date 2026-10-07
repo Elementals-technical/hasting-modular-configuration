@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { StableCabinetKey } from "@/entities/configuration";
+import type { ConfigurationSnapshot, StableCabinetKey } from "@/entities/configuration";
 import type { HandleOption, PlacedDivider } from "@/entities/product/model/store/slice";
 import type { PresetProduct } from "@/entities/product/types";
 
@@ -8,6 +8,8 @@ export type SceneSnapshot = {
   productConfigs: Record<string, Record<string, unknown>>;
   /** Stable key of each product by runtime id, so undo gives rebuilt products their keys back. */
   cabinetKeys?: Record<string, StableCabinetKey>;
+  /** Scoped choices at capture time; absent on snapshots created by older clients. */
+  configuration?: ConfigurationSnapshot;
   productsPresets?: PresetProduct[];
   productOptions: {
     CabinetColor: string;

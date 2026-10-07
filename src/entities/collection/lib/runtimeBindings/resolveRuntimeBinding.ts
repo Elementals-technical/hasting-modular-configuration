@@ -55,9 +55,8 @@ export type RuntimeBindingFailure = {
 
 export type RuntimeBindingResolution = ResolvedRuntimeBinding | StateOnlyRuntimeResolution | RuntimeBindingFailure;
 
-export const isStateOnlyResolution = (
-  resolution: RuntimeBindingResolution,
-): resolution is StateOnlyRuntimeResolution => resolution.ok && "stateOnly" in resolution;
+export const isStateOnlyResolution = (resolution: RuntimeBindingResolution): resolution is StateOnlyRuntimeResolution =>
+  resolution.ok && "stateOnly" in resolution;
 
 /** Anything carrying an attribute and a value; PlannedChange fits as is. */
 export type RuntimeBindingRequest = {
@@ -119,6 +118,10 @@ export const resolveRuntimeBinding = (
     return { ok: true, attributeId, stateOnly: true };
   }
 
+  if (binding.values.kind === "map" && Object.hasOwn(binding.values.unboundValues ?? {}, String(value))) {
+    return { ok: false, attributeId, value, reason: "unbound", detail: binding.values.unboundValues?.[String(value)] };
+  }
+
   const patch = toPatch(binding, value);
 
   if (!patch) {
@@ -156,9 +159,10 @@ export const configurationValueOf = (
   if (!set || !chosenValue || chosenValue === sceneValue) return sceneValue;
 
   const binding = selectRuntimeBinding(set, attributeId);
-  if (binding?.status !== "bound" || binding.values.kind !== "identity") return sceneValue;
+  if (binding?.status !== "bound") return sceneValue;
 
-  return toPatch(binding, chosenValue)?.[binding.values.sceneKey] === sceneValue ? chosenValue : sceneValue;
+  const patch = toPatch(binding, chosenValue);
+  return patch && Object.keys(patch).length === 1 && Object.values(patch)[0] === sceneValue ? chosenValue : sceneValue;
 };
 
 /**

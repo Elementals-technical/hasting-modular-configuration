@@ -24,6 +24,7 @@ export type TypeCabinetRuleConfig = {
    */
   sceneProductType?: string;
   supportsHeight?: number[];
+  unavailableWithIntegrated?: { widthCm: number; drawers: string }[];
 };
 
 export type ConfiguratorCatalog = {
