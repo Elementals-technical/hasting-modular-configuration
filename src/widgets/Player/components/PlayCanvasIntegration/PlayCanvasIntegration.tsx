@@ -104,7 +104,6 @@ import {
   type CountertopPlacementHandle,
 } from "@/features/countertopPlacement/ui/CountertopPlacementControls";
 import {
-  isCabinetPlacementDebugEnabled,
   isDragDropCollection,
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
@@ -435,8 +434,7 @@ export const PlayCanvasIntegration = ({
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
   // Cabinet & countertop Drag & Drop: ULH only; other collections keep the classic menus.
-  const cabinetPlacementDebugEnabled =
-    isCabinetPlacementDebugEnabled(location.search) && isDragDropCollection(activeCollectionId);
+  const cabinetPlacementDebugEnabled = isDragDropCollection(activeCollectionId);
   // Engineering tools of the Drag & Drop (Move selected, add side, Save/Restore JSON): ?placementDebug
   const cabinetPlacementDebugTools = new URLSearchParams(location.search).has("placementDebug");
   const cabinetPlacementRef = useRef<CabinetPlacementControls>(null);
