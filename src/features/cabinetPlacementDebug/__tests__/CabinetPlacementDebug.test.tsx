@@ -7,7 +7,6 @@ import type { ConfiguratorClient } from "@/features/configuratorApi";
 import type { RuntimeBindingSet } from "@/entities/collection";
 import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
 import {
-  isCabinetPlacementDebugEnabled,
   isDragDropCollection,
   resolveCabinetDebugSelection,
 } from "../lib/resolveCabinetDebugSelection";
@@ -702,15 +701,6 @@ describe("Cabinet debug selection and mode", () => {
         bindings,
       })?.definitionId,
     ).toBe("Example-open-shelf");
-  });
-
-  it("works without local debug flags and excludes engineering runtimes", () => {
-    expect(isCabinetPlacementDebugEnabled("?collectionId=urban-low-height")).toBe(true);
-    expect(isCabinetPlacementDebugEnabled("?debug=true&local=true")).toBe(true);
-    expect(isCabinetPlacementDebugEnabled("")).toBe(true);
-    expect(isCabinetPlacementDebugEnabled("?debug=true")).toBe(true);
-    expect(isCabinetPlacementDebugEnabled("?debug=true&local=true&cabinetEngineering=true")).toBe(false);
-    expect(isCabinetPlacementDebugEnabled("?debug=true&local=true&cabinetFromLine=true")).toBe(false);
   });
 });
 

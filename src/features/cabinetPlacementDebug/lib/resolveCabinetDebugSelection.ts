@@ -1,12 +1,6 @@
 import type { RuntimeBindingSet } from "@/entities/collection";
 import { resolveProductConfig } from "@/entities/collection";
 
-export const isCabinetPlacementDebugEnabled = (search: string): boolean => {
-  const params = new URLSearchParams(search);
-  if (params.has("cabinetEngineering") || params.has("cabinetFromLine")) return false;
-  return true;
-};
-
 /** Collections with cabinet/countertop Drag & Drop. Others keep the classic Resize/Reposition menus. */
 export const DRAG_DROP_COLLECTION_IDS: readonly string[] = ["urban-low-height"];
 
