@@ -373,7 +373,7 @@ describe("ConfiguratorClient", () => {
     await client.connect();
     await expect(client.apply("session-1")).rejects.toMatchObject({
       code: "APPLY_UNAVAILABLE",
-      detail: { collision: true },
+      detail: { status: "invalid", reasons: [] },
     });
     expect(apply).not.toHaveBeenCalled();
   });

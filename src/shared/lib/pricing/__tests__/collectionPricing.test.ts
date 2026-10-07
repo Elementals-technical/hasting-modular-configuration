@@ -458,11 +458,12 @@ describe("Class and Mako order lines", () => {
       ),
     );
 
-    // The Class of the site: a Nero Atlante porcelain front in a black frame and sides, on a black glass top.
+    // An Invisible White porcelain front in a black frame and sides, on an Invisible White porcelain top
+    // with its LV890 basin.
     expect(lines.map(({ sku }) => sku)).toEqual([
-      "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-326-CABS-LACM-433-FRM-LACM-433",
-      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
-      "CT-GBGLSG-VA005-.5H",
+      "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-334-CABS-LACM-433-FRM-LACM-433",
+      "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-334",
+      "CT-GBPOR-LV890-.8H",
     ]);
     expect(gaps).toEqual([]);
   });
