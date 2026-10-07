@@ -80,6 +80,7 @@ describe("command reason codes have a text in every production collection", () =
       "lame",
       "mako",
       "urban-duplex",
+      "tricot",
       "urban-freestanding",
       "urban-low-height",
       "urban-standard-height",

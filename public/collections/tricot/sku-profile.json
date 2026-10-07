@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "tricot",
+  "status": "partial",
+  "sources": [
+    "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
+    "Tricot Vanities - SKUs + Pricing.xlsx: SKU Structure, SKU Curation, CabinetPricing"
+  ],
+  "cabinet": {
+    "series": "TRIC",
+    "requireCompleteInput": true,
+    "configBlock": [
+      {
+        "attributeId": "CabinetType",
+        "codes": {
+          "Sink-Base": "SB",
+          "Side-Cabinet": "SC"
+        }
+      },
+      {
+        "attributeId": "Drawers",
+        "codes": {
+          "1": "1DW",
+          "2": "2DW",
+          "1+inner": "1DWID"
+        }
+      },
+      {
+        "attributeId": "DrawerPanelFluting",
+        "codes": {
+          "Loden": "LOD",
+          "Cannette": "CAN",
+          "Twill": "TWLL",
+          "Gessato": "GES",
+          "Satin": "SAT"
+        }
+      }
+    ],
+    "elements": [
+      {
+        "code": "CAB",
+        "attributeId": "CabinetColor"
+      },
+      {
+        "code": "HDL",
+        "attributeId": "HandleGrooveColor"
+      }
+    ]
+  },
+  "colors": {
+    "materialByCategory": {
+      "Lacquered MT": "LACM",
+      "Wood Veneer": "WDV"
+    },
+    "codeByValue": {}
+  },
+  "countertop": {
+    "status": "unconfirmed",
+    "reason": "Compatibility table 593 is connected; shared GB material/basin/thickness SKU mappings and pricing cases still require verification."
+  },
+  "sidePanel": {
+    "baseSku": "VAN-TRIC-SP-.8W-15.7H-20.5D",
+    "status": "confirmed",
+    "selection": { "attributeId": "SidePanels", "enabledValues": ["Yes"] },
+    "quantitySource": "activeSides",
+    "countertopWidthOffsetCm": 1,
+    "colorAttributeId": "CabinetColor",
+    "elementCode": "CAB"
+  },
+  "dividers": {},
+  "gaps": []
+}

@@ -28,6 +28,10 @@
     {
       "id": "lame",
       "manifest": "lame/manifest.json"
+    },
+    {
+      "id": "tricot",
+      "manifest": "tricot/manifest.json"
     }
   ]
 }

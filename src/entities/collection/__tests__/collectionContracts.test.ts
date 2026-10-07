@@ -47,6 +47,7 @@ describe("collection contracts", () => {
       { id: "urban-freestanding", manifest: "urban-freestanding/manifest.json" },
       { id: "urban-duplex", manifest: "urban-duplex/manifest.json" },
       { id: "lame", manifest: "lame/manifest.json" },
+      { id: "tricot", manifest: "tricot/manifest.json" },
     ]);
 
     const manifest = validateCollectionManifest(

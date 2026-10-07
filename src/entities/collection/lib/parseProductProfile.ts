@@ -273,7 +273,7 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
     return null;
   }
 
-  if (!isFiniteNumber(raw.tableId)) {
+  if (raw.tableId !== null && !isFiniteNumber(raw.tableId)) {
     collect.add("profile.missing_field", `${path}/tableId`, "tableId must be a finite number");
     return null;
   }
@@ -311,7 +311,7 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
     return null;
   }
 
-  const optional = ["forcedHeight", "handleDrawerConfigs"] as const;
+  const optional = ["forcedHeight", "handleDrawerConfigs", "unavailableWithIntegrated"] as const;
 
   for (const key of optional) {
     if (columns[key] !== undefined && !isNonEmptyString(columns[key])) {
@@ -339,6 +339,9 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
       forcedHeightByHandle: columns.forcedHeightByHandle,
       requiresDrawersByHandle: columns.requiresDrawersByHandle,
       ...(isNonEmptyString(columns.forcedHeight) ? { forcedHeight: columns.forcedHeight } : {}),
+      ...(isNonEmptyString(columns.unavailableWithIntegrated)
+        ? { unavailableWithIntegrated: columns.unavailableWithIntegrated }
+        : {}),
       ...(isNonEmptyString(columns.handleDrawerConfigs) ? { handleDrawerConfigs: columns.handleDrawerConfigs } : {}),
       ...(isStringRecord(columns.heightsByHandle) ? { heightsByHandle: columns.heightsByHandle } : {}),
     },
@@ -355,12 +358,14 @@ const NON_EMPTY_STRING: FieldCheck = [isNonEmptyString, "a non-empty string"];
 const RULE_SECTION_FIELDS = {
   cabinetColorTraits: {
     materialBySku: [isStringRecord, "a map of SKU to material token"],
+    materialByCategory: [optional(isStringRecord), "a map of category to material token"],
     knownMaterials: STRING_LIST,
     finishCodes: STRING_LIST,
   },
   fluting: {
     eligibleMaterialAliases: STRING_LIST,
     forbiddenTargetParts: STRING_LIST,
+    eligibleMaterialAliasesByValue: [optional(isStringArrayRecord), "a map of option values to material aliases"],
   },
   grainDirection: {
     eligibleMaterials: STRING_LIST,
@@ -520,12 +525,56 @@ const parseUndeterminedRules = (raw: unknown, collect: Collector): UndeterminedR
   return raw as UndeterminedRule[];
 };
 
+const parseCabinetModules = (raw: unknown, collect: Collector): ProfileRuleData["cabinetModules"] => {
+  if (raw === undefined) return undefined;
+  const numberList = (value: unknown) =>
+    Array.isArray(value) && value.length > 0 && value.every((entry) => isFiniteNumber(entry) && entry > 0);
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    !raw.every(
+      (entry) =>
+        isRecord(entry) &&
+        isNonEmptyString(entry.cabinetType) &&
+        numberList(entry.widthsCm) &&
+        numberList(entry.heightsCm) &&
+        numberList(entry.depthsCm) &&
+        isStringArray(entry.drawerValues) &&
+        entry.drawerValues.length > 0 &&
+        typeof entry.hasSink === "boolean",
+    ) ||
+    new Set(raw.map((entry) => entry.cabinetType)).size !== raw.length
+  ) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/cabinetModules",
+      "cabinetModules must contain unique types with positive dimensions and drawer values",
+    );
+    return undefined;
+  }
+  return raw as ProfileRuleData["cabinetModules"];
+};
+
 /** Optional rule sections of a profile, without the keys the collection does not declare. */
 const parseRuleSections = (
   ruleData: Record<string, unknown>,
   collect: Collector,
 ): Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> => {
+  const compatibility = ruleData.countertopCompatibility;
+  const validCompatibility =
+    isRecord(compatibility) &&
+    isFiniteNumber(compatibility.tableId) &&
+    Number.isInteger(compatibility.tableId) &&
+    compatibility.tableId > 0;
+  if (compatibility !== undefined && !validCompatibility)
+    collect.add(
+      "profile.missing_field",
+      "/ruleData/countertopCompatibility",
+      "countertopCompatibility requires a positive integer tableId",
+    );
   const sections: Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> = {
+    ...(validCompatibility ? { countertopCompatibility: { tableId: compatibility.tableId as number } } : {}),
+    cabinetModules: parseCabinetModules(ruleData.cabinetModules, collect),
     drawerStyleGroups: parseDrawerStyleGroups(ruleData.drawerStyleGroups, collect),
     undeterminedRules: parseUndeterminedRules(ruleData.undeterminedRules, collect),
     fluting: parseRuleSection<FlutingRuleData>(ruleData, "fluting", collect),
@@ -579,7 +628,7 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
     collect.add("profile.missing_field", "/sourceRefs", "sourceRefs is required");
   } else {
     for (const key of ["configuratorId", "countertopMatrixTableId", "cabinetMatrixTableId"] as const) {
-      if (!isFiniteNumber(sourceRefs[key])) {
+      if (sourceRefs[key] !== null && !isFiniteNumber(sourceRefs[key])) {
         collect.add("profile.missing_field", `/sourceRefs/${key}`, `${key} must be a finite number`);
       }
     }
@@ -639,9 +688,9 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
       collectionId: raw.collectionId as string,
       label: isNonEmptyString(raw.label) ? raw.label : undefined,
       sourceRefs: {
-        configuratorId: (sourceRefs as Record<string, number>).configuratorId,
-        countertopMatrixTableId: (sourceRefs as Record<string, number>).countertopMatrixTableId,
-        cabinetMatrixTableId: (sourceRefs as Record<string, number>).cabinetMatrixTableId,
+        configuratorId: (sourceRefs as Record<string, number | null>).configuratorId,
+        countertopMatrixTableId: (sourceRefs as Record<string, number | null>).countertopMatrixTableId,
+        cabinetMatrixTableId: (sourceRefs as Record<string, number | null>).cabinetMatrixTableId,
       },
       defaults: raw.defaults as Record<string, string>,
       attributes,

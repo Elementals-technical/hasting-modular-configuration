@@ -22,6 +22,7 @@ export type CollectionReadinessGateProps = {
 type ErrorScreenProps = {
   collectionId?: string;
   description: string;
+  dependencies?: string[];
   onRetry: () => void;
   onOpenDefault?: () => void;
 };
@@ -35,11 +36,24 @@ const CollectionLoadingScreen = () => (
   </main>
 );
 
-const CollectionErrorScreen = ({ collectionId, description, onRetry, onOpenDefault }: ErrorScreenProps) => (
+const CollectionErrorScreen = ({
+  collectionId,
+  description,
+  dependencies,
+  onRetry,
+  onOpenDefault,
+}: ErrorScreenProps) => (
   <main className={s.screen} role="alert">
     <div className={s.errorCard}>
       <h1 className={s.title}>Collection unavailable</h1>
       <p className={s.message}>{description}</p>
+      {dependencies && (
+        <ul>
+          {dependencies.map((dependency) => (
+            <li key={dependency}>{dependency}</li>
+          ))}
+        </ul>
+      )}
       {collectionId && <p className={s.collectionId}>Collection: {collectionId}</p>}
       <div className={s.actions}>
         <BaseButton type="button" onClick={onRetry}>
@@ -119,7 +133,12 @@ export const CollectionReadinessGate = ({
     return (
       <CollectionErrorScreen
         collectionId={state.data.id}
-        description="This collection does not provide the configurator data required to start."
+        description={
+          state.data.manifest.availability
+            ? `${state.data.manifest.label} is being prepared. Approved product and scene inputs are required before configuration can start.`
+            : "This collection does not provide the configurator data required to start."
+        }
+        dependencies={state.data.manifest.availability?.dependencies}
         onRetry={session.retry}
         onOpenDefault={openDefault}
       />

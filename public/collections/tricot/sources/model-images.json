@@ -1,0 +1,301 @@
+{
+  "source": "https://www.hastingsbathcollection.com/products/vanities/tricot",
+  "retrievedAt": "2026-10-07",
+  "models": [
+    {
+      "sourceModel": "Tricot 24 1DW_24",
+      "assetId": "1db57c93-68b3-4132-97f1-a2dbd57378d4",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-570beb9b57319b71be83c6b2c6fb77d67e381e07af3e8e46cde52a0a344df29e",
+      "path": "images/model-1190388679.png",
+      "sha256": "570beb9b57319b71be83c6b2c6fb77d67e381e07af3e8e46cde52a0a344df29e"
+    },
+    {
+      "sourceModel": "Tricot 32 1DWID_30",
+      "assetId": "a75ea456-bc25-4cf2-b413-804803721df2",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-0e9054ceb32886e118eb74f9846303c6e000df6dec3a7748251d601f201dfa7c",
+      "path": "images/model-283828260.png",
+      "sha256": "0e9054ceb32886e118eb74f9846303c6e000df6dec3a7748251d601f201dfa7c"
+    },
+    {
+      "sourceModel": "Tricot 32 2DW_30",
+      "assetId": "b9113ba0-e333-4438-88a4-c468fe78d9fc",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-b6915ddecd108364c62675e10b79c7d359bad745396fe46a3df40176a53e7000",
+      "path": "images/model-1699160644.png",
+      "sha256": "b6915ddecd108364c62675e10b79c7d359bad745396fe46a3df40176a53e7000"
+    },
+    {
+      "sourceModel": "Tricot 40 1DW_40",
+      "assetId": "91e24d1e-fd0e-46cb-9e01-20645f639882",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-6af19ee4e1f6491c4413c7c039319858f647f9e85205ccb6d38762ec21b61637",
+      "path": "images/model-2701382255.png",
+      "sha256": "6af19ee4e1f6491c4413c7c039319858f647f9e85205ccb6d38762ec21b61637"
+    },
+    {
+      "sourceModel": "Tricot 40 1DW 1_40",
+      "assetId": "9ec541f2-2d26-41fa-ac79-48e811f635fe",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-42b18b295108f7c8f743890dc859b4446a6db508b46023b58baaf9f5f1c8bdbd",
+      "path": "images/model-340401182.png",
+      "sha256": "42b18b295108f7c8f743890dc859b4446a6db508b46023b58baaf9f5f1c8bdbd"
+    },
+    {
+      "sourceModel": "Tricot 40 2DW_40",
+      "assetId": "7005d637-2fb4-4e2a-ab7a-bb24b059ce11",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-d8f42404e2decf05e8c2a2e7d6e5012f6002e3fbc0b9a9ea943782099d82b137",
+      "path": "images/model-2042134760.png",
+      "sha256": "d8f42404e2decf05e8c2a2e7d6e5012f6002e3fbc0b9a9ea943782099d82b137"
+    },
+    {
+      "sourceModel": "Tricot 48 1DW_40",
+      "assetId": "dd20beac-1b5b-4810-a935-8c5d427c6e13",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-f28b905cffe9788845a8890358463522fab976a6575df2a4d28f43bde1bd687d",
+      "path": "images/model-3316876631.png",
+      "sha256": "f28b905cffe9788845a8890358463522fab976a6575df2a4d28f43bde1bd687d"
+    },
+    {
+      "sourceModel": "Tricot 48 1DW 1_40",
+      "assetId": "90d76d84-b7c9-4a73-90c9-6096ea46f0e4",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-c0427e032d7e9347117745607a3fcde6334b6e0a0cb3b6fbea83a0e06b9de4fe",
+      "path": "images/model-1730742086.png",
+      "sha256": "c0427e032d7e9347117745607a3fcde6334b6e0a0cb3b6fbea83a0e06b9de4fe"
+    },
+    {
+      "sourceModel": "Tricot 48 1DWID_40",
+      "assetId": "abaf78ef-76f6-49ae-8f99-0e459643bdde",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-fc67063865a4eb5984c266c6684e252ea4d4846b7a84da447375413ec42a3863",
+      "path": "images/model-2927799592.png",
+      "sha256": "fc67063865a4eb5984c266c6684e252ea4d4846b7a84da447375413ec42a3863"
+    },
+    {
+      "sourceModel": "Tricot 48 2DW_40",
+      "assetId": "b5aada58-3fdd-4e1d-aab4-32287ce9adbd",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-4a62252339ba85b9626f4f5c76bdf10798e1fd872ebf234bfcd8c897afdaf3d9",
+      "path": "images/model-204551312.png",
+      "sha256": "4a62252339ba85b9626f4f5c76bdf10798e1fd872ebf234bfcd8c897afdaf3d9"
+    },
+    {
+      "sourceModel": "Tricot 48 2DW 1_40",
+      "assetId": "91232e52-5fb5-4970-ad53-da283e79e6cb",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-76037327f2ed700160d4c4268272e01d362b74d5ce36c65e15f329da81a89cf7",
+      "path": "images/model-22363817.png",
+      "sha256": "76037327f2ed700160d4c4268272e01d362b74d5ce36c65e15f329da81a89cf7"
+    },
+    {
+      "sourceModel": "Tricot 55 1DW_50",
+      "assetId": "6c6f88ff-bafe-4675-b9c4-680890b54fc7",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-c843dce9a8f067dcdf082a4d7d3814485a17fdac858f86f1bb8d6eeb1e86eb4e",
+      "path": "images/model-1583918180.png",
+      "sha256": "c843dce9a8f067dcdf082a4d7d3814485a17fdac858f86f1bb8d6eeb1e86eb4e"
+    },
+    {
+      "sourceModel": "Tricot 55 1DW 1_50",
+      "assetId": "63942fb9-32d5-4f43-892d-6665c6c5db8e",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-adb9af99c2e38433f70f6a3b0f686bab74b92f32db7519dba1734e17cb730b05",
+      "path": "images/model-1933255957.png",
+      "sha256": "adb9af99c2e38433f70f6a3b0f686bab74b92f32db7519dba1734e17cb730b05"
+    },
+    {
+      "sourceModel": "Tricot 55 1DW 2_50",
+      "assetId": "dfbf740a-3b21-43c0-a904-8969f236c4eb",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-165804f32b67c45c977a3dc774eb676076d50e56557099d660438914838a229d",
+      "path": "images/model-281050986.png",
+      "sha256": "165804f32b67c45c977a3dc774eb676076d50e56557099d660438914838a229d"
+    },
+    {
+      "sourceModel": "Tricot 55 1DWID_50",
+      "assetId": "a90de862-d00d-4a7e-b090-8509651abe4c",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-95d1db464ed59e49b441e7d3bcb54ea383a99d04619355f77059deac43cf6bc4",
+      "path": "images/model-3875945151.png",
+      "sha256": "95d1db464ed59e49b441e7d3bcb54ea383a99d04619355f77059deac43cf6bc4"
+    },
+    {
+      "sourceModel": "Tricot 55 2DW_50",
+      "assetId": "c4b0e81f-2c38-4caa-871c-116ec9aca8ca",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-a8a2c3df1acc9e1735949c407992711fae6b673dde09bdd86c082e3f0bd1914b",
+      "path": "images/model-4206490675.png",
+      "sha256": "a8a2c3df1acc9e1735949c407992711fae6b673dde09bdd86c082e3f0bd1914b"
+    },
+    {
+      "sourceModel": "Tricot 55 2DW 1_50",
+      "assetId": "74c218d7-fd91-4723-8d38-cf489e1b849b",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-b9022cd55d9d9073ed3cbd13036aadada6f4a49b2a2fe9650d74c00f184ac1ff",
+      "path": "images/model-2963807050.png",
+      "sha256": "b9022cd55d9d9073ed3cbd13036aadada6f4a49b2a2fe9650d74c00f184ac1ff"
+    },
+    {
+      "sourceModel": "Tricot 63 1DW_60",
+      "assetId": "86f9d966-da1e-4a3f-be74-eec311b09f76",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-1f95932179aa154b653c91c172e2a1d17bbaf5814e2247926c5e5a80cbcbe1cb",
+      "path": "images/model-170069296.png",
+      "sha256": "1f95932179aa154b653c91c172e2a1d17bbaf5814e2247926c5e5a80cbcbe1cb"
+    },
+    {
+      "sourceModel": "Tricot 63 1DW 1_60",
+      "assetId": "27633992-5b0a-4cc3-9070-dd4a2b661235",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-f51de9643e786923ae3779f68fd716c46b850d95bfce66104be47d93a278dd02",
+      "path": "images/model-3407097561.png",
+      "sha256": "f51de9643e786923ae3779f68fd716c46b850d95bfce66104be47d93a278dd02"
+    },
+    {
+      "sourceModel": "Tricot 63 1DW 2_60",
+      "assetId": "524e2f29-ad69-438f-be62-f594d267e646",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-cb1771b540541c7965608102cdd7943cc6e4b9627deddfc4a55bf58fde6a7774",
+      "path": "images/model-4081071958.png",
+      "sha256": "cb1771b540541c7965608102cdd7943cc6e4b9627deddfc4a55bf58fde6a7774"
+    },
+    {
+      "sourceModel": "Tricot 63 1DW 3_60",
+      "assetId": "cebf048d-3ed5-45fd-8932-8f857fac5309",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-75d914d7c3a8917a7836920adbaef57498e336ff3fb9ad60fd42457f2f89e551",
+      "path": "images/model-2045849511.png",
+      "sha256": "75d914d7c3a8917a7836920adbaef57498e336ff3fb9ad60fd42457f2f89e551"
+    },
+    {
+      "sourceModel": "Tricot 63 1DW 4_60",
+      "assetId": "26db62b8-c08a-4684-9cb4-9c3f019a9d84",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-d9277641f23c491675f61dac1c786c12e4dab045027d40b75d8f11e6e9546383",
+      "path": "images/model-761220788.png",
+      "sha256": "d9277641f23c491675f61dac1c786c12e4dab045027d40b75d8f11e6e9546383"
+    },
+    {
+      "sourceModel": "Tricot 63 2DW_60",
+      "assetId": "6f8f947a-8b24-4570-87b4-dfd8b34b6f0b",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-72dd538ba6200d34bdd925e74413db1668086dc70f449f34645f68aa211ac745",
+      "path": "images/model-1145901559.png",
+      "sha256": "72dd538ba6200d34bdd925e74413db1668086dc70f449f34645f68aa211ac745"
+    },
+    {
+      "sourceModel": "Tricot 63 2DW 1_60",
+      "assetId": "06af4c50-da5d-4911-a9db-4d76889577c6",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-e13b8ca92831a481a0b216bafb15f43e49246a80c3b86d6610ed8b18c1d3e07a",
+      "path": "images/model-3183332182.png",
+      "sha256": "e13b8ca92831a481a0b216bafb15f43e49246a80c3b86d6610ed8b18c1d3e07a"
+    },
+    {
+      "sourceModel": "Tricot 63 2DW 2_60",
+      "assetId": "0d2f0fe4-b348-44d4-89d7-7a421e5c5b88",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-87ec132c5b4ef1d42f1d610ca9c1a60be8d6de64cf64f08ef84e114eb82a218c",
+      "path": "images/model-2509357785.png",
+      "sha256": "87ec132c5b4ef1d42f1d610ca9c1a60be8d6de64cf64f08ef84e114eb82a218c"
+    },
+    {
+      "sourceModel": "Tricot 71 1DW_70",
+      "assetId": "b3c901f0-e3da-466c-9f25-5f9ab4df25f1",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-1c480105481fe670bac75c1bbdb54a18bbe18b0bd8f9da77fd28459e6b9fcb12",
+      "path": "images/model-3591225084.png",
+      "sha256": "1c480105481fe670bac75c1bbdb54a18bbe18b0bd8f9da77fd28459e6b9fcb12"
+    },
+    {
+      "sourceModel": "Tricot 71 2DW_70",
+      "assetId": "471ab259-5c7a-4845-8368-a24dc59b6d93",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-4f99048e05a3a5c5bf6c5659365373614ff3b4f440de639c098fc301d9e02442",
+      "path": "images/model-1591601899.png",
+      "sha256": "4f99048e05a3a5c5bf6c5659365373614ff3b4f440de639c098fc301d9e02442"
+    },
+    {
+      "sourceModel": "Tricot 79 1DW_70",
+      "assetId": "3b26bf97-ff85-4aac-a694-f817ec9b930d",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-cc33cd33b2cc02409e995524ca4fad57db5208e8a0cd0d995e40c73a8c8f32ca",
+      "path": "images/model-1872904564.png",
+      "sha256": "cc33cd33b2cc02409e995524ca4fad57db5208e8a0cd0d995e40c73a8c8f32ca"
+    },
+    {
+      "sourceModel": "Tricot 79 1DW 1_70",
+      "assetId": "d33334ba-e5fa-4e31-a7ab-670f8ec1c2cd",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-2bce84dc2b29156ce437e0607c2347f0e4f7cf10ea8cdac8bfa8cc26a13aa787",
+      "path": "images/model-2713191253.png",
+      "sha256": "2bce84dc2b29156ce437e0607c2347f0e4f7cf10ea8cdac8bfa8cc26a13aa787"
+    },
+    {
+      "sourceModel": "Tricot 79 1DW 2_70",
+      "assetId": "6c6436a3-2e64-4490-b54f-4b21a66ae2fd",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-356f339b68bb17cd2b30a0d7d6f88163faf288fc6645d2c44b7562ef3abe1956",
+      "path": "images/model-2301385970.png",
+      "sha256": "356f339b68bb17cd2b30a0d7d6f88163faf288fc6645d2c44b7562ef3abe1956"
+    },
+    {
+      "sourceModel": "Tricot 79 1DW 3_70",
+      "assetId": "e216fb78-dd46-4c98-a31a-7206959e9a2e",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-d443977fbb09e4e6a074e0372e01bb3b6066beb080c4fbcd67f3f65e6981e8ef",
+      "path": "images/model-3363600723.png",
+      "sha256": "d443977fbb09e4e6a074e0372e01bb3b6066beb080c4fbcd67f3f65e6981e8ef"
+    },
+    {
+      "sourceModel": "Tricot 79 2DW_70",
+      "assetId": "9fda3c46-6b6d-4f3e-bc2b-5c74b917d32e",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-3085cfa8f13d58a153854e08fef57a9725764ff6329c6f893862edb5802b9f46",
+      "path": "images/model-3873048675.png",
+      "sha256": "3085cfa8f13d58a153854e08fef57a9725764ff6329c6f893862edb5802b9f46"
+    },
+    {
+      "sourceModel": "Tricot 87 1DW_80",
+      "assetId": "f540dbe7-7b9d-4ddb-a805-1a7e3d0461b3",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-de6634f9eae27f63a597bbe581434641cf3202c3385286a4726b94d994b94890",
+      "path": "images/model-3108480620.png",
+      "sha256": "de6634f9eae27f63a597bbe581434641cf3202c3385286a4726b94d994b94890"
+    },
+    {
+      "sourceModel": "Tricot 87 1DW 1_80",
+      "assetId": "a4251d1c-bb86-486f-b01c-534a23714748",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-e049dcf1ccd458561b99d9b1423e3690966759a3a4fdddcd5d0dfc0993684cbf",
+      "path": "images/model-979097829.png",
+      "sha256": "e049dcf1ccd458561b99d9b1423e3690966759a3a4fdddcd5d0dfc0993684cbf"
+    },
+    {
+      "sourceModel": "Tricot 87 1DW 2_80",
+      "assetId": "334f7701-4060-430b-b4ad-29916efaf6ba",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-35f8fd317837e51a449cea107189e5919fcd13c5ad4cd8358f44b96ba1b07820",
+      "path": "images/model-3892136578.png",
+      "sha256": "35f8fd317837e51a449cea107189e5919fcd13c5ad4cd8358f44b96ba1b07820"
+    },
+    {
+      "sourceModel": "Tricot 87 1DW 3_80",
+      "assetId": "eb8d8ca7-94c2-4045-9a76-b37584268215",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-6142ceae9ec86a4d7d8d1fb6eff82670dfa912621059ac95a0765a7e1f37e81f",
+      "path": "images/model-349791427.png",
+      "sha256": "6142ceae9ec86a4d7d8d1fb6eff82670dfa912621059ac95a0765a7e1f37e81f"
+    },
+    {
+      "sourceModel": "Tricot 87 1DW 4_80",
+      "assetId": "b5d06a6a-ddd9-4619-a822-4f04c031978b",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-20dfdfffdf22e275ee1996708a2b6675f11608703b4064e00b5e562c92db84e5",
+      "path": "images/model-2838372704.png",
+      "sha256": "20dfdfffdf22e275ee1996708a2b6675f11608703b4064e00b5e562c92db84e5"
+    },
+    {
+      "sourceModel": "Tricot 87 2DW_80",
+      "assetId": "2fc32ce6-26df-44b4-b803-5af62e337d05",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-54780192ce0df819e0d2536c02fd830cefdf102f05c73971cb7bf5ad4d0e2833",
+      "path": "images/model-2287777691.png",
+      "sha256": "54780192ce0df819e0d2536c02fd830cefdf102f05c73971cb7bf5ad4d0e2833"
+    },
+    {
+      "sourceModel": "Tricot 87 2DW 1_80",
+      "assetId": "1bae905d-3565-4918-bd0e-53e528b04f97",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-d0215bb6c7d2d1d40fb1bd1f1550db0ab150afe0a79425cd87c51970666030e2",
+      "path": "images/model-441445434.png",
+      "sha256": "d0215bb6c7d2d1d40fb1bd1f1550db0ab150afe0a79425cd87c51970666030e2"
+    },
+    {
+      "sourceModel": "Tricot 87 2DW 2_80",
+      "assetId": "b1bf7c60-a5ba-48b0-be1b-4fda8224727b",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-254cc1e8ad61f15c95aad18e008c795eeac293753af329309a168af22f7d05dd",
+      "path": "images/model-2247831453.png",
+      "sha256": "254cc1e8ad61f15c95aad18e008c795eeac293753af329309a168af22f7d05dd"
+    },
+    {
+      "sourceModel": "Tricot 87 2DW 3_80",
+      "assetId": "9ab0c818-c8c0-4145-925a-73295dfaa6fd",
+      "url": "https://admin-fts.threekit.com/api/files/hash/sha256-e21019792d7e6a7e8c8c98b001c3ffe8d003e93d33811acd51b93414c4eb9576",
+      "path": "images/model-958325500.png",
+      "sha256": "e21019792d7e6a7e8c8c98b001c3ffe8d003e93d33811acd51b93414c4eb9576"
+    }
+  ],
+  "missing": [
+    {
+      "sourceModel": "Tricot 79 2DW 1_70",
+      "assetId": "2debefae-fe53-457e-8deb-1414cf11caa7",
+      "url": "https://admin-fts.threekit.com/api/files/hash/1d84a42b-50d6-42fc-a5fc-b8f6714504a9",
+      "reason": "The public 2D thumbnail returned HTTP 404 on 2026-10-07."
+    }
+  ]
+}

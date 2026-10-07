@@ -1,4 +1,4 @@
-import { selectAttribute, selectOptions, selectResetValue } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectOptions, selectResetValue } from "@/entities/collection";
 
 import { buildConfiguratorOptions } from "./buildConfiguratorOptions";
 
@@ -64,11 +64,29 @@ export const resolveConfiguratorOptions = (
   attributeId: string,
   configurator: ConfiguratorGroupCatalog | null,
 ): FieldOptionState[] => {
-  const source = selectAttribute(profile, attributeId)?.optionsSource;
-  if (!source?.startsWith(CONFIGURATOR_SOURCE_PREFIX) || !configurator) return [];
+  const attribute = selectAttribute(profile, attributeId);
+  const source = attribute?.optionsSource;
+  const localOptions = () =>
+    selectOptions(profile, attributeId).map(({ value, label, category }) => ({
+      value,
+      label,
+      enabled: true,
+      desc: category,
+      traits: category ? { materials: [category] } : undefined,
+    }));
+  if (!source?.startsWith(CONFIGURATOR_SOURCE_PREFIX)) return localOptions();
+  if (!configurator) return [];
 
   const resetValue = selectResetValue(profile, attributeId);
-  const options = buildConfiguratorOptions(configurator.groupsByName[source.slice(CONFIGURATOR_SOURCE_PREFIX.length)]);
+  const external = buildConfiguratorOptions(configurator.groupsByName[source.slice(CONFIGURATOR_SOURCE_PREFIX.length)]);
+  const options = attribute?.options
+    ? external.flatMap((option) => {
+        const canonical = normalizeOptionValue(profile, attributeId, option.value);
+        if (!canonical) return [];
+        const declared = attribute.options?.find(({ value }) => value === canonical);
+        return [{ ...option, value: canonical, label: declared?.label ?? option.label }];
+      })
+    : external;
 
   return resetValue && !options.some((option) => option.value === resetValue)
     ? [{ value: resetValue, label: resetValue, enabled: true }, ...options]

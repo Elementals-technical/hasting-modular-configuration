@@ -57,6 +57,8 @@ export type IdentityValues = {
 export type MappedValues = {
   kind: "map";
   patches: Record<string, ScenePatch>;
+  /** Catalog values whose scene assets/contracts have not been delivered. Never sent. */
+  unboundValues?: Record<string, string>;
 };
 
 export type BoundRuntimeBinding = {
@@ -100,6 +102,8 @@ export type RuntimeBinding = BoundRuntimeBinding | UnboundRuntimeBinding | State
 export type RuntimeBindingSet = {
   schemaVersion: number;
   collectionId: string;
+  /** Opt-in: reject incomplete product configs before placement/restore, instead of silently dropping keys. */
+  strictProductConfig?: boolean;
   /**
    * CabinetType value -> runtime product type the scene places, e.g. "Side-Cabinet" is
    * placed as "Sink-Cabinet". Used by addProduct / setProductByParams, not setConfig.

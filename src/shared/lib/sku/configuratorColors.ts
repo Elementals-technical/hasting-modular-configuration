@@ -1,4 +1,4 @@
-import { selectConfiguratorSection } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectConfiguratorSection } from "@/entities/collection";
 import type { ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
@@ -55,6 +55,17 @@ export const createConfiguratorColorReader = (
 
   return (attributeId, value) => {
     const section = selectConfiguratorSection(productProfile, attributeId);
-    return section ? (sectionColors(section).get(value) ?? null) : null;
+    if (!section) return null;
+    const attribute = selectAttribute(productProfile, attributeId);
+    const canonical = normalizeOptionValue(productProfile, attributeId, value);
+    if (attribute?.options && !canonical) return null;
+    const colors = sectionColors(section);
+    const direct = colors.get(value);
+    if (direct) return direct;
+    if (canonical) {
+      for (const [external, metadata] of colors)
+        if (normalizeOptionValue(productProfile, attributeId, external) === canonical) return metadata;
+    }
+    return null;
   };
 };

@@ -19,6 +19,33 @@ import { isStateOnlyResolution, resolveRuntimeBinding, selectRuntimeBinding } fr
 const isSemanticValue = (value: unknown): value is SemanticValue =>
   value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 
+/** Preflight for opted-in collections: pending/invalid visual choices must not disappear during placement. */
+export const findProductConfigBindingErrors = (
+  set: RuntimeBindingSet,
+  config: Readonly<Record<string, unknown>>,
+  flow?: RuntimeFlow,
+): string[] => {
+  if (!set.strictProductConfig) return [];
+  const typeKeys = new Set(["CabinetType", "ProductType", "productType", "entityName", "EntityName", "name", "type"]);
+  return Object.entries(config).flatMap(([key, value]) => {
+    if (value === undefined || typeKeys.has(key)) return [];
+    const binding = selectRuntimeBinding(set, key);
+    const resolution = isSemanticValue(value) ? resolveRuntimeBinding(set, key, value, flow) : null;
+    if (resolution?.ok) return [];
+    // Saved scene configs already carry material names and drawer tokens. Accept only exact,
+    // single-key patches delivered by this collection; unrelated legacy values remain blocked.
+    if (
+      binding?.status === "bound" &&
+      binding.values.kind === "map" &&
+      Object.values(binding.values.patches).some(
+        (patch) => Object.keys(patch).length === 1 && Object.values(patch)[0] === value,
+      )
+    )
+      return [];
+    return [`No approved scene translation for ${key} "${String(value)}".`];
+  });
+};
+
 export const resolveProductConfig = (
   set: RuntimeBindingSet,
   config: Readonly<Record<string, unknown>>,

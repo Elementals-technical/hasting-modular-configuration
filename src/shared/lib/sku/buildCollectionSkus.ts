@@ -5,6 +5,7 @@ import {
   selectOption,
 } from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
+import { isPatternMaterialAllowed } from "@/entities/collection/lib/materialEligibility";
 import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
 import { formatVesselSku, type VesselDimensionTokens } from "./buildVesselSku";
@@ -85,7 +86,10 @@ export type CollectionCabinetSkuInput = {
  * the frame colour of a Class front, or its value is one the collection names no material for,
  * which leaves out the element that carries the price.
  */
-export type CollectionCabinetSkuGap = { attributeId: string; cause: "not-chosen" | "no-material" };
+export type CollectionCabinetSkuGap = {
+  attributeId: string;
+  cause: "not-chosen" | "no-material" | "invalid-option" | "invalid-dimension";
+};
 
 export type CollectionCabinetSku = {
   sku: string;
@@ -109,6 +113,8 @@ export const buildCollectionCabinetSku = (
   };
   const codeOf = ({ attributeId, codes }: { attributeId: string; codes: Record<string, string> }) => {
     const value = optionOf(attributeId);
+    if (cabinet.requireCompleteInput && (!value || !codes[value]))
+      missing.push({ attributeId, cause: value ? "invalid-option" : "not-chosen" });
     return (value && codes[value]) || FALLBACK;
   };
 
@@ -140,7 +146,14 @@ export const buildCollectionCabinetSku = (
     const isChosen = isChosenColor(productProfile, attributeId, own);
     const colorAttributeId = isChosen || !inheritsFrom ? attributeId : inheritsFrom;
     const value = isChosen ? own : inheritsFrom ? read(inheritsFrom) : null;
-    if (!value) return [];
+    if (!value) {
+      if (cabinet.requireCompleteInput) missing.push({ attributeId: colorAttributeId, cause: "not-chosen" });
+      return [];
+    }
+    if (cabinet.requireCompleteInput && !selectOption(productProfile, colorAttributeId, value)) {
+      missing.push({ attributeId: colorAttributeId, cause: "invalid-option" });
+      return [];
+    }
 
     const material = resolveCollectionColorMaterial(
       skuProfile,
@@ -167,6 +180,8 @@ export const buildCollectionCabinetSku = (
     }
 
     const colorCode = resolveCollectionColorCode(skuProfile, value);
+    if (cabinet.requireCompleteInput && !colorCode)
+      missing.push({ attributeId: colorAttributeId, cause: "invalid-option" });
     return [colorCode ? `${code}-${pricedMaterial}-${colorCode}` : `${code}-${pricedMaterial}`];
   });
 
@@ -180,9 +195,36 @@ export const buildCollectionCabinetSku = (
     heightCode ? `${heightCode}H` : sizeToken(skuHeightCm, "H"),
     sizeToken(depthCm, "D"),
   ].join("-");
+  if (cabinet.requireCompleteInput) {
+    const pattern = optionOf("DrawerPanelFluting");
+    const color = read("CabinetColor");
+    const material = color
+      ? resolveCollectionColorMaterial(skuProfile, productProfile, "CabinetColor", color, readConfiguratorColor)
+      : null;
+    if (pattern && !isPatternMaterialAllowed(productProfile, pattern, material))
+      missing.push({ attributeId: "DrawerPanelFluting", cause: "invalid-option" });
+    const module = productProfile?.ruleData.cabinetModules?.find(({ cabinetType: type }) => type === cabinetType);
+    for (const [attributeId, value, allowed] of [
+      ["Width", widthCm, module?.widthsCm],
+      ["Height", heightCm, module?.heightsCm],
+      ["Depth", depthCm, module?.depthsCm],
+    ] as const) {
+      if (value === null || !Number.isFinite(value) || value <= 0 || (allowed && !allowed.includes(value)))
+        missing.push({ attributeId, cause: "invalid-dimension" });
+    }
+    const drawers = optionOf("Drawers");
+    if (module && drawers && !module.drawerValues.includes(drawers))
+      missing.push({ attributeId: "Drawers", cause: "invalid-option" });
+  }
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
-  return { sku: `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`, missing };
+  return {
+    sku:
+      cabinet.requireCompleteInput && missing.length
+        ? ""
+        : `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`,
+    missing,
+  };
 };
 
 export type CollectionCountertopSkuInput = {

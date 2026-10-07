@@ -1,6 +1,6 @@
 import type { RootState } from "@/app/store";
 import type { ProductProfile } from "@/entities/collection";
-import { selectAttribute, selectMessage } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectMessage } from "@/entities/collection";
 import type { AttributeValue } from "@/entities/configuration";
 import { selectFlutingState, selectGrainDirectionState } from "@/entities/product/model/store/derivedSelectors";
 
@@ -16,7 +16,7 @@ import type { ChangeBlockedReason } from "../model/types";
 export const REASON_FLUTING_NOT_AVAILABLE = "fluting.notAvailable";
 export const REASON_GRAIN_NOT_AVAILABLE = "grain.notAvailable";
 
-type Availability = { available: boolean; reason?: string };
+type Availability = { available: boolean; reason?: string; options?: { value: string; enabled: boolean }[] };
 
 type AvailabilityGate = {
   reasonCode: string;
@@ -42,7 +42,12 @@ export const checkAvailability = (
   if (!gate || isClearingValue(profile, attributeId, value)) return null;
 
   const availability = gate.select(state);
-  if (availability.available) return null;
+  const canonical = typeof value === "string" ? (normalizeOptionValue(profile, attributeId, value) ?? value) : value;
+  if (
+    availability.available &&
+    (!availability.options || availability.options.some((option) => option.value === canonical && option.enabled))
+  )
+    return null;
 
   return {
     attributeId,
