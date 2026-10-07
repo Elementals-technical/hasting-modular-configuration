@@ -1,3 +1,0 @@
-cabinet_type,widths_cm,depths_cm,heights_cm,drawer_configs,has_sink,is_open,handles_allowed,supports_height,forced_height_cm,legs_drawer_configs
-Sink-Base,60|80|100|120,52,26|52,1|2,TRUE,FALSE,G58,26|52,1:26|2:52,1|2
-Sink-Cabinet,40|60|80|100|120,52,26|52,1|2,FALSE,FALSE,G58,26|52,1:26|2:52,1|2

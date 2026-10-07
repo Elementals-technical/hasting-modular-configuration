@@ -202,7 +202,7 @@ describe("lame collection package", () => {
       expect(attribute, attributeId).not.toBeNull();
       expect(Boolean(attribute?.options?.length || attribute?.optionsSource), attributeId).toBe(true);
     }
-    expect(schema.steps.color?.sectionIds).toEqual(["cabinet-color", "cabinet-pattern", "handle-color"]);
+    expect(schema.steps.color?.sectionIds).toEqual(["cabinet-color", "cabinet-pattern", "handle-color", "leg-color"]);
   });
 
   it("ships every option picture it declares", () => {

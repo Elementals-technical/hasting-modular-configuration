@@ -1,5 +1,0 @@
-cabinet_type,widths_cm,depths_cm,heights_cm,drawer_configs,has_sink,is_open,handles_allowed,supports_height,forced_height_cm
-Sink-Base,60|70|80|90|105|120,50|46,56|53|38|28,2DW|1DW|1DWID,TRUE,FALSE,UG,56|53|38|28,2DW:56|1DW:53|1DWID:53
-Sink-Cabinet,60|70|80|90|105|120,50|46,56|53|38|28,2DW|1DW|1DWID,FALSE,FALSE,UG,56|53|38|28,2DW:56|1DW:53|1DWID:53
-Open-Shelf,25|35|50|60|70,50|46,56|53|38|28,,FALSE,TRUE,,56|53|38|28,
-Side-Shelf,15,50|46,56|53|38|28,,FALSE,TRUE,,56|53|38|28,

@@ -85,6 +85,13 @@
       "owner": "product",
       "reason": "Organizers are the Class ones (docx P0281) and are priced once per drawer that has a divider style; whether $170 / $150 is the price of one organizer is not confirmed.",
       "appliesWhen": { "attributeId": "DividersStyle" }
+    },
+    {
+      "group": "legs",
+      "blocksTotal": true,
+      "owner": "product",
+      "reason": "Lame legs have no price yet: the price workbook spells them without a colour or width (VAN-LAMEV-LEG/2DW-12.4H, VAN-LAMEV-LEG/1DW-22.6H), gives no vessel heights and does not say whether one is ordered per cabinet; the cap (VAN-LAMEV-LEGCAP-, $0) has no colour suffix (LAME-ACC-01, LAME-ACC-02, LAME-ACC-03, LAME-ACC-05).",
+      "appliesWhen": { "attributeId": "LegColor" }
     }
   ]
 }

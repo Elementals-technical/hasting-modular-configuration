@@ -79,6 +79,11 @@
       "reason": "The scene has no Lame product yet to pattern; recorded for the price only."
     },
     {
+      "attributeId": "LegColor",
+      "status": "state-only",
+      "reason": "The scene has no Lame product yet to stand on legs; recorded, not sent. On without a cap colour is \"None\", off is \"\"; a colour is the cap's, the legs take the cabinet colour (excludedFromThisProfile.legs)."
+    },
+    {
       "attributeId": "CountertopColor",
       "status": "bound",
       "target": {

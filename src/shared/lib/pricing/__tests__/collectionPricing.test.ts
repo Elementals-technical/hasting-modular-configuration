@@ -37,6 +37,7 @@ import {
   COLLECTION_PRICING_SCENARIOS,
   CLASS,
   collectionPricingInput,
+  LAME,
   MAKO,
   URBAN_DUPLEX,
   URBAN_FREESTANDING,
@@ -946,6 +947,28 @@ describe("Urban Freestanding side panels, priced as Urban Standard Height's", ()
   });
 });
 
+describe("Urban Freestanding handle colour, offered as Urban Standard Height offers it", () => {
+  it("spells the groove colour the configuration holds on an Upper Groove cabinet, and the cabinet colour until one is chosen", () => {
+    const cabinetSku = (handleGrooveColor: string) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          URBAN_FREESTANDING,
+          [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 91, depth: 50 } }],
+          {
+            Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+            Handle: [at({ scope: "cabinet", cabinetId: "sb" }, "UG")],
+          },
+          { cabinetColor: "Castagno chiaro 1C1", handleGrooveColor },
+        ),
+      ).lines.find(({ group }) => group === "cabinet")?.sku;
+
+    expect(cabinetSku("Castagno Malto 1C2")).toBe("VAN-URFS-SB/2DW/UG/X-23.6W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C2");
+    expect(cabinetSku("")).toBe("VAN-URFS-SB/2DW/UG/X-23.6W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1");
+    // "None", the value a handle without a groove resets it to, is no colour either.
+    expect(cabinetSku("None")).toBe("VAN-URFS-SB/2DW/UG/X-23.6W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1");
+  });
+});
+
 describe("Urban Duplex models, each cabinet spelled as its own product spells it", () => {
   // Its own countertop table, matrix-coutnertop-duplex.
   const countertopRules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable595));
@@ -1016,6 +1039,37 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
       "VAN-URDPX-SB/1DWL/UG/X-27.6W-20.9H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
       "VAN-URSTD-SC/1DW/UG/X-19.7W-20.9H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
     ]);
+  });
+});
+
+describe("Lame legs, offered before they have a price", () => {
+  const order = (legColor: string) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        LAME,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Nero 433 MT")],
+          LegColor: [at({ scope: "cabinet", cabinetId: "sb" }, legColor)],
+        },
+        { cabinetColor: "Latte 417 MT" },
+      ),
+    );
+  const legsOf = ({ lines, gaps }: ReturnType<typeof order>) => ({
+    lines: lines.filter(({ group }) => group === "legs"),
+    gaps: gaps.filter(({ group }) => group === "legs"),
+  });
+
+  it("says the price is incomplete while the composition stands on legs, with or without a cap colour", () => {
+    for (const legColor of ["None", "Gold", "Nero 433 MT"]) {
+      expect(legsOf(order(legColor)), legColor).toEqual({
+        lines: [],
+        gaps: [expect.objectContaining({ blocksTotal: true, owner: "product" })],
+      });
+    }
+    // Legs off: nothing to price and nothing to say.
+    expect(legsOf(order(""))).toEqual({ lines: [], gaps: [] });
   });
 });
 

@@ -1,5 +1,7 @@
 import classProfileDocument from "../../../../../../public/collections/class/product-profile.json";
 import classSkuProfileDocument from "../../../../../../public/collections/class/sku-profile.json";
+import lameProfileDocument from "../../../../../../public/collections/lame/product-profile.json";
+import lameSkuProfileDocument from "../../../../../../public/collections/lame/sku-profile.json";
 import makoProfileDocument from "../../../../../../public/collections/mako/product-profile.json";
 import makoSkuProfileDocument from "../../../../../../public/collections/mako/sku-profile.json";
 import urbanFreestandingProfileDocument from "../../../../../../public/collections/urban-freestanding/product-profile.json";
@@ -97,6 +99,16 @@ export const MAKO = {
   profile: parseProfile(makoProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(makoSkuProfileDocument),
   configurator: configurator9Catalog,
+};
+
+/** Configurator 9, which the Lame manifest reads: it holds the Lame palettes too. */
+export const LAME = {
+  profile: parseProfile(lameProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(lameSkuProfileDocument),
+  configurator: {
+    groups: configurator9Groups,
+    groupsByName: Object.fromEntries(configurator9Groups.map((group) => [group.proxyName, group])),
+  },
 };
 
 /** Configurator 4: the colours Urban Low Height shares with Urban Standard Height. */

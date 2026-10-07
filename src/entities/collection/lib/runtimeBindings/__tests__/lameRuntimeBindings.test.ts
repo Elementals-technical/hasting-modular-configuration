@@ -81,6 +81,7 @@ describe("lame runtime bindings", () => {
       ["HandleColor", "Antracite 400 MT"],
       ["CabinetColor", "Antracite 400 MT"],
       ["CabinetPattern", "Oxford"],
+      ["LegColor", "Gold"],
       ["sinkType", "LB440"],
     ]) {
       expect(isStateOnlyResolution(resolve(attributeId, value)), attributeId).toBe(true);

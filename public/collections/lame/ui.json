@@ -82,7 +82,7 @@
     "color": {
       "label": "Color",
       "kind": "fields",
-      "sectionIds": ["cabinet-color", "cabinet-pattern", "handle-color"]
+      "sectionIds": ["cabinet-color", "cabinet-pattern", "handle-color", "leg-color"]
     },
     "countertop": {
       "label": "Countertop & Basin",
@@ -146,6 +146,20 @@
           "attributeId": "HandleColor",
           "control": "colors",
           "optionsRef": "HandleColor"
+        }
+      ]
+    },
+    "leg-color": {
+      "label": "Leg Cap Color",
+      "fields": [
+        {
+          "attributeId": "LegColor",
+          "control": "colors",
+          "optionsRef": "LegColor",
+          "availabilityRef": "LegColor.determined",
+          "toggle": {
+            "label": "Enable Legs, Then Color"
+          }
         }
       ]
     },

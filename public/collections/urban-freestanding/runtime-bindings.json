@@ -164,7 +164,7 @@
     {
       "attributeId": "HandleGrooveColor",
       "status": "state-only",
-      "reason": "Not a Freestanding option yet (excludedFromThisProfile.handleGrooveColor), and the global RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded, not sent, so a value carried over from state does not stop a preset."
+      "reason": "Offered as in Urban Standard Height (excludedFromThisProfile.handleGrooveColor), but the UF scene products have no material rule yet: the global RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded for the price (HDL), not sent, so a value carried over from state does not stop a preset."
     },
     {
       "attributeId": "FaucetHolesAmount",

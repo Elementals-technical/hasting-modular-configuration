@@ -112,6 +112,12 @@
       "optionsSource": "configurator:Cabinet Color"
     },
     {
+      "attributeId": "HandleGrooveColor",
+      "scope": "cabinet",
+      "resetValue": "None",
+      "optionsSource": "configurator:Handle Groove Color"
+    },
+    {
       "attributeId": "DrawerPanelFluting",
       "scope": "cabinet",
       "initialValue": "",
@@ -591,7 +597,7 @@
   "excludedFromThisProfile": {
     "shortFloorCabinet": "New 1DW Floor-Mount Short Cabinet (docx P1097, P1110): no size, SKU or 3D model, and the price list has no 1DW cabinet. Waits for UFS-SIZ-01.",
     "lowerTop": "Countertop of the short cabinet (P1113 -> P0861) and the decorative top of an uncovered lower cabinet: UFS-SIZ-01, UFS-TOP-01, GEN-SKU-03.",
-    "handleGrooveColor": "Not in the Master File, although the price list SKU carries HDL-{material}-{colour}; open question to the client.",
+    "handleGrooveColor": "Not in the Master File, although the price list SKU carries HDL-{material}-{colour}. Offered as Urban Standard Height offers it (team, 2026-10-07): the groove of an Upper or Central Groove handle takes the cabinet colours, and stays in the cabinet colour until one is chosen. The client has yet to confirm it.",
     "grainDirectionAndBookMatching": "Not offered until the client answers GEN-STY-01.",
     "innerLed": "GEN-ACC-01.",
     "undermount": "Not offered: the client has no undermount \"currently\" (GEN-TOP-15).",

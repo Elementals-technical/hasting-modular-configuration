@@ -20,7 +20,8 @@ import { configuratorSchema } from "../model/schemas";
  * File. Where the Master File conflicts with the price workbook, the workbook wins.
  *
  * Lame is built like Mako but is not Mako: one G58 handle, five cabinet patterns, VA030 instead of the
- * VA023 of the Master File. Legs, side panels and the undertop come later (excludedFromThisProfile).
+ * VA023 of the Master File, legs in the cabinet colour with a cap colour of their own. Side panels and
+ * the undertop come later, and the legs have no price yet (excludedFromThisProfile).
  */
 
 const parsed = parseProductProfile(lameProfileDocument);
@@ -89,7 +90,7 @@ describe("lame product profile", () => {
   });
 
   it("takes the colour catalogs from configurator 9 instead of listing them", () => {
-    const colours = ["CabinetColor", "HandleColor", "CountertopColor", "VesselColor"].map((attributeId) => [
+    const colours = ["CabinetColor", "HandleColor", "LegColor", "CountertopColor", "VesselColor"].map((attributeId) => [
       attributeId,
       attribute(attributeId)?.optionsSource,
       attribute(attributeId)?.options,
@@ -98,6 +99,7 @@ describe("lame product profile", () => {
     expect(colours).toEqual([
       ["CabinetColor", "configurator:Select Cabinet Color", undefined],
       ["HandleColor", "configurator:Select Handle Color", undefined],
+      ["LegColor", "configurator:Select Leg Color", undefined],
       ["CountertopColor", "configurator:Select Countertop Color", undefined],
       ["VesselColor", "configurator:Select Cabinet Color", undefined],
     ]);
@@ -113,12 +115,14 @@ describe("lame product profile", () => {
     expect(profile().ruleData.cabinetMatrixLegacyAdapter.tableId).toBe(lameManifest.remote.cabinetTable.id);
   });
 
-  // Master File: 40 cabinet colours, 22 handle colours, 71 countertop colours of which Matte White 8cm
-  // has no thin top (map section 4).
+  // Master File: 40 cabinet colours, 22 handle colours, 22 leg cap colours, 71 countertop colours of
+  // which Matte White 8cm has no thin top (map sections 3, 4).
   it("gets the Master File palettes from configurator 9, without the 8 cm top", () => {
     expect(offeredColours("CabinetColor")).toHaveLength(40);
     expect(offeredColours("HandleColor")).toHaveLength(22);
     expect(offeredColours("HandleColor")).toEqual(expect.arrayContaining(["Gold", "Silver"]));
+    expect(offeredColours("LegColor")).toHaveLength(22);
+    expect(offeredColours("LegColor")).toEqual(expect.arrayContaining(["Gold", "Silver"]));
     expect(offeredColours("CountertopColor")).toHaveLength(70);
     expect(offeredColours("CountertopColor")).toContain("Matte White");
     expect(offeredColours("CountertopColor")).not.toContain("Matte White 8cm");
@@ -128,6 +132,11 @@ describe("lame product profile", () => {
     expect(offeredColours("CabinetColor")).toContain(selectDefaultValue(profile(), "CabinetColor"));
     expect(offeredColours("CountertopColor")).toContain(selectDefaultValue(profile(), "CountertopColor"));
     expect(selectOptionValues(profile(), "sinkType")).toContain(selectDefaultValue(profile(), "sinkType"));
+  });
+
+  // The leg is in the cabinet colour (docx P0251); what is chosen is the colour of its cap (map section 6.6).
+  it("turns the legs on without a cap colour and off with nothing, as the Mako toggle does", () => {
+    expect(attribute("LegColor")).toMatchObject({ scope: "cabinet", defaultValue: "None", resetValue: "" });
   });
 
   it("has the ten integrated basins of the price workbook, with VA030 rather than VA023", () => {
@@ -179,7 +188,6 @@ describe("lame product profile", () => {
     expect(document).not.toContain("G50");
     expect(document).not.toContain("handle_urban");
     expect(document).not.toContain("Open-Shelf");
-    expect(attribute("LegColor")).toBeUndefined();
     expect(profile().ruleData.undeterminedRules).toBeUndefined();
   });
 
