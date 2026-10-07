@@ -271,7 +271,7 @@
     {
       "attributeId": "SidePanels",
       "status": "unbound",
-      "reason": "The scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. The UF scene products declare no sidePanelSupport yet, and undeterminedRules UFS-SP-01 holds every groove back."
+      "reason": "The scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. The UF scene products declare no sidePanelSupport yet, so the scene stands its legacy panels beside them, which take the Urban Standard Height heights (50/53/56) only."
     },
     {
       "attributeId": "SidePanelLeft",

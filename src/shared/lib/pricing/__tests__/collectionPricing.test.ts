@@ -908,6 +908,44 @@ describe("Urban Freestanding open shelves, spelled as its price list spells them
   });
 });
 
+describe("Urban Freestanding side panels, priced as Urban Standard Height's", () => {
+  const sinkBase = (height: number) => ({
+    stableKey: "sb",
+    runtimeId: "Sink-Base-sb",
+    size: { width: 60, height, depth: 50 },
+  });
+  const order = (height: number, handle: string, sidePanelsOption: string) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_FREESTANDING,
+        [sinkBase(height)],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          Handle: [at({ scope: "cabinet", cabinetId: "sb" }, handle)],
+          SidePanels: [at({ scope: "global" }, sidePanelsOption)],
+        },
+        { cabinetColor: "Castagno chiaro 1C1", sidePanelsOption, sidePanelLeft: "active", sidePanelRight: "active" },
+      ),
+    );
+
+  const sidePanelsOf = (lines: PricingLine[]) =>
+    lines.filter(({ group }) => group === "sidePanel").map(({ sku, quantity }) => ({ sku, quantity }));
+
+  it("stands a panel on each active side at the cabinets' height, the upper groove beside an Upper Groove cabinet", () => {
+    const upperGroove = order(91, "UG", "UpperG");
+
+    // 91 cm with the plinth (35.8"), 50 cm deep; the groove in the cabinet colour while none is chosen.
+    expect(sidePanelsOf(upperGroove.lines)).toEqual([
+      { sku: "VAN-URSP-1GU-.4W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1", quantity: 2 },
+    ]);
+    expect(sidePanelsOf(order(88, "PTO", "NoG").lines)).toEqual([
+      { sku: "VAN-URSP-0G-.4W-34.6H-19.7D-CAB-3D-1C1", quantity: 2 },
+    ]);
+    // The price list has no panel SKU of its own (UFS-SP-01): the total still stands, with a note.
+    expect(upperGroove.gaps).toEqual([expect.objectContaining({ group: "sidePanel", blocksTotal: false })]);
+  });
+});
+
 describe("Urban Duplex models, each cabinet spelled as its own product spells it", () => {
   // Its own countertop table, matrix-coutnertop-duplex.
   const countertopRules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable595));

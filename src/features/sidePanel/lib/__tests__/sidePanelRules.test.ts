@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ProductProfile, SidePanelsRuleData } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
+import ufsProfileDocument from "../../../../../public/collections/urban-freestanding/product-profile.json";
 import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 
 import { mapCabinetTypeToGroup } from "../../model/selectors";
@@ -14,6 +15,7 @@ import {
   sidePanelSpecRule,
   syntesiSidePanelRule,
 } from "../sidePanelRules";
+import { resolveGroove } from "../sidePanelService";
 
 /**
  * The side panel rules on the USH profile must behave as the constants they replaced did;
@@ -59,7 +61,12 @@ describe("sidePanelAvailabilityRule on the USH profile", () => {
   });
 
   it.each([
-    ["OS", "open-shelf", "sidePanel.openShelfUnavailable", "Side panels are not available for use with Open Shelf cabinets."],
+    [
+      "OS",
+      "open-shelf",
+      "sidePanel.openShelfUnavailable",
+      "Side panels are not available for use with Open Shelf cabinets.",
+    ],
     ["OSS", "side-shelf", "sidePanel.sideShelfUnavailable", "Side panels are not available for Side-Shelf cabinets."],
   ] as const)("blocks %s cabinets with a reason", (cabinetType, reasonCode, messageCode, reason) => {
     expect(sidePanelAvailabilityRule({ height: 53, handleType: "1D", cabinetType }, ushProfile)).toEqual({
@@ -250,5 +257,41 @@ describe("side panel rules on the Urban Low Height profile", () => {
       allowed: new Set(),
       reason: "Side panels are not available for use with Open Shelf cabinets.",
     });
+  });
+});
+
+// Urban Freestanding offers the Urban Low Height panels until UFS-SP-01 (team, 2026-10-07): no groove,
+// or the upper groove beside the 91 cm Upper and Central Groove cabinets; no groove beside the 88 cm
+// Push-to-Open ones.
+describe("side panel rules on the Urban Freestanding profile", () => {
+  const parsed = parseProductProfile(ufsProfileDocument);
+  if (!parsed.ok) throw new Error("Urban Freestanding profile must parse");
+  const ufsProfile = parsed.profile;
+
+  it("offers the Urban Low Height grooves at the Urban Freestanding heights", () => {
+    expect(allowed(91, "2D", ufsProfile)).toEqual(["NoG", "UpperG"]);
+    expect(allowed(88, "2D", ufsProfile)).toEqual(["NoG"]);
+  });
+
+  it("knows its cabinets by type and by the UF scene name, and refuses the shelves", () => {
+    expect(mapCabinetTypeToGroup("Sink-Cabinet", ufsProfile)).toBe("SBSC");
+    expect(mapCabinetTypeToGroup("UF-sink-cabinet-k3j4h5g6f", ufsProfile)).toBe("SBSC");
+    expect(mapCabinetTypeToGroup("UF-side-cabinet-k3j4h5g6f", ufsProfile)).toBe("SBSC");
+    expect(mapCabinetTypeToGroup("Open-Shelf", ufsProfile)).toBe("OS");
+    expect(mapCabinetTypeToGroup("Side-Shelf", ufsProfile)).toBe("OSS");
+    expect(mapSidePanelDrawersToHandleType("2D", ufsProfile)).toBe("2D");
+
+    expect(sidePanelAvailabilityRule({ height: 91, handleType: "2D", cabinetType: "OSS" }, ufsProfile)).toMatchObject({
+      allowed: new Set(),
+      reason: "Side panels are not available for Side-Shelf cabinets.",
+    });
+  });
+
+  it("starts with the groove of the handle, and without one beside a Central Groove cabinet", () => {
+    const grooves = new Set(["NoG", "UpperG"]);
+
+    expect(resolveGroove(grooves, null, "UG", ufsProfile)).toBe("UpperG");
+    expect(resolveGroove(grooves, null, "CG", ufsProfile)).toBe("NoG");
+    expect(resolveGroove(new Set(["NoG"]), null, "PTO", ufsProfile)).toBe("NoG");
   });
 });
