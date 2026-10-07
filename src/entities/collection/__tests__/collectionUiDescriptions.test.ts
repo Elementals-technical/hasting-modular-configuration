@@ -6,6 +6,8 @@ import makoProfile from "../../../../public/collections/mako/product-profile.jso
 import makoUi from "../../../../public/collections/mako/ui.json";
 import urbanFreestandingProfile from "../../../../public/collections/urban-freestanding/product-profile.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
+import urbanDuplexProfile from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 import urbanLowHeightProfile from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import ushProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
@@ -32,7 +34,15 @@ const urbanFreestandingDocuments: CollectionDocuments = [
   urbanFreestandingUi,
   urbanFreestandingProfile,
 ];
-const collections = [ushDocuments, urbanLowHeightDocuments, classDocuments, makoDocuments, urbanFreestandingDocuments];
+const urbanDuplexDocuments: CollectionDocuments = ["urban-duplex", urbanDuplexUi, urbanDuplexProfile];
+const collections = [
+  ushDocuments,
+  urbanLowHeightDocuments,
+  classDocuments,
+  makoDocuments,
+  urbanFreestandingDocuments,
+  urbanDuplexDocuments,
+];
 
 const parseCollection = ([collectionId, uiDocument, profileDocument]: CollectionDocuments) => {
   const validation = validateCustomizationSchema(uiDocument);
@@ -89,5 +99,15 @@ describe("Class and Mako UI descriptions", () => {
     expect(classFields).not.toContain("Handle");
     expect(classFields).toEqual(expect.arrayContaining(["CabinetSideColor", "FrameColor"]));
     expect(makoFields).toEqual(expect.arrayContaining(["HandleColor", "LegColor"]));
+  });
+});
+
+describe("Urban Duplex UI description", () => {
+  it("shows its two panel colours and the side of the lateral panel instead of a cabinet colour or a handle", () => {
+    const fields = fieldAttributeIds(parseCollection(urbanDuplexDocuments).schema);
+
+    expect(fields).toEqual(expect.arrayContaining(["BasePanelColor", "LateralPanelColor", "LateralPanelSide"]));
+    expect(fields).not.toContain("CabinetColor");
+    expect(fields).not.toContain("Handle");
   });
 });

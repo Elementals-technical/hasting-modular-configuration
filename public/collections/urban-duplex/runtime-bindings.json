@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "urban-duplex",
+  "productTypes": {},
+  "unplacedProductTypes": {
+    "Sink-Base": "Temporarily hidden in the builder: the scene registers no Urban Duplex sink base yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card and the models come back.",
+    "Sink-Cabinet": "Temporarily hidden in the builder: the scene registers no Urban Duplex side cabinet yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card and the models come back.",
+    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open shelf yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card comes back.",
+    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open side shelf yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card comes back."
+  },
+  "bindings": [
+    {
+      "attributeId": "Handle",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Handle"
+      },
+      "order": 20,
+      "note": "Upper Groove only. Sent as the Urban products take it, so a scene config keeps the handle once the scene has Urban Duplex products; there are none yet."
+    },
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Height"
+      },
+      "order": 30,
+      "note": "Number in cm: 56 for 2DW, 53 for 1DW and 1DWID, 38 and 28 for the 1DW Slim cabinets (cabinet table). Not translated: the player and the scene state reader take the height back from the scene config (I04)."
+    },
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Width"
+      },
+      "order": 30,
+      "note": "Number in cm, set on one cabinet, as the Urban products take it."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Depth"
+      },
+      "order": 30,
+      "note": "Number in cm, 50 or 46, one depth for the composition. Not translated, for the reason given for Height."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "2": {
+            "Drawers": "2D"
+          },
+          "1": {
+            "Drawers": "1D"
+          },
+          "1+inner": {
+            "Drawers": "1DWID"
+          }
+        }
+      },
+      "order": 10,
+      "note": "In the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config."
+    },
+    {
+      "attributeId": "BasePanelColor",
+      "status": "state-only",
+      "reason": "The scene has no Urban Duplex product to paint; recorded for the SKU (BASP) and the rules only."
+    },
+    {
+      "attributeId": "LateralPanelColor",
+      "status": "state-only",
+      "reason": "The scene has no Urban Duplex product to paint; recorded for the SKU (LTLP and the handle groove) and the rules only."
+    },
+    {
+      "attributeId": "LateralPanelSide",
+      "status": "state-only",
+      "reason": "The scene has no Urban Duplex product to mirror; recorded for the SKU (2DWL, 2DWR) only."
+    },
+    {
+      "attributeId": "Series",
+      "status": "state-only",
+      "reason": "Which product a cabinet of a model is, Urban Duplex or an Urban Standard Height or Urban Low Height one without a lateral panel; recorded for the SKU only."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "state-only",
+      "reason": "Not an Urban Duplex option: its cabinets take the Base Panel and Lateral Panel colours. Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor",
+        "overrides": {
+          "Bianco Gloss TAN": "Bianco Gloss TAL",
+          "Bianco Matte TAP": "Bianco Matte TAM"
+        }
+      },
+      "order": 50,
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). The countertop table has no Syntesi rows, so those finishes are not offered here."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "Read by the countertop, as in Urban Standard Height."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "state-only",
+      "reason": "The Urban Standard Height basin names. The scene has no Urban Duplex sink base to take them; recorded for the countertop rules and pricing only."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "state-only",
+      "reason": "The scene has no Urban Duplex sink base to take a vessel; recorded for the rules only. The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks)."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "state-only",
+      "reason": "Integrated or vessel, as in Urban Standard Height. The scene export has no CountertopStyle key; recorded for the countertop rules only."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "state-only",
+      "reason": "Not an Urban Duplex option: the groove is priced in the Lateral Panel colour (DUP-PNL-02). Recorded, not sent, so a value carried over from state does not stop a preset."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no BookMatching key in the scene export."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no LED key in the scene export."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The scene has no Urban Duplex product yet: every value is in unplacedProductTypes."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "unbound",
+      "reason": "Urban Duplex has no fluting (Block2 Q0057); the SKU always writes X."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not an Urban Duplex option (excludedFromThisProfile.grainDirectionAndBookMatching)."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "None": {
+            "TowelBar": "None",
+            "TowelBarSide": "both"
+          },
+          "Left": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "left"
+          },
+          "Right": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "right"
+          },
+          "Both": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "both"
+          }
+        }
+      },
+      "order": 70,
+      "resetBefore": {
+        "TowelBar": "None",
+        "TowelBarSide": "both"
+      },
+      "note": "As in Urban Standard Height: the scene hangs the towel bar on the composition (setTowelBarType), cleared first so a side switch leaves no stale meshes."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "TowelBarColor"
+      },
+      "order": 80,
+      "note": "As in Urban Standard Height; \"\" clears the color."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "Not offered in Urban Duplex (excludedFromThisProfile.sidePanels)."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; side panels are not offered in Urban Duplex."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; side panels are not offered in Urban Duplex."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Not offered in Urban Duplex (excludedFromThisProfile.dividers)."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Not offered in Urban Duplex (excludedFromThisProfile.dividers)."
+    }
+  ]
+}

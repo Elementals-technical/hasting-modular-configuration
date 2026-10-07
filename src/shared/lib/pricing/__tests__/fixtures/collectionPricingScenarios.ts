@@ -4,6 +4,8 @@ import makoProfileDocument from "../../../../../../public/collections/mako/produ
 import makoSkuProfileDocument from "../../../../../../public/collections/mako/sku-profile.json";
 import urbanFreestandingProfileDocument from "../../../../../../public/collections/urban-freestanding/product-profile.json";
 import urbanFreestandingSkuProfileDocument from "../../../../../../public/collections/urban-freestanding/sku-profile.json";
+import urbanDuplexProfileDocument from "../../../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexSkuProfileDocument from "../../../../../../public/collections/urban-duplex/sku-profile.json";
 import urbanLowHeightProfileDocument from "../../../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightSkuProfileDocument from "../../../../../../public/collections/urban-low-height/sku-profile.json";
 
@@ -117,6 +119,56 @@ export const URBAN_FREESTANDING = {
     groups: configurator4Groups,
     groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),
   },
+};
+
+/**
+ * Configurator 4 as Urban Duplex reads it: its two panels take the cabinet colours, its top the
+ * countertop colours. The frozen fixture keeps two of each, so the colours of the website's default
+ * model are added, as the configurator carries them.
+ */
+const URBAN_DUPLEX_DEFAULT_COLORS: Record<string, { id: number; value: string; sku: string; material: string }[]> = {
+  "Cabinet Color": [
+    { id: 91_000, value: "Bianco Calce DA ST", sku: "ST", material: "Soft-Touch" },
+    { id: 91_001, value: "Pulpis Chiaro TKH", sku: "HPL", material: "HPL" },
+  ],
+  "Countertop Color": [{ id: 92_000, value: "Pulpis Chiaro TKH", sku: "HPL", material: "HPL" }],
+};
+
+const urbanDuplexConfigurator: ConfiguratorGroupCatalog = (() => {
+  const groups = configurator4Groups.map((group) => {
+    const colors = URBAN_DUPLEX_DEFAULT_COLORS[group.proxyName];
+    if (!colors) return group;
+
+    return {
+      ...group,
+      options: group.options.map((option, index) =>
+        index === 0
+          ? {
+              ...option,
+              variants: [
+                ...option.variants,
+                ...colors.map(({ id, value, sku, material }) => ({
+                  id,
+                  name: value,
+                  image: null,
+                  enabled: true,
+                  description: "",
+                  metadata: { value, label: value, sku, Material: material },
+                })),
+              ],
+            }
+          : option,
+      ),
+    };
+  });
+
+  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
+})();
+
+export const URBAN_DUPLEX = {
+  profile: parseProfile(urbanDuplexProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(urbanDuplexSkuProfileDocument),
+  configurator: urbanDuplexConfigurator,
 };
 
 type Collection = {

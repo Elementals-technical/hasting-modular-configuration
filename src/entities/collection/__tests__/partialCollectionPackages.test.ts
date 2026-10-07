@@ -25,6 +25,12 @@ import urbanFreestandingProductProfile from "../../../../public/collections/urba
 import urbanFreestandingRuntimeBindings from "../../../../public/collections/urban-freestanding/runtime-bindings.json";
 import urbanFreestandingSkuProfile from "../../../../public/collections/urban-freestanding/sku-profile.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
+import urbanDuplexManifest from "../../../../public/collections/urban-duplex/manifest.json";
+import urbanDuplexPresets from "../../../../public/collections/urban-duplex/presets.json";
+import urbanDuplexProductProfile from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexRuntimeBindings from "../../../../public/collections/urban-duplex/runtime-bindings.json";
+import urbanDuplexSkuProfile from "../../../../public/collections/urban-duplex/sku-profile.json";
+import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
@@ -39,6 +45,7 @@ import datatable590 from "./fixtures/remote/datatable-590.json";
 import datatable591 from "./fixtures/remote/datatable-591.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
+import { normalizeOptionValue, selectAttribute } from "../lib/productProfileSelectors";
 import { resolveCollection } from "../lib/resolveCollection";
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import type { CollectionRuntimeDependencies, RemoteCollectionLoader } from "../model/types";
@@ -73,6 +80,12 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-freestanding/runtime-bindings.json`]: urbanFreestandingRuntimeBindings,
     [`${collectionsRootUrl}urban-freestanding/sku-profile.json`]: urbanFreestandingSkuProfile,
     [`${collectionsRootUrl}urban-freestanding/ui.json`]: urbanFreestandingUi,
+    [`${collectionsRootUrl}urban-duplex/manifest.json`]: urbanDuplexManifest,
+    [`${collectionsRootUrl}urban-duplex/presets.json`]: urbanDuplexPresets,
+    [`${collectionsRootUrl}urban-duplex/product-profile.json`]: urbanDuplexProductProfile,
+    [`${collectionsRootUrl}urban-duplex/runtime-bindings.json`]: urbanDuplexRuntimeBindings,
+    [`${collectionsRootUrl}urban-duplex/sku-profile.json`]: urbanDuplexSkuProfile,
+    [`${collectionsRootUrl}urban-duplex/ui.json`]: urbanDuplexUi,
   };
 
   if (!(url in sources)) throw new Error(`Unexpected local request: ${url}`);
@@ -403,11 +416,86 @@ describe("partial production collection packages", () => {
     expect(data.diagnostics).toEqual([]);
   });
 
+  it("loads Urban Duplex from its local data and configurator 4 alone, with no scene product yet", async () => {
+    const remote = makeRemote();
+    const dependencies: CollectionRuntimeDependencies = {
+      registryUrl,
+      collectionsRootUrl,
+      registry: productionRegistry,
+      fetchJson,
+      remote,
+    };
+    const registry = await loadCollectionRegistry(dependencies, abortSignal);
+    const resolution = resolveCollection({ registry, urlCollectionId: "urban-duplex" });
+    expect(resolution.ok).toBe(true);
+    if (!resolution.ok) return;
+
+    const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
+
+    expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
+    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+    // Its cabinet and countertop tables are not uploaded yet (matrix-cabinet-urban-duplex.csv,
+    // matrix-counter-top-urban-duplex.csv).
+    expect(remote.loadCountertopTable).not.toHaveBeenCalled();
+    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+
+    expect(data.id).toBe("urban-duplex");
+    expect(data.manifest.label).toBe("Urban Duplex");
+    expect(data.manifest.defaults).toEqual({});
+    expect(data.catalog.customization?.collectionId).toBe("urban-duplex");
+    expect(data.catalog.navigation?.prebuilt).toEqual([
+      { id: "model", label: "Model", path: "/prebuilt/model" },
+      { id: "cabinet", label: "Color", path: "/prebuilt/color" },
+      { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
+      { id: "accessories", label: "Accessories", path: "/prebuilt/accessories" },
+      { id: "faucet-holes", label: "Faucet Details", path: "/prebuilt/faucet-holes" },
+      { id: "summary", label: "Summary", path: "/prebuilt/summary" },
+    ]);
+    // The 71 models of the Master File; the five Multi-Level ones are compact presets, composed in rows.
+    expect(data.catalog.presets).toHaveLength(71);
+    expect(
+      data.catalog.presets?.filter(({ presetProducts }) => presetProducts.length === 0).map(({ id }) => id),
+    ).toEqual([29, 34, 44, 45, 64]);
+    // Every cabinet of a model speaks the profile's words: its type, its series, its style and the side
+    // of its lateral panel.
+    const profile = data.catalog.productProfile ?? null;
+    const optionsOf = (attributeId: string) =>
+      selectAttribute(profile, attributeId)?.options?.map(({ value }) => value) ?? [];
+    const products = (data.catalog.presets ?? []).flatMap(({ presetProducts, rows }) => [
+      ...presetProducts,
+      ...(rows ?? []).flatMap((row) => row.products),
+    ]);
+    expect(products).toHaveLength(168);
+    for (const { name, Drawers, Series, LateralPanelSide } of products) {
+      expect(optionsOf("CabinetType")).toContain(name);
+      if (Drawers !== undefined)
+        expect(optionsOf("Drawers")).toContain(normalizeOptionValue(profile, "Drawers", Drawers));
+      if (Series !== undefined) expect(optionsOf("Series")).toContain(Series);
+      if (LateralPanelSide !== undefined) expect(optionsOf("LateralPanelSide")).toContain(LateralPanelSide);
+    }
+    expect(data.catalog.productProfile?.collectionId).toBe("urban-duplex");
+    // The scene has no Urban Duplex product yet (I): every cabinet type waits for one.
+    expect(data.catalog.runtimeBindings?.productTypes).toEqual({});
+    expect(Object.keys(data.catalog.runtimeBindings?.unplacedProductTypes ?? {})).toEqual([
+      "Sink-Base",
+      "Sink-Cabinet",
+      "Open-Shelf",
+      "Side-Shelf",
+    ]);
+    // Priced from its own SKU words (D04), not the USH cabinet mappings.
+    expect(data.catalog.skuProfile?.collectionId).toBe("urban-duplex");
+    expect(data.catalog.cabinetSkuMappings).toBeUndefined();
+    expect(data.catalog.cabinets).toBeUndefined();
+    expect(data.catalog.countertops).toBeUndefined();
+    expect(data.diagnostics).toEqual([]);
+  });
+
   it.each([
     ["urban-low-height", urbanLowHeightUi],
     ["class", classUi],
     ["mako", makoUi],
     ["urban-freestanding", urbanFreestandingUi],
+    ["urban-duplex", urbanDuplexUi],
   ])("validates the %s collection-specific UI contract", (collectionId, document) => {
     const result = validateCustomizationSchema(document);
     expect(result.ok).toBe(true);

@@ -11,6 +11,8 @@ import makoManifestDocument from "../../../../public/collections/mako/manifest.j
 import makoUi from "../../../../public/collections/mako/ui.json";
 import urbanFreestandingManifestDocument from "../../../../public/collections/urban-freestanding/manifest.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
+import urbanDuplexManifestDocument from "../../../../public/collections/urban-duplex/manifest.json";
+import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import { withCollectionId } from "../lib/collectionUrl";
@@ -27,6 +29,7 @@ const COLLECTION_UI_DOCUMENTS: [string, unknown][] = [
   ["class", classUi],
   ["mako", makoUi],
   ["urban-freestanding", urbanFreestandingUi],
+  ["urban-duplex", urbanDuplexUi],
 ];
 
 describe("collection contracts", () => {
@@ -39,6 +42,7 @@ describe("collection contracts", () => {
       { id: "class", manifest: "class/manifest.json" },
       { id: "mako", manifest: "mako/manifest.json" },
       { id: "urban-freestanding", manifest: "urban-freestanding/manifest.json" },
+      { id: "urban-duplex", manifest: "urban-duplex/manifest.json" },
     ]);
 
     const manifest = validateCollectionManifest(
@@ -147,6 +151,26 @@ describe("collection contracts", () => {
       cabinetTable: { id: 590 },
     });
     expect(urbanFreestandingUi.collectionId).toBe("urban-freestanding");
+
+    const urbanDuplexManifest = validateCollectionManifest(
+      urbanDuplexManifestDocument,
+      "urban-duplex",
+      "https://app.test/collections/urban-duplex/manifest.json",
+      rootUrl,
+    );
+    expect(urbanDuplexManifest.defaults).toEqual({});
+    expect(urbanDuplexManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+      skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
+    });
+    expect(urbanDuplexManifest.defaultPresetId).toBeUndefined();
+    // Its cabinet and countertop tables are not uploaded yet (matrix-cabinet-urban-duplex.csv,
+    // matrix-counter-top-urban-duplex.csv).
+    expect(urbanDuplexManifest.remote).toEqual({ configurator: { id: 4, view: "full", serialize: true } });
+    expect(urbanDuplexUi.collectionId).toBe("urban-duplex");
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {

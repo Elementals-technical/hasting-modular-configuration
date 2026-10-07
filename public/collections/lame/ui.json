@@ -1,0 +1,220 @@
+{
+  "collectionId": "lame",
+  "optionImages": {
+    "sinkType": {
+      "LB440": "images/basin/prisma.jpg",
+      "LB175": "images/basin/Ron.jpg",
+      "LB575": "images/basin/quadro.jpg",
+      "LB856": "images/basin/strip.jpg",
+      "VA024": "images/basin/cover.jpg",
+      "LV890": "images/basin/Trip.jpg",
+      "LV892": "images/basin/Orion.jpg",
+      "VA002": "images/basin/Olly_55.jpg",
+      "VA005": "images/basin/Rectangular.jpg",
+      "Iris": "images/vessel/Iris.png",
+      "Frame": "images/vessel/Frame.png",
+      "Plaza": "images/vessel/Plaza.png"
+    }
+  },
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "model",
+      "steps": [
+        {
+          "stepId": "model",
+          "path": "/prebuilt/model"
+        },
+        {
+          "stepId": "color",
+          "path": "/prebuilt/color"
+        },
+        {
+          "stepId": "countertop",
+          "path": "/prebuilt/countertop"
+        },
+        {
+          "stepId": "faucet-holes",
+          "path": "/prebuilt/faucet-holes"
+        },
+        {
+          "stepId": "summary",
+          "path": "/prebuilt/summary"
+        }
+      ]
+    },
+    "custom": {
+      "entryStepId": "cabinet-builder",
+      "steps": [
+        {
+          "stepId": "cabinet-builder",
+          "path": "/custom/cabinet-builder"
+        },
+        {
+          "stepId": "color",
+          "path": "/custom/color"
+        },
+        {
+          "stepId": "countertop",
+          "path": "/custom/countertop"
+        },
+        {
+          "stepId": "faucet-holes",
+          "path": "/custom/faucet-holes"
+        },
+        {
+          "stepId": "summary",
+          "path": "/custom/summary"
+        }
+      ]
+    }
+  },
+  "steps": {
+    "model": {
+      "label": "Lame Models",
+      "kind": "preset-picker"
+    },
+    "cabinet-builder": {
+      "label": "Lame Cabinet Builder",
+      "headerPrefix": null,
+      "kind": "cabinet-builder",
+      "sectionIds": ["cabinet-type", "cabinet-style"]
+    },
+    "color": {
+      "label": "Color",
+      "kind": "fields",
+      "sectionIds": ["cabinet-color", "cabinet-pattern", "handle-color"]
+    },
+    "countertop": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
+    },
+    "faucet-holes": {
+      "label": "Faucet Details",
+      "kind": "fields",
+      "sectionIds": ["faucet-holes-amount"]
+    },
+    "summary": {
+      "label": "Summary",
+      "kind": "summary"
+    }
+  },
+  "sections": {
+    "cabinet-type": {
+      "label": "Cabinet Type",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CabinetType",
+          "control": "options-grid"
+        }
+      ]
+    },
+    "cabinet-style": {
+      "label": "Cabinet Style",
+      "fields": [
+        {
+          "attributeId": "Drawers",
+          "control": "options-grid"
+        }
+      ]
+    },
+    "cabinet-color": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CabinetColor",
+          "control": "colors",
+          "optionsRef": "CabinetColor"
+        }
+      ]
+    },
+    "cabinet-pattern": {
+      "label": "Cabinet Pattern",
+      "fields": [
+        {
+          "attributeId": "CabinetPattern",
+          "control": "swatches"
+        }
+      ]
+    },
+    "handle-color": {
+      "label": "Handle Color",
+      "fields": [
+        {
+          "attributeId": "HandleColor",
+          "control": "colors",
+          "optionsRef": "HandleColor"
+        }
+      ]
+    },
+    "countertop-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CountertopColor",
+          "control": "colors",
+          "optionsRef": "CountertopColor"
+        }
+      ]
+    },
+    "thickness": {
+      "label": "Thickness",
+      "fields": [
+        {
+          "attributeId": "Thickness",
+          "control": "swatches",
+          "availabilityRef": "Thickness.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "countertop-style": {
+      "label": "Countertop Style",
+      "fields": [
+        {
+          "attributeId": "CountertopStyle",
+          "control": "options-grid",
+          "availabilityRef": "CountertopStyle.allowed"
+        }
+      ]
+    },
+    "basin-style": {
+      "label": "Basin Style",
+      "labelWhenVessel": "Vessel Sink Style",
+      "fields": [
+        {
+          "attributeId": "sinkType",
+          "control": "options-grid",
+          "availabilityRef": "sinkType.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "vessel-color": {
+      "label": "Vessel Color",
+      "fields": [
+        {
+          "attributeId": "VesselColor",
+          "control": "colors",
+          "optionsRef": "VesselColor",
+          "availabilityRef": "VesselColor.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "faucet-holes-amount": {
+      "label": "Faucet Holes",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed"
+        }
+      ]
+    }
+  }
+}

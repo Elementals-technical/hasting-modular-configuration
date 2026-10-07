@@ -1,0 +1,18 @@
+{
+  "id": "lame",
+  "label": "Lame",
+  "defaults": {},
+  "local": {
+    "presets": "presets.json",
+    "ui": "ui.json",
+    "productProfile": "product-profile.json",
+    "skuProfile": "sku-profile.json"
+  },
+  "remote": {
+    "configurator": {
+      "id": 9,
+      "view": "full",
+      "serialize": true
+    }
+  }
+}

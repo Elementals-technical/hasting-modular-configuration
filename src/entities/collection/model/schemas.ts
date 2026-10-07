@@ -211,8 +211,12 @@ export const pricingGapGroupSchema = z.enum([
   "towelBar",
 ]);
 
-/** `SB/2DW/G57`: one code per attribute, in order. */
-const skuConfigBlockSchema = z.array(z.object({ attributeId: z.string(), codes: stringMapSchema }).strict()).min(1);
+const skuCodesSchema = z.object({ attributeId: z.string(), codes: stringMapSchema }).strict();
+
+/** `SB/2DW/G57`: one code per attribute, in order; `suffix` appends another attribute's code (`2DW` + `R`). */
+const skuConfigBlockSchema = z
+  .array(z.object({ attributeId: z.string(), codes: stringMapSchema, suffix: skuCodesSchema.optional() }).strict())
+  .min(1);
 
 /** `CAB-LACM-412`: the first element carries the price. */
 const skuElementsSchema = z
@@ -237,6 +241,26 @@ const skuElementsSchema = z
       .strict(),
   )
   .min(1);
+
+/** A cabinet spelled with a series of its own and its own codes. */
+const skuSpellingSchema = z
+  .object({
+    series: z.string().trim().min(1),
+    configBlock: skuConfigBlockSchema,
+    elements: skuElementsSchema.optional(),
+    /**
+     * Added to the cabinet's height for its SKU: an Urban Freestanding shelf is spelled
+     * without the 3 cm plinth the heights of the cabinet table include (`VAN-UROS-3S-…-88H`
+     * stands next to a 91 cm cabinet).
+     */
+    heightOffsetCm: z.number().optional(),
+    /**
+     * The height its price list writes for a table height, where the inches are not enough:
+     * an Urban Duplex open side shelf at `22H` is priced as a 19.7″ one, so it is spelled `22.0H`.
+     */
+    heightCodes: stringMapSchema.optional(),
+  })
+  .strict();
 
 /** A countertop the collection spells in its own words: `CT-{series}{material}-…` (Class, Mako). */
 const collectionCountertopSchema = z
@@ -284,23 +308,15 @@ export const collectionSkuProfileSchema = z
          * A cabinet type with a series of its own, e.g. the open shelf `VAN-UROS-1S-…`. It keeps the
          * cabinet's elements unless it names its own, as a shelf without a handle does.
          */
-        byCabinetType: z
-          .record(
-            z.string(),
-            z
-              .object({
-                series: z.string().trim().min(1),
-                configBlock: skuConfigBlockSchema,
-                elements: skuElementsSchema.optional(),
-                /**
-                 * Added to the cabinet's height for its SKU: an Urban Freestanding shelf is spelled
-                 * without the 3 cm plinth the heights of the cabinet table include (`VAN-UROS-3S-…-88H`
-                 * stands next to a 91 cm cabinet).
-                 */
-                heightOffsetCm: z.number().optional(),
-              })
-              .strict(),
-          )
+        byCabinetType: z.record(z.string(), skuSpellingSchema).optional(),
+        /**
+         * A drawer cabinet of another series, by the value of a cabinet attribute: the Urban
+         * Standard Height cabinet in an Urban Duplex model (`VAN-URSTD-…`). A cabinet type with
+         * a series of its own is spelled by `byCabinetType` whatever this attribute reads.
+         */
+        bySeries: z
+          .object({ attributeId: z.string(), byValue: z.record(z.string(), skuSpellingSchema) })
+          .strict()
           .optional(),
         elements: skuElementsSchema,
       })

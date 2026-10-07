@@ -37,6 +37,7 @@ import {
   CLASS,
   collectionPricingInput,
   MAKO,
+  URBAN_DUPLEX,
   URBAN_FREESTANDING,
   URBAN_LOW_HEIGHT,
   type CollectionPricingScenarioId,
@@ -902,6 +903,67 @@ describe("Urban Freestanding open shelves, spelled as its price list spells them
       // The 85H shelf (VAN-UROS-3S-25W-85H-50D) next to 88 cm Push-to-Open cabinets.
       "VAN-UROS-3S-9.8W-33.5H-19.7D-CAB-3D-1C1",
       "VAN-UROSS-R-5.9W-33.5H-19.7D-CAB-3D-1C1",
+    ]);
+  });
+});
+
+describe("Urban Duplex models, each cabinet spelled as its own product spells it", () => {
+  const cabinet = (stableKey: string, cabinetType: string, width: number, height: number) => ({
+    stableKey,
+    runtimeId: `${cabinetType}-${stableKey}`,
+    size: { width, height, depth: 50 },
+  });
+  const ofCabinet = (cabinetId: string, value: string) => at({ scope: "cabinet", cabinetId }, value);
+  const cabinetSkusOf = (lines: PricingLine[]) =>
+    lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku);
+
+  it('orders the 48" 2-Drawer model: an Urban Standard Height side cabinet beside a Duplex sink base', () => {
+    const { lines, gaps } = buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_DUPLEX,
+        [cabinet("sc", "Sink-Cabinet", 50, 56), cabinet("sb", "Sink-Base", 70, 56)],
+        {
+          Series: [ofCabinet("sc", "URSTD"), ofCabinet("sb", "URDPX")],
+          Drawers: [ofCabinet("sc", "2D"), ofCabinet("sb", "2D")],
+          Handle: [ofCabinet("sc", "UG"), ofCabinet("sb", "UG")],
+          LateralPanelSide: [ofCabinet("sb", "R")],
+        },
+        // The countertop the state starts from: the profile's defaults (replaceCollectionData).
+        { countertopColor: "Pulpis Chiaro TKH", countertopStyle: "integrated", sinkType: "Top_HPLStrip" },
+      ),
+    );
+
+    // The panel colours nobody has chosen are the default model's: Bianco Calce DA ST and Pulpis Chiaro TKH.
+    expect(cabinetSkusOf(lines)).toEqual([
+      "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+    ]);
+    // Until its countertop table is uploaded, nothing sizes the top: the total waits for it.
+    expect(gaps).toEqual([expect.objectContaining({ group: "countertop", blocksTotal: true })]);
+  });
+
+  it('orders the 53" 1-Drawer OSS model: the open side shelf at its end, in the lateral panel colour', () => {
+    const { lines } = buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_DUPLEX,
+        [
+          cabinet("oss", "Side-Shelf", 15, 53),
+          cabinet("sb", "Sink-Base", 70, 53),
+          cabinet("sc", "Sink-Cabinet", 50, 53),
+        ],
+        {
+          Series: [ofCabinet("sb", "URDPX"), ofCabinet("sc", "URSTD")],
+          Drawers: [ofCabinet("sb", "1D"), ofCabinet("sc", "1D")],
+          Handle: [ofCabinet("sb", "UG"), ofCabinet("sc", "UG")],
+          LateralPanelSide: [ofCabinet("sb", "L")],
+        },
+      ),
+    );
+
+    expect(cabinetSkusOf(lines)).toEqual([
+      "VAN-UROSS-L-5.9W-20.9H-19.7D-CAB-HPL-TKH",
+      "VAN-URDPX-SB/1DWL/UG/X-27.6W-20.9H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URSTD-SC/1DW/UG/X-19.7W-20.9H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
     ]);
   });
 });

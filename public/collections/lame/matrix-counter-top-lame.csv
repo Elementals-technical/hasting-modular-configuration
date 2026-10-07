@@ -1,0 +1,13 @@
+material,top_thicknesses,depths_cm,basin_style,min_sb_cm,max_integrated_cm,max_vessel_cm,max_undermount_cm,faucet_holes,integrated_allowed_sizes_only,depth_only_cm,allowed_finishes,allow_multi_cabinet,side_panels_action,notes
+Solid Surface,1/2,52,LB440,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+Solid Surface,1/2,52,LB175,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+Solid Surface,1/2,52,LB575,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+Solid Surface,1/2,52,LB856,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard position only.
+Solid Surface,1/2,52,VA030,60,220,220,,0|1|2|3,,,,,,SS Texturizzato price group SKU SSTEX. With 0 faucet holes: standard position only. The Lame price list has VA030 where the Master File lists VA023.
+Porcelain,3/4,52,LV890,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall. Thickness 3/4 in from the client price list (POR.75). The price table and GB round it to 0.8 (LAME-TOP-03).
+Porcelain,3/4,52,LV892,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall. Thickness 3/4 in from the client price list (POR.75). The price table and GB round it to 0.8 (LAME-TOP-03).
+Glass GL,1/2,52,VA002,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+Glass GL,1/2,52,VA005,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+Glass MT,1/2,52,VA002,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+Glass MT,1/2,52,VA005,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.
+HPL,1/2,52,VA024,60,220,220,,0|1|2|3,,,,,,With 0 faucet holes: standard or closer to the wall.

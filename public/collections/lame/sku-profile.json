@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "lame",
+  "status": "partial",
+  "sources": [
+    "Lame Vanities - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Structure - Product Model, SKU Curation, CabinetPricing, CountertopPricing, Basin StylePricing; countertops, basins and accessories refer to the Class workbook",
+    "Class Vanities - SKUs + Pricing: Countertop, Basin Style and Accessories pricing",
+    "Countertop | Basin Styles Rules Logic - GB",
+    "SKU_Vessels_V2 (table 542) rows 28-30 for the series and sizes of Iris, Frame and Plaza"
+  ],
+  "cabinet": {
+    "series": "LAMEV",
+    "configBlock": [
+      { "attributeId": "CabinetType", "codes": { "Sink-Base": "SB", "Sink-Cabinet": "SC" } },
+      { "attributeId": "Drawers", "codes": { "1": "1DW", "2": "2DW" } },
+      { "attributeId": "Handle", "codes": { "G58": "G58" } },
+      {
+        "attributeId": "CabinetPattern",
+        "codes": { "Galles": "GAL", "Gessato": "GES", "Oxford": "OXF", "Piquet": "PIQ", "Plisse": "PLIS" }
+      }
+    ],
+    "elements": [
+      { "code": "CAB", "attributeId": "CabinetColor" },
+      { "code": "HDL", "attributeId": "HandleColor" }
+    ]
+  },
+  "colors": {
+    "materialByCategory": {
+      "Lacquered MT": "LACM",
+      "Lacquered GL": "LACG",
+      "Metal": "MTL"
+    },
+    "codeByValue": { "Gold": "GLD", "Silver": "SLV" }
+  },
+  "countertop": {
+    "series": "GB",
+    "styles": { "integrated": "INTG", "vessel": "VES" },
+    "depthIn": "20.7",
+    "materialByColorCategory": {
+      "Solid Surface": "SSTL",
+      "HPL": "HPL",
+      "Porcelain": "POR",
+      "Glass MT": "GLSM",
+      "Glass GL": "GLSG"
+    },
+    "materialByBasin": { "VA030": "SSTEX" },
+    "thicknessByMaterial": {
+      "SSTL": ".5",
+      "SSTM": ".5",
+      "SSTEX": ".5",
+      "POR": ".8",
+      "GLSG": ".5",
+      "GLSM": ".5",
+      "HPL": ".5"
+    },
+    "thicknessCodes": { "0.5": ".5", "0.75": ".8" }
+  },
+  "dividers": {
+    "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
+    "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
+  },
+  "vessels": {
+    "Iris": { "series": "IRIS", "widthIn": "16.5", "heightIn": "4.3", "depthIn": "16.5" },
+    "Frame": { "series": "FRM", "widthIn": "19.7", "heightIn": "4.3", "depthIn": "13.8" },
+    "Plaza": { "series": "PLZ", "widthIn": "23.6", "heightIn": "4.7", "depthIn": "18.9" }
+  },
+  "gaps": [
+    {
+      "group": "vessel",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Iris, Frame and Plaza are priced from their SKUs (table 542), but the Lame documents give no vessel finishes; the palettes are the ones Mako prices (LAME-TOP-01).",
+      "appliesWhen": { "attributeId": "sinkType", "values": ["Iris", "Frame", "Plaza"] }
+    },
+    {
+      "group": "solidSurfaceGroup",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "A Solid Surface colour does not say whether it is Technolite, Technomood or Texturizzato (GEN-MAT-01). It is priced as SSTL, which costs the same per cm as SSTM and SSTEX, unless the basin decides the material.",
+      "appliesWhen": { "attributeId": "CountertopColor", "categories": ["Solid Surface"] }
+    },
+    {
+      "group": "divider",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Organizers are the Class ones (docx P0281) and are priced once per drawer that has a divider style; whether $170 / $150 is the price of one organizer is not confirmed.",
+      "appliesWhen": { "attributeId": "DividersStyle" }
+    }
+  ]
+}
