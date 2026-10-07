@@ -6,8 +6,8 @@
     "Sink-Cabinet": "UF-side-cabinet"
   },
   "unplacedProductTypes": {
-    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open shelf yet, and its height next to 91H cabinets waits for UFS-SIZ-02. Move it to productTypes once the scene has it and the cabinet table has its row.",
-    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open side shelf yet, and its height next to 91H cabinets waits for UFS-SIZ-02. Move it to productTypes once the scene has it and the cabinet table has its row."
+    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open shelf yet. Its row is in the cabinet table, at the heights the docs propose until UFS-SIZ-02. Move it to productTypes once the scene has it, and its card comes back.",
+    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open side shelf yet. Its row is in the cabinet table, at the height the docs propose until UFS-SIZ-02. Move it to productTypes once the scene has it, and its card comes back."
   },
   "bindings": [
     {
@@ -107,7 +107,7 @@
         }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the UF cabinets ignore the key. Countertop table 589 has the rows of Urban Standard Height's 438, so its Syntesi finishes reuse the Tekorlux scene materials as there (TAL/TAM, not TAN/TAP)."
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the UF cabinets ignore the key. The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). Countertop table 591 has no Syntesi rows, so those finishes are not offered here."
     },
     {
       "attributeId": "Thickness",

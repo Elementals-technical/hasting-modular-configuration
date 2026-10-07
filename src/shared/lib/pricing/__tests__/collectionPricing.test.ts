@@ -37,6 +37,7 @@ import {
   CLASS,
   collectionPricingInput,
   MAKO,
+  URBAN_FREESTANDING,
   URBAN_LOW_HEIGHT,
   type CollectionPricingScenarioId,
 } from "./fixtures/collectionPricingScenarios";
@@ -457,11 +458,12 @@ describe("Class and Mako order lines", () => {
       ),
     );
 
-    // The Class of the site: a Nero Atlante porcelain front in a black frame and sides, on a black glass top.
+    // An Invisible White porcelain front in a black frame and sides, on an Invisible White porcelain top
+    // with its LV890 basin.
     expect(lines.map(({ sku }) => sku)).toEqual([
-      "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-326-CABS-LACM-433-FRM-LACM-433",
-      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
-      "CT-GBGLSG-VA005-.5H",
+      "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-334-CABS-LACM-433-FRM-LACM-433",
+      "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-334",
+      "CT-GBPOR-LV890-.8H",
     ]);
     expect(gaps).toEqual([]);
   });
@@ -864,6 +866,43 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
 
     expect(lines.some(({ group }) => group === "countertop")).toBe(false);
     expect(gaps).toEqual([expect.objectContaining({ group: "countertop", blocksTotal: true })]);
+  });
+});
+
+describe("Urban Freestanding open shelves, spelled as its price list spells them", () => {
+  const cabinet = (stableKey: string, cabinetType: string, width: number) => ({
+    stableKey,
+    runtimeId: `${cabinetType}-${stableKey}`,
+    // Push-to-Open compositions are 88 cm tall with the plinth.
+    size: { width, height: 88, depth: 50 },
+  });
+
+  it("orders each open side shelf at its end of the composition and every shelf without the plinth", () => {
+    const cabinets = [
+      cabinet("oss-left", "Side-Shelf", 15),
+      cabinet("sb", "Sink-Base", 60),
+      cabinet("os", "Open-Shelf", 25),
+      cabinet("oss-right", "Side-Shelf", 15),
+    ];
+    const { lines } = buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_FREESTANDING,
+        cabinets,
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          Handle: [at({ scope: "global" }, "PTO")],
+        },
+        { cabinetColor: "Castagno chiaro 1C1" },
+      ),
+    );
+
+    expect(lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku)).toEqual([
+      "VAN-UROSS-L-5.9W-33.5H-19.7D-CAB-3D-1C1",
+      "VAN-URFS-SB/2DW/PTO/X-23.6W-34.6H-19.7D-CAB-3D-1C1",
+      // The 85H shelf (VAN-UROS-3S-25W-85H-50D) next to 88 cm Push-to-Open cabinets.
+      "VAN-UROS-3S-9.8W-33.5H-19.7D-CAB-3D-1C1",
+      "VAN-UROSS-R-5.9W-33.5H-19.7D-CAB-3D-1C1",
+    ]);
   });
 });
 

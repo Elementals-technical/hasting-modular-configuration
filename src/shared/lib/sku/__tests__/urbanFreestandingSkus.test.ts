@@ -71,7 +71,7 @@ const reader =
 
 const cabinet = (values: Record<string, string>, widthCm: number, heightCm: number, depthCm = 50) =>
   buildCollectionCabinetSku(skuProfile, profile, {
-    read: reader({ CabinetType: "Sink-Base", Drawers: "2", Handle: "handle_urban_topcut", ...values }),
+    read: reader({ CabinetType: "Sink-Base", Drawers: "2", Handle: "UG", ...values }),
     widthCm,
     heightCm,
     depthCm,
@@ -87,21 +87,18 @@ describe("Urban Freestanding cabinet SKU", () => {
   });
 
   it("spells the central groove at the same 91 cm and push-to-open at 88 cm without a groove", () => {
-    expect(cabinet({ Handle: "handle_urban_botcut", CabinetColor: "Ardesia TKF" }, 60, 91).sku).toBe(
+    expect(cabinet({ Handle: "CG", CabinetColor: "Ardesia TKF" }, 60, 91).sku).toBe(
       "VAN-URFS-SB/2DW/CG/X-23.6W-35.8H-19.7D-CAB-HPL-TKF-HDL-HPL-TKF",
     );
-    expect(cabinet({ Handle: "handle_pto", CabinetColor: "Ardesia TKF" }, 60, 88).sku).toBe(
+    expect(cabinet({ Handle: "PTO", CabinetColor: "Ardesia TKF" }, 60, 88).sku).toBe(
       "VAN-URFS-SB/2DW/PTO/X-23.6W-34.6H-19.7D-CAB-HPL-TKF",
     );
   });
 
   it("spells the fluting and the lacquer code without its finish", () => {
     expect(
-      cabinet(
-        { Handle: "handle_pto", DrawerPanelFluting: "FlutingVerticalB", CabinetColor: "Arancio Zucca 09 MT" },
-        105,
-        88,
-      ).sku,
+      cabinet({ Handle: "PTO", DrawerPanelFluting: "FlutingVerticalB", CabinetColor: "Arancio Zucca 09 MT" }, 105, 88)
+        .sku,
     ).toBe("VAN-URFS-SB/2DW/PTO/CVB-41.3W-34.6H-19.7D-CAB-LACM-09");
   });
 
@@ -117,5 +114,24 @@ describe("Urban Freestanding cabinet SKU", () => {
     expect(cabinet({ Drawers: "2D", CabinetColor: "Cemento Cenere 1A1" }, 120, 91).sku).toBe(
       "VAN-URFS-SB/2DW/UG/X-47.2W-35.8H-19.7D-CAB-3D-1A1-HDL-3D-1A1",
     );
+  });
+
+  it("spells the open shelf with its own series and without the plinth its cabinets' height includes", () => {
+    const openShelf = (heightCm: number) =>
+      cabinet({ CabinetType: "Open-Shelf", CabinetColor: "Cemento Cenere 1A1" }, 25, heightCm).sku;
+
+    // VAN-UROS-3S-25W-88H-50D next to 91 cm grooved cabinets, VAN-UROS-3S-25W-85H-50D next to 88 cm ones.
+    expect(openShelf(91)).toBe("VAN-UROS-3S-9.8W-34.6H-19.7D-CAB-3D-1A1");
+    expect(openShelf(88)).toBe("VAN-UROS-3S-9.8W-33.5H-19.7D-CAB-3D-1A1");
+  });
+
+  it("spells the open side shelf with the end of the composition it stands at", () => {
+    const sideShelf = (side: string) =>
+      cabinet({ CabinetType: "Side-Shelf", OpenSideShelfSide: side, CabinetColor: "Cemento Cenere 1A1" }, 15, 88, 46)
+        .sku;
+
+    // VAN-UROSS-L-15W-85H-46D and VAN-UROSS-R-15W-85H-46D.
+    expect(sideShelf("L")).toBe("VAN-UROSS-L-5.9W-33.5H-18.1D-CAB-3D-1A1");
+    expect(sideShelf("R")).toBe("VAN-UROSS-R-5.9W-33.5H-18.1D-CAB-3D-1A1");
   });
 });

@@ -29,6 +29,12 @@ const FALLBACK = "X";
 /** An attribute value of the product being priced, or null when none is chosen. */
 export type CollectionValueReader = (attributeId: string) => string | null;
 
+/**
+ * The end of the composition an open side shelf stands at, `L` or `R`, as its SKU spells it
+ * (`VAN-UROSS-L-…`). No attribute holds it: the pricing reader answers it from the cabinet's place.
+ */
+export const OPEN_SIDE_SHELF_SIDE = "OpenSideShelfSide";
+
 /** The colour code the profile names, else the number the colour name carries (`Nero 433 MT` → `433`). */
 export const resolveCollectionColorCode = (skuProfile: CollectionSkuProfile, value: string): string | null =>
   skuProfile.colors.codeByValue[value] ??
@@ -156,7 +162,10 @@ export const buildCollectionCabinetSku = (
     return [colorCode ? `${code}-${pricedMaterial}-${colorCode}` : `${code}-${pricedMaterial}`];
   });
 
-  const sizes = [sizeToken(widthCm, "W"), sizeToken(heightCm, "H"), sizeToken(depthCm, "D")].join("-");
+  // A cabinet type spelled at another height than the table gives it, as a shelf without its plinth.
+  const skuHeightCm =
+    heightCm != null && ownSpelling?.heightOffsetCm ? heightCm + ownSpelling.heightOffsetCm : heightCm;
+  const sizes = [sizeToken(widthCm, "W"), sizeToken(skuHeightCm, "H"), sizeToken(depthCm, "D")].join("-");
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
   return { sku: `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`, missing };

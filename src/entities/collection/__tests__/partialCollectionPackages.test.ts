@@ -19,7 +19,6 @@ import makoProductProfile from "../../../../public/collections/mako/product-prof
 import makoRuntimeBindings from "../../../../public/collections/mako/runtime-bindings.json";
 import makoSkuProfile from "../../../../public/collections/mako/sku-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
-import urbanFreestandingCabinetTable from "../../../../public/collections/urban-freestanding/cabinet-table.json";
 import urbanFreestandingManifest from "../../../../public/collections/urban-freestanding/manifest.json";
 import urbanFreestandingPresets from "../../../../public/collections/urban-freestanding/presets.json";
 import urbanFreestandingProductProfile from "../../../../public/collections/urban-freestanding/product-profile.json";
@@ -36,6 +35,8 @@ import datatable579 from "./fixtures/remote/datatable-579.json";
 import datatable580 from "./fixtures/remote/datatable-580.json";
 import datatable581 from "./fixtures/remote/datatable-581.json";
 import datatable589 from "./fixtures/remote/datatable-589.json";
+import datatable590 from "./fixtures/remote/datatable-590.json";
+import datatable591 from "./fixtures/remote/datatable-591.json";
 
 import { loadCollectionRegistry, loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -72,16 +73,28 @@ const fetchJson = vi.fn(async (url: string) => {
     [`${collectionsRootUrl}urban-freestanding/runtime-bindings.json`]: urbanFreestandingRuntimeBindings,
     [`${collectionsRootUrl}urban-freestanding/sku-profile.json`]: urbanFreestandingSkuProfile,
     [`${collectionsRootUrl}urban-freestanding/ui.json`]: urbanFreestandingUi,
-    [`${collectionsRootUrl}urban-freestanding/cabinet-table.json`]: urbanFreestandingCabinetTable,
   };
 
   if (!(url in sources)) throw new Error(`Unexpected local request: ${url}`);
   return sources[url];
 });
 
-/** Tables of their own: Mako (577, 581), Class (578, 579) and Urban Low Height (589, 580); Urban Freestanding reads 589 too. */
-const countertopTables: Record<string, unknown> = { 577: datatable577, 578: datatable578, 589: datatable589 };
-const cabinetTables: Record<string, unknown> = { 579: datatable579, 580: datatable580, 581: datatable581 };
+/**
+ * Tables of their own: Mako (577, 581), Class (578, 579), Urban Low Height (589, 580) and Urban Freestanding
+ * (591, 590); the rest share USH's 438 / 439.
+ */
+const countertopTables: Record<string, unknown> = {
+  577: datatable577,
+  578: datatable578,
+  589: datatable589,
+  591: datatable591,
+};
+const cabinetTables: Record<string, unknown> = {
+  579: datatable579,
+  580: datatable580,
+  581: datatable581,
+  590: datatable590,
+};
 
 const makeRemote = (): RemoteCollectionLoader => ({
   loadConfigurator: vi.fn(async () => configurator4),
@@ -262,7 +275,7 @@ describe("partial production collection packages", () => {
     ]);
   });
 
-  it("loads Urban Freestanding with its local cabinet table and the shared configurator and countertop table", async () => {
+  it("loads Urban Freestanding with its own cabinet table and the shared configurator and countertop table", async () => {
     const remote = makeRemote();
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -280,11 +293,12 @@ describe("partial production collection packages", () => {
 
     expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
     expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
-    // Urban Low Height's countertop table: 438 at the 50 cm depth of these cabinets.
+    // Its own countertop table (matrix-coutnertop-UFS).
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
-    expect(remote.loadCountertopTable).toHaveBeenCalledWith(589, abortSignal);
-    // No Urban Freestanding cabinet table in the API yet: the local one stands in for it.
-    expect(remote.loadCabinetTable).not.toHaveBeenCalled();
+    expect(remote.loadCountertopTable).toHaveBeenCalledWith(591, abortSignal);
+    // Its own cabinet table (matrix-cabinet-UFS).
+    expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);
+    expect(remote.loadCabinetTable).toHaveBeenCalledWith(590, abortSignal);
 
     expect(data.id).toBe("urban-freestanding");
     expect(data.manifest.label).toBe("Urban Freestanding");
@@ -298,9 +312,19 @@ describe("partial production collection packages", () => {
       { id: "faucet-holes", label: "Faucet Details", path: "/prebuilt/faucet-holes" },
       { id: "summary", label: "Summary", path: "/prebuilt/summary" },
     ]);
-    // The 54 models of the Master File; their composition waits for the client (GEN-MOD-01).
+    // The 54 models of the Master File, each composed as its render on the website shows it.
     expect(data.catalog.presets).toHaveLength(54);
-    expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length === 0)).toBe(true);
+    expect(data.catalog.presets?.every(({ presetProducts }) => presetProducts.length > 0)).toBe(true);
+    // Its Style tags follow the composition. The Master File misses Open Shelving on four models and
+    // Asymmetrical on three whose renders show otherwise; they are corrected here until it is fixed.
+    for (const { style, presetProducts } of data.catalog.presets ?? []) {
+      const layout = presetProducts.map(({ name, Width }) => `${name}:${Width}`);
+      expect(style.includes("open_shelving")).toBe(presetProducts.some(({ name }) => name === "Open-Shelf"));
+      expect(style.includes("double_basin")).toBe(
+        presetProducts.filter(({ name }) => name === "Sink-Base").length === 2,
+      );
+      expect(style.includes("asymmetrical")).toBe(layout.join() !== [...layout].reverse().join());
+    }
     expect(data.catalog.productProfile?.collectionId).toBe("urban-freestanding");
     // Both drawer cabinets have their UF scene product (I); the open shelves have none yet.
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
@@ -316,17 +340,26 @@ describe("partial production collection packages", () => {
       heights: [88, 91],
       drawers: ["2"],
       isOpen: false,
-      handlesAllowed: ["handle_pto", "handle_urban_topcut", "handle_urban_botcut"],
+      // The handle styles of the price list: Upper Groove, Push-to-Open, Central Groove.
+      handlesAllowed: ["UG", "PTO", "CG"],
       supportsHeight: [88, 91],
       // The height follows the handle, plinth included: Push-to-Open 88 cm, either groove 91 cm.
       forcedHeightByHandle: {
-        handle_pto: { "2": 88 },
-        handle_urban_topcut: { "2": 91 },
-        handle_urban_botcut: { "2": 91 },
+        UG: { "2": 91 },
+        PTO: { "2": 88 },
+        CG: { "2": 91 },
       },
-      requiresDrawersByHandle: { handle_urban_botcut: ["2"] },
+      // Two drawers only, so the Central Groove needs no drawers rule.
+      requiresDrawersByHandle: {},
     };
-    // Open Shelf and Open Side Shelf stay out of the table until their height is settled (UFS-SIZ-02).
+    // The table has the open shelves of the price list, but the scene has no UF shelf yet, so their
+    // cards stay hidden (unplacedProductTypes).
+    expect(data.sources.remote.cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
+      "Sink-Base",
+      "Sink-Cabinet",
+      "Open-Shelf",
+      "Side-Shelf",
+    ]);
     expect(data.catalog.cabinets?.typeCabinetRules).toEqual([
       expect.objectContaining({
         code: "Sink-Base",
@@ -343,6 +376,30 @@ describe("partial production collection packages", () => {
         ...common,
       }),
     ]);
+    // The countertops of the Master File as table 438 has them, thin only and at the cabinet depths:
+    // Solid-Surface as its Tekorlux Rectangular candidate (GEN-MAT-01), then HPL, Fenix and Porcelain.
+    expect(data.catalog.countertops?.map(({ material, basinStyle }) => `${material}::${basinStyle}`)).toEqual([
+      "Tekorlux::Rectangular 50",
+      "HPL::Cover 50",
+      "HPL::Prisma 50",
+      "HPL::Quadra 50",
+      "HPL::Strip 48",
+      "Fenix::Cover 50",
+      "Fenix::Prisma 50",
+      "Fenix::Quadra 50",
+      "Fenix::Strip 48",
+      "Porcelain::Cover 48",
+      "Porcelain::Strip 48",
+      "Porcelain::Quadra 48",
+      "Porcelain::Prisma 48",
+    ]);
+    for (const { topThicknesses, depths, maxUndermountCm } of data.catalog.countertops ?? []) {
+      expect({ topThicknesses, depths, maxUndermountCm }).toEqual({
+        topThicknesses: ["1/2"],
+        depths: [50, 46],
+        maxUndermountCm: null,
+      });
+    }
     expect(data.diagnostics).toEqual([]);
   });
 
