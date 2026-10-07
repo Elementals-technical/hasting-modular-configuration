@@ -24,6 +24,10 @@
     {
       "id": "urban-duplex",
       "manifest": "urban-duplex/manifest.json"
+    },
+    {
+      "id": "lame",
+      "manifest": "lame/manifest.json"
     }
   ]
 }

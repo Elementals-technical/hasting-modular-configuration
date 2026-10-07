@@ -4,8 +4,11 @@ import productionRegistry from "../../../../public/collections/registry.json";
 import lameManifest from "../../../../public/collections/lame/manifest.json";
 import lamePresets from "../../../../public/collections/lame/presets.json";
 import lameProductProfile from "../../../../public/collections/lame/product-profile.json";
+import lameRuntimeBindings from "../../../../public/collections/lame/runtime-bindings.json";
 import lameSkuProfile from "../../../../public/collections/lame/sku-profile.json";
 import lameUi from "../../../../public/collections/lame/ui.json";
+
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 
 import configurator9 from "./fixtures/remote/configurator-9.json";
 import datatable596 from "./fixtures/remote/datatable-596.json";
@@ -25,8 +28,9 @@ import { isReadyCollectionData, type CollectionRuntimeDependencies } from "../mo
  * The Lame package: its own data, configurator 9 and its own Render Admin tables, cabinets 596 and
  * countertops 597.
  *
- * The PlayCanvas export has no Lame product yet, so Lame is not in the production registry and has no
- * runtime bindings. This test registers it itself and proves the package loads as the shell needs it.
+ * The PlayCanvas export has no Lame product yet: Lame is in the production registry, and its runtime
+ * bindings hold every cabinet type back until the scene has one. This test loads it on its own and proves
+ * the package loads as the shell needs it.
  */
 
 const registryUrl = "https://app.test/collections/registry.json";
@@ -42,6 +46,7 @@ const sources: Record<string, unknown> = {
   [manifestUrl]: lameManifest,
   [`${collectionsRootUrl}lame/presets.json`]: lamePresets,
   [`${collectionsRootUrl}lame/product-profile.json`]: lameProductProfile,
+  [`${collectionsRootUrl}lame/runtime-bindings.json`]: lameRuntimeBindings,
   [`${collectionsRootUrl}lame/sku-profile.json`]: lameSkuProfile,
   [`${collectionsRootUrl}lame/ui.json`]: lameUi,
 };
@@ -89,11 +94,11 @@ const shippedImages = new Set(
 );
 
 describe("lame collection package", () => {
-  it("stays out of the production registry until the scene places Lame cabinets", () => {
-    expect(productionRegistry.collections.map(({ id }) => id)).not.toContain("lame");
+  it("is in the production registry", () => {
+    expect(productionRegistry.collections).toContainEqual({ id: "lame", manifest: "lame/manifest.json" });
   });
 
-  it("declares its own data, configurator 9 and its own tables, with no runtime bindings yet", () => {
+  it("declares its own data, runtime bindings, configurator 9 and its own tables", () => {
     const manifest = validateCollectionManifest(lameManifest, "lame", manifestUrl, collectionsRootUrl);
 
     expect(manifest.local).toEqual({
@@ -101,6 +106,7 @@ describe("lame collection package", () => {
       ui: "ui.json",
       productProfile: "product-profile.json",
       skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
     });
     expect(manifest.remote).toEqual({
       configurator: { id: 9, view: "full", serialize: true },
@@ -120,7 +126,12 @@ describe("lame collection package", () => {
     expect(data.catalog.productProfile?.collectionId).toBe("lame");
     expect(data.catalog.skuProfile?.collectionId).toBe("lame");
     expect(data.catalog.customization?.collectionId).toBe("lame");
-    expect(data.catalog.runtimeBindings).toBeUndefined();
+    // The scene has no Lame product yet (I): both cabinet types wait for one.
+    expect(data.catalog.runtimeBindings?.productTypes).toEqual({});
+    expect(Object.keys(data.catalog.runtimeBindings?.unplacedProductTypes ?? {})).toEqual([
+      "Sink-Base",
+      "Sink-Cabinet",
+    ]);
     expect(data.catalog.presets).toHaveLength(43);
     expect(data.catalog.presets?.[0]?.img).toBe(
       new URL("lame/images/Lame Vanity · 24_ 1-Drawer.png", collectionsRootUrl).href,
@@ -128,10 +139,17 @@ describe("lame collection package", () => {
   });
 
   it("builds its cabinet builder and countertop rules from its own tables", async () => {
-    const { catalog } = (await loadLame()).data;
+    const { catalog, sources } = (await loadLame()).data;
     const lameCabinet = { depths: [52], heights: [26, 52], drawers: ["1", "2"], handlesAllowed: ["G58"] };
 
-    expect(catalog.cabinets?.typeCabinetRules).toEqual([
+    // The builder shows no card until the scene has Lame products (unplacedProductTypes).
+    expect(catalog.cabinets?.typeCabinetRules).toEqual([]);
+    const cabinetTable = sources.remote.cabinetTable;
+    const profile = catalog.productProfile;
+    if (!cabinetTable || !profile) throw new Error("Lame has no cabinet table or profile");
+    const table = buildCabinetCatalogFromMatrix(cabinetTable, profile).typeCabinetRules;
+
+    expect(table).toEqual([
       expect.objectContaining({
         ...lameCabinet,
         code: "Sink-Base",
@@ -147,11 +165,8 @@ describe("lame collection package", () => {
         forcedHeightByDrawers: { "1": 26, "2": 52 },
       }),
     ]);
-    // Without runtime bindings the scene product of a cabinet type is not known yet.
-    expect(catalog.cabinets?.typeCabinetRules.map(({ sceneProductType }) => sceneProductType)).toEqual([
-      undefined,
-      undefined,
-    ]);
+    // Without a scene product the rules know no scene type for a cabinet type yet.
+    expect(table.map(({ sceneProductType }) => sceneProductType)).toEqual([undefined, undefined]);
 
     const integratedBasins = selectOptions(catalog.productProfile ?? null, "sinkType")
       .filter(({ category }) => category === "integrated")
