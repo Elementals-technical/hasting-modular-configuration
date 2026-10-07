@@ -127,7 +127,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     },
   );
 
-  it("keeps all 42 recipes intact but blocks their unsupported visual defaults before touching the scene", async () => {
+  it("keeps every model's recipe intact but blocks their unsupported visual defaults before touching the scene", async () => {
     const scene = fakeScene();
     const port = createCompositionPort({ getBindings: () => bindings, scene, reader: createTestSceneReader().reader });
     for (const preset of presets) {

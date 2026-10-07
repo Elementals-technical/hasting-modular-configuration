@@ -9,7 +9,7 @@
     "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound; pattern/panels/countertop/basins and wood assets remain explicit dependencies."
   },
   "sourceRefs": {
-    "configuratorId": null,
+    "configuratorId": 9,
     "countertopMatrixTableId": 593,
     "cabinetMatrixTableId": 592
   },
