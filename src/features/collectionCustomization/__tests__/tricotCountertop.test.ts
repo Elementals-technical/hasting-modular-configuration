@@ -1,0 +1,227 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { store } from "@/app/store";
+import { normalizeOptionValue, selectOptions } from "@/entities/collection";
+import {
+  tricotProfile,
+  tricotMatrixProfile,
+  tricotTestBindings,
+  tricotUi,
+} from "@/entities/collection/__tests__/tricotFixtures";
+import {
+  getAttributeValue,
+  recordSceneState,
+  resetConfiguration,
+  setActiveCollectionId,
+  setActiveRuntimeBindings,
+  setAttributeValue,
+  syncCabinets,
+} from "@/entities/configuration";
+import { reset, setActiveProfile, setCabinetCatalog } from "@/entities/product/model/store/slice";
+import cabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-592.json";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import { evaluateCountertopChange } from "@/features/configurationCommands/lib/countertopCompatibility";
+import { changeAttribute } from "@/features/configurationCommands/lib/changeAttribute";
+import { createTestRuntimePort } from "@/features/playCanvasAdapter";
+import { createConfiguratorColorReader } from "@/shared/lib/sku/configuratorColors";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import { resolveConfiguratorOptions, resolveSectionFields } from "../lib/resolveSectionState";
+
+beforeEach(() => {
+  store.dispatch(reset());
+  store.dispatch(resetConfiguration());
+  store.dispatch(setActiveProfile(tricotProfile));
+  store.dispatch(setActiveCollectionId("tricot"));
+  store.dispatch(setActiveRuntimeBindings(tricotTestBindings));
+  store.dispatch(syncCabinets([tricotTestBindings.productTypes["Sink-Base"] + "-1"]));
+});
+
+describe("Tricot countertop preparation", () => {
+  const withMatrix = (width = 60) => {
+    store.dispatch(setActiveProfile(tricotMatrixProfile));
+    store.dispatch(
+      setCabinetCatalog(buildCabinetCatalogFromMatrix(cabinetTable, tricotMatrixProfile, tricotTestBindings)),
+    );
+    const id = tricotTestBindings.productTypes["Sink-Base"] + "-1";
+    store.dispatch(
+      recordSceneState({ order: [id], cabinets: [{ runtimeId: id, dimensions: { width, height: 40, depth: 52 } }] }),
+    );
+    store.dispatch(
+      setAttributeValue({ attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-1" }, value: "1" }),
+    );
+  };
+
+  it("normalizes the cabinet table alias, forced heights and integrated/inner-drawer restriction", () => {
+    const catalog = buildCabinetCatalogFromMatrix(cabinetTable, tricotProfile, tricotTestBindings);
+    expect(catalog.typeCabinetRules.map((r) => r.code)).toEqual(["Sink-Base", "Side-Cabinet"]);
+    expect(catalog.typeCabinetRules[0].forcedHeightByDrawers).toEqual({ "1": 40, "2": 40, "1+inner": 40 });
+    expect(catalog.typeCabinetRules[0].unavailableWithIntegrated).toEqual([{ widthCm: 60, drawers: "1+inner" }]);
+  });
+
+  it.each(["prebuilt", "custom"] as const)(
+    "applies supplied thickness/basin rules in %s, clearing incompatible scoped basins",
+    async (flow) => {
+      withMatrix(80);
+      const runtime = createTestRuntimePort();
+      const deps = { getState: store.getState, dispatch: store.dispatch, runtime: runtime.port, flow };
+      expect(
+        (await changeAttribute({ attributeId: "CountertopColor", scope: "countertop", value: "Matte White" }, deps))
+          .status,
+      ).toBe("applied");
+      expect(store.getState().rootStateUI.product.productOptions.Thickness).toBe("0.5");
+      expect(
+        (await changeAttribute({ attributeId: "Thickness", scope: "countertop", value: "3.125" }, deps)).status,
+      ).toBe("applied");
+      expect(
+        (await changeAttribute({ attributeId: "sinkType", scope: "basin", sinkBaseId: "cab-1", value: "VA023" }, deps))
+          .status,
+      ).toBe("applied");
+      expect(
+        (await changeAttribute({ attributeId: "Thickness", scope: "countertop", value: "0.5" }, deps)).status,
+      ).toBe("applied");
+      expect(getAttributeValue(store.getState(), "sinkType", { scope: "basin", sinkBaseId: "cab-1" })).toBe("");
+      expect((await changeAttribute({ attributeId: "sinkType", scope: "basin", value: "VA023" }, deps)).status).toBe(
+        "blocked",
+      );
+      expect((await changeAttribute({ attributeId: "sinkType", scope: "basin", value: "VA024" }, deps)).status).toBe(
+        "blocked",
+      );
+    },
+  );
+
+  it("blocks incompatible widths and drawer pairs before any runtime write", () => {
+    withMatrix();
+    store.dispatch(
+      setAttributeValue({ attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-1" }, value: "1+inner" }),
+    );
+    expect(
+      evaluateCountertopChange(
+        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White" },
+        { scope: "countertop" },
+        store.getState(),
+        tricotMatrixProfile,
+      ).blocked?.reasonCode,
+    ).toBe("change.notAvailable");
+    withMatrix(240);
+    expect(
+      evaluateCountertopChange(
+        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White" },
+        { scope: "countertop" },
+        store.getState(),
+        tricotMatrixProfile,
+      ).blocked?.reasonCode,
+    ).toBe("change.notAvailable");
+    withMatrix(60);
+    expect(
+      evaluateCountertopChange(
+        { attributeId: "sinkType", scope: "basin", value: "VA023" },
+        { scope: "basin" },
+        store.getState(),
+        tricotMatrixProfile,
+      ).blocked?.reasonCode,
+    ).toBe("change.notAvailable");
+  });
+
+  it("offers precisely the source materials and ten basins, with no assumed thickness defaults", () => {
+    const colors = resolveSectionFields(tricotUi, "countertop-color", tricotProfile, {}, {})[0].field.options;
+    expect(colors).toHaveLength(71);
+    expect(
+      Object.fromEntries(
+        colors.reduce(
+          (groups, option) => groups.set(option.desc ?? "", (groups.get(option.desc ?? "") ?? 0) + 1),
+          new Map<string, number>(),
+        ),
+      ),
+    ).toEqual({ "Solid Surface": 2, HPL: 14, Porcelain: 15, "Glass MT": 20, "Glass GL": 20 });
+    expect(selectOptions(tricotProfile, "sinkType").map(({ value }) => value)).toEqual([
+      "LB440",
+      "LB175",
+      "LB575",
+      "LB856",
+      "VA023",
+      "VA024",
+      "LV890",
+      "LV892",
+      "VA002",
+      "VA005",
+    ]);
+    expect(selectOptions(tricotProfile, "Thickness").map((o) => o.value)).toEqual([
+      "0.5",
+      "4.75",
+      "3.125",
+      "0.75",
+      "4",
+    ]);
+    expect(tricotUi.steps.countertop.sectionIds).toEqual(["countertop-color", "thickness", "basin-style"]);
+  });
+
+  it("normalizes all 40 material-scoped Glass aliases and preserves external color metadata", () => {
+    const glass = selectOptions(tricotProfile, "CountertopColor").filter(({ category }) =>
+      category?.startsWith("Glass"),
+    );
+    expect(glass).toHaveLength(40);
+    for (const option of glass)
+      expect(normalizeOptionValue(tricotProfile, "CountertopColor", "G" + option.value)).toBe(option.value);
+    const profile = {
+      ...tricotProfile,
+      attributes: tricotProfile.attributes.map((attribute) =>
+        attribute.attributeId === "CountertopColor"
+          ? { ...attribute, optionsSource: "configurator:test-top" }
+          : attribute,
+      ),
+    };
+    const group: ConfiguratorGroupCatalog["groups"][number] = {
+      id: 1,
+      proxyName: "test-top",
+      proxyType: "material",
+      enabled: true,
+      metadata: {},
+      options: [
+        {
+          id: 2,
+          name: "Glass MT",
+          resource: null,
+          paramString: null,
+          playcanvasString: null,
+          variants: ["GGrigio Argento 403 MT", "Foreign 999"].map((name, id) => ({
+            id,
+            name,
+            image: "glass.jpg",
+            enabled: true,
+            description: "",
+            metadata: { sku: "GLSM", Material: "Glass MT", hex: "#aabbcc" },
+          })),
+        },
+      ],
+    };
+    const configurator = { groups: [group], groupsByName: { "test-top": group } };
+    const options = resolveConfiguratorOptions(profile, "CountertopColor", configurator);
+    expect(options).toHaveLength(1);
+    expect(options[0]).toMatchObject({
+      value: "Grigio Argento 403 MT",
+      image: "glass.jpg",
+      traits: { sku: "GLSM", materials: ["Glass MT"] },
+    });
+    const read = createConfiguratorColorReader(profile, configurator);
+    expect(read("CountertopColor", options[0].value)).toEqual({ sku: "GLSM", material: "Glass MT" });
+    expect(read("CountertopColor", "Foreign 999")).toBeNull();
+  });
+
+  it.each(["prebuilt", "custom"] as const)(
+    "blocks unapproved compatibility in %s before sending a scene command",
+    async (flow) => {
+      const runtime = createTestRuntimePort();
+      const deps = { getState: () => store.getState(), dispatch: store.dispatch, runtime: runtime.port, flow };
+      expect(
+        await changeAttribute({ attributeId: "CountertopColor", scope: "countertop", value: "Matte White 8cm" }, deps),
+      ).toMatchObject({ status: "blocked", compatibility: "undetermined", reasonCode: "product.missingData" });
+      expect(await changeAttribute({ attributeId: "sinkType", scope: "basin", value: "VA023" }, deps)).toMatchObject({
+        status: "blocked",
+        compatibility: "undetermined",
+      });
+      expect(
+        (await changeAttribute({ attributeId: "Thickness", scope: "countertop", value: "3.125" }, deps)).status,
+      ).toBe("blocked");
+      expect(runtime.calls).toEqual([]);
+    },
+  );
+});

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "received": "2026-10-07",
+  "source": "Developer contract supplied by the user; cross-checked against phase-2/staging afd76fa6 local PlayCanvas export.",
+  "productTypes": {
+    "Sink-Base": "Tricot-sink-cabinet",
+    "Side-Cabinet": "Tricot-side-cabinet"
+  },
+  "units": "cm",
+  "fields": {
+    "Width": [
+      40,
+      60,
+      80,
+      100,
+      120
+    ],
+    "Height": [
+      40
+    ],
+    "Depth": [
+      52
+    ],
+    "Drawers": [
+      "2D",
+      "1D",
+      "1DWID"
+    ],
+    "CabinetColor": "Exact PlayCanvas material asset name",
+    "HandleGrooveColor": "Exact PlayCanvas material asset name"
+  },
+  "sceneDefaults": {
+    "Width": 60,
+    "Height": 40,
+    "Depth": 52,
+    "Drawers": "2D",
+    "CabinetColor": "Antracite Matte OCF"
+  },
+  "defaultPolicy": "Scene fallback defaults do not replace approved CSV/preset/product-profile defaults.",
+  "materialAudit": {
+    "verifiedLacquerMappings": {
+      "Grigio Argento 403 MT": {
+        "CabinetColor": "Grigio Argento 403 Lacquered MT"
+      },
+      "Nebbia 402 MT": {
+        "CabinetColor": "Nebbia 402 Lacquered MT"
+      },
+      "Seta 406 MT": {
+        "CabinetColor": "Seta 406 Lacquered MT"
+      },
+      "Moka 408 MT": {
+        "CabinetColor": "Moka 408 Lacquered MT"
+      },
+      "Ponente 418 MT": {
+        "CabinetColor": "Ponente 418 Lacquered MT"
+      },
+      "Acqua 419 MT": {
+        "CabinetColor": "Acqua 419 Lacquered MT"
+      },
+      "Salvia 415 MT": {
+        "CabinetColor": "Salvia 415 Lacquered MT"
+      },
+      "Ambra 413 MT": {
+        "CabinetColor": "Ambra 413 Lacquered MT"
+      },
+      "Latte 417 MT": {
+        "CabinetColor": "Latte 417 Lacquered MT"
+      },
+      "Fumo 401 MT": {
+        "CabinetColor": "Fumo 401 Lacquered MT"
+      },
+      "Metropoli 404 MT": {
+        "CabinetColor": "Metropoli 404 Lacquered MT"
+      },
+      "Antracite 400 MT": {
+        "CabinetColor": "Antracite 400 Lacquered MT"
+      },
+      "Nero 433 MT": {
+        "CabinetColor": "Nero 433 Lacquered MT"
+      },
+      "Sabbia 405 MT": {
+        "CabinetColor": "Sabbia 405 Lacquered MT"
+      },
+      "Agata 407 MT": {
+        "CabinetColor": "Agata 407 Lacquered MT"
+      },
+      "Creta 416 MT": {
+        "CabinetColor": "Creta 416 Lacquered MT"
+      },
+      "Zaffiro 411 MT": {
+        "CabinetColor": "Zaffiro 411 Lacquered MT"
+      },
+      "Turchese 410 MT": {
+        "CabinetColor": "Turchese 410 Lacquered MT"
+      },
+      "Asparago 414 MT": {
+        "CabinetColor": "Asparago 414 Lacquered MT"
+      },
+      "Zafferano 412 MT": {
+        "CabinetColor": "Zafferano 412 Lacquered MT"
+      }
+    },
+    "pendingWoodValues": [
+      "Noce Canaletto 933",
+      "Rovere Oro 932",
+      "Rovere Termocotto 931"
+    ]
+  },
+  "remainingContracts": [
+    "Cabinet patterns",
+    "Side-panel activation and side readback",
+    "Tricot countertop and basin mapping/switching",
+    "Wood-veneer material names/assets"
+  ],
+  "notes": [
+    "Do not expand matte-only catalogs from the Acqua 419 Lacquered GL API example.",
+    "Preserve returned addProduct instance IDs for configuration/removal; product types are not instance IDs.",
+    "Sink default Top_HPLPrisma in the export is not an approved LB440 mapping.",
+    "The exported README says sink subproducts are disabled, but esm.mjs registers a sink mount and subproduct. Runtime acceptance must use actual behavior, not the stale README."
+  ]
+}

@@ -20,6 +20,10 @@
     {
       "id": "urban-freestanding",
       "manifest": "urban-freestanding/manifest.json"
+    },
+    {
+      "id": "tricot",
+      "manifest": "tricot/manifest.json"
     }
   ]
 }
