@@ -164,7 +164,7 @@
     {
       "attributeId": "HandleGrooveColor",
       "status": "state-only",
-      "reason": "Not a Freestanding option yet (excludedFromThisProfile.handleGrooveColor), and the global RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded, not sent, so a value carried over from state does not stop a preset."
+      "reason": "Offered as in Urban Standard Height (excludedFromThisProfile.handleGrooveColor), but the UF scene products have no material rule yet: the global RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded for the price (HDL), not sent, so a value carried over from state does not stop a preset."
     },
     {
       "attributeId": "FaucetHolesAmount",
@@ -271,7 +271,7 @@
     {
       "attributeId": "SidePanels",
       "status": "unbound",
-      "reason": "The scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. The UF scene products declare no sidePanelSupport yet, and undeterminedRules UFS-SP-01 holds every groove back."
+      "reason": "The scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. The UF scene products declare no sidePanelSupport yet, so the scene stands its legacy panels beside them, which take the Urban Standard Height heights (50/53/56) only."
     },
     {
       "attributeId": "SidePanelLeft",

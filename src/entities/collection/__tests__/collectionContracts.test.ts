@@ -11,6 +11,10 @@ import makoManifestDocument from "../../../../public/collections/mako/manifest.j
 import makoUi from "../../../../public/collections/mako/ui.json";
 import urbanFreestandingManifestDocument from "../../../../public/collections/urban-freestanding/manifest.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
+import urbanDuplexManifestDocument from "../../../../public/collections/urban-duplex/manifest.json";
+import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
+import lameManifestDocument from "../../../../public/collections/lame/manifest.json";
+import lameUi from "../../../../public/collections/lame/ui.json";
 
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import { withCollectionId } from "../lib/collectionUrl";
@@ -27,6 +31,8 @@ const COLLECTION_UI_DOCUMENTS: [string, unknown][] = [
   ["class", classUi],
   ["mako", makoUi],
   ["urban-freestanding", urbanFreestandingUi],
+  ["urban-duplex", urbanDuplexUi],
+  ["lame", lameUi],
 ];
 
 describe("collection contracts", () => {
@@ -39,6 +45,8 @@ describe("collection contracts", () => {
       { id: "class", manifest: "class/manifest.json" },
       { id: "mako", manifest: "mako/manifest.json" },
       { id: "urban-freestanding", manifest: "urban-freestanding/manifest.json" },
+      { id: "urban-duplex", manifest: "urban-duplex/manifest.json" },
+      { id: "lame", manifest: "lame/manifest.json" },
       { id: "tricot", manifest: "tricot/manifest.json" },
     ]);
 
@@ -148,6 +156,53 @@ describe("collection contracts", () => {
       cabinetTable: { id: 590 },
     });
     expect(urbanFreestandingUi.collectionId).toBe("urban-freestanding");
+
+    const urbanDuplexManifest = validateCollectionManifest(
+      urbanDuplexManifestDocument,
+      "urban-duplex",
+      "https://app.test/collections/urban-duplex/manifest.json",
+      rootUrl,
+    );
+    expect(urbanDuplexManifest.defaults).toEqual({});
+    expect(urbanDuplexManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+      skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
+    });
+    expect(urbanDuplexManifest.defaultPresetId).toBeUndefined();
+    expect(urbanDuplexManifest.remote).toEqual({
+      configurator: { id: 4, view: "full", serialize: true },
+      // Its own countertop and cabinet tables (matrix-coutnertop-duplex, matrix-cabinet-duplex).
+      countertopTable: { id: 595 },
+      cabinetTable: { id: 594 },
+    });
+    expect(urbanDuplexUi.collectionId).toBe("urban-duplex");
+
+    const lameManifest = validateCollectionManifest(
+      lameManifestDocument,
+      "lame",
+      "https://app.test/collections/lame/manifest.json",
+      rootUrl,
+    );
+    expect(lameManifest.defaults).toEqual({});
+    expect(lameManifest.local).toEqual({
+      presets: "presets.json",
+      ui: "ui.json",
+      productProfile: "product-profile.json",
+      skuProfile: "sku-profile.json",
+      runtimeBindings: "runtime-bindings.json",
+    });
+    expect(lameManifest.defaultPresetId).toBeUndefined();
+    expect(lameManifest.remote).toEqual({
+      // Configurator 9, which holds the Lame palettes, and its own tables (matrix-coutnertop-lame,
+      // matrix-cabinet-lame).
+      configurator: { id: 9, view: "full", serialize: true },
+      countertopTable: { id: 597 },
+      cabinetTable: { id: 596 },
+    });
+    expect(lameUi.collectionId).toBe("lame");
   });
 
   it("rejects unknown fields, duplicate IDs, mismatched identities, and escaping paths", () => {

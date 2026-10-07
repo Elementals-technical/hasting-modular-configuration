@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 1,
+  "profileVersion": "0.1.0-draft",
+  "status": "draft-from-product-docs",
+  "collectionId": "lame",
+  "label": "Lame",
+  "provenance": {
+    "sources": [
+      "analysis/products-data/Lame/docs/LAME-PRODUCT-MAP-UA.md",
+      "analysis/products-data/OLEG-NEW-COLLECTIONS-OPTIONS-RU.md (Lame)",
+      "analysis/products-data/Lame/input/Lame Vanities - SKUs + Pricing.xlsx",
+      "analysis/products-data/Lame/input/2d/Hasting-Master-File-[Lame Vanity] (1).csv",
+      "Pre-render model grid (Threekit): the thumbnails of the 44 Lame models"
+    ],
+    "auditedAt": "2026-10-07",
+    "warning": "Only facts the Lame documents confirm: the WebGL Logic, the Lame price workbook (countertops, basins and accessories through the Class workbook), the GB rules and the Master File. Where the Master File conflicts with the price workbook, the workbook wins. Mako values are not inherited: where Lame equals Mako, the value is written again here."
+  },
+  "sourceRefs": {
+    "configuratorId": 9,
+    "countertopMatrixTableId": 597,
+    "cabinetMatrixTableId": 596
+  },
+  "defaults": {
+    "CabinetColor": "Antracite 400 MT",
+    "CabinetPattern": "Oxford",
+    "CountertopColor": "Matte White",
+    "CountertopStyle": "integrated",
+    "sinkType": "LB440"
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 10,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet with a basin (SB)"
+        },
+        {
+          "value": "Sink-Cabinet",
+          "label": "Side Cabinet",
+          "order": 20,
+          "category": "drawer-cabinet",
+          "legacyDescription": "Cabinet without a basin (SC)"
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 10,
+          "aliases": ["1D", "1DW"]
+        },
+        {
+          "value": "2",
+          "label": "2 Drawer",
+          "order": 20,
+          "aliases": ["2D", "2DW"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "26",
+          "label": "26 cm",
+          "order": 10
+        },
+        {
+          "value": "52",
+          "label": "52 cm",
+          "order": 20
+        }
+      ]
+    },
+    {
+      "attributeId": "Handle",
+      "scope": "cabinet",
+      "initialValue": "G58",
+      "defaultValue": "G58",
+      "options": [
+        {
+          "value": "G58",
+          "label": "G58",
+          "order": 10,
+          "legacyDescription": "The one Lame handle: a style the configurator does not let the user choose",
+          "capabilities": {
+            "supportsGrooveColor": false
+          }
+        }
+      ]
+    },
+    {
+      "attributeId": "HandleColor",
+      "scope": "cabinet",
+      "optionsSource": "configurator:Select Handle Color"
+    },
+    {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color"
+    },
+    {
+      "attributeId": "CabinetPattern",
+      "scope": "global",
+      "options": [
+        {
+          "value": "Galles",
+          "label": "Galles",
+          "order": 10
+        },
+        {
+          "value": "Gessato",
+          "label": "Gessato",
+          "order": 20
+        },
+        {
+          "value": "Oxford",
+          "label": "Oxford",
+          "order": 30
+        },
+        {
+          "value": "Piquet",
+          "label": "Piquet",
+          "order": 40
+        },
+        {
+          "value": "Plisse",
+          "label": "Plisse",
+          "order": 50
+        }
+      ]
+    },
+    {
+      "attributeId": "LegColor",
+      "scope": "cabinet",
+      "defaultValue": "None",
+      "resetValue": "",
+      "optionsSource": "configurator:Select Leg Color"
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "integrated",
+          "label": "Integrated",
+          "order": 10,
+          "aliases": ["Integrated", "INTG"]
+        },
+        {
+          "value": "vessel",
+          "label": "Vessel",
+          "order": 20,
+          "aliases": ["Vessel", "VES"]
+        }
+      ]
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Select Countertop Color"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        { "value": "0.5", "label": "0.5\"", "order": 10 },
+        { "value": "0.75", "label": "0.8\"", "order": 20 }
+      ]
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "noneValue": "None",
+      "options": [
+        {
+          "value": "LB440",
+          "label": "LB440",
+          "order": 10,
+          "category": "integrated"
+        },
+        {
+          "value": "LB175",
+          "label": "LB175",
+          "order": 20,
+          "category": "integrated"
+        },
+        {
+          "value": "LB575",
+          "label": "LB575",
+          "order": 30,
+          "category": "integrated"
+        },
+        {
+          "value": "LB856",
+          "label": "LB856",
+          "order": 40,
+          "category": "integrated"
+        },
+        {
+          "value": "VA030",
+          "label": "VA030",
+          "order": 50,
+          "category": "integrated"
+        },
+        {
+          "value": "VA024",
+          "label": "VA024",
+          "order": 60,
+          "category": "integrated"
+        },
+        {
+          "value": "LV890",
+          "label": "LV890",
+          "order": 70,
+          "category": "integrated"
+        },
+        {
+          "value": "LV892",
+          "label": "LV892",
+          "order": 80,
+          "category": "integrated"
+        },
+        {
+          "value": "VA002",
+          "label": "VA002",
+          "order": 90,
+          "category": "integrated"
+        },
+        {
+          "value": "VA005",
+          "label": "VA005",
+          "order": 100,
+          "category": "integrated"
+        },
+        {
+          "value": "None",
+          "label": "None",
+          "order": 105,
+          "category": "vessel",
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen, as the USH countertop step offers it"
+        },
+        {
+          "value": "Iris",
+          "label": "Iris",
+          "order": 110,
+          "category": "vessel"
+        },
+        {
+          "value": "Frame",
+          "label": "Frame",
+          "order": 120,
+          "category": "vessel"
+        },
+        {
+          "value": "Plaza",
+          "label": "Plaza",
+          "order": 130,
+          "category": "vessel"
+        }
+      ]
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Select Cabinet Color"
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "0",
+          "label": "0",
+          "order": 10
+        },
+        {
+          "value": "1",
+          "label": "1",
+          "order": 20
+        },
+        {
+          "value": "2",
+          "label": "2",
+          "order": 30
+        },
+        {
+          "value": "3",
+          "label": "3",
+          "order": 40
+        }
+      ]
+    },
+    {
+      "attributeId": "DividersStyle",
+      "scope": "drawer",
+      "options": [
+        {
+          "value": "Metal",
+          "label": "Metal",
+          "order": 10,
+          "legacyDescription": "Metal tray with two movable dividers (VAN-GBDIV-MTL), as in Class"
+        },
+        {
+          "value": "Oak",
+          "label": "Oak",
+          "order": 20,
+          "legacyDescription": "Oak organizer with three black dividers (VAN-GBDIV-OAK), as in Class"
+        }
+      ]
+    }
+  ],
+  "ruleData": {
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 596,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm"
+      }
+    },
+    "drawerStyleGroups": [["1"], ["2"]],
+    "vesselCompatibility": {
+      "hiddenStyles": [],
+      "allowedMaterialsByStyle": {
+        "Iris": ["lacqueredmt"],
+        "Frame": ["lacqueredmt"],
+        "Plaza": ["lacqueredmt", "lacqueredgl"]
+      },
+      "allowedColorCodesByStyle": {},
+      "unavailableColorCodesByStyle": {},
+      "defaultFinishByStyle": {
+        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
+        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
+        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+      }
+    }
+  },
+  "messages": {
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option is not available in this collection.",
+    "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
+    "drawers.requiredHeight": "Required for selected drawers",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style."
+  },
+  "excludedFromThisProfile": {
+    "sourceRefs": "Configurator 9, cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 9 holds the Lame palettes (40 cabinet colours, 22 handle colours, 70 thin countertop colours); the two tables hold Lame data only.",
+    "scene": "The PlayCanvas export has no Lame product (checked 2026-10-07, also the phase-2/staging export 1307fc13). Lame is registered with runtime bindings that hold both cabinet types back (unplacedProductTypes), so the builder shows no card and the models are not placed until the export places Lame cabinets; the bindings then follow its scene keys.",
+    "handle": "Confirmed: one handle, G58, in every cabinet SKU (map section 3, xlsx CabinetPricing!A7-A117). There is no Handle Style option; its 3D model and size are not given (LAME-STY-01).",
+    "cabinetPattern": "Confirmed: five patterns, one per composition, no None (Block2 Q0063, Q0069, Q0074; block2#17). A pattern is a token of the cabinet SKU and does not change the price. Oxford starts the composition: the price workbook spells its examples with OXF and the client site names the quilted front of the models Oxford (inference). Pattern pictures and orientation are not given (GEN-STY-01).",
+    "legs": "Confirmed: legs for 1DW and 2DW in the cabinet colour, with a cap colour of their own (Gold, Silver or the 20 MT lacquers) and four heights by countertop style and drawers (map section 6.6). Offered as Mako offers its legs (team, 2026-10-07): LegColor turns them on (\"None\" until a cap colour is chosen) and off (\"\"), and holds the colour of the cap, one of the 22 of configurator 9 (Select Leg Color, the Master File's Leg Cap Color); the leg itself has no colour to choose (docx P0251). Not priced yet, and an order on legs says so: their SKU has no colour or width (VAN-LAMEV-LEG/2DW-12.4H), vessel heights have no SKU, whether a SKU is per cabinet is open, and the cap (VAN-LAMEV-LEGCAP-, $0) has no colour suffix (LAME-ACC-01, LAME-ACC-02, LAME-ACC-03, LAME-ACC-05). The models whose titles name legs carry none yet.",
+    "sidePanels": "Confirmed: Yes or No, 5 cm, in the cabinet pattern, own SKU VAN-LAMEV-SP (map section 6.5). Not in this profile yet: one panel or a pair, which side, and the colour token are open (LAME-SP-01, GEN-SP-01).",
+    "undertop": "Confirmed: an optional recessed top, Gold or Silver (MTL) or matte lacquer (LACM), priced per cm of the composition with its side panels, not with a 60 cm Sink Base (docx P0258). Not in this profile yet: whether the 60 cm rule means the Sink Base or any cabinet, and the colour of LACM are open (LAME-ACC-04, LAME-ACC-06).",
+    "matteWhite8cm": "Listed in the Master File (L128) but Lame has thin countertops only (xlsx CountertopPricing!I5); configurator 9 does not offer it either (LAME-DAT-02).",
+    "va023": "Listed in the Master File (L202) but bound to the thick 3.1\" Technomat top; the Lame price workbook has VA030 for SS Texturizzato instead (xlsx Basin StylePricing!A2:A36), which this profile offers.",
+    "vesselArtDiamond": "Named in the WebGL Logic (P0274, P0275) but without a picture, size, finish or SKU; hidden until the product gives them (LAME-TOP-01, LAME-TOP-04).",
+    "vesselPalettes": "Iris, Frame and Plaza are the vessels Mako prices from the same SKU table (SKU_Vessels_V2); their palettes and starting colours are written here as Mako's, which the Lame documents do not confirm (LAME-TOP-01).",
+    "thickness": "Lame has thin countertops only: 0.5\" for six material groups, Porcelain 0.8\" in the price tables and 3/4\" in the client price list (LAME-TOP-03).",
+    "countertopDepth": "The countertop SKU spells 20.7\" (52.6 cm), the cabinets 20.5\" (52 cm); the table keeps 52 cm (LAME-TOP-02).",
+    "compositionLimits": "Confirmed: at most 220 cm, at most two Sink Bases, cabinets abut only, one drawer style per composition (P0223-P0227). Only the drawer style is expressed (drawerStyleGroups).",
+    "floating": "Mentioned like Urban Low Height, but it needs a thick countertop and Lame has thin ones only, so no floating option is valid today (GEN-TOP-23).",
+    "defaults": "Not described. The models start in Antracite 400 MT with a white Solid Surface top and an integrated basin, as the pre-render thumbnails show them (inference); LB440 is the first basin the price list gives that top.",
+    "presets": "43 of the 44 Master File models. Their compositions are read from the pre-render thumbnails, since no document describes them (GEN-MOD-01). The thumbnail of Lame 79 2DW w/leg_70 (L37) does not exist in the pre-render, so that model is left out. Lame 63 2DW_60 (L28) and Lame 63 2DW w/leg_60 (L30) are tagged by what the thumbnail shows: one basin and two basins, not the filters the Master File gives them.",
+    "faucetHolesOnGlass": "0 to 3 holes for every material as GB and the Class price list give them; USH allows 0 or 1 on glass (GEN-TOP-02)."
+  }
+}

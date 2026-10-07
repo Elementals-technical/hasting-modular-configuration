@@ -26,6 +26,8 @@ const COUNTERTOP_CATEGORY = "CT";
 /** The word the price server reads as "the legs of the composition". */
 const LEGS_ELEMENT = "LEG";
 const FALLBACK = "X";
+/** The cabinet's height is its size, not a value: a code keyed on it reads the size (`2S` at 56 cm). */
+const HEIGHT_ATTRIBUTE_ID = "Height";
 
 /** An attribute value of the product being priced, or null when none is chosen. */
 export type CollectionValueReader = (attributeId: string) => string | null;
@@ -106,21 +108,27 @@ export const buildCollectionCabinetSku = (
   const { cabinet } = skuProfile;
   const missing: CollectionCabinetSkuGap[] = [];
   const optionOf = (attributeId: string) => {
-    const raw = read(attributeId);
+    const raw = attributeId === HEIGHT_ATTRIBUTE_ID && heightCm != null ? String(heightCm) : read(attributeId);
     return normalizeOptionValue(productProfile, attributeId, raw) ?? raw;
   };
+  const codeOf = ({ attributeId, codes }: { attributeId: string; codes: Record<string, string> }) => {
+    const value = optionOf(attributeId);
+    if (cabinet.requireCompleteInput && (!value || !codes[value]))
+      missing.push({ attributeId, cause: value ? "invalid-option" : "not-chosen" });
+    return (value && codes[value]) || FALLBACK;
+  };
 
-  // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes.
+  // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes,
+  // and so is a drawer cabinet of another series (the Urban Standard Height one in an Urban Duplex model).
   const cabinetType = optionOf("CabinetType");
-  const ownSpelling = cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined;
+  const seriesValue = cabinet.bySeries ? optionOf(cabinet.bySeries.attributeId) : null;
+  const ownSpelling =
+    (cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined) ??
+    (seriesValue ? cabinet.bySeries?.byValue[seriesValue] : undefined);
   const { series, configBlock } = ownSpelling ?? cabinet;
   const config = configBlock
-    .map(({ attributeId, codes }) => {
-      const value = optionOf(attributeId);
-      if (cabinet.requireCompleteInput && (!value || !codes[value]))
-        missing.push({ attributeId, cause: value ? "invalid-option" : "not-chosen" });
-      return (value && codes[value]) || FALLBACK;
-    })
+    // `2DW` + `R`: a code whose last letter another attribute decides, as the side of a lateral panel.
+    .map((entry) => (entry.suffix ? `${codeOf(entry)}${codeOf(entry.suffix)}` : codeOf(entry)))
     .join("/");
 
   const elementsOfType = ownSpelling?.elements ?? cabinet.elements;
@@ -177,10 +185,16 @@ export const buildCollectionCabinetSku = (
     return [colorCode ? `${code}-${pricedMaterial}-${colorCode}` : `${code}-${pricedMaterial}`];
   });
 
-  // A cabinet type spelled at another height than the table gives it, as a shelf without its plinth.
+  // A cabinet type spelled at another height than the table gives it, as a shelf without its plinth,
+  // or in its price list's words (`22.0H`).
   const skuHeightCm =
     heightCm != null && ownSpelling?.heightOffsetCm ? heightCm + ownSpelling.heightOffsetCm : heightCm;
-  const sizes = [sizeToken(widthCm, "W"), sizeToken(skuHeightCm, "H"), sizeToken(depthCm, "D")].join("-");
+  const heightCode = heightCm != null ? ownSpelling?.heightCodes?.[String(heightCm)] : undefined;
+  const sizes = [
+    sizeToken(widthCm, "W"),
+    heightCode ? `${heightCode}H` : sizeToken(skuHeightCm, "H"),
+    sizeToken(depthCm, "D"),
+  ].join("-");
   if (cabinet.requireCompleteInput) {
     const pattern = optionOf("DrawerPanelFluting");
     const color = read("CabinetColor");

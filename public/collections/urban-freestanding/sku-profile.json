@@ -267,6 +267,9 @@
   "towelBar": {
     "pricedAs": "urban-standard-height"
   },
+  "sidePanel": {
+    "pricedAs": "urban-standard-height"
+  },
   "dividers": {},
   "gaps": [
     {
@@ -309,12 +312,12 @@
     },
     {
       "group": "sidePanel",
-      "blocksTotal": true,
+      "blocksTotal": false,
       "owner": "product",
-      "reason": "Side panels are as tall as the cabinet body without the plinth, in two heights (P1125, Block2 Q0050); the price list gives them no SKU or size (UFS-SP-01), so they are not priced as Urban Standard Height's.",
+      "reason": "Side panels are as tall as the cabinet body without the plinth, in two heights (P1125, Block2 Q0050), and the price list gives them no SKU or size (UFS-SP-01). Until then they are priced as Urban Standard Height's at the cabinets' height, as Urban Low Height's are; Urban Standard Height has panel rows up to 22 in only.",
       "appliesWhen": {
         "attributeId": "SidePanels",
-        "values": ["NoG", "UpperG", "CenterG", "DoubleG"]
+        "values": ["NoG", "UpperG"]
       }
     }
   ]

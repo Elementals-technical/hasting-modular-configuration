@@ -6,6 +6,7 @@ import { rootReducer } from "@/app/store/reducer";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import {
   countertopDatatableSchema,
   hasOwnCountertop,
@@ -36,7 +37,9 @@ import {
   COLLECTION_PRICING_SCENARIOS,
   CLASS,
   collectionPricingInput,
+  LAME,
   MAKO,
+  URBAN_DUPLEX,
   URBAN_FREESTANDING,
   URBAN_LOW_HEIGHT,
   type CollectionPricingScenarioId,
@@ -903,6 +906,170 @@ describe("Urban Freestanding open shelves, spelled as its price list spells them
       "VAN-UROS-3S-9.8W-33.5H-19.7D-CAB-3D-1C1",
       "VAN-UROSS-R-5.9W-33.5H-19.7D-CAB-3D-1C1",
     ]);
+  });
+});
+
+describe("Urban Freestanding side panels, priced as Urban Standard Height's", () => {
+  const sinkBase = (height: number) => ({
+    stableKey: "sb",
+    runtimeId: "Sink-Base-sb",
+    size: { width: 60, height, depth: 50 },
+  });
+  const order = (height: number, handle: string, sidePanelsOption: string) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_FREESTANDING,
+        [sinkBase(height)],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          Handle: [at({ scope: "cabinet", cabinetId: "sb" }, handle)],
+          SidePanels: [at({ scope: "global" }, sidePanelsOption)],
+        },
+        { cabinetColor: "Castagno chiaro 1C1", sidePanelsOption, sidePanelLeft: "active", sidePanelRight: "active" },
+      ),
+    );
+
+  const sidePanelsOf = (lines: PricingLine[]) =>
+    lines.filter(({ group }) => group === "sidePanel").map(({ sku, quantity }) => ({ sku, quantity }));
+
+  it("stands a panel on each active side at the cabinets' height, the upper groove beside an Upper Groove cabinet", () => {
+    const upperGroove = order(91, "UG", "UpperG");
+
+    // 91 cm with the plinth (35.8"), 50 cm deep; the groove in the cabinet colour while none is chosen.
+    expect(sidePanelsOf(upperGroove.lines)).toEqual([
+      { sku: "VAN-URSP-1GU-.4W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1", quantity: 2 },
+    ]);
+    expect(sidePanelsOf(order(88, "PTO", "NoG").lines)).toEqual([
+      { sku: "VAN-URSP-0G-.4W-34.6H-19.7D-CAB-3D-1C1", quantity: 2 },
+    ]);
+    // The price list has no panel SKU of its own (UFS-SP-01): the total still stands, with a note.
+    expect(upperGroove.gaps).toEqual([expect.objectContaining({ group: "sidePanel", blocksTotal: false })]);
+  });
+});
+
+describe("Urban Freestanding handle colour, offered as Urban Standard Height offers it", () => {
+  it("spells the groove colour the configuration holds on an Upper Groove cabinet, and the cabinet colour until one is chosen", () => {
+    const cabinetSku = (handleGrooveColor: string) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          URBAN_FREESTANDING,
+          [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 91, depth: 50 } }],
+          {
+            Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+            Handle: [at({ scope: "cabinet", cabinetId: "sb" }, "UG")],
+          },
+          { cabinetColor: "Castagno chiaro 1C1", handleGrooveColor },
+        ),
+      ).lines.find(({ group }) => group === "cabinet")?.sku;
+
+    expect(cabinetSku("Castagno Malto 1C2")).toBe("VAN-URFS-SB/2DW/UG/X-23.6W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C2");
+    expect(cabinetSku("")).toBe("VAN-URFS-SB/2DW/UG/X-23.6W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1");
+    // "None", the value a handle without a groove resets it to, is no colour either.
+    expect(cabinetSku("None")).toBe("VAN-URFS-SB/2DW/UG/X-23.6W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1");
+  });
+});
+
+describe("Urban Duplex models, each cabinet spelled as its own product spells it", () => {
+  // Its own countertop table, matrix-coutnertop-duplex.
+  const countertopRules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable595));
+  const cabinet = (stableKey: string, cabinetType: string, width: number, height: number) => ({
+    stableKey,
+    runtimeId: `${cabinetType}-${stableKey}`,
+    size: { width, height, depth: 50 },
+  });
+  const ofCabinet = (cabinetId: string, value: string) => at({ scope: "cabinet", cabinetId }, value);
+  const cabinetSkusOf = (lines: PricingLine[]) =>
+    lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku);
+
+  it('orders the 48" 2-Drawer model: an Urban Standard Height side cabinet beside a Duplex sink base', () => {
+    const { lines, gaps } = buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_DUPLEX,
+        [cabinet("sc", "Sink-Cabinet", 50, 56), cabinet("sb", "Sink-Base", 70, 56)],
+        {
+          Series: [ofCabinet("sc", "URSTD"), ofCabinet("sb", "URDPX")],
+          Drawers: [ofCabinet("sc", "2D"), ofCabinet("sb", "2D")],
+          Handle: [ofCabinet("sc", "UG"), ofCabinet("sb", "UG")],
+          LateralPanelSide: [ofCabinet("sb", "R")],
+        },
+        // The countertop the state starts from: the profile's defaults (replaceCollectionData).
+        {
+          countertopRules,
+          countertopColor: "Pulpis Chiaro TKH",
+          countertopStyle: "integrated",
+          sinkType: "Top_HPLStrip",
+        },
+      ),
+    );
+
+    // The panel colours nobody has chosen are the default model's: Bianco Calce DA ST and Pulpis Chiaro TKH.
+    expect(cabinetSkusOf(lines)).toEqual([
+      "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+    ]);
+    // Its countertop table sizes the top over both cabinets, 120 cm, at the first HPL thickness, 1/2".
+    expect(lines.filter(({ group }) => group !== "cabinet").map(({ group, sku }) => ({ group, sku }))).toEqual([
+      { group: "countertop", sku: "CT-URHPL-INTG-47.2W-.5H-19.7D-HPL-TKH" },
+      { group: "basin", sku: "CT-URHPL-STRIP-.5H-HPL-TKH" },
+      { group: "faucetHoles", sku: "CT-URHPL-FAHO/0" },
+    ]);
+    expect(gaps).toEqual([]);
+  });
+
+  it('orders the 53" 1-Drawer OSS model: the open side shelf at its end, in the lateral panel colour', () => {
+    const { lines } = buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_DUPLEX,
+        [
+          cabinet("oss", "Side-Shelf", 15, 53),
+          cabinet("sb", "Sink-Base", 70, 53),
+          cabinet("sc", "Sink-Cabinet", 50, 53),
+        ],
+        {
+          Series: [ofCabinet("sb", "URDPX"), ofCabinet("sc", "URSTD")],
+          Drawers: [ofCabinet("sb", "1D"), ofCabinet("sc", "1D")],
+          Handle: [ofCabinet("sb", "UG"), ofCabinet("sc", "UG")],
+          LateralPanelSide: [ofCabinet("sb", "L")],
+        },
+      ),
+    );
+
+    expect(cabinetSkusOf(lines)).toEqual([
+      "VAN-UROSS-L-5.9W-20.9H-19.7D-CAB-HPL-TKH",
+      "VAN-URDPX-SB/1DWL/UG/X-27.6W-20.9H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URSTD-SC/1DW/UG/X-19.7W-20.9H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
+    ]);
+  });
+});
+
+describe("Lame legs, offered before they have a price", () => {
+  const order = (legColor: string) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        LAME,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Nero 433 MT")],
+          LegColor: [at({ scope: "cabinet", cabinetId: "sb" }, legColor)],
+        },
+        { cabinetColor: "Latte 417 MT" },
+      ),
+    );
+  const legsOf = ({ lines, gaps }: ReturnType<typeof order>) => ({
+    lines: lines.filter(({ group }) => group === "legs"),
+    gaps: gaps.filter(({ group }) => group === "legs"),
+  });
+
+  it("says the price is incomplete while the composition stands on legs, with or without a cap colour", () => {
+    for (const legColor of ["None", "Gold", "Nero 433 MT"]) {
+      expect(legsOf(order(legColor)), legColor).toEqual({
+        lines: [],
+        gaps: [expect.objectContaining({ blocksTotal: true, owner: "product" })],
+      });
+    }
+    // Legs off: nothing to price and nothing to say.
+    expect(legsOf(order(""))).toEqual({ lines: [], gaps: [] });
   });
 });
 
