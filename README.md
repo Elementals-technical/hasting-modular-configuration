@@ -4,6 +4,15 @@
 
 - [Parent configurator integration](docs/parent-configurator-integration.md)
 
+## Google Analytics
+
+- `VITE_ANALYTICS_ENABLED=false` — disables GA initialization. Keep this value for Phase 2 staging and production during development.
+- `VITE_ANALYTICS_ENABLED=true` — enables GA initialization when `VITE_GA_ID` is also set. A missing flag or any value other than `true` keeps initialization disabled.
+
+Set the flag in `.env` or the hosting platform's build environment. Hosting variables override `.env`. Rebuild and redeploy after changing it; for local development, restart the dev server.
+
+The flag controls only GA initialization in this app. Event forwarding to the iframe parent and the parent site's own analytics remain unchanged.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
