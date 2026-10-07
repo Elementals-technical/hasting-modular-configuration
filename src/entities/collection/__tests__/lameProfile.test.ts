@@ -104,6 +104,15 @@ describe("lame product profile", () => {
     expect(lameManifest.remote.configurator.id).toBe(9);
   });
 
+  it("names the configurator and the tables its manifest loads", () => {
+    expect(profile().sourceRefs).toEqual({
+      configuratorId: lameManifest.remote.configurator.id,
+      countertopMatrixTableId: lameManifest.remote.countertopTable.id,
+      cabinetMatrixTableId: lameManifest.remote.cabinetTable.id,
+    });
+    expect(profile().ruleData.cabinetMatrixLegacyAdapter.tableId).toBe(lameManifest.remote.cabinetTable.id);
+  });
+
   // Master File: 40 cabinet colours, 22 handle colours, 71 countertop colours of which Matte White 8cm
   // has no thin top (map section 4).
   it("gets the Master File palettes from configurator 9, without the 8 cm top", () => {

@@ -13,6 +13,12 @@
       "id": 9,
       "view": "full",
       "serialize": true
+    },
+    "countertopTable": {
+      "id": 597
+    },
+    "cabinetTable": {
+      "id": 596
     }
   }
 }

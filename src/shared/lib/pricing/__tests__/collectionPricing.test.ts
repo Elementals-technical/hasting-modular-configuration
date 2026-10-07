@@ -6,6 +6,7 @@ import { rootReducer } from "@/app/store/reducer";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import {
   countertopDatatableSchema,
   hasOwnCountertop,
@@ -908,6 +909,8 @@ describe("Urban Freestanding open shelves, spelled as its price list spells them
 });
 
 describe("Urban Duplex models, each cabinet spelled as its own product spells it", () => {
+  // Its own countertop table, matrix-coutnertop-duplex.
+  const countertopRules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable595));
   const cabinet = (stableKey: string, cabinetType: string, width: number, height: number) => ({
     stableKey,
     runtimeId: `${cabinetType}-${stableKey}`,
@@ -929,7 +932,12 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
           LateralPanelSide: [ofCabinet("sb", "R")],
         },
         // The countertop the state starts from: the profile's defaults (replaceCollectionData).
-        { countertopColor: "Pulpis Chiaro TKH", countertopStyle: "integrated", sinkType: "Top_HPLStrip" },
+        {
+          countertopRules,
+          countertopColor: "Pulpis Chiaro TKH",
+          countertopStyle: "integrated",
+          sinkType: "Top_HPLStrip",
+        },
       ),
     );
 
@@ -938,8 +946,13 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
       "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
       "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     ]);
-    // Until its countertop table is uploaded, nothing sizes the top: the total waits for it.
-    expect(gaps).toEqual([expect.objectContaining({ group: "countertop", blocksTotal: true })]);
+    // Its countertop table sizes the top over both cabinets, 120 cm, at the first HPL thickness, 1/2".
+    expect(lines.filter(({ group }) => group !== "cabinet").map(({ group, sku }) => ({ group, sku }))).toEqual([
+      { group: "countertop", sku: "CT-URHPL-INTG-47.2W-.5H-19.7D-HPL-TKH" },
+      { group: "basin", sku: "CT-URHPL-STRIP-.5H-HPL-TKH" },
+      { group: "faucetHoles", sku: "CT-URHPL-FAHO/0" },
+    ]);
+    expect(gaps).toEqual([]);
   });
 
   it('orders the 53" 1-Drawer OSS model: the open side shelf at its end, in the lateral panel colour', () => {

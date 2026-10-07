@@ -3,10 +3,10 @@
   "collectionId": "urban-duplex",
   "productTypes": {},
   "unplacedProductTypes": {
-    "Sink-Base": "Temporarily hidden in the builder: the scene registers no Urban Duplex sink base yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card and the models come back.",
-    "Sink-Cabinet": "Temporarily hidden in the builder: the scene registers no Urban Duplex side cabinet yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card and the models come back.",
-    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open shelf yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card comes back.",
-    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open side shelf yet. Its row is in the cabinet table (matrix-cabinet-urban-duplex.csv). Move it to productTypes once the scene has it, and its card comes back."
+    "Sink-Base": "Temporarily hidden in the builder: the scene registers no Urban Duplex sink base yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card and the models come back.",
+    "Sink-Cabinet": "Temporarily hidden in the builder: the scene registers no Urban Duplex side cabinet yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card and the models come back.",
+    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open shelf yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card comes back.",
+    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open side shelf yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card comes back."
   },
   "bindings": [
     {

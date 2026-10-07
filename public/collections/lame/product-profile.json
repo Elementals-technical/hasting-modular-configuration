@@ -17,8 +17,8 @@
   },
   "sourceRefs": {
     "configuratorId": 9,
-    "countertopMatrixTableId": 0,
-    "cabinetMatrixTableId": 0
+    "countertopMatrixTableId": 597,
+    "cabinetMatrixTableId": 596
   },
   "defaults": {
     "CabinetColor": "Antracite 400 MT",
@@ -315,7 +315,7 @@
   ],
   "ruleData": {
     "cabinetMatrixLegacyAdapter": {
-      "tableId": 0,
+      "tableId": 596,
       "columns": {
         "cabinetType": "cabinet_type",
         "drawers": "drawer_configs",
@@ -351,7 +351,7 @@
     "vessel.colorUnavailable": "Not available for selected vessel sink style."
   },
   "excludedFromThisProfile": {
-    "sourceRefs": "Configurator 9 is the one the manifest names; it holds the Lame palettes (40 cabinet colours, 22 handle colours, 70 thin countertop colours). The cabinet and countertop tables are delivered as matrix-cabinet-lame.csv and matrix-counter-top-lame.csv for Render Admin and have no id yet: 0 here and in the cabinet table adapter until they are uploaded.",
+    "sourceRefs": "Configurator 9, cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 9 holds the Lame palettes (40 cabinet colours, 22 handle colours, 70 thin countertop colours); the two tables hold Lame data only.",
     "scene": "The PlayCanvas export has no Lame product (checked 2026-10-07, also the phase-2/staging export 1307fc13), so the collection has no runtime-bindings.json and is not in the registry. Bindings follow the scene keys once the export places Lame cabinets.",
     "handle": "Confirmed: one handle, G58, in every cabinet SKU (map section 3, xlsx CabinetPricing!A7-A117). There is no Handle Style option; its 3D model and size are not given (LAME-STY-01).",
     "cabinetPattern": "Confirmed: five patterns, one per composition, no None (Block2 Q0063, Q0069, Q0074; block2#17). A pattern is a token of the cabinet SKU and does not change the price. Oxford starts the composition: the price workbook spells its examples with OXF and the client site names the quilted front of the models Oxford (inference). Pattern pictures and orientation are not given (GEN-STY-01).",

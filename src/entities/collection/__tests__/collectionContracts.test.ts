@@ -167,9 +167,12 @@ describe("collection contracts", () => {
       runtimeBindings: "runtime-bindings.json",
     });
     expect(urbanDuplexManifest.defaultPresetId).toBeUndefined();
-    // Its cabinet and countertop tables are not uploaded yet (matrix-cabinet-urban-duplex.csv,
-    // matrix-counter-top-urban-duplex.csv).
-    expect(urbanDuplexManifest.remote).toEqual({ configurator: { id: 4, view: "full", serialize: true } });
+    expect(urbanDuplexManifest.remote).toEqual({
+      configurator: { id: 4, view: "full", serialize: true },
+      // Its own countertop and cabinet tables (matrix-coutnertop-duplex, matrix-cabinet-duplex).
+      countertopTable: { id: 595 },
+      cabinetTable: { id: 594 },
+    });
     expect(urbanDuplexUi.collectionId).toBe("urban-duplex");
   });
 

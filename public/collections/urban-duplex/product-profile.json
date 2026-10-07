@@ -7,12 +7,12 @@
   "provenance": {
     "source": "analysis/products-data/Urban Duplex: URBAN-DUPLEX-PRODUCT-MAP-UA.md, Hasting Master File [Urban Duplex], Urban Duplex - SKUs + Pricing.xlsx (SKU Curation, Pricing, Pre-Render | Hybrid Models)",
     "auditedAt": "2026-10-07",
-    "warning": "Values the documents confirm or inherit from Urban Standard Height and Urban Low Height (P0953, P1064). sourceRefs name the tables the Urban Duplex cabinet and countertop tables are built from (matrix-cabinet-urban-duplex.csv from 590, matrix-counter-top-urban-duplex.csv from 589) until those are uploaded. Open questions are listed in excludedFromThisProfile."
+    "warning": "Values the documents confirm or inherit from Urban Standard Height and Urban Low Height (P0953, P1064). Its own cabinet table 594 (matrix-cabinet-duplex) and countertop table 595 (matrix-coutnertop-duplex), whose rows are Urban Low Height's 589 for the Duplex materials. Open questions are listed in excludedFromThisProfile."
   },
   "sourceRefs": {
     "configuratorId": 4,
-    "countertopMatrixTableId": 589,
-    "cabinetMatrixTableId": 590
+    "countertopMatrixTableId": 595,
+    "cabinetMatrixTableId": 594
   },
   "defaults": {
     "BasePanelColor": "Bianco Calce DA ST",
@@ -364,7 +364,7 @@
   ],
   "ruleData": {
     "cabinetMatrixLegacyAdapter": {
-      "tableId": 590,
+      "tableId": 594,
       "columns": {
         "cabinetType": "cabinet_type",
         "drawers": "drawer_configs",
@@ -505,7 +505,7 @@
     "sideCabinetWidths": "Side cabinets are 60-120 cm wide as Pricing lists them. SKU Curation also lists 25, 35 and 50 cm; the models take those from Urban Standard Height and Urban Low Height.",
     "pricingGaps": "Pricing has the 2DW Side Cabinet at 50 cm deep only and the 1DW Side Cabinet at 15.0H and 46 cm deep only with the panel on the right; the cabinet table cannot express either.",
     "multiLevelModels": "The five Multi-Level models are compact presets of the collection DPLX; the scene imports compact presets of Urban Low Height only.",
-    "thickness": "Thicknesses are Urban Standard Height's (P1064) as Urban Low Height's table 589 gives them: 1/2, 4 and 5-1/8 for HPL and Fenix, 1/2, 2-3/8, 4 and 5-1/2 for Porcelain. Offset, Remote and floating tops over the low cabinets are not modelled (GEN-TOP-23, DUP-TOP-02).",
+    "thickness": "Thicknesses are Urban Standard Height's (P1064) as table 595 gives them, copied from Urban Low Height's 589: 1/2, 4 and 5-1/8 for HPL and Fenix, 1/2, 2-3/8, 4 and 5-1/2 for Porcelain. Offset, Remote and floating tops over the low cabinets are not modelled (GEN-TOP-23, DUP-TOP-02).",
     "solidSurfaceBasin": "Solid-Surface: Rectangular has no row of its own; it is the Urban Standard Height candidate Top_Tekorlux_Rectangular until GEN-MAT-01.",
     "vesselSinks": "The Master File lists no vessel sinks; only the vessel cutout is offered until the list is confirmed.",
     "colorCodes": "The 232 cabinet colours of the Base Panel and the Lateral Panel are coded as Urban Standard Height and Urban Low Height code them (GEN-MAT-01).",
