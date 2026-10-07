@@ -239,7 +239,10 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
 
   return useMemo(
     () => ({
-      "DrawerPanelFluting.available": fluting,
+      "DrawerPanelFluting.available": {
+        ...fluting,
+        allowedValues: fluting.options.filter((option) => option.enabled).map(({ value }) => value),
+      },
       "GrainDirection.available": grainDirection,
       "BookMatching.available": {
         available: bookMatching.enabled,

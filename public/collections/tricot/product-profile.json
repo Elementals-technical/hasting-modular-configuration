@@ -1,0 +1,1157 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "tricot",
+  "label": "Tricot",
+  "provenance": {
+    "source": "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
+    "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
+    "status": "source-backed preparation; partial approved runtime handoff integrated",
+    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound; pattern/panels/countertop/basins and wood assets remain explicit dependencies."
+  },
+  "sourceRefs": {
+    "configuratorId": null,
+    "countertopMatrixTableId": 593,
+    "cabinetMatrixTableId": 592
+  },
+  "defaults": {
+    "CabinetColor": "Rovere Oro 932",
+    "DrawerPanelFluting": "Cannette",
+    "HandleGrooveColor": "Nero 433 MT",
+    "SidePanels": "No",
+    "CountertopColor": "Matte White",
+    "sinkType": "LB440",
+    "CountertopStyle": "integrated"
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 0,
+          "category": "drawer-cabinet",
+          "aliases": ["SB"]
+        },
+        {
+          "value": "Side-Cabinet",
+          "label": "Side Cabinet",
+          "order": 1,
+          "category": "drawer-cabinet",
+          "aliases": ["SC", "Sink-Cabinet"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 0,
+          "aliases": ["1DW", "1D"]
+        },
+        {
+          "value": "2",
+          "label": "2 Drawers",
+          "order": 1,
+          "aliases": ["2DW", "2D"]
+        },
+        {
+          "value": "1+inner",
+          "label": "1 Drawer + Inner Drawer",
+          "order": 2,
+          "aliases": ["1DWID"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "40",
+          "label": "40 cm",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "attributeId": "Depth",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "52",
+          "label": "52 cm",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "attributeId": "Width",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "40",
+          "label": "40 cm",
+          "order": 0
+        },
+        {
+          "value": "60",
+          "label": "60 cm",
+          "order": 1
+        },
+        {
+          "value": "80",
+          "label": "80 cm",
+          "order": 2
+        },
+        {
+          "value": "100",
+          "label": "100 cm",
+          "order": 3
+        },
+        {
+          "value": "120",
+          "label": "120 cm",
+          "order": 4
+        }
+      ]
+    },
+    {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "options": [
+        {
+          "value": "Grigio Argento 403 MT",
+          "label": "Grigio Argento 403 MT",
+          "aliases": ["Grigio Argento 403 Lacquered MT"],
+          "order": 0,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Nebbia 402 MT",
+          "label": "Nebbia 402 MT",
+          "aliases": ["Nebbia 402 Lacquered MT"],
+          "order": 1,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Seta 406 MT",
+          "label": "Seta 406 MT",
+          "aliases": ["Seta 406 Lacquered MT"],
+          "order": 2,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Moka 408 MT",
+          "label": "Moka 408 MT",
+          "aliases": ["Moka 408 Lacquered MT"],
+          "order": 3,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Ponente 418 MT",
+          "label": "Ponente 418 MT",
+          "aliases": ["Ponente 418 Lacquered MT"],
+          "order": 4,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Acqua 419 MT",
+          "label": "Acqua 419 MT",
+          "aliases": ["Acqua 419 Lacquered MT"],
+          "order": 5,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Salvia 415 MT",
+          "label": "Salvia 415 MT",
+          "aliases": ["Salvia 415 Lacquered MT"],
+          "order": 6,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Ambra 413 MT",
+          "label": "Ambra 413 MT",
+          "aliases": ["Ambra 413 Lacquered MT"],
+          "order": 7,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Latte 417 MT",
+          "label": "Latte 417 MT",
+          "aliases": ["Latte 417 Lacquered MT"],
+          "order": 8,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Fumo 401 MT",
+          "label": "Fumo 401 MT",
+          "aliases": ["Fumo 401 Lacquered MT"],
+          "order": 9,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Metropoli 404 MT",
+          "label": "Metropoli 404 MT",
+          "aliases": ["Metropoli 404 Lacquered MT"],
+          "order": 10,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Antracite 400 MT",
+          "label": "Antracite 400 MT",
+          "aliases": ["Antracite 400 Lacquered MT"],
+          "order": 11,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Nero 433 MT",
+          "label": "Nero 433 MT",
+          "aliases": ["Nero 433 Lacquered MT"],
+          "order": 12,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Sabbia 405 MT",
+          "label": "Sabbia 405 MT",
+          "aliases": ["Sabbia 405 Lacquered MT"],
+          "order": 13,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Agata 407 MT",
+          "label": "Agata 407 MT",
+          "aliases": ["Agata 407 Lacquered MT"],
+          "order": 14,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Creta 416 MT",
+          "label": "Creta 416 MT",
+          "aliases": ["Creta 416 Lacquered MT"],
+          "order": 15,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Zaffiro 411 MT",
+          "label": "Zaffiro 411 MT",
+          "aliases": ["Zaffiro 411 Lacquered MT"],
+          "order": 16,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Turchese 410 MT",
+          "label": "Turchese 410 MT",
+          "aliases": ["Turchese 410 Lacquered MT"],
+          "order": 17,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Asparago 414 MT",
+          "label": "Asparago 414 MT",
+          "aliases": ["Asparago 414 Lacquered MT"],
+          "order": 18,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Zafferano 412 MT",
+          "label": "Zafferano 412 MT",
+          "aliases": ["Zafferano 412 Lacquered MT"],
+          "order": 19,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Noce Canaletto 933",
+          "label": "Noce Canaletto 933",
+          "order": 20,
+          "category": "Wood Veneer"
+        },
+        {
+          "value": "Rovere Oro 932",
+          "label": "Rovere Oro 932",
+          "order": 21,
+          "category": "Wood Veneer"
+        },
+        {
+          "value": "Rovere Termocotto 931",
+          "label": "Rovere Termocotto 931",
+          "order": 22,
+          "category": "Wood Veneer"
+        }
+      ],
+      "initialValue": "Rovere Oro 932",
+      "defaultValue": "Rovere Oro 932"
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "scope": "cabinet",
+      "initialValue": "Cannette",
+      "options": [
+        {
+          "value": "Loden",
+          "label": "Loden",
+          "order": 0
+        },
+        {
+          "value": "Cannette",
+          "label": "Cannete",
+          "order": 1,
+          "aliases": ["Cannete"]
+        },
+        {
+          "value": "Twill",
+          "label": "Twill",
+          "order": 2
+        },
+        {
+          "value": "Gessato",
+          "label": "Gessato",
+          "order": 3
+        },
+        {
+          "value": "Satin",
+          "label": "Satin",
+          "order": 4
+        }
+      ],
+      "defaultValue": "Cannette"
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Grigio Argento 403 MT",
+          "label": "Grigio Argento 403 MT",
+          "aliases": ["Grigio Argento 403 Lacquered MT"],
+          "order": 0,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Nebbia 402 MT",
+          "label": "Nebbia 402 MT",
+          "aliases": ["Nebbia 402 Lacquered MT"],
+          "order": 1,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Seta 406 MT",
+          "label": "Seta 406 MT",
+          "aliases": ["Seta 406 Lacquered MT"],
+          "order": 2,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Moka 408 MT",
+          "label": "Moka 408 MT",
+          "aliases": ["Moka 408 Lacquered MT"],
+          "order": 3,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Ponente 418 MT",
+          "label": "Ponente 418 MT",
+          "aliases": ["Ponente 418 Lacquered MT"],
+          "order": 4,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Acqua 419 MT",
+          "label": "Acqua 419 MT",
+          "aliases": ["Acqua 419 Lacquered MT"],
+          "order": 5,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Salvia 415 MT",
+          "label": "Salvia 415 MT",
+          "aliases": ["Salvia 415 Lacquered MT"],
+          "order": 6,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Ambra 413 MT",
+          "label": "Ambra 413 MT",
+          "aliases": ["Ambra 413 Lacquered MT"],
+          "order": 7,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Latte 417 MT",
+          "label": "Latte 417 MT",
+          "aliases": ["Latte 417 Lacquered MT"],
+          "order": 8,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Fumo 401 MT",
+          "label": "Fumo 401 MT",
+          "aliases": ["Fumo 401 Lacquered MT"],
+          "order": 9,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Metropoli 404 MT",
+          "label": "Metropoli 404 MT",
+          "aliases": ["Metropoli 404 Lacquered MT"],
+          "order": 10,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Antracite 400 MT",
+          "label": "Antracite 400 MT",
+          "aliases": ["Antracite 400 Lacquered MT"],
+          "order": 11,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Nero 433 MT",
+          "label": "Nero 433 MT",
+          "aliases": ["Nero 433 Lacquered MT"],
+          "order": 12,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Sabbia 405 MT",
+          "label": "Sabbia 405 MT",
+          "aliases": ["Sabbia 405 Lacquered MT"],
+          "order": 13,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Agata 407 MT",
+          "label": "Agata 407 MT",
+          "aliases": ["Agata 407 Lacquered MT"],
+          "order": 14,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Creta 416 MT",
+          "label": "Creta 416 MT",
+          "aliases": ["Creta 416 Lacquered MT"],
+          "order": 15,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Zaffiro 411 MT",
+          "label": "Zaffiro 411 MT",
+          "aliases": ["Zaffiro 411 Lacquered MT"],
+          "order": 16,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Turchese 410 MT",
+          "label": "Turchese 410 MT",
+          "aliases": ["Turchese 410 Lacquered MT"],
+          "order": 17,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Asparago 414 MT",
+          "label": "Asparago 414 MT",
+          "aliases": ["Asparago 414 Lacquered MT"],
+          "order": 18,
+          "category": "Lacquered MT"
+        },
+        {
+          "value": "Zafferano 412 MT",
+          "label": "Zafferano 412 MT",
+          "aliases": ["Zafferano 412 Lacquered MT"],
+          "order": 19,
+          "category": "Lacquered MT"
+        }
+      ],
+      "initialValue": "Nero 433 MT",
+      "defaultValue": "Nero 433 MT"
+    },
+    {
+      "attributeId": "SidePanels",
+      "scope": "global",
+      "options": [
+        {
+          "value": "Yes",
+          "label": "Yes",
+          "order": 0
+        },
+        {
+          "value": "No",
+          "label": "None",
+          "order": 1
+        }
+      ],
+      "initialValue": "No",
+      "defaultValue": "No",
+      "noneValue": "No"
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "Matte White",
+          "label": "Matte White",
+          "order": 0,
+          "category": "Solid Surface"
+        },
+        {
+          "value": "Matte White 8cm",
+          "label": "Matte White 8cm",
+          "order": 1,
+          "category": "Solid Surface"
+        },
+        {
+          "value": "CALACATTA 259",
+          "label": "Calacatta 259",
+          "order": 2,
+          "category": "HPL"
+        },
+        {
+          "value": "IMPERO 260",
+          "label": "Impero 260",
+          "order": 3,
+          "category": "HPL"
+        },
+        {
+          "value": "KASPIO ARGENTO 262",
+          "label": "Kaspio Argento 262",
+          "order": 4,
+          "category": "HPL"
+        },
+        {
+          "value": "KASPIO ORO 261",
+          "label": "Kaspio Oro 261",
+          "order": 5,
+          "category": "HPL"
+        },
+        {
+          "value": "NOCE SAVOIA 256",
+          "label": "Noce Savoia 256",
+          "order": 6,
+          "category": "HPL"
+        },
+        {
+          "value": "RIVEL 257",
+          "label": "Rivel 257",
+          "order": 7,
+          "category": "HPL"
+        },
+        {
+          "value": "ROVERE PRUSSIA 255",
+          "label": "Rovere Prussia 255",
+          "order": 8,
+          "category": "HPL"
+        },
+        {
+          "value": "ROVERE SLAVONIA 254",
+          "label": "Rovere Slavonia 254",
+          "order": 9,
+          "category": "HPL"
+        },
+        {
+          "value": "ROVERE TEXAS 264",
+          "label": "Rovere Texas 264",
+          "order": 10,
+          "category": "HPL"
+        },
+        {
+          "value": "SILVER VOYAGE 263",
+          "label": "Silver Voyage 263",
+          "order": 11,
+          "category": "HPL"
+        },
+        {
+          "value": "GRIGIO BROMO 253",
+          "label": "Grigio Bromo 253",
+          "order": 12,
+          "category": "HPL"
+        },
+        {
+          "value": "BIANCO KOS 250",
+          "label": "Bianco Kos 250",
+          "order": 13,
+          "category": "HPL"
+        },
+        {
+          "value": "GRIGIO LONDON 252",
+          "label": "Grigio London 252",
+          "order": 14,
+          "category": "HPL"
+        },
+        {
+          "value": "NERO INGO 251",
+          "label": "Nero Ingo 251",
+          "order": 15,
+          "category": "HPL"
+        },
+        {
+          "value": "CALACATTA BLACK 338",
+          "label": "Calacatta Black 338",
+          "order": 16,
+          "category": "Porcelain"
+        },
+        {
+          "value": "CALACATTA ORO OPACO 331",
+          "label": "Calacatta Oro Opaco 331",
+          "order": 17,
+          "category": "Porcelain"
+        },
+        {
+          "value": "EMPERADOR OPACO 322",
+          "label": "Emperador Opaco 322",
+          "order": 18,
+          "category": "Porcelain"
+        },
+        {
+          "value": "INVISIBLE WHITE OPACO 332",
+          "label": "Invisible White Opaco 332",
+          "order": 19,
+          "category": "Porcelain"
+        },
+        {
+          "value": "INVISIBLE WHITE LUCIDO 334",
+          "label": "Invisible White Lucido 334",
+          "order": 20,
+          "category": "Porcelain"
+        },
+        {
+          "value": "MINE GOFFRATO 317",
+          "label": "Mine Goffrato 317",
+          "order": 21,
+          "category": "Porcelain"
+        },
+        {
+          "value": "ARDESIA NERA 328",
+          "label": "Ardesia Nera 328",
+          "order": 22,
+          "category": "Porcelain"
+        },
+        {
+          "value": "NERO ATLANTE LUCIDO 326",
+          "label": "Nero Atlante Lucido 326",
+          "order": 23,
+          "category": "Porcelain"
+        },
+        {
+          "value": "PIETRA GREY GOFFRATO 323",
+          "label": "Pietra Grey Goffrato 323",
+          "order": 24,
+          "category": "Porcelain"
+        },
+        {
+          "value": "PIETRA PIASENTINA GOFFRATO 324",
+          "label": "Pietra Piasentina Goffrato 324",
+          "order": 25,
+          "category": "Porcelain"
+        },
+        {
+          "value": "PORFIDO 337",
+          "label": "Porfido 337",
+          "order": 26,
+          "category": "Porcelain"
+        },
+        {
+          "value": "SAHARA NOIR BOCCIARDATO 335",
+          "label": "Sahara Noir Bocciardato 335",
+          "order": 27,
+          "category": "Porcelain"
+        },
+        {
+          "value": "SAHARA NOIR LUCIDO 339",
+          "label": "Sahara Noir Lucido 339",
+          "order": 28,
+          "category": "Porcelain"
+        },
+        {
+          "value": "STATUARIO ALTISSIMO LUCIDO 333",
+          "label": "Statuario Altissimo Lucido 333",
+          "order": 29,
+          "category": "Porcelain"
+        },
+        {
+          "value": "TERRE DI SATURNIA 336",
+          "label": "Terre Di Saturnia 336",
+          "order": 30,
+          "category": "Porcelain"
+        },
+        {
+          "value": "Grigio Argento 403 MT",
+          "label": "Grigio Argento 403 MT",
+          "order": 31,
+          "category": "Glass MT",
+          "aliases": ["GGrigio Argento 403 MT"]
+        },
+        {
+          "value": "Nebbia 402 MT",
+          "label": "Nebbia 402 MT",
+          "order": 32,
+          "category": "Glass MT",
+          "aliases": ["GNebbia 402 MT"]
+        },
+        {
+          "value": "Seta 406 MT",
+          "label": "Seta 406 MT",
+          "order": 33,
+          "category": "Glass MT",
+          "aliases": ["GSeta 406 MT"]
+        },
+        {
+          "value": "Moka 408 MT",
+          "label": "Moka 408 MT",
+          "order": 34,
+          "category": "Glass MT",
+          "aliases": ["GMoka 408 MT"]
+        },
+        {
+          "value": "Ponente 418 MT",
+          "label": "Ponente 418 MT",
+          "order": 35,
+          "category": "Glass MT",
+          "aliases": ["GPonente 418 MT"]
+        },
+        {
+          "value": "Acqua 419 MT",
+          "label": "Acqua 419 MT",
+          "order": 36,
+          "category": "Glass MT",
+          "aliases": ["GAcqua 419 MT"]
+        },
+        {
+          "value": "Salvia 415 MT",
+          "label": "Salvia 415 MT",
+          "order": 37,
+          "category": "Glass MT",
+          "aliases": ["GSalvia 415 MT"]
+        },
+        {
+          "value": "Ambra 413 MT",
+          "label": "Ambra 413 MT",
+          "order": 38,
+          "category": "Glass MT",
+          "aliases": ["GAmbra 413 MT"]
+        },
+        {
+          "value": "Latte 417 MT",
+          "label": "Latte 417 MT",
+          "order": 39,
+          "category": "Glass MT",
+          "aliases": ["GLatte 417 MT"]
+        },
+        {
+          "value": "Fumo 401 MT",
+          "label": "Fumo 401 MT",
+          "order": 40,
+          "category": "Glass MT",
+          "aliases": ["GFumo 401 MT"]
+        },
+        {
+          "value": "Metropoli 404 MT",
+          "label": "Metropoli 404 MT",
+          "order": 41,
+          "category": "Glass MT",
+          "aliases": ["GMetropoli 404 MT"]
+        },
+        {
+          "value": "Antracite 400 MT",
+          "label": "Antracite 400 MT",
+          "order": 42,
+          "category": "Glass MT",
+          "aliases": ["GAntracite 400 MT"]
+        },
+        {
+          "value": "Nero 433 MT",
+          "label": "Nero 433 MT",
+          "order": 43,
+          "category": "Glass MT",
+          "aliases": ["GNero 433 MT"]
+        },
+        {
+          "value": "Sabbia 405 MT",
+          "label": "Sabbia 405 MT",
+          "order": 44,
+          "category": "Glass MT",
+          "aliases": ["GSabbia 405 MT"]
+        },
+        {
+          "value": "Agata 407 MT",
+          "label": "Agata 407 MT",
+          "order": 45,
+          "category": "Glass MT",
+          "aliases": ["GAgata 407 MT"]
+        },
+        {
+          "value": "Creta 416 MT",
+          "label": "Creta 416 MT",
+          "order": 46,
+          "category": "Glass MT",
+          "aliases": ["GCreta 416 MT"]
+        },
+        {
+          "value": "Zaffiro 411 MT",
+          "label": "Zaffiro 411 MT",
+          "order": 47,
+          "category": "Glass MT",
+          "aliases": ["GZaffiro 411 MT"]
+        },
+        {
+          "value": "Turchese 410 MT",
+          "label": "Turchese 410 MT",
+          "order": 48,
+          "category": "Glass MT",
+          "aliases": ["GTurchese 410 MT"]
+        },
+        {
+          "value": "Asparago 414 MT",
+          "label": "Asparago 414 MT",
+          "order": 49,
+          "category": "Glass MT",
+          "aliases": ["GAsparago 414 MT"]
+        },
+        {
+          "value": "Zafferano 412 MT",
+          "label": "Zafferano 412 MT",
+          "order": 50,
+          "category": "Glass MT",
+          "aliases": ["GZafferano 412 MT"]
+        },
+        {
+          "value": "Grigio Argento 403 GL",
+          "label": "Grigio Argento 403 GL",
+          "order": 51,
+          "category": "Glass GL",
+          "aliases": ["GGrigio Argento 403 GL"]
+        },
+        {
+          "value": "Nebbia 402 GL",
+          "label": "Nebbia 402 GL",
+          "order": 52,
+          "category": "Glass GL",
+          "aliases": ["GNebbia 402 GL"]
+        },
+        {
+          "value": "Seta 406 GL",
+          "label": "Seta 406 GL",
+          "order": 53,
+          "category": "Glass GL",
+          "aliases": ["GSeta 406 GL"]
+        },
+        {
+          "value": "Moka 408 GL",
+          "label": "Moka 408 GL",
+          "order": 54,
+          "category": "Glass GL",
+          "aliases": ["GMoka 408 GL"]
+        },
+        {
+          "value": "Ponente 418 GL",
+          "label": "Ponente 418 GL",
+          "order": 55,
+          "category": "Glass GL",
+          "aliases": ["GPonente 418 GL"]
+        },
+        {
+          "value": "Acqua 419 GL",
+          "label": "Acqua 419 GL",
+          "order": 56,
+          "category": "Glass GL",
+          "aliases": ["GAcqua 419 GL"]
+        },
+        {
+          "value": "Salvia 415 GL",
+          "label": "Salvia 415 GL",
+          "order": 57,
+          "category": "Glass GL",
+          "aliases": ["GSalvia 415 GL"]
+        },
+        {
+          "value": "Ambra 413 GL",
+          "label": "Ambra 413 GL",
+          "order": 58,
+          "category": "Glass GL",
+          "aliases": ["GAmbra 413 GL"]
+        },
+        {
+          "value": "Latte 417 GL",
+          "label": "Latte 417 GL",
+          "order": 59,
+          "category": "Glass GL",
+          "aliases": ["GLatte 417 GL"]
+        },
+        {
+          "value": "Fumo 401 GL",
+          "label": "Fumo 401 GL",
+          "order": 60,
+          "category": "Glass GL",
+          "aliases": ["GFumo 401 GL"]
+        },
+        {
+          "value": "Metropoli 404 GL",
+          "label": "Metropoli 404 GL",
+          "order": 61,
+          "category": "Glass GL",
+          "aliases": ["GMetropoli 404 GL"]
+        },
+        {
+          "value": "Antracite 400 GL",
+          "label": "Antracite 400 GL",
+          "order": 62,
+          "category": "Glass GL",
+          "aliases": ["GAntracite 400 GL"]
+        },
+        {
+          "value": "Nero 433 GL",
+          "label": "Nero 433 GL",
+          "order": 63,
+          "category": "Glass GL",
+          "aliases": ["GNero 433 GL"]
+        },
+        {
+          "value": "Sabbia 405 GL",
+          "label": "Sabbia 405 GL",
+          "order": 64,
+          "category": "Glass GL",
+          "aliases": ["GSabbia 405 GL"]
+        },
+        {
+          "value": "Agata 407 GL",
+          "label": "Agata 407 GL",
+          "order": 65,
+          "category": "Glass GL",
+          "aliases": ["GAgata 407 GL"]
+        },
+        {
+          "value": "Creta 416 GL",
+          "label": "Creta 416 GL",
+          "order": 66,
+          "category": "Glass GL",
+          "aliases": ["GCreta 416 GL"]
+        },
+        {
+          "value": "Zaffiro 411 GL",
+          "label": "Zaffiro 411 GL",
+          "order": 67,
+          "category": "Glass GL",
+          "aliases": ["GZaffiro 411 GL"]
+        },
+        {
+          "value": "Turchese 410 GL",
+          "label": "Turchese 410 GL",
+          "order": 68,
+          "category": "Glass GL",
+          "aliases": ["GTurchese 410 GL"]
+        },
+        {
+          "value": "Asparago 414 GL",
+          "label": "Asparago 414 GL",
+          "order": 69,
+          "category": "Glass GL",
+          "aliases": ["GAsparago 414 GL"]
+        },
+        {
+          "value": "Zafferano 412 GL",
+          "label": "Zafferano 412 GL",
+          "order": 70,
+          "category": "Glass GL",
+          "aliases": ["GZafferano 412 GL"]
+        }
+      ],
+      "initialValue": "Matte White",
+      "defaultValue": "Matte White"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "0.5",
+          "label": "1/2",
+          "order": 0,
+          "aliases": ["1/2"]
+        },
+        {
+          "value": "4.75",
+          "label": "4-3/4",
+          "order": 1,
+          "aliases": ["4-3/4"]
+        },
+        {
+          "value": "3.125",
+          "label": "3-1/8",
+          "order": 2,
+          "aliases": ["3-1/8"]
+        },
+        {
+          "value": "0.75",
+          "label": "3/4",
+          "order": 3,
+          "aliases": ["3/4"]
+        },
+        {
+          "value": "4",
+          "label": "4",
+          "order": 4,
+          "aliases": []
+        }
+      ],
+      "initialValue": ""
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "options": [
+        {
+          "value": "LB440",
+          "label": "LB440",
+          "order": 0,
+          "category": "integrated"
+        },
+        {
+          "value": "LB175",
+          "label": "LB175",
+          "order": 1,
+          "category": "integrated"
+        },
+        {
+          "value": "LB575",
+          "label": "LB575",
+          "order": 2,
+          "category": "integrated"
+        },
+        {
+          "value": "LB856",
+          "label": "LB856",
+          "order": 3,
+          "category": "integrated"
+        },
+        {
+          "value": "VA023",
+          "label": "VA023",
+          "order": 4,
+          "category": "integrated"
+        },
+        {
+          "value": "VA024",
+          "label": "VA024",
+          "order": 5,
+          "category": "integrated"
+        },
+        {
+          "value": "LV890",
+          "label": "LV890",
+          "order": 6,
+          "category": "integrated"
+        },
+        {
+          "value": "LV892",
+          "label": "LV892",
+          "order": 7,
+          "category": "integrated"
+        },
+        {
+          "value": "VA002",
+          "label": "VA002",
+          "order": 8,
+          "category": "integrated"
+        },
+        {
+          "value": "VA005",
+          "label": "VA005",
+          "order": 9,
+          "category": "integrated"
+        }
+      ],
+      "initialValue": "LB440",
+      "defaultValue": "LB440"
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "integrated",
+          "label": "Integrated",
+          "order": 0,
+          "aliases": ["Integrated"]
+        }
+      ],
+      "initialValue": "integrated",
+      "defaultValue": "integrated"
+    }
+  ],
+  "ruleData": {
+    "countertopCompatibility": { "tableId": 593 },
+    "fluting": {
+      "eligibleMaterialAliases": ["LACM", "WDV", "Lacquered MT", "Wood Veneer"],
+      "forbiddenTargetParts": ["SIDE_PANEL"],
+      "eligibleMaterialAliasesByValue": {
+        "Loden": ["LACM", "Lacquered MT"],
+        "Cannette": ["WDV", "Wood Veneer"],
+        "Twill": ["WDV", "Wood Veneer"],
+        "Gessato": ["WDV", "Wood Veneer"],
+        "Satin": ["WDV", "Wood Veneer"]
+      }
+    },
+    "cabinetColorTraits": {
+      "materialBySku": {
+        "LACM": "LACM",
+        "WDV": "WDV"
+      },
+      "materialByCategory": {
+        "Lacquered MT": "LACM",
+        "Wood Veneer": "WDV"
+      },
+      "knownMaterials": ["LACM", "WDV"],
+      "finishCodes": ["MT"]
+    },
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 592,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "unavailableWithIntegrated": "unavailable_with_integrated"
+      }
+    },
+    "cabinetModules": [
+      {
+        "cabinetType": "Sink-Base",
+        "widthsCm": [60, 80, 100, 120],
+        "heightsCm": [40],
+        "depthsCm": [52],
+        "drawerValues": ["1", "2", "1+inner"],
+        "hasSink": true
+      },
+      {
+        "cabinetType": "Side-Cabinet",
+        "widthsCm": [40, 60, 80, 100, 120],
+        "heightsCm": [40],
+        "depthsCm": [52],
+        "drawerValues": ["1", "2", "1+inner"],
+        "hasSink": false
+      }
+    ],
+    "undeterminedRules": [
+      {
+        "ruleId": "TRICOT-PANELS",
+        "attributeId": "SidePanels",
+        "values": ["Yes"],
+        "source": "Canvas panel bindings and accepted activation/removal values are pending. Accessories placement, cabinet color/material inheritance and +1 cm per active side were confirmed on 2026-10-07."
+      }
+    ],
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]]
+  },
+  "messages": {
+    "fluting.notAvailable": "This cabinet pattern is not compatible with the selected material.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option does not belong to Tricot.",
+    "product.missingData": "Approved Tricot product data is required.",
+    "drawer.mixedGroups": "One-drawer and two-drawer modules cannot be mixed in this composition."
+  }
+}

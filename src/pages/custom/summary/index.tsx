@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
 import { setSummarySkuJson } from "@/shared/lib/summarySkuStore";
 import { buildInfoTooltip } from "@/shared/lib/buildInfoTooltip";
 import { formatBasinStyle } from "@/shared/lib/formatBasinStyle";
@@ -260,6 +261,9 @@ export const CustomSummaryPage = () => {
   const cabinetColor = useAppSelector(getCabinetColor);
   const activeProfile = useAppSelector(getActiveProductProfile);
   const labelOf = useOptionLabel();
+  const quoteModelName = useActiveCollection((collection) => collection.manifest.label);
+  const collectionUi = useActiveCollection((collection) => collection.catalog.customization);
+  const patternLabel = resolveAttributeLabel(collectionUi, "DrawerPanelFluting", "Drawer Panel Fluting");
   const cabinetColorSku = useAppSelector(getCabinetColorSku);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const vesselColor = useAppSelector(getVesselColor);
@@ -550,18 +554,23 @@ export const CustomSummaryPage = () => {
       ]);
       return {
         "Product Category": "Vanity",
-        Products: "Urban Standard",
+        Products: quoteModelName,
         "Cabinet Type": opts.cabinetType ? labelOf("CabinetType", opts.cabinetType) : "Unknown",
         "Cabinet Style": isShelfCabinet ? null : opts.drawers ? labelOf("Drawers", opts.drawers) : "Unknown",
-        "Handle Style": isShelfCabinet ? null : opts.handle ? labelOf("Handle", opts.handle) : "Unknown",
-        "Drawer Panel Fluting": opts.pattern || "None",
+        "Handle Style":
+          isShelfCabinet || !activeProfile?.attributes.some(({ attributeId }) => attributeId === "Handle")
+            ? null
+            : opts.handle
+              ? labelOf("Handle", opts.handle)
+              : "Unknown",
+        [patternLabel]: opts.pattern ? labelOf("DrawerPanelFluting", opts.pattern) : "None",
         Width: opts.width,
         Height: opts.height,
         Depth: opts.depth,
         elements,
       };
     },
-    [labelOf],
+    [labelOf, quoteModelName, patternLabel, activeProfile],
   );
 
   const skuBuilders = useSkuBuilders();
@@ -1046,8 +1055,8 @@ export const CustomSummaryPage = () => {
       drawerPanelFluting
         ? {
             id: "cabinet-option-drawer-panel",
-            title: "Drawer Panel Fluting",
-            subtitle: drawerPanelFluting,
+            title: patternLabel,
+            subtitle: labelOf("DrawerPanelFluting", drawerPanelFluting),
           }
         : null,
       grainDirection
@@ -1459,6 +1468,7 @@ export const CustomSummaryPage = () => {
     priceResult,
     resolveSwatch,
     buildCabinetDescription,
+    patternLabel,
     activeProfile,
     runtimeBindings,
     configuratorCatalog,
@@ -1564,8 +1574,6 @@ export const CustomSummaryPage = () => {
     isAutofillEnabled,
     hasSubmittedCart,
   ]);
-
-  const quoteModelName = useActiveCollection((collection) => collection.manifest.label);
 
   const swatchOrderData = useMemo(
     () => adaptThreekitConfig(configuratorGroups, { countertopRules, profile: activeProfile }),

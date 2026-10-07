@@ -1,5 +1,5 @@
 import type { CabinetColorTraitsRuleData, ProductProfile } from "@/entities/collection";
-import { selectConfiguratorSection, selectRuleData } from "@/entities/collection";
+import { selectConfiguratorSection, selectOption, selectRuleData } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getConfiguratorVariantOverrides,
@@ -107,7 +107,11 @@ export const resolveColorTraits = (
 ): ColorTraits | null => {
   const traits = selectRuleData(profile, "cabinetColorTraits");
   const section = selectConfiguratorSection(profile, attributeId);
-  if (!traits || !section || !configurator) return null;
+  if (!traits) return null;
+  const category = selectOption(profile, attributeId, colorName)?.category;
+  const localMaterial = category ? traits.materialByCategory?.[category] : undefined;
+  if (localMaterial) return { material: localMaterial, finish: resolveFinish(colorName, traits.finishCodes) };
+  if (!section || !configurator) return null;
 
   const option = findColorOption(colorName, configurator, section);
 

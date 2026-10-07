@@ -76,6 +76,15 @@ const ReadyConsumer = () => {
 afterEach(cleanup);
 
 describe("CollectionReadinessGate", () => {
+  it("reports staged dependencies and does not mount the scene even with injected configurator data", () => {
+    const data = loadedCollection();
+    data.manifest.availability = { status: "staged", dependencies: ["Approved preset compositions", "Scene contract"] };
+    renderGate({ status: "ready", collectionId: data.id, data }, <div data-testid="shell">Configurator</div>);
+    expect(screen.queryByTestId("shell")).toBeNull();
+    expect(screen.getByText("Approved preset compositions")).toBeTruthy();
+    expect(screen.getByText("Scene contract")).toBeTruthy();
+    expect(screen.getByText(/Approved product and scene inputs are required/)).toBeTruthy();
+  });
   it.each<ActiveCollectionState>([{ status: "resolving" }, { status: "loading", collectionId: "test-collection" }])(
     "withholds children while the collection is $status",
     (state) => {

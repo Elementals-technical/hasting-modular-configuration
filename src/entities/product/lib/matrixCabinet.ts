@@ -59,11 +59,12 @@ export const buildCabinetCatalogFromMatrix = (
   const relationsByType = new Map(relations.map((relation) => [relation.cabinetType, relation]));
 
   const typeCabinetRules = normalizedRows.flatMap<TypeCabinetRuleConfig>((row) => {
-    const code = String(row[adapter.columns.cabinetType] ?? "").trim();
+    const rawCode = String(row[adapter.columns.cabinetType] ?? "").trim();
+    const code = normalizeOptionValue(profile, "CabinetType", rawCode) ?? rawCode;
     if (!code) return [];
 
     const supportsHeight = parseNumberList(row.supports_height);
-    const relation = relationsByType.get(code);
+    const relation = relationsByType.get(rawCode) ?? relationsByType.get(code);
     const sceneProductType = bindings?.productTypes[code];
 
     return [
@@ -81,6 +82,19 @@ export const buildCabinetCatalogFromMatrix = (
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
         heightsByHandle: relation?.heightsByHandle ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
+        ...(adapter.columns.unavailableWithIntegrated
+          ? {
+              unavailableWithIntegrated: parseDelimitedList(row[adapter.columns.unavailableWithIntegrated]).map(
+                (pair) => {
+                  const [width, drawers, extra] = pair.split(":");
+                  const canonical = normalizeOptionValue(profile, "Drawers", drawers ?? "");
+                  if (!Number.isFinite(Number(width)) || Number(width) <= 0 || !canonical || extra !== undefined)
+                    throw new Error(`Invalid integrated-basin restriction: ${pair}`);
+                  return { widthCm: Number(width), drawers: canonical };
+                },
+              ),
+            }
+          : {}),
         ...(sceneProductType ? { sceneProductType } : {}),
       },
     ];
@@ -88,3 +102,27 @@ export const buildCabinetCatalogFromMatrix = (
 
   return { typeCabinetRules };
 };
+
+/** Uses approved local module facts without inventing a remote datatable identity. */
+export const buildCabinetCatalogFromProfile = (
+  profile: ProductProfile,
+  bindings?: RuntimeBindingSet,
+): ConfiguratorCatalog => ({
+  typeCabinetRules: (profile.ruleData.cabinetModules ?? []).map((module) => ({
+    code: module.cabinetType,
+    widths: module.widthsCm,
+    heights: module.heightsCm,
+    depths: module.depthsCm,
+    drawers: module.drawerValues,
+    hasSink: module.hasSink,
+    isOpen: false,
+    handlesAllowed: [],
+    forcedHeightByHandle: {},
+    forcedHeightByDrawers: {},
+    requiresDrawersByHandle: {},
+    heightsByHandle: {},
+    ...(bindings?.productTypes[module.cabinetType]
+      ? { sceneProductType: bindings.productTypes[module.cabinetType] }
+      : {}),
+  })),
+});

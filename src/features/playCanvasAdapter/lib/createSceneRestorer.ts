@@ -17,6 +17,10 @@ import type {
 } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createSceneReader } from "./createSceneReader";
+import {
+  findProductConfigBindingErrors,
+  resolveProductConfig,
+} from "@/entities/collection/lib/runtimeBindings/resolveProductConfig";
 
 /**
  * Rebuilds a composition for restore (I05).
@@ -101,6 +105,15 @@ export const createSceneRestorer = ({
       if (!isRecord(config)) {
         issues.push({ code: "invalid-config", sourceId, message: `Product ${sourceId} has no config.` });
       }
+      if (bindings && isRecord(config)) {
+        issues.push(
+          ...findProductConfigBindingErrors(bindings, config).map((message) => ({
+            code: "unknown-value" as const,
+            sourceId,
+            message,
+          })),
+        );
+      }
 
       if (bindings && !resolveSceneProductType(bindings, productType)) {
         issues.push({
@@ -141,7 +154,11 @@ export const createSceneRestorer = ({
 
     const presetProducts = request.products.flatMap(({ productType, config }) => {
       const sceneType = resolveSceneProductType(bindings, productType);
-      return sceneType && isRecord(config) ? [{ ...withRuntimeProductType(config, sceneType), name: sceneType }] : [];
+      const resolvedConfig =
+        bindings.strictProductConfig && isRecord(config) ? resolveProductConfig(bindings, config) : config;
+      return sceneType && isRecord(resolvedConfig)
+        ? [{ ...withRuntimeProductType(resolvedConfig, sceneType), name: sceneType }]
+        : [];
     });
     const rebuilt = await scene.presetProducts(presetProducts);
 

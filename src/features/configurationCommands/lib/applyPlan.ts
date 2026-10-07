@@ -5,6 +5,7 @@ import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getActiveProductProfile,
+  getActiveRuntimeBindings,
   getCabinetEntries,
   markRuntimeOutOfSync,
   requestSceneStateSync,
@@ -12,6 +13,7 @@ import {
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
 
 import { commitPlan, type CommitContext } from "./commitChange";
+import { toSceneValue } from "./sceneValue";
 import type { ChangeResult, PlannedChange } from "../model/types";
 
 /**
@@ -63,7 +65,16 @@ export const applyPlan = async (
 ): Promise<ChangeResult> => {
   const context = buildRuntimeContext(state, collectionId, flow);
 
-  const runtimeResult = await runtime.apply(plan, context);
+  const bindings = getActiveRuntimeBindings(state);
+  // Strict delivered catalogs use semantic keys even when a request came from scene
+  // readback (e.g. a full material asset name). Legacy collections keep their spelling.
+  const runtimePlan = bindings?.strictProductConfig
+    ? plan.map((change) => ({
+        ...change,
+        value: toSceneValue(getActiveProductProfile(state), bindings, change.attributeId, change.value),
+      }))
+    : plan;
+  const runtimeResult = await runtime.apply(runtimePlan, context);
 
   // Nothing reached the scene: nothing is recorded.
   switch (runtimeResult.status) {
