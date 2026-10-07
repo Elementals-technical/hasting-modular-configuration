@@ -10,6 +10,7 @@ import skuProfile from "../../../../public/collections/tricot/sku-profile.json";
 import runtimeBindings from "../../../../public/collections/tricot/runtime-bindings.json";
 import masterText from "../../../../public/collections/tricot/sources/master.tsv?raw";
 import configuratorFixture from "./fixtures/remote/configurator-4.json";
+import configurator9Fixture from "./fixtures/remote/configurator-9.json";
 import cabinetFixture from "./fixtures/remote/datatable-592.json";
 import countertopFixture from "./fixtures/remote/datatable-593.json";
 import compositionCsv from "../../../../public/collections/tricot/sources/preset-compositions.csv?raw";
@@ -25,6 +26,9 @@ import { isReadyCollectionData, type CollectionRuntimeDependencies } from "../mo
 
 const root = "https://app.test/collections/";
 const masters = presetsSchema.parse(presets);
+/** Models left out of the catalog until their PNG is delivered: their public thumbnail returns HTTP 404. */
+const hiddenModels = images.missing.map(({ sourceModel }) => sourceModel);
+const isShown = ({ sourceModel }: { sourceModel?: string }) => !hiddenModels.includes(sourceModel ?? "");
 const modules = [
   {
     name: "Sink-Base",
@@ -62,7 +66,7 @@ describe("Tricot source preparation", () => {
       style: string[];
       size: string;
     }) => ({ id, sourceModel, title, style, size });
-    expect(buildPendingPresets(parsed).map(identity)).toEqual(presets.map(identity));
+    expect(buildPendingPresets(parsed).filter(isShown).map(identity)).toEqual(presets.map(identity));
     expect(parsed.rowCount).toBe(185);
     expect(Object.fromEntries(Object.entries(parsed.attributes).map(([key, values]) => [key, values.length]))).toEqual({
       Model: 42,
@@ -78,12 +82,17 @@ describe("Tricot source preparation", () => {
   });
 
   it("preserves distinct numbered layouts and stable IDs after model reordering", () => {
-    expect(new Set(masters.map(({ id }) => id)).size).toBe(42);
+    expect(new Set(masters.map(({ id }) => id)).size).toBe(41);
     const reversed = buildPendingPresets({
       ...sourceCatalogSchema.parse(catalog),
       attributes: { ...catalog.attributes, Model: [...catalog.attributes.Model].reverse() },
     });
-    expect(reversed.map(({ id }) => id).reverse()).toEqual(masters.map(({ id }) => id));
+    expect(
+      reversed
+        .filter(isShown)
+        .map(({ id }) => id)
+        .reverse(),
+    ).toEqual(masters.map(({ id }) => id));
     const pair = masters.filter(({ sourceModel }) =>
       ["Tricot 40 1DW_40", "Tricot 40 1DW 1_40"].includes(sourceModel ?? ""),
     );
@@ -91,14 +100,8 @@ describe("Tricot source preparation", () => {
     expect(pair[0].style).toEqual(pair[1].style);
     expect(pair[0].id).not.toBe(pair[1].id);
     expect(masters.filter((p) => p.img && !p.availability)).toHaveLength(41);
-    const missing = masters.find((p) => p.availability);
-    expect(missing).toMatchObject({
-      sourceModel: "Tricot 79 2DW 1_70",
-      img: "",
-      availability: { status: "pending-image" },
-    });
-    expect(missing?.presetProducts.length).toBeGreaterThan(0);
-    expect(presetsSchema.safeParse([{ ...missing, availability: undefined }]).success).toBe(false);
+    expect(hiddenModels).toEqual(["Tricot 79 2DW 1_70"]);
+    expect(masters.filter((p) => !isShown(p))).toEqual([]);
   });
 
   it("parses quotes, embedded separators, CRLF and BOM and rejects malformed quoting", () => {
@@ -112,10 +115,13 @@ describe("Tricot source preparation", () => {
   });
 
   it("imports all 42 explicit recipes and 88 modules with basin positions and stable image mappings", () => {
-    const entries = importPresetCompositionCsv(compositionCsv, masters, tricotProfile);
+    // Every source recipe imports, the hidden model's too; the catalog shows the others.
+    const sourcePresets = presetsSchema.parse(buildPendingPresets(sourceCatalogSchema.parse(catalog)));
+    const entries = importPresetCompositionCsv(compositionCsv, sourcePresets, tricotProfile);
     expect(entries).toHaveLength(42);
     expect(entries.reduce((sum, e) => sum + e.presetProducts.length, 0)).toBe(88);
-    for (const entry of entries) {
+    const shownEntries = entries.filter(isShown);
+    for (const entry of shownEntries) {
       const preset = masters.find((p) => p.sourceModel === entry.sourceModel);
       expect(preset?.presetProducts).toEqual(entry.presetProducts);
       expect(entry.basinPositions).toEqual(
@@ -136,7 +142,7 @@ describe("Tricot source preparation", () => {
         drawers: m.drawerValues,
         hasSink: m.hasSink,
       })) ?? [];
-    expect(validatePresetHandoff(masters, entries, modules)).toEqual([]);
+    expect(validatePresetHandoff(masters, shownEntries, modules)).toEqual([]);
   });
 
   it("rejects missing recipes, repeated positions, unsupported choices and mixed drawer groups", () => {
@@ -161,7 +167,7 @@ describe("Tricot source preparation", () => {
     expect(() => importPresetCompositionCsv(csv([row, second]), [first], tricotProfile)).toThrow("Mixed drawer groups");
   });
 
-  it("loads the approved partial scene bindings and 592/593 matrices while preserving staging", async () => {
+  it("loads the approved partial scene bindings and 592/593 matrices, and opens with configurator 9", async () => {
     const documents: Record<string, unknown> = {
       "manifest.json": manifest,
       "presets.json": presets,
@@ -172,7 +178,7 @@ describe("Tricot source preparation", () => {
       "runtime-bindings.json": runtimeBindings,
     };
     const remote = {
-      loadConfigurator: vi.fn(),
+      loadConfigurator: vi.fn(async () => configurator9Fixture),
       loadCabinetTable: vi.fn(async () => cabinetFixture),
       loadCountertopTable: vi.fn(async () => countertopFixture),
     };
@@ -187,7 +193,7 @@ describe("Tricot source preparation", () => {
     if (!resolution.ok) throw new Error("Tricot must resolve");
     const data = await loadResolvedCollection(resolution, dependencies, new AbortController().signal);
     expect(data.id).toBe("tricot");
-    expect(data.catalog.presets).toHaveLength(42);
+    expect(data.catalog.presets).toHaveLength(41);
     expect(data.catalog.sourceCatalog).toEqual(catalog);
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
       "Sink-Base": "Tricot-sink-cabinet",
@@ -208,11 +214,10 @@ describe("Tricot source preparation", () => {
       "countertop",
       "summary",
     ]);
-    expect(isReadyCollectionData(data)).toBe(false);
-    expect(
-      isReadyCollectionData({ ...data, catalog: { ...data.catalog, configurator: { groups: [], groupsByName: {} } } }),
-    ).toBe(false);
-    expect(remote.loadConfigurator).not.toHaveBeenCalled();
+    // Not staged, and configurator 9 lets the collection open; Tricot's own colours stay in its profile.
+    expect(data.manifest.availability).toBeUndefined();
+    expect(isReadyCollectionData(data)).toBe(true);
+    expect(remote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 9 }), expect.any(AbortSignal));
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(592, expect.any(AbortSignal));
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(593, expect.any(AbortSignal));
     expect(data.catalog.productProfile?.countertopRules).toHaveLength(12);
@@ -249,18 +254,17 @@ describe("Tricot source preparation", () => {
     );
   });
 
-  it("rejects premature activation and mismatched API identities", async () => {
+  it("rejects a pending model without staging and a configurator its profile does not name", async () => {
     const resolution = resolveCollection({ registry, urlCollectionId: "tricot" });
     if (!resolution.ok) throw new Error("Tricot must resolve");
     const documents: Record<string, unknown> = {
-      "presets.json": presets,
       "source-catalog.json": catalog,
       "ui.json": ui,
       "product-profile.json": profile,
       "sku-profile.json": skuProfile,
       "runtime-bindings.json": runtimeBindings,
     };
-    const check = (changedManifest: unknown) =>
+    const check = (changedManifest: unknown, changedPresets: unknown = presets) =>
       loadResolvedCollection(
         resolution,
         {
@@ -268,7 +272,11 @@ describe("Tricot source preparation", () => {
           collectionsRootUrl: root,
           registry,
           fetchJson: async (url) =>
-            url.endsWith("manifest.json") ? changedManifest : documents[url.replace(root + "tricot/", "")],
+            url.endsWith("manifest.json")
+              ? changedManifest
+              : url.endsWith("presets.json")
+                ? changedPresets
+                : documents[url.replace(root + "tricot/", "")],
           remote: {
             loadConfigurator: async () => configuratorFixture,
             loadCabinetTable: vi.fn(async () => cabinetFixture),
@@ -277,7 +285,12 @@ describe("Tricot source preparation", () => {
         },
         new AbortController().signal,
       );
-    await expect(check({ ...manifest, availability: undefined })).rejects.toThrow("Pending presets require");
+    // A model still waiting for its picture needs a staged collection.
+    const pendingImage = [
+      { ...presets[0], img: "", availability: { status: "pending-image", reason: "The thumbnail returned HTTP 404." } },
+      ...presets.slice(1),
+    ];
+    await expect(check(manifest, pendingImage)).rejects.toThrow("Pending presets require");
     await expect(check({ ...manifest, remote: { configurator: { id: 4 } } })).rejects.toThrow(
       "source identities disagree",
     );

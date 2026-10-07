@@ -3,16 +3,6 @@
   "label": "Tricot",
   "defaults": {},
   "requireSourceAgreement": true,
-  "availability": {
-    "status": "staged",
-    "dependencies": [
-      "3D team: remaining Tricot pattern, side-panel and countertop/basin runtime contracts",
-      "3D team: exact material assets/aliases for Noce Canaletto 933, Rovere Oro 932 and Rovere Termocotto 931",
-      "Image owner: broken public thumbnail for Tricot 79 2DW 1_70",
-      "Pricing integration: verify shared GB countertop/basin component mappings and pricing",
-      "API owner: configurator catalog identity and swatch metadata, if a remote catalog is used"
-    ]
-  },
   "local": {
     "sourceCatalog": "source-catalog.json",
     "presets": "presets.json",
@@ -22,6 +12,11 @@
     "runtimeBindings": "runtime-bindings.json"
   },
   "remote": {
+    "configurator": {
+      "id": 9,
+      "view": "full",
+      "serialize": true
+    },
     "cabinetTable": {
       "id": 592
     },

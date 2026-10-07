@@ -1145,46 +1145,6 @@
     "style": ["2_drawer", "double_basin"]
   },
   {
-    "id": 3979591210,
-    "sourceModel": "Tricot 79 2DW 1_70",
-    "title": "Tricot Vanity · 79'' 2-Drawer 1",
-    "img": "",
-    "isProductModel": true,
-    "presetProducts": [
-      {
-        "name": "Sink-Base",
-        "Width": 120,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "2",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "No",
-        "CountertopColor": "Matte White",
-        "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 80,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "2",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "No",
-        "CountertopColor": "Matte White"
-      }
-    ],
-    "size": "70_79",
-    "style": ["2_drawer", "single_basin", "asymmetrical"],
-    "availability": {
-      "status": "pending-image",
-      "reason": "The exact public 2D thumbnail returned HTTP 404. Delivered composition is retained; no substitute image is used."
-    }
-  },
-  {
     "id": 3108480620,
     "sourceModel": "Tricot 87 1DW_80",
     "title": "Tricot Vanity · 87'' 1-Drawer",
