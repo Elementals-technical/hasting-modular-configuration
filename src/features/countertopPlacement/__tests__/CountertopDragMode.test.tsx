@@ -14,6 +14,11 @@ import {
   metresToDisplayInches,
   resolveCountertopLengthLimitsIn,
 } from "../lib/countertopLength";
+import {
+  COUNTERTOP_LAYOUT_INTRO_STORAGE_KEY,
+  getCountertopLayoutIntroSeen,
+  setCountertopLayoutIntroSeen,
+} from "../lib/countertopLayoutIntroStorage";
 import type { CountertopApi, CountertopState } from "../lib/countertopSession";
 import { buildCountertopPositionItems, isCountertopSettingsMode } from "../lib/positionMenuItems";
 import {
@@ -87,7 +92,10 @@ const frameOf = (overrides: Partial<CountertopOverlayFrame> = {}): CountertopOve
   ...overrides,
 });
 
-const fixture = ({ overlay = true }: { overlay?: boolean } = {}) => {
+const fixture = ({ overlay = true, introSeen = true }: { overlay?: boolean; introSeen?: boolean } = {}) => {
+  // The flows below start past the layout intro; the intro tests opt out.
+  sessionStorage.removeItem(COUNTERTOP_LAYOUT_INTRO_STORAGE_KEY);
+  if (introSeen) setCountertopLayoutIntroSeen();
   let current = structuredClone(base);
   const api = {
     getState: vi.fn(() => structuredClone(current)),
@@ -337,6 +345,75 @@ describe("CountertopDragMode", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
     expect(f.bridge.setCountertopOverlayActive).not.toHaveBeenCalled();
+  });
+});
+
+describe("CountertopDragMode layout intro", () => {
+  const INTRO = { name: "Customize Your Countertop Layout" };
+  const requestDragDrop = async (f: ReturnType<typeof fixture>) => {
+    await waitFor(() =>
+      expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ available: true })),
+    );
+    act(() => f.ref.current!.enter());
+  };
+  const introClosed = () => waitFor(() => expect(screen.queryByRole("dialog", INTRO)).toBeNull());
+
+  it("opens the intro before the first entry, and Continue marks it seen and enters", async () => {
+    const f = fixture({ introSeen: false });
+    await requestDragDrop(f);
+    expect((await screen.findByRole("dialog", INTRO)).textContent).toContain("enter Drag & Drop mode");
+    expect(screen.queryByRole("button", { name: "Show example 1" })).toBeNull();
+    expect(f.api.setDragEnabled).not.toHaveBeenCalled();
+    expect(f.onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ active: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(getCountertopLayoutIntroSeen()).toBe(true);
+    await waitFor(() => expect(f.api.setDragEnabled).toHaveBeenCalledWith(true));
+    await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: true })));
+    await introClosed();
+  });
+
+  it("enters straight away on the next Drag & Drop of the session", async () => {
+    const f = fixture({ introSeen: false });
+    await requestDragDrop(f);
+    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+    await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: true })));
+    await introClosed();
+    act(() => f.ref.current!.standard());
+    await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
+    await requestDragDrop(f);
+    await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: true })));
+    expect(screen.queryByRole("dialog", INTRO)).toBeNull();
+    expect(f.api.setDragEnabled.mock.calls.filter(([enabled]) => enabled)).toHaveLength(2);
+  });
+
+  it.each([
+    ["×", "Close"],
+    ["the backdrop", "Overlay"],
+  ])("closes on %s without entering or marking it seen, so the next entry asks again", async (_, control) => {
+    const f = fixture({ introSeen: false });
+    await requestDragDrop(f);
+    fireEvent.click(await screen.findByRole("button", { name: control }));
+    await introClosed();
+    expect(f.api.setDragEnabled).not.toHaveBeenCalled();
+    expect(f.onStatusChange).not.toHaveBeenCalledWith(expect.objectContaining({ active: true }));
+    expect(getCountertopLayoutIntroSeen()).toBe(false);
+    act(() => f.ref.current!.enter());
+    expect(await screen.findByRole("dialog", INTRO)).toBeTruthy();
+  });
+
+  it("still enters on Continue when the host blocks session storage", async () => {
+    const f = fixture({ introSeen: false });
+    const blocked = vi.spyOn(window, "sessionStorage", "get").mockImplementation(() => {
+      throw new DOMException("Storage is blocked", "SecurityError");
+    });
+    try {
+      await requestDragDrop(f);
+      fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+      await waitFor(() => expect(f.api.setDragEnabled).toHaveBeenCalledWith(true));
+      expect(getCountertopLayoutIntroSeen()).toBe(false);
+    } finally {
+      blocked.mockRestore();
+    }
   });
 });
 
