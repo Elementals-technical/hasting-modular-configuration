@@ -1,6 +1,7 @@
 import { useLocation, useSearchParams } from "react-router-dom";
 
 import { getActiveProductProfile } from "@/entities/configuration";
+import { getConfiguratorProductElement } from "@/entities/configurator/lib/configuratorGroupKind";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
 import { setCountertopColorSku } from "@/entities/product/model/store/slice";
 import {
@@ -43,13 +44,15 @@ const ColorSectionField = ({
 
   const orderSwatches = () => {
     const configuratorSection = selectConfiguratorSection(profile, definition.attributeId);
+    // The swatch order knows a group by its element ("Select Countertop Color" -> "Countertop Color").
+    const productElement = configuratorSection ? getConfiguratorProductElement(configuratorSection) : null;
 
     trackModularOrderFreeSwatchesClick({
       cta_location: section.sectionId.replace(/-/g, "_"),
       configurator_flow: flowId,
-      product_element: configuratorSection ?? section.label,
+      product_element: productElement ?? section.label,
     });
-    dispatch(openSwatchOrder(configuratorSection ?? undefined));
+    dispatch(openSwatchOrder(productElement ?? undefined));
   };
 
   // The countertop rules and price tell a colour two materials list (an MT lacquer, as Tekorlux and as

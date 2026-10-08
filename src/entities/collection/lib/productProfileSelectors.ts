@@ -1,4 +1,5 @@
 import { interpolateMessage, type MessageParams } from "@/shared/lib/reasonText";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import type {
   OptionCapabilities,
   ProductProfile,
@@ -17,10 +18,41 @@ export const selectAttribute = (profile: ProductProfile | null, attributeId: str
 
 const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
 
+/** A configurator source: the group an attribute's options come from, and the one option of it when it has several. */
+export type ConfiguratorSource = { group: string; option?: string };
+
+/**
+ * Reads `configurator:<group>[/<option>]`: "configurator:Select Cabinet Colors/Base Panel" is the Base Panel option
+ * of that group. The first "/" ends the group name. Null for a source that is not a configurator group.
+ */
+export const parseConfiguratorSource = (source: string | null | undefined): ConfiguratorSource | null => {
+  if (!source?.startsWith(CONFIGURATOR_SOURCE_PREFIX)) return null;
+  const reference = source.slice(CONFIGURATOR_SOURCE_PREFIX.length);
+  const separator = reference.indexOf("/");
+  const group = separator === -1 ? reference : reference.slice(0, separator);
+  const option = separator === -1 ? "" : reference.slice(separator + 1);
+  if (!group) return null;
+  return option ? { group, option } : { group };
+};
+
 /** The configurator section an attribute's options come from ("configurator:Cabinet Color" -> "Cabinet Color"). */
-export const selectConfiguratorSection = (profile: ProductProfile | null, attributeId: string): string | null => {
-  const source = selectAttribute(profile, attributeId)?.optionsSource;
-  return source?.startsWith(CONFIGURATOR_SOURCE_PREFIX) ? source.slice(CONFIGURATOR_SOURCE_PREFIX.length) : null;
+export const selectConfiguratorSection = (profile: ProductProfile | null, attributeId: string): string | null =>
+  parseConfiguratorSource(selectAttribute(profile, attributeId)?.optionsSource)?.group ?? null;
+
+/**
+ * The configurator group an attribute's options come from, narrowed to the option its source names
+ * ("configurator:Select Cabinet Colors/Base Panel"). Undefined without a source, a configurator, the group or the option.
+ */
+export const selectConfiguratorGroup = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  configurator: { groups: readonly ConfiguratorAvailableOption[] } | null | undefined,
+): ConfiguratorAvailableOption | undefined => {
+  const source = parseConfiguratorSource(selectAttribute(profile, attributeId)?.optionsSource);
+  const group = source ? configurator?.groups.find(({ proxyName }) => proxyName === source.group) : undefined;
+  if (!group || !source?.option) return group;
+  const options = group.options.filter(({ name }) => name === source.option);
+  return options.length > 0 ? { ...group, options } : undefined;
 };
 
 /** Catalog of an attribute in profile order. Empty when the collection does not declare it. */

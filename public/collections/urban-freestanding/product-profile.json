@@ -7,17 +7,17 @@
   "provenance": {
     "source": "analysis/products-data/Urban Freestanding/docs/options-matrix/UFS-OPTIONS-MATRIX.csv, URBAN-FREESTANDING-PRODUCT-MAP-UA.md, OLEG-NEW-COLLECTIONS-OPTIONS-RU.md",
     "auditedAt": "2026-10-06",
-    "warning": "Values the documents confirm or inherit from Urban Standard Height (\"same as USH\"). defaults and sourceRefs are Urban Standard Height's by team decision (2026-10-06) until GEN-MAT-02 and the collection's own configurator and tables exist. Open questions are listed in excludedFromThisProfile."
+    "warning": "Values the documents confirm or inherit from Urban Standard Height (\"same as USH\"). sourceRefs are the collection's own: configurator 11 and tables 591/590. defaults are Urban Standard Height's by team decision (2026-10-06) until GEN-MAT-02, except the countertop: configurator 11 offers no Cacao Orinoco FF MT top, so it starts on Urban Duplex's pair, Pulpis Chiaro TKH on Top_HPLStrip (2026-10-09). Open questions are listed in excludedFromThisProfile."
   },
   "sourceRefs": {
-    "configuratorId": 4,
+    "configuratorId": 11,
     "countertopMatrixTableId": 591,
     "cabinetMatrixTableId": 590
   },
   "defaults": {
     "CabinetColor": "Pulpis Chiaro TKH",
-    "CountertopColor": "Cacao Orinoco FF MT",
-    "sinkType": "Top_Tekorlux_Rectangular",
+    "CountertopColor": "Pulpis Chiaro TKH",
+    "sinkType": "Top_HPLStrip",
     "CountertopStyle": "integrated",
     "SidePanelLeft": "none",
     "SidePanelRight": "none",
@@ -109,13 +109,13 @@
     {
       "attributeId": "CabinetColor",
       "scope": "global",
-      "optionsSource": "configurator:Cabinet Color"
+      "optionsSource": "configurator:Select Cabinet Color"
     },
     {
       "attributeId": "HandleGrooveColor",
       "scope": "cabinet",
       "resetValue": "None",
-      "optionsSource": "configurator:Handle Groove Color"
+      "optionsSource": "configurator:Select Handle Groove Color"
     },
     {
       "attributeId": "DrawerPanelFluting",
@@ -183,12 +183,12 @@
     {
       "attributeId": "CountertopColor",
       "scope": "countertop",
-      "optionsSource": "configurator:Countertop Color"
+      "optionsSource": "configurator:Select Countertop Color"
     },
     {
       "attributeId": "VesselColor",
       "scope": "basin",
-      "optionsSource": "configurator:Vessels"
+      "optionsSource": "configurator:Select Vessel Color"
     },
     {
       "attributeId": "sinkType",
@@ -378,7 +378,7 @@
     {
       "attributeId": "TowelBarColor",
       "scope": "global",
-      "optionsSource": "configurator:Towel Bar Color"
+      "optionsSource": "configurator:Select Towel Bar Color"
     },
     {
       "attributeId": "FaucetHolesAmount",

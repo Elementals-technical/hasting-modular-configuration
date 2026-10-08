@@ -1,6 +1,6 @@
 # Tricot: відкриті питання після часткової runtime-інтеграції
 
-Уже інтегровано: реальні типи Tricot-sink-cabinet / Tricot-side-cabinet, сантиметри, режими 1D / 2D / 1DWID, 20 точних matte lacquer assets для CabinetColor і HandleGrooveColor, а з експорту v44 — Cabinet Pattern (`CabinetPattern`). Рецепти, дефолти, 592/593 і погоджені правила панелей повторно запитувати не потрібно.
+Уже інтегровано: реальні типи Tricot-sink-cabinet / Tricot-side-cabinet, сантиметри, режими 1D / 2D / 1DWID, 20 точних matte lacquer assets для CabinetColor і HandleGrooveColor, з експорту v44 — Cabinet Pattern (`CabinetPattern`), з Render Admin — власний material configurator 12. Рецепти, дефолти, 592/593 і погоджені правила панелей повторно запитувати не потрібно.
 
 ## Від 3D/PlayCanvas-розробника
 
@@ -13,7 +13,7 @@
 
 ## Від API / pricing-власника
 
-5. **Swatches/metadata:** точні ресурси погоджених палітр. Якщо використовується remote configurator catalog — підтверджений ID. Не копіюємо ID Mako/Urban для обходу readiness gate.
+5. **Swatches/metadata — отримано: configurator 12 (`modular-config-phase-2-materials-(tricot)`), повторно не запитувати.** Його палітри збігаються зі списками профілю: 23 кольори кабінету, 20 пазу, 71 стільниці (група vessel на 40 кольорів профілем поки не використовується). Профіль лишає свої списки як allowlist і бере з 12 hex, SKU та картинки; manifest і `sourceRefs.configuratorId` вказують 12.
 6. **GB pricing:** підтвердити countertop/basin SKU mappings, thickness tokens, quantities та приклади цін. 593 уже підключено як таблицю сумісності, але це не повний ціновий контракт. Кабінетні SKU та CAB-суфікс панелі повторного погодження не потребують.
 
 ## Уже обіцяний файл

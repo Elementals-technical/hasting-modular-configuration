@@ -47,6 +47,7 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import {
   hasCapability,
@@ -197,7 +198,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   };
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = configuratorGroups.filter((group) => group.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((group) => getConfiguratorGroupKind(group.proxyName) === "countertop");
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {

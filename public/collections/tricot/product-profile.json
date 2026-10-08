@@ -9,7 +9,7 @@
     "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies."
   },
   "sourceRefs": {
-    "configuratorId": 9,
+    "configuratorId": 12,
     "countertopMatrixTableId": 593,
     "cabinetMatrixTableId": 592
   },
@@ -123,6 +123,7 @@
     {
       "attributeId": "CabinetColor",
       "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color",
       "options": [
         {
           "value": "Grigio Argento 403 MT",
@@ -324,6 +325,7 @@
     {
       "attributeId": "HandleGrooveColor",
       "scope": "cabinet",
+      "optionsSource": "configurator:Select Handle Groove Color",
       "options": [
         {
           "value": "Grigio Argento 403 MT",
@@ -491,6 +493,7 @@
     {
       "attributeId": "CountertopColor",
       "scope": "countertop",
+      "optionsSource": "configurator:Select Countertop Color",
       "options": [
         {
           "value": "Matte White",

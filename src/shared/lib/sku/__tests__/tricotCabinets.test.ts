@@ -58,7 +58,7 @@ describe("Tricot custom cabinets and pricing", () => {
       },
     ]);
     expect(tricotProfile.sourceRefs).toEqual({
-      configuratorId: 9,
+      configuratorId: 12,
       cabinetMatrixTableId: 592,
       countertopMatrixTableId: 593,
     });

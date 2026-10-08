@@ -63,7 +63,9 @@ export {
   isKnownOption,
   isVesselBasin,
   normalizeOptionValue,
+  parseConfiguratorSource,
   selectAttribute,
+  selectConfiguratorGroup,
   selectConfiguratorSection,
   selectDefaultValue,
   selectEffectiveFallback,
@@ -80,7 +82,7 @@ export {
   selectMaterialHierarchy,
   selectRuleData,
 } from "./lib/productProfileSelectors";
-export type { MessageParams } from "./lib/productProfileSelectors";
+export type { ConfiguratorSource, MessageParams } from "./lib/productProfileSelectors";
 
 export {
   isHandleAllowedForDrawers,

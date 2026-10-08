@@ -88,6 +88,7 @@ import {
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useIsSinkBase } from "@/entities/configuration";
+import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
@@ -986,7 +987,7 @@ export const PlayCanvasIntegration = ({
   );
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = configuratorGroups.filter((g) => g.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((g) => getConfiguratorGroupKind(g.proxyName) === "countertop");
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {

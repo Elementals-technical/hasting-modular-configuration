@@ -65,10 +65,20 @@ public/collections/registry.json
 | ULH | `urban-low-height` | 4 | 438 | 580 | 59 | 53 | немає; pricing unsupported |
 | Class | `class` | 9 | 578 | 579 | 44 | 0 | `sku-profile.json`, partial |
 | Mako | `mako` | 9 | 577 | 581 | 42 | 42 | `sku-profile.json`, partial |
+| Urban Freestanding | `urban-freestanding` | 11 | 591 | 590 | 54 | 54 | `sku-profile.json`, partial |
+| Tricot | `tricot` | 12 | 593 | 592 | 41 | 41 | `sku-profile.json`, partial |
+| Urban Duplex | `urban-duplex` | 13 | 595 | 594 | 71 | 66 | `sku-profile.json`, partial |
+| Lame | `lame` | 14 | 597 | 596 | 43 | 43 | `sku-profile.json`, partial |
 
 USH і ULH ділять один configurator і одну countertop table, але не cabinet table, product profile,
 UI чи runtime bindings. Class і Mako ділять configurator 9, проте мають окремі cabinet/countertop
 tables та різну семантику сцени. Спільний remote id не означає успадкування правил.
+
+Urban Freestanding, Tricot, Urban Duplex і Lame мають власні material configurators 11–14
+(`modular-config-phase-2-materials-(…)`), лише з кольорами своєї колекції. Групи там звуться
+`Select … Color`, а не як у configurator 4 (`Cabinet Color`, `Vessels`); код, якому потрібен вид групи
+(столешниця, towel bar, swatch order, Summary), визначає його через
+`src/entities/configurator/lib/configuratorGroupKind.ts`, а не за іменем.
 
 ## Ролі файлів collection package
 
@@ -90,7 +100,10 @@ tables та різну семантику сцени. Спільний remote id
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
 - Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`.
-- `optionsSource: configurator:*` точно збігається з `proxyName` remote configurator group.
+- `optionsSource: configurator:<group>` точно збігається з `proxyName` remote configurator group;
+  `configurator:<group>/<option>` бере лише одну option цієї групи (Urban Duplex:
+  `Select Cabinet Colors/Base Panel` і `…/Lateral Panel`). Якщо attribute має ще й власні `options`
+  (Tricot), вони лишаються allowlist: configurator додає до них hex, SKU і картинки, але не нові кольори.
 - Новий preset має валідний image path і, якщо він повинен будувати сцену, непорожній `presetProducts`.
 - Pricing не позичає SKU series іншого продукту.
 - `collectionId` зберігається у всіх route links, save metadata та restore URL.

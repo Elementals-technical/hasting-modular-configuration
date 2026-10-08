@@ -10,7 +10,7 @@ import skuProfile from "../../../../public/collections/tricot/sku-profile.json";
 import runtimeBindings from "../../../../public/collections/tricot/runtime-bindings.json";
 import masterText from "../../../../public/collections/tricot/sources/master.tsv?raw";
 import configuratorFixture from "./fixtures/remote/configurator-4.json";
-import configurator9Fixture from "./fixtures/remote/configurator-9.json";
+import configurator12Fixture from "./fixtures/remote/configurator-12.json";
 import cabinetFixture from "./fixtures/remote/datatable-592.json";
 import countertopFixture from "./fixtures/remote/datatable-593.json";
 import compositionCsv from "../../../../public/collections/tricot/sources/preset-compositions.csv?raw";
@@ -22,7 +22,7 @@ import { loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
 import { validatePresetHandoff } from "../lib/validatePresetHandoff";
 import { presetsSchema, sourceCatalogSchema } from "../model/schemas";
-import { isReadyCollectionData, type CollectionRuntimeDependencies } from "../model/types";
+import { isReadyCollectionData, type CollectionRuntimeDependencies, type RemoteCollectionLoader } from "../model/types";
 
 const root = "https://app.test/collections/";
 const masters = presetsSchema.parse(presets);
@@ -167,7 +167,7 @@ describe("Tricot source preparation", () => {
     expect(() => importPresetCompositionCsv(csv([row, second]), [first], tricotProfile)).toThrow("Mixed drawer groups");
   });
 
-  it("loads the approved partial scene bindings and 592/593 matrices, and opens with configurator 9", async () => {
+  it("loads the approved partial scene bindings and 592/593 matrices, and opens with its own configurator 12", async () => {
     const documents: Record<string, unknown> = {
       "manifest.json": manifest,
       "presets.json": presets,
@@ -178,7 +178,10 @@ describe("Tricot source preparation", () => {
       "runtime-bindings.json": runtimeBindings,
     };
     const remote = {
-      loadConfigurator: vi.fn(async () => configurator9Fixture),
+      loadConfigurator: vi.fn<RemoteCollectionLoader["loadConfigurator"]>(async (reference) => {
+        if (reference?.id === 12) return configurator12Fixture;
+        throw new Error(`Unexpected configurator: ${reference?.id}`);
+      }),
       loadCabinetTable: vi.fn(async () => cabinetFixture),
       loadCountertopTable: vi.fn(async () => countertopFixture),
     };
@@ -214,10 +217,10 @@ describe("Tricot source preparation", () => {
       "countertop",
       "summary",
     ]);
-    // Not staged, and configurator 9 lets the collection open; Tricot's own colours stay in its profile.
+    // Not staged, and its own configurator 12 lets the collection open; the profile keeps its colour lists.
     expect(data.manifest.availability).toBeUndefined();
     expect(isReadyCollectionData(data)).toBe(true);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 9 }), expect.any(AbortSignal));
+    expect(remote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 12 }), expect.any(AbortSignal));
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(592, expect.any(AbortSignal));
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(593, expect.any(AbortSignal));
     expect(data.catalog.productProfile?.countertopRules).toHaveLength(12);

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import {
+  tricotConfigurator,
   tricotProfile,
   tricotSkuProfile,
   tricotTestBindings,
@@ -153,8 +154,21 @@ describe("Tricot finishes through fields, commands and runtime", () => {
   });
 
   it("offers closed source palettes and restricts broader external catalogs without discarding metadata", () => {
-    expect(resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {})[0].field.options).toHaveLength(23);
-    expect(resolveSectionFields(tricotUi, "groove-color", tricotProfile, {}, {})[0].field.options).toHaveLength(20);
+    const cabinetColors = resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {}, tricotConfigurator)[0]
+      .field.options;
+    expect(cabinetColors).toHaveLength(23);
+    expect(
+      resolveSectionFields(tricotUi, "groove-color", tricotProfile, {}, {}, tricotConfigurator)[0].field.options,
+    ).toHaveLength(20);
+    // Configurator 12 gives the profile's colours the hex and SKU its lists do not carry.
+    expect(cabinetColors.find(({ value }) => value === "Nero 433 MT")).toMatchObject({
+      desc: "Lacquered MT",
+      traits: { sku: "LACM", hex: "#1f1f20" },
+    });
+    expect(cabinetColors.find(({ value }) => value === "Rovere Oro 932")).toMatchObject({
+      desc: "Wood Veneer",
+      traits: { sku: "WDV" },
+    });
     const profile = {
       ...tricotProfile,
       attributes: tricotProfile.attributes.map((attribute) =>

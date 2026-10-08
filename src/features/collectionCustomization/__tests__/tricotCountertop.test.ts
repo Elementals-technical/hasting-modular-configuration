@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { normalizeOptionValue, selectOptions } from "@/entities/collection";
 import {
+  tricotConfigurator,
   tricotProfile,
   tricotMatrixProfile,
   tricotTestBindings,
@@ -122,7 +123,8 @@ describe("Tricot countertop preparation", () => {
   });
 
   it("offers precisely the source materials and ten basins, with no assumed thickness defaults", () => {
-    const colors = resolveSectionFields(tricotUi, "countertop-color", tricotProfile, {}, {})[0].field.options;
+    const colors = resolveSectionFields(tricotUi, "countertop-color", tricotProfile, {}, {}, tricotConfigurator)[0]
+      .field.options;
     expect(colors).toHaveLength(71);
     expect(
       Object.fromEntries(

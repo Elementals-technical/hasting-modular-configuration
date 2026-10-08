@@ -1,4 +1,11 @@
-import { normalizeOptionValue, selectAttribute, selectOptions, selectResetValue } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  selectAttribute,
+  selectConfiguratorGroup,
+  selectConfiguratorSection,
+  selectOptions,
+  selectResetValue,
+} from "@/entities/collection";
 
 import { buildConfiguratorOptions } from "./buildConfiguratorOptions";
 
@@ -56,16 +63,14 @@ const resolveFieldAvailability = (
   return results[availabilityRef] ?? { available: true };
 };
 
-const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
-
-// An optionsRef field takes the configurator section its profile attribute names in optionsSource.
+// An optionsRef field takes the configurator section its profile attribute names in optionsSource,
+// or the one option of it the source names.
 export const resolveConfiguratorOptions = (
   profile: ProductProfile | null,
   attributeId: string,
   configurator: ConfiguratorGroupCatalog | null,
 ): FieldOptionState[] => {
   const attribute = selectAttribute(profile, attributeId);
-  const source = attribute?.optionsSource;
   const localOptions = () =>
     selectOptions(profile, attributeId).map(({ value, label, category }) => ({
       value,
@@ -74,11 +79,11 @@ export const resolveConfiguratorOptions = (
       desc: category,
       traits: category ? { materials: [category] } : undefined,
     }));
-  if (!source?.startsWith(CONFIGURATOR_SOURCE_PREFIX)) return localOptions();
+  if (!selectConfiguratorSection(profile, attributeId)) return localOptions();
   if (!configurator) return [];
 
   const resetValue = selectResetValue(profile, attributeId);
-  const external = buildConfiguratorOptions(configurator.groupsByName[source.slice(CONFIGURATOR_SOURCE_PREFIX.length)]);
+  const external = buildConfiguratorOptions(selectConfiguratorGroup(profile, attributeId, configurator));
   const options = attribute?.options
     ? external.flatMap((option) => {
         const canonical = normalizeOptionValue(profile, attributeId, option.value);
