@@ -119,3 +119,5 @@ docs/*
 !docs/products/*.md
 
 iphone-safari-debugging
+
+.mcp.json
