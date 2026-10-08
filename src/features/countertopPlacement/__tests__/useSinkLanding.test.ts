@@ -47,7 +47,7 @@ const setup = (moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => recei
   act(() => setCountertopRuntimeState(state()));
   act(() => setCountertopRuntimeState(state({ dragging: true })));
   act(() => setCountertopRuntimeState(state({ dragging: true, offset: { x: 0.7, y: 0.2 } })));
-  const land = () =>
+  const land = async () => {
     act(() => {
       setCountertopRuntimeState(
         state({
@@ -60,8 +60,13 @@ const setup = (moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => recei
         landing: { status: "fits", cabinetId: "ULH-side-cabinet-b", fromCabinetId: "ULH-sink-cabinet-a", reason: null, snapDxM: -0.05 },
       });
     });
+    await flush();
+  };
   return { api, client, onCommitted, hook, land };
 };
+
+// Lets the commit chain (moveSink -> getCabinetsState -> onCommitted / revert) settle.
+const flush = () => act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
 
 afterEach(() => {
   setCountertopRuntimeState(null);
@@ -69,64 +74,82 @@ afterEach(() => {
 });
 
 describe("useSinkLanding", () => {
-  it("asks on a 'fits' landing, commits moveSink(from, to) and syncs with the new ids", async () => {
+  it("commits a 'fits' landing right away: moveSink(from, to), then syncs with the new sink host", async () => {
     const { client, onCommitted, hook, land, api } = setup();
-    land();
-    expect(hook.result.current.prompt).toEqual({ cabinetId: "ULH-side-cabinet-b", fromCabinetId: "ULH-sink-cabinet-a" });
-
-    await act(() => hook.result.current.confirm());
+    await land();
 
     expect(client.moveSink).toHaveBeenCalledWith("ULH-sink-cabinet-a", "ULH-side-cabinet-b");
     expect(client.getCabinetsState).toHaveBeenCalledOnce();
     expect(onCommitted).toHaveBeenCalledWith({ ...cabinets, selectedCabinetId: "ULH-sink-cabinet-n2" }, receipt);
     expect(api.setOffset).not.toHaveBeenCalled();
-    expect(hook.result.current.prompt).toBeNull();
+    expect(hook.result.current.message).toBeNull();
   });
 
-  it("declines by putting the top back at the drag-start pose", async () => {
-    const { client, hook, land, api } = setup();
-    land();
-    await act(() => hook.result.current.decline());
-    // A second decision (e.g. the popup's close after Confirm) is ignored.
-    await act(() => hook.result.current.confirm());
-
-    expect(api.setOffset).toHaveBeenCalledWith({ x: 0.1, y: 0 });
-    expect(client.moveSink).not.toHaveBeenCalled();
-    expect(hook.result.current.prompt).toBeNull();
-  });
-
-  it("retries STALE_COMPOSITION once, then reverts the pose and reports a failed commit", async () => {
+  it("puts the top back at the drag-start pose and reports a failed commit", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const moveSink = vi
-      .fn()
-      .mockRejectedValueOnce(new ConfiguratorError("STALE_COMPOSITION", "stale", { retryable: true }))
-      .mockRejectedValueOnce(new ConfiguratorError("NOT_SIDE_CABINET", "no", { retryable: false }));
+    const moveSink = vi.fn().mockRejectedValue(new ConfiguratorError("NOT_SIDE_CABINET", "no", { retryable: false }));
     const { onCommitted, hook, land, api } = setup(moveSink);
-    land();
-    await act(() => hook.result.current.confirm());
+    await land();
 
-    expect(moveSink).toHaveBeenCalledTimes(2);
+    expect(moveSink).toHaveBeenCalledOnce();
     expect(onCommitted).not.toHaveBeenCalled();
     expect(api.setOffset).toHaveBeenCalledWith({ x: 0.1, y: 0 });
+    expect(api.resetOffset).not.toHaveBeenCalled();
     expect(hook.result.current.message).toBe("The sink could not be moved.");
   });
 
   it("falls back to resetOffset when the drag-start pose cannot be restored", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const { hook, land, api } = setup();
+    const moveSink = vi.fn().mockRejectedValue(new ConfiguratorError("NOT_SIDE_CABINET", "no", { retryable: false }));
+    const { hook, land, api } = setup(moveSink);
     vi.mocked(api.setOffset).mockRejectedValueOnce(new ConfiguratorError("COUNTERTOP_VERTICAL_LOCKED", "locked", { retryable: false }));
-    land();
-    await act(() => hook.result.current.decline());
+    await land();
 
     expect(api.setOffset).toHaveBeenCalledWith({ x: 0.1, y: 0 });
     expect(api.resetOffset).toHaveBeenCalledOnce();
-    expect(hook.result.current.message).toBeNull();
+    expect(hook.result.current.message).toBe("The sink could not be moved.");
   });
 
-  it("closes the prompt when the pending landing goes away by itself", () => {
-    const { hook, land } = setup();
-    land();
-    act(() => setCountertopRuntimeState(state({ offset: { x: 0.3, y: 0.2 } })));
-    expect(hook.result.current.prompt).toBeNull();
+  it("retries STALE_COMPOSITION once", async () => {
+    const moveSink = vi
+      .fn()
+      .mockRejectedValueOnce(new ConfiguratorError("STALE_COMPOSITION", "stale", { retryable: true }))
+      .mockResolvedValueOnce(receipt);
+    const { onCommitted, land, api } = setup(moveSink);
+    await land();
+
+    expect(moveSink).toHaveBeenCalledTimes(2);
+    expect(onCommitted).toHaveBeenCalledOnce();
+    expect(api.setOffset).not.toHaveBeenCalled();
+  });
+
+  it("does not start a second moveSink while a commit runs; a landing that waited (stale ids) resets the top", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const releases: Array<() => void> = [];
+    const moveSink = vi.fn(async () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise<void>((resolve) => releases.push(resolve));
+      inFlight -= 1;
+      return receipt;
+    });
+    const { onCommitted, hook, land, api } = setup(moveSink);
+    await land();
+    await land();
+    await land();
+    expect(moveSink).toHaveBeenCalledOnce();
+
+    releases[0]();
+    await flush();
+
+    expect(moveSink).toHaveBeenCalledOnce();
+    expect(maxInFlight).toBe(1);
+    expect(onCommitted).toHaveBeenCalledOnce();
+    expect(api.resetOffset).toHaveBeenCalledOnce();
+    expect(api.setOffset).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledOnce();
+    expect(hook.result.current.message).toBeNull();
   });
 });

@@ -112,15 +112,15 @@ import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useScen
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
-import { useCountertopVerticalLock } from "@/features/countertopPlacement/lib/useCountertopVerticalLock";
+import { useCountertopMovementMode } from "@/features/countertopPlacement/lib/useCountertopMovementMode";
 import {
   CountertopDragMode,
   type CountertopDragModeHandle,
   type CountertopDragStatus,
 } from "@/features/countertopPlacement/ui/CountertopDragMode";
-import { isSinkAutoConfirmMode, useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
-import { CountertopVerticalLockNotice } from "@/features/countertopPlacement/ui/CountertopVerticalLockNotice";
-import { SinkLandingDialog } from "@/features/countertopPlacement/ui/SinkLandingDialog";
+import { useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
+import { CountertopModeNotice } from "@/features/countertopPlacement/ui/CountertopModeNotice";
+import { SinkLandingMessage } from "@/features/countertopPlacement/ui/SinkLandingMessage";
 import {
   buildCountertopPositionItems,
   isCountertopSettingsMode,
@@ -547,7 +547,8 @@ export const PlayCanvasIntegration = ({
       setCountertopRuntimeState(null);
     };
   }, [countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
-  useCountertopVerticalLock(getCountertopApi, isPlayCanvasReady);
+  const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
+  const countertopMovementMode = countertopMovement.mode;
   useEffect(() => {
     if (!isPlayCanvasReady || countertopPlacementStatus.editing) return;
     let disposed = false;
@@ -584,7 +585,7 @@ export const PlayCanvasIntegration = ({
     },
     [composition, dispatch, runtimeBindings],
   );
-  // SB <-> SC sink move: a 'fits' landing asks, Confirm commits cabinets.moveSink and syncs like a placement.
+  // SB <-> SC sink move: every 'fits' landing commits cabinets.moveSink right away and syncs like a placement.
   const sinkLanding = useSinkLanding({
     // `supported`: CountertopDragMode discovered the countertop API, so `getApi()` is not null.
     ready: isPlayCanvasReady && cabinetPlacementDebugEnabled && countertopDragStatus.supported,
@@ -594,7 +595,6 @@ export const PlayCanvasIntegration = ({
       // The sink move replaced the composition under an open Drag & Drop session: keep the result, close it.
       countertopDragRef.current?.apply();
     },
-    autoConfirm: isSinkAutoConfirmMode(location.search),
   });
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
@@ -3480,16 +3480,20 @@ export const PlayCanvasIntegration = ({
       setDropdownState((current) => ({ ...current, visible: false }));
       setCountertopPopoverState((current) => ({ ...current, visible: false }));
     };
-    const positionItems = buildCountertopPositionItems(countertopDragStatus, {
-      onStandard: () => {
-        closeCountertopMenus();
-        countertopDragRef.current?.standard();
+    const positionItems = buildCountertopPositionItems(
+      countertopDragStatus,
+      {
+        onStandard: () => {
+          closeCountertopMenus();
+          countertopDragRef.current?.standard();
+        },
+        onDragDrop: () => {
+          closeCountertopMenus();
+          countertopDragRef.current?.enter();
+        },
       },
-      onDragDrop: () => {
-        closeCountertopMenus();
-        countertopDragRef.current?.enter();
-      },
-    });
+      countertopMovementMode,
+    );
     const placementItems: DropdownItem[] = countertopSettingsMode && countertopPlacementStatus.supported
       ? [
           {
@@ -3591,6 +3595,7 @@ export const PlayCanvasIntegration = ({
   }, [
     countertopPlacementStatus,
     countertopDragStatus,
+    countertopMovementMode,
     countertopSettingsMode,
     isPrebuilt,
     handleOpenBasinStyle,
@@ -3674,22 +3679,17 @@ export const PlayCanvasIntegration = ({
         />
       )}
 
-      {/* Outside Drag & Drop (the D&D toolbar shows its own): a lifted top that became 4″. */}
-      {cabinetPlacementDebugEnabled && !countertopDragStatus.active && (
-        <CountertopVerticalLockNotice
-          getApi={getCountertopApi}
+      {/* Movement mode by thickness: a short notice on every switch (and its auto-correction). */}
+      {cabinetPlacementDebugEnabled && (
+        <CountertopModeNotice
+          notice={countertopMovement.notice}
+          onDismiss={countertopMovement.dismissNotice}
           style={{ position: "absolute", top: 24, right: 24, zIndex: 26 }}
         />
       )}
 
       {cabinetPlacementDebugEnabled && (
-        <SinkLandingDialog
-          prompt={sinkLanding.prompt}
-          message={sinkLanding.message}
-          onConfirm={sinkLanding.confirm}
-          onDecline={sinkLanding.decline}
-          onDismissMessage={sinkLanding.dismissMessage}
-        />
+        <SinkLandingMessage message={sinkLanding.message} onDismiss={sinkLanding.dismissMessage} />
       )}
 
       {cabinetPlacementDebugEnabled && countertopSettingsMode && (

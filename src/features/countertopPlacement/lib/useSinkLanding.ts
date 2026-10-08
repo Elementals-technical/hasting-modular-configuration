@@ -17,16 +17,12 @@ type Options = {
   getApi: () => CountertopApi | null;
   /** Same UI sync as a committed placement (`adoptCommittedCabinetComposition`). */
   onCommitted: (state: CabinetsState, receipt: CabinetMoveSinkReceipt) => void | Promise<void>;
-  /** Test builds: commit every 'fits' landing without asking. */
-  autoConfirm?: boolean;
   createClient?: () => SinkLandingClient;
 };
 
-export type SinkLandingPrompt = CountertopSinkPending;
 type Pose = { x: number; y: number };
-
-/** `?autoMoveSink`: commit 'fits' sink landings without the dialog (test builds). */
-export const isSinkAutoConfirmMode = (search: string) => new URLSearchParams(search).has("autoMoveSink");
+/** A 'fits' landing and the pose the top had when its drag started (where a failed commit puts it back). */
+type Landing = { pending: CountertopSinkPending; before: Pose | null };
 
 const errorCode = (error: unknown) =>
   typeof error === "object" && error !== null && typeof (error as { code?: unknown }).code === "string"
@@ -34,17 +30,15 @@ const errorCode = (error: unknown) =>
     : null;
 
 /**
- * SB <-> SC sink move (phase 1 §6d): a 'fits' `sink-landing` action asks the user; Confirm commits
- * `cabinets.moveSink` and syncs the UI, Decline (or a failed commit) puts the top back where the drag
- * started. Every closed prompt is a decision, so `sink.pending` never stays set by the UI.
+ * SB <-> SC sink move (phase 1 §6d): every 'fits' `sink-landing` action commits `cabinets.moveSink` right away
+ * (the SC under the sink becomes the SB, the old SB becomes an SC) and syncs the UI. A failed commit puts the
+ * top back where the drag started, so `sink.pending` never stays set by the UI. One commit runs at a time.
  */
-export const useSinkLanding = ({ ready, getApi, onCommitted, autoConfirm = false, createClient }: Options) => {
-  const [prompt, setPrompt] = useState<SinkLandingPrompt | null>(null);
-  const [busy, setBusy] = useState(false);
+export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Options) => {
   const [message, setMessage] = useState<string | null>(null);
   const poseBeforeRef = useRef<Pose | null>(null);
-  const promptRef = useRef<SinkLandingPrompt | null>(null);
-  const seenPendingRef = useRef(false);
+  const runningRef = useRef(false);
+  const nextRef = useRef<Landing | null>(null);
   const clientRef = useRef<SinkLandingClient | null>(null);
   const createClientRef = useRef(createClient ?? createConfiguratorClient);
   const onCommittedRef = useRef(onCommitted);
@@ -61,15 +55,10 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, autoConfirm = false
       const dragging = next?.dragging === true;
       if (dragging && !wasDragging && next) poseBeforeRef.current = { x: next.offset?.x ?? 0, y: next.offset?.y ?? 0 };
       wasDragging = dragging;
-      // The landing went away by itself (the top moved again, a reset, a reload): nothing to decide.
-      // The action may arrive before the state that carries `pending`, so only a pending seen and then gone counts.
-      if (!promptRef.current) seenPendingRef.current = false;
-      else if (next?.sink?.pending) seenPendingRef.current = true;
-      else if (seenPendingRef.current) close();
     });
   }, []);
 
-  // After unmount no new client is created (a late decision would otherwise leak one).
+  // After unmount no new client is created (a late commit would otherwise leak one).
   const unmountedRef = useRef(false);
   const client = () => (unmountedRef.current ? null : (clientRef.current ??= createClientRef.current()));
   useEffect(() => {
@@ -81,15 +70,9 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, autoConfirm = false
     };
   }, []);
 
-  const close = () => {
-    promptRef.current = null;
-    setPrompt(null);
-  };
-
-  const revert = useCallback(async () => {
+  const revert = useCallback(async (before: Pose | null) => {
     const api = getApiRef.current();
     if (!api) return;
-    const before = poseBeforeRef.current;
     if (before) {
       try {
         await api.setOffset({ ...before });
@@ -107,59 +90,67 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, autoConfirm = false
     }
   }, []);
 
-  const commit = useCallback(async (pending: SinkLandingPrompt) => {
-    const sinkClient = client();
-    if (!sinkClient) return;
-    const move = () => sinkClient.moveSink(pending.fromCabinetId, pending.cabinetId);
-    let receipt: CabinetMoveSinkReceipt;
-    try {
+  const commit = useCallback(
+    async ({ pending, before }: Landing) => {
+      const sinkClient = client();
+      if (!sinkClient) return;
+      const move = () => sinkClient.moveSink(pending.fromCabinetId, pending.cabinetId);
+      let receipt: CabinetMoveSinkReceipt;
       try {
-        receipt = await move();
+        try {
+          receipt = await move();
+        } catch (error) {
+          // STALE_COMPOSITION: the client re-reads the revision on the retry.
+          if (errorCode(error) !== "STALE_COMPOSITION") throw error;
+          receipt = await move();
+        }
       } catch (error) {
-        // STALE_COMPOSITION: the client re-reads the revision on the retry.
-        if (errorCode(error) !== "STALE_COMPOSITION") throw error;
-        receipt = await move();
+        console.warn("[sink-landing] moveSink failed", errorCode(error), error);
+        setMessage("The sink could not be moved.");
+        await revert(before);
+        return;
       }
-    } catch (error) {
-      console.warn("[sink-landing] moveSink failed", errorCode(error), error);
-      setMessage("The sink could not be moved.");
-      await revert();
-      return;
-    }
-    try {
-      const state = await sinkClient.getCabinetsState();
-      await onCommittedRef.current({ ...state, selectedCabinetId: receipt.sinkHostId ?? state.selectedCabinetId }, receipt);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "The sink moved; UI synchronisation failed.");
-    }
-  }, [revert]);
-
-  /** First decision wins; the prompt closes with it. */
-  const decide = useCallback(
-    async (choice: "confirm" | "decline") => {
-      const pending = promptRef.current;
-      if (!pending) return;
-      close();
-      setBusy(true);
       try {
-        await (choice === "confirm" ? commit(pending) : revert());
+        const state = await sinkClient.getCabinetsState();
+        await onCommittedRef.current({ ...state, selectedCabinetId: receipt.sinkHostId ?? state.selectedCabinetId }, receipt);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "The sink moved; UI synchronisation failed.");
+      }
+    },
+    [revert],
+  );
+
+  /**
+   * One commit at a time. A landing that arrives during a commit is not committed: its ids are from before
+   * moveSink (which issues new ones), so the top goes back to Standard instead and `sink.pending` clears.
+   */
+  const run = useCallback(
+    async (landing: Landing) => {
+      nextRef.current = landing;
+      if (runningRef.current) return;
+      runningRef.current = true;
+      try {
+        nextRef.current = null;
+        await commit(landing);
+        while (nextRef.current) {
+          nextRef.current = null;
+          console.warn("[sink-landing] a landing arrived during a commit; its ids are stale, resetting the offset");
+          await revert(null);
+        }
       } finally {
-        poseBeforeRef.current = null;
-        setBusy(false);
+        runningRef.current = false;
       }
     },
     [commit, revert],
   );
 
-  // The scene went away with the prompt open: nothing to revert, just close it.
+  // The scene went away: drop a waiting landing and the drag-start pose (nothing to revert).
   useEffect(() => {
-    if (ready || !promptRef.current) return;
+    if (ready) return;
+    nextRef.current = null;
     poseBeforeRef.current = null;
-    close();
   }, [ready]);
 
-  const autoConfirmRef = useRef(autoConfirm);
-  autoConfirmRef.current = autoConfirm;
   useEffect(() => {
     if (!ready) return undefined;
     const api = getApi();
@@ -168,20 +159,12 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, autoConfirm = false
       if (action?.type !== "sink-landing" || action.landing.status !== "fits") return;
       const { cabinetId, fromCabinetId } = action.landing;
       if (!cabinetId || !fromCabinetId) return;
-      promptRef.current = { cabinetId, fromCabinetId };
-      seenPendingRef.current = Boolean(getCountertopRuntimeState()?.sink?.pending);
+      const before = poseBeforeRef.current;
+      poseBeforeRef.current = null;
       setMessage(null);
-      if (autoConfirmRef.current) void decide("confirm");
-      else setPrompt(promptRef.current);
+      void run({ pending: { cabinetId, fromCabinetId }, before });
     });
-  }, [ready, getApi, decide]);
+  }, [ready, getApi, run]);
 
-  return {
-    prompt,
-    busy,
-    message,
-    confirm: () => decide("confirm"),
-    decline: () => decide("decline"),
-    dismissMessage: () => setMessage(null),
-  };
+  return { message, dismissMessage: () => setMessage(null) };
 };

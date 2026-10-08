@@ -27,7 +27,6 @@ import {
   type CountertopState,
 } from "../lib/countertopSession";
 import { CountertopDragOverlay } from "./CountertopDragOverlay";
-import { CountertopVerticalLockNotice } from "./CountertopVerticalLockNotice";
 
 import s from "./CountertopDragMode.module.scss";
 
@@ -391,7 +390,6 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
             </button>
           </div>
         )}
-        <CountertopVerticalLockNotice getApi={getApi} disabled={pending} />
         {error && (
           <p className={s.message} role="alert">
             {error}

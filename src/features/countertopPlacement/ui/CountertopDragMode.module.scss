@@ -225,3 +225,32 @@ button.chip {
     right: 16px;
   }
 }
+
+// Movement-mode notice (absolute; positioned by the host).
+.modeNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 320px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 4px #0002;
+}
+
+.modeNoticeText {
+  margin: 0;
+  color: $ink;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.modeNoticeClose {
+  border: none;
+  background: none;
+  padding: 0;
+  color: $ink;
+  font-size: 16px;
+  line-height: 16px;
+  cursor: pointer;
+}
