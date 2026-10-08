@@ -345,10 +345,12 @@ describe("partial production collection packages", () => {
       expect(style.includes("asymmetrical")).toBe(layout.join() !== [...layout].reverse().join());
     }
     expect(data.catalog.productProfile?.collectionId).toBe("urban-freestanding");
-    // Both drawer cabinets have their UF scene product (I); the open shelves have none yet.
+    // Every cabinet type has its UF scene product (I), the open shelves included.
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
       "Sink-Base": "UF-sink-cabinet",
       "Sink-Cabinet": "UF-side-cabinet",
+      "Open-Shelf": "UF-open-shelves",
+      "Side-Shelf": "UF-open-shelves-side",
     });
     // Priced from its own SKU words (D04), not the USH cabinet mappings.
     expect(data.catalog.skuProfile?.collectionId).toBe("urban-freestanding");
@@ -371,8 +373,17 @@ describe("partial production collection packages", () => {
       // Two drawers only, so the Central Groove needs no drawers rule.
       requiresDrawersByHandle: {},
     };
-    // The table has the open shelves of the price list, but the scene has no UF shelf yet, so their
-    // cards stay hidden (unplacedProductTypes).
+    // The open shelves of the price list, with no drawers or handles and so no forced height: the open
+    // shelf at the height of the cabinets beside it (91 or 88), the open side shelf at 88 only.
+    const shelf = {
+      depths: [50, 46],
+      drawers: [],
+      isOpen: true,
+      hasSink: false,
+      handlesAllowed: [],
+      forcedHeightByHandle: {},
+      requiresDrawersByHandle: {},
+    };
     expect(data.sources.remote.cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
       "Sink-Base",
       "Sink-Cabinet",
@@ -393,6 +404,22 @@ describe("partial production collection packages", () => {
         hasSink: false,
         sceneProductType: "UF-side-cabinet",
         ...common,
+      }),
+      expect.objectContaining({
+        code: "Open-Shelf",
+        widths: [25, 35, 50],
+        heights: [88, 91],
+        supportsHeight: [88, 91],
+        sceneProductType: "UF-open-shelves",
+        ...shelf,
+      }),
+      expect.objectContaining({
+        code: "Side-Shelf",
+        widths: [15],
+        heights: [88],
+        supportsHeight: [88],
+        sceneProductType: "UF-open-shelves-side",
+        ...shelf,
       }),
     ]);
     // The countertops of the Master File as table 438 has them, thin only and at the cabinet depths:

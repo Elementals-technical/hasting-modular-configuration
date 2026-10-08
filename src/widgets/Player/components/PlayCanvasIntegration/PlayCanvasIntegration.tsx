@@ -152,7 +152,7 @@ import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/e
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
-import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
 import { useChangeAttribute, useChangeDimension } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
@@ -704,15 +704,18 @@ export const PlayCanvasIntegration = ({
       selectedSceneProduct ||
       "";
 
-    // Strip trailing random suffix (e.g. "Open-Shelf-abc123" → "Open-Shelf")
+    // The catalog names the cabinet type of a scene product ("UF-open-shelves" → "Open-Shelf");
+    // otherwise strip trailing random suffix (e.g. "Open-Shelf-abc123" → "Open-Shelf")
+    const placedType = findPlacedCabinetRule(cabinetCatalog, raw)?.code.toLowerCase();
     const lastDash = raw.lastIndexOf("-");
     const baseType =
-      lastDash > 0 && raw.slice(lastDash + 1).length >= 6 ? raw.slice(0, lastDash).toLowerCase() : raw.toLowerCase();
+      placedType ??
+      (lastDash > 0 && raw.slice(lastDash + 1).length >= 6 ? raw.slice(0, lastDash).toLowerCase() : raw.toLowerCase());
 
     const openShelfTypes = ["open-shelf", "side-shelf", "os", "oss"];
 
     return !openShelfTypes.includes(baseType);
-  }, [selectedProductConfig, selectedSceneProduct]);
+  }, [cabinetCatalog, selectedProductConfig, selectedSceneProduct]);
 
   const resolveQuickEditorAutoSelectTarget = useCallback(() => {
     const orderedIds = getOrderedProductIds(productIds);
@@ -1210,12 +1213,10 @@ export const PlayCanvasIntegration = ({
     (productType: string | null) => {
       if (!productType) return null;
 
-      const normalized = productType.toLowerCase();
-      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
-
-      return match?.code ?? null;
+      // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
+      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
     },
-    [cabinetCatalog.typeCabinetRules],
+    [cabinetCatalog],
   );
 
   const showDropdownForEntity = useCallback(

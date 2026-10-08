@@ -3,11 +3,9 @@
   "collectionId": "urban-freestanding",
   "productTypes": {
     "Sink-Base": "UF-sink-cabinet",
-    "Sink-Cabinet": "UF-side-cabinet"
-  },
-  "unplacedProductTypes": {
-    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open shelf yet. Its row is in the cabinet table, at the heights the docs propose until UFS-SIZ-02. Move it to productTypes once the scene has it, and its card comes back.",
-    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Freestanding open side shelf yet. Its row is in the cabinet table, at the height the docs propose until UFS-SIZ-02. Move it to productTypes once the scene has it, and its card comes back."
+    "Sink-Cabinet": "UF-side-cabinet",
+    "Open-Shelf": "UF-open-shelves",
+    "Side-Shelf": "UF-open-shelves-side"
   },
   "bindings": [
     {
@@ -34,7 +32,7 @@
         "sceneKey": "Height"
       },
       "order": 30,
-      "note": "Number in cm, plinth included: 91 for Upper and Central Groove, 88 for Push-to-Open (cabinet table). The UF rules lay out two drawers at 82 (no grooves) and 88 (grooves) only: at 91 they do nothing, so the cabinet keeps its template shape, and 88 shows grooves. Not translated: the player and the scene state reader take the height back from the scene config (I04), so a scene number would replace the catalog height in state and pricing. Waits for the scene to take 88 and 91."
+      "note": "Number in cm, plinth included: 91 for Upper and Central Groove, 88 for Push-to-Open (cabinet table), and the open shelves at the height of the cabinets beside them. The UF rules lay out 50, 53, 82 and 88 only, for the drawer cabinets (grooves at 88, none at 82) and the open shelves (RuleHeightUFOpenShelves, RuleHeightUFOpenShelvesSide) alike: at 91 they do nothing, so every UF product keeps its 88 cm template shape, and 88 shows grooves. Not translated: the player and the scene state reader take the height back from the scene config (I04), so a scene number would replace the catalog height in state and pricing. Waits for the scene to take 88 and 91."
     },
     {
       "attributeId": "Width",
@@ -47,7 +45,7 @@
         "sceneKey": "Width"
       },
       "order": 30,
-      "note": "Number in cm, set on one cabinet. RuleWidthCabinetUrbanFreestanding takes 25, 35, 40, 50, 60, 70, 80, 90, 100, 105 and 120, every width of the cabinet table."
+      "note": "Number in cm, set on one cabinet. RuleWidthCabinetUrbanFreestanding takes 25, 35, 40, 50, 60, 70, 80, 90, 100, 105 and 120, every width of the cabinet table; RuleWidthUFOpenShelves takes the same widths without 40, which covers the open shelf's 25, 35 and 50. The open side shelf has no width rule and stays 15 cm."
     },
     {
       "attributeId": "Depth",
@@ -60,7 +58,7 @@
         "sceneKey": "Depth"
       },
       "order": 30,
-      "note": "Number in cm, one depth for the composition. RuleDepthCabinetUrbanFreestanding lays out 45 and 50 only; the cabinet table lists 46 (price list), which the scene leaves at the 50 cm geometry until it takes 46. Not translated, for the reason given for Height."
+      "note": "Number in cm, one depth for the composition. The UF depth rules of the drawer cabinets and the open shelves lay out 45 and 50 only, and the shared UF leg is drawn only while every UF product has the same depth, 45 or 50. The cabinet table lists 46 (price list): the scene leaves the products at the 50 cm geometry and removes the leg (console \"[UFBaseboard] unsupported-depth\") until it takes 46. Not translated, for the reason given for Height."
     },
     {
       "attributeId": "Drawers",
@@ -90,7 +88,7 @@
         "sceneKey": "CabinetColor"
       },
       "order": 50,
-      "note": "The PlayCanvas material name, as in Urban Standard Height. No UF rule paints it yet: the global RuleChangeCabinetColor paints Urban Standard Height mesh names, none of which UF_Cabinet has, so the UF cabinets keep their template material until the scene paints them."
+      "note": "The PlayCanvas material name, as in Urban Standard Height. RuleMaterialsCabinetUrbanFreestanding paints the drawer cabinets, RuleMaterialsUFOpenShelves and RuleMaterialsUFOpenShelvesSide the open shelves, and the shared UF leg takes the color of the first UF product of the composition. \"None\" or \"\" paints nothing, so the template material stays."
     },
     {
       "attributeId": "CountertopColor",
@@ -163,8 +161,17 @@
     },
     {
       "attributeId": "HandleGrooveColor",
-      "status": "state-only",
-      "reason": "Offered as in Urban Standard Height (excludedFromThisProfile.handleGrooveColor), but the UF scene products have no material rule yet: the global RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded for the price (HDL), not sent, so a value carried over from state does not stop a preset."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "HandleGrooveColor",
+        "emptyValue": "None"
+      },
+      "order": 50,
+      "note": "Offered as in Urban Standard Height (excludedFromThisProfile.handleGrooveColor) and sent as it sends it: \"\" means cleared. RuleMaterialsHandleUrbanFreestanding paints the grooves of UF-sink-cabinet and UF-side-cabinet, in CabinetColor on \"None\". The open shelves have no groove: they keep the key, and no rule reads it."
     },
     {
       "attributeId": "FaucetHolesAmount",

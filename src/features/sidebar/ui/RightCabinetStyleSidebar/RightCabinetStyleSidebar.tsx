@@ -48,10 +48,17 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
-import { hasCapability, selectEffectiveFallback, selectOptions, useActiveCollection } from "@/entities/collection";
+import {
+  hasCapability,
+  resolveCabinetTypeOfRuntimeId,
+  selectEffectiveFallback,
+  selectOptions,
+  useActiveCollection,
+} from "@/entities/collection";
 import { useOptionImages } from "@/features/collectionCustomization";
 import {
   getActiveProductProfile,
+  getActiveRuntimeBindings,
   getCabinetDimensionsByRuntimeId,
   getCabinetEntries,
 } from "@/entities/configuration/model/store/selectors";
@@ -92,6 +99,7 @@ interface PendingDepthChange {
 export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
+  const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const optionImages = useOptionImages();
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
@@ -467,11 +475,14 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const handleSetHandleType = async (handleType: string) => {
     const previousHandle = selectedProductConfig?.Handle as string | undefined;
+    // A scene id names the scene type ("UF-open-shelves-side-…"), which need not contain the cabinet type.
+    const isSideShelf = (id: string) =>
+      resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, id) === "Side-Shelf";
 
     if (typeof heightLocked === "number") {
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
       if (option?.disabled && option.reasonCode === REASON_HANDLE_HEIGHT_LOCKED) {
-        const ossIdsForLock = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
+        const ossIdsForLock = selectedProducts.filter(isSideShelf);
         const leavingNonGroove =
           !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
           hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
@@ -493,7 +504,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const isSwitchingAwayFromPto =
       !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
       hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
-    const ossIds = selectedProducts.filter((id) => id.toLowerCase().includes("side-shelf"));
+    const ossIds = selectedProducts.filter(isSideShelf);
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
       setPendingOssHandleChange({ next: handleType, ossIds });
       return;
