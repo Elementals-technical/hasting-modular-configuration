@@ -94,24 +94,101 @@ describe("Tricot delivered runtime bindings", () => {
   });
 
   it.each(["Noce Canaletto 933", "Rovere Oro 932", "Rovere Termocotto 931"])(
-    "keeps missing wood asset %s pending without substituting another wood",
+    "keeps missing wood asset %s pending: placed without a color, never substituted by another wood",
     (value) => {
       expect(patch("CabinetColor", value)).toMatchObject({
         ok: false,
         reason: "unbound",
         detail: expect.stringContaining("wood-veneer"),
       });
-      expect(findProductConfigBindingErrors(bindings, { CabinetColor: value })).toHaveLength(1);
+      expect(findProductConfigBindingErrors(bindings, { CabinetColor: value })).toEqual([]);
+      expect(resolveProductConfig(bindings, { CabinetColor: value, Width: 60 })).toEqual({ Width: 60 });
     },
   );
 
-  it.each(["DrawerPanelFluting", "SidePanels", "CountertopColor", "Thickness", "sinkType", "CountertopStyle"])(
-    "does not call missing visual %s state-only",
-    (id) => {
-      expect(patch(id, "anything")).toMatchObject({ ok: false, reason: "unbound", detail: expect.any(String) });
-      expect(findProductConfigBindingErrors(bindings, { [id]: "anything" })).toHaveLength(1);
-    },
-  );
+  it.each([
+    ["Loden", "Loden"],
+    ["Cannette", "Cannette"],
+    ["Twill", "Twill"],
+    ["Gessato", "Gessatto"],
+    ["Satin", "Satin"],
+  ])("sends pattern %s to its own cabinet as the scene's CabinetPattern %s and reads it back", (semantic, scene) => {
+    expect(patch("DrawerPanelFluting", semantic)).toMatchObject({
+      ok: true,
+      target: { kind: "product" },
+      patch: { CabinetPattern: scene },
+    });
+    expect(resolveProductConfig(bindings, { DrawerPanelFluting: semantic })).toEqual({ CabinetPattern: scene });
+    expect(normalizeOptionValue(tricotProfile, "DrawerPanelFluting", scene)).toBe(semantic);
+    expect(findProductConfigBindingErrors(bindings, { CabinetPattern: scene })).toEqual([]);
+  });
+
+  it("keeps each pattern spelling under its own key", () => {
+    expect(findProductConfigBindingErrors(bindings, { CabinetPattern: "Gessato" })).toHaveLength(1);
+    expect(findProductConfigBindingErrors(bindings, { DrawerPanelFluting: "Gessatto" })).toHaveLength(1);
+  });
+
+  it("sends exactly the patterns the delivered export accepts on both products", () => {
+    const accepted = bundle.match(/valuesCabinetPattern=\[([^\]]*)\]/)?.[1];
+    const binding = bindings.bindings.find((b) => b.attributeId === "DrawerPanelFluting");
+    if (!accepted || binding?.status !== "bound" || binding.values.kind !== "map") throw new Error("Missing pattern");
+    expect(new Set(Object.values(binding.values.patches).map((scenePatch) => scenePatch.CabinetPattern))).toEqual(
+      new Set(JSON.parse(`[${accepted}]`)),
+    );
+    for (const type of Object.values(bindings.productTypes)) {
+      const registration = bundle.match(new RegExp(`registerProduct\\("${type}".*?defaultConfig:\\{[^}]*\\}`))?.[0];
+      expect(registration, type).toContain("{rule:RulePatternCabinetTricot,priority:70}");
+    }
+  });
+
+  it.each([
+    "SidePanels",
+    "CountertopColor",
+    "Thickness",
+    "sinkType",
+    "CountertopStyle",
+    "GrainDirection",
+    "VesselColor",
+  ])("keeps missing visual %s unbound, not state-only: never sent, and a cabinet is placed without it", (id) => {
+    expect(patch(id, "anything")).toMatchObject({ ok: false, reason: "unbound", detail: expect.any(String) });
+    expect(findProductConfigBindingErrors(bindings, { [id]: "anything" })).toEqual([]);
+    expect(resolveProductConfig(bindings, { [id]: "anything" })).toEqual({});
+  });
+
+  it("passes the keys the scene writes into every product it places", () => {
+    const sceneOwned = {
+      category: "cabinets",
+      topDrawerType: "Top",
+      TopDrawerDividers: { zones: {} },
+      BotDrawerDividers: { zones: {} },
+      positionX: 0.6005,
+      positionY: 0,
+      positionZ: 0,
+    };
+    expect(findProductConfigBindingErrors(bindings, sceneOwned)).toEqual([]);
+    expect(resolveProductConfig(bindings, sceneOwned)).toEqual(sceneOwned);
+  });
+
+  it("reads the export's own color back from a cabinet placed while its wood is pending", () => {
+    const sceneDefault = "Antracite Matte OCF";
+    expect(patch("CabinetColor", sceneDefault)).toMatchObject({ ok: false, reason: "unbound" });
+    expect(findProductConfigBindingErrors(bindings, { CabinetColor: sceneDefault })).toEqual([]);
+    expect(resolveProductConfig(bindings, { CabinetColor: sceneDefault, Width: 60 })).toEqual({ Width: 60 });
+    expect(normalizeOptionValue(tricotProfile, "CabinetColor", sceneDefault)).toBeNull();
+    // The summary shows the chosen wood, not the color the scene keeps in its place.
+    expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Rovere Oro 932")).toBe("Rovere Oro 932");
+    expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Zafferano 412 MT")).toBe(sceneDefault);
+    for (const type of Object.values(bindings.productTypes)) {
+      const registration = bundle.match(new RegExp(`registerProduct\\("${type}".*?defaultConfig:\\{[^}]*\\}`))?.[0];
+      expect(registration, type).toContain(`CabinetColor:"${sceneDefault}"`);
+    }
+  });
+
+  it("still blocks an invalid value among pending ones", () => {
+    expect(
+      findProductConfigBindingErrors(bindings, { CabinetColor: "Rovere Oro 932", sinkType: "LB440", Height: 52 }),
+    ).toEqual(['No approved scene translation for Height "52".']);
+  });
 
   it("does not expand matte catalogs from the developer's gloss example or change preset defaults", () => {
     expect(patch("HandleGrooveColor", "Acqua 419 Lacquered GL")).toMatchObject({ ok: false });

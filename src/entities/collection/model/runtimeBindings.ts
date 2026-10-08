@@ -57,7 +57,11 @@ export type IdentityValues = {
 export type MappedValues = {
   kind: "map";
   patches: Record<string, ScenePatch>;
-  /** Catalog values whose scene assets/contracts have not been delivered. Never sent. */
+  /**
+   * Values without a delivered scene asset or contract, each with its reason: catalog values (a
+   * wood whose material is missing), or the scene's own value read back in their place. Never
+   * sent: a product is placed without them, and a command for one is unsupported.
+   */
   unboundValues?: Record<string, string>;
 };
 
@@ -102,7 +106,11 @@ export type RuntimeBinding = BoundRuntimeBinding | UnboundRuntimeBinding | State
 export type RuntimeBindingSet = {
   schemaVersion: number;
   collectionId: string;
-  /** Opt-in: reject incomplete product configs before placement/restore, instead of silently dropping keys. */
+  /**
+   * Opt-in: before placement/restore, reject a product config holding a value the collection cannot
+   * translate (an unknown value, a key without a binding) instead of sending it as it is. A pending
+   * (unbound) value does not stop placement: the product is placed without it.
+   */
   strictProductConfig?: boolean;
   /**
    * CabinetType value -> runtime product type the scene places, e.g. "Side-Cabinet" is

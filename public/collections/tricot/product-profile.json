@@ -6,7 +6,7 @@
     "source": "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
     "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
     "status": "source-backed preparation; partial approved runtime handoff integrated",
-    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound; pattern/panels/countertop/basins and wood assets remain explicit dependencies."
+    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies."
   },
   "sourceRefs": {
     "configuratorId": 9,
@@ -310,7 +310,8 @@
         {
           "value": "Gessato",
           "label": "Gessato",
-          "order": 3
+          "order": 3,
+          "aliases": ["Gessatto"]
         },
         {
           "value": "Satin",

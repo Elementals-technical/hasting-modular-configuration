@@ -22,7 +22,10 @@ export const tricotUi = uiResult.schema;
 
 const runtimeResult = parseRuntimeBindings(runtimeDocument);
 if (!runtimeResult.ok) throw new Error(JSON.stringify(runtimeResult.diagnostics));
-/** Production partial handoff. Unlike the test port below, unsupported visual choices are blocked. */
+/**
+ * Production partial handoff. Unlike the test port below, invalid values are blocked; pending ones
+ * are placed without, and their commands are unsupported.
+ */
 export const tricotRuntimeBindings = runtimeResult.bindings;
 
 /** Test port only: these product types/keys are NOT claimed to exist in the production scene. */

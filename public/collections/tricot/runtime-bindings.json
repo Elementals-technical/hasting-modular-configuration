@@ -166,11 +166,12 @@
         "unboundValues": {
           "Noce Canaletto 933": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
           "Rovere Oro 932": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Rovere Termocotto 931": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood."
+          "Rovere Termocotto 931": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
+          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig while a wood is pending and the cabinet was placed without a color. Accepted on readback, never sent."
         }
       },
       "order": 50,
-      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export; wood remains pending."
+      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export. A wood is pending (user decision, 2026-10-08): the cabinet is placed without a color and the scene shows its default Antracite Matte OCF, while the state and the price keep the wood; a wood command stays unsupported."
     },
     {
       "attributeId": "HandleGrooveColor",
@@ -247,14 +248,38 @@
       "note": "Per-cabinet groove material, exact asset names. The approved UI contains matte lacquer only; the example GL material does not expand the product catalog."
     },
     {
+      "attributeId": "DrawerPanelFluting",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "Loden": {
+            "CabinetPattern": "Loden"
+          },
+          "Cannette": {
+            "CabinetPattern": "Cannette"
+          },
+          "Twill": {
+            "CabinetPattern": "Twill"
+          },
+          "Gessato": {
+            "CabinetPattern": "Gessatto"
+          },
+          "Satin": {
+            "CabinetPattern": "Satin"
+          }
+        }
+      },
+      "order": 70,
+      "note": "Per-module Cabinet Pattern (handoff). Export v44 reads CabinetPattern on both Tricot products (RulePatternCabinetTricot, priority 70) and spells Gessato as Gessatto. Satin, the scene default, shows no pattern; approved defaults are still sent, not replaced by it. The scene does not check the material: Loden on matte lacquer and the other four on wood veneer is the profile's rule (ruleData.fluting). getConfig reads the key back; the profile alias maps Gessatto to Gessato."
+    },
+    {
       "attributeId": "CabinetType",
       "status": "unbound",
       "reason": "Selected through product placement, not setConfig; productTypes contains the approved Tricot identifiers."
-    },
-    {
-      "attributeId": "DrawerPanelFluting",
-      "status": "unbound",
-      "reason": "The delivered Tricot products register no pattern rule. Need scene key, accepted pattern values and readback; do not pretend the pattern is state-only."
     },
     {
       "attributeId": "SidePanels",
