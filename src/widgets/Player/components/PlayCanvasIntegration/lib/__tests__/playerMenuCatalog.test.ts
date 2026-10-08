@@ -74,6 +74,13 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
+  it("hides Open for Class, as its ui.json asks, and keeps it for Mako", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      expect(supportOf("class", flowId).items.has("open")).toBe(false);
+      expect(supportOf("mako", flowId).items.has("open")).toBe(true);
+    }
+  });
+
   it("leaves out the countertop style and the vessel of Tricot, which shows neither", () => {
     const { items } = supportOf("tricot", "custom");
 
