@@ -1,38 +1,56 @@
 import * as React from "react";
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
+import ChevronDownIcon from "@/shared/assets/images/svg/chevron-down.svg?react";
 import clsx from "clsx";
 import s from "./Accordion.module.scss";
 
-type RootProps = AccordionPrimitive.AccordionSingleProps | AccordionPrimitive.AccordionMultipleProps;
+type RootProps = AccordionPrimitive.Root.Props<string>;
 
-const Root = ({ className, ...props }: RootProps) => (
-  <AccordionPrimitive.Root {...props} className={clsx(s.Root, className)} />
-);
-
-const Item = ({ className, ...props }: AccordionPrimitive.AccordionItemProps) => (
-  <AccordionPrimitive.Item {...props} className={clsx(s.Item, className)} />
-);
-
-const Trigger = React.forwardRef<
-  React.ElementRef<typeof AccordionPrimitive.Trigger>,
-  AccordionPrimitive.AccordionTriggerProps
->(({ className, children, ...props }, ref) => (
-  <AccordionPrimitive.Header className={s.Header}>
-    <AccordionPrimitive.Trigger ref={ref} className={clsx(s.Trigger, className)} {...props}>
-      <span>{children}</span>
-      <ChevronDownIcon className={s.Chevron} aria-hidden />
-    </AccordionPrimitive.Trigger>
-  </AccordionPrimitive.Header>
+const Root = React.forwardRef<HTMLDivElement, RootProps>(({ className, ...props }, ref) => (
+  <AccordionPrimitive.Root
+    {...props}
+    ref={ref}
+    className={(state) => clsx(s.Root, typeof className === "function" ? className(state) : className)}
+  />
 ));
+Root.displayName = "Accordion.Root";
 
-const Content = React.forwardRef<
-  React.ElementRef<typeof AccordionPrimitive.Content>,
-  AccordionPrimitive.AccordionContentProps
->(({ className, children, ...props }, ref) => (
-  <AccordionPrimitive.Content ref={ref} className={clsx(s.Content, className)} {...props}>
-    <div className={s.ContentText}>{children}</div>
-  </AccordionPrimitive.Content>
+const Item = React.forwardRef<HTMLDivElement, AccordionPrimitive.Item.Props>(({ className, ...props }, ref) => (
+  <AccordionPrimitive.Item
+    {...props}
+    ref={ref}
+    className={(state) => clsx(s.Item, typeof className === "function" ? className(state) : className)}
+  />
 ));
+Item.displayName = "Accordion.Item";
+
+const Trigger = React.forwardRef<React.ElementRef<typeof AccordionPrimitive.Trigger>, AccordionPrimitive.Trigger.Props>(
+  ({ className, children, ...props }, ref) => (
+    <AccordionPrimitive.Header className={s.Header}>
+      <AccordionPrimitive.Trigger
+        {...props}
+        ref={ref}
+        className={(state) => clsx(s.Trigger, typeof className === "function" ? className(state) : className)}
+      >
+        <span>{children}</span>
+        <ChevronDownIcon className={s.Chevron} aria-hidden />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  ),
+);
+Trigger.displayName = "Accordion.Trigger";
+
+const Content = React.forwardRef<React.ElementRef<typeof AccordionPrimitive.Panel>, AccordionPrimitive.Panel.Props>(
+  ({ className, children, ...props }, ref) => (
+    <AccordionPrimitive.Panel
+      {...props}
+      ref={ref}
+      className={(state) => clsx(s.Content, typeof className === "function" ? className(state) : className)}
+    >
+      <div className={s.ContentText}>{children}</div>
+    </AccordionPrimitive.Panel>
+  ),
+);
+Content.displayName = "Accordion.Content";
 
 export const Accordion = { Root, Item, Trigger, Content };
