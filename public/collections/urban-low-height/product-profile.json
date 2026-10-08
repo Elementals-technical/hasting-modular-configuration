@@ -16,9 +16,9 @@
   },
   "defaults": {
     "CabinetColor": "Rox Black TKQ",
-    "CountertopColor": "Pietra Di Savoia Antracite TQ6",
+    "CountertopColor": "Bianco Male TFA",
     "CountertopStyle": "integrated",
-    "sinkType": "Top_Porcelain_Cover",
+    "sinkType": "Top_HPL/Fenix_Prisma_Gres",
     "TowelBarOption": "None"
   },
   "attributes": [
