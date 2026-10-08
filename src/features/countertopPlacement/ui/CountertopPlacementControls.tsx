@@ -1,5 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
+import { useReasonText } from "@/shared/lib/reasonText";
+
 import s from "./CountertopPlacementControls.module.scss";
 
 import {
@@ -35,6 +37,7 @@ const requiredMethods = [
 const sameTarget = sameCountertopTarget;
 const metres = (value: number | null | undefined) =>
   typeof value === "number" && Number.isFinite(value) ? String(Number(value.toFixed(4))) : "";
+/** Slug texts / busy / not-ready via the shared description; effects use the UI dictionary. */
 const messageOf = countertopErrorMessage;
 
 /** Countertop edits are live API writes. The snapshot provides explicit UI Apply/Cancel semantics. */
@@ -57,6 +60,7 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
     const [length, setLength] = useState("");
     const [autoLength, setAutoLength] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const reasonText = useReasonText();
     const [status, setStatus] = useState("");
     const targetCurrent =
       !snapshotRef.current ||
@@ -71,6 +75,9 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
       !editing;
     const dragging = state?.dragging === true || state?.moving === true;
     const blocked = disabled || pending || state?.readiness !== "ready" || !targetCurrent || dragging;
+    // Offset-only (4″) top: no lift from this panel either; the label keeps the tooltip on a disabled field.
+    const verticalLocked = state?.verticalLocked === true;
+    const verticalLockedText = reasonText({ code: "COUNTERTOP_VERTICAL_LOCKED" });
 
     useEffect(() => {
       mountedRef.current = true;
@@ -179,7 +186,8 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
       } catch (failure) {
         if (mountedRef.current) {
           if (!snapshotRef.current) setEditing(false);
-          setError(messageOf(failure));
+          // setOffset uses the default `guard`: POSE_INVALID arrives already reverted, with slugs.
+          setError(messageOf(failure, reasonText));
         }
       } finally {
         pendingRef.current = false;
@@ -333,13 +341,13 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
                   }}
                 />
               </label>
-              <label>
+              <label title={verticalLocked ? verticalLockedText : undefined}>
                 Offset Y (m)
                 <input
                   type="number"
                   step="0.01"
                   value={y}
-                  disabled={blocked || mode !== "layout"}
+                  disabled={blocked || mode !== "layout" || verticalLocked}
                   onChange={(event) => {
                     offsetDirtyRef.current = true;
                     setY(event.target.value);

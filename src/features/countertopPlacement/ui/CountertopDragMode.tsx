@@ -1,19 +1,25 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import clsx from "clsx";
 
 import {
   createConfiguratorBridge,
+  isStandardCountertop,
   type ConfiguratorBridge,
   type CountertopLengthAtPointer,
   type CountertopLengthPreview,
   type CountertopResizeSide,
   type PlacementOverlayPoint,
 } from "@/features/configuratorApi";
+import { useCountertopRuntimeState } from "@/shared/hooks/useCountertopRuntimeState";
+import { getCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
+import { useReasonText } from "@/shared/lib/reasonText";
 
-import { clampLength, limitsInToMetres, type LengthLimitsIn } from "../lib/countertopLength";
+import { clampLength, limitsInToMetres, resizeBoundsLimitsM, type LengthLimitsIn } from "../lib/countertopLength";
 import { createCountertopOverlayStore } from "../lib/countertopOverlayStore";
 import {
   captureCountertopSnapshot,
   countertopErrorMessage,
+  describeCountertopValidation,
   restoreCountertopSnapshot,
   sameCountertopTarget,
   type CountertopApi,
@@ -21,6 +27,7 @@ import {
   type CountertopState,
 } from "../lib/countertopSession";
 import { CountertopDragOverlay } from "./CountertopDragOverlay";
+import { CountertopVerticalLockNotice } from "./CountertopVerticalLockNotice";
 
 import s from "./CountertopDragMode.module.scss";
 
@@ -34,7 +41,8 @@ export type CountertopOverlayBridge = Pick<
   | "countertopLengthAtPointer"
   | "resizeCountertopFrom"
 >;
-export type CountertopDragModeHandle = { enter(): void; standard(): void };
+/** `apply` also ends a session from outside (a committed sink move replaces the composition under it). */
+export type CountertopDragModeHandle = { enter(): void; standard(): void; apply(): void };
 export type CountertopDragStatus = { supported: boolean; available: boolean; active: boolean; busy: boolean };
 
 type Props = {
@@ -43,8 +51,6 @@ type Props = {
   disabled: boolean;
   getApi: () => CountertopApi | null;
   lengthLimitsIn: LengthLimitsIn;
-  /** Collection `countertop.lengthPresetsIn` (raw; the overlay validates it). */
-  lengthPresetsIn?: number[];
   createBridge?: () => CountertopOverlayBridge;
   onStatusChange?: (status: CountertopDragStatus) => void;
   onCommitted?: (state: CountertopState) => void | Promise<void>;
@@ -79,7 +85,6 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     disabled,
     getApi,
     lengthLimitsIn,
-    lengthPresetsIn,
     createBridge = createConfiguratorBridge,
     onStatusChange,
     onCommitted,
@@ -97,6 +102,9 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
   const [overlay, setOverlay] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const reasonText = useReasonText();
+  // Live verdict of the pose (change reason 'validation' arrives through the central store).
+  const validation = describeCountertopValidation(useCountertopRuntimeState()?.validation, reasonText);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -160,7 +168,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     try {
       await action();
     } catch (failure) {
-      if (mountedRef.current) setError(countertopErrorMessage(failure));
+      if (mountedRef.current) setError(countertopErrorMessage(failure, reasonText));
     } finally {
       pendingRef.current = false;
       if (mountedRef.current) setPending(false);
@@ -260,14 +268,16 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     });
   };
 
-  useImperativeHandle(ref, () => ({ enter, standard }));
+  useImperativeHandle(ref, () => ({ enter, standard, apply }));
 
-  const boundLength = (lengthM: number) => {
+  /** `getState().resizeBoundsM[side]` first (phase-1 §6a); older builds: frame, then collection limits. */
+  const resizeLimits = (side: CountertopResizeSide) => {
+    const bounds = resizeBoundsLimitsM(getCountertopRuntimeState(), side);
+    if (bounds) return bounds;
     const limits = store.get()?.limits;
-    return limits
-      ? clampLength(lengthM, { minM: limits.minLengthM, maxM: limits.maxLengthM })
-      : clampLength(lengthM, limitsInToMetres(lengthLimitsIn));
+    return limits ? { minM: limits.minLengthM, maxM: limits.maxLengthM } : limitsInToMetres(lengthLimitsIn);
   };
+  const boundLength = (side: CountertopResizeSide, lengthM: number) => clampLength(lengthM, resizeLimits(side));
 
   const pumpLength = (session: Session) => {
     const queue = lengthQueueRef.current;
@@ -301,21 +311,18 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     pumpLength(session);
   };
 
-  const setLength = (lengthM: number) => {
-    const session = sessionRef.current;
-    if (!session) return;
-    const bounded = boundLength(lengthM);
-    queueLength(session, { send: () => session.api.setSize({ length: bounded }), clearPreview: false });
-  };
-
   const isMethodUnavailable = (failure: unknown) =>
     typeof failure === "object" && failure !== null && (failure as { code?: unknown }).code === "API_METHOD_UNAVAILABLE";
 
-  /** One-sided resize (the other end stays put); older builds fall back to a symmetric setSize. */
+  /**
+   * One-sided resize (the other end stays put), on a standard top too. Builds without `resizeFrom`
+   * fall back to a symmetric setSize, but only on a moved top: on a standard one it throws
+   * COUNTERTOP_ATTACHED.
+   */
   const resizeFrom = (side: CountertopResizeSide, lengthM: number) => {
     const session = sessionRef.current;
     if (!session) return;
-    const bounded = boundLength(lengthM);
+    const bounded = boundLength(side, lengthM);
     const send = async () => {
       if (typeof session.api.resizeFrom === "function") return session.api.resizeFrom(side, bounded);
       if (session.bridge.resizeCountertopFrom) {
@@ -325,6 +332,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
           if (!isMethodUnavailable(failure)) throw failure;
         }
       }
+      if (isStandardCountertop(getCountertopRuntimeState()) || store.get()?.attached === true)
+        throw new Error("This build cannot resize a standard countertop from one end");
       return session.api.setSize({ length: bounded });
     };
     queueLength(session, { send, clearPreview: true });
@@ -336,12 +345,21 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     void quiet(session.bridge.previewCountertopLength?.(next), false);
   };
 
-  const lengthAtPointer = (
+  /** Snapped length under the pointer (§6a), kept inside `resizeBoundsM[side]` for the ghost. */
+  const lengthAtPointer = async (
     side: CountertopResizeSide,
     point: PlacementOverlayPoint,
-    options?: { snap?: boolean },
-  ): Promise<CountertopLengthAtPointer | null> =>
-    quiet(sessionRef.current?.bridge.countertopLengthAtPointer?.(side, point, options), null);
+    options: { snap?: boolean } = { snap: true },
+  ): Promise<CountertopLengthAtPointer | null> => {
+    const hit = await quiet(sessionRef.current?.bridge.countertopLengthAtPointer?.(side, point, options), null);
+    const bounds = hit && resizeBoundsLimitsM(getCountertopRuntimeState(), side);
+    if (!hit || !bounds) return hit;
+    return {
+      ...hit,
+      lengthM: clampLength(hit.lengthM, bounds),
+      limits: { minLengthM: bounds.minM, maxLengthM: bounds.maxM },
+    };
+  };
 
   if (!active)
     return error ? (
@@ -354,13 +372,10 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       {overlay && (
         <CountertopDragOverlay
           store={store}
-          lengthLimitsIn={lengthLimitsIn}
-          lengthPresetsIn={lengthPresetsIn}
           lengthAtPointer={lengthAtPointer}
           pending={pending}
           onApply={apply}
           onCancel={cancel}
-          onLength={setLength}
           onPreview={preview}
           onResizeFrom={resizeFrom}
         />
@@ -376,9 +391,19 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
             </button>
           </div>
         )}
+        <CountertopVerticalLockNotice getApi={getApi} disabled={pending} />
         {error && (
           <p className={s.message} role="alert">
             {error}
+          </p>
+        )}
+        {!overlay && validation && (!error || validation.tone === "invalid") && (
+          <p
+            className={clsx(s.message, validation.tone === "warning" && s.warning)}
+            role={validation.tone === "invalid" ? "alert" : "status"}
+            data-validation={validation.tone}
+          >
+            {validation.lines.join(" ")}
           </p>
         )}
       </div>

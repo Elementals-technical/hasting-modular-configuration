@@ -110,12 +110,17 @@ import {
 import type { CabinetsState } from "@/features/configuratorApi";
 import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
+import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
+import { useCountertopVerticalLock } from "@/features/countertopPlacement/lib/useCountertopVerticalLock";
 import {
   CountertopDragMode,
   type CountertopDragModeHandle,
   type CountertopDragStatus,
 } from "@/features/countertopPlacement/ui/CountertopDragMode";
+import { isSinkAutoConfirmMode, useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
+import { CountertopVerticalLockNotice } from "@/features/countertopPlacement/ui/CountertopVerticalLockNotice";
+import { SinkLandingDialog } from "@/features/countertopPlacement/ui/SinkLandingDialog";
 import {
   buildCountertopPositionItems,
   isCountertopSettingsMode,
@@ -392,11 +397,6 @@ export const PlayCanvasIntegration = ({
     () => resolveCountertopLengthLimitsIn(countertopLengthSettings),
     [countertopLengthSettings],
   );
-  // Raw collection presets (optional schema field); the overlay validates and clamps them.
-  const countertopLengthPresetsIn = useMemo(() => {
-    const raw = (countertopLengthSettings as { lengthPresetsIn?: unknown } | null | undefined)?.lengthPresetsIn;
-    return Array.isArray(raw) ? raw.filter((value): value is number => typeof value === "number") : undefined;
-  }, [countertopLengthSettings]);
   const location = useLocation();
   const navigate = useCollectionNavigate();
   const changeDimension = useChangeDimension();
@@ -513,13 +513,16 @@ export const PlayCanvasIntegration = ({
         : null,
     );
   }, []);
+  // The one countertop `on('change')` subscriber: the live state for every consumer, the committed size for pricing.
   useEffect(() => {
     setCountertopRuntimeSize(null);
+    setCountertopRuntimeState(null);
     if (!isPlayCanvasReady) return;
     let disposed = false;
     const api = getCountertopApi();
     if (!api) return;
     const update = (state: CountertopState) => {
+      if (!disposed) setCountertopRuntimeState(state);
       const applied = getCountertopRuntimeSize();
       if (
         !disposed &&
@@ -541,8 +544,10 @@ export const PlayCanvasIntegration = ({
       disposed = true;
       stop();
       setCountertopRuntimeSize(null);
+      setCountertopRuntimeState(null);
     };
   }, [countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
+  useCountertopVerticalLock(getCountertopApi, isPlayCanvasReady);
   useEffect(() => {
     if (!isPlayCanvasReady || countertopPlacementStatus.editing) return;
     let disposed = false;
@@ -579,6 +584,18 @@ export const PlayCanvasIntegration = ({
     },
     [composition, dispatch, runtimeBindings],
   );
+  // SB <-> SC sink move: a 'fits' landing asks, Confirm commits cabinets.moveSink and syncs like a placement.
+  const sinkLanding = useSinkLanding({
+    // `supported`: CountertopDragMode discovered the countertop API, so `getApi()` is not null.
+    ready: isPlayCanvasReady && cabinetPlacementDebugEnabled && countertopDragStatus.supported,
+    getApi: getCountertopApi,
+    onCommitted: async (state) => {
+      await adoptCommittedCabinetComposition(state);
+      // The sink move replaced the composition under an open Drag & Drop session: keep the result, close it.
+      countertopDragRef.current?.apply();
+    },
+    autoConfirm: isSinkAutoConfirmMode(location.search),
+  });
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -3651,10 +3668,27 @@ export const PlayCanvasIntegration = ({
           disabled={cabinetPlacementBusy || countertopPlacementStatus.editing}
           getApi={getCountertopApi}
           lengthLimitsIn={countertopLengthLimitsIn}
-          lengthPresetsIn={countertopLengthPresetsIn}
           onStatusChange={setCountertopDragStatus}
           onSelect={selectCountertopForPlacement}
           onCommitted={syncCommittedCountertop}
+        />
+      )}
+
+      {/* Outside Drag & Drop (the D&D toolbar shows its own): a lifted top that became 4″. */}
+      {cabinetPlacementDebugEnabled && !countertopDragStatus.active && (
+        <CountertopVerticalLockNotice
+          getApi={getCountertopApi}
+          style={{ position: "absolute", top: 24, right: 24, zIndex: 26 }}
+        />
+      )}
+
+      {cabinetPlacementDebugEnabled && (
+        <SinkLandingDialog
+          prompt={sinkLanding.prompt}
+          message={sinkLanding.message}
+          onConfirm={sinkLanding.confirm}
+          onDecline={sinkLanding.decline}
+          onDismissMessage={sinkLanding.dismissMessage}
         />
       )}
 

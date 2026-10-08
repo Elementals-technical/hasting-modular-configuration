@@ -300,6 +300,136 @@ export type CountertopOverlayApi = {
 /** Effective countertop length limits in metres; null restores the runtime defaults. */
 export type CountertopLengthLimitsM = { minM: number; maxM: number };
 
+/*
+ * `ConfiguratorAPI.countertop` (phase 1, PlayCanvas `docs/countertop/ui-integration-phase1.md`).
+ * Metres, world XY; `offset` is measured from the standard (composition) pose. Fields stay optional:
+ * older builds omit them, and the UI must feature-detect.
+ */
+/** `getState().resizeBoundsM[side]`: limits of a one-end resize that keeps the other end at `anchorXM`. */
+export type CountertopResizeBoundsSide = {
+  anchorXM: number;
+  minLengthM: number;
+  maxLengthM: number;
+  basinMinLengthM?: number | null;
+  supportMinLengthM?: number | null;
+};
+export type CountertopValidationStatus = "valid" | "invalid" | "unknown";
+/** Verdict of the current pose; `reasons` / `warnings` are slugs (`CountertopReasonSlug`). */
+export type CountertopValidation = { status: CountertopValidationStatus; reasons: string[]; warnings: string[] };
+export type CountertopSinkLandingStatus = "none" | "home" | "fits" | "gap" | "unfit";
+/** Where the sink a lifted top carries would land. */
+export type CountertopSinkLanding = {
+  status: CountertopSinkLandingStatus;
+  cabinetId: string | null;
+  fromCabinetId: string | null;
+  reason: "TYPE" | "HEIGHT" | null;
+  snapDxM: number;
+};
+/** A 'fits' landing waiting for the UI to commit (`cabinets.moveSink`) or decline. */
+export type CountertopSinkPending = { cabinetId: string; fromCabinetId: string };
+/** `owner`: 'cabinet' while the top rests (the sink sits on its sink base); 'countertop' while it carries it. */
+export type CountertopSinkState = {
+  owner: "cabinet" | "countertop" | null;
+  shiftM: number;
+  landing: CountertopSinkLanding | null;
+  pending: CountertopSinkPending | null;
+};
+export type CountertopPlacementState = "waiting" | "attached" | "moved";
+export type CountertopState = {
+  readiness: string;
+  productId: string | null;
+  compositionId?: string | null;
+  placementState?: CountertopPlacementState;
+  attached?: boolean;
+  moved?: boolean;
+  /** `ready && !attached`: the edit-size button only, never the end handles. */
+  canResize?: boolean;
+  offset?: { x: number; y: number };
+  customLength?: number | null;
+  autoLength?: number | null;
+  size?: { length?: number | null; depth?: number | null };
+  thickness?: number | null;
+  dragEnabled?: boolean;
+  dragging?: boolean;
+  moving?: boolean;
+  /** Effective limits (`getLengthLimitsM()`): the requested ones raised to fit the basin cut-outs. */
+  lengthLimitsM?: {
+    minLengthM: number;
+    maxLengthM: number;
+    requestedMinM?: number | null;
+    requestedMaxM?: number | null;
+    basinMinLengthM?: number | null;
+  } | null;
+  resizeBoundsM?: { left: CountertopResizeBoundsSide | null; right: CountertopResizeBoundsSide | null } | null;
+  validation?: CountertopValidation;
+  sink?: CountertopSinkState;
+  /** Offset-only mode (4″ tops): no lift by the API or the pointer. */
+  verticalLocked?: boolean;
+  /** Locked, but a restored pose is lifted (kept, not rejected): offer "lower" / "reset". */
+  verticalLockViolated?: boolean;
+};
+export type CountertopChangeReason =
+  | "current"
+  | "selection"
+  | "reset"
+  | "layout"
+  | "restored"
+  | "offset"
+  | "length"
+  | "length-settled"
+  | "length-limits"
+  | "validation"
+  | "vertical-lock"
+  | "sink-landing";
+export type CountertopEvent = { reason?: CountertopChangeReason | (string & {}); type?: string; state: CountertopState };
+export type CountertopAction =
+  | { type: "edit-size"; state: CountertopState }
+  | { type: "sink-landing"; landing: CountertopSinkLanding };
+/** 'guard' (default): an invalid pose is reverted and the call throws COUNTERTOP_POSE_INVALID. */
+export type CountertopCommandOptions = { validation?: "guard" | "skip" };
+export type CountertopApi = {
+  getState(): CountertopState | Promise<CountertopState>;
+  setDragEnabled(enabled: boolean): unknown;
+  setOffset(offset: { x: number; y: number }, options?: CountertopCommandOptions): unknown;
+  /** Back to Standard (drops the custom length); not validated. */
+  resetOffset(): unknown;
+  /** Symmetric, moved tops only (client §17: on a standard top the length changes through the handles). */
+  setSize(size: { length: number | null }): unknown;
+  /** One-end resize, the other end fixed, clamped to `resizeBoundsM[side]`; works on a standard top too. */
+  resizeFrom?(side: CountertopResizeSide, lengthM: number, options?: CountertopCommandOptions): unknown;
+  /** Newer builds only (feature-detect). */
+  setVerticalLocked?(locked: boolean): unknown;
+  whenSettled(): CountertopState | Promise<CountertopState>;
+  on(event: "change", callback: (event: CountertopEvent) => void, options?: { emitCurrent?: boolean }): () => void;
+  on(event: "action", callback: (action: CountertopAction) => void, options?: { emitCurrent?: boolean }): () => void;
+};
+/** `error.code` of a rejected countertop command. */
+export type CountertopErrorCode =
+  | "COUNTERTOP_POSE_INVALID"
+  | "COUNTERTOP_VERTICAL_LOCKED"
+  | "COUNTERTOP_ATTACHED"
+  | "COUNTERTOP_INVALID_INPUT"
+  | "COUNTERTOP_NOT_READY"
+  | "COUNTERTOP_DESTROYED"
+  | "LEGACY_WRITERS_BUSY";
+/** Slugs of `validation.reasons` / `.warnings` and of `COUNTERTOP_POSE_INVALID.reasons`. */
+export type CountertopReasonSlug =
+  | "TRAP_KEEPOUT"
+  | "BASIN_EDGE_TOO_CLOSE"
+  | "SINK_BASE_NOT_COVERED"
+  | "SINK_LANDING_GAP"
+  | "SINK_LANDING_UNFIT"
+  | "COUNTERTOP_COLLISION"
+  | "COUNTERTOP_VERTICAL_LOCKED";
+/** `cabinets.moveSink`: commit a pending 'fits' landing (SB <-> SC swap under NEW ids, the top lowered). */
+export type CabinetMoveSinkInput = { fromCabinetId: string; toCabinetId: string };
+export type CabinetMoveSinkReceipt = ConfiguratorReceipt & {
+  /** `{ [oldId]: newId }` for both swapped cabinets. */
+  idMap: Record<string, string>;
+  /** The new sink base (selected in 3D). */
+  sinkHostId: string;
+};
+
 export type ConfiguratorNamespace = "cabinets" | "cabinetPlacement" | "composition";
 export type ConfiguratorUnsubscribe = () => void;
 
@@ -356,8 +486,8 @@ export interface ConfiguratorApi {
   /** Only the members the typed layer uses; the rest of the namespace is read by the countertop feature. */
   countertop?: {
     setLengthLimits?: (limits: CountertopLengthLimitsM | null) => unknown;
-    /** Newer builds only: resize a moved-off top from one end, the other end fixed. */
-    resizeFrom?: (side: CountertopResizeSide, lengthM: number) => unknown;
+    /** Newer builds only: resize from one end, the other end fixed (also on a standard top). */
+    resizeFrom?: (side: CountertopResizeSide, lengthM: number, options?: CountertopCommandOptions) => unknown;
   };
   cabinets: {
     getCapabilities(): Promise<ConfiguratorApiResult<ConfiguratorCapabilities>>;
@@ -368,6 +498,8 @@ export interface ConfiguratorApi {
     getPlacementOptions(input: ConfiguratorScope & CabinetPlacementOptionsInput): Promise<ConfiguratorApiResult<CabinetPlacementOption[]>>;
     getState(scope: ConfiguratorScope): Promise<ConfiguratorApiResult<CabinetsState>>;
     select(scope: ConfiguratorScope, productId: string | null): Promise<ConfiguratorApiResult<{ selectedCabinetId: string | null }>>;
+    /** Newer builds only (feature-detect). */
+    moveSink?(input: ConfiguratorCommandMetadata & CabinetMoveSinkInput): Promise<ConfiguratorApiResult<CabinetMoveSinkReceipt>>;
     on(event: string, callback: (event: ConfiguratorEventEnvelope<unknown>) => void, options?: unknown): ConfiguratorUnsubscribe;
   };
   cabinetPlacement: {

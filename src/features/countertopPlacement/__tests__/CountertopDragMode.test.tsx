@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { CountertopOverlayFrame } from "@/features/configuratorApi";
+import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
 import {
   DEFAULT_COUNTERTOP_LENGTH_LIMITS_IN,
@@ -14,6 +15,7 @@ import {
   metresToDisplayInches,
   resolveCountertopLengthLimitsIn,
 } from "../lib/countertopLength";
+
 import type { CountertopApi, CountertopState } from "../lib/countertopSession";
 import { buildCountertopPositionItems, isCountertopSettingsMode } from "../lib/positionMenuItems";
 import {
@@ -33,11 +35,9 @@ vi.mock("../ui/CountertopDragOverlay", async (importOriginal) => {
   return { ...actual, CountertopDragOverlay: Spy };
 });
 type OverlayCallbacks = {
-  onLength(lengthM: number): void;
   onResizeFrom(side: "left" | "right", lengthM: number): void;
   onPreview(preview: { side: "left" | "right"; lengthM: number } | null): void;
   lengthAtPointer(side: "left" | "right", point: { x: number; y: number }): Promise<unknown>;
-  lengthPresetsIn?: number[];
 };
 const overlayCallbacks = () => overlayProps.current as unknown as OverlayCallbacks;
 
@@ -47,7 +47,10 @@ beforeAll(() => {
     Object.assign(window, { PointerEvent: PointerEventPolyfill });
   }
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  setCountertopRuntimeState(null);
+});
 
 const inches = (value: number) => value * METRES_PER_INCH;
 const base: CountertopState = {
@@ -246,7 +249,7 @@ describe("CountertopDragMode", () => {
     expect(f.bridge.setCountertopOverlayActive).toHaveBeenCalledWith(true);
     expect(f.bridge.setCountertopOverlayPlaceholders).toHaveBeenCalledWith(false);
     f.emit(frameOf());
-    expect(screen.getByRole("button", { name: "Edit countertop length" }).textContent).toContain("84″");
+    expect(screen.getByTestId("countertop-length-chip").textContent).toBe("84″");
     expect(screen.getByTestId("countertop-depth-chip").textContent).toContain("22″");
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     await waitFor(() => expect(f.onCommitted).toHaveBeenCalled());
@@ -281,15 +284,40 @@ describe("CountertopDragMode", () => {
     expect(f.onCommitted).not.toHaveBeenCalled();
   });
 
-  it("clamps the length popover to the limits", async () => {
+  it("resizes a standard (attached) top from one end within resizeBoundsM[side], never via setSize", async () => {
     const f = fixture();
     await enter(f);
-    f.emit(frameOf());
-    fireEvent.click(screen.getByRole("button", { name: "Edit countertop length" }));
-    expect(screen.getByText("Min 48″ Max 120″")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("Countertop length (in)"), { target: { value: "200" } });
-    fireEvent.click(screen.getAllByRole("button", { name: "Apply" })[0]);
-    await waitFor(() => expect(f.api.setSize).toHaveBeenLastCalledWith({ length: inches(120) }));
+    f.emit(frameOf({ attached: true }));
+    const left = { anchorXM: 1, minLengthM: inches(60), maxLengthM: inches(100) };
+    act(() => setCountertopRuntimeState({ readiness: "ready", productId: "top-1", resizeBoundsM: { left, right: null } }));
+    expect(screen.getAllByRole("button", { name: /^Resize countertop from the/ })).toHaveLength(2);
+    const resizeFrom = vi.fn(async () => undefined);
+    Object.assign(f.api, { resizeFrom });
+    act(() => overlayCallbacks().onResizeFrom("left", inches(110)));
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalledWith("left", inches(100)));
+    const bridge = f.bridge as CountertopOverlayBridge;
+    const limits = { minLengthM: inches(48), maxLengthM: inches(120) };
+    bridge.countertopLengthAtPointer = vi.fn(async () => ({ lengthM: inches(40), rawLengthM: inches(40), snappedTo: null, limits }));
+    await expect(overlayCallbacks().lengthAtPointer("left", { x: 1, y: 2 })).resolves.toMatchObject({
+      lengthM: inches(60),
+      limits: { minLengthM: inches(60), maxLengthM: inches(100) },
+    });
+    expect(bridge.countertopLengthAtPointer).toHaveBeenCalledWith("left", { x: 1, y: 2 }, { snap: true });
+    expect(f.api.setSize).not.toHaveBeenCalled();
+  });
+
+  it("never falls back to setSize on a standard top when the build lacks resizeFrom", async () => {
+    const f = fixture();
+    await enter(f);
+    f.emit(frameOf({ attached: true }));
+    const bridge = f.bridge as CountertopOverlayBridge;
+    bridge.resizeCountertopFrom = vi.fn(async () => {
+      throw { code: "API_METHOD_UNAVAILABLE", message: "countertop.resizeFrom is not available" };
+    });
+    act(() => overlayCallbacks().onResizeFrom("right", inches(90)));
+    await waitFor(() => expect(bridge.resizeCountertopFrom).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
+    expect(f.api.setSize).not.toHaveBeenCalled();
   });
 
   it("drags the right handle: asks lengthAtPointer, previews, then resizes from that end", async () => {
@@ -313,7 +341,7 @@ describe("CountertopDragMode", () => {
     fireEvent.pointerMove(window, { clientX: 710, clientY: 400 });
     fireEvent.pointerUp(window, { clientX: 710, clientY: 400 });
     await waitFor(() => expect(resizeFrom).toHaveBeenCalledWith("right", inches(90)));
-    expect(bridge.countertopLengthAtPointer).toHaveBeenCalledWith("right", expect.any(Object), undefined);
+    expect(bridge.countertopLengthAtPointer).toHaveBeenCalledWith("right", expect.any(Object), { snap: true });
     expect(bridge.previewCountertopLength).toHaveBeenCalledWith({ side: "right", lengthM: inches(90) });
     await waitFor(() => expect(bridge.previewCountertopLength).toHaveBeenLastCalledWith(null));
     expect(f.api.setSize).not.toHaveBeenCalled();
@@ -341,45 +369,48 @@ describe("CountertopDragMode", () => {
 });
 
 describe("CountertopDragMode length commands (v2)", () => {
-  const deferredSetSize = (f: ReturnType<typeof fixture>) => {
+  const deferredResizeFrom = (f: ReturnType<typeof fixture>) => {
     const resolvers: Array<() => void> = [];
-    f.api.setSize.mockImplementation(() => new Promise<void>((resolve) => resolvers.push(resolve)));
-    return resolvers;
+    const resizeFrom = vi.fn(() => new Promise<void>((resolve) => resolvers.push(resolve)));
+    Object.assign(f.api, { resizeFrom });
+    return { resolvers, resizeFrom };
   };
 
-  it("keeps one setSize in flight and sends only the latest queued length", async () => {
+  it("keeps one resizeFrom in flight and sends only the latest queued length", async () => {
     const f = fixture();
     await enter(f);
     f.emit(frameOf());
-    const resolvers = deferredSetSize(f);
+    const { resolvers, resizeFrom } = deferredResizeFrom(f);
     act(() => {
-      overlayCallbacks().onLength(inches(60));
-      overlayCallbacks().onLength(inches(70));
-      overlayCallbacks().onLength(inches(80));
+      overlayCallbacks().onResizeFrom("right", inches(60));
+      overlayCallbacks().onResizeFrom("right", inches(70));
+      overlayCallbacks().onResizeFrom("right", inches(80));
     });
-    await waitFor(() => expect(f.api.setSize).toHaveBeenCalledTimes(1));
-    expect(f.api.setSize).toHaveBeenLastCalledWith({ length: inches(60) });
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalledTimes(1));
+    expect(resizeFrom).toHaveBeenLastCalledWith("right", inches(60));
     await act(async () => resolvers[0]());
-    await waitFor(() => expect(f.api.setSize).toHaveBeenCalledTimes(2));
-    expect(f.api.setSize).toHaveBeenLastCalledWith({ length: inches(80) });
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalledTimes(2));
+    expect(resizeFrom).toHaveBeenLastCalledWith("right", inches(80));
     await act(async () => resolvers[1]());
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(f.api.setSize).toHaveBeenCalledTimes(2);
+    expect(resizeFrom).toHaveBeenCalledTimes(2);
   });
 
-  it("reports a failed setSize and still sends the queued length", async () => {
+  it("reports a failed resizeFrom and still sends the queued length", async () => {
     const f = fixture();
     await enter(f);
     f.emit(frameOf());
     let reject: (error: unknown) => void = () => undefined;
-    f.api.setSize.mockImplementationOnce(() => new Promise<void>((_, fail) => (reject = fail)));
+    const resizeFrom = vi.fn<(side: string, lengthM: number) => Promise<void>>(() => Promise.resolve());
+    resizeFrom.mockImplementationOnce(() => new Promise<void>((_, fail) => (reject = fail)));
+    Object.assign(f.api, { resizeFrom });
     act(() => {
-      overlayCallbacks().onLength(inches(60));
-      overlayCallbacks().onLength(inches(90));
+      overlayCallbacks().onResizeFrom("right", inches(60));
+      overlayCallbacks().onResizeFrom("right", inches(90));
     });
-    await waitFor(() => expect(f.api.setSize).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalledTimes(1));
     await act(async () => reject({ code: "LIMIT", message: "Too long" }));
-    await waitFor(() => expect(f.api.setSize).toHaveBeenLastCalledWith({ length: inches(90) }));
+    await waitFor(() => expect(resizeFrom).toHaveBeenLastCalledWith("right", inches(90)));
     expect(screen.getByText("LIMIT: Too long")).toBeTruthy();
   });
 
@@ -415,7 +446,7 @@ describe("CountertopDragMode length commands (v2)", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("delegates preview and lengthAtPointer to the bridge and passes the presets", async () => {
+  it("delegates preview and lengthAtPointer (snapped) to the bridge", async () => {
     const f = fixture();
     await enter(f);
     f.emit(frameOf());
@@ -429,7 +460,7 @@ describe("CountertopDragMode length commands (v2)", () => {
     act(() => overlayCallbacks().onPreview({ side: "right", lengthM: 2 }));
     expect(bridge.previewCountertopLength).toHaveBeenCalledWith({ side: "right", lengthM: 2 });
     await expect(overlayCallbacks().lengthAtPointer("right", { x: 1, y: 2 })).resolves.toEqual(hit);
-    expect(bridge.countertopLengthAtPointer).toHaveBeenCalledWith("right", { x: 1, y: 2 }, undefined);
+    expect(bridge.countertopLengthAtPointer).toHaveBeenCalledWith("right", { x: 1, y: 2 }, { snap: true });
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
@@ -439,20 +470,65 @@ describe("CountertopDragMode length commands (v2)", () => {
     f.emit(frameOf());
     const bridge = f.bridge as CountertopOverlayBridge;
     bridge.previewCountertopLength = vi.fn(async () => true);
-    let release: () => void = () => undefined;
-    f.api.setSize.mockImplementationOnce(() => new Promise<void>((resolve) => (release = resolve)));
+    const { resolvers, resizeFrom } = deferredResizeFrom(f);
+    const release = () => resolvers[0]();
     act(() => {
-      overlayCallbacks().onLength(inches(60));
-      overlayCallbacks().onLength(inches(70));
+      overlayCallbacks().onResizeFrom("right", inches(60));
+      overlayCallbacks().onResizeFrom("right", inches(70));
     });
-    await waitFor(() => expect(f.api.setSize).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole("button", { name: "Discard countertop changes" }));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(f.api.resetOffset).not.toHaveBeenCalled();
     await act(async () => release());
     await waitFor(() => expect(f.bridge.setCountertopOverlayActive).toHaveBeenLastCalledWith(false));
     expect(f.api.setSize).toHaveBeenLastCalledWith({ length: null });
-    expect(f.api.setSize).not.toHaveBeenCalledWith({ length: inches(70) });
+    expect(resizeFrom).not.toHaveBeenCalledWith("right", inches(70));
     expect(bridge.previewCountertopLength).toHaveBeenCalledWith(null);
+  });
+});
+
+describe("countertop D&D validation and command errors", () => {
+  afterEach(() => act(() => setCountertopRuntimeState(null)));
+  const verdict = (validation: NonNullable<CountertopState["validation"]>) =>
+    act(() => setCountertopRuntimeState({ ...base, validation }));
+
+  it("shows the live verdict by Apply: invalid in red, a warning as a hint, unknown not at all", async () => {
+    const f = fixture();
+    await enter(f);
+    f.emit(frameOf());
+    expect(screen.queryByRole("alert")).toBeNull();
+    // A 'validation' change reaches the store through the central subscriber; the overlay re-renders.
+    verdict({ status: "invalid", reasons: ["TRAP_KEEPOUT", "SINK_LANDING_GAP"], warnings: [] });
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toBe("Too close to the sink trap. The sink can't go here.");
+    expect(alert.getAttribute("data-validation")).toBe("invalid");
+    verdict({ status: "valid", reasons: [], warnings: ["COUNTERTOP_COLLISION"] });
+    expect(screen.queryByRole("alert")).toBeNull();
+    const hint = screen.getByRole("status");
+    expect(hint.textContent).toBe("The countertop overlaps another object.");
+    expect(hint.getAttribute("data-validation")).toBe("warning");
+    expect(screen.getByRole("button", { name: "Apply" })).toHaveProperty("disabled", false);
+    verdict({ status: "unknown", reasons: ["TRAP_KEEPOUT"], warnings: [] });
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("without the overlay shows the verdict in the toolbar and describes run() failures", async () => {
+    const f = fixture({ overlay: false });
+    await enter(f);
+    verdict({ status: "invalid", reasons: ["BASIN_EDGE_TOO_CLOSE"], warnings: [] });
+    expect(screen.getByRole("alert").textContent).toBe("Sink too close to the countertop edge.");
+    f.api.setDragEnabled.mockImplementationOnce(() => {
+      throw Object.assign(new Error("legacy writer"), { code: "LEGACY_WRITERS_BUSY" });
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    // The command error does not hide the live red verdict.
+    await waitFor(() =>
+      expect(screen.getAllByRole("alert").map((node) => node.textContent)).toEqual([
+        "The scene is busy. Try again in a moment.",
+        "Sink too close to the countertop edge.",
+      ]),
+    );
   });
 });

@@ -7,6 +7,8 @@ import type {
   ConfiguratorApiResult,
   CabinetBeginAddInput,
   CabinetBeginMoveInput,
+  CabinetMoveSinkInput,
+  CabinetMoveSinkReceipt,
   CabinetsState,
   ConfiguratorCapabilities,
   CabinetCatalogEntry,
@@ -76,6 +78,8 @@ export interface ConfiguratorClient {
   settle(sessionId: string): Promise<CabinetDraftState>;
   apply(sessionId: string): Promise<ConfiguratorReceipt>;
   cancel(sessionId: string): Promise<CabinetDraftState>;
+  /** Commit a pending 'fits' sink landing: SB <-> SC swap under NEW ids (`idMap`), the top lowered. */
+  moveSink(fromCabinetId: string, toCabinetId: string): Promise<CabinetMoveSinkReceipt>;
 
   getCompositionState(): Promise<CompositionState>;
   getCompositionRevision(): Promise<number>;
@@ -274,6 +278,15 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
         this.namespace("cabinetPlacement", "beginMove", { ...command, sessionId, productId: input.productId }),
       );
     });
+  }
+
+  moveSink(fromCabinetId: string, toCabinetId: string): Promise<CabinetMoveSinkReceipt> {
+    const input: CabinetMoveSinkInput = { fromCabinetId, toCabinetId };
+    return this.enqueue(() =>
+      this.runRevisionCommand("cabinets.moveSink", (command) =>
+        this.namespace("cabinets", "moveSink", { ...command, ...input }),
+      ),
+    );
   }
 
   updateDraft(sessionId: string, expectedCandidateRevision: number, placement: CabinetPlacement): Promise<CabinetDraftState> {
@@ -692,7 +705,10 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
     const operation = "composition.getState";
     const result = await this.namespace<CompositionState>("composition", "getState", scope);
     unwrap(result, operation);
-    const revision = (result.context as ConfiguratorApiContext | undefined)?.dependencies?.compositionRevision;
+    // The context carries the revision; the composition state repeats it in `data.dependencies` (fallback).
+    const revision =
+      (result.context as ConfiguratorApiContext | undefined)?.dependencies?.compositionRevision ??
+      (result.ok ? (result.data as { dependencies?: { compositionRevision?: unknown } } | undefined)?.dependencies?.compositionRevision : undefined);
     if (typeof revision !== "number" || !Number.isFinite(revision)) {
       throw new ConfiguratorError("API_INVALID_RESPONSE", "composition.getState did not include a revision.", {
         operation,
