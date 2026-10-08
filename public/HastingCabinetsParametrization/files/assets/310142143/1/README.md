@@ -1,5 +1,36 @@
 # Tricot
 
+## Cabinet Pattern
+
+Both products expose `CabinetPattern`, default `Satin`. Supported values are
+`Cannette`, `Gessatto`, `Loden`, `Twill`, `Satin` (case-sensitive).
+`RulePatternCabinetTricot` runs at priority 70 after materials and Boolean layout,
+and watches both `CabinetPattern` and `CabinetColor`.
+Only `Tricot_Top_Drawer_Handle_Flut` and `Tricot_Bot_Drawer_Handle_Flut` are changed.
+Both entities require a `triPlanarMapping` script.
+
+| Pattern | Detail tiling | Detail bumpiness | AO intensity |
+| --- | --- | --- | --- |
+| Cannette | 85 | 1 | 1.1 |
+| Gessatto | 30 | 1 | 0.8 |
+| Loden | 36 | 1 | 0.3 |
+| Twill | 29 | 1 | 0.34 |
+| Satin | Authored default | Authored default | Authored default |
+
+Texture assets must match `<Pattern>_Pattern_N_1K.jpg` and `<Pattern>_Pattern_AO_1K.jpg`
+exactly. Patterns use Triplanar detail layers, following the existing Overlay implementation.
+Satin restores the original five detail settings captured per script before its first pattern
+application, including any original texture assets. Color finishes and base color textures
+are preserved. Materials remain unique to avoid changing other entities.
+
+```js
+await ConfiguratorAPI.setConfig(tricotSide, { CabinetPattern: 'Cannette' });
+await ConfiguratorAPI.setConfig(tricotSide, { CabinetPattern: 'Gessatto' });
+await ConfiguratorAPI.setConfig(tricotSide, { CabinetPattern: 'Loden' });
+await ConfiguratorAPI.setConfig(tricotSide, { CabinetPattern: 'Twill' });
+await ConfiguratorAPI.setConfig(tricotSide, { CabinetPattern: 'Satin' });
+```
+
 Products: `Tricot-sink-cabinet` (Sink Base) and `Tricot-side-cabinet` (Side Cabinet).
 Both use the shared `RuleWidthCabinetTricot`, following the Mako / UrbanFreestanding rule layout.
 `Sink/` and `Side/` hold future product-specific rules.
