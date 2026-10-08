@@ -40,6 +40,7 @@ vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
     <section aria-label={title}>{children}</section>
   ),
 }));
+vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport");
 
 const parsedProfile = parseProductProfile(ulhProfileDocument);
 if (!parsedProfile.ok) throw new Error("Urban Low Height profile must parse");

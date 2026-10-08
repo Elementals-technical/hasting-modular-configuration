@@ -1,3 +1,5 @@
+import { useLocation, useSearchParams } from "react-router-dom";
+
 import { getActiveProductProfile } from "@/entities/configuration";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
 import { setCountertopColorSku } from "@/entities/product/model/store/slice";
@@ -19,6 +21,8 @@ import { openSwatchOrder } from "@/features/swatchOrder";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
+import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 
 import s from "./FieldsStepPage.module.scss";
 
@@ -88,11 +92,22 @@ const FieldAutoSelect = ({ definition, field }: ResolvedCustomizationField) => {
 };
 
 export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
+  const { key: locationKey } = useLocation();
+  const [searchParams] = useSearchParams();
   // Sections with no visible field are skipped; their values stay recorded.
   const sections = useCustomizationStepSections(stepId).filter((section) =>
     section.fields.some(({ field }) => field.visible),
   );
   const isVesselStyle = useAppSelector(getCountertopStyle)?.trim().toLowerCase() === "vessel";
+  const isCompactAccordionViewport = useCompactAccordionViewport();
+  // The in-scene menu opens a section through `?accordion=`, as on the countertop step.
+  const { value: accordionValue, onValueChange: setAccordionValue } = useSyncedAccordionValue({
+    values: sections.map((section) => section.sectionId),
+    defaultValue: sections.find((section) => section.defaultOpen)?.sectionId,
+    requestedValue: searchParams.get("accordion"),
+    requestKey: locationKey,
+    collapseByDefault: isCompactAccordionViewport && sections.length > 1,
+  });
 
   return (
     <>
@@ -105,7 +120,8 @@ export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
       )}
       <ConfiguratorAccordionGroup
         defaultValue={sections.find((section) => section.defaultOpen)?.sectionId}
-        collapseDefaultOnCompact
+        value={accordionValue}
+        onValueChange={setAccordionValue}
       >
         {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fields }) => {
           const label = isVesselStyle ? (labelWhenVessel ?? sectionLabel) : sectionLabel;

@@ -167,9 +167,11 @@ export type {
   FieldToggleState,
   OptionImageVariant,
   OptionImageVariants,
+  CustomizationPlayerMenu,
+  PlayerMenuItemId,
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
-export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS } from "./model/customizationSchema";
+export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS, PLAYER_MENU_ITEM_IDS } from "./model/customizationSchema";
 export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 
 export { useCollectionPresets } from "./lib/useCollectionPresets";
