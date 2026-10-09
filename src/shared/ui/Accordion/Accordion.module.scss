@@ -3,6 +3,53 @@
   background-color: var(--main-header-bg);
 }
 
+.Root[data-accordion-layout="contained"] {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--accordion-max-height);
+  overflow: hidden;
+
+  > .Item {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-height: var(--accordion-header-height);
+  }
+
+  .Content {
+    height: min(var(--accordion-panel-height), var(--accordion-content-max-height));
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 1;
+    min-height: 0;
+    max-height: var(--accordion-content-max-height);
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      height: 0;
+    }
+
+    // Base UI measures scrollHeight before opening. Let it see the natural content,
+    // then animate to the available height while the inner wrapper becomes scrollable.
+    &[data-starting-style] > .ContentText {
+      flex: none;
+    }
+  }
+
+  .ContentText {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+    &::-webkit-scrollbar {
+      width: 2px;
+    }
+  }
+}
+
 .Item {
   overflow: hidden;
   margin-top: 1px;
@@ -19,6 +66,7 @@
 }
 
 .Header {
+  flex-shrink: 0;
   margin: 0;
   font: inherit;
   display: flex;

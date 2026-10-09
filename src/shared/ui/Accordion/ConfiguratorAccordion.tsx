@@ -1,6 +1,7 @@
-import { Children, type ReactNode } from "react";
+import { Children, useRef, type ReactNode } from "react";
 import { Accordion } from "./Accordion";
 import { useShouldCollapseAccordionByDefault } from "./useCompactAccordionViewport";
+import { useContainedAccordionLayout } from "./useContainedAccordionLayout";
 
 type ConfiguratorAccordionItemProps = {
   title: string;
@@ -25,6 +26,8 @@ export const ConfiguratorAccordionGroup = ({
   onValueChange,
   collapseDefaultOnCompact = false,
 }: ConfiguratorAccordionGroupProps) => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useContainedAccordionLayout(rootRef);
   const shouldCollapseByDefault = useShouldCollapseAccordionByDefault(
     Children.count(children),
     collapseDefaultOnCompact && value === undefined,
@@ -32,6 +35,7 @@ export const ConfiguratorAccordionGroup = ({
 
   return (
     <Accordion.Root
+      ref={rootRef}
       defaultValue={shouldCollapseByDefault || !defaultValue ? [] : [defaultValue]}
       value={value === undefined ? undefined : value ? [value] : []}
       onValueChange={(openValues) => onValueChange?.(openValues[0] ?? "")}
