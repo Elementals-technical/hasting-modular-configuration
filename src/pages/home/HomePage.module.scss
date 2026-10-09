@@ -3,8 +3,10 @@
 
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   background-color: #fff;
 }
 
@@ -13,21 +15,31 @@
   position: relative;
 
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 670px;
+  grid-template-rows: minmax(0, 1fr);
   gap: 0;
   height: calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px));
   overflow: hidden;
+
+  > :nth-child(2),
+  > :nth-child(3) {
+    min-width: 0;
+    min-height: 0;
+  }
 
   @media (max-width: 1400px) {
     grid-template-columns: 1fr 515px;
   }
 
   @media (max-width: 1024px) {
-    --mobile-player-height: clamp(420px, 48svh, 560px);
+    --preferred-mobile-player-height: clamp(420px, 48svh, 560px);
+    // Reserve room for options even in short landscape viewports.
+    --mobile-player-height: min(var(--preferred-mobile-player-height), 55%);
 
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
+    grid-template-rows: minmax(0, var(--mobile-player-height)) minmax(0, 1fr);
     height: calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px));
     height: calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px));
     height: calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px));
@@ -42,7 +54,6 @@
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
   }
 
   @media (min-width: 1025px) {
@@ -138,22 +149,14 @@
   }
 
   .content > :nth-child(2) {
-    min-height: var(--mobile-player-height);
-    height: var(--mobile-player-height);
-    max-height: var(--mobile-player-height);
+    height: 100%;
+    max-height: 100%;
     border-bottom: 1px solid #e5e6ea;
   }
 
   .content > :nth-child(3) {
-    min-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    max-height: max(220px, calc(100vh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    min-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    max-height: max(220px, calc(100svh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    min-height: max(220px, calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    height: max(220px, calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
-    max-height: max(220px, calc(100dvh - var(--header-height, 0px) - var(--banner-height, 0px) - var(--mobile-player-height)));
+    height: 100%;
+    max-height: 100%;
     overflow: hidden;
   }
 
@@ -183,18 +186,18 @@
 
 @media (max-width: 767px) {
   .content {
-    --mobile-player-height: clamp(280px, 40svh, 340px);
+    --preferred-mobile-player-height: clamp(280px, 40svh, 340px);
   }
 }
 
 @media (max-width: 430px) {
   .content {
-    --mobile-player-height: clamp(290px, 42svh, 360px);
+    --preferred-mobile-player-height: clamp(290px, 42svh, 360px);
   }
 }
 
 @media (max-width: 360px), (max-height: 620px) {
   .content {
-    --mobile-player-height: clamp(260px, 38svh, 320px);
+    --preferred-mobile-player-height: clamp(260px, 38svh, 320px);
   }
 }
