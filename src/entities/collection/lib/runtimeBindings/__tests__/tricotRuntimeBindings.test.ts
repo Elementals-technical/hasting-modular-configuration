@@ -12,7 +12,7 @@ import { normalizeOptionValue } from "../../productProfileSelectors";
 import { collectCustomizationAttributeIds } from "../collectionRuntimeContract";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
 import { findProductConfigBindingErrors, resolveProductConfig } from "../resolveProductConfig";
-import { configurationValueOf, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import { configurationValueOf, isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 const patch = (id: string, value: string | number) => resolveRuntimeBinding(bindings, id, value);
@@ -141,18 +141,45 @@ describe("Tricot delivered runtime bindings", () => {
     }
   });
 
-  it.each([
-    "SidePanels",
-    "CountertopColor",
-    "Thickness",
-    "sinkType",
-    "CountertopStyle",
-    "GrainDirection",
-    "VesselColor",
-  ])("keeps missing visual %s unbound, not state-only: never sent, and a cabinet is placed without it", (id) => {
-    expect(patch(id, "anything")).toMatchObject({ ok: false, reason: "unbound", detail: expect.any(String) });
-    expect(findProductConfigBindingErrors(bindings, { [id]: "anything" })).toEqual([]);
-    expect(resolveProductConfig(bindings, { [id]: "anything" })).toEqual({});
+  it.each(["SidePanels", "GrainDirection", "VesselColor"])(
+    "keeps missing visual %s unbound, not state-only: never sent, and a cabinet is placed without it",
+    (id) => {
+      expect(patch(id, "anything")).toMatchObject({ ok: false, reason: "unbound", detail: expect.any(String) });
+      expect(findProductConfigBindingErrors(bindings, { [id]: "anything" })).toEqual([]);
+      expect(resolveProductConfig(bindings, { [id]: "anything" })).toEqual({});
+    },
+  );
+
+  it("sends each basin as Class does, as an authored sub-product of the sink base, and reads it back", () => {
+    const basins = tricotProfile.attributes.find(({ attributeId }) => attributeId === "sinkType")?.options ?? [];
+    for (const { value } of basins) {
+      const resolution = patch("sinkType", value);
+      if (!resolution.ok || !("patch" in resolution)) throw new Error(`No basin for ${value}`);
+      expect(resolution.target).toEqual({ kind: "productType", productType: "Tricot-sink-cabinet" });
+      const sceneBasin = String(resolution.patch.sinkType);
+      expect(bundle, sceneBasin).toContain(`registry.registerProduct("${sceneBasin}"`);
+      expect(configurationValueOf(bindings, "sinkType", sceneBasin, value)).toBe(value);
+    }
+    // The scene's default basin is LB440's, so a sink base placed without a choice reads back as LB440.
+    expect(patch("sinkType", "LB440")).toMatchObject({ patch: { sinkType: "Top_HPLPrisma" } });
+    expect(findProductConfigBindingErrors(bindings, { sinkType: "Top_HPLPrisma" })).toEqual([]);
+  });
+
+  it("sends the countertop colour and thickness to the composition, and records the style, as Class does", () => {
+    expect(patch("CountertopColor", "Matte White")).toMatchObject({
+      ok: true,
+      target: { kind: "all" },
+      patch: { CountertopColor: "Matte White" },
+    });
+    expect(patch("CountertopColor", "Nebbia 402 MT")).toMatchObject({
+      patch: { CountertopColor: "Nebbia 402 Glass MT" },
+    });
+    expect(patch("Thickness", "4.75")).toMatchObject({
+      ok: true,
+      target: { kind: "all" },
+      patch: { Thickness: "4.75" },
+    });
+    expect(isStateOnlyResolution(patch("CountertopStyle", "integrated"))).toBe(true);
   });
 
   it("passes the keys the scene writes into every product it places", () => {

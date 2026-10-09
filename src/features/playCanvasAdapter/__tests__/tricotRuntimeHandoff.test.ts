@@ -34,7 +34,12 @@ const approvedConfig = {
   DrawerPanelFluting: "Loden",
 };
 // Pending choices a placed cabinet must not send, and the semantic pattern, sent as CabinetPattern.
-const NOT_SENT = ["CabinetColor", "SidePanels", "CountertopColor", "sinkType", "DrawerPanelFluting"];
+const NOT_SENT = ["CabinetColor", "SidePanels", "DrawerPanelFluting"];
+// The basin, as Class sends it: the authored sub-product of its LB/VA/LV name, on the sink base only.
+const expectBasinOnSinkBaseOnly = (product: Record<string, unknown>) =>
+  product.name === "Tricot-sink-cabinet" || product.productType === "Tricot-sink-cabinet"
+    ? expect(product).toMatchObject({ sinkType: "Top_HPLPrisma" })
+    : expect(product).not.toHaveProperty("sinkType");
 const fakeScene = () =>
   ({
     isReady: () => true,
@@ -152,8 +157,13 @@ describe("Tricot production composition handoff through the adapter", () => {
     expect(scene.presetProducts).toHaveBeenCalledTimes(presets.length);
     for (const [products] of scene.presetProducts.mock.calls) {
       for (const product of products) {
-        expect(product).toMatchObject({ CabinetPattern: "Cannette", HandleGrooveColor: "Nero 433 Lacquered MT" });
+        expect(product).toMatchObject({
+          CabinetPattern: "Cannette",
+          HandleGrooveColor: "Nero 433 Lacquered MT",
+          CountertopColor: "Matte White",
+        });
         expect(Object.keys(product).filter((key) => NOT_SENT.includes(key))).toEqual([]);
+        expectBasinOnSinkBaseOnly(product);
       }
     }
   });
@@ -175,15 +185,21 @@ describe("Tricot production composition handoff through the adapter", () => {
         Width: config.Width,
         CabinetPattern: "Cannette",
         HandleGrooveColor: "Nero 433 Lacquered MT",
+        CountertopColor: "Matte White",
+        sinkType: "Top_HPLPrisma",
       });
       expect(Object.keys(sent).filter((key) => NOT_SENT.includes(key))).toEqual([]);
     }
   });
 
-  it.each(["prebuilt", "custom"] as const)("places a recipe without its pending shared values in %s", async (flow) => {
+  it.each(["prebuilt", "custom"] as const)("places a recipe with its basin but not its wood in %s", async (flow) => {
     const products = [{ productType: "Sink-Base", config: approvedConfig }];
     const scene = fakeScene();
-    const port = createCompositionPort({ getBindings: () => bindings, scene, reader: createTestSceneReader().reader });
+    const port = createCompositionPort({
+      getBindings: () => bindings,
+      scene,
+      reader: createTestSceneReader().reader,
+    });
     expect(
       await port.replace({
         products,
@@ -197,8 +213,11 @@ describe("Tricot production composition handoff through the adapter", () => {
         flow,
       }),
     ).toMatchObject({ status: "applied" });
+    // The pending wood stays out; the style is recorded only, as Class records it.
     expect(scene.presetProducts).toHaveBeenCalledWith(expect.any(Array), {
+      CountertopColor: "Matte White",
       HandleGrooveColor: "Nero 433 Lacquered MT",
+      sinkType: "Top_HPLPrisma",
     });
 
     const rejectingScene = fakeScene();
@@ -293,9 +312,10 @@ describe("Tricot production composition handoff through the adapter", () => {
         Drawers: "1DWID",
         CabinetPattern: "Satin",
         HandleGrooveColor: "Nero 433 Lacquered MT",
+        // The scene's basin reads back as LB440 and goes back as the same sub-product.
+        sinkType: "Top_HPLPrisma",
       });
       expect(sent).not.toHaveProperty("CabinetColor");
-      expect(sent).not.toHaveProperty("sinkType");
     }
   });
 });
