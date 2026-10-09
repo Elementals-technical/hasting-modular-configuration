@@ -58,7 +58,7 @@ describe("Tricot custom cabinets and pricing", () => {
       },
     ]);
     expect(tricotProfile.sourceRefs).toEqual({
-      configuratorId: 9,
+      configuratorId: 12,
       cabinetMatrixTableId: 592,
       countertopMatrixTableId: 593,
     });
@@ -67,7 +67,6 @@ describe("Tricot custom cabinets and pricing", () => {
       DrawerPanelFluting: "Cannette",
       CountertopColor: "Matte White",
       sinkType: "LB440",
-      SidePanels: "No",
     });
   });
 
@@ -138,7 +137,7 @@ describe("Tricot custom cabinets and pricing", () => {
     ).toBe(false);
   });
 
-  it("creates a cabinet order line but explicitly leaves unapproved countertop pricing incomplete", () => {
+  it("creates a cabinet order line, and no countertop line while no countertop colour is chosen", () => {
     const input = pricingInput({
       skuBuilders: createSkuBuilders({ status: "collection", collectionProfile: tricotSkuProfile }),
       activeProfile: tricotProfile,
@@ -155,6 +154,7 @@ describe("Tricot custom cabinets and pricing", () => {
     const result = buildCollectionPricingLines(input);
     expect(result.lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku)).toEqual([build().sku]);
     expect(result.lines.some(({ group }) => group === "countertop")).toBe(false);
-    expect(result.gaps.some(({ group, blocksTotal }) => group === "countertop" && blocksTotal)).toBe(true);
+    // The top is priced as Class's GB top (tricotCountertopPricing.test.ts), so nothing blocks the total.
+    expect(result.gaps).toEqual([]);
   });
 });

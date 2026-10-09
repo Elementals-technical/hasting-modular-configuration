@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import {
+  tricotConfigurator,
   tricotProfile,
   tricotSkuProfile,
   tricotTestBindings,
@@ -112,12 +113,8 @@ describe("Tricot finishes through fields, commands and runtime", () => {
       expect(patches.slice(before).some((patch) => "test:DrawerPanelFluting" in patch)).toBe(false);
       expect(patches.some((patch) => patch["test:DrawerPanelFluting"] === "Cannette")).toBe(true);
       expect(
-        (
-          await changeAttribute(
-            { attributeId: "HandleGrooveColor", scope: "cabinet", cabinetId: first(), value: "Zafferano 412 MT" },
-            d,
-          )
-        ).status,
+        (await changeAttribute({ attributeId: "HandleGrooveColor", scope: "global", value: "Zafferano 412 MT" }, d))
+          .status,
       ).toBe("applied");
       expect(patches.at(-1)).toEqual({ "test:HandleGrooveColor": "Zafferano 412 MT" });
     },
@@ -153,8 +150,21 @@ describe("Tricot finishes through fields, commands and runtime", () => {
   });
 
   it("offers closed source palettes and restricts broader external catalogs without discarding metadata", () => {
-    expect(resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {})[0].field.options).toHaveLength(23);
-    expect(resolveSectionFields(tricotUi, "groove-color", tricotProfile, {}, {})[0].field.options).toHaveLength(20);
+    const cabinetColors = resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {}, tricotConfigurator)[0]
+      .field.options;
+    expect(cabinetColors).toHaveLength(23);
+    expect(
+      resolveSectionFields(tricotUi, "groove-color", tricotProfile, {}, {}, tricotConfigurator)[0].field.options,
+    ).toHaveLength(20);
+    // Configurator 12 gives the profile's colours the hex and SKU its lists do not carry.
+    expect(cabinetColors.find(({ value }) => value === "Nero 433 MT")).toMatchObject({
+      desc: "Lacquered MT",
+      traits: { sku: "LACM", hex: "#1f1f20" },
+    });
+    expect(cabinetColors.find(({ value }) => value === "Rovere Oro 932")).toMatchObject({
+      desc: "Wood Veneer",
+      traits: { sku: "WDV" },
+    });
     const profile = {
       ...tricotProfile,
       attributes: tricotProfile.attributes.map((attribute) =>

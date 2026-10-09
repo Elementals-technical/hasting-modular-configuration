@@ -10,7 +10,7 @@ import lameUi from "../../../../public/collections/lame/ui.json";
 
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 
-import configurator9 from "./fixtures/remote/configurator-9.json";
+import configurator14 from "./fixtures/remote/configurator-14.json";
 import datatable596 from "./fixtures/remote/datatable-596.json";
 import datatable597 from "./fixtures/remote/datatable-597.json";
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
@@ -25,8 +25,8 @@ import type { CollectionRegistry } from "../model/schemas";
 import { isReadyCollectionData, type CollectionRuntimeDependencies } from "../model/types";
 
 /**
- * The Lame package: its own data, configurator 9 and its own Render Admin tables, cabinets 596 and
- * countertops 597.
+ * The Lame package: its own data, its own material configurator 14 and its own Render Admin tables,
+ * cabinets 596 and countertops 597.
  *
  * The PlayCanvas export has no Lame product yet: Lame is in the production registry, and its runtime
  * bindings hold every cabinet type back until the scene has one. This test loads it on its own and proves
@@ -53,7 +53,10 @@ const sources: Record<string, unknown> = {
 
 const makeDependencies = () => {
   const remote = {
-    loadConfigurator: vi.fn(async () => configurator9),
+    loadConfigurator: vi.fn(async (reference?: { id: string | number }) => {
+      if (reference?.id === 14) return configurator14;
+      throw new Error(`Unexpected configurator: ${reference?.id}`);
+    }),
     loadCountertopTable: vi.fn(async (id: string | number) => {
       if (id === 597) return datatable597;
       throw new Error(`Unexpected countertop table: ${id}`);
@@ -98,7 +101,7 @@ describe("lame collection package", () => {
     expect(productionRegistry.collections).toContainEqual({ id: "lame", manifest: "lame/manifest.json" });
   });
 
-  it("declares its own data, runtime bindings, configurator 9 and its own tables", () => {
+  it("declares its own data, runtime bindings, configurator 14 and its own tables", () => {
     const manifest = validateCollectionManifest(lameManifest, "lame", manifestUrl, collectionsRootUrl);
 
     expect(manifest.local).toEqual({
@@ -109,18 +112,18 @@ describe("lame collection package", () => {
       runtimeBindings: "runtime-bindings.json",
     });
     expect(manifest.remote).toEqual({
-      configurator: { id: 9, view: "full", serialize: true },
+      configurator: { id: 14, view: "full", serialize: true },
       countertopTable: { id: 597 },
       cabinetTable: { id: 596 },
     });
   });
 
-  it("loads ready for the shell from its own files, configurator 9 and its own tables", async () => {
+  it("loads ready for the shell from its own files, configurator 14 and its own tables", async () => {
     const { data, remote } = await loadLame();
 
     expect(isReadyCollectionData(data)).toBe(true);
     expect(data.diagnostics).toEqual([]);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 9, view: "full", serialize: true }, expect.anything());
+    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 14, view: "full", serialize: true }, expect.anything());
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(597, expect.anything());
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(596, expect.anything());
     expect(data.catalog.productProfile?.collectionId).toBe("lame");

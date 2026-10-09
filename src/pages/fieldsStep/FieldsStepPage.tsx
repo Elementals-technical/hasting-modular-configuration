@@ -1,4 +1,7 @@
+import { useLocation, useSearchParams } from "react-router-dom";
+
 import { getActiveProductProfile } from "@/entities/configuration";
+import { getConfiguratorProductElement } from "@/entities/configurator/lib/configuratorGroupKind";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
 import { setCountertopColorSku } from "@/entities/product/model/store/slice";
 import {
@@ -19,6 +22,8 @@ import { openSwatchOrder } from "@/features/swatchOrder";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
+import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 
 import s from "./FieldsStepPage.module.scss";
 
@@ -39,13 +44,15 @@ const ColorSectionField = ({
 
   const orderSwatches = () => {
     const configuratorSection = selectConfiguratorSection(profile, definition.attributeId);
+    // The swatch order knows a group by its element ("Select Countertop Color" -> "Countertop Color").
+    const productElement = configuratorSection ? getConfiguratorProductElement(configuratorSection) : null;
 
     trackModularOrderFreeSwatchesClick({
       cta_location: section.sectionId.replace(/-/g, "_"),
       configurator_flow: flowId,
-      product_element: configuratorSection ?? section.label,
+      product_element: productElement ?? section.label,
     });
-    dispatch(openSwatchOrder(configuratorSection ?? undefined));
+    dispatch(openSwatchOrder(productElement ?? undefined));
   };
 
   // The countertop rules and price tell a colour two materials list (an MT lacquer, as Tekorlux and as
@@ -88,11 +95,22 @@ const FieldAutoSelect = ({ definition, field }: ResolvedCustomizationField) => {
 };
 
 export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
+  const { key: locationKey } = useLocation();
+  const [searchParams] = useSearchParams();
   // Sections with no visible field are skipped; their values stay recorded.
   const sections = useCustomizationStepSections(stepId).filter((section) =>
     section.fields.some(({ field }) => field.visible),
   );
   const isVesselStyle = useAppSelector(getCountertopStyle)?.trim().toLowerCase() === "vessel";
+  const isCompactAccordionViewport = useCompactAccordionViewport();
+  // The in-scene menu opens a section through `?accordion=`, as on the countertop step.
+  const { value: accordionValue, onValueChange: setAccordionValue } = useSyncedAccordionValue({
+    values: sections.map((section) => section.sectionId),
+    defaultValue: sections.find((section) => section.defaultOpen)?.sectionId,
+    requestedValue: searchParams.get("accordion"),
+    requestKey: locationKey,
+    collapseByDefault: isCompactAccordionViewport && sections.length > 1,
+  });
 
   return (
     <>
@@ -105,7 +123,8 @@ export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
       )}
       <ConfiguratorAccordionGroup
         defaultValue={sections.find((section) => section.defaultOpen)?.sectionId}
-        collapseDefaultOnCompact
+        value={accordionValue}
+        onValueChange={setAccordionValue}
       >
         {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fields }) => {
           const label = isVesselStyle ? (labelWhenVessel ?? sectionLabel) : sectionLabel;

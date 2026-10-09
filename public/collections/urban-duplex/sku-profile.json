@@ -10,7 +10,7 @@
     "Pre-Render | Hybrid Models: the cabinets without a lateral panel are Urban Standard Height and Urban Low Height ones, VAN-URSTD-SC/2DW/UG/X-19.7W-22.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH and VAN-URLH-SC/1DW/UG/X-13.8W-11.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH: the Base Panel colour and, for the groove, the Lateral Panel colour",
     "Open Shelf VAN-UROS-<2S|1S>-<W>-<H>-<D> (2S at 56/53 cm, 1S at 38/28 cm) in the Base Panel colour and Open Side Shelf VAN-UROSS-<L|R>-5.9W-<H>-<D> in the Lateral Panel colour, as the renders show them; Pricing gives them a single CAB element",
     "Hasting Master File [Urban Duplex]: the Base Panel and Lateral Panel colours are the 232 cabinet colours of Urban Standard Height and Urban Low Height, coded as those code them",
-    "Configurator 4: the material SKU of each cabinet and countertop colour",
+    "Configurator 13 (modular-config-phase-2-materials-(duplex)): the material SKU of each cabinet and countertop colour",
     "Accessories Pricing (Urban Standard Height): faucet holes, hole cutout and towel bar use the Urban Standard Height SKUs"
   ],
   "cabinet": {

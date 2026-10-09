@@ -279,6 +279,8 @@ describe("side panel rules on the Urban Freestanding profile", () => {
     expect(mapCabinetTypeToGroup("UF-side-cabinet-k3j4h5g6f", ufsProfile)).toBe("SBSC");
     expect(mapCabinetTypeToGroup("Open-Shelf", ufsProfile)).toBe("OS");
     expect(mapCabinetTypeToGroup("Side-Shelf", ufsProfile)).toBe("OSS");
+    expect(mapCabinetTypeToGroup("UF-open-shelves-k3j4h5g6f", ufsProfile)).toBe("OS");
+    expect(mapCabinetTypeToGroup("UF-open-shelves-side-k3j4h5g6f", ufsProfile)).toBe("OSS");
     expect(mapSidePanelDrawersToHandleType("2D", ufsProfile)).toBe("2D");
 
     expect(sidePanelAvailabilityRule({ height: 91, handleType: "2D", cabinetType: "OSS" }, ufsProfile)).toMatchObject({
