@@ -1,5 +1,22 @@
 {
   "collectionId": "urban-freestanding",
+  "optionImages": {
+    "sinkType": {
+      "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
+      "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Top_HPL/Fenix_Cover_Gres": "images/basin/fenix_Cover.jpg",
+      "Top_HPL/Fenix_Prisma_Gres": "images/basin/fenix_Prisma.jpg",
+      "Top_HPL/Fenix_Quadra_Gres": "images/basin/fenix_Quadra.jpg",
+      "Top_HPLStrip": "images/basin/strip.jpg",
+      "Top_HPLCover": "images/basin/cover.jpg",
+      "Top_HPLPrisma": "images/basin/prisma.jpg",
+      "Top_HPLQuadra": "images/basin/quadro.jpg",
+      "Top_Porcelain_Strip": "images/basin/strip.jpg",
+      "Top_Porcelain_Cover": "images/basin/cover.jpg",
+      "Top_Porcelain_Prisma": "images/basin/prisma.jpg",
+      "Top_Porcelain_Quadra": "images/basin/quadro.jpg"
+    }
+  },
   "flows": {
     "prebuilt": {
       "entryStepId": "model",
