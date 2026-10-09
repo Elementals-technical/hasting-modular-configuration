@@ -23,6 +23,7 @@ vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
     <section aria-label={title}>{children}</section>
   ),
 }));
+vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport");
 
 const FIXTURE_IMAGE_URL = "https://app.test/collections/fixture-ui/images/fixture-ui.svg";
 

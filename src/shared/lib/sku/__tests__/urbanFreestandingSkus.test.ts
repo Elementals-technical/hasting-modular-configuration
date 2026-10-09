@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest";
 import urbanFreestandingProfileDocument from "../../../../../public/collections/urban-freestanding/product-profile.json";
 import urbanFreestandingSkuProfileDocument from "../../../../../public/collections/urban-freestanding/sku-profile.json";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
-import { collectionSkuProfileSchema, parseProductProfile } from "@/entities/collection";
-import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import configurator11Document from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
+import {
+  collectionSkuProfileSchema,
+  configuratorSchema,
+  parseProductProfile,
+  type ConfiguratorGroupCatalog,
+} from "@/entities/collection";
 
 import { buildCollectionCabinetSku, type CollectionValueReader } from "../buildCollectionSkus";
 import { createConfiguratorColorReader } from "../configuratorColors";
@@ -24,43 +27,11 @@ if (!parsed.ok) throw new Error("Urban Freestanding profile failed validation");
 const profile = parsed.profile;
 const skuProfile = collectionSkuProfileSchema.parse(urbanFreestandingSkuProfileDocument);
 
-/** Cabinet colours of configurator 4 beyond the 3D one the frozen fixture keeps, as it carries them. */
-const CONFIGURATOR_4_CABINET_COLORS: readonly { value: string; sku: string; material: string }[] = [
-  { value: "Cemento Cenere 1A1", sku: "3D", material: "3D" },
-  { value: "Ardesia TKF", sku: "HPL", material: "HPL" },
-  { value: "Arancio Zucca 09 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Rovere Eucalipto 01A", sku: "ESS", material: "Essenze" },
-];
-
-const configurator: ConfiguratorGroupCatalog = (() => {
-  const groups = (configurator4.availableOptions as unknown as ConfiguratorAvailableOption[]).map((group) =>
-    group.proxyName === "Cabinet Color"
-      ? {
-          ...group,
-          options: [
-            ...group.options,
-            ...CONFIGURATOR_4_CABINET_COLORS.map(({ value, sku, material }, position) => ({
-              ...group.options[0],
-              id: 90_000 + position,
-              name: material,
-              variants: [
-                {
-                  id: 90_000 + position,
-                  name: value,
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { value, label: value, sku, Material: material },
-                },
-              ],
-            })),
-          ],
-        }
-      : group,
-  );
-
-  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
-})();
+const configurator11 = configuratorSchema.parse(configurator11Document);
+const configurator: ConfiguratorGroupCatalog = {
+  groups: configurator11.availableOptions,
+  groupsByName: Object.fromEntries(configurator11.availableOptions.map((group) => [group.proxyName, group])),
+};
 
 const readConfiguratorColor = createConfiguratorColorReader(profile, configurator);
 

@@ -4,7 +4,8 @@
   "status": "partial",
   "sources": [
     "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
-    "Tricot Vanities - SKUs + Pricing.xlsx: SKU Structure, SKU Curation, CabinetPricing"
+    "Tricot Vanities - SKUs + Pricing.xlsx: SKU Structure, SKU Curation, CabinetPricing",
+    "Class Vanities - SKUs + Pricing.xlsx: Countertop_Pricing, Basin Style_Pricing, Accessories_Pricing (team decision 2026-10-09: the Tricot top is spelled and priced as Class's GB top)"
   ],
   "cabinet": {
     "series": "TRIC",
@@ -55,18 +56,62 @@
     "codeByValue": {}
   },
   "countertop": {
-    "status": "unconfirmed",
-    "reason": "Compatibility table 593 is connected; shared GB material/basin/thickness SKU mappings and pricing cases still require verification."
+    "series": "GB",
+    "styles": {
+      "integrated": "INTG",
+      "vessel": "VES"
+    },
+    "depthIn": "20.7",
+    "materialByColorCategory": {
+      "Solid Surface": "SSTL",
+      "HPL": "HPL",
+      "Porcelain": "POR",
+      "Glass MT": "GLSM",
+      "Glass GL": "GLSG"
+    },
+    "materialByBasin": {
+      "VA030": "SSTEX",
+      "VA023": "SSTMT"
+    },
+    "thicknessByMaterial": {
+      "SSTL": ".5",
+      "SSTM": ".5",
+      "SSTEX": ".5",
+      "SSTMT": "3.1",
+      "POR": ".8",
+      "GLSG": ".5",
+      "GLSM": ".5",
+      "HPL": ".5"
+    },
+    "thicknessCodes": {
+      "0.5": ".5",
+      "0.75": ".8",
+      "3.125": "3.1",
+      "4": "4",
+      "4.75": "4.7"
+    },
+    "bracket": {
+      "sku": "CT-GB-BRKT",
+      "quantity": 2,
+      "thicknesses": ["3.1", "4", "4.7"]
+    }
   },
   "sidePanel": {
     "baseSku": "VAN-TRIC-SP-.8W-15.7H-20.5D",
     "status": "confirmed",
-    "selection": { "attributeId": "SidePanels", "enabledValues": ["Yes"] },
+    "selection": { "attributeId": "SidePanels", "enabledValues": ["NoG"] },
     "quantitySource": "activeSides",
     "countertopWidthOffsetCm": 1,
     "colorAttributeId": "CabinetColor",
     "elementCode": "CAB"
   },
   "dividers": {},
-  "gaps": []
+  "gaps": [
+    {
+      "group": "bracket",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Every thick top (3.1, 4, 4.7) takes two CT-GB-BRKT, as in Class; the count for a composition with more than one top is not confirmed."
+    }
+  ]
 }

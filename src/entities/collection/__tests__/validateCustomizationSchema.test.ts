@@ -332,6 +332,36 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  it("accepts a schema without playerMenu and one that hides menu items", () => {
+    expect(validateCustomizationSchema({ ...uiJson, playerMenu: {} }).ok).toBe(true);
+    expect(validateCustomizationSchema({ ...uiJson, playerMenu: { hidden: ["duplicate", "vessel-color"] } }).ok).toBe(
+      true,
+    );
+  });
+
+  it("names a hidden item the player menu does not have", () => {
+    const result = validateCustomizationSchema({ ...uiJson, playerMenu: { hidden: ["duplicate", "Duplicate"] } });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({ code: "unknown-menu-item", dataPath: "playerMenu.hidden[1]" }),
+    ]);
+  });
+
+  it("rejects a playerMenu that is not an object of a hidden list", () => {
+    for (const [playerMenu, dataPath] of [
+      [["duplicate"], "playerMenu"],
+      [{ hidden: "duplicate" }, "playerMenu.hidden"],
+    ] as const) {
+      const result = validateCustomizationSchema({ ...uiJson, playerMenu });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema", dataPath }));
+    }
+  });
+
   it("rejects a non-object input", () => {
     const result = validateCustomizationSchema(null);
 

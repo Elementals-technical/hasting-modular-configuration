@@ -92,7 +92,7 @@ import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
-import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -867,12 +867,10 @@ export const CabinetBuilderPage = () => {
     (productType?: string | null) => {
       if (!productType) return null;
 
-      const normalized = productType.toLowerCase();
-      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
-
-      return match?.code ?? null;
+      // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
+      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
     },
-    [cabinetCatalog.typeCabinetRules],
+    [cabinetCatalog],
   );
 
   useEffect(() => {

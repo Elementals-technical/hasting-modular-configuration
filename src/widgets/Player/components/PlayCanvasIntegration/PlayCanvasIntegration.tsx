@@ -88,6 +88,7 @@ import {
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { useIsSinkBase } from "@/entities/configuration";
+import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
@@ -121,8 +122,18 @@ import {
   isCountertopSettingsMode,
 } from "@/features/countertopPlacement/lib/positionMenuItems";
 import { resolveCountertopLengthLimitsIn } from "@/features/countertopPlacement/lib/countertopLength";
-import { selectMessageOr, selectOptions, useActiveCollection } from "@/entities/collection";
-import { buildStepPathById, useCollectionNavigation, useStepPathById } from "@/features/collectionCustomization";
+import {
+  resolveCabinetTypeOfRuntimeId,
+  selectMessageOr,
+  selectOptions,
+  useActiveCollection,
+} from "@/entities/collection";
+import {
+  resolveAttributeTarget,
+  toTargetUrl,
+  useCollectionNavigation,
+  type CustomizationTarget,
+} from "@/features/collectionCustomization";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
 import {
   buildCountertopRuleState,
@@ -142,7 +153,7 @@ import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/e
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
-import { getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
 import { useChangeAttribute, useChangeDimension } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
@@ -156,7 +167,9 @@ import {
   useInSceneQuickEditorNotification,
 } from "@/features/inSceneQuickEditorNotification";
 import { useCollectionNavigate } from "@/features/collectionCustomization";
+import { applyPlayerMenuSupport } from "./lib/applyPlayerMenuSupport";
 import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
+import { resolvePlayerMenuSupport } from "./lib/playerMenuCatalog";
 import {
   canExecuteSetConfigSelectionAction,
   findVesselBasinSelectionInfo,
@@ -413,8 +426,22 @@ export const PlayCanvasIntegration = ({
   const navigation = useCollectionNavigation();
   const isCustomPage = navigation?.flowId === "custom";
   const isPrebuilt = !isCustomPage;
-  const currentStepPathById = useMemo(() => buildStepPathById(navigation?.steps), [navigation]);
-  const customStepPathById = useStepPathById("custom");
+  // The items the active collection offers and where each leads, read from its ui.json and profile.
+  const menuSupport = useMemo(
+    () => resolvePlayerMenuSupport(customizationSchema, activeProfile, isCustomPage ? "custom" : "prebuilt"),
+    [activeProfile, customizationSchema, isCustomPage],
+  );
+  // Customize from a Prebuilt menu continues in the custom flow.
+  const customMenuSupport = useMemo(
+    () => resolvePlayerMenuSupport(customizationSchema, activeProfile, "custom"),
+    [activeProfile, customizationSchema],
+  );
+  const navigateToTarget = useCallback(
+    (target: CustomizationTarget | null | undefined) => {
+      if (target) navigate(toTargetUrl(target));
+    },
+    [navigate],
+  );
   const isCabinetBuilderPage = navigation?.currentStep?.kind === "cabinet-builder";
   const isAccessoriesPage = location.pathname.endsWith("/accessories");
   const isSummaryPage = navigation?.isSummary ?? false;
@@ -432,6 +459,13 @@ export const PlayCanvasIntegration = ({
   const cabinetBuilderProductConfig = useAppSelector(getCabinetBuilderProductConfig);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
+  // A placed product's cabinet type, through the collection's bindings: the scene id of a
+  // collection other than Urban does not start with it (`Class-sink-cabinet-…`).
+  const cabinetTypeOf = useCallback(
+    (runtimeId: string | null | undefined) =>
+      runtimeId ? resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, runtimeId) : null,
+    [activeProfile, runtimeBindings],
+  );
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
   // Cabinet & countertop Drag & Drop: ULH only; other collections keep the classic menus.
   const cabinetPlacementDebugEnabled = isDragDropCollection(activeCollectionId);
@@ -671,15 +705,18 @@ export const PlayCanvasIntegration = ({
       selectedSceneProduct ||
       "";
 
-    // Strip trailing random suffix (e.g. "Open-Shelf-abc123" → "Open-Shelf")
+    // The catalog names the cabinet type of a scene product ("UF-open-shelves" → "Open-Shelf");
+    // otherwise strip trailing random suffix (e.g. "Open-Shelf-abc123" → "Open-Shelf")
+    const placedType = findPlacedCabinetRule(cabinetCatalog, raw)?.code.toLowerCase();
     const lastDash = raw.lastIndexOf("-");
     const baseType =
-      lastDash > 0 && raw.slice(lastDash + 1).length >= 6 ? raw.slice(0, lastDash).toLowerCase() : raw.toLowerCase();
+      placedType ??
+      (lastDash > 0 && raw.slice(lastDash + 1).length >= 6 ? raw.slice(0, lastDash).toLowerCase() : raw.toLowerCase());
 
     const openShelfTypes = ["open-shelf", "side-shelf", "os", "oss"];
 
     return !openShelfTypes.includes(baseType);
-  }, [selectedProductConfig, selectedSceneProduct]);
+  }, [cabinetCatalog, selectedProductConfig, selectedSceneProduct]);
 
   const resolveQuickEditorAutoSelectTarget = useCallback(() => {
     const orderedIds = getOrderedProductIds(productIds);
@@ -950,7 +987,7 @@ export const PlayCanvasIntegration = ({
   );
 
   const countertopOptionsFromApi = useMemo(() => {
-    const groups = configuratorGroups.filter((g) => g.proxyName === "Countertop Color");
+    const groups = configuratorGroups.filter((g) => getConfiguratorGroupKind(g.proxyName) === "countertop");
     if (!groups.length) return [];
 
     const buildMaterialTokens = (name: string, metaMaterial?: string, extraTokens: string[] = []) => {
@@ -1114,7 +1151,7 @@ export const PlayCanvasIntegration = ({
       profile: activeProfile,
       values: baseOptions,
       activeCabinetCode: activeCabinetRule?.code,
-      isSinkBaseCabinet: Boolean(selectedSceneProduct?.toLowerCase().startsWith("sink-base-")),
+      isSinkBaseCabinet: cabinetTypeOf(selectedSceneProduct) === "Sink-Base",
       activeCabinetIsOpen: Boolean(activeCabinetRule?.isOpen),
       activeMaterialTokens,
       rules: countertopRules,
@@ -1146,6 +1183,7 @@ export const PlayCanvasIntegration = ({
   }, [
     activeProfile,
     activeCabinetRule?.code,
+    cabinetTypeOf,
     selectedSceneProduct,
     activeMaterialTokens,
     countertopRules,
@@ -1176,12 +1214,10 @@ export const PlayCanvasIntegration = ({
     (productType: string | null) => {
       if (!productType) return null;
 
-      const normalized = productType.toLowerCase();
-      const match = cabinetCatalog.typeCabinetRules.find((rule) => normalized.includes(rule.code.toLowerCase()));
-
-      return match?.code ?? null;
+      // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
+      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
     },
-    [cabinetCatalog.typeCabinetRules],
+    [cabinetCatalog],
   );
 
   const showDropdownForEntity = useCallback(
@@ -2073,11 +2109,11 @@ export const PlayCanvasIntegration = ({
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
   const handleAddAdditionalProduct = useCallback(() => {
     if (!canAddAnotherCabinet) return;
-    navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-type`);
+    navigateToTarget(menuSupport.targets.add);
     closeCanvasFullMode();
 
     closeInPlayerActionSurface();
-  }, [canAddAnotherCabinet, closeCanvasFullMode, closeInPlayerActionSurface, customStepPathById, navigate]);
+  }, [canAddAnotherCabinet, closeCanvasFullMode, closeInPlayerActionSurface, menuSupport, navigateToTarget]);
 
   const handleOpenCustomizeModePrompt = useCallback(
     (action: CustomizeModePromptAction, deleteTarget: string | null = null) => {
@@ -2127,40 +2163,40 @@ export const PlayCanvasIntegration = ({
   }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
 
   const handleCountertopColorFromPrebuilt = useCallback(() => {
-    navigate(`${currentStepPathById.countertop}?accordion=countertop-color`);
+    navigateToTarget(menuSupport.targets["countertop-color"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentStepPathById, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    navigate(`${currentStepPathById.countertop}?accordion=thickness`);
+    navigateToTarget(menuSupport.targets["countertop-thickness"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentStepPathById, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    navigate(`${currentStepPathById.countertop}?accordion=countertop-styles`);
+    navigateToTarget(menuSupport.targets["countertop-style"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentStepPathById, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleBasinStyleFromPrebuilt = useCallback(() => {
-    navigate(`${currentStepPathById.countertop}?accordion=basin-style`);
+    navigateToTarget(menuSupport.targets["basin-style"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentStepPathById, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) => {
@@ -2189,7 +2225,7 @@ export const PlayCanvasIntegration = ({
       // Block swap that would displace an edge Side-Shelf into interior
       const neighbor = orderedIds[neighborIndex];
       if (
-        neighbor?.startsWith("Side-Shelf-") &&
+        cabinetTypeOf(neighbor) === "Side-Shelf" &&
         (neighborIndex === 0 || neighborIndex === orderedIds.length - 1) &&
         orderedIds.length > 2
       ) {
@@ -2199,7 +2235,7 @@ export const PlayCanvasIntegration = ({
       await handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
       closeInPlayerActionSurface();
     },
-    [closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct],
+    [cabinetTypeOf, closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct],
   );
 
   useEffect(() => {
@@ -2375,75 +2411,38 @@ export const PlayCanvasIntegration = ({
     dispatch(resetProducts());
     dispatch(resetCabinetBuilderBootstrap());
 
-    if (action === "add") {
-      navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-type`);
-      closeCanvasFullMode();
-      return;
-    }
-
-    if (action === "cabinet-style") {
-      navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-style`);
-      closeCanvasFullMode();
-      return;
-    }
-
-    if (action === "countertop-color") {
-      navigate(`${customStepPathById["countertop-custom"]}?accordion=counter-top-color`);
-      closeCanvasFullMode();
-      return;
-    }
-
-    if (action === "countertop-thickness") {
-      navigate(`${customStepPathById["countertop-custom"]}?accordion=thickness-custom`);
-      closeCanvasFullMode();
-      return;
-    }
-
-    if (action === "countertop-style") {
-      navigate(`${customStepPathById["countertop-custom"]}?accordion=countertop-style`);
-      closeCanvasFullMode();
-      return;
-    }
-
-    if (action === "basin-style") {
-      navigate(`${customStepPathById["countertop-custom"]}?accordion=basin-style-custom`);
-      closeCanvasFullMode();
-      return;
-    }
-
-    navigate(ROUTES.CUSTOM);
+    // An action with a place of its own (Add, Cabinet Style, the countertop ones) continues there in
+    // the custom flow, as the collection's ui.json names it; the others start the custom flow.
+    const target = action === "default" ? undefined : customMenuSupport.targets[action];
+    navigate(target ? toTargetUrl(target) : ROUTES.CUSTOM);
     closeCanvasFullMode();
   }, [
     closeCanvasFullMode,
+    customMenuSupport,
     customizeModePromptAction,
     customizeModePromptDeleteTarget,
-    customStepPathById,
     dispatch,
     navigate,
     productsPresets,
   ]);
 
   const handleOpenCabinetStyle = useCallback(() => {
-    navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-style`);
+    navigateToTarget(menuSupport.targets["cabinet-style"]);
     closeCanvasFullMode();
     closeInPlayerActionSurface();
-  }, [closeCanvasFullMode, closeInPlayerActionSurface, customStepPathById, navigate]);
+  }, [closeCanvasFullMode, closeInPlayerActionSurface, menuSupport, navigateToTarget]);
 
   const handleOpenCabinetColor = useCallback(() => {
-    navigate(
-      isPrebuilt
-        ? currentStepPathById.cabinet
-        : `${currentStepPathById["cabinet-colors"]}?accordion=cabinet-color-custom`,
-    );
+    navigateToTarget(menuSupport.targets.color);
     closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentStepPathById, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleOpenAccessories = useCallback(() => {
-    navigate(isPrebuilt ? currentStepPathById.accessories : currentStepPathById["accessories-custom"]);
+    navigateToTarget(menuSupport.targets.accessories);
     closeCanvasFullMode();
     setDropdownState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentStepPathById, isPrebuilt, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const isTopViewActive = useCallback((): boolean => {
     const api = (containerRef.current?.contentWindow as any)?.ConfiguratorAPI as
@@ -2696,6 +2695,17 @@ export const PlayCanvasIntegration = ({
   if (selectTool && !selectToolAttachedRef.current) {
     selectToolAttachedRef.current = true;
 
+    // Nothing a menu acts on is selected: close the menus and forget the selected product.
+    const clearSelectedProduct = () => {
+      if (openDrawerButtonsTargetRef.current) {
+        hideOpenDrawerButtons();
+      }
+      dispatch(setSelectedSceneProduct(""));
+      setVesselBasinSelectionInfo(null);
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+      setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+    };
+
     selectTool.on("select", (selectedEntity, selectionInfo) => {
       // A countertop edit owns the preview. Do not run legacy auto-fit or open
       // competing context menus while its drag tool changes selection.
@@ -2736,7 +2746,15 @@ export const PlayCanvasIntegration = ({
         (async () => {
           const config = await getConfig(firstSelected.name ?? "");
 
-          if (!config) return;
+          // A scene entity that is not a product (the room around the vanity, `Room1`) has no config:
+          // the click missed every product, so it closes the menus as a click on empty space does. Its
+          // selection is dropped as well, or the next click on it would only deselect it and the menu
+          // would close one click late.
+          if (!config) {
+            clearSelectedProduct();
+            selectTool?.deselectAll();
+            return;
+          }
 
           dispatch(setSelectedSceneProduct(firstSelected.name!));
           // replace any previous selection
@@ -2796,13 +2814,7 @@ export const PlayCanvasIntegration = ({
         })();
       } else {
         console.log("клик в пустоту");
-        if (openDrawerButtonsTargetRef.current) {
-          hideOpenDrawerButtons();
-        }
-        dispatch(setSelectedSceneProduct(""));
-        setVesselBasinSelectionInfo(null);
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-        setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+        clearSelectedProduct();
       }
     });
   }
@@ -3058,7 +3070,7 @@ export const PlayCanvasIntegration = ({
     cabinetPlacementRef.current?.reposition(selectedSceneProduct);
   }, [repositionStatus.available, selectedSceneProduct, productIds]);
 
-  const dropdownItems: DropdownItem[] = useMemo(() => {
+  const rawDropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
     const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
@@ -3185,13 +3197,13 @@ export const PlayCanvasIntegration = ({
     // Exception: a 2-item scene with exactly 1 cabinet + 1 OSS lets the OSS swap sides,
     // since both positions are edges and the cabinet would just take the opposite edge.
     const selectedIdx = selectedSceneProduct ? orderedIds.indexOf(selectedSceneProduct) : -1;
-    const isSelectedOss = selectedSceneProduct?.startsWith("Side-Shelf-");
-    const nonOssIds = orderedIds.filter((id) => !id.startsWith("Side-Shelf-"));
+    const isSelectedOss = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf";
+    const nonOssIds = orderedIds.filter((id) => cabinetTypeOf(id) !== "Side-Shelf");
     const isOneCabinetPlusOneOss = orderedIds.length === 2 && nonOssIds.length === 1;
     const ossCannotMove = isSelectedOss && productIds.length > 1 && !isOneCabinetPlusOneOss;
 
     const isOssAtEdge = (idx: number) =>
-      orderedIds[idx]?.startsWith("Side-Shelf-") &&
+      cabinetTypeOf(orderedIds[idx]) === "Side-Shelf" &&
       (idx === 0 || idx === orderedIds.length - 1) &&
       orderedIds.length > 2;
 
@@ -3307,8 +3319,8 @@ export const PlayCanvasIntegration = ({
             } as DropdownItem,
           ]
         : []),
-      ...((selectedSceneProduct?.startsWith("Sink-Base-") && sinkBaseCount >= 2) ||
-      (selectedSceneProduct?.startsWith("Side-Shelf-") && sideShelfCount >= 2)
+      ...((cabinetTypeOf(selectedSceneProduct) === "Sink-Base" && sinkBaseCount >= 2) ||
+      (cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" && sideShelfCount >= 2)
         ? []
         : canDuplicateSelectedCabinet
           ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
@@ -3332,6 +3344,7 @@ export const PlayCanvasIntegration = ({
     return items;
   }, [
     repositionStatus,
+    cabinetTypeOf,
     handleDragReposition,
     handleRemoveProducts,
     handleSetWidth,
@@ -3367,6 +3380,10 @@ export const PlayCanvasIntegration = ({
     sideShelfCount,
     countertopCompositionConstraint.isSingleCabinetOnly,
   ]);
+  const dropdownItems = useMemo(
+    () => applyPlayerMenuSupport(rawDropdownItems, menuSupport),
+    [menuSupport, rawDropdownItems],
+  );
 
   const handleCountertopThicknessSelect = useCallback(
     async (thickness: number) => {
@@ -3388,50 +3405,40 @@ export const PlayCanvasIntegration = ({
     [changeAttributeValue, saveSnapshot, selectedSceneProduct],
   );
 
-  const currentCountertopStepPath = isPrebuilt
-    ? currentStepPathById.countertop
-    : currentStepPathById["countertop-custom"];
-
-  // Prebuilt and Custom declare these sections under different ids in ui.json.
-  const countertopColorAccordionId = isPrebuilt ? "countertop-color" : "counter-top-color";
-  const countertopStyleAccordionId = isPrebuilt ? "countertop-styles" : "countertop-style";
-  const basinStyleAccordionId = isPrebuilt ? "basin-style" : "basin-style-custom";
-  const vesselColorAccordionId = isPrebuilt ? "vessel-color" : "vessel-color-custom";
-
   const handleOpenCountertopColor = useCallback(() => {
-    navigate(`${currentCountertopStepPath}?accordion=${countertopColorAccordionId}`);
+    navigateToTarget(menuSupport.targets["countertop-color"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, countertopColorAccordionId, currentCountertopStepPath, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleOpenCountertopStyle = useCallback(() => {
-    navigate(`${currentCountertopStepPath}?accordion=${countertopStyleAccordionId}`);
+    navigateToTarget(menuSupport.targets["countertop-style"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, countertopStyleAccordionId, currentCountertopStepPath, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleOpenBasinStyle = useCallback(() => {
-    navigate(`${currentCountertopStepPath}?accordion=${basinStyleAccordionId}`);
+    navigateToTarget(menuSupport.targets["basin-style"]);
     closeCanvasFullMode();
     getSelectTool()?.deselectAll();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [basinStyleAccordionId, closeCanvasFullMode, currentCountertopStepPath, navigate]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleOpenVesselBasinColor = useCallback(() => {
-    navigate(`${currentCountertopStepPath}?accordion=${vesselColorAccordionId}`);
+    navigateToTarget(menuSupport.targets["vessel-color"]);
     closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, currentCountertopStepPath, navigate, vesselColorAccordionId]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   const handleOpenVesselBasinStyle = useCallback(() => {
     // The basin list opens for the countertop style of the basin picked in 3D.
@@ -3440,25 +3447,19 @@ export const PlayCanvasIntegration = ({
         ? VESSEL_PLACEHOLDER_SINK_TYPE
         : "integrated",
     });
-    navigate(`${currentCountertopStepPath}?accordion=${basinStyleAccordionId}`);
+    navigateToTarget(menuSupport.targets["vessel-style"]);
     closeCanvasFullMode();
     setVesselBasinSelectionInfo(null);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [
-    basinStyleAccordionId,
-    closeCanvasFullMode,
-    currentCountertopStepPath,
-    navigate,
-    record,
-    vesselBasinSelectionInfo,
-  ]);
+  }, [closeCanvasFullMode, menuSupport, navigateToTarget, record, vesselBasinSelectionInfo]);
 
+  // Not a menu item: an empty scene always leads to the cabinet types, whatever the menu hides.
   const handleEmptySceneRedirect = useCallback(() => {
-    navigate(`${customStepPathById["cabinet-builder"]}?accordion=cabinet-type`);
-  }, [customStepPathById, navigate]);
+    navigateToTarget(resolveAttributeTarget(customizationSchema, "custom", "CabinetType"));
+  }, [customizationSchema, navigateToTarget]);
 
-  const countertopPopoverItems: DropdownItem[] = useMemo(() => {
+  const rawCountertopPopoverItems: DropdownItem[] = useMemo(() => {
     const closeCountertopMenus = () => {
       setDropdownState((current) => ({ ...current, visible: false }));
       setCountertopPopoverState((current) => ({ ...current, visible: false }));
@@ -3586,18 +3587,24 @@ export const PlayCanvasIntegration = ({
     handleBasinStyleFromPrebuilt,
     thicknessOptions,
   ]);
+  const countertopPopoverItems = useMemo(
+    () => applyPlayerMenuSupport(rawCountertopPopoverItems, menuSupport),
+    [menuSupport, rawCountertopPopoverItems],
+  );
 
   const vesselBasinDropdownItems: DropdownItem[] = useMemo(() => {
-    return buildVesselBasinDropdownItems({
+    const items = buildVesselBasinDropdownItems({
       actions: vesselBasinSelectionInfo?.actions ?? [],
       onOpenStyle: handleOpenVesselBasinStyle,
       onOpenColor: handleOpenVesselBasinColor,
       onExecuteAction: handleExecuteVesselBasinAction,
     });
+    return applyPlayerMenuSupport(items, menuSupport);
   }, [
     handleExecuteVesselBasinAction,
     handleOpenVesselBasinColor,
     handleOpenVesselBasinStyle,
+    menuSupport,
     vesselBasinSelectionInfo?.actions,
   ]);
 

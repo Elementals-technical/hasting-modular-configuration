@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest";
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import { parseProductProfile } from "../lib/parseProductProfile";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
   isDrawerStyleMixingRestricted,
   isVesselBasin,
+  parseConfiguratorSource,
+  selectConfiguratorGroup,
+  selectConfiguratorSection,
   selectMessage,
   selectRuleData,
 } from "../lib/productProfileSelectors";
@@ -121,4 +125,79 @@ describe("isVesselBasin", () => {
       [...others, "", null, undefined].forEach((value) => expect(isVesselBasin(profile, value)).toBe(false));
     },
   );
+});
+
+describe("parseConfiguratorSource", () => {
+  it.each([
+    ["configurator:Select Cabinet Color", { group: "Select Cabinet Color" }],
+    ["configurator:Select Cabinet Colors/Base Panel", { group: "Select Cabinet Colors", option: "Base Panel" }],
+    ["configurator:Select Cabinet Colors/", { group: "Select Cabinet Colors" }],
+    ["configurator:", null],
+    ["configurator:/Base Panel", null],
+    ["Select Cabinet Color", null],
+    [undefined, null],
+  ])("reads %j as %j", (source, expected) => {
+    expect(parseConfiguratorSource(source)).toEqual(expected);
+  });
+});
+
+describe("selectConfiguratorGroup", () => {
+  const option = (id: number, name: string, colours: readonly string[]) => ({
+    id,
+    name,
+    resource: null,
+    paramString: null,
+    playcanvasString: null,
+    variants: colours.map((colour, index) => ({
+      id: id * 100 + index,
+      name: colour,
+      image: null,
+      enabled: true,
+      description: "",
+      metadata: { sku: "ST", Material: "Soft-Touch" },
+    })),
+  });
+  // Urban Duplex's configurator 13 holds both panels in one group, an option each.
+  const panels: ConfiguratorAvailableOption = {
+    id: 1,
+    proxyName: "Select Cabinet Colors",
+    proxyType: "material",
+    enabled: true,
+    metadata: {},
+    options: [option(2, "Base Panel", ["Nero 03 ST"]), option(3, "Lateral Panel", ["Bianco Calce DA ST"])],
+  };
+  const configurator = { groups: [panels] };
+  const withSource = (optionsSource: string): ProductProfile => ({
+    ...makoProfile,
+    attributes: makoProfile.attributes.map((attribute) =>
+      attribute.attributeId === "CabinetColor" ? { ...attribute, optionsSource } : attribute,
+    ),
+  });
+
+  it("returns the whole group a source names", () => {
+    expect(
+      selectConfiguratorGroup(withSource("configurator:Select Cabinet Colors"), "CabinetColor", configurator),
+    ).toBe(panels);
+  });
+
+  it("narrows the group to the option a source names, and keeps the group's name for the swatch order", () => {
+    const profile = withSource("configurator:Select Cabinet Colors/Lateral Panel");
+
+    expect(selectConfiguratorGroup(profile, "CabinetColor", configurator)).toEqual({
+      ...panels,
+      options: [panels.options[1]],
+    });
+    expect(selectConfiguratorSection(profile, "CabinetColor")).toBe("Select Cabinet Colors");
+  });
+
+  it("finds nothing for an unknown group or option, an attribute with its own options or no configurator", () => {
+    const unknownGroup = withSource("configurator:Select Cabinet Color");
+    const unknownOption = withSource("configurator:Select Cabinet Colors/Side Panel");
+    const known = withSource("configurator:Select Cabinet Colors");
+
+    expect(selectConfiguratorGroup(unknownGroup, "CabinetColor", configurator)).toBeUndefined();
+    expect(selectConfiguratorGroup(unknownOption, "CabinetColor", configurator)).toBeUndefined();
+    expect(selectConfiguratorGroup(makoProfile, "DividersStyle", configurator)).toBeUndefined();
+    expect(selectConfiguratorGroup(known, "CabinetColor", null)).toBeUndefined();
+  });
 });

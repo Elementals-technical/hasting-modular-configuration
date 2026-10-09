@@ -54,3 +54,5 @@ Status: partially implemented; full activation and acceptance remain pending.
 - Automated adapter evidence is distinct from issue 8 real-scene/browser acceptance. The manifest remains staged.
 
 Verification: 238 Tricot tests / 287 broader focused tests passed; full regression has 2184 passing tests and no unexpected failure. TypeScript, build, changed-source lint, PNG integrity and diff checks passed. Full lint retains the pre-existing staging baseline of 93 errors and three warnings. Detailed results are recorded in the tracker. No real-scene/browser acceptance or external publication is claimed.
+
+Addendum 2026-10-08: by the user's decision the preflight now blocks only invalid inputs; pending ones are placed without and kept in state and price. See [handoff.md](handoff.md), "Placement of pending choices".

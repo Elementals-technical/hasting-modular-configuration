@@ -33,6 +33,9 @@ import urbanDuplexSkuProfile from "../../../../public/collections/urban-duplex/s
 import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 
 import configurator4 from "./fixtures/remote/configurator-4.json";
+import configurator9 from "./fixtures/remote/configurator-9.json";
+import configurator11 from "./fixtures/remote/configurator-11.json";
+import configurator13 from "./fixtures/remote/configurator-13.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
 import datatable439 from "./fixtures/remote/datatable-439.json";
 import datatable577 from "./fixtures/remote/datatable-577.json";
@@ -115,8 +118,20 @@ const cabinetTables: Record<string, unknown> = {
   594: datatable594,
 };
 
+/** The configurator each manifest names: USH's 4, Mako's 9, and Urban Freestanding's and Urban Duplex's own. */
+const configurators: Record<string, unknown> = {
+  4: configurator4,
+  9: configurator9,
+  11: configurator11,
+  13: configurator13,
+};
+
 const makeRemote = (): RemoteCollectionLoader => ({
-  loadConfigurator: vi.fn(async () => configurator4),
+  loadConfigurator: vi.fn<RemoteCollectionLoader["loadConfigurator"]>(async (reference) => {
+    const configurator = reference ? configurators[reference.id] : undefined;
+    if (!configurator) throw new Error(`Unexpected configurator request: ${JSON.stringify(reference)}`);
+    return configurator;
+  }),
   loadCountertopTable: vi.fn(async (id: string | number) => countertopTables[id] ?? datatable438),
   loadCabinetTable: vi.fn(async (id: string | number) => cabinetTables[id] ?? datatable439),
 });
@@ -294,7 +309,7 @@ describe("partial production collection packages", () => {
     ]);
   });
 
-  it("loads Urban Freestanding with its own cabinet table and the shared configurator and countertop table", async () => {
+  it("loads Urban Freestanding with its own configurator and its own cabinet and countertop tables", async () => {
     const remote = makeRemote();
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -311,7 +326,8 @@ describe("partial production collection packages", () => {
     const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
 
     expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+    // Its own material configurator (modular-config-phase-2-materials-(Urban Freestanding)).
+    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 11, view: "full", serialize: true }, abortSignal);
     // Its own countertop table (matrix-coutnertop-UFS).
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(591, abortSignal);
@@ -345,10 +361,12 @@ describe("partial production collection packages", () => {
       expect(style.includes("asymmetrical")).toBe(layout.join() !== [...layout].reverse().join());
     }
     expect(data.catalog.productProfile?.collectionId).toBe("urban-freestanding");
-    // Both drawer cabinets have their UF scene product (I); the open shelves have none yet.
+    // Every cabinet type has its UF scene product (I), the open shelves included.
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
       "Sink-Base": "UF-sink-cabinet",
       "Sink-Cabinet": "UF-side-cabinet",
+      "Open-Shelf": "UF-open-shelves",
+      "Side-Shelf": "UF-open-shelves-side",
     });
     // Priced from its own SKU words (D04), not the USH cabinet mappings.
     expect(data.catalog.skuProfile?.collectionId).toBe("urban-freestanding");
@@ -371,8 +389,17 @@ describe("partial production collection packages", () => {
       // Two drawers only, so the Central Groove needs no drawers rule.
       requiresDrawersByHandle: {},
     };
-    // The table has the open shelves of the price list, but the scene has no UF shelf yet, so their
-    // cards stay hidden (unplacedProductTypes).
+    // The open shelves of the price list, with no drawers or handles and so no forced height: the open
+    // shelf at the height of the cabinets beside it (91 or 88), the open side shelf at 88 only.
+    const shelf = {
+      depths: [50, 46],
+      drawers: [],
+      isOpen: true,
+      hasSink: false,
+      handlesAllowed: [],
+      forcedHeightByHandle: {},
+      requiresDrawersByHandle: {},
+    };
     expect(data.sources.remote.cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
       "Sink-Base",
       "Sink-Cabinet",
@@ -393,6 +420,22 @@ describe("partial production collection packages", () => {
         hasSink: false,
         sceneProductType: "UF-side-cabinet",
         ...common,
+      }),
+      expect.objectContaining({
+        code: "Open-Shelf",
+        widths: [25, 35, 50],
+        heights: [88, 91],
+        supportsHeight: [88, 91],
+        sceneProductType: "UF-open-shelves",
+        ...shelf,
+      }),
+      expect.objectContaining({
+        code: "Side-Shelf",
+        widths: [15],
+        heights: [88],
+        supportsHeight: [88],
+        sceneProductType: "UF-open-shelves-side",
+        ...shelf,
       }),
     ]);
     // The countertops of the Master File as table 438 has them, thin only and at the cabinet depths:
@@ -439,7 +482,8 @@ describe("partial production collection packages", () => {
     const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
 
     expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+    // Its own material configurator (modular-config-phase-2-materials-(duplex)).
+    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 13, view: "full", serialize: true }, abortSignal);
     // Its own countertop table (matrix-coutnertop-duplex).
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(595, abortSignal);

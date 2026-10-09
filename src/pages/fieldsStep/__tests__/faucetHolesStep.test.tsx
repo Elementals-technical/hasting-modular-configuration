@@ -36,6 +36,7 @@ vi.mock("@/features/configurationCommands", async (importOriginal) => {
 });
 
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
+vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport");
 
 afterEach(cleanup);
 

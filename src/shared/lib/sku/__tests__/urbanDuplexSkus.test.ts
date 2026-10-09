@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest";
 import urbanDuplexProfileDocument from "../../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexSkuProfileDocument from "../../../../../public/collections/urban-duplex/sku-profile.json";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
-import { collectionSkuProfileSchema, parseProductProfile } from "@/entities/collection";
-import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import configurator13Document from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
+import {
+  collectionSkuProfileSchema,
+  configuratorSchema,
+  parseProductProfile,
+  type ConfiguratorGroupCatalog,
+} from "@/entities/collection";
 
 import { buildCollectionCabinetSku, type CollectionValueReader } from "../buildCollectionSkus";
 import { createConfiguratorColorReader } from "../configuratorColors";
@@ -23,49 +26,11 @@ if (!parsed.ok) throw new Error("Urban Duplex profile failed validation");
 const profile = parsed.profile;
 const skuProfile = collectionSkuProfileSchema.parse(urbanDuplexSkuProfileDocument);
 
-/** Cabinet colours of configurator 4 beyond the 3D ones the frozen fixture keeps, as the Master File names them. */
-const CONFIGURATOR_4_CABINET_COLORS: readonly { value: string; sku: string; material: string }[] = [
-  { value: "Bianco Calce DA ST", sku: "ST", material: "Soft-Touch" },
-  { value: "Nero 03 ST", sku: "ST", material: "Soft-Touch" },
-  { value: "Pulpis Chiaro TKH", sku: "HPL", material: "HPL" },
-  { value: "Rovere Valdweg TKK", sku: "HPL", material: "HPL" },
-  { value: "Metallizzato Copper M7 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Nero 03 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Blu Laguna A7 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Rosa Etoile 45 GL", sku: "LACG", material: "Lacquered GL" },
-  { value: "Rovere Avena 06E", sku: "ESS", material: "Essenze" },
-  { value: "Rovere Bianco 06A", sku: "ESS", material: "Essenze" },
-];
-
-const configurator: ConfiguratorGroupCatalog = (() => {
-  const groups = (configurator4.availableOptions as unknown as ConfiguratorAvailableOption[]).map((group) =>
-    group.proxyName === "Cabinet Color"
-      ? {
-          ...group,
-          options: [
-            ...group.options,
-            ...CONFIGURATOR_4_CABINET_COLORS.map(({ value, sku, material }, position) => ({
-              ...group.options[0],
-              id: 90_000 + position,
-              name: material,
-              variants: [
-                {
-                  id: 90_000 + position,
-                  name: value,
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { value, label: value, sku, Material: material },
-                },
-              ],
-            })),
-          ],
-        }
-      : group,
-  );
-
-  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
-})();
+const configurator13 = configuratorSchema.parse(configurator13Document);
+const configurator: ConfiguratorGroupCatalog = {
+  groups: configurator13.availableOptions,
+  groupsByName: Object.fromEntries(configurator13.availableOptions.map((group) => [group.proxyName, group])),
+};
 
 const readConfiguratorColor = createConfiguratorColorReader(profile, configurator);
 

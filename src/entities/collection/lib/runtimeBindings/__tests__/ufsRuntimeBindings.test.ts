@@ -7,14 +7,16 @@ import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
 import { parseProductProfile } from "../../parseProductProfile";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
+import { resolveCabinetTypeOfRuntimeId } from "../resolveCabinetType";
 import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 /**
  * The Urban Freestanding scene products as the scene export registers them: UF-sink-cabinet and
  * UF-side-cabinet with Width, Height and Depth (RuleWidthCabinetUrbanFreestanding,
- * RuleHeightCabinetUrbanFreestanding, RuleDepthCabinetUrbanFreestanding); the drawers and the
- * handle grooves follow Height. There is no UF open shelf yet.
+ * RuleHeightCabinetUrbanFreestanding, RuleDepthCabinetUrbanFreestanding), whose drawers and handle
+ * grooves follow Height, and the open shelves UF-open-shelves and UF-open-shelves-side. All four
+ * take CabinetColor; the two drawer cabinets also paint HandleGrooveColor.
  */
 
 const parsedProfile = parseProductProfile(ufsProfileDocument);
@@ -51,12 +53,24 @@ describe("urban-freestanding runtime bindings", () => {
     expect(validateRuntimeBindings(ufsProfile(), ufsRuntimeBindings(), REQUIRED_ATTRIBUTE_IDS)).toEqual([]);
   });
 
-  it("place Sink Base and Side Cabinet as the UF scene products and hold the open shelves back", () => {
+  it("place every cabinet type as its UF scene product, the open shelves included", () => {
     expect(ufsRuntimeBindings().productTypes).toEqual({
       "Sink-Base": "UF-sink-cabinet",
       "Sink-Cabinet": "UF-side-cabinet",
+      "Open-Shelf": "UF-open-shelves",
+      "Side-Shelf": "UF-open-shelves-side",
     });
-    expect(Object.keys(ufsRuntimeBindings().unplacedProductTypes ?? {})).toEqual(["Open-Shelf", "Side-Shelf"]);
+    expect(ufsRuntimeBindings().unplacedProductTypes).toBeUndefined();
+  });
+
+  it("read a placed product back as its cabinet type, though one scene type starts the other", () => {
+    const cabinetTypeOf = (runtimeId: string) =>
+      resolveCabinetTypeOfRuntimeId(ufsProfile(), ufsRuntimeBindings(), runtimeId);
+
+    expect(cabinetTypeOf("UF-open-shelves-side-k3j4h5g6f")).toBe("Side-Shelf");
+    expect(cabinetTypeOf("UF-open-shelves-k3j4h5g6f")).toBe("Open-Shelf");
+    expect(cabinetTypeOf("UF-sink-cabinet-k3j4h5g6f")).toBe("Sink-Base");
+    expect(cabinetTypeOf("UF-side-cabinet-k3j4h5g6f")).toBe("Sink-Cabinet");
   });
 
   it("send the catalog sizes as they are, since the player reads them back from the scene", () => {
@@ -81,8 +95,17 @@ describe("urban-freestanding runtime bindings", () => {
     expect(patchOf("VesselColor", "Bianco")).toEqual({ VesselColor: "Bianco" });
   });
 
-  it("record the countertop style, the fluting and the groove colour without a scene call", () => {
-    for (const attributeId of ["CountertopStyle", "DrawerPanelFluting", "HandleGrooveColor"]) {
+  it("send the groove colour to every product, and a cleared one as the scene's None", () => {
+    expect(resolveRuntimeBinding(ufsRuntimeBindings(), "HandleGrooveColor", "Acqua 419 Lacquered GL")).toMatchObject({
+      ok: true,
+      target: { kind: "all" },
+      patch: { HandleGrooveColor: "Acqua 419 Lacquered GL" },
+    });
+    expect(patchOf("HandleGrooveColor", "")).toEqual({ HandleGrooveColor: "None" });
+  });
+
+  it("record the countertop style and the fluting without a scene call", () => {
+    for (const attributeId of ["CountertopStyle", "DrawerPanelFluting"]) {
       expect(isStateOnlyResolution(resolveRuntimeBinding(ufsRuntimeBindings(), attributeId, "x"))).toBe(true);
     }
   });

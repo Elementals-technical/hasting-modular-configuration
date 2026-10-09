@@ -6,10 +6,10 @@
     "source": "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
     "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
     "status": "source-backed preparation; partial approved runtime handoff integrated",
-    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound; pattern/panels/countertop/basins and wood assets remain explicit dependencies."
+    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies."
   },
   "sourceRefs": {
-    "configuratorId": 9,
+    "configuratorId": 12,
     "countertopMatrixTableId": 593,
     "cabinetMatrixTableId": 592
   },
@@ -17,7 +17,6 @@
     "CabinetColor": "Rovere Oro 932",
     "DrawerPanelFluting": "Cannette",
     "HandleGrooveColor": "Nero 433 MT",
-    "SidePanels": "No",
     "CountertopColor": "Matte White",
     "sinkType": "LB440",
     "CountertopStyle": "integrated"
@@ -123,6 +122,7 @@
     {
       "attributeId": "CabinetColor",
       "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color",
       "options": [
         {
           "value": "Grigio Argento 403 MT",
@@ -310,7 +310,8 @@
         {
           "value": "Gessato",
           "label": "Gessato",
-          "order": 3
+          "order": 3,
+          "aliases": ["Gessatto"]
         },
         {
           "value": "Satin",
@@ -323,6 +324,7 @@
     {
       "attributeId": "HandleGrooveColor",
       "scope": "cabinet",
+      "optionsSource": "configurator:Select Handle Groove Color",
       "options": [
         {
           "value": "Grigio Argento 403 MT",
@@ -471,25 +473,26 @@
     {
       "attributeId": "SidePanels",
       "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
       "options": [
         {
-          "value": "Yes",
-          "label": "Yes",
-          "order": 0
+          "value": "None",
+          "label": "None",
+          "order": 10,
+          "aliases": ["No"]
         },
         {
-          "value": "No",
-          "label": "None",
-          "order": 1
+          "value": "NoG",
+          "label": "No groove",
+          "order": 20
         }
-      ],
-      "initialValue": "No",
-      "defaultValue": "No",
-      "noneValue": "No"
+      ]
     },
     {
       "attributeId": "CountertopColor",
       "scope": "countertop",
+      "optionsSource": "configurator:Select Countertop Color",
       "options": [
         {
           "value": "Matte White",
@@ -967,33 +970,33 @@
       "options": [
         {
           "value": "0.5",
-          "label": "1/2",
-          "order": 0,
+          "label": "0.5\"",
+          "order": 10,
           "aliases": ["1/2"]
         },
         {
-          "value": "4.75",
-          "label": "4-3/4",
-          "order": 1,
-          "aliases": ["4-3/4"]
-        },
-        {
-          "value": "3.125",
-          "label": "3-1/8",
-          "order": 2,
-          "aliases": ["3-1/8"]
-        },
-        {
           "value": "0.75",
-          "label": "3/4",
-          "order": 3,
+          "label": "0.8\"",
+          "order": 20,
           "aliases": ["3/4"]
         },
         {
+          "value": "3.125",
+          "label": "3.1\"",
+          "order": 30,
+          "aliases": ["3-1/8"]
+        },
+        {
           "value": "4",
-          "label": "4",
-          "order": 4,
+          "label": "4\"",
+          "order": 40,
           "aliases": []
+        },
+        {
+          "value": "4.75",
+          "label": "4.7\"",
+          "order": 50,
+          "aliases": ["4-3/4"]
         }
       ],
       "initialValue": ""
@@ -1137,15 +1140,37 @@
         "hasSink": false
       }
     ],
-    "undeterminedRules": [
-      {
-        "ruleId": "TRICOT-PANELS",
-        "attributeId": "SidePanels",
-        "values": ["Yes"],
-        "source": "Canvas panel bindings and accepted activation/removal values are pending. Accessories placement, cabinet color/material inheritance and +1 cm per active side were confirmed on 2026-10-07."
-      }
-    ],
-    "drawerStyleGroups": [["1", "1+inner"], ["2"]]
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "sidePanels": {
+      "heightTokenByCm": {
+        "40": "40H"
+      },
+      "blockedCabinetTypes": [],
+      "cabinetGroups": {
+        "SBSC": ["Sink-Base", "Side-Cabinet", "Tricot-sink-cabinet", "Tricot-side-cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1", "1+inner", "1D", "1DWID"],
+        "2D": ["2", "2D"]
+      },
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        {
+          "height": "40H",
+          "handleType": "1D",
+          "cabinetType": "SBSC",
+          "allowed": ["NoG"]
+        },
+        {
+          "height": "40H",
+          "handleType": "2D",
+          "cabinetType": "SBSC",
+          "allowed": ["NoG"]
+        }
+      ]
+    }
   },
   "messages": {
     "fluting.notAvailable": "This cabinet pattern is not compatible with the selected material.",

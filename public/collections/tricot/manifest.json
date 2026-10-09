@@ -13,7 +13,7 @@
   },
   "remote": {
     "configurator": {
-      "id": 9,
+      "id": 12,
       "view": "full",
       "serialize": true
     },

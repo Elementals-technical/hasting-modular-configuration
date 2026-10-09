@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { normalizeOptionValue, selectOptions } from "@/entities/collection";
 import {
+  tricotConfigurator,
   tricotProfile,
   tricotMatrixProfile,
   tricotTestBindings,
@@ -122,7 +123,8 @@ describe("Tricot countertop preparation", () => {
   });
 
   it("offers precisely the source materials and ten basins, with no assumed thickness defaults", () => {
-    const colors = resolveSectionFields(tricotUi, "countertop-color", tricotProfile, {}, {})[0].field.options;
+    const colors = resolveSectionFields(tricotUi, "countertop-color", tricotProfile, {}, {}, tricotConfigurator)[0]
+      .field.options;
     expect(colors).toHaveLength(71);
     expect(
       Object.fromEntries(
@@ -144,13 +146,15 @@ describe("Tricot countertop preparation", () => {
       "VA002",
       "VA005",
     ]);
-    expect(selectOptions(tricotProfile, "Thickness").map((o) => o.value)).toEqual([
-      "0.5",
-      "4.75",
-      "3.125",
-      "0.75",
-      "4",
+    // In inches and in rising order, as the other collections write them; the table's fractions are aliases.
+    expect(selectOptions(tricotProfile, "Thickness").map(({ value, label }) => [value, label])).toEqual([
+      ["0.5", '0.5"'],
+      ["0.75", '0.8"'],
+      ["3.125", '3.1"'],
+      ["4", '4"'],
+      ["4.75", '4.7"'],
     ]);
+    expect(normalizeOptionValue(tricotProfile, "Thickness", "4-3/4")).toBe("4.75");
     expect(tricotUi.steps.countertop.sectionIds).toEqual(["countertop-color", "thickness", "basin-style"]);
   });
 
