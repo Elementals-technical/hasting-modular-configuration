@@ -121,17 +121,18 @@ describe("CabinetBuilderPage starting values", () => {
     });
   });
 
-  it("starts an Urban Low Height builder with its default cabinet colour and the countertop colour its scene draws", async () => {
+  it("starts an Urban Low Height builder with its default cabinet colour and the white Fenix top of its models", async () => {
     // Switched as CollectionStateBridge switches a collection: every option at its profile default.
     store.dispatch(replaceCollectionData({ profile: ulhProfile, cabinetCatalog: null }));
 
-    // Top_Solid carries Pietra Di Savoia Antracite TQ6; the ULH cabinet material (Antracite Matte OCF)
-    // is no colour of configurator 4, so the cabinet starts in the colour of the models, Rox Black TKQ.
-    // The basin is the first Porcelain one table 438 gives a 46 cm deep top.
+    // The ULH cabinet material (Antracite Matte OCF) is no colour of configurator 4, so the cabinet
+    // starts in the colour of the models, Rox Black TKQ. The top is the white Fenix the Multi-Level
+    // models carry, and the basin the first Fenix one table 589 gives the 60 cm sink base a builder
+    // starts with: Fenix Cover 50 needs 70 cm.
     expect(await renderEmptyBuilder()).toEqual({
       CabinetColor: "Rox Black TKQ",
-      CountertopColor: "Pietra Di Savoia Antracite TQ6",
-      sinkType: "Top_Porcelain_Cover",
+      CountertopColor: "Bianco Male TFA",
+      sinkType: "Top_HPL/Fenix_Prisma_Gres",
     });
   });
 

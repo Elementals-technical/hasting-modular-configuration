@@ -9,6 +9,7 @@ import {
   type PlacementOverlayPoint,
 } from "@/features/configuratorApi";
 
+import { getCountertopLayoutIntroSeen, setCountertopLayoutIntroSeen } from "../lib/countertopLayoutIntroStorage";
 import { clampLength, limitsInToMetres, type LengthLimitsIn } from "../lib/countertopLength";
 import { createCountertopOverlayStore } from "../lib/countertopOverlayStore";
 import {
@@ -21,6 +22,7 @@ import {
   type CountertopState,
 } from "../lib/countertopSession";
 import { CountertopDragOverlay } from "./CountertopDragOverlay";
+import { CountertopLayoutIntroModal } from "./CountertopLayoutIntroModal";
 
 import s from "./CountertopDragMode.module.scss";
 
@@ -97,6 +99,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
   const [overlay, setOverlay] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isIntroOpen, setIsIntroOpen] = useState(false);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -184,8 +187,9 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     await lengthQueueRef.current.current;
   };
 
-  const enter = () => {
-    if (!available || pendingRef.current || sessionRef.current) return;
+  const canEnter = () => available && !pendingRef.current && !sessionRef.current;
+
+  const startSession = () => {
     void run(async () => {
       const api = getApi();
       if (!api) throw new Error("The countertop API is not available");
@@ -218,6 +222,25 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       }
     });
   };
+
+  /** The layout intro precedes the first entry of the browser session; its Continue enters. */
+  const enter = () => {
+    if (!canEnter()) return;
+    if (!getCountertopLayoutIntroSeen()) {
+      setIsIntroOpen(true);
+      return;
+    }
+    startSession();
+  };
+
+  // Enters past the flag, so a blocked storage cannot bounce the user back into the intro.
+  const handleIntroContinue = () => {
+    setCountertopLayoutIntroSeen();
+    setIsIntroOpen(false);
+    if (canEnter()) startSession();
+  };
+
+  const handleIntroClose = () => setIsIntroOpen(false);
 
   const apply = () => {
     const session = sessionRef.current;
@@ -343,14 +366,25 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
   ): Promise<CountertopLengthAtPointer | null> =>
     quiet(sessionRef.current?.bridge.countertopLengthAtPointer?.(side, point, options), null);
 
+  // First child in both branches, so Continue's switch into drag mode keeps it mounted to fade out.
+  const intro = (
+    <CountertopLayoutIntroModal isOpening={isIntroOpen} onContinue={handleIntroContinue} onClose={handleIntroClose} />
+  );
+
   if (!active)
-    return error ? (
-      <p className={s.message} role="alert" style={{ position: "absolute", top: 24, right: 24, zIndex: 26 }}>
-        {error}
-      </p>
-    ) : null;
+    return (
+      <>
+        {intro}
+        {error && (
+          <p className={s.message} role="alert" style={{ position: "absolute", top: 24, right: 24, zIndex: 26 }}>
+            {error}
+          </p>
+        )}
+      </>
+    );
   return (
     <>
+      {intro}
       {overlay && (
         <CountertopDragOverlay
           store={store}

@@ -61,7 +61,7 @@ describe("Urban Low Height builder cards after a handle change", () => {
   it("show the upper-groove cabinet before the change", () => {
     expect(cardPictures(upperGrooveSinkBase().getState() as RootState)).toEqual({
       cabinetType: "images/cabinet/sink-base-upper-groove.png",
-      drawers: "images/cabinet/sink-base-integrated.png",
+      drawers: "images/cabinet/sink-base-upper-groove.png",
     });
   });
 

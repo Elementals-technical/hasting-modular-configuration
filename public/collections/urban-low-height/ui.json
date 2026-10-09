@@ -77,7 +77,7 @@
         "when": { "CabinetType": "Sink-Base", "CountertopStyle": "vessel" },
         "image": "images/cabinet/sink-base-vessel.png"
       },
-      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-integrated.png" },
+      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-upper-groove.png" },
       { "value": "1", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
       { "value": "1", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
     ]

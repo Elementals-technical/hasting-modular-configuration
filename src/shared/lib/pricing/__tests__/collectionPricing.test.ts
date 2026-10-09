@@ -6,6 +6,7 @@ import { rootReducer } from "@/app/store/reducer";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import {
   countertopDatatableSchema,
@@ -825,13 +826,20 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     const { lines, gaps } = ulhOrder(
       [sinkBase("ulh-sb")],
       { CountertopColor: [], CountertopStyle: [] },
-      { countertopColor: CountertopColor, countertopStyle: CountertopStyle, sinkType },
+      {
+        // The countertop table the collection loads.
+        countertopRules: parseCountertopMatrix(countertopDatatableSchema.parse(datatable589)),
+        countertopColor: CountertopColor,
+        countertopStyle: CountertopStyle,
+        sinkType,
+      },
     );
 
-    // Pietra Di Savoia Antracite TQ6 is Porcelain; table 438 gives Porcelain 46 cm deep 1/2" first.
+    // Bianco Male TFA is Fenix (FX); table 589 gives Fenix 46 cm deep 1/2" first, and a Prisma 50 basin
+    // over a 60 cm sink base.
     expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
-      "CT-URPOR-INTG-23.6W-.5H-18.1D-POR-TQ6",
-      "CT-URPOR-COVER-.5H-POR-TQ6",
+      "CT-URFX-INTG-23.6W-.5H-18.1D-FX-TFA",
+      "CT-URFX-PRISMA-.5H-FX-TFA",
     ]);
     expect(gaps).toEqual([]);
   });

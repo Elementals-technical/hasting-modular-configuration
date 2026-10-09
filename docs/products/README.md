@@ -62,12 +62,12 @@ public/collections/registry.json
 | Product | `collectionId` | Configurator | Countertop DT | Cabinet DT | Presets | Presets with composition | SKU source |
 |---|---|---:|---:|---:|---:|---:|---|
 | USH | `urban-standard-height` | 4 | 438 | 439 | 54 | 54 | legacy mappings + code series |
-| ULH | `urban-low-height` | 4 | 438 | 580 | 59 | 53 | немає; pricing unsupported |
+| ULH | `urban-low-height` | 4 | 589 | 580 | 59 | 53 | `sku-profile.json`, partial |
 | Class | `class` | 9 | 578 | 579 | 44 | 0 | `sku-profile.json`, partial |
 | Mako | `mako` | 9 | 577 | 581 | 42 | 42 | `sku-profile.json`, partial |
 
-USH і ULH ділять один configurator і одну countertop table, але не cabinet table, product profile,
-UI чи runtime bindings. Class і Mako ділять configurator 9, проте мають окремі cabinet/countertop
+USH і ULH ділять один configurator, але не countertop table, cabinet table, product profile, UI чи
+runtime bindings. Class і Mako ділять configurator 9, проте мають окремі cabinet/countertop
 tables та різну семантику сцени. Спільний remote id не означає успадкування правил.
 
 ## Ролі файлів collection package
@@ -79,7 +79,7 @@ tables та різну семантику сцени. Спільний remote id
 | `ui.json` | Prebuilt/custom flows, routes, sections, controls, image references. |
 | `product-profile.json` | Attribute catalog, aliases, defaults, capabilities, rule data, reason messages. |
 | `runtime-bindings.json` | Product type mapping і переклад attribute values у scene patches; `state-only` та `unbound` межі. |
-| `sku-profile.json` | Data-driven SKU grammar для Class/Mako; `status: partial` і pricing gaps. |
+| `sku-profile.json` | Data-driven SKU grammar для ULH/Class/Mako; `status: partial` і pricing gaps. |
 | `cabinet-sku-mappings.json` | Legacy USH SKU mappings. |
 | `static-options.json` / `navigation.json` | Legacy USH data; для нових колекцій відповідні дані вже походять з profile/UI. |
 
