@@ -67,7 +67,6 @@ describe("Tricot custom cabinets and pricing", () => {
       DrawerPanelFluting: "Cannette",
       CountertopColor: "Matte White",
       sinkType: "LB440",
-      SidePanels: "No",
     });
   });
 

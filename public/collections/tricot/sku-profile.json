@@ -99,7 +99,7 @@
   "sidePanel": {
     "baseSku": "VAN-TRIC-SP-.8W-15.7H-20.5D",
     "status": "confirmed",
-    "selection": { "attributeId": "SidePanels", "enabledValues": ["Yes"] },
+    "selection": { "attributeId": "SidePanels", "enabledValues": ["NoG"] },
     "quantitySource": "activeSides",
     "countertopWidthOffsetCm": 1,
     "colorAttributeId": "CabinetColor",

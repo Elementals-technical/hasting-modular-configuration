@@ -19,7 +19,7 @@
       "steps": [
         { "stepId": "model", "path": "/prebuilt/model" },
         { "stepId": "color", "path": "/prebuilt/color" },
-        { "stepId": "side-panels", "path": "/prebuilt/side-panels" },
+        { "stepId": "side-panels", "path": "/prebuilt/side-panels", "screen": "accessories" },
         { "stepId": "countertop", "path": "/prebuilt/countertop" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
       ]
@@ -29,7 +29,7 @@
       "steps": [
         { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
         { "stepId": "color", "path": "/custom/color" },
-        { "stepId": "side-panels", "path": "/custom/side-panels" },
+        { "stepId": "side-panels", "path": "/custom/side-panels", "screen": "accessories" },
         { "stepId": "countertop", "path": "/custom/countertop" },
         { "stepId": "summary", "path": "/custom/summary" }
       ]
@@ -85,7 +85,7 @@
     "side-panels": {
       "label": "Side Panels",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "SidePanels", "control": "swatches" }]
+      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
     },
     "countertop-color": {
       "label": "Countertop Color",

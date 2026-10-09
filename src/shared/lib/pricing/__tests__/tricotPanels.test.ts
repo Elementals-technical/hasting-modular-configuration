@@ -5,6 +5,7 @@ import {
   tricotTestBindings,
   tricotUi,
 } from "@/entities/collection/__tests__/tricotFixtures";
+import { normalizeOptionValue } from "@/entities/collection";
 import { collectionSkuProfileSchema } from "@/entities/collection/model/schemas";
 import type { CollectionOwnSidePanel } from "@/entities/collection/model/schemas";
 import { buildCollectionSidePanelSku } from "@/shared/lib/sku/buildCollectionSidePanelSku";
@@ -27,7 +28,7 @@ import type { PricingInput } from "../types";
 const confirmed: CollectionOwnSidePanel = {
   baseSku: "VAN-TRIC-SP-.8W-15.7H-20.5D",
   status: "confirmed",
-  selection: { attributeId: "SidePanels", enabledValues: ["Yes"] },
+  selection: { attributeId: "SidePanels", enabledValues: ["NoG"] },
   quantityAttributeId: "testPanelQuantity",
   colorAttributeId: "CabinetColor",
   elementCode: "CAB",
@@ -56,7 +57,7 @@ describe("Tricot own side panels", () => {
     left: PricingInput["sidePanelLeft"],
     right: PricingInput["sidePanelRight"],
     color = "Noce Canaletto 933",
-    selected = "Yes",
+    selected = "NoG",
   ) => ({
     ...input(selected, null, tricotSkuProfile),
     sidePanelLeft: left,
@@ -103,13 +104,13 @@ describe("Tricot own side panels", () => {
     for (const data of [
       withSides("none", "none"),
       withSides("auto-removed", "none"),
-      withSides("active", "none", undefined, "No"),
+      withSides("active", "none", undefined, "None"),
     ]) {
       const result = buildCollectionPricingLines(data);
       expect(result.lines.some((line) => line.group === "sidePanel")).toBe(false);
       expect(result.gaps.some((gap) => gap.group === "sidePanel" && gap.blocksTotal)).toBe(true);
     }
-    const removed = buildCollectionPricingLines(withSides("none", "none", undefined, "No"));
+    const removed = buildCollectionPricingLines(withSides("none", "none", undefined, "None"));
     expect(removed.lines.some((line) => line.group === "sidePanel")).toBe(false);
     expect(removed.gaps.some((gap) => gap.group === "sidePanel")).toBe(false);
   });
@@ -144,7 +145,7 @@ describe("Tricot own side panels", () => {
     // Explicit test top contract only: does not approve production GB price mappings.
     const profile = collectionSkuProfileSchema.parse({ ...tricotSkuProfile, countertop: classSkuDocument.countertop });
     const data = {
-      ...withSides(left, right, undefined, widthCm === 40 ? "No" : "Yes"),
+      ...withSides(left, right, undefined, widthCm === 40 ? "None" : "NoG"),
       skuBuilders: createSkuBuilders({ status: "collection", collectionProfile: profile }),
       countertopColor: "Matte White",
       sinkType: "LB440",
@@ -164,16 +165,17 @@ describe("Tricot own side panels", () => {
       }).lines.find((line) => line.group === "countertop")?.widthCm,
     ).toBe(40);
   });
-  it("renders source Yes/None and does not translate them to Urban groove variants", () => {
+  it("offers the panel without a groove only, and reads the source No as None", () => {
     expect(
       resolveSectionFields(tricotUi, "side-panels", tricotProfile, {}, {})[0].field.options.map(({ value, label }) => [
         value,
         label,
       ]),
     ).toEqual([
-      ["Yes", "Yes"],
-      ["No", "None"],
+      ["None", "None"],
+      ["NoG", "No groove"],
     ]);
+    expect(normalizeOptionValue(tricotProfile, "SidePanels", "No")).toBe("None");
   });
 
   it.each([
@@ -191,7 +193,7 @@ describe("Tricot own side panels", () => {
   });
 
   it.each([1, 2, 3])("uses the explicitly supplied quantity %s, never an Urban default", (quantity) => {
-    const result = buildCollectionPricingLines(input("Yes", quantity));
+    const result = buildCollectionPricingLines(input("NoG", quantity));
     expect(result.lines.filter(({ group }) => group === "sidePanel")).toEqual([
       { id: "sidePanel:composition", group: "sidePanel", sku: "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-WDV-933", quantity },
     ]);
@@ -199,19 +201,19 @@ describe("Tricot own side panels", () => {
   });
 
   it("omits deselected panels without requiring a quantity or creating a panel gap", () => {
-    const result = buildCollectionPricingLines(input("No", null));
+    const result = buildCollectionPricingLines(input("None", null));
     expect(result.lines.some(({ group }) => group === "sidePanel")).toBe(false);
     expect(result.gaps.some(({ group }) => group === "sidePanel")).toBe(false);
   });
 
   it.each([null, 0, -1, 1.5, Number.NaN])("does not price a selected panel with invalid quantity %s", (quantity) => {
-    const result = buildCollectionPricingLines(input("Yes", quantity));
+    const result = buildCollectionPricingLines(input("NoG", quantity));
     expect(result.lines.some(({ group }) => group === "sidePanel")).toBe(false);
     expect(result.gaps.some(({ group, blocksTotal }) => group === "sidePanel" && blocksTotal)).toBe(true);
   });
 
   it("keeps selected panels incomplete without active-side readback and rejects missing/ambiguous contracts", () => {
-    const result = buildCollectionPricingLines(input("Yes", 2, tricotSkuProfile));
+    const result = buildCollectionPricingLines(input("NoG", 2, tricotSkuProfile));
     expect(result.lines.some(({ group }) => group === "sidePanel")).toBe(false);
     expect(result.gaps.some(({ group, blocksTotal }) => group === "sidePanel" && blocksTotal)).toBe(true);
     const state = [

@@ -17,7 +17,6 @@
     "CabinetColor": "Rovere Oro 932",
     "DrawerPanelFluting": "Cannette",
     "HandleGrooveColor": "Nero 433 MT",
-    "SidePanels": "No",
     "CountertopColor": "Matte White",
     "sinkType": "LB440",
     "CountertopStyle": "integrated"
@@ -474,21 +473,21 @@
     {
       "attributeId": "SidePanels",
       "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
       "options": [
         {
-          "value": "Yes",
-          "label": "Yes",
-          "order": 0
+          "value": "None",
+          "label": "None",
+          "order": 10,
+          "aliases": ["No"]
         },
         {
-          "value": "No",
-          "label": "None",
-          "order": 1
+          "value": "NoG",
+          "label": "No groove",
+          "order": 20
         }
-      ],
-      "initialValue": "No",
-      "defaultValue": "No",
-      "noneValue": "No"
+      ]
     },
     {
       "attributeId": "CountertopColor",
@@ -1141,15 +1140,37 @@
         "hasSink": false
       }
     ],
-    "undeterminedRules": [
-      {
-        "ruleId": "TRICOT-PANELS",
-        "attributeId": "SidePanels",
-        "values": ["Yes"],
-        "source": "Canvas panel bindings and accepted activation/removal values are pending. Accessories placement, cabinet color/material inheritance and +1 cm per active side were confirmed on 2026-10-07."
-      }
-    ],
-    "drawerStyleGroups": [["1", "1+inner"], ["2"]]
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "sidePanels": {
+      "heightTokenByCm": {
+        "40": "40H"
+      },
+      "blockedCabinetTypes": [],
+      "cabinetGroups": {
+        "SBSC": ["Sink-Base", "Side-Cabinet", "Tricot-sink-cabinet", "Tricot-side-cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1", "1+inner", "1D", "1DWID"],
+        "2D": ["2", "2D"]
+      },
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        {
+          "height": "40H",
+          "handleType": "1D",
+          "cabinetType": "SBSC",
+          "allowed": ["NoG"]
+        },
+        {
+          "height": "40H",
+          "handleType": "2D",
+          "cabinetType": "SBSC",
+          "allowed": ["NoG"]
+        }
+      ]
+    }
   },
   "messages": {
     "fluting.notAvailable": "This cabinet pattern is not compatible with the selected material.",

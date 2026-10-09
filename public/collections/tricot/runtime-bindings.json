@@ -284,7 +284,7 @@
     {
       "attributeId": "SidePanels",
       "status": "unbound",
-      "reason": "Need Tricot activation/removal keys and actual left/right readback. CabinetColor painting a panel does not prove how to place it."
+      "reason": "As in Urban Freestanding: the scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. Tricot offers the panel without a groove (NoG) only. Export v44 has a Tricot_SidePanel template but registers no product for it and gives the Tricot products no sidePanelSupport, so the scene stands its legacy panels beside them, which take the Urban Standard Height heights (50/53/56) only."
     },
     {
       "attributeId": "CountertopColor",
@@ -499,12 +499,12 @@
     {
       "attributeId": "SidePanelLeft",
       "status": "unbound",
-      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side. The panel price counts the active sides."
     },
     {
       "attributeId": "SidePanelRight",
       "status": "unbound",
-      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side. The panel price counts the active sides."
     },
     {
       "attributeId": "LedOption",
