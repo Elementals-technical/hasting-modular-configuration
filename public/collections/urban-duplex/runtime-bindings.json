@@ -60,18 +60,11 @@
         "kind": "all"
       },
       "values": {
-        "kind": "map",
-        "patches": {
-          "46": {
-            "Depth": 46
-          },
-          "50": {
-            "Depth": 50.5
-          }
-        }
+        "kind": "identity",
+        "sceneKey": "Depth"
       },
       "order": 30,
-      "note": "Number in cm, one depth for the composition. Cabinet table 594 lists 50 and 46; RuleDepthCabinetUrbanDuplex lays out 46 and 50.5 only, so 50 is sent as 50.5."
+      "note": "Number in cm, 50 or 46, one depth for the composition, as cabinet table 594, the Pricing (19.7D, 18.1D) and the product map give it (URBAN-DUPLEX-PRODUCT-MAP-UA: «50 / 46 см», «Ryan пише 50, не 50.5»). RuleDepthCabinetUrbanDuplex lays out 46 and 50.5 only, so the scene keeps 50 at the 46 cm geometry until 3D takes 50."
     },
     {
       "attributeId": "Drawers",

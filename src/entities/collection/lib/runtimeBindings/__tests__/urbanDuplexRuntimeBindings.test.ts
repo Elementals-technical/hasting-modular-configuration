@@ -7,7 +7,7 @@ import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
 import { parseProductProfile } from "../../parseProductProfile";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
-import { isStateOnlyResolution, resolveRuntimeBinding, sceneDimensionValueOf } from "../resolveRuntimeBinding";
+import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 /**
@@ -47,7 +47,7 @@ const SHARED_PRESET_VALUES = [
 ];
 
 /** A value of each attribute a mapped binding translates; any other attribute takes any value. */
-const MAPPED_VALUE: Record<string, string> = { Drawers: "2", Handle: "UG", Depth: "50", TowelBarOption: "Left" };
+const MAPPED_VALUE: Record<string, string> = { Drawers: "2", Handle: "UG", TowelBarOption: "Left" };
 
 const resolve = (attributeId: string, value: string | number) =>
   resolveRuntimeBinding(urbanDuplexRuntimeBindings(), attributeId, value);
@@ -92,25 +92,15 @@ describe("urban-duplex runtime bindings", () => {
 
   it("send the sizes and the three drawer styles in the spellings the scene config keeps", () => {
     expect(patchOf("Height", 56)).toEqual({ Height: 56 });
-    // The scene lays out 46 and 50.5 cm; the cabinet table's 50 is its 50.5.
+    // 50 and 46 cm, as the cabinet table and the Pricing give them; not the 50.5 of Urban Standard Height.
     expect(patchOf("Depth", 46)).toEqual({ Depth: 46 });
-    expect(patchOf("Depth", 50)).toEqual({ Depth: 50.5 });
+    expect(patchOf("Depth", 50)).toEqual({ Depth: 50 });
     expect(patchOf("Width", 60)).toEqual({ Width: 60 });
     // Upper Groove is the Duplex handle (RuleHandleCabinetUrbanDuplex reads HandleStyle).
     expect(patchOf("Handle", "UG")).toEqual({ HandleStyle: "Duplex" });
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
     expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
     expect(patchOf("Drawers", "1+inner")).toEqual({ Drawers: "1DWID" });
-  });
-
-  it("read the scene's sizes back as the cabinet table's", () => {
-    const bindings = urbanDuplexRuntimeBindings();
-    expect(sceneDimensionValueOf(bindings, "Depth", 50.5)).toBe(50);
-    expect(sceneDimensionValueOf(bindings, "Depth", 46)).toBe(46);
-    expect(sceneDimensionValueOf(bindings, "Height", 28)).toBe(28);
-    expect(sceneDimensionValueOf(bindings, "Width", 60)).toBe(60);
-    expect(sceneDimensionValueOf(bindings, "Depth", null)).toBeNull();
-    expect(sceneDimensionValueOf(null, "Depth", 50.5)).toBe(50.5);
   });
 
   it("send the basin to the sink base only, with the vessel placeholder for an empty one", () => {
