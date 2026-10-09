@@ -98,6 +98,7 @@ temp/
 
 docs/*
 !docs/
+!docs/INDEX.md
 !docs/parent-configurator-integration.md
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
@@ -119,3 +120,5 @@ docs/*
 !docs/products/*.md
 
 iphone-safari-debugging
+
+.mcp.json
