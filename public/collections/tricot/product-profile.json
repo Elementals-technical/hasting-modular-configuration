@@ -323,7 +323,7 @@
     },
     {
       "attributeId": "HandleGrooveColor",
-      "scope": "cabinet",
+      "scope": "global",
       "optionsSource": "configurator:Select Handle Groove Color",
       "options": [
         {

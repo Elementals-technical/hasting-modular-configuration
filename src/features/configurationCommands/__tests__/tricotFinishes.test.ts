@@ -113,12 +113,8 @@ describe("Tricot finishes through fields, commands and runtime", () => {
       expect(patches.slice(before).some((patch) => "test:DrawerPanelFluting" in patch)).toBe(false);
       expect(patches.some((patch) => patch["test:DrawerPanelFluting"] === "Cannette")).toBe(true);
       expect(
-        (
-          await changeAttribute(
-            { attributeId: "HandleGrooveColor", scope: "cabinet", cabinetId: first(), value: "Zafferano 412 MT" },
-            d,
-          )
-        ).status,
+        (await changeAttribute({ attributeId: "HandleGrooveColor", scope: "global", value: "Zafferano 412 MT" }, d))
+          .status,
       ).toBe("applied");
       expect(patches.at(-1)).toEqual({ "test:HandleGrooveColor": "Zafferano 412 MT" });
     },

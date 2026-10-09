@@ -341,7 +341,7 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
   });
 
   it.each(["prebuilt", "custom"] as const)(
-    "updates lacquer color and a cabinet groove with exact assets in %s",
+    "updates lacquer color and the composition groove with exact assets in %s",
     async (flow) => {
       const apply = vi.fn<SceneBridge["apply"]>(async () => ({
         status: "applied",
@@ -356,16 +356,17 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
         await changeAttribute({ attributeId: "CabinetColor", scope: "global", value: "Zafferano 412 MT" }, deps),
       ).toMatchObject({ status: "applied" });
       expect(apply).toHaveBeenCalledWith(expect.anything(), { CabinetColor: "Zafferano 412 Lacquered MT" });
-      const cabinetId = getCabinetEntries(store.getState())[0].stableKey;
       const groove = await changeAttribute(
-        { attributeId: "HandleGrooveColor", scope: "cabinet", cabinetId, value: "Nero 433 Lacquered MT" },
+        { attributeId: "HandleGrooveColor", scope: "global", value: "Nero 433 Lacquered MT" },
         deps,
       );
       expect(groove, JSON.stringify(groove)).toMatchObject({ status: "applied" });
+      // Every placed cabinet takes the groove, as they take the cabinet colour.
       expect(apply).toHaveBeenLastCalledWith(
-        { productIds: ["Tricot-sink-cabinet-a1b2c3d4e"] },
+        { productIds: ["Tricot-sink-cabinet-a1b2c3d4e", "Tricot-side-cabinet-f5g6h7i8j"] },
         { HandleGrooveColor: "Nero 433 Lacquered MT" },
       );
+      expect(getAttributeValue(store.getState(), "HandleGrooveColor", { scope: "global" })).toBe("Nero 433 MT");
       expect(getAttributeValue(store.getState(), "CabinetColor", { scope: "global" })).toBe("Zafferano 412 MT");
     },
   );

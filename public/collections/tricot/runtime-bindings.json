@@ -177,7 +177,7 @@
       "attributeId": "HandleGrooveColor",
       "status": "bound",
       "target": {
-        "kind": "product"
+        "kind": "cabinets"
       },
       "values": {
         "kind": "map",
@@ -245,7 +245,7 @@
         }
       },
       "order": 55,
-      "note": "Per-cabinet groove material, exact asset names. The approved UI contains matte lacquer only; the example GL material does not expand the product catalog."
+      "note": "One groove material for the composition, as Urban Freestanding and Tricot's CabinetColor: sent to every placed cabinet, never unrelated scene products. Exact asset names; the approved UI contains matte lacquer only, and the example GL material does not expand the product catalog."
     },
     {
       "attributeId": "DrawerPanelFluting",
