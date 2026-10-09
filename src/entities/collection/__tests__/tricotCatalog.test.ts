@@ -299,3 +299,20 @@ describe("Tricot source preparation", () => {
     );
   });
 });
+
+/** Every file of the collection's image folder, keyed by its path from the collection folder. */
+const shippedImages = new Set(
+  Object.keys(import.meta.glob("/public/collections/tricot/images/**/*", { query: "?url" })).map((path) =>
+    path.replace("/public/collections/tricot/", ""),
+  ),
+);
+
+describe("Tricot basin pictures", () => {
+  it("shows the Class basin pictures, which have none for VA023, and ships each", () => {
+    const pictures: Record<string, string> = ui.optionImages.sinkType;
+    const basins = tricotProfile.attributes.find(({ attributeId }) => attributeId === "sinkType")?.options ?? [];
+
+    expect(basins.filter(({ value }) => !pictures[value]).map(({ value }) => value)).toEqual(["VA023"]);
+    for (const picture of Object.values(pictures)) expect(shippedImages.has(picture), picture).toBe(true);
+  });
+});

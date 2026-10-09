@@ -971,33 +971,33 @@
       "options": [
         {
           "value": "0.5",
-          "label": "1/2",
-          "order": 0,
+          "label": "0.5\"",
+          "order": 10,
           "aliases": ["1/2"]
         },
         {
-          "value": "4.75",
-          "label": "4-3/4",
-          "order": 1,
-          "aliases": ["4-3/4"]
-        },
-        {
-          "value": "3.125",
-          "label": "3-1/8",
-          "order": 2,
-          "aliases": ["3-1/8"]
-        },
-        {
           "value": "0.75",
-          "label": "3/4",
-          "order": 3,
+          "label": "0.8\"",
+          "order": 20,
           "aliases": ["3/4"]
         },
         {
+          "value": "3.125",
+          "label": "3.1\"",
+          "order": 30,
+          "aliases": ["3-1/8"]
+        },
+        {
           "value": "4",
-          "label": "4",
-          "order": 4,
+          "label": "4\"",
+          "order": 40,
           "aliases": []
+        },
+        {
+          "value": "4.75",
+          "label": "4.7\"",
+          "order": 50,
+          "aliases": ["4-3/4"]
         }
       ],
       "initialValue": ""
