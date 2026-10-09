@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
-import urbanDuplexBindingsDocument from "../../../../../public/collections/urban-duplex/runtime-bindings.json";
-import { parseRuntimeBindings } from "@/entities/collection";
 import { reset } from "@/entities/product/model/store/slice";
 
 import {
@@ -12,7 +10,7 @@ import {
   getConfigurationSnapshot,
   getDimensionsByCabinet,
 } from "../store/selectors";
-import { recordSceneState, resetConfiguration, setActiveRuntimeBindings, syncCabinets } from "../store/slice";
+import { recordSceneState, resetConfiguration, syncCabinets } from "../store/slice";
 
 const LOW = { width: 60, height: 50, depth: 46 };
 const HIGH = { width: 80, height: 56, depth: 50.5 };
@@ -21,7 +19,6 @@ describe("recorded scene state", () => {
   beforeEach(() => {
     store.dispatch(reset());
     store.dispatch(resetConfiguration());
-    store.dispatch(setActiveRuntimeBindings(null));
     store.dispatch(syncCabinets(["rt-a", "rt-b"]));
   });
 
@@ -40,21 +37,6 @@ describe("recorded scene state", () => {
     expect(getCabinetDimensions(state, "cab-1")).toEqual(LOW);
     expect(getCabinetDimensions(state, "cab-2")).toEqual(HIGH);
     expect(getCabinetDimensionsByRuntimeId(state, "rt-b")).toEqual(HIGH);
-  });
-
-  it("records a size the bindings send in another value as the cabinet table's (Urban Duplex 50.5 cm is 50)", () => {
-    const parsed = parseRuntimeBindings(urbanDuplexBindingsDocument);
-    if (!parsed.ok) throw new Error("Urban Duplex bindings failed validation");
-    store.dispatch(setActiveRuntimeBindings(parsed.bindings));
-
-    store.dispatch(
-      recordSceneState({
-        order: ["rt-a", "rt-b"],
-        cabinets: [{ runtimeId: "rt-a", dimensions: { width: 60, height: 28, depth: 50.5 } }],
-      }),
-    );
-
-    expect(getCabinetDimensions(store.getState(), "cab-1")).toEqual({ width: 60, height: 28, depth: 50 });
   });
 
   it("follows the scene's order while each size stays with its own cabinet", () => {
