@@ -111,12 +111,17 @@ import {
 import type { CabinetsState } from "@/features/configuratorApi";
 import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
+import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
+import { useCountertopMovementMode } from "@/features/countertopPlacement/lib/useCountertopMovementMode";
 import {
   CountertopDragMode,
   type CountertopDragModeHandle,
   type CountertopDragStatus,
 } from "@/features/countertopPlacement/ui/CountertopDragMode";
+import { useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
+import { CountertopModeNotice } from "@/features/countertopPlacement/ui/CountertopModeNotice";
+import { SinkLandingMessage } from "@/features/countertopPlacement/ui/SinkLandingMessage";
 import {
   buildCountertopPositionItems,
   isCountertopSettingsMode,
@@ -405,11 +410,6 @@ export const PlayCanvasIntegration = ({
     () => resolveCountertopLengthLimitsIn(countertopLengthSettings),
     [countertopLengthSettings],
   );
-  // Raw collection presets (optional schema field); the overlay validates and clamps them.
-  const countertopLengthPresetsIn = useMemo(() => {
-    const raw = (countertopLengthSettings as { lengthPresetsIn?: unknown } | null | undefined)?.lengthPresetsIn;
-    return Array.isArray(raw) ? raw.filter((value): value is number => typeof value === "number") : undefined;
-  }, [countertopLengthSettings]);
   const location = useLocation();
   const navigate = useCollectionNavigate();
   const changeDimension = useChangeDimension();
@@ -547,13 +547,16 @@ export const PlayCanvasIntegration = ({
         : null,
     );
   }, []);
+  // The one countertop `on('change')` subscriber: the live state for every consumer, the committed size for pricing.
   useEffect(() => {
     setCountertopRuntimeSize(null);
+    setCountertopRuntimeState(null);
     if (!isPlayCanvasReady) return;
     let disposed = false;
     const api = getCountertopApi();
     if (!api) return;
     const update = (state: CountertopState) => {
+      if (!disposed) setCountertopRuntimeState(state);
       const applied = getCountertopRuntimeSize();
       if (
         !disposed &&
@@ -575,8 +578,11 @@ export const PlayCanvasIntegration = ({
       disposed = true;
       stop();
       setCountertopRuntimeSize(null);
+      setCountertopRuntimeState(null);
     };
   }, [countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
+  const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
+  const countertopMovementMode = countertopMovement.mode;
   useEffect(() => {
     if (!isPlayCanvasReady || countertopPlacementStatus.editing) return;
     let disposed = false;
@@ -613,6 +619,17 @@ export const PlayCanvasIntegration = ({
     },
     [composition, dispatch, runtimeBindings],
   );
+  // SB <-> SC sink move: every 'fits' landing commits cabinets.moveSink right away and syncs like a placement.
+  const sinkLanding = useSinkLanding({
+    // `supported`: CountertopDragMode discovered the countertop API, so `getApi()` is not null.
+    ready: isPlayCanvasReady && cabinetPlacementDebugEnabled && countertopDragStatus.supported,
+    getApi: getCountertopApi,
+    onCommitted: async (state) => {
+      await adoptCommittedCabinetComposition(state);
+      // The sink move replaced the composition under an open Drag & Drop session: keep the result, close it.
+      countertopDragRef.current?.apply();
+    },
+  });
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -3464,16 +3481,20 @@ export const PlayCanvasIntegration = ({
       setDropdownState((current) => ({ ...current, visible: false }));
       setCountertopPopoverState((current) => ({ ...current, visible: false }));
     };
-    const positionItems = buildCountertopPositionItems(countertopDragStatus, {
-      onStandard: () => {
-        closeCountertopMenus();
-        countertopDragRef.current?.standard();
+    const positionItems = buildCountertopPositionItems(
+      countertopDragStatus,
+      {
+        onStandard: () => {
+          closeCountertopMenus();
+          countertopDragRef.current?.standard();
+        },
+        onDragDrop: () => {
+          closeCountertopMenus();
+          countertopDragRef.current?.enter();
+        },
       },
-      onDragDrop: () => {
-        closeCountertopMenus();
-        countertopDragRef.current?.enter();
-      },
-    });
+      countertopMovementMode,
+    );
     const placementItems: DropdownItem[] = countertopSettingsMode && countertopPlacementStatus.supported
       ? [
           {
@@ -3575,6 +3596,7 @@ export const PlayCanvasIntegration = ({
   }, [
     countertopPlacementStatus,
     countertopDragStatus,
+    countertopMovementMode,
     countertopSettingsMode,
     isPrebuilt,
     handleOpenBasinStyle,
@@ -3658,11 +3680,23 @@ export const PlayCanvasIntegration = ({
           disabled={cabinetPlacementBusy || countertopPlacementStatus.editing}
           getApi={getCountertopApi}
           lengthLimitsIn={countertopLengthLimitsIn}
-          lengthPresetsIn={countertopLengthPresetsIn}
           onStatusChange={setCountertopDragStatus}
           onSelect={selectCountertopForPlacement}
           onCommitted={syncCommittedCountertop}
         />
+      )}
+
+      {/* Movement mode by thickness: a short notice on every switch (and its auto-correction). */}
+      {cabinetPlacementDebugEnabled && (
+        <CountertopModeNotice
+          notice={countertopMovement.notice}
+          onDismiss={countertopMovement.dismissNotice}
+          style={{ position: "absolute", top: 24, right: 24, zIndex: 26 }}
+        />
+      )}
+
+      {cabinetPlacementDebugEnabled && (
+        <SinkLandingMessage message={sinkLanding.message} onDismiss={sinkLanding.dismissMessage} />
       )}
 
       {cabinetPlacementDebugEnabled && countertopSettingsMode && (

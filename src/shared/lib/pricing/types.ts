@@ -76,6 +76,8 @@ export type PricingInput = {
   orderedProductIds: readonly string[];
   productsPresets: ProductState["productsPresets"];
   sceneConfigs: readonly NormalizedProductConfigSnapshot[];
+  /** The countertop's sink while it hosts one (after `cabinets.liftSink`): its basin replaces the global one. */
+  hostedSink?: { sinkType: string | null; vesselColor: string | null } | null;
   cabinetEntries: readonly CabinetEntry[];
   dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>;
   /** Applied runtime countertop length. Overrides only the priced top, never cabinet or basin geometry. */

@@ -1,4 +1,4 @@
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import clsx from "clsx";
 
 import type {
@@ -7,18 +7,12 @@ import type {
   CountertopOverlayFrame,
   CountertopResizeSide,
 } from "@/features/configuratorApi";
+import { useCountertopRuntimeState } from "@/shared/hooks/useCountertopRuntimeState";
+import { useReasonText } from "@/shared/lib/reasonText";
 
-import {
-  clampLength,
-  effectiveLimitsM,
-  formatInches,
-  metresToDisplayInches,
-  METRES_PER_INCH,
-  presetsWithinLimits,
-  resolveCountertopLengthPresetsIn,
-  type LengthLimitsIn,
-} from "../lib/countertopLength";
+import { formatInches, metresToDisplayInches } from "../lib/countertopLength";
 import type { CountertopOverlayStore } from "../lib/countertopOverlayStore";
+import { describeCountertopValidation } from "../lib/countertopSession";
 import { CloseIcon, EditIcon, MoveIcon } from "./countertopIcons";
 import { CountertopResizeHandles } from "./CountertopResizeHandles";
 
@@ -26,13 +20,9 @@ import s from "./CountertopDragMode.module.scss";
 
 type Props = {
   store: CountertopOverlayStore;
-  lengthLimitsIn: LengthLimitsIn;
-  /** The collection's raw `countertop.lengthPresetsIn`; defaults to 23.6-120 in presets (23.6 = one 60 cm cabinet). */
-  lengthPresetsIn?: number[];
   pending: boolean;
   onApply(): void;
   onCancel(): void;
-  onLength(lengthM: number): void;
   lengthAtPointer(
     side: CountertopResizeSide,
     point: { x: number; y: number },
@@ -40,8 +30,6 @@ type Props = {
   onPreview(preview: CountertopLengthPreview | null): void;
   onResizeFrom(side: CountertopResizeSide, lengthM: number): void;
 };
-
-const EPSILON_M = 1e-6;
 
 const visibleFrame = (frame: CountertopOverlayFrame | null) =>
   frame && frame.active !== false && frame.visible && frame.points ? frame : null;
@@ -58,64 +46,42 @@ const actionAnchor = (frame: CountertopOverlayFrame) => {
 /**
  * Countertop Drag & Drop icons at the anchors PlayCanvas publishes: move icon at the centre, the
  * length / depth chips, the resize handles at both ends and Apply + × under the bottom-right corner.
- * The length chip is the primary control of a remote top: −/+ (1 in), presets, ✎ numeric entry and,
- * below the minimum, a "Set <min>" pill (no auto-extend). An attached top shows its length read-only.
+ * The length is read-only on every top: it changes only through the end handles (client §17), which
+ * also work on a standard (attached) top and take their limits from `getState().resizeBoundsM`.
  * The tint is drawn by PlayCanvas; the layer takes pointer input only on its controls.
  */
 export function CountertopDragOverlay({
   store,
-  lengthLimitsIn,
-  lengthPresetsIn,
   pending,
   onApply,
   onCancel,
-  onLength,
   lengthAtPointer,
   onPreview,
   onResizeFrom,
 }: Props) {
   const frame = visibleFrame(useSyncExternalStore(store.subscribe, store.get));
-  const [lengthDraft, setLengthDraft] = useState<string | null>(null);
-  const [presetsOpen, setPresetsOpen] = useState(false);
+  const runtime = useCountertopRuntimeState();
+  const resizeBoundsM = runtime?.resizeBoundsM;
   const rootRef = useRef<HTMLDivElement>(null);
+  const validation = describeCountertopValidation(runtime?.validation, useReasonText());
 
   if (!frame?.points) return null;
   const points = frame.points;
-  const colliding = frame.status === "colliding";
-  const limits = effectiveLimitsM(frame, lengthLimitsIn);
-  const minIn = metresToDisplayInches(limits.minM);
-  const maxIn = metresToDisplayInches(limits.maxM);
+  // Red: the overlay's own conflict, or the runtime's verdict (state.validation) is invalid.
+  const invalid = validation?.tone === "invalid";
+  const colliding = frame.status === "colliding" || invalid;
   const center = points.center ?? points.frontCenter;
   const lengthAnchor = points.lengthLabel ?? points.topCenter;
   const depthAnchor = points.depthLabel ?? points.rightEnd;
   const action = actionAnchor(frame);
-  const reason = !frame.canApply || colliding ? frame.reasons?.[0]?.message : undefined;
-  const attached = frame.attached === true;
-  const lengthM = typeof frame.lengthM === "number" ? frame.lengthM : null;
-  const lengthIn = lengthM === null ? null : metresToDisplayInches(lengthM);
-  const presets = presetsWithinLimits(resolveCountertopLengthPresetsIn(lengthPresetsIn), limits);
-  const belowMin = !attached && lengthM !== null && lengthM < limits.minM - EPSILON_M;
-  const atMin = lengthM !== null && lengthM <= limits.minM + EPSILON_M;
-  const atMax = lengthM !== null && lengthM >= limits.maxM - EPSILON_M;
+  const frameReason = !frame.canApply || frame.status === "colliding" ? frame.reasons?.[0]?.message : undefined;
+  // Invalid verdict first; else the overlay's reason; else the warning (amber, does not block Apply).
+  const reason = invalid ? validation.lines.join(" ") : (frameReason ?? validation?.lines.join(" "));
+  const warning = !invalid && !frameReason && validation?.tone === "warning";
+  const lengthIn = typeof frame.lengthM === "number" ? metresToDisplayInches(frame.lengthM) : null;
   const origin = () => {
     const rect = rootRef.current?.getBoundingClientRect();
     return { left: rect?.left ?? 0, top: rect?.top ?? 0 };
-  };
-  const step = (deltaIn: number) => {
-    if (lengthM === null) return;
-    onLength(clampLength(lengthM + deltaIn * METRES_PER_INCH, limits));
-  };
-  const pickPreset = (presetIn: number) => {
-    setPresetsOpen(false);
-    // Presets are 0.1-in display values: 23.6 applies the exact one-cabinet minimum (0.6 m).
-    onLength(clampLength(presetIn * METRES_PER_INCH, limits));
-  };
-
-  const applyLength = () => {
-    const inches = Number(lengthDraft);
-    if (lengthDraft === null || lengthDraft.trim() === "" || !Number.isFinite(inches)) return;
-    onLength(clampLength(inches * METRES_PER_INCH, limits));
-    setLengthDraft(null);
   };
 
   return (
@@ -137,102 +103,15 @@ export function CountertopDragOverlay({
           <MoveIcon />
         </span>
       )}
-      {lengthAnchor && lengthIn !== null && attached && (
+      {lengthAnchor && lengthIn !== null && (
         <>
           <span className={s.chip} style={{ left: lengthAnchor.x, top: lengthAnchor.y }} data-testid="countertop-length-chip">
             {formatInches(lengthIn)}
           </span>
           <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}>
-            Move the countertop off the cabinets to change its length
+            Drag the ends to change the length
           </p>
         </>
-      )}
-      {lengthAnchor && lengthIn !== null && !attached && (
-        <div
-          className={clsx(s.chip, s.lengthControl)}
-          style={{ left: lengthAnchor.x, top: lengthAnchor.y }}
-          role="group"
-          aria-label="Countertop length"
-          data-testid="countertop-length-chip"
-        >
-          <button
-            type="button"
-            className={s.stepButton}
-            aria-label="Shorten countertop by 1 inch"
-            disabled={pending || atMin}
-            onClick={() => step(-1)}
-          >
-            −
-          </button>
-          <button
-            type="button"
-            className={s.lengthValue}
-            aria-label="Edit countertop length"
-            disabled={pending}
-            onClick={() => {
-              setPresetsOpen(false);
-              setLengthDraft(String(lengthIn));
-            }}
-          >
-            {formatInches(lengthIn)} <EditIcon />
-          </button>
-          {presets.length > 0 && (
-            <button
-              type="button"
-              className={s.stepButton}
-              aria-label="Length presets"
-              aria-haspopup="menu"
-              aria-expanded={presetsOpen}
-              disabled={pending}
-              onClick={() => {
-                setLengthDraft(null);
-                setPresetsOpen((open) => !open);
-              }}
-            >
-              ▾
-            </button>
-          )}
-          <button
-            type="button"
-            className={s.stepButton}
-            aria-label="Lengthen countertop by 1 inch"
-            disabled={pending || atMax}
-            onClick={() => step(1)}
-          >
-            +
-          </button>
-        </div>
-      )}
-      {presetsOpen && !attached && !pending && lengthAnchor && presets.length > 0 && (
-        <div
-          className={s.presetsMenu}
-          style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}
-          role="menu"
-          aria-label="Length presets"
-        >
-          {presets.map((presetIn) => (
-            <button
-              key={presetIn}
-              type="button"
-              role="menuitem"
-              className={clsx(s.presetItem, presetIn === lengthIn && s.presetCurrent)}
-              onClick={() => pickPreset(presetIn)}
-            >
-              {formatInches(presetIn)}
-            </button>
-          ))}
-        </div>
-      )}
-      {belowMin && lengthAnchor && !presetsOpen && (
-        <button
-          type="button"
-          className={clsx(s.primaryPill, s.setMinPill)}
-          style={{ left: lengthAnchor.x, top: lengthAnchor.y + 18 }}
-          disabled={pending}
-          onClick={() => onLength(limits.minM)}
-        >
-          Set {formatInches(metresToDisplayInches(limits.minM))}
-        </button>
       )}
       {depthAnchor && typeof frame.depthM === "number" && (
         <span
@@ -243,54 +122,22 @@ export function CountertopDragOverlay({
           {formatInches(metresToDisplayInches(frame.depthM))} <EditIcon />
         </span>
       )}
-      {!attached && (
-        <CountertopResizeHandles
-          frame={frame}
-          disabled={pending}
-          origin={origin}
-          lengthAtPointer={lengthAtPointer}
-          onPreview={onPreview}
-          onCommit={onResizeFrom}
-        />
-      )}
-      {lengthDraft !== null && !attached && lengthAnchor && (
-        <div
-          className={s.popover}
-          style={{ left: lengthAnchor.x, top: lengthAnchor.y }}
-          role="dialog"
-          aria-label="Length"
-        >
-          <label>
-            Length
-            <input
-              type="number"
-              aria-label="Countertop length (in)"
-              step={0.1}
-              min={minIn}
-              max={maxIn}
-              value={lengthDraft}
-              onChange={(event) => setLengthDraft(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") applyLength();
-                if (event.key === "Escape") setLengthDraft(null);
-              }}
-            />
-          </label>
-          <small>
-            Min {formatInches(minIn)} Max {formatInches(maxIn)}
-          </small>
-          <button type="button" className={s.primaryPill} disabled={pending} onClick={applyLength}>
-            Apply
-          </button>
-        </div>
-      )}
+      <CountertopResizeHandles
+        frame={frame}
+        disabled={pending}
+        resizeBoundsM={resizeBoundsM}
+        origin={origin}
+        lengthAtPointer={lengthAtPointer}
+        onPreview={onPreview}
+        onCommit={onResizeFrom}
+      />
       {action && (
         <>
           <button
             type="button"
             className={s.applyChip}
             style={{ left: action.x - 3, top: action.y + 5 }}
-            disabled={pending || !frame.canApply || frame.dragging}
+            disabled={pending || !frame.canApply || frame.dragging || invalid}
             title={reason}
             onClick={onApply}
           >
@@ -307,7 +154,12 @@ export function CountertopDragOverlay({
             <CloseIcon />
           </button>
           {reason && (
-            <p className={clsx(s.message, s.reason)} style={{ left: action.x + 25, top: action.y + 34 }} role="alert">
+            <p
+              className={clsx(s.message, s.reason, warning && s.warning)}
+              style={{ left: action.x + 25, top: action.y + 34 }}
+              role={warning ? "status" : "alert"}
+              data-validation={invalid ? "invalid" : warning ? "warning" : undefined}
+            >
               {reason}
             </p>
           )}

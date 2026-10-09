@@ -1,4 +1,9 @@
-import type { CountertopLengthLimitsM, CountertopOverlayFrame } from "@/features/configuratorApi";
+import type {
+  CountertopLengthLimitsM,
+  CountertopOverlayFrame,
+  CountertopResizeSide,
+  CountertopState,
+} from "@/features/configuratorApi";
 
 export const METRES_PER_INCH = 0.0254;
 /** One 60 cm cabinet, in inches (≈ 23.622 in): the shortest countertop by default. */
@@ -22,32 +27,6 @@ export const resolveCountertopLengthLimitsIn = (
     : { ...DEFAULT_COUNTERTOP_LENGTH_LIMITS_IN };
 };
 
-/** Default presets; the first one is a single 60 cm cabinet (shown as 23.6″, applied as the exact minimum). */
-export const DEFAULT_COUNTERTOP_LENGTH_PRESETS_IN: readonly number[] = [23.6, 48, 60, 72, 84, 96, 120];
-
-/** Presets are display values (0.1 in), so they may miss an exact limit by up to this much and still count. */
-const PRESET_TOLERANCE_IN = 0.05;
-
-/** The collection's `countertop.lengthPresetsIn` (ui.json): positive, unique, ascending; else the defaults. */
-export const resolveCountertopLengthPresetsIn = (presets: readonly number[] | null | undefined): number[] => {
-  const valid = Array.isArray(presets)
-    ? [...new Set(presets.filter((preset) => typeof preset === "number" && Number.isFinite(preset) && preset > 0))]
-    : [];
-  return (valid.length ? valid : [...DEFAULT_COUNTERTOP_LENGTH_PRESETS_IN]).sort((a, b) => a - b);
-};
-
-/**
- * Presets (inches) that fall inside the effective limits (metres), within 0.05 in so that 23.6 stays
- * when the minimum is one 60 cm cabinet (23.622 in). Apply a preset through `clampLength`.
- */
-export const presetsWithinLimits = (presetsIn: readonly number[], limits: CountertopLengthLimitsM): number[] => {
-  const toleranceM = PRESET_TOLERANCE_IN * METRES_PER_INCH;
-  return presetsIn.filter(
-    (preset) =>
-      preset * METRES_PER_INCH >= limits.minM - toleranceM && preset * METRES_PER_INCH <= limits.maxM + toleranceM,
-  );
-};
-
 export const limitsInToMetres = (limits: LengthLimitsIn): CountertopLengthLimitsM => ({
   minM: limits.min * METRES_PER_INCH,
   maxM: limits.max * METRES_PER_INCH,
@@ -59,17 +38,23 @@ export const metresToDisplayInches = (metres: number) => Math.round((metres / ME
 /** `48″`, `23.6″`: at most one decimal, no trailing `.0`. */
 export const formatInches = (inches: number) => `${Math.round(inches * 10) / 10}″`;
 
-/** The runtime's effective limits when the frame carries them, else the collection's. */
-export const effectiveLimitsM = (
-  frame: Pick<CountertopOverlayFrame, "limits"> | null,
-  fallback: LengthLimitsIn,
-): CountertopLengthLimitsM =>
-  frame?.limits && Number.isFinite(frame.limits.minLengthM) && Number.isFinite(frame.limits.maxLengthM)
-    ? { minM: frame.limits.minLengthM, maxM: frame.limits.maxLengthM }
-    : limitsInToMetres(fallback);
-
 export const clampLength = (lengthM: number, limits: CountertopLengthLimitsM) =>
   Math.min(Math.max(lengthM, limits.minM), limits.maxM);
+
+/**
+ * Limits of a one-end resize from `getState().resizeBoundsM[side]` (phase-1 §6a): the source of truth
+ * for the handles and the ghost. Null when the build does not publish them (callers fall back to the
+ * overlay frame / collection limits).
+ */
+export const resizeBoundsLimitsM = (
+  state: Pick<CountertopState, "resizeBoundsM"> | null | undefined,
+  side: CountertopResizeSide,
+): CountertopLengthLimitsM | null => {
+  const bounds = state?.resizeBoundsM?.[side];
+  return bounds && Number.isFinite(bounds.minLengthM) && Number.isFinite(bounds.maxLengthM)
+    ? { minM: bounds.minLengthM, maxM: bounds.maxLengthM }
+    : null;
+};
 
 type Point = { x: number; y: number };
 
