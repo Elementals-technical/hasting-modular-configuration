@@ -14,7 +14,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "24_29",
@@ -35,7 +35,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "24_29",
@@ -56,7 +56,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "30_39",
@@ -77,7 +77,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -118,7 +118,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "30_39",
@@ -139,7 +139,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -168,7 +168,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "30_39",
@@ -199,7 +199,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "40_49",
@@ -220,7 +220,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "40_49",
@@ -241,7 +241,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -272,7 +272,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -303,7 +303,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "40_49",
@@ -324,7 +324,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -363,7 +363,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Base",
@@ -374,7 +374,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "40_49",
@@ -405,7 +405,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "50_59",
@@ -434,7 +434,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -463,7 +463,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -492,7 +492,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -531,7 +531,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Base",
@@ -542,7 +542,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "50_59",
@@ -563,7 +563,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -584,7 +584,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "50_59",
@@ -605,7 +605,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -636,7 +636,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -667,7 +667,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -708,7 +708,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -749,7 +749,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -780,7 +780,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -821,7 +821,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "60_69",
@@ -862,7 +862,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "60_69",
@@ -883,7 +883,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -904,7 +904,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "60_69",
@@ -925,7 +925,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -944,7 +944,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "60_69",
@@ -965,7 +965,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -996,7 +996,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Base",
@@ -1007,7 +1007,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "70_79",
@@ -1046,7 +1046,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "70_79",
@@ -1067,7 +1067,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -1116,7 +1116,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1157,7 +1157,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "70_79",
@@ -1178,7 +1178,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -1217,7 +1217,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1238,7 +1238,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "70_79",
@@ -1277,7 +1277,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1318,7 +1318,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1349,7 +1349,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1380,7 +1380,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Base",
@@ -1391,7 +1391,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "80_89",
@@ -1430,7 +1430,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "80_89",
@@ -1451,7 +1451,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1490,7 +1490,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1511,7 +1511,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "80_89",
@@ -1532,7 +1532,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1563,7 +1563,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1622,7 +1622,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Open-Shelf",
@@ -1671,7 +1671,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "90_plus",
@@ -1692,7 +1692,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1733,7 +1733,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Base",
@@ -1744,7 +1744,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "90_plus",
@@ -1765,7 +1765,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1786,7 +1786,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       }
     ],
     "size": "90_plus",
@@ -1817,7 +1817,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",
@@ -1866,7 +1866,7 @@
         "Drawers": "2D",
         "Handle": "UG",
         "CountertopColor": "Bianco Statuario Venato Matte TQV",
-        "sinkType": "Top_Porcelain_Strip"
+        "sinkType": "Top_Porcelain_Cover"
       },
       {
         "name": "Sink-Cabinet",

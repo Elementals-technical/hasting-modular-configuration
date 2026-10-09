@@ -7,7 +7,7 @@
   "provenance": {
     "source": "analysis/products-data/Urban Freestanding/docs/options-matrix/UFS-OPTIONS-MATRIX.csv, URBAN-FREESTANDING-PRODUCT-MAP-UA.md, OLEG-NEW-COLLECTIONS-OPTIONS-RU.md",
     "auditedAt": "2026-10-06",
-    "warning": "Values the documents confirm or inherit from Urban Standard Height (\"same as USH\"). sourceRefs are the collection's own: configurator 11 and tables 591/590. defaults are Urban Standard Height's by team decision (2026-10-06) until GEN-MAT-02, except the countertop: configurator 11 offers no Cacao Orinoco FF MT top, so it starts on Urban Duplex's pair, Pulpis Chiaro TKH on Top_HPLStrip (2026-10-09). Open questions are listed in excludedFromThisProfile."
+    "warning": "Values the documents confirm or inherit from Urban Standard Height (\"same as USH\"). sourceRefs are the collection's own: configurator 11 and tables 591/590. defaults are the Hastings website's Urban Freestanding configurator defaults (Threekit asset a48171b0, read 2026-10-09): Metal acciaio 2MA cabinet, Bianco Statuario Venato Matte TQV top, Porcelain Cover basin, no faucet holes. Open questions are listed in excludedFromThisProfile."
   },
   "sourceRefs": {
     "configuratorId": 11,
@@ -15,9 +15,9 @@
     "cabinetMatrixTableId": 590
   },
   "defaults": {
-    "CabinetColor": "Pulpis Chiaro TKH",
-    "CountertopColor": "Pulpis Chiaro TKH",
-    "sinkType": "Top_HPLStrip",
+    "CabinetColor": "Metal acciaio 2MA",
+    "CountertopColor": "Bianco Statuario Venato Matte TQV",
+    "sinkType": "Top_Porcelain_Cover",
     "CountertopStyle": "integrated",
     "SidePanelLeft": "none",
     "SidePanelRight": "none",

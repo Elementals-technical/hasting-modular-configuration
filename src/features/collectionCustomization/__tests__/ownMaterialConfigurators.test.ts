@@ -128,10 +128,13 @@ describe("urban duplex panels", () => {
 describe("urban freestanding countertop", () => {
   const { profile, configurator } = URBAN_FREESTANDING;
 
-  it("starts from Pulpis Chiaro TKH with the HPL strip top, as Urban Duplex does", () => {
-    expect(selectDefaultValue(profile, "CountertopColor")).toBe("Pulpis Chiaro TKH");
-    expect(selectDefaultValue(profile, "sinkType")).toBe("Top_HPLStrip");
-    expect(selectOptionValues(profile, "sinkType")).toContain("Top_HPLStrip");
+  // The defaults of the Hastings website's configurator (Threekit asset a48171b0, read 2026-10-09).
+  it("starts as the website does: brushed steel under a matte Statuario porcelain top with a Cover basin", () => {
+    expect(selectDefaultValue(profile, "CabinetColor")).toBe("Metal acciaio 2MA");
+    expect(selectDefaultValue(profile, "CountertopColor")).toBe("Bianco Statuario Venato Matte TQV");
+    expect(selectDefaultValue(profile, "sinkType")).toBe("Top_Porcelain_Cover");
+    expect(selectDefaultValue(profile, "FaucetHolesAmount")).toBe("0");
+    expect(selectOptionValues(profile, "sinkType")).toContain("Top_Porcelain_Cover");
   });
 
   it("offers the 60 colours with a SKU: Gloss White has none", () => {
@@ -149,20 +152,20 @@ describe("urban freestanding models", () => {
   const offered = (attributeId: string) =>
     resolveConfiguratorOptions(profile, attributeId, configurator).map(({ value }) => value);
 
-  // The renders show brushed steel cabinets under a matte Statuario porcelain top with a Strip basin.
-  it("are built in the materials their renders show", () => {
+  // The renders and the website show brushed steel cabinets under a matte Statuario porcelain top.
+  it("are built in the materials their renders show, with the website's Cover basin", () => {
     expect(new Set(products.map(({ CabinetColor }) => CabinetColor))).toEqual(new Set(["Metal acciaio 2MA"]));
     expect(new Set(products.map(({ CountertopColor }) => CountertopColor))).toEqual(
       new Set(["Bianco Statuario Venato Matte TQV"]),
     );
     expect(new Set(products.map((product) => (product.name === "Sink-Base" ? product.sinkType : "no basin")))).toEqual(
-      new Set(["Top_Porcelain_Strip", "no basin"]),
+      new Set(["Top_Porcelain_Cover", "no basin"]),
     );
   });
 
   it("take those materials from configurator 11 and the basin from the profile", () => {
     expect(offered("CabinetColor")).toContain("Metal acciaio 2MA");
     expect(offered("CountertopColor")).toContain("Bianco Statuario Venato Matte TQV");
-    expect(selectOptionValues(profile, "sinkType")).toContain("Top_Porcelain_Strip");
+    expect(selectOptionValues(profile, "sinkType")).toContain("Top_Porcelain_Cover");
   });
 });
