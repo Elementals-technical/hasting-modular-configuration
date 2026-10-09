@@ -3,10 +3,6 @@
   grid-template-columns: repeat(4, 1fr);
   grid-column-gap: 12px;
   grid-row-gap: 12px;
-
-  height: 100%;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 @media (max-width: 1400px) {
@@ -63,6 +59,4 @@
   font-style: normal;
   font-weight: 600;
   line-height: 20px; /* 142.857% */
-
-  height: 100%;
 }

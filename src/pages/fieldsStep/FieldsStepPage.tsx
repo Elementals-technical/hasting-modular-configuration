@@ -19,6 +19,7 @@ import { openSwatchOrder } from "@/features/swatchOrder";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
+import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
 
 import s from "./FieldsStepPage.module.scss";
 
@@ -65,7 +66,7 @@ const SectionField = (props: SectionFieldProps) => {
   const { onChange, notice } = useAttributeChangeHandler(definition.attributeId);
 
   return (
-    <>
+    <div>
       {field.toggle && <FieldToggle toggle={field.toggle} onChange={onChange} />}
       {definition.control === "colors" ? (
         <ColorSectionField {...props} onChange={onChange} />
@@ -74,7 +75,7 @@ const SectionField = (props: SectionFieldProps) => {
       )}
       {field.hint && <p className={s.hint}>{field.hint}</p>}
       {notice && <div className={s.notice}>{notice}</div>}
-    </>
+    </div>
   );
 };
 
@@ -112,14 +113,18 @@ export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
 
           return (
             <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
-              {fields.map(({ definition, field }) => (
-                <SectionField
-                  key={definition.attributeId}
-                  definition={definition}
-                  field={field}
-                  section={{ sectionId, label }}
-                />
-              ))}
+              <FieldStack>
+                {fields
+                  .filter(({ field }) => field.visible)
+                  .map(({ definition, field }) => (
+                    <SectionField
+                      key={definition.attributeId}
+                      definition={definition}
+                      field={field}
+                      section={{ sectionId, label }}
+                    />
+                  ))}
+              </FieldStack>
             </ConfiguratorAccordionItem>
           );
         })}

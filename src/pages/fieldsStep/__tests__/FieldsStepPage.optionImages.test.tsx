@@ -60,7 +60,9 @@ describe("option pictures declared by the collection", () => {
       uiDocument: uiWithOptionImages,
     });
 
-    expect(screen.getByAltText("color image").getAttribute("src")).toBe(FIXTURE_IMAGE_URL);
+    expect(screen.getByRole("button", { name: "Test Finish" }).querySelector("img")?.getAttribute("src")).toBe(
+      FIXTURE_IMAGE_URL,
+    );
   });
 
   it("still lists an option the collection declares no picture for", () => {
@@ -71,6 +73,8 @@ describe("option pictures declared by the collection", () => {
 
     // The option is still listed, with the grid's generic placeholder instead of a picture.
     expect(screen.getByText("Test Finish")).not.toBeNull();
-    expect(screen.getByAltText("color image").getAttribute("src")).not.toBe(FIXTURE_IMAGE_URL);
+    const image = screen.getByRole("button", { name: "Test Finish" }).querySelector("img");
+    expect(image).not.toBeNull();
+    expect(image?.getAttribute("src")).not.toBe(FIXTURE_IMAGE_URL);
   });
 });

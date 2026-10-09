@@ -37,6 +37,7 @@ import { useVesselColorState } from "../lib/useVesselColorState";
 import { MaterialFilterRow } from "./MaterialFilterRow";
 
 import type { ReactNode } from "react";
+import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
 
 type CountertopSectionsArgs = { stepId: string; flow: "prebuilt" | "custom" };
 
@@ -302,7 +303,7 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
         sectionId: section.sectionId,
         label,
         defaultOpen: section.defaultOpen,
-        content: visibleFields.map(renderField),
+        content: <FieldStack>{visibleFields.map(renderField)}</FieldStack>,
       },
     ];
   });

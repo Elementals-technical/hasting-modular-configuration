@@ -1,7 +1,9 @@
 .productOption {
+  position: relative;
   cursor: pointer;
 
   .title {
+    display: block;
     color: #282828;
     font-family: Poppins;
     font-size: 12px;
@@ -13,7 +15,14 @@
     margin-bottom: 4px;
   }
 
+  .titleHint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .desc {
+    display: block;
     color: #282828;
     font-family: Poppins;
     font-size: 12px;
@@ -72,6 +81,30 @@
       }
     }
   }
+
+  &:focus-within .expandBtn {
+    opacity: 1;
+  }
+}
+
+.selectButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: inherit;
+}
+
+.selectButton:focus-visible,
+.expandBtn:focus-visible,
+.disabledAction:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .materialOption {
@@ -81,17 +114,10 @@
     height: auto;
     aspect-ratio: 1 / 1;
   }
-
-  > div {
-    > div {
-      img {
-        object-fit: cover !important;
-      }
-    }
-  }
 }
 
 .imageContainer {
+  display: block;
   position: relative;
 }
 
@@ -300,10 +326,4 @@
   cursor: pointer;
 
   text-align: left;
-}
-
-.titleHint {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
