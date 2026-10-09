@@ -12,7 +12,12 @@ import { normalizeOptionValue } from "../../productProfileSelectors";
 import { collectCustomizationAttributeIds } from "../collectionRuntimeContract";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
 import { findProductConfigBindingErrors, resolveProductConfig } from "../resolveProductConfig";
-import { configurationValueOf, isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import {
+  configurationValueOf,
+  isStateOnlyResolution,
+  resolveRuntimeBinding,
+  semanticValueOf,
+} from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 const patch = (id: string, value: string | number) => resolveRuntimeBinding(bindings, id, value);
@@ -86,7 +91,8 @@ describe("Tricot delivered runtime bindings", () => {
       for (const [value, scenePatch] of Object.entries(binding.values.patches)) {
         const sceneMaterial = String(scenePatch[id]);
         expect(materials.has(sceneMaterial), sceneMaterial).toBe(true);
-        expect(normalizeOptionValue(tricotProfile, id, sceneMaterial)).toBe(value);
+        // The bindings, not the profile, know the scene name: it reads back as the catalog value.
+        expect(semanticValueOf(bindings, id, sceneMaterial)).toBe(value);
         expect(configurationValueOf(bindings, id, sceneMaterial, value)).toBe(value);
         expect(findProductConfigBindingErrors(bindings, { [id]: sceneMaterial })).toEqual([]);
       }
@@ -201,7 +207,7 @@ describe("Tricot delivered runtime bindings", () => {
     expect(patch("CabinetColor", sceneDefault)).toMatchObject({ ok: false, reason: "unbound" });
     expect(findProductConfigBindingErrors(bindings, { CabinetColor: sceneDefault })).toEqual([]);
     expect(resolveProductConfig(bindings, { CabinetColor: sceneDefault, Width: 60 })).toEqual({ Width: 60 });
-    expect(normalizeOptionValue(tricotProfile, "CabinetColor", sceneDefault)).toBeNull();
+    expect(semanticValueOf(bindings, "CabinetColor", sceneDefault)).toBe(sceneDefault);
     // The summary shows the chosen wood, not the color the scene keeps in its place.
     expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Rovere Oro 932")).toBe("Rovere Oro 932");
     expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Zafferano 412 MT")).toBe(sceneDefault);

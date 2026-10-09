@@ -24,7 +24,6 @@ import { evaluateCountertopChange } from "@/features/configurationCommands/lib/c
 import { changeAttribute } from "@/features/configurationCommands/lib/changeAttribute";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import { createConfiguratorColorReader } from "@/shared/lib/sku/configuratorColors";
-import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { resolveConfiguratorOptions, resolveSectionFields } from "../lib/resolveSectionState";
 
 beforeEach(() => {
@@ -63,7 +62,13 @@ describe("Tricot countertop preparation", () => {
     async (flow) => {
       withMatrix(80);
       const runtime = createTestRuntimePort();
-      const deps = { getState: store.getState, dispatch: store.dispatch, runtime: runtime.port, flow };
+      const deps = {
+        getState: store.getState,
+        dispatch: store.dispatch,
+        runtime: runtime.port,
+        flow,
+        configurator: tricotConfigurator,
+      };
       expect(
         (await changeAttribute({ attributeId: "CountertopColor", scope: "countertop", value: "Matte White" }, deps))
           .status,
@@ -158,55 +163,16 @@ describe("Tricot countertop preparation", () => {
     expect(tricotUi.steps.countertop.sectionIds).toEqual(["countertop-color", "thickness", "basin-style"]);
   });
 
-  it("normalizes all 40 material-scoped Glass aliases and preserves external color metadata", () => {
-    const glass = selectOptions(tricotProfile, "CountertopColor").filter(({ category }) =>
-      category?.startsWith("Glass"),
-    );
-    expect(glass).toHaveLength(40);
-    for (const option of glass)
-      expect(normalizeOptionValue(tricotProfile, "CountertopColor", "G" + option.value)).toBe(option.value);
-    const profile = {
-      ...tricotProfile,
-      attributes: tricotProfile.attributes.map((attribute) =>
-        attribute.attributeId === "CountertopColor"
-          ? { ...attribute, optionsSource: "configurator:test-top" }
-          : attribute,
-      ),
-    };
-    const group: ConfiguratorGroupCatalog["groups"][number] = {
-      id: 1,
-      proxyName: "test-top",
-      proxyType: "material",
-      enabled: true,
-      metadata: {},
-      options: [
-        {
-          id: 2,
-          name: "Glass MT",
-          resource: null,
-          paramString: null,
-          playcanvasString: null,
-          variants: ["GGrigio Argento 403 MT", "Foreign 999"].map((name, id) => ({
-            id,
-            name,
-            image: "glass.jpg",
-            enabled: true,
-            description: "",
-            metadata: { sku: "GLSM", Material: "Glass MT", hex: "#aabbcc" },
-          })),
-        },
-      ],
-    };
-    const configurator = { groups: [group], groupsByName: { "test-top": group } };
-    const options = resolveConfiguratorOptions(profile, "CountertopColor", configurator);
-    expect(options).toHaveLength(1);
-    expect(options[0]).toMatchObject({
-      value: "Grigio Argento 403 MT",
-      image: "glass.jpg",
-      traits: { sku: "GLSM", materials: ["Glass MT"] },
-    });
-    const read = createConfiguratorColorReader(profile, configurator);
-    expect(read("CountertopColor", options[0].value)).toEqual({ sku: "GLSM", material: "Glass MT" });
+  // Configurator 12 spells every colour as the matrix and the price list do; the profile lists none of its own.
+  it("takes the 71 countertop colours and their materials from configurator 12", () => {
+    expect(selectOptions(tricotProfile, "CountertopColor")).toEqual([]);
+    const read = createConfiguratorColorReader(tricotProfile, tricotConfigurator);
+    const colours = resolveConfiguratorOptions(tricotProfile, "CountertopColor", tricotConfigurator);
+
+    expect(colours).toHaveLength(71);
+    expect(colours.filter(({ desc }) => desc?.startsWith("Glass"))).toHaveLength(40);
+    expect(read("CountertopColor", "Grigio Argento 403 MT")).toEqual({ sku: "GLSM", material: "Glass MT" });
+    expect(read("CountertopColor", "Matte White 8cm")).toEqual({ sku: "SSTMT", material: "Solid Surface" });
     expect(read("CountertopColor", "Foreign 999")).toBeNull();
   });
 

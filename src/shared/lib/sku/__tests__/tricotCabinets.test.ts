@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { tricotProfile, tricotSkuProfile, tricotTestBindings } from "@/entities/collection/__tests__/tricotFixtures";
+import {
+  tricotConfigurator,
+  tricotProfile,
+  tricotSkuProfile,
+  tricotTestBindings,
+} from "@/entities/collection/__tests__/tricotFixtures";
 import { buildCabinetCatalogFromProfile } from "@/entities/product/lib/matrixCabinet";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { validateChange } from "@/features/configurationCommands/lib/validateChange";
@@ -8,6 +13,7 @@ import { createSkuBuilders } from "../createSkuBuilders";
 import { pricingInput } from "@/shared/lib/pricing/__tests__/fixtures/pricingScenarios";
 import workbook from "@/shared/lib/pricing/__tests__/fixtures/tricot-cabinet-workbook.json";
 import { buildCollectionCabinetSku } from "../buildCollectionSkus";
+import { createConfiguratorColorReader } from "../configuratorColors";
 
 const patterns: Record<string, string> = { CAN: "Cannette", TWLL: "Twill", GES: "Gessato", SAT: "Satin", LOD: "Loden" };
 const widths: Record<string, number> = { "15.7": 40, "23.6": 60, "31.5": 80, "39.4": 100, "47.2": 120 };
@@ -19,12 +25,15 @@ const values = {
   CabinetColor: "Noce Canaletto 933",
   HandleGrooveColor: "Zafferano 412 MT",
 };
+// The colours, their materials and codes come from Tricot's configurator 12, as the app reads them.
+const readConfiguratorColor = createConfiguratorColorReader(tricotProfile, tricotConfigurator);
 const build = (overrides: Record<string, string> = {}, widthCm = 40, heightCm = 40, depthCm = 52) =>
   buildCollectionCabinetSku(tricotSkuProfile, tricotProfile, {
     read: (id) => (({ ...values, ...overrides }) as Record<string, string>)[id] ?? null,
     widthCm,
     heightCm,
     depthCm,
+    readConfiguratorColor,
   });
 
 describe("Tricot custom cabinets and pricing", () => {
@@ -141,6 +150,7 @@ describe("Tricot custom cabinets and pricing", () => {
     const input = pricingInput({
       skuBuilders: createSkuBuilders({ status: "collection", collectionProfile: tricotSkuProfile }),
       activeProfile: tricotProfile,
+      configurator: tricotConfigurator,
       runtimeBindings: tricotTestBindings,
       cabinetEntries: [{ stableKey: "cabinet-1", runtimeId: "test-tricot-sc-1", index: 0 }],
       dimensionsByCabinet: { "cabinet-1": { width: 40, height: 40, depth: 52 } },

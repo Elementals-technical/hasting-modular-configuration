@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
-import { tricotProfile, tricotRuntimeBindings as bindings } from "@/entities/collection/__tests__/tricotFixtures";
+import {
+  tricotConfigurator,
+  tricotProfile,
+  tricotRuntimeBindings as bindings,
+} from "@/entities/collection/__tests__/tricotFixtures";
 import {
   getCabinetEntries,
   getAttributeValue,
@@ -351,7 +355,13 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
         getBindings: () => bindings,
         scene: { isReady: () => true, apply },
       });
-      const deps = { getState: () => store.getState(), dispatch: store.dispatch, runtime, flow };
+      const deps = {
+        getState: () => store.getState(),
+        dispatch: store.dispatch,
+        runtime,
+        flow,
+        configurator: tricotConfigurator,
+      };
       expect(
         await changeAttribute({ attributeId: "CabinetColor", scope: "global", value: "Zafferano 412 MT" }, deps),
       ).toMatchObject({ status: "applied" });
@@ -377,7 +387,13 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
       updatedIds: ["Tricot-sink-cabinet-a1b2c3d4e"],
     }));
     const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
-    const deps = { getState: () => store.getState(), dispatch: store.dispatch, runtime, flow: "custom" as const };
+    const deps = {
+      getState: () => store.getState(),
+      dispatch: store.dispatch,
+      runtime,
+      flow: "custom" as const,
+      configurator: tricotConfigurator,
+    };
     const cabinetId = getCabinetEntries(store.getState())[0].stableKey;
     store.dispatch(
       setAttributeValue({
@@ -400,7 +416,13 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
       updatedIds: ["Tricot-sink-cabinet-a1b2c3d4e", "Tricot-side-cabinet-f5g6h7i8j"],
     }));
     const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
-    const deps = { getState: () => store.getState(), dispatch: store.dispatch, runtime, flow: "prebuilt" as const };
+    const deps = {
+      getState: () => store.getState(),
+      dispatch: store.dispatch,
+      runtime,
+      flow: "prebuilt" as const,
+      configurator: tricotConfigurator,
+    };
     const cabinets = getCabinetEntries(store.getState());
     store.dispatch(setCabinetColorMaterial("WDV"));
     for (const { stableKey } of cabinets)
@@ -427,7 +449,13 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
   it("rejects pending panel and wood commands without applying a dependent partial change", async () => {
     const apply = vi.fn<SceneBridge["apply"]>(async () => ({ status: "applied", updatedIds: [] }));
     const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
-    const deps = { getState: () => store.getState(), dispatch: store.dispatch, runtime, flow: "custom" as const };
+    const deps = {
+      getState: () => store.getState(),
+      dispatch: store.dispatch,
+      runtime,
+      flow: "custom" as const,
+      configurator: tricotConfigurator,
+    };
     // A wood color would also move each Loden cabinet to a wood pattern; neither change may reach the scene alone.
     for (const change of [
       { attributeId: "SidePanels", scope: "global" as const, value: "Yes" },

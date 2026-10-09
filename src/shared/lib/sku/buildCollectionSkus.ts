@@ -150,7 +150,12 @@ export const buildCollectionCabinetSku = (
       if (cabinet.requireCompleteInput) missing.push({ attributeId: colorAttributeId, cause: "not-chosen" });
       return [];
     }
-    if (cabinet.requireCompleteInput && !selectOption(productProfile, colorAttributeId, value)) {
+    // A colour is the collection's when its profile lists it or, for colours the profile takes from the
+    // configurator section it names, when that section offers it.
+    const isOffered =
+      Boolean(selectOption(productProfile, colorAttributeId, value)) ||
+      Boolean(readConfiguratorColor?.(colorAttributeId, value));
+    if (cabinet.requireCompleteInput && !isOffered) {
       missing.push({ attributeId: colorAttributeId, cause: "invalid-option" });
       return [];
     }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  tricotConfigurator,
   tricotProfile,
   tricotSkuProfile,
   tricotTestBindings,
@@ -10,6 +11,7 @@ import { collectionSkuProfileSchema } from "@/entities/collection/model/schemas"
 import type { CollectionOwnSidePanel } from "@/entities/collection/model/schemas";
 import { buildCollectionSidePanelSku } from "@/shared/lib/sku/buildCollectionSidePanelSku";
 import { createSkuBuilders } from "@/shared/lib/sku";
+import { createConfiguratorColorReader } from "@/shared/lib/sku/configuratorColors";
 import { resolveSectionFields } from "@/features/collectionCustomization/lib/resolveSectionState";
 import {
   derivePriceStatus,
@@ -37,6 +39,7 @@ const skuProfile = collectionSkuProfileSchema.parse({ ...tricotSkuProfile, sideP
 const input = (selected: string, quantity: number | null, profile = skuProfile) =>
   pricingInput({
     activeProfile: tricotProfile,
+    configurator: tricotConfigurator,
     runtimeBindings: tricotTestBindings,
     skuBuilders: createSkuBuilders({ status: "collection", collectionProfile: profile }),
     cabinetEntries: [{ stableKey: "cab-1", runtimeId: "test-tricot-sc-1", index: 0 }],
@@ -185,6 +188,7 @@ describe("Tricot own side panels", () => {
     const panel = buildCollectionSidePanelSku(confirmed, skuProfile, tricotProfile, {
       quantity: 1,
       color: String(color),
+      readConfiguratorColor: createConfiguratorColorReader(tricotProfile, tricotConfigurator),
     });
     expect(panel).toEqual({ sku: `VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-${material}-${code}`, quantity: 1 });
     expect(

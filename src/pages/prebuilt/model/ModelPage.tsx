@@ -26,6 +26,7 @@ import {
   selectDefaultValue,
   selectOptions,
   selectRuntimeBinding,
+  semanticValueOf,
   useActiveCollection,
   useCollectionPresets,
 } from "@/entities/collection";
@@ -736,7 +737,9 @@ export const ModelPage = () => {
       const sceneGroove =
         config && typeof config === "object" ? (config as Record<string, unknown>).HandleGrooveColor : undefined;
       if (typeof sceneGroove === "string" && sceneGroove.trim()) {
-        record({ HandleGrooveColor: sceneGroove });
+        // The scene holds the material asset ("Nero 433 Lacquered MT" for Tricot's "Nero 433 MT"); the
+        // configuration records the catalog value, which the SKU and the colour pages read.
+        record({ HandleGrooveColor: semanticValueOf(runtimeBindings, "HandleGrooveColor", sceneGroove) });
         break;
       }
     }
@@ -747,7 +750,7 @@ export const ModelPage = () => {
     // added cabinets inherit current colors — without wiping scene extras
     // (side panels, towel bar).
     navigate(targetRoute);
-  }, [navigate, record]);
+  }, [navigate, record, runtimeBindings]);
 
   // "Create Your Own" starts Custom from an empty scene, without the preset's add-ons.
   const handleCreateOwnComposition = useCallback(async () => {

@@ -171,6 +171,28 @@ export const configurationValueOf = (
 };
 
 /**
+ * The configuration value a scene value stands for, with no choice to compare it to: the one value
+ * the binding sends as it (an `overrides` entry, or a value map's patch), so the scene's
+ * "Nero 433 Lacquered MT" reads as Tricot's "Nero 433 MT". The binding is the only place that
+ * knows the scene's names. A scene value no value is sent as, or more than one, is returned as read.
+ */
+export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: string, sceneValue: string): string => {
+  const binding = set ? selectRuntimeBinding(set, attributeId) : null;
+  if (binding?.status !== "bound") return sceneValue;
+
+  const sentAs = (scenePatch: ScenePatch) =>
+    Object.keys(scenePatch).length === 1 && Object.values(scenePatch)[0] === sceneValue;
+  const values =
+    binding.values.kind === "identity"
+      ? Object.entries(binding.values.overrides ?? {}).flatMap(([value, sceneName]) =>
+          sceneName === sceneValue ? [value] : [],
+        )
+      : Object.entries(binding.values.patches).flatMap(([value, scenePatch]) => (sentAs(scenePatch) ? [value] : []));
+
+  return values.length === 1 ? values[0] : sceneValue;
+};
+
+/**
  * Every change of the set that has no scene translation. Empty means the whole set can
  * be sent; all problems are reported, not only the first.
  */

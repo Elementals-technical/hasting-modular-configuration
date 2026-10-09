@@ -16,7 +16,7 @@ import countertopFixture from "./fixtures/remote/datatable-593.json";
 import compositionCsv from "../../../../public/collections/tricot/sources/preset-compositions.csv?raw";
 import images from "../../../../public/collections/tricot/sources/model-images.json";
 import { importPresetCompositionCsv } from "../lib/importPresetCompositionCsv";
-import { tricotProfile } from "./tricotFixtures";
+import { tricotConfigurator, tricotProfile } from "./tricotFixtures";
 import { buildPendingPresets, importMasterCatalog, parseMasterTable } from "../lib/importMasterCatalog";
 import { loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
@@ -117,7 +117,7 @@ describe("Tricot source preparation", () => {
   it("imports all 42 explicit recipes and 88 modules with basin positions and stable image mappings", () => {
     // Every source recipe imports, the hidden model's too; the catalog shows the others.
     const sourcePresets = presetsSchema.parse(buildPendingPresets(sourceCatalogSchema.parse(catalog)));
-    const entries = importPresetCompositionCsv(compositionCsv, sourcePresets, tricotProfile);
+    const entries = importPresetCompositionCsv(compositionCsv, sourcePresets, tricotProfile, tricotConfigurator);
     expect(entries).toHaveLength(42);
     expect(entries.reduce((sum, e) => sum + e.presetProducts.length, 0)).toBe(88);
     const shownEntries = entries.filter(isShown);
@@ -153,18 +153,24 @@ describe("Tricot source preparation", () => {
     const row = rows.find((c) => c[headers.indexOf("model")] === first.sourceModel);
     if (!row) throw new Error("Missing fixture row");
     const csv = (body: string[][]) => [headers, ...body].map(quote).join("\n");
-    expect(() => importPresetCompositionCsv(csv([]), [first], tricotProfile)).toThrow("Missing source model");
-    expect(() => importPresetCompositionCsv(csv([row, row]), [first], tricotProfile)).toThrow("position");
+    expect(() => importPresetCompositionCsv(csv([]), [first], tricotProfile, tricotConfigurator)).toThrow(
+      "Missing source model",
+    );
+    expect(() => importPresetCompositionCsv(csv([row, row]), [first], tricotProfile, tricotConfigurator)).toThrow(
+      "position",
+    );
     const set = (key: string, value: string) => row.map((c, i) => (i === headers.indexOf(key) ? value : c));
-    expect(() => importPresetCompositionCsv(csv([set("Width", "56")]), [first], tricotProfile)).toThrow(
-      "Unsupported module",
-    );
-    expect(() => importPresetCompositionCsv(csv([set("CabinetPattern", "Loden")]), [first], tricotProfile)).toThrow(
-      "Incompatible cabinet pattern",
-    );
+    expect(() =>
+      importPresetCompositionCsv(csv([set("Width", "56")]), [first], tricotProfile, tricotConfigurator),
+    ).toThrow("Unsupported module");
+    expect(() =>
+      importPresetCompositionCsv(csv([set("CabinetPattern", "Loden")]), [first], tricotProfile, tricotConfigurator),
+    ).toThrow("Incompatible cabinet pattern");
     const second = set("Drawers", "2D");
     second[headers.indexOf("position")] = "2";
-    expect(() => importPresetCompositionCsv(csv([row, second]), [first], tricotProfile)).toThrow("Mixed drawer groups");
+    expect(() => importPresetCompositionCsv(csv([row, second]), [first], tricotProfile, tricotConfigurator)).toThrow(
+      "Mixed drawer groups",
+    );
   });
 
   it("loads the approved partial scene bindings and 592/593 matrices, and opens with its own configurator 12", async () => {
