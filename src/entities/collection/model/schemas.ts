@@ -413,6 +413,11 @@ export const collectionSkuProfileSchema = z
           .strict()
           .optional(),
         elements: skuElementsSchema,
+        /**
+         * The height the price list writes for a table height, as for a cabinet type of its own: the
+         * Urban Duplex matrix keys `15.0H` and `11.0H`, and the server reads `15H` as another row.
+         */
+        heightCodes: stringMapSchema.optional(),
       })
       .strict(),
     colors: z

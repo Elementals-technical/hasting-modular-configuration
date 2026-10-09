@@ -7,7 +7,7 @@ import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
 import { parseProductProfile } from "../../parseProductProfile";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
-import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
+import { isStateOnlyResolution, resolveRuntimeBinding, sceneDimensionValueOf } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 /**
@@ -101,6 +101,16 @@ describe("urban-duplex runtime bindings", () => {
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
     expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
     expect(patchOf("Drawers", "1+inner")).toEqual({ Drawers: "1DWID" });
+  });
+
+  it("read the scene's sizes back as the cabinet table's", () => {
+    const bindings = urbanDuplexRuntimeBindings();
+    expect(sceneDimensionValueOf(bindings, "Depth", 50.5)).toBe(50);
+    expect(sceneDimensionValueOf(bindings, "Depth", 46)).toBe(46);
+    expect(sceneDimensionValueOf(bindings, "Height", 28)).toBe(28);
+    expect(sceneDimensionValueOf(bindings, "Width", 60)).toBe(60);
+    expect(sceneDimensionValueOf(bindings, "Depth", null)).toBeNull();
+    expect(sceneDimensionValueOf(null, "Depth", 50.5)).toBe(50.5);
   });
 
   it("send the basin to the sink base only, with the vessel placeholder for an empty one", () => {

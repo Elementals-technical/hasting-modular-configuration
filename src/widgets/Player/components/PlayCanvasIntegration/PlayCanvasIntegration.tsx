@@ -131,6 +131,7 @@ import {
 import { resolveCountertopLengthLimitsIn } from "@/features/countertopPlacement/lib/countertopLength";
 import {
   resolveCabinetTypeOfRuntimeId,
+  sceneDimensionValueOf,
   selectMessageOr,
   selectOptions,
   useActiveCollection,
@@ -3051,9 +3052,10 @@ export const PlayCanvasIntegration = ({
       const config = await getConfig(selectedSceneProduct);
       if (!config || cancelled) return;
 
-      const width = toFiniteNumber(config.Width);
-      const height = toFiniteNumber(config.Height);
-      const depth = toFiniteNumber(config.Depth);
+      // The scene's sizes in the cabinet table's values (the Urban Duplex 50.5 cm depth is the table's 50).
+      const width = sceneDimensionValueOf(runtimeBindings, "Width", toFiniteNumber(config.Width));
+      const height = sceneDimensionValueOf(runtimeBindings, "Height", toFiniteNumber(config.Height));
+      const depth = sceneDimensionValueOf(runtimeBindings, "Depth", toFiniteNumber(config.Depth));
 
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
 
@@ -3089,6 +3091,7 @@ export const PlayCanvasIntegration = ({
   }, [
     dispatch,
     isStyleSidebarOpen,
+    runtimeBindings,
     selectedDimensions.depth,
     selectedDimensions.height,
     selectedDimensions.width,

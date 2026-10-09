@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { RuntimeBindingSet } from "@/entities/collection";
+import { sceneDimensionValueOf, type RuntimeBindingSet } from "@/entities/collection";
 
 import { maxSeqFromKeys, rebindSavedCabinets, reconcileOrder, registerCabinets, resolveStableKey } from "../identity";
 import type { SceneStateResult } from "../runtimePort";
@@ -95,9 +95,17 @@ const configurationSlice = createSlice({
 
       if (orderChanged) state.cabinets = reconciled;
 
-      for (const { runtimeId, dimensions } of cabinets) {
+      for (const { runtimeId, dimensions: sceneDimensions } of cabinets) {
         const stableKey = resolveStableKey(state.cabinets, runtimeId);
         if (!stableKey) continue;
+
+        // The scene's sizes in the cabinet table's values: the Urban Duplex 50.5 cm depth is the table's 50.
+        const bindings = state.runtimeBindings;
+        const dimensions = {
+          width: sceneDimensionValueOf(bindings, "Width", sceneDimensions.width),
+          height: sceneDimensionValueOf(bindings, "Height", sceneDimensions.height),
+          depth: sceneDimensionValueOf(bindings, "Depth", sceneDimensions.depth),
+        };
 
         // An unchanged size keeps its reference, so consumers do not recompute on every read.
         const recorded = state.dimensionsByCabinet[stableKey];

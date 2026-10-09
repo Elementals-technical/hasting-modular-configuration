@@ -65,7 +65,7 @@ describe("Urban Duplex cabinet SKU", () => {
         70,
         56,
       ),
-    ).toEqual({ sku: "VAN-URDPX-SB/2DWL/UG/X-27.6W-22H-19.7D-BASP-LACM-M7-LTLP-LACM-03-HNDL-LACM-03", missing: [] });
+    ).toEqual({ sku: "VAN-URDPX-SB/2DWL/UG/X-27.6W-22.0H-19.7D-BASP-LACM-M7-LTLP-LACM-03-HNDL-LACM-03", missing: [] });
   });
 
   it("spells each cabinet style at its heights, the handle groove in the lateral panel colour", () => {
@@ -81,7 +81,7 @@ describe("Urban Duplex cabinet SKU", () => {
         60,
         38,
       ).sku,
-    ).toBe("VAN-URDPX-SB/1DWR/UG/X-23.6W-15H-19.7D-BASP-LACM-A7-LTLP-HPL-TKK-HNDL-HPL-TKK");
+    ).toBe("VAN-URDPX-SB/1DWR/UG/X-23.6W-15.0H-19.7D-BASP-LACM-A7-LTLP-HPL-TKK-HNDL-HPL-TKK");
     // VAN-URDPX-SB/1DWIDL/UG/X-47.2W-20.9H-19.7D-BASP-ESS-06E-LTLP-ESS-06A-HNDL-ESS-06A.
     expect(
       cabinet(
@@ -109,12 +109,12 @@ describe("Urban Duplex cabinet SKU", () => {
         28,
         46,
       ).sku,
-    ).toBe("VAN-URDPX-SC/1DWL/UG/X-27.6W-11H-18.1D-BASP-LACG-45-LTLP-ST-03-HNDL-ST-03");
+    ).toBe("VAN-URDPX-SC/1DWL/UG/X-27.6W-11.0H-18.1D-BASP-LACG-45-LTLP-ST-03-HNDL-ST-03");
   });
 
   it("spells the default model's colours and reads the drawer spellings of the presets", () => {
     expect(cabinet({ Drawers: "2D", LateralPanelSide: "R" }, 70, 56).sku).toBe(
-      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     );
     expect(cabinet({ Drawers: "1D", LateralPanelSide: "R" }, 90, 53).sku).toBe(
       "VAN-URDPX-SB/1DWR/UG/X-35.4W-20.9H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
@@ -123,7 +123,7 @@ describe("Urban Duplex cabinet SKU", () => {
 
   it("writes X for a side not chosen, as for any code without a value", () => {
     expect(cabinet({ Drawers: "2" }, 60, 56).sku).toBe(
-      "VAN-URDPX-SB/2DWX/UG/X-23.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWX/UG/X-23.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     );
   });
 });

@@ -1156,7 +1156,7 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
     // The panel colours nobody has chosen are the default model's: Bianco Calce DA ST and Pulpis Chiaro TKH.
     expect(cabinetSkusOf(lines)).toEqual([
       "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
-      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     ]);
     // Its countertop table sizes the top over both cabinets, 120 cm, at the first HPL thickness, 1/2".
     expect(lines.filter(({ group }) => group !== "cabinet").map(({ group, sku }) => ({ group, sku }))).toEqual([

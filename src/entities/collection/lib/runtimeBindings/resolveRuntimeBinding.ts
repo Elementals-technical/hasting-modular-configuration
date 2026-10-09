@@ -193,6 +193,30 @@ export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: stri
 };
 
 /**
+ * The size a scene size stands for: the one number a value map sends as it, so the Urban Duplex
+ * scene's 50.5 cm depth reads as the cabinet table's 50. A size sent as is, or a value no number
+ * is sent as, is returned as read.
+ */
+export const sceneDimensionValueOf = (
+  set: RuntimeBindingSet | null,
+  attributeId: string,
+  sceneValue: number | null,
+): number | null => {
+  const binding = sceneValue === null || !set ? null : selectRuntimeBinding(set, attributeId);
+  if (binding?.status !== "bound" || binding.values.kind !== "map") return sceneValue;
+
+  const values = Object.entries(binding.values.patches).flatMap(([value, scenePatch]) =>
+    Object.keys(scenePatch).length === 1 &&
+    Object.values(scenePatch)[0] === sceneValue &&
+    Number.isFinite(Number(value))
+      ? [Number(value)]
+      : [],
+  );
+
+  return values.length === 1 ? values[0] : sceneValue;
+};
+
+/**
  * Every change of the set that has no scene translation. Empty means the whole set can
  * be sent; all problems are reported, not only the first.
  */
