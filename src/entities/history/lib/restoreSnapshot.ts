@@ -6,16 +6,19 @@ import type {
   SceneRestoreResult,
 } from "@/entities/configuration";
 import type { RuntimeBindingSet } from "@/entities/collection";
-import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
-import { dropValuesForCabinet, restoreCabinets } from "@/entities/configuration/model/store/slice";
+import { getActiveCollectionId, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import {
+  dropValuesForCabinet,
+  markRuntimeOutOfSync,
+  recordSceneState,
+  restoreCabinets,
+  restoreConfigurationFragment,
+} from "@/entities/configuration/model/store/slice";
 import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
 import { restoreSidePanelState } from "@/features/sidePanel";
 import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
-import {
-  resolveRuntimeProductType,
-  withRuntimeProductType,
-} from "@/entities/product/lib/resolveRuntimeProductType";
+import { resolveRuntimeProductType, withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 
 function mapConfigToDrawerValue(value: unknown): string | null {
@@ -93,6 +96,13 @@ export async function restoreSnapshot(
   snapshot: SceneSnapshot,
   { dispatch, getState, getBindings, restorer = createSceneRestorer({ getBindings }), replay }: RestoreSnapshotDeps,
 ): Promise<SceneRestoreResult> {
+  const savedCollection = snapshot.configuration?.collectionId;
+  if (savedCollection && savedCollection !== getActiveCollectionId(getState())) {
+    return {
+      status: "rejected",
+      issues: [{ code: "invalid-config", message: "The history snapshot belongs to another collection." }],
+    };
+  }
   const result = await restorer.restore(buildSnapshotRestoreRequest(snapshot));
   if (result.status === "not-ready" || result.status === "rejected") return result;
 
@@ -110,6 +120,22 @@ export async function restoreSnapshot(
       .forEach(({ stableKey }) => dispatch(dropValuesForCabinet(stableKey)));
 
     dispatch(restoreCabinets({ stableKeys, runtimeIds: newProductIds }));
+  }
+
+  if (snapshot.configuration) {
+    const cabinets = getCabinetEntries(getState());
+    const keys = new Set(cabinets.map(({ stableKey }) => stableKey));
+    const values = Object.fromEntries(
+      Object.entries(snapshot.configuration.values).map(([id, entries]) => [
+        id,
+        entries.filter(({ target }) => {
+          if (target.scope === "cabinet" || target.scope === "drawer") return keys.has(target.cabinetId);
+          if (target.scope === "basin" && target.sinkBaseId) return keys.has(target.sinkBaseId);
+          return true;
+        }),
+      ]),
+    );
+    dispatch(restoreConfigurationFragment({ cabinets, values }));
   }
 
   const restoredPlacedDividers: NonNullable<SceneSnapshot["placedDividers"]> = [];
@@ -161,12 +187,41 @@ export async function restoreSnapshot(
     }),
   );
 
+  // Compatibility uses the rebuilt scene's actual sizes, not dimensions of the replaced scene.
+  if (result.scene.status === "ready") dispatch(recordSceneState(result.scene));
+
   // Per-product configs may not carry every configuration value, so they are shown again.
-  await replay(buildSnapshotReplayValues(snapshot));
+  const replayed = buildSnapshotReplayValues(snapshot);
+  const boundPanels = getBindings()?.bindings.some(
+    ({ attributeId, status }) => attributeId === "SidePanels" && status === "bound",
+  );
+  if (boundPanels) replayed.SidePanels = snapshot.productOptions.SidePanels;
+  const replayResult = await replay(replayed);
+  if (
+    replayResult &&
+    typeof replayResult === "object" &&
+    "status" in replayResult &&
+    (replayResult.status === "error" || replayResult.status === "partial")
+  ) {
+    dispatch(markRuntimeOutOfSync());
+    return {
+      ...result,
+      status: "partial",
+      failed: [
+        ...(result.status === "partial" ? result.failed : []),
+        ...result.matches.map(({ sourceId }) => ({
+          sourceId,
+          code: "config-rejected" as const,
+          message: "Configuration choices were not fully replayed.",
+        })),
+      ],
+    };
+  }
 
   // Re-apply SidePanel state to PlayCanvas (per-side).
   const { SidePanels, SidePanelLeft, SidePanelRight } = snapshot.productOptions;
-  await restoreSidePanelState(dispatch, SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
+  if (!boundPanels)
+    await restoreSidePanelState(dispatch, SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
 
   return result;
 }

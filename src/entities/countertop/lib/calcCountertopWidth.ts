@@ -1,5 +1,9 @@
 import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
 
+/** Counts only scene-reported active sides, never an assumed pair from a Yes/No choice. */
+export const getActiveSidePanelCount = (left: string | null | undefined, right: string | null | undefined): number =>
+  Number(left === "active") + Number(right === "active");
+
 /**
  * Calculates the total countertop width in centimeters,
  * including the +1 cm offset for each active side panel.
@@ -17,9 +21,7 @@ export function calcTotalCountertopWidthCm(
   sidePanelLeft: string | null | undefined,
   sidePanelRight: string | null | undefined,
 ): number | null {
-  const sidePanelOffset =
-    (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) +
-    (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
+  const sidePanelOffset = getActiveSidePanelCount(sidePanelLeft, sidePanelRight) * SIDE_PANEL_WIDTH_CM;
 
-  return (cabinetWidthSum + sidePanelOffset) || null;
+  return cabinetWidthSum + sidePanelOffset || null;
 }

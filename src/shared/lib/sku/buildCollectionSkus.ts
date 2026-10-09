@@ -5,6 +5,7 @@ import {
   selectOption,
 } from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
+import { isPatternMaterialAllowed } from "@/entities/collection/lib/materialEligibility";
 import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 
 import { formatVesselSku, type VesselDimensionTokens } from "./buildVesselSku";
@@ -25,9 +26,17 @@ const COUNTERTOP_CATEGORY = "CT";
 /** The word the price server reads as "the legs of the composition". */
 const LEGS_ELEMENT = "LEG";
 const FALLBACK = "X";
+/** The cabinet's height is its size, not a value: a code keyed on it reads the size (`2S` at 56 cm). */
+const HEIGHT_ATTRIBUTE_ID = "Height";
 
 /** An attribute value of the product being priced, or null when none is chosen. */
 export type CollectionValueReader = (attributeId: string) => string | null;
+
+/**
+ * The end of the composition an open side shelf stands at, `L` or `R`, as its SKU spells it
+ * (`VAN-UROSS-L-…`). No attribute holds it: the pricing reader answers it from the cabinet's place.
+ */
+export const OPEN_SIDE_SHELF_SIDE = "OpenSideShelfSide";
 
 /** The colour code the profile names, else the number the colour name carries (`Nero 433 MT` → `433`). */
 export const resolveCollectionColorCode = (skuProfile: CollectionSkuProfile, value: string): string | null =>
@@ -77,7 +86,10 @@ export type CollectionCabinetSkuInput = {
  * the frame colour of a Class front, or its value is one the collection names no material for,
  * which leaves out the element that carries the price.
  */
-export type CollectionCabinetSkuGap = { attributeId: string; cause: "not-chosen" | "no-material" };
+export type CollectionCabinetSkuGap = {
+  attributeId: string;
+  cause: "not-chosen" | "no-material" | "invalid-option" | "invalid-dimension";
+};
 
 export type CollectionCabinetSku = {
   sku: string;
@@ -96,19 +108,27 @@ export const buildCollectionCabinetSku = (
   const { cabinet } = skuProfile;
   const missing: CollectionCabinetSkuGap[] = [];
   const optionOf = (attributeId: string) => {
-    const raw = read(attributeId);
+    const raw = attributeId === HEIGHT_ATTRIBUTE_ID && heightCm != null ? String(heightCm) : read(attributeId);
     return normalizeOptionValue(productProfile, attributeId, raw) ?? raw;
   };
+  const codeOf = ({ attributeId, codes }: { attributeId: string; codes: Record<string, string> }) => {
+    const value = optionOf(attributeId);
+    if (cabinet.requireCompleteInput && (!value || !codes[value]))
+      missing.push({ attributeId, cause: value ? "invalid-option" : "not-chosen" });
+    return (value && codes[value]) || FALLBACK;
+  };
 
-  // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes.
+  // A cabinet type with a series of its own (the Urban Low Height open shelf) is spelled with its codes,
+  // and so is a drawer cabinet of another series (the Urban Standard Height one in an Urban Duplex model).
   const cabinetType = optionOf("CabinetType");
-  const ownSpelling = cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined;
+  const seriesValue = cabinet.bySeries ? optionOf(cabinet.bySeries.attributeId) : null;
+  const ownSpelling =
+    (cabinetType ? cabinet.byCabinetType?.[cabinetType] : undefined) ??
+    (seriesValue ? cabinet.bySeries?.byValue[seriesValue] : undefined);
   const { series, configBlock } = ownSpelling ?? cabinet;
   const config = configBlock
-    .map(({ attributeId, codes }) => {
-      const value = optionOf(attributeId);
-      return (value && codes[value]) || FALLBACK;
-    })
+    // `2DW` + `R`: a code whose last letter another attribute decides, as the side of a lateral panel.
+    .map((entry) => (entry.suffix ? `${codeOf(entry)}${codeOf(entry.suffix)}` : codeOf(entry)))
     .join("/");
 
   const elementsOfType = ownSpelling?.elements ?? cabinet.elements;
@@ -126,7 +146,19 @@ export const buildCollectionCabinetSku = (
     const isChosen = isChosenColor(productProfile, attributeId, own);
     const colorAttributeId = isChosen || !inheritsFrom ? attributeId : inheritsFrom;
     const value = isChosen ? own : inheritsFrom ? read(inheritsFrom) : null;
-    if (!value) return [];
+    if (!value) {
+      if (cabinet.requireCompleteInput) missing.push({ attributeId: colorAttributeId, cause: "not-chosen" });
+      return [];
+    }
+    // A colour is the collection's when its profile lists it or, for colours the profile takes from the
+    // configurator section it names, when that section offers it.
+    const isOffered =
+      Boolean(selectOption(productProfile, colorAttributeId, value)) ||
+      Boolean(readConfiguratorColor?.(colorAttributeId, value));
+    if (cabinet.requireCompleteInput && !isOffered) {
+      missing.push({ attributeId: colorAttributeId, cause: "invalid-option" });
+      return [];
+    }
 
     const material = resolveCollectionColorMaterial(
       skuProfile,
@@ -153,13 +185,51 @@ export const buildCollectionCabinetSku = (
     }
 
     const colorCode = resolveCollectionColorCode(skuProfile, value);
+    if (cabinet.requireCompleteInput && !colorCode)
+      missing.push({ attributeId: colorAttributeId, cause: "invalid-option" });
     return [colorCode ? `${code}-${pricedMaterial}-${colorCode}` : `${code}-${pricedMaterial}`];
   });
 
-  const sizes = [sizeToken(widthCm, "W"), sizeToken(heightCm, "H"), sizeToken(depthCm, "D")].join("-");
+  // A cabinet type spelled at another height than the table gives it, as a shelf without its plinth,
+  // or in its price list's words (`22.0H`).
+  const skuHeightCm =
+    heightCm != null && ownSpelling?.heightOffsetCm ? heightCm + ownSpelling.heightOffsetCm : heightCm;
+  const heightCode = heightCm != null ? ownSpelling?.heightCodes?.[String(heightCm)] : undefined;
+  const sizes = [
+    sizeToken(widthCm, "W"),
+    heightCode ? `${heightCode}H` : sizeToken(skuHeightCm, "H"),
+    sizeToken(depthCm, "D"),
+  ].join("-");
+  if (cabinet.requireCompleteInput) {
+    const pattern = optionOf("DrawerPanelFluting");
+    const color = read("CabinetColor");
+    const material = color
+      ? resolveCollectionColorMaterial(skuProfile, productProfile, "CabinetColor", color, readConfiguratorColor)
+      : null;
+    if (pattern && !isPatternMaterialAllowed(productProfile, pattern, material))
+      missing.push({ attributeId: "DrawerPanelFluting", cause: "invalid-option" });
+    const module = productProfile?.ruleData.cabinetModules?.find(({ cabinetType: type }) => type === cabinetType);
+    for (const [attributeId, value, allowed] of [
+      ["Width", widthCm, module?.widthsCm],
+      ["Height", heightCm, module?.heightsCm],
+      ["Depth", depthCm, module?.depthsCm],
+    ] as const) {
+      if (value === null || !Number.isFinite(value) || value <= 0 || (allowed && !allowed.includes(value)))
+        missing.push({ attributeId, cause: "invalid-dimension" });
+    }
+    const drawers = optionOf("Drawers");
+    if (module && drawers && !module.drawerValues.includes(drawers))
+      missing.push({ attributeId: "Drawers", cause: "invalid-option" });
+  }
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
-  return { sku: `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`, missing };
+  return {
+    sku:
+      cabinet.requireCompleteInput && missing.length
+        ? ""
+        : `${CABINET_CATEGORY}-${series}-${config}-${sizes}${elementsSuffix}`,
+    missing,
+  };
 };
 
 export type CollectionCountertopSkuInput = {

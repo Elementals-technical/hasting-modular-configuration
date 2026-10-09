@@ -26,6 +26,7 @@ import type {
 } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createSceneReader } from "./createSceneReader";
+import { findProductConfigBindingErrors } from "@/entities/collection/lib/runtimeBindings/resolveProductConfig";
 import { resolveSceneProductType } from "./createSceneRestorer";
 
 /**
@@ -33,7 +34,8 @@ import { resolveSceneProductType } from "./createSceneRestorer";
  *
  * 1. Everything the runtime can know without the scene is checked first: a scene type for every
  *    product type and a translation for every shared value. Any issue, or a scene that is not
- *    ready, leaves the scene untouched. Each product's own config is translated as it is placed
+ *    ready, leaves the scene untouched. A pending (unbound) shared value is placed without, as a
+ *    product's own is. Each product's own config is translated as it is placed
  *    (resolveProductConfig).
  * 2. One scene operation per step, through the typed bridge and its queue, so the steps and the
  *    remaining direct calls run strictly in sequence.
@@ -125,6 +127,11 @@ export const createCompositionPort = ({
     if (products.length === 0) issues.push({ code: "empty-composition", message: "The composition has no products." });
 
     const presetProducts: ScenePresetProduct[] = products.flatMap((product) => {
+      const errors = findProductConfigBindingErrors(bindings, product.config, flow);
+      if (errors.length) {
+        issues.push(...errors.map((message) => ({ code: "unknown-value" as const, message })));
+        return [];
+      }
       const placed = toSceneProduct(bindings, product);
       if (!placed) {
         issues.push(unknownTypeIssue(product.productType));
@@ -137,6 +144,7 @@ export const createCompositionPort = ({
     for (const [attributeId, value] of Object.entries(shared)) {
       const resolution = resolveRuntimeBinding(bindings, attributeId, value, flow);
 
+      if (!resolution.ok && resolution.reason === "unbound") continue;
       if (!resolution.ok) {
         issues.push({ code: "unknown-value", message: `No scene translation for ${attributeId} "${String(value)}".` });
         continue;
@@ -182,6 +190,11 @@ export const createCompositionPort = ({
     if (!scene.isReady()) return { status: "not-ready" };
 
     const bindings = getBindings();
+    if (bindings) {
+      const errors = findProductConfigBindingErrors(bindings, product.config);
+      if (errors.length)
+        return { status: "rejected", issues: errors.map((message) => ({ code: "unknown-value" as const, message })) };
+    }
     const placed = bindings ? toSceneProduct(bindings, product) : null;
     if (!placed) {
       return {

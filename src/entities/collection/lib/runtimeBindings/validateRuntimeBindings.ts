@@ -81,7 +81,10 @@ export const validateRuntimeBindings = (
     if (binding?.status !== "bound" || binding.values.kind !== "map") continue;
 
     for (const option of attribute.options ?? []) {
-      if (!Object.hasOwn(binding.values.patches, option.value)) {
+      if (
+        !Object.hasOwn(binding.values.patches, option.value) &&
+        !Object.hasOwn(binding.values.unboundValues ?? {}, option.value)
+      ) {
         issues.push({ code: "missing-value", attributeId: attribute.attributeId, value: option.value });
       }
     }

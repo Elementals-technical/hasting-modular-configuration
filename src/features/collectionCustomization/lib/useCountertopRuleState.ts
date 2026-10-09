@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { useActiveCollection } from "@/entities/collection";
+import { selectOption, useActiveCollection } from "@/entities/collection";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -49,12 +49,14 @@ export const useCountertopRuleState = (): CountertopRuleState => {
   const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
 
   return useMemo(() => {
-    const activeMaterialTokens = resolveCountertopMaterialTokensFromCandidates({
+    const resolvedMaterials = resolveCountertopMaterialTokensFromCandidates({
       value: countertopColor,
       candidatesByValue: buildCountertopColorSkuCandidates(configuratorGroups),
       preferredSku: countertopColorSku,
       preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(basinStyle),
     });
+    const category = selectOption(activeProfile, "CountertopColor", countertopColor)?.category;
+    const activeMaterialTokens = resolvedMaterials.length ? resolvedMaterials : category ? [category] : [];
 
     const sinkBaseWidth = sinkBaseDims.width ?? selectedDimensions.width;
     const totalWidth = sceneTotalWidth ?? selectedDimensions.width;

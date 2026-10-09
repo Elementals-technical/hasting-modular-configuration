@@ -63,7 +63,9 @@ export {
   isKnownOption,
   isVesselBasin,
   normalizeOptionValue,
+  parseConfiguratorSource,
   selectAttribute,
+  selectConfiguratorGroup,
   selectConfiguratorSection,
   selectDefaultValue,
   selectEffectiveFallback,
@@ -80,7 +82,7 @@ export {
   selectMaterialHierarchy,
   selectRuleData,
 } from "./lib/productProfileSelectors";
-export type { MessageParams } from "./lib/productProfileSelectors";
+export type { ConfiguratorSource, MessageParams } from "./lib/productProfileSelectors";
 
 export {
   isHandleAllowedForDrawers,
@@ -122,6 +124,7 @@ export {
   isStateOnlyResolution,
   resolveRuntimeBinding,
   selectRuntimeBinding,
+  semanticValueOf,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
 export type {
   ResolvedRuntimeBinding,
@@ -167,9 +170,11 @@ export type {
   FieldToggleState,
   OptionImageVariant,
   OptionImageVariants,
+  CustomizationPlayerMenu,
+  PlayerMenuItemId,
   ValidateCustomizationSchemaResult,
 } from "./model/customizationSchema";
-export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS } from "./model/customizationSchema";
+export { CUSTOMIZATION_FLOW_IDS, CUSTOMIZATION_SCREEN_IDS, PLAYER_MENU_ITEM_IDS } from "./model/customizationSchema";
 export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 
 export { useCollectionPresets } from "./lib/useCollectionPresets";

@@ -1,0 +1,545 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "tricot",
+  "strictProductConfig": true,
+  "productTypes": {
+    "Sink-Base": "Tricot-sink-cabinet",
+    "Side-Cabinet": "Tricot-side-cabinet"
+  },
+  "bindings": [
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "40": {
+            "Width": 40
+          },
+          "60": {
+            "Width": 60
+          },
+          "80": {
+            "Width": 80
+          },
+          "100": {
+            "Width": 100
+          },
+          "120": {
+            "Width": 120
+          }
+        }
+      },
+      "order": 20,
+      "note": "Centimeters, not meters. Scene accepts all five widths; the product profile separately excludes 40 cm Sink Bases."
+    },
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "40": {
+            "Height": 40
+          }
+        }
+      },
+      "order": 20,
+      "note": "Fixed 40 cm; no scene conversion."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "52": {
+            "Depth": 52
+          }
+        }
+      },
+      "order": 20,
+      "note": "Fixed 52 cm; no scene conversion."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "1": {
+            "Drawers": "1D"
+          },
+          "2": {
+            "Drawers": "2D"
+          },
+          "1+inner": {
+            "Drawers": "1DWID"
+          }
+        }
+      },
+      "order": 40,
+      "note": "Approved drawer tokens. Width/layout rule priorities are 20/40; no undocumented resets are added."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "bound",
+      "target": {
+        "kind": "cabinets"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "Grigio Argento 403 MT": {
+            "CabinetColor": "Grigio Argento 403 Lacquered MT"
+          },
+          "Nebbia 402 MT": {
+            "CabinetColor": "Nebbia 402 Lacquered MT"
+          },
+          "Seta 406 MT": {
+            "CabinetColor": "Seta 406 Lacquered MT"
+          },
+          "Moka 408 MT": {
+            "CabinetColor": "Moka 408 Lacquered MT"
+          },
+          "Ponente 418 MT": {
+            "CabinetColor": "Ponente 418 Lacquered MT"
+          },
+          "Acqua 419 MT": {
+            "CabinetColor": "Acqua 419 Lacquered MT"
+          },
+          "Salvia 415 MT": {
+            "CabinetColor": "Salvia 415 Lacquered MT"
+          },
+          "Ambra 413 MT": {
+            "CabinetColor": "Ambra 413 Lacquered MT"
+          },
+          "Latte 417 MT": {
+            "CabinetColor": "Latte 417 Lacquered MT"
+          },
+          "Fumo 401 MT": {
+            "CabinetColor": "Fumo 401 Lacquered MT"
+          },
+          "Metropoli 404 MT": {
+            "CabinetColor": "Metropoli 404 Lacquered MT"
+          },
+          "Antracite 400 MT": {
+            "CabinetColor": "Antracite 400 Lacquered MT"
+          },
+          "Nero 433 MT": {
+            "CabinetColor": "Nero 433 Lacquered MT"
+          },
+          "Sabbia 405 MT": {
+            "CabinetColor": "Sabbia 405 Lacquered MT"
+          },
+          "Agata 407 MT": {
+            "CabinetColor": "Agata 407 Lacquered MT"
+          },
+          "Creta 416 MT": {
+            "CabinetColor": "Creta 416 Lacquered MT"
+          },
+          "Zaffiro 411 MT": {
+            "CabinetColor": "Zaffiro 411 Lacquered MT"
+          },
+          "Turchese 410 MT": {
+            "CabinetColor": "Turchese 410 Lacquered MT"
+          },
+          "Asparago 414 MT": {
+            "CabinetColor": "Asparago 414 Lacquered MT"
+          },
+          "Zafferano 412 MT": {
+            "CabinetColor": "Zafferano 412 Lacquered MT"
+          }
+        },
+        "unboundValues": {
+          "Noce Canaletto 933": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
+          "Rovere Oro 932": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
+          "Rovere Termocotto 931": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
+          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig while a wood is pending and the cabinet was placed without a color. Accepted on readback, never sent."
+        }
+      },
+      "order": 50,
+      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export. A wood is pending (user decision, 2026-10-08): the cabinet is placed without a color and the scene shows its default Antracite Matte OCF, while the state and the price keep the wood; a wood command stays unsupported."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "bound",
+      "target": {
+        "kind": "cabinets"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "Grigio Argento 403 MT": {
+            "HandleGrooveColor": "Grigio Argento 403 Lacquered MT"
+          },
+          "Nebbia 402 MT": {
+            "HandleGrooveColor": "Nebbia 402 Lacquered MT"
+          },
+          "Seta 406 MT": {
+            "HandleGrooveColor": "Seta 406 Lacquered MT"
+          },
+          "Moka 408 MT": {
+            "HandleGrooveColor": "Moka 408 Lacquered MT"
+          },
+          "Ponente 418 MT": {
+            "HandleGrooveColor": "Ponente 418 Lacquered MT"
+          },
+          "Acqua 419 MT": {
+            "HandleGrooveColor": "Acqua 419 Lacquered MT"
+          },
+          "Salvia 415 MT": {
+            "HandleGrooveColor": "Salvia 415 Lacquered MT"
+          },
+          "Ambra 413 MT": {
+            "HandleGrooveColor": "Ambra 413 Lacquered MT"
+          },
+          "Latte 417 MT": {
+            "HandleGrooveColor": "Latte 417 Lacquered MT"
+          },
+          "Fumo 401 MT": {
+            "HandleGrooveColor": "Fumo 401 Lacquered MT"
+          },
+          "Metropoli 404 MT": {
+            "HandleGrooveColor": "Metropoli 404 Lacquered MT"
+          },
+          "Antracite 400 MT": {
+            "HandleGrooveColor": "Antracite 400 Lacquered MT"
+          },
+          "Nero 433 MT": {
+            "HandleGrooveColor": "Nero 433 Lacquered MT"
+          },
+          "Sabbia 405 MT": {
+            "HandleGrooveColor": "Sabbia 405 Lacquered MT"
+          },
+          "Agata 407 MT": {
+            "HandleGrooveColor": "Agata 407 Lacquered MT"
+          },
+          "Creta 416 MT": {
+            "HandleGrooveColor": "Creta 416 Lacquered MT"
+          },
+          "Zaffiro 411 MT": {
+            "HandleGrooveColor": "Zaffiro 411 Lacquered MT"
+          },
+          "Turchese 410 MT": {
+            "HandleGrooveColor": "Turchese 410 Lacquered MT"
+          },
+          "Asparago 414 MT": {
+            "HandleGrooveColor": "Asparago 414 Lacquered MT"
+          },
+          "Zafferano 412 MT": {
+            "HandleGrooveColor": "Zafferano 412 Lacquered MT"
+          }
+        }
+      },
+      "order": 55,
+      "note": "One groove material for the composition, as Urban Freestanding and Tricot's CabinetColor: sent to every placed cabinet, never unrelated scene products. Exact asset names; the approved UI contains matte lacquer only, and the example GL material does not expand the product catalog."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "Loden": {
+            "CabinetPattern": "Loden"
+          },
+          "Cannette": {
+            "CabinetPattern": "Cannette"
+          },
+          "Twill": {
+            "CabinetPattern": "Twill"
+          },
+          "Gessato": {
+            "CabinetPattern": "Gessatto"
+          },
+          "Satin": {
+            "CabinetPattern": "Satin"
+          }
+        }
+      },
+      "order": 70,
+      "note": "Per-module Cabinet Pattern (handoff). Export v44 reads CabinetPattern on both Tricot products (RulePatternCabinetTricot, priority 70) and spells Gessato as Gessatto. Satin, the scene default, shows no pattern; approved defaults are still sent, not replaced by it. The scene does not check the material: Loden on matte lacquer and the other four on wood veneer is the profile's rule (ruleData.fluting). getConfig reads the key back; the profile alias maps Gessatto to Gessato."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Selected through product placement, not setConfig; productTypes contains the approved Tricot identifiers."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "As in Urban Freestanding: the scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. Tricot offers the panel without a groove (NoG) only. Export v44 has a Tricot_SidePanel template but registers no product for it and gives the Tricot products no sidePanelSupport, so the scene stands its legacy panels beside them, which take the Urban Standard Height heights (50/53/56) only."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Glass GL",
+          "Acqua 419 MT": "Acqua 419 Glass MT",
+          "Agata 407 GL": "Agata 407 Glass GL",
+          "Agata 407 MT": "Agata 407 Glass MT",
+          "Ambra 413 GL": "Ambra 413 Glass GL",
+          "Ambra 413 MT": "Ambra 413 Glass MT",
+          "Antracite 400 GL": "Antracite 400 Glass GL",
+          "Antracite 400 MT": "Antracite 400 Glass MT",
+          "Asparago 414 GL": "Asparago 414 Glass GL",
+          "Asparago 414 MT": "Asparago 414 Glass MT",
+          "BIANCO KOS 250": "Bianco Kos 250",
+          "Creta 416 GL": "Creta 416 Glass GL",
+          "Creta 416 MT": "Creta 416 Glass MT",
+          "Fumo 401 GL": "Fumo 401 Glass GL",
+          "Fumo 401 MT": "Fumo 401 Glass MT",
+          "GAcqua 419 GL": "Acqua 419 Glass GL",
+          "GAcqua 419 MT": "Acqua 419 Glass MT",
+          "GAgata 407 GL": "Agata 407 Glass GL",
+          "GAgata 407 MT": "Agata 407 Glass MT",
+          "GAmbra 413 GL": "Ambra 413 Glass GL",
+          "GAmbra 413 MT": "Ambra 413 Glass MT",
+          "GAntracite 400 GL": "Antracite 400 Glass GL",
+          "GAntracite 400 MT": "Antracite 400 Glass MT",
+          "GAsparago 414 GL": "Asparago 414 Glass GL",
+          "GAsparago 414 MT": "Asparago 414 Glass MT",
+          "GCreta 416 GL": "Creta 416 Glass GL",
+          "GCreta 416 MT": "Creta 416 Glass MT",
+          "GFumo 401 GL": "Fumo 401 Glass GL",
+          "GFumo 401 MT": "Fumo 401 Glass MT",
+          "GGrigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "GGrigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "GLatte 417 GL": "Latte 417 Glass GL",
+          "GLatte 417 MT": "Latte 417 Glass MT",
+          "GMetropoli 404 GL": "Metropoli 404 Glass GL",
+          "GMetropoli 404 MT": "Metropoli 404 Glass MT",
+          "GMoka 408 GL": "Moka 408 Glass GL",
+          "GMoka 408 MT": "Moka 408 Glass MT",
+          "GNebbia 402 GL": "Nebbia 402 Glass GL",
+          "GNebbia 402 MT": "Nebbia 402 Glass MT",
+          "GNero 433 GL": "Nero 433 Glass GL",
+          "GNero 433 MT": "Nero 433 Glass MT",
+          "GPonente 418 GL": "Ponente 418 Glass GL",
+          "GPonente 418 MT": "Ponente 418 Glass MT",
+          "GRIGIO BROMO 253": "Grigio Bromo 253",
+          "GRIGIO LONDON 252": "Grigio London 252",
+          "GSabbia 405 GL": "Sabbia 405 Glass GL",
+          "GSabbia 405 MT": "Sabbia 405 Glass MT",
+          "GSalvia 415 GL": "Salvia 415 Glass GL",
+          "GSalvia 415 MT": "Salvia 415 Glass MT",
+          "GSeta 406 GL": "Seta 406 Glass GL",
+          "GSeta 406 MT": "Seta 406 Glass MT",
+          "GTurchese 410 GL": "Turchese 410 Glass GL",
+          "GTurchese 410 MT": "Turchese 410 Glass MT",
+          "GZafferano 412 GL": "Zafferano 412 Glass GL",
+          "GZafferano 412 MT": "Zafferano 412 Glass MT",
+          "GZaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Glass GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "Latte 417 GL": "Latte 417 Glass GL",
+          "Latte 417 MT": "Latte 417 Glass MT",
+          "Metropoli 404 GL": "Metropoli 404 Glass GL",
+          "Metropoli 404 MT": "Metropoli 404 Glass MT",
+          "Moka 408 GL": "Moka 408 Glass GL",
+          "Moka 408 MT": "Moka 408 Glass MT",
+          "NERO INGO 251": "Nero Ingo 251",
+          "Nebbia 402 GL": "Nebbia 402 Glass GL",
+          "Nebbia 402 MT": "Nebbia 402 Glass MT",
+          "Nero 433 GL": "Nero 433 Glass GL",
+          "Nero 433 MT": "Nero 433 Glass MT",
+          "Ponente 418 GL": "Ponente 418 Glass GL",
+          "Ponente 418 MT": "Ponente 418 Glass MT",
+          "Sabbia 405 GL": "Sabbia 405 Glass GL",
+          "Sabbia 405 MT": "Sabbia 405 Glass MT",
+          "Salvia 415 GL": "Salvia 415 Glass GL",
+          "Salvia 415 MT": "Salvia 415 Glass MT",
+          "Seta 406 GL": "Seta 406 Glass GL",
+          "Seta 406 MT": "Seta 406 Glass MT",
+          "Turchese 410 GL": "Turchese 410 Glass GL",
+          "Turchese 410 MT": "Turchese 410 Glass MT",
+          "Zafferano 412 GL": "Zafferano 412 Glass GL",
+          "Zafferano 412 MT": "Zafferano 412 Glass MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Glass GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Glass MT"
+        }
+      },
+      "order": 50,
+      "note": "As Class and Mako: the countertop is placed at composition level (global RuleChangeCountertopColor) and the Tricot cabinets ignore the key. Same colours and scene names (overrides); the scene has Glass materials, not yet Solid Surface, HPL or Porcelain ones, as for Class."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "As Class and Mako, broadcast to the composition countertop. Export v44 gives Tricot-sink-cabinet no RuleSinkMountPosition, so the basin mount does not follow a thick top yet."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Tricot-sink-cabinet"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "": {
+            "sinkType": "Vessel"
+          },
+          "LB440": {
+            "sinkType": "Top_HPLPrisma"
+          },
+          "LB175": {
+            "sinkType": "Top_Tekorlux_Ron"
+          },
+          "LB575": {
+            "sinkType": "Top_Tekorlux_Quadra"
+          },
+          "LB856": {
+            "sinkType": "Top_HPLStrip"
+          },
+          "VA023": {
+            "sinkType": "Top_Tekormud_Tivi"
+          },
+          "VA024": {
+            "sinkType": "Top_HPLCover"
+          },
+          "LV890": {
+            "sinkType": "Top_Tekorlux_Trip"
+          },
+          "LV892": {
+            "sinkType": "Top_Ocritech_Orion"
+          },
+          "VA002": {
+            "sinkType": "Top_Ocritech_Oly55"
+          },
+          "VA005": {
+            "sinkType": "Top_Tekorlux_Rectangular"
+          }
+        }
+      },
+      "order": 40,
+      "note": "The Class and Mako basins (same LB/VA/LV names and price list) on the same authored scene sub-products; a cleared basin (\"\") is the empty cutout, as in Class. Tricot-sink-cabinet takes its basin sub-product from sinkType when it is placed, but export v44 gives it no RuleChangeSinkType, so a later change stays in its config without swapping the basin until the scene adds the rule."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "state-only",
+      "reason": "Tricot tops are integrated only. As in Class, the scene export has no CountertopStyle key; recorded for the countertop rules and pricing only."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "Handle",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side. The panel price counts the active sides."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side. The panel price counts the active sides."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "unbound",
+      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+    }
+  ]
+}

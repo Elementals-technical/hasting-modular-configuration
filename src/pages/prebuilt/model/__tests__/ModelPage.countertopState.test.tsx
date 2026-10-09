@@ -265,7 +265,7 @@ describe.each(CASES)("$collectionId: a Prebuilt order opened from its link", (te
   };
 
   it("comes back as a vessel with its Iris, and the Countertop & Basin step keeps them", async () => {
-    // The collection starts integrated with VA005, which the restore must not keep.
+    // The collection starts integrated with LV890, which the restore must not keep.
     expect(getCountertopStyle(store.getState())).toBe("integrated");
 
     await restore("7001");

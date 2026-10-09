@@ -1,0 +1,2875 @@
+{
+  "id": 12,
+  "name": "modular-config-phase-2-materials-(tricot)",
+  "enabled": false,
+  "organizationId": 5,
+  "description": "",
+  "defaultPlaycanvasVersionId": null,
+  "createdAt": "2026-10-08T13:02:46.341Z",
+  "updatedAt": "2026-10-08T13:03:53.385Z",
+  "availableOptions": [
+    {
+      "id": 47,
+      "proxyName": "Select Cabinet Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 385,
+          "name": "Cabinet Color",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 4094,
+              "name": "Acqua 419 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "419 MT",
+                "Color": "Blue",
+                "hex": "#7098ab",
+                "label": "Acqua 419 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Acqua 419 MT"
+              }
+            },
+            {
+              "id": 4103,
+              "name": "Agata 407 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "407 MT",
+                "Color": "Grey, Beige",
+                "hex": "#c2bfb9",
+                "label": "Agata 407 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Agata 407 MT"
+              }
+            },
+            {
+              "id": 4096,
+              "name": "Ambra 413 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "413 MT",
+                "Color": "Orange",
+                "hex": "#d58c44",
+                "label": "Ambra 413 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Ambra 413 MT"
+              }
+            },
+            {
+              "id": 4100,
+              "name": "Antracite 400 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "400 MT",
+                "Color": "Black",
+                "hex": "#414144",
+                "label": "Antracite 400 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Antracite 400 MT"
+              }
+            },
+            {
+              "id": 4107,
+              "name": "Asparago 414 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "414 MT",
+                "Color": "Green",
+                "hex": "#a3a793",
+                "label": "Asparago 414 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Asparago 414 MT"
+              }
+            },
+            {
+              "id": 4104,
+              "name": "Creta 416 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "416 MT",
+                "Color": "Grey, Brown",
+                "hex": "#8b8781",
+                "label": "Creta 416 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Creta 416 MT"
+              }
+            },
+            {
+              "id": 4098,
+              "name": "Fumo 401 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "401 MT",
+                "Color": "Grey",
+                "hex": "#8c8b87",
+                "label": "Fumo 401 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Fumo 401 MT"
+              }
+            },
+            {
+              "id": 4089,
+              "name": "Grigio Argento 403 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "403 MT",
+                "Color": "Grey",
+                "hex": "#b8b7b7",
+                "label": "Grigio Argento 403 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Grigio Argento 403 MT"
+              }
+            },
+            {
+              "id": 4097,
+              "name": "Latte 417 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "417 MT",
+                "Color": "White",
+                "hex": "#dadad8",
+                "label": "Latte 417 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Latte 417 MT"
+              }
+            },
+            {
+              "id": 4099,
+              "name": "Metropoli 404 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "404 MT",
+                "Color": "Grey",
+                "hex": "#71706d",
+                "label": "Metropoli 404 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Metropoli 404 MT"
+              }
+            },
+            {
+              "id": 4092,
+              "name": "Moka 408 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "408 MT",
+                "Color": "Brown",
+                "hex": "#a8a294",
+                "label": "Moka 408 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Moka 408 MT"
+              }
+            },
+            {
+              "id": 4090,
+              "name": "Nebbia 402 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "402 MT",
+                "Color": "Grey",
+                "hex": "#b6b5b5",
+                "label": "Nebbia 402 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Nebbia 402 MT"
+              }
+            },
+            {
+              "id": 4101,
+              "name": "Nero 433 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "433 MT",
+                "Color": "Black",
+                "hex": "#1f1f20",
+                "label": "Nero 433 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Nero 433 MT"
+              }
+            },
+            {
+              "id": 4962,
+              "name": "Noce Canaletto 933",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "933",
+                "label": "Noce Canaletto 933",
+                "Material": "Wood Veneer",
+                "productType": "Vanities",
+                "sku": "WDV",
+                "value": "Noce Canaletto 933"
+              }
+            },
+            {
+              "id": 4093,
+              "name": "Ponente 418 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "418 MT",
+                "Color": "Grey, Blue",
+                "hex": "#9ca8a9",
+                "label": "Ponente 418 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Ponente 418 MT"
+              }
+            },
+            {
+              "id": 4963,
+              "name": "Rovere Oro 932",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "932",
+                "label": "Rovere Oro 932",
+                "Material": "Wood Veneer",
+                "productType": "Vanities",
+                "sku": "WDV",
+                "value": "Rovere Oro 932"
+              }
+            },
+            {
+              "id": 4964,
+              "name": "Rovere Termocotto 931",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "931",
+                "label": "Rovere Termocotto 931",
+                "Material": "Wood Veneer",
+                "productType": "Vanities",
+                "sku": "WDV",
+                "value": "Rovere Termocotto 931"
+              }
+            },
+            {
+              "id": 4102,
+              "name": "Sabbia 405 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "405 MT",
+                "Color": "Beige",
+                "hex": "#cdcabf",
+                "label": "Sabbia 405 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Sabbia 405 MT"
+              }
+            },
+            {
+              "id": 4095,
+              "name": "Salvia 415 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "415 MT",
+                "Color": "Green",
+                "hex": "#89938a",
+                "label": "Salvia 415 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Salvia 415 MT"
+              }
+            },
+            {
+              "id": 4091,
+              "name": "Seta 406 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "406 MT",
+                "Color": "Grey, Beige",
+                "hex": "#cfcfc8",
+                "label": "Seta 406 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Seta 406 MT"
+              }
+            },
+            {
+              "id": 4106,
+              "name": "Turchese 410 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "410 MT",
+                "Color": "Blue, Green",
+                "hex": "#7aa3a0",
+                "label": "Turchese 410 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Turchese 410 MT"
+              }
+            },
+            {
+              "id": 4108,
+              "name": "Zafferano 412 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "412 MT",
+                "Color": "Yellow",
+                "hex": "#dbbb55",
+                "label": "Zafferano 412 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Zafferano 412 MT"
+              }
+            },
+            {
+              "id": 4105,
+              "name": "Zaffiro 411 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "411 MT",
+                "Color": "Blue",
+                "hex": "#275871",
+                "label": "Zaffiro 411 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Zaffiro 411 MT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "proxyName": "Select Handle Groove Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 391,
+          "name": "Handle Groove Color",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 4970,
+              "name": "Acqua 419 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "419 MT",
+                "Color": "Blue",
+                "hex": "#7098ab",
+                "label": "Acqua 419 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Acqua 419 MT"
+              }
+            },
+            {
+              "id": 4979,
+              "name": "Agata 407 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "407 MT",
+                "Color": "Grey, Beige",
+                "hex": "#c2bfb9",
+                "label": "Agata 407 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Agata 407 MT"
+              }
+            },
+            {
+              "id": 4972,
+              "name": "Ambra 413 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "413 MT",
+                "Color": "Orange",
+                "hex": "#d58c44",
+                "label": "Ambra 413 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Ambra 413 MT"
+              }
+            },
+            {
+              "id": 4976,
+              "name": "Antracite 400 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "400 MT",
+                "Color": "Black",
+                "hex": "#414144",
+                "label": "Antracite 400 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Antracite 400 MT"
+              }
+            },
+            {
+              "id": 4983,
+              "name": "Asparago 414 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "414 MT",
+                "Color": "Green",
+                "hex": "#a3a793",
+                "label": "Asparago 414 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Asparago 414 MT"
+              }
+            },
+            {
+              "id": 4980,
+              "name": "Creta 416 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "416 MT",
+                "Color": "Grey, Brown",
+                "hex": "#8b8781",
+                "label": "Creta 416 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Creta 416 MT"
+              }
+            },
+            {
+              "id": 4974,
+              "name": "Fumo 401 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "401 MT",
+                "Color": "Grey",
+                "hex": "#8c8b87",
+                "label": "Fumo 401 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Fumo 401 MT"
+              }
+            },
+            {
+              "id": 4965,
+              "name": "Grigio Argento 403 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "403 MT",
+                "Color": "Grey",
+                "hex": "#b8b7b7",
+                "label": "Grigio Argento 403 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Grigio Argento 403 MT"
+              }
+            },
+            {
+              "id": 4973,
+              "name": "Latte 417 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "417 MT",
+                "Color": "White",
+                "hex": "#dadad8",
+                "label": "Latte 417 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Latte 417 MT"
+              }
+            },
+            {
+              "id": 4975,
+              "name": "Metropoli 404 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "404 MT",
+                "Color": "Grey",
+                "hex": "#71706d",
+                "label": "Metropoli 404 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Metropoli 404 MT"
+              }
+            },
+            {
+              "id": 4968,
+              "name": "Moka 408 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "408 MT",
+                "Color": "Brown",
+                "hex": "#a8a294",
+                "label": "Moka 408 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Moka 408 MT"
+              }
+            },
+            {
+              "id": 4966,
+              "name": "Nebbia 402 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "402 MT",
+                "Color": "Grey",
+                "hex": "#b6b5b5",
+                "label": "Nebbia 402 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Nebbia 402 MT"
+              }
+            },
+            {
+              "id": 4977,
+              "name": "Nero 433 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "433 MT",
+                "Color": "Black",
+                "hex": "#1f1f20",
+                "label": "Nero 433 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Nero 433 MT"
+              }
+            },
+            {
+              "id": 4969,
+              "name": "Ponente 418 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "418 MT",
+                "Color": "Grey, Blue",
+                "hex": "#9ca8a9",
+                "label": "Ponente 418 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Ponente 418 MT"
+              }
+            },
+            {
+              "id": 4978,
+              "name": "Sabbia 405 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "405 MT",
+                "Color": "Beige",
+                "hex": "#cdcabf",
+                "label": "Sabbia 405 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Sabbia 405 MT"
+              }
+            },
+            {
+              "id": 4971,
+              "name": "Salvia 415 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "415 MT",
+                "Color": "Green",
+                "hex": "#89938a",
+                "label": "Salvia 415 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Salvia 415 MT"
+              }
+            },
+            {
+              "id": 4967,
+              "name": "Seta 406 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "406 MT",
+                "Color": "Grey, Beige",
+                "hex": "#cfcfc8",
+                "label": "Seta 406 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Seta 406 MT"
+              }
+            },
+            {
+              "id": 4982,
+              "name": "Turchese 410 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "410 MT",
+                "Color": "Blue, Green",
+                "hex": "#7aa3a0",
+                "label": "Turchese 410 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Turchese 410 MT"
+              }
+            },
+            {
+              "id": 4984,
+              "name": "Zafferano 412 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "412 MT",
+                "Color": "Yellow",
+                "hex": "#dbbb55",
+                "label": "Zafferano 412 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Zafferano 412 MT"
+              }
+            },
+            {
+              "id": 4981,
+              "name": "Zaffiro 411 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "411 MT",
+                "Color": "Blue",
+                "hex": "#275871",
+                "label": "Zaffiro 411 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Zaffiro 411 MT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "proxyName": "Select Countertop Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 388,
+          "name": "Countertop Color",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 4228,
+              "name": "Acqua 419 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "419 GL",
+                "Color": "Blue",
+                "hex": "#7098ab",
+                "label": "Acqua 419 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Acqua 419 GL"
+              }
+            },
+            {
+              "id": 4208,
+              "name": "Acqua 419 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "419 MT",
+                "Color": "Blue",
+                "hex": "#7098ab",
+                "label": "Acqua 419 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Acqua 419 MT"
+              }
+            },
+            {
+              "id": 4237,
+              "name": "Agata 407 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "407 GL",
+                "Color": "Grey, Beige",
+                "hex": "#c2bfb9",
+                "label": "Agata 407 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Agata 407 GL"
+              }
+            },
+            {
+              "id": 4217,
+              "name": "Agata 407 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "407 MT",
+                "Color": "Grey, Beige",
+                "hex": "#c2bfb9",
+                "label": "Agata 407 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Agata 407 MT"
+              }
+            },
+            {
+              "id": 4230,
+              "name": "Ambra 413 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "413 GL",
+                "Color": "Orange",
+                "hex": "#d58c44",
+                "label": "Ambra 413 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Ambra 413 GL"
+              }
+            },
+            {
+              "id": 4210,
+              "name": "Ambra 413 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "413 MT",
+                "Color": "Orange",
+                "hex": "#d58c44",
+                "label": "Ambra 413 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Ambra 413 MT"
+              }
+            },
+            {
+              "id": 4234,
+              "name": "Antracite 400 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "400 GL",
+                "Color": "Black",
+                "hex": "#414144",
+                "label": "Antracite 400 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Antracite 400 GL"
+              }
+            },
+            {
+              "id": 4214,
+              "name": "Antracite 400 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "400 MT",
+                "Color": "Black",
+                "hex": "#414144",
+                "label": "Antracite 400 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Antracite 400 MT"
+              }
+            },
+            {
+              "id": 4192,
+              "name": "ARDESIA NERA 328",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "328",
+                "Color": "Black",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-65dc6d930eeb459aa21c45e1e5791ef039d487a617e4ed03192c6b3c8961c39b",
+                "label": "Ardesia Nera 328",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "ARDESIA NERA 328"
+              }
+            },
+            {
+              "id": 4241,
+              "name": "Asparago 414 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "414 GL",
+                "Color": "Green",
+                "hex": "#a3a793",
+                "label": "Asparago 414 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Asparago 414 GL"
+              }
+            },
+            {
+              "id": 4221,
+              "name": "Asparago 414 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "414 MT",
+                "Color": "Green",
+                "hex": "#a3a793",
+                "label": "Asparago 414 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Asparago 414 MT"
+              }
+            },
+            {
+              "id": 4185,
+              "name": "BIANCO KOS 250",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "250",
+                "Color": "White",
+                "hex": "#dedbd8",
+                "label": "Bianco Kos 250",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "BIANCO KOS 250"
+              }
+            },
+            {
+              "id": 4174,
+              "name": "CALACATTA 259",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "259",
+                "Color": "White",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-98546ac83a269f248b37596e46f76407de1a1b771cd65b156623ac22a5d2c24b",
+                "label": "Calacatta 259",
+                "Look": "Stone/Marble-Look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "CALACATTA 259"
+              }
+            },
+            {
+              "id": 4188,
+              "name": "CALACATTA BLACK 338",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "338",
+                "Color": "Black, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-c36b777d309b37993e9ae760414fbc24fc4ac1759c6054f493a72c76438c97fb",
+                "label": "Calacatta Black 338",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "CALACATTA BLACK 338"
+              }
+            },
+            {
+              "id": 4189,
+              "name": "CALACATTA ORO OPACO 331",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "331",
+                "Color": "White",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-4c4f9bafa50e65fef0650289709726b7ad77e1f100062fda0c80e8dc0001dc61",
+                "label": "Calacatta Oro Opaco 331",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "CALACATTA ORO OPACO 331"
+              }
+            },
+            {
+              "id": 4238,
+              "name": "Creta 416 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "416 GL",
+                "Color": "Grey, Brown",
+                "hex": "#8b8781",
+                "label": "Creta 416 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Creta 416 GL"
+              }
+            },
+            {
+              "id": 4218,
+              "name": "Creta 416 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "416 MT",
+                "Color": "Grey, Brown",
+                "hex": "#8b8781",
+                "label": "Creta 416 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Creta 416 MT"
+              }
+            },
+            {
+              "id": 4190,
+              "name": "EMPERADOR OPACO 322",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "322",
+                "Color": "Brown",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-087c049f3267e743020415007cd5f19431b77eaf6f1d8e51a4cc607e09a8b3c3",
+                "label": "Emperador Opaco 322",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "EMPERADOR OPACO 322"
+              }
+            },
+            {
+              "id": 4232,
+              "name": "Fumo 401 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "401 GL",
+                "Color": "Grey",
+                "hex": "#8c8b87",
+                "label": "Fumo 401 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Fumo 401 GL"
+              }
+            },
+            {
+              "id": 4212,
+              "name": "Fumo 401 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "401 MT",
+                "Color": "Grey",
+                "hex": "#8c8b87",
+                "label": "Fumo 401 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Fumo 401 MT"
+              }
+            },
+            {
+              "id": 4223,
+              "name": "Grigio Argento 403 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "403 GL",
+                "Color": "Grey",
+                "hex": "#b8b7b7",
+                "label": "Grigio Argento 403 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Grigio Argento 403 GL"
+              }
+            },
+            {
+              "id": 4203,
+              "name": "Grigio Argento 403 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "403 MT",
+                "Color": "Grey",
+                "hex": "#b8b7b7",
+                "label": "Grigio Argento 403 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Grigio Argento 403 MT"
+              }
+            },
+            {
+              "id": 4184,
+              "name": "GRIGIO BROMO 253",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "253",
+                "Color": "Grey, Blue",
+                "hex": "#5a5c5e",
+                "label": "Grigio Bromo 253",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "GRIGIO BROMO 253"
+              }
+            },
+            {
+              "id": 4186,
+              "name": "GRIGIO LONDON 252",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "252",
+                "Color": "Grey, Brown",
+                "hex": "#8b8179",
+                "label": "Grigio London 252",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "GRIGIO LONDON 252"
+              }
+            },
+            {
+              "id": 4175,
+              "name": "IMPERO 260",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "260",
+                "Color": "Black, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-a6e8c768f76dc3a35cef3f306112e25b75f052733bd67f0b609879359b55cda5",
+                "label": "Impero 260",
+                "Look": "Stone/Marble-Look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "IMPERO 260"
+              }
+            },
+            {
+              "id": 4200,
+              "name": "INVISIBLE WHITE LUCIDO 334",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "334",
+                "Color": "White",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-8ad6d52f91cf116beaada0423b85b674eb1ee7172a55f33b1744f8168ea2932d",
+                "label": "Invisible White Lucido 334",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "INVISIBLE WHITE LUCIDO 334"
+              }
+            },
+            {
+              "id": 4199,
+              "name": "INVISIBLE WHITE OPACO 332",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "332",
+                "Color": "White, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-1e24be33d8acfdaa01b42dcaf268f5c484638586c6004e725f7f0dd0b277a204",
+                "label": "Invisible White Opaco 332",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "INVISIBLE WHITE OPACO 332"
+              }
+            },
+            {
+              "id": 4176,
+              "name": "KASPIO ARGENTO 262",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "262",
+                "Color": "Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-549c1ba25674111b6a47ea7d4496c0a9b08fe831747babfb58462a081377002e",
+                "label": "Kaspio Argento 262",
+                "Look": "Stone/Marble-Look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "KASPIO ARGENTO 262"
+              }
+            },
+            {
+              "id": 4177,
+              "name": "KASPIO ORO 261",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "261",
+                "Color": "Brown, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-826d6f94bab2a893acf9b82e709e37684df24ffa0f28f3011df2694ae8e246f1",
+                "label": "Kaspio Oro 261",
+                "Look": "Stone/Marble-Look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "KASPIO ORO 261"
+              }
+            },
+            {
+              "id": 4231,
+              "name": "Latte 417 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "417 GL",
+                "Color": "White",
+                "hex": "#dadad8",
+                "label": "Latte 417 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Latte 417 GL"
+              }
+            },
+            {
+              "id": 4211,
+              "name": "Latte 417 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "417 MT",
+                "Color": "White",
+                "hex": "#dadad8",
+                "label": "Latte 417 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Latte 417 MT"
+              }
+            },
+            {
+              "id": 4173,
+              "name": "Matte White",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "MW",
+                "Color": "White",
+                "hex": "#ffffff",
+                "label": "Matte White",
+                "Material": "Solid Surface",
+                "productType": "Vanities",
+                "sku": "SSTL",
+                "value": "Matte White"
+              }
+            },
+            {
+              "id": 4645,
+              "name": "Matte White 8cm",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "MW",
+                "Color": "White",
+                "hex": "#ffffff",
+                "label": "Matte White 8cm",
+                "Material": "Solid Surface",
+                "productType": "Vanities",
+                "sku": "SSTMT",
+                "value": "Matte White 8cm"
+              }
+            },
+            {
+              "id": 4233,
+              "name": "Metropoli 404 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "404 GL",
+                "Color": "Grey",
+                "hex": "#71706d",
+                "label": "Metropoli 404 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Metropoli 404 GL"
+              }
+            },
+            {
+              "id": 4213,
+              "name": "Metropoli 404 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "404 MT",
+                "Color": "Grey",
+                "hex": "#71706d",
+                "label": "Metropoli 404 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Metropoli 404 MT"
+              }
+            },
+            {
+              "id": 4191,
+              "name": "MINE GOFFRATO 317",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "317",
+                "Color": "Brown, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-a517271bba330b7018bcd99183d38ddb4ce98711337876ec70afa9fac74d9f51",
+                "label": "Mine Goffrato 317",
+                "Look": "Stone/Marble-look, Metallic",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "MINE GOFFRATO 317"
+              }
+            },
+            {
+              "id": 4226,
+              "name": "Moka 408 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "408 GL",
+                "Color": "Brown",
+                "hex": "#a8a294",
+                "label": "Moka 408 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Moka 408 GL"
+              }
+            },
+            {
+              "id": 4206,
+              "name": "Moka 408 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "408 MT",
+                "Color": "Brown",
+                "hex": "#a8a294",
+                "label": "Moka 408 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Moka 408 MT"
+              }
+            },
+            {
+              "id": 4224,
+              "name": "Nebbia 402 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "402 GL",
+                "Color": "Grey",
+                "hex": "#b6b5b5",
+                "label": "Nebbia 402 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Nebbia 402 GL"
+              }
+            },
+            {
+              "id": 4204,
+              "name": "Nebbia 402 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "402 MT",
+                "Color": "Grey",
+                "hex": "#b6b5b5",
+                "label": "Nebbia 402 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Nebbia 402 MT"
+              }
+            },
+            {
+              "id": 4235,
+              "name": "Nero 433 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "433 GL",
+                "Color": "Black",
+                "hex": "#1f1f20",
+                "label": "Nero 433 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Nero 433 GL"
+              }
+            },
+            {
+              "id": 4215,
+              "name": "Nero 433 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "433 MT",
+                "Color": "Black",
+                "hex": "#1f1f20",
+                "label": "Nero 433 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Nero 433 MT"
+              }
+            },
+            {
+              "id": 4193,
+              "name": "NERO ATLANTE LUCIDO 326",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "326",
+                "Color": "Black",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-ba3cdd13811007cafa8bd2b0e571c8035d98765a7a426447452f71365f3156bd",
+                "label": "Nero Atlante Lucido 326",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "NERO ATLANTE LUCIDO 326"
+              }
+            },
+            {
+              "id": 4187,
+              "name": "NERO INGO 251",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "251",
+                "Color": "Black",
+                "hex": "#2d2b2a",
+                "label": "Nero Ingo 251",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "NERO INGO 251"
+              }
+            },
+            {
+              "id": 4178,
+              "name": "NOCE SAVOIA 256",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "256",
+                "Color": "Brown",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-d1728a5d8e23f9ce7d3b7d9ce4e447a117aa22a3b5bab90d41ae17ece78546ac",
+                "label": "Noce Savoia 256",
+                "Look": "Wood-look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "NOCE SAVOIA 256"
+              }
+            },
+            {
+              "id": 4194,
+              "name": "PIETRA GREY GOFFRATO 323",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "323",
+                "Color": "Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-4b1911fb612e08d95a515fa65c6b8cf57bda25df2031aaa8844f7504b97e2e11",
+                "label": "Pietra Grey Goffrato 323",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "PIETRA GREY GOFFRATO 323"
+              }
+            },
+            {
+              "id": 4195,
+              "name": "PIETRA PIASENTINA GOFFRATO 324",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "324",
+                "Color": "Grey, Brown",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-e410c0b5ddd653f48cd91934c8aa713562db68a5f21e9be633b8c90b4f7c6fec",
+                "label": "Pietra Piasentina Goffrato 324",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "PIETRA PIASENTINA GOFFRATO 324"
+              }
+            },
+            {
+              "id": 4227,
+              "name": "Ponente 418 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "418 GL",
+                "Color": "Grey, Blue",
+                "hex": "#9ca8a9",
+                "label": "Ponente 418 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Ponente 418 GL"
+              }
+            },
+            {
+              "id": 4207,
+              "name": "Ponente 418 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "418 MT",
+                "Color": "Grey, Blue",
+                "hex": "#9ca8a9",
+                "label": "Ponente 418 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Ponente 418 MT"
+              }
+            },
+            {
+              "id": 4196,
+              "name": "PORFIDO 337",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "337",
+                "Color": "Grey, Brown, Orange",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-181edaa49bdfe59e7f34e7de121e9ca187dcb9b3f4947a1d752494ae2f71107f",
+                "label": "Porfido 337",
+                "Look": "Stone/Marble-look, Metallic",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "PORFIDO 337"
+              }
+            },
+            {
+              "id": 4179,
+              "name": "RIVEL 257",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "257",
+                "Color": "Brown, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-2236d3324e9e71b0cceb8a807c349b79c81c0be3b29fe7bd97865e8b326896eb",
+                "label": "Rivel 257",
+                "Look": "Wood-look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "RIVEL 257"
+              }
+            },
+            {
+              "id": 4180,
+              "name": "ROVERE PRUSSIA 255",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "255",
+                "Color": "Brown, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-392111d4bfe37a02ea777c0efae3c712da9fa2cd678bfa5ad260fd68ab957665",
+                "label": "Rovere Prussia 255",
+                "Look": "Wood-look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "ROVERE PRUSSIA 255"
+              }
+            },
+            {
+              "id": 4181,
+              "name": "ROVERE SLAVONIA 254",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "254",
+                "Color": "Brown",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-d08c483823bdeffe6c63f114c0d9599299c1f1a56581e85e59ab07a3994abada",
+                "label": "Rovere Slavonia 254",
+                "Look": "Wood-look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "ROVERE SLAVONIA 254"
+              }
+            },
+            {
+              "id": 4182,
+              "name": "ROVERE TEXAS 264",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "264",
+                "Color": "Brown, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-0b6916faebcae513ebebe93cc5c058a15974a48a77855c87c1ad521353fbeb45",
+                "label": "Rovere Texas 264",
+                "Look": "Wood-look",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "ROVERE TEXAS 264"
+              }
+            },
+            {
+              "id": 4236,
+              "name": "Sabbia 405 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "405 GL",
+                "Color": "Beige",
+                "hex": "#cdcabf",
+                "label": "Sabbia 405 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Sabbia 405 GL"
+              }
+            },
+            {
+              "id": 4216,
+              "name": "Sabbia 405 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "405 MT",
+                "Color": "Beige",
+                "hex": "#cdcabf",
+                "label": "Sabbia 405 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Sabbia 405 MT"
+              }
+            },
+            {
+              "id": 4197,
+              "name": "SAHARA NOIR BOCCIARDATO 335",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "335",
+                "Color": "Black",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-e349c2e755a98b89a62ea76dfc9045bd8467ffd163e8b67571f8e36bda4cfea9",
+                "label": "Sahara Noir Bocciardato 335",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "SAHARA NOIR BOCCIARDATO 335"
+              }
+            },
+            {
+              "id": 4198,
+              "name": "SAHARA NOIR LUCIDO 339",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "339",
+                "Color": "Black",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-b6b377e720c74269aa2e03741a70c6f192031428baf4fbde23ce05273bc0d5dd",
+                "label": "Sahara Noir Lucido 339",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "SAHARA NOIR LUCIDO 339"
+              }
+            },
+            {
+              "id": 4229,
+              "name": "Salvia 415 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "415 GL",
+                "Color": "Green",
+                "hex": "#89938a",
+                "label": "Salvia 415 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Salvia 415 GL"
+              }
+            },
+            {
+              "id": 4209,
+              "name": "Salvia 415 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "415 MT",
+                "Color": "Green",
+                "hex": "#89938a",
+                "label": "Salvia 415 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Salvia 415 MT"
+              }
+            },
+            {
+              "id": 4225,
+              "name": "Seta 406 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "406 GL",
+                "Color": "Grey, Beige",
+                "hex": "#cfcfc8",
+                "label": "Seta 406 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Seta 406 GL"
+              }
+            },
+            {
+              "id": 4205,
+              "name": "Seta 406 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "406 MT",
+                "Color": "Grey, Beige",
+                "hex": "#cfcfc8",
+                "label": "Seta 406 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Seta 406 MT"
+              }
+            },
+            {
+              "id": 4183,
+              "name": "SILVER VOYAGE 263",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "263",
+                "Color": "Grey, Blue",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-16785b78a3b8f951a7150334dbcd860c3fd52cfaf8f3749b86fdbba2aa8e4a3a",
+                "label": "Silver Voyage 263",
+                "Material": "HPL",
+                "productType": "Vanities",
+                "sku": "HPL",
+                "value": "SILVER VOYAGE 263"
+              }
+            },
+            {
+              "id": 4201,
+              "name": "STATUARIO ALTISSIMO LUCIDO 333",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "333",
+                "Color": "White",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-91674c081fc76ac6518cdc42050451aef0ace5fbcb730a35bd81d3d08cce471c",
+                "label": "Statuario Altissimo Lucido 333",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "STATUARIO ALTISSIMO LUCIDO 333"
+              }
+            },
+            {
+              "id": 4202,
+              "name": "TERRE DI SATURNIA 336",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "336",
+                "Color": "Brown, Grey",
+                "image": "https://preview.threekit.com/api/files/hash/sha256-5348f54f8bfc4c29a1b4af76acedb06f4f312ea70b84ed6ec18e985f2ef16bed",
+                "label": "Terre Di Saturnia 336",
+                "Look": "Stone/Marble-look",
+                "Material": "Porcelain",
+                "productType": "Vanities",
+                "sku": "POR",
+                "value": "TERRE DI SATURNIA 336"
+              }
+            },
+            {
+              "id": 4240,
+              "name": "Turchese 410 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "410 GL",
+                "Color": "Blue, Green",
+                "hex": "#7aa3a0",
+                "label": "Turchese 410 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Turchese 410 GL"
+              }
+            },
+            {
+              "id": 4220,
+              "name": "Turchese 410 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "410 MT",
+                "Color": "Blue, Green",
+                "hex": "#7aa3a0",
+                "label": "Turchese 410 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Turchese 410 MT"
+              }
+            },
+            {
+              "id": 4242,
+              "name": "Zafferano 412 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "412 GL",
+                "Color": "Yellow",
+                "hex": "#dbbb55",
+                "label": "Zafferano 412 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Zafferano 412 GL"
+              }
+            },
+            {
+              "id": 4222,
+              "name": "Zafferano 412 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "412 MT",
+                "Color": "Yellow",
+                "hex": "#dbbb55",
+                "label": "Zafferano 412 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Zafferano 412 MT"
+              }
+            },
+            {
+              "id": 4239,
+              "name": "Zaffiro 411 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "411 GL",
+                "Color": "Blue",
+                "hex": "#275871",
+                "label": "Zaffiro 411 GL",
+                "Material": "Glass GL",
+                "productType": "Vanities",
+                "sku": "GLSG",
+                "value": "Zaffiro 411 GL"
+              }
+            },
+            {
+              "id": 4219,
+              "name": "Zaffiro 411 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "411 MT",
+                "Color": "Blue",
+                "hex": "#275871",
+                "label": "Zaffiro 411 MT",
+                "Material": "Glass MT",
+                "productType": "Vanities",
+                "sku": "GLSM",
+                "value": "Zaffiro 411 MT"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "proxyName": "Select Vessel Color",
+      "proxyType": "material",
+      "enabled": true,
+      "metadata": {},
+      "options": [
+        {
+          "id": 392,
+          "name": "Vessel Color",
+          "resource": null,
+          "paramString": "",
+          "playcanvasString": "",
+          "variants": [
+            {
+              "id": 5010,
+              "name": "Acqua 419 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "419 GL",
+                "Color": "Blue",
+                "hex": "#7098ab",
+                "label": "Acqua 419 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Acqua 419 GL"
+              }
+            },
+            {
+              "id": 4990,
+              "name": "Acqua 419 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "419 MT",
+                "Color": "Blue",
+                "hex": "#7098ab",
+                "label": "Acqua 419 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Acqua 419 MT"
+              }
+            },
+            {
+              "id": 5019,
+              "name": "Agata 407 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "407 GL",
+                "Color": "Grey, Beige",
+                "hex": "#c2bfb9",
+                "label": "Agata 407 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Agata 407 GL"
+              }
+            },
+            {
+              "id": 4999,
+              "name": "Agata 407 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "407 MT",
+                "Color": "Grey, Beige",
+                "hex": "#c2bfb9",
+                "label": "Agata 407 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Agata 407 MT"
+              }
+            },
+            {
+              "id": 5012,
+              "name": "Ambra 413 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "413 GL",
+                "Color": "Orange",
+                "hex": "#d58c44",
+                "label": "Ambra 413 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Ambra 413 GL"
+              }
+            },
+            {
+              "id": 4992,
+              "name": "Ambra 413 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "413 MT",
+                "Color": "Orange",
+                "hex": "#d58c44",
+                "label": "Ambra 413 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Ambra 413 MT"
+              }
+            },
+            {
+              "id": 5016,
+              "name": "Antracite 400 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "400 GL",
+                "Color": "Black",
+                "hex": "#414144",
+                "label": "Antracite 400 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Antracite 400 GL"
+              }
+            },
+            {
+              "id": 4996,
+              "name": "Antracite 400 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "400 MT",
+                "Color": "Black",
+                "hex": "#414144",
+                "label": "Antracite 400 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Antracite 400 MT"
+              }
+            },
+            {
+              "id": 5023,
+              "name": "Asparago 414 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "414 GL",
+                "Color": "Green",
+                "hex": "#a3a793",
+                "label": "Asparago 414 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Asparago 414 GL"
+              }
+            },
+            {
+              "id": 5003,
+              "name": "Asparago 414 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "414 MT",
+                "Color": "Green",
+                "hex": "#a3a793",
+                "label": "Asparago 414 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Asparago 414 MT"
+              }
+            },
+            {
+              "id": 5020,
+              "name": "Creta 416 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "416 GL",
+                "Color": "Grey, Brown",
+                "hex": "#8b8781",
+                "label": "Creta 416 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Creta 416 GL"
+              }
+            },
+            {
+              "id": 5000,
+              "name": "Creta 416 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "416 MT",
+                "Color": "Grey, Brown",
+                "hex": "#8b8781",
+                "label": "Creta 416 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Creta 416 MT"
+              }
+            },
+            {
+              "id": 5014,
+              "name": "Fumo 401 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "401 GL",
+                "Color": "Grey",
+                "hex": "#8c8b87",
+                "label": "Fumo 401 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Fumo 401 GL"
+              }
+            },
+            {
+              "id": 4994,
+              "name": "Fumo 401 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "401 MT",
+                "Color": "Grey",
+                "hex": "#8c8b87",
+                "label": "Fumo 401 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Fumo 401 MT"
+              }
+            },
+            {
+              "id": 5005,
+              "name": "Grigio Argento 403 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "403 GL",
+                "Color": "Grey",
+                "hex": "#b8b7b7",
+                "label": "Grigio Argento 403 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Grigio Argento 403 GL"
+              }
+            },
+            {
+              "id": 4985,
+              "name": "Grigio Argento 403 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "403 MT",
+                "Color": "Grey",
+                "hex": "#b8b7b7",
+                "label": "Grigio Argento 403 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Grigio Argento 403 MT"
+              }
+            },
+            {
+              "id": 5013,
+              "name": "Latte 417 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "417 GL",
+                "Color": "White",
+                "hex": "#dadad8",
+                "label": "Latte 417 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Latte 417 GL"
+              }
+            },
+            {
+              "id": 4993,
+              "name": "Latte 417 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "417 MT",
+                "Color": "White",
+                "hex": "#dadad8",
+                "label": "Latte 417 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Latte 417 MT"
+              }
+            },
+            {
+              "id": 5015,
+              "name": "Metropoli 404 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "404 GL",
+                "Color": "Grey",
+                "hex": "#71706d",
+                "label": "Metropoli 404 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Metropoli 404 GL"
+              }
+            },
+            {
+              "id": 4995,
+              "name": "Metropoli 404 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "404 MT",
+                "Color": "Grey",
+                "hex": "#71706d",
+                "label": "Metropoli 404 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Metropoli 404 MT"
+              }
+            },
+            {
+              "id": 5008,
+              "name": "Moka 408 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "408 GL",
+                "Color": "Brown",
+                "hex": "#a8a294",
+                "label": "Moka 408 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Moka 408 GL"
+              }
+            },
+            {
+              "id": 4988,
+              "name": "Moka 408 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "408 MT",
+                "Color": "Brown",
+                "hex": "#a8a294",
+                "label": "Moka 408 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Moka 408 MT"
+              }
+            },
+            {
+              "id": 5006,
+              "name": "Nebbia 402 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "402 GL",
+                "Color": "Grey",
+                "hex": "#b6b5b5",
+                "label": "Nebbia 402 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Nebbia 402 GL"
+              }
+            },
+            {
+              "id": 4986,
+              "name": "Nebbia 402 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "402 MT",
+                "Color": "Grey",
+                "hex": "#b6b5b5",
+                "label": "Nebbia 402 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Nebbia 402 MT"
+              }
+            },
+            {
+              "id": 5017,
+              "name": "Nero 433 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "433 GL",
+                "Color": "Black",
+                "hex": "#1f1f20",
+                "label": "Nero 433 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Nero 433 GL"
+              }
+            },
+            {
+              "id": 4997,
+              "name": "Nero 433 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "433 MT",
+                "Color": "Black",
+                "hex": "#1f1f20",
+                "label": "Nero 433 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Nero 433 MT"
+              }
+            },
+            {
+              "id": 5009,
+              "name": "Ponente 418 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "418 GL",
+                "Color": "Grey, Blue",
+                "hex": "#9ca8a9",
+                "label": "Ponente 418 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Ponente 418 GL"
+              }
+            },
+            {
+              "id": 4989,
+              "name": "Ponente 418 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "418 MT",
+                "Color": "Grey, Blue",
+                "hex": "#9ca8a9",
+                "label": "Ponente 418 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Ponente 418 MT"
+              }
+            },
+            {
+              "id": 5018,
+              "name": "Sabbia 405 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "405 GL",
+                "Color": "Beige",
+                "hex": "#cdcabf",
+                "label": "Sabbia 405 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Sabbia 405 GL"
+              }
+            },
+            {
+              "id": 4998,
+              "name": "Sabbia 405 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "405 MT",
+                "Color": "Beige",
+                "hex": "#cdcabf",
+                "label": "Sabbia 405 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Sabbia 405 MT"
+              }
+            },
+            {
+              "id": 5011,
+              "name": "Salvia 415 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "415 GL",
+                "Color": "Green",
+                "hex": "#89938a",
+                "label": "Salvia 415 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Salvia 415 GL"
+              }
+            },
+            {
+              "id": 4991,
+              "name": "Salvia 415 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "415 MT",
+                "Color": "Green",
+                "hex": "#89938a",
+                "label": "Salvia 415 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Salvia 415 MT"
+              }
+            },
+            {
+              "id": 5007,
+              "name": "Seta 406 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "406 GL",
+                "Color": "Grey, Beige",
+                "hex": "#cfcfc8",
+                "label": "Seta 406 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Seta 406 GL"
+              }
+            },
+            {
+              "id": 4987,
+              "name": "Seta 406 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "406 MT",
+                "Color": "Grey, Beige",
+                "hex": "#cfcfc8",
+                "label": "Seta 406 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Seta 406 MT"
+              }
+            },
+            {
+              "id": 5022,
+              "name": "Turchese 410 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "410 GL",
+                "Color": "Blue, Green",
+                "hex": "#7aa3a0",
+                "label": "Turchese 410 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Turchese 410 GL"
+              }
+            },
+            {
+              "id": 5002,
+              "name": "Turchese 410 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "410 MT",
+                "Color": "Blue, Green",
+                "hex": "#7aa3a0",
+                "label": "Turchese 410 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Turchese 410 MT"
+              }
+            },
+            {
+              "id": 5024,
+              "name": "Zafferano 412 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "412 GL",
+                "Color": "Yellow",
+                "hex": "#dbbb55",
+                "label": "Zafferano 412 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Zafferano 412 GL"
+              }
+            },
+            {
+              "id": 5004,
+              "name": "Zafferano 412 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "412 MT",
+                "Color": "Yellow",
+                "hex": "#dbbb55",
+                "label": "Zafferano 412 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Zafferano 412 MT"
+              }
+            },
+            {
+              "id": 5021,
+              "name": "Zaffiro 411 GL",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "411 GL",
+                "Color": "Blue",
+                "hex": "#275871",
+                "label": "Zaffiro 411 GL",
+                "Material": "Lacquered GL",
+                "productType": "Vanities",
+                "sku": "LACG",
+                "value": "Zaffiro 411 GL"
+              }
+            },
+            {
+              "id": 5001,
+              "name": "Zaffiro 411 MT",
+              "image": null,
+              "enabled": true,
+              "sort": 0,
+              "description": "",
+              "metadata": {
+                "codeColor": "411 MT",
+                "Color": "Blue",
+                "hex": "#275871",
+                "label": "Zaffiro 411 MT",
+                "Material": "Lacquered MT",
+                "productType": "Vanities",
+                "sku": "LACM",
+                "value": "Zaffiro 411 MT"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "availableGeometryOptions": [],
+  "availableStandardOptions": []
+}

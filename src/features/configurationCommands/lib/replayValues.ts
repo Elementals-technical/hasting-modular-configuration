@@ -1,7 +1,8 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { resolveRuntimeBinding, selectAttribute } from "@/entities/collection";
+import { normalizeOptionValue, resolveRuntimeBinding, selectAttribute } from "@/entities/collection";
+import { isPatternMaterialAllowed } from "@/entities/collection/lib/materialEligibility";
 import type { ProductProfile, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
@@ -10,6 +11,7 @@ import {
   getActiveRuntimeBindings,
   getAttributeScope,
   getCabinetEntries,
+  getValuesByAttributeId,
   markRuntimeOutOfSync,
   requestSceneStateSync,
 } from "@/entities/configuration";
@@ -18,6 +20,10 @@ import type { AttributeValue, ConfigurationRuntimePort, ValueTarget } from "@/en
 import { buildCommitContext, buildRuntimeContext } from "./applyPlan";
 import { commitPlan } from "./commitChange";
 import { toSceneValue } from "./sceneValue";
+import { validateChange } from "./validateChange";
+import { checkUndetermined } from "./undeterminedGate";
+import { resolveColorTraits } from "./resolveColorTraits";
+import { evaluateCountertopChange } from "./countertopCompatibility";
 import type { ChangeErrorCode, FailedChange, PlannedChange } from "../model/types";
 
 /**
@@ -25,7 +31,9 @@ import type { ChangeErrorCode, FailedChange, PlannedChange } from "../model/type
  *
  * Undo, redo and opening a saved configuration rebuild the products, then the scene has to
  * show the configuration's values on them. Those values were checked when they were chosen,
- * so they are not validated, planned or confirmed again: each is addressed at the scope its
+ * so legacy profiles do not validate, plan or confirm them again. Material-dependent catalogs
+ * additionally reject incompatible or still-unapproved saved choices before a scene call.
+ * Each is addressed at the scope its
  * profile attribute declares, and the set goes through the runtime port once, in the phases
  * the collection declares. A value the scene has no translation for is reported in `skipped`
  * and the rest is still sent, so one stale value does not leave the whole scene behind.
@@ -127,7 +135,7 @@ export const replayValues = async (
   }
 
   const bindings = getActiveRuntimeBindings(state);
-  const sendChanges = toChanges(
+  let sendChanges = toChanges(
     state,
     profile,
     send,
@@ -143,6 +151,48 @@ export const replayValues = async (
     skipped.push({ attributeId: change.attributeId, value: change.value, reason: "no-translation" });
     return false;
   });
+  // Material-dependent catalogs must not replay obsolete incompatible choices. Existing legacy
+  // replay behavior is preserved for profiles without this stronger product contract.
+  if (profile.ruleData.fluting?.eligibleMaterialAliasesByValue) {
+    if (!record) {
+      const scoped = getValuesByAttributeId(state);
+      sendChanges = sendChanges.flatMap((change) => {
+        const entries = scoped[change.attributeId];
+        return ["cabinet", "basin", "drawer"].includes(change.target.scope) && entries?.length
+          ? entries.map((entry) => ({
+              ...change,
+              target: entry.target,
+              value: toSceneValue(profile, bindings, change.attributeId, entry.value),
+            }))
+          : [change];
+      });
+    }
+    const color = String(send.CabinetColor ?? state.rootStateUI.product.productOptions.CabinetColor);
+    const material = resolveColorTraits(color, configurator ?? null, profile)?.material;
+    for (const change of sendChanges) {
+      const canonical =
+        typeof change.value === "string"
+          ? (normalizeOptionValue(profile, change.attributeId, change.value) ?? change.value)
+          : change.value;
+      const request = { attributeId: change.attributeId, value: canonical, ...change.target };
+      const verdict = selectAttribute(profile, change.attributeId) ? validateChange(request, profile) : { ok: true };
+      const undetermined = checkUndetermined(request, change.target, state, profile);
+      const countertop = evaluateCountertopChange(request, change.target, state, profile, configurator ?? null);
+      const invalidPattern =
+        change.attributeId === "DrawerPanelFluting" &&
+        Boolean(canonical) &&
+        !isPatternMaterialAllowed(profile, String(canonical), material);
+      if (!verdict.ok || undetermined || invalidPattern || countertop.blocked || countertop.dependencies.length) {
+        dispatch(markRuntimeOutOfSync());
+        return {
+          status: "error",
+          code: "runtime-unsupported",
+          message: `Saved ${change.attributeId} is unsupported or requires approved product data.`,
+          skipped,
+        };
+      }
+    }
+  }
   const recordChanges = record ? toChanges(state, profile, recordOnly, (_, value) => value, skipped) : [];
 
   const context = buildRuntimeContext(state, collectionId, flow);

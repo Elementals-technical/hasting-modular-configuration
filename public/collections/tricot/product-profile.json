@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "tricot",
+  "label": "Tricot",
+  "provenance": {
+    "source": "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
+    "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
+    "status": "source-backed preparation; partial approved runtime handoff integrated",
+    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies."
+  },
+  "sourceRefs": {
+    "configuratorId": 12,
+    "countertopMatrixTableId": 593,
+    "cabinetMatrixTableId": 592
+  },
+  "defaults": {
+    "CabinetColor": "Rovere Oro 932",
+    "DrawerPanelFluting": "Cannette",
+    "HandleGrooveColor": "Nero 433 MT",
+    "CountertopColor": "Matte White",
+    "sinkType": "LB440",
+    "CountertopStyle": "integrated"
+  },
+  "attributes": [
+    {
+      "attributeId": "CabinetType",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "Sink-Base",
+          "label": "Sink Base",
+          "order": 0,
+          "category": "drawer-cabinet",
+          "aliases": ["SB"]
+        },
+        {
+          "value": "Side-Cabinet",
+          "label": "Side Cabinet",
+          "order": 1,
+          "category": "drawer-cabinet",
+          "aliases": ["SC", "Sink-Cabinet"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Drawers",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 Drawer",
+          "order": 0,
+          "aliases": ["1DW", "1D"]
+        },
+        {
+          "value": "2",
+          "label": "2 Drawers",
+          "order": 1,
+          "aliases": ["2DW", "2D"]
+        },
+        {
+          "value": "1+inner",
+          "label": "1 Drawer + Inner Drawer",
+          "order": 2,
+          "aliases": ["1DWID"]
+        }
+      ]
+    },
+    {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "40",
+          "label": "40 cm",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "attributeId": "Depth",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "52",
+          "label": "52 cm",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "attributeId": "Width",
+      "scope": "cabinet",
+      "options": [
+        {
+          "value": "40",
+          "label": "40 cm",
+          "order": 0
+        },
+        {
+          "value": "60",
+          "label": "60 cm",
+          "order": 1
+        },
+        {
+          "value": "80",
+          "label": "80 cm",
+          "order": 2
+        },
+        {
+          "value": "100",
+          "label": "100 cm",
+          "order": 3
+        },
+        {
+          "value": "120",
+          "label": "120 cm",
+          "order": 4
+        }
+      ]
+    },
+    {
+      "attributeId": "CabinetColor",
+      "scope": "global",
+      "optionsSource": "configurator:Select Cabinet Color",
+      "initialValue": "Rovere Oro 932",
+      "defaultValue": "Rovere Oro 932"
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "scope": "cabinet",
+      "initialValue": "Cannette",
+      "options": [
+        {
+          "value": "Loden",
+          "label": "Loden",
+          "order": 0
+        },
+        {
+          "value": "Cannette",
+          "label": "Cannete",
+          "order": 1,
+          "aliases": ["Cannete"]
+        },
+        {
+          "value": "Twill",
+          "label": "Twill",
+          "order": 2
+        },
+        {
+          "value": "Gessato",
+          "label": "Gessato",
+          "order": 3,
+          "aliases": ["Gessatto"]
+        },
+        {
+          "value": "Satin",
+          "label": "Satin",
+          "order": 4
+        }
+      ],
+      "defaultValue": "Cannette"
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "scope": "global",
+      "optionsSource": "configurator:Select Handle Groove Color",
+      "initialValue": "Nero 433 MT",
+      "defaultValue": "Nero 433 MT"
+    },
+    {
+      "attributeId": "SidePanels",
+      "scope": "global",
+      "initialValue": "",
+      "noneValue": "None",
+      "options": [
+        {
+          "value": "None",
+          "label": "None",
+          "order": 10,
+          "aliases": ["No"]
+        },
+        {
+          "value": "NoG",
+          "label": "No groove",
+          "order": 20
+        }
+      ]
+    },
+    {
+      "attributeId": "CountertopColor",
+      "scope": "countertop",
+      "optionsSource": "configurator:Select Countertop Color",
+      "initialValue": "Matte White",
+      "defaultValue": "Matte White"
+    },
+    {
+      "attributeId": "Thickness",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "0.5",
+          "label": "0.5\"",
+          "order": 10,
+          "aliases": ["1/2"]
+        },
+        {
+          "value": "0.75",
+          "label": "0.8\"",
+          "order": 20,
+          "aliases": ["3/4"]
+        },
+        {
+          "value": "3.125",
+          "label": "3.1\"",
+          "order": 30,
+          "aliases": ["3-1/8"]
+        },
+        {
+          "value": "4",
+          "label": "4\"",
+          "order": 40,
+          "aliases": []
+        },
+        {
+          "value": "4.75",
+          "label": "4.7\"",
+          "order": 50,
+          "aliases": ["4-3/4"]
+        }
+      ],
+      "initialValue": ""
+    },
+    {
+      "attributeId": "sinkType",
+      "scope": "basin",
+      "options": [
+        {
+          "value": "LB440",
+          "label": "LB440",
+          "order": 0,
+          "category": "integrated"
+        },
+        {
+          "value": "LB175",
+          "label": "LB175",
+          "order": 1,
+          "category": "integrated"
+        },
+        {
+          "value": "LB575",
+          "label": "LB575",
+          "order": 2,
+          "category": "integrated"
+        },
+        {
+          "value": "LB856",
+          "label": "LB856",
+          "order": 3,
+          "category": "integrated"
+        },
+        {
+          "value": "VA023",
+          "label": "VA023",
+          "order": 4,
+          "category": "integrated"
+        },
+        {
+          "value": "VA024",
+          "label": "VA024",
+          "order": 5,
+          "category": "integrated"
+        },
+        {
+          "value": "LV890",
+          "label": "LV890",
+          "order": 6,
+          "category": "integrated"
+        },
+        {
+          "value": "LV892",
+          "label": "LV892",
+          "order": 7,
+          "category": "integrated"
+        },
+        {
+          "value": "VA002",
+          "label": "VA002",
+          "order": 8,
+          "category": "integrated"
+        },
+        {
+          "value": "VA005",
+          "label": "VA005",
+          "order": 9,
+          "category": "integrated"
+        }
+      ],
+      "initialValue": "LB440",
+      "defaultValue": "LB440"
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "scope": "countertop",
+      "options": [
+        {
+          "value": "integrated",
+          "label": "Integrated",
+          "order": 0,
+          "aliases": ["Integrated"]
+        }
+      ],
+      "initialValue": "integrated",
+      "defaultValue": "integrated"
+    }
+  ],
+  "ruleData": {
+    "countertopCompatibility": { "tableId": 593 },
+    "fluting": {
+      "eligibleMaterialAliases": ["LACM", "WDV", "Lacquered MT", "Wood Veneer"],
+      "forbiddenTargetParts": ["SIDE_PANEL"],
+      "eligibleMaterialAliasesByValue": {
+        "Loden": ["LACM", "Lacquered MT"],
+        "Cannette": ["WDV", "Wood Veneer"],
+        "Twill": ["WDV", "Wood Veneer"],
+        "Gessato": ["WDV", "Wood Veneer"],
+        "Satin": ["WDV", "Wood Veneer"]
+      }
+    },
+    "cabinetColorTraits": {
+      "materialBySku": {
+        "LACM": "LACM",
+        "WDV": "WDV"
+      },
+      "knownMaterials": ["LACM", "WDV"],
+      "finishCodes": ["MT"]
+    },
+    "cabinetMatrixLegacyAdapter": {
+      "tableId": 592,
+      "columns": {
+        "cabinetType": "cabinet_type",
+        "drawers": "drawer_configs",
+        "handlesAllowed": "handles_allowed",
+        "supportsHeight": "supports_height",
+        "forcedHeightByHandle": {},
+        "requiresDrawersByHandle": {},
+        "forcedHeight": "forced_height_cm",
+        "unavailableWithIntegrated": "unavailable_with_integrated"
+      }
+    },
+    "cabinetModules": [
+      {
+        "cabinetType": "Sink-Base",
+        "widthsCm": [60, 80, 100, 120],
+        "heightsCm": [40],
+        "depthsCm": [52],
+        "drawerValues": ["1", "2", "1+inner"],
+        "hasSink": true
+      },
+      {
+        "cabinetType": "Side-Cabinet",
+        "widthsCm": [40, 60, 80, 100, 120],
+        "heightsCm": [40],
+        "depthsCm": [52],
+        "drawerValues": ["1", "2", "1+inner"],
+        "hasSink": false
+      }
+    ],
+    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "sidePanels": {
+      "heightTokenByCm": {
+        "40": "40H"
+      },
+      "blockedCabinetTypes": [],
+      "cabinetGroups": {
+        "SBSC": ["Sink-Base", "Side-Cabinet", "Tricot-sink-cabinet", "Tricot-side-cabinet", "SB", "SC", "SBSC"]
+      },
+      "drawersByHandleType": {
+        "1D": ["1", "1+inner", "1D", "1DWID"],
+        "2D": ["2", "2D"]
+      },
+      "exactBlockedCabinetLengthCm": 340,
+      "countertopLengthIncrementCm": 2,
+      "defaultQuantityUnlessHeightTypeLow": 2,
+      "availability": [
+        {
+          "height": "40H",
+          "handleType": "1D",
+          "cabinetType": "SBSC",
+          "allowed": ["NoG"]
+        },
+        {
+          "height": "40H",
+          "handleType": "2D",
+          "cabinetType": "SBSC",
+          "allowed": ["NoG"]
+        }
+      ]
+    }
+  },
+  "messages": {
+    "fluting.notAvailable": "This cabinet pattern is not compatible with the selected material.",
+    "change.notAvailable": "This option is not available for the current selection.",
+    "change.valueNotInCatalog": "This option does not belong to Tricot.",
+    "product.missingData": "Approved Tricot product data is required.",
+    "drawer.mixedGroups": "One-drawer and two-drawer modules cannot be mixed in this composition."
+  }
+}

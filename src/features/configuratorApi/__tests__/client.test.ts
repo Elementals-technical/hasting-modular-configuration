@@ -365,7 +365,7 @@ describe("ConfiguratorClient", () => {
     const apply = vi.fn(async () => ok(receipt));
     const client = createConfiguratorClient({
       getApi: () => makeApi({
-        settleInput: async () => ok(draft({ canApply: false, validation: { collision: true } })),
+        settleInput: async () => ok(draft({ canApply: false, validation: { status: "invalid", reasons: [] } })),
         apply,
       }),
     });
@@ -373,7 +373,7 @@ describe("ConfiguratorClient", () => {
     await client.connect();
     await expect(client.apply("session-1")).rejects.toMatchObject({
       code: "APPLY_UNAVAILABLE",
-      detail: { collision: true },
+      detail: { status: "invalid", reasons: [] },
     });
     expect(apply).not.toHaveBeenCalled();
   });
@@ -415,6 +415,34 @@ describe("ConfiguratorClient", () => {
     await expect(client.beginMove("cabinet-1")).rejects.toMatchObject({ code: "SCOPE_MISMATCH" });
     expect(getCapabilities).toHaveBeenCalledOnce();
     expect(beginMove).toHaveBeenCalledOnce();
+  });
+
+  it("commits moveSink as a revision command and surfaces ok:false as a ConfiguratorError", async () => {
+    const moveSink = vi
+      .fn()
+      .mockResolvedValueOnce(ok({ ...receipt, idMap: { sb: "sc-new", sc: "sb-new" }, sinkHostId: "sb-new" }))
+      .mockResolvedValueOnce(fail("STALE_COMPOSITION", true));
+    const api = makeApi({
+      // No context: the revision is read from data.dependencies (fallback).
+      getCompositionState: vi.fn(async () => ok({ ...compositionState, dependencies: { compositionRevision: 7 } })),
+    });
+    api.cabinets.moveSink = moveSink;
+    const client = createConfiguratorClient({ getApi: () => api, createId: () => "request-sink" });
+
+    await client.connect();
+    await expect(client.moveSink("sb", "sc")).resolves.toMatchObject({ sinkHostId: "sb-new", idMap: { sb: "sc-new" } });
+    expect(moveSink).toHaveBeenCalledWith({
+      apiInstanceId: "api-1",
+      compositionId: "composition-1",
+      requestId: "request-sink",
+      expectedCompositionRevision: 7,
+      fromCabinetId: "sb",
+      toCabinetId: "sc",
+    });
+
+    const error = await client.moveSink("sb", "sc").catch((reason: unknown) => reason);
+    expect(error).toBeInstanceOf(ConfiguratorError);
+    expect(error).toMatchObject({ code: "STALE_COMPOSITION", retryable: true });
   });
 
   it("exports with the first cabinet and imports a preset as a revision command", async () => {

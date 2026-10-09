@@ -39,6 +39,7 @@ import {
 } from "@/features/configurator-rule-core/countertop";
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { extractColorCode } from "@/shared/lib/sku";
 
 import { useCountertopRuleState } from "./useCountertopRuleState";
@@ -137,6 +138,8 @@ const resolveThicknessAvailability = (
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
 // cutout: the profile's noneValue, chosen until a vessel is.
+const HOSTED_SINK_BASIN_REASON = "Lower the countertop onto a sink cabinet to change the basin.";
+
 const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
@@ -236,10 +239,14 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
   const hasTowelBar = Boolean(towelBarOption) && towelBarOption !== "None";
   const isCustomizingDividers = dividersOption === "Customize";
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
+  const sinkHosted = useCountertopRuntimeValue((state) => state?.sink?.hosted === true);
 
   return useMemo(
     () => ({
-      "DrawerPanelFluting.available": fluting,
+      "DrawerPanelFluting.available": {
+        ...fluting,
+        allowedValues: fluting.options.filter((option) => option.enabled).map(({ value }) => value),
+      },
       "GrainDirection.available": grainDirection,
       "BookMatching.available": {
         available: bookMatching.enabled,
@@ -262,7 +269,10 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
       "CountertopColor.allowed": resolveCountertopColorAvailability(profile, configurator, countertopRuleState),
       "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
-      "sinkType.allowed": resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
+      // A hosted sink (carried by the top) has no SB to take a new basin; 3D cannot change it yet.
+      "sinkType.allowed": sinkHosted
+        ? { available: false, allowedValues: [], reason: HOSTED_SINK_BASIN_REASON }
+        : resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
       "VesselColor.allowed": resolveVesselColorAvailability(profile, configurator, sinkType),
     }),
     [
@@ -282,6 +292,7 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       legColorDetermined,
       profile,
       sidePanels,
+      sinkHosted,
       sinkType,
       supportsGrooveColor,
     ],

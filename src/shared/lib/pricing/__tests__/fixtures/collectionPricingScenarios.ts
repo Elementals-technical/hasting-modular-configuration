@@ -1,12 +1,21 @@
 import classProfileDocument from "../../../../../../public/collections/class/product-profile.json";
 import classSkuProfileDocument from "../../../../../../public/collections/class/sku-profile.json";
+import lameProfileDocument from "../../../../../../public/collections/lame/product-profile.json";
+import lameSkuProfileDocument from "../../../../../../public/collections/lame/sku-profile.json";
 import makoProfileDocument from "../../../../../../public/collections/mako/product-profile.json";
 import makoSkuProfileDocument from "../../../../../../public/collections/mako/sku-profile.json";
+import urbanFreestandingProfileDocument from "../../../../../../public/collections/urban-freestanding/product-profile.json";
+import urbanFreestandingSkuProfileDocument from "../../../../../../public/collections/urban-freestanding/sku-profile.json";
+import urbanDuplexProfileDocument from "../../../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexSkuProfileDocument from "../../../../../../public/collections/urban-duplex/sku-profile.json";
 import urbanLowHeightProfileDocument from "../../../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightSkuProfileDocument from "../../../../../../public/collections/urban-low-height/sku-profile.json";
 
 import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
+import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
+import configurator14 from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
@@ -47,6 +56,7 @@ const configurator9Catalog: ConfiguratorGroupCatalog = {
 const CLASS_OWN_FRONTS: readonly { value: string; sku: string; material: string }[] = [
   { value: "CALACATTA BLACK 338", sku: "POR", material: "Porcelain" },
   { value: "NERO ATLANTE LUCIDO 326", sku: "POR", material: "Porcelain" },
+  { value: "INVISIBLE WHITE LUCIDO 334", sku: "POR", material: "Porcelain" },
   { value: "Fume", sku: "SGLS", material: "Smoke Glass" },
   { value: "GGrigio Argento 403 GL", sku: "GLSG", material: "Glass GL" },
   { value: "Nativo Cotto 961", sku: "LAM", material: "Laminates" },
@@ -94,6 +104,18 @@ export const MAKO = {
   configurator: configurator9Catalog,
 };
 
+/** Configurator 14, Lame's own. */
+const configurator14Groups = configurator14.availableOptions as unknown as ConfiguratorAvailableOption[];
+
+export const LAME = {
+  profile: parseProfile(lameProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(lameSkuProfileDocument),
+  configurator: {
+    groups: configurator14Groups,
+    groupsByName: Object.fromEntries(configurator14Groups.map((group) => [group.proxyName, group])),
+  },
+};
+
 /** Configurator 4: the colours Urban Low Height shares with Urban Standard Height. */
 const configurator4Groups = configurator4.availableOptions as unknown as ConfiguratorAvailableOption[];
 
@@ -103,6 +125,30 @@ export const URBAN_LOW_HEIGHT = {
   configurator: {
     groups: configurator4Groups,
     groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),
+  },
+};
+
+/** Configurator 11, Urban Freestanding's own. */
+const configurator11Groups = configurator11.availableOptions as unknown as ConfiguratorAvailableOption[];
+
+export const URBAN_FREESTANDING = {
+  profile: parseProfile(urbanFreestandingProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(urbanFreestandingSkuProfileDocument),
+  configurator: {
+    groups: configurator11Groups,
+    groupsByName: Object.fromEntries(configurator11Groups.map((group) => [group.proxyName, group])),
+  },
+};
+
+/** Configurator 13, Urban Duplex's own: its two panels are the two options of one cabinet colour group. */
+const configurator13Groups = configurator13.availableOptions as unknown as ConfiguratorAvailableOption[];
+
+export const URBAN_DUPLEX = {
+  profile: parseProfile(urbanDuplexProfileDocument),
+  skuProfile: collectionSkuProfileSchema.parse(urbanDuplexSkuProfileDocument),
+  configurator: {
+    groups: configurator13Groups,
+    groupsByName: Object.fromEntries(configurator13Groups.map((group) => [group.proxyName, group])),
   },
 };
 

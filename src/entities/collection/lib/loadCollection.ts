@@ -1,7 +1,7 @@
 import type { ZodType } from "zod";
 
 import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
-import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import { buildCabinetCatalogFromMatrix, buildCabinetCatalogFromProfile } from "@/entities/product/lib/matrixCabinet";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop/parse";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
@@ -17,6 +17,7 @@ import {
   countertopDatatableSchema,
   navigationSchema,
   presetsSchema,
+  sourceCatalogSchema,
   productDatatableSchema,
   staticOptionsSchema,
   type CollectionManifest,
@@ -208,6 +209,17 @@ const validateLocalContracts = (
 ): CollectionDiagnostic[] => {
   const diagnostics: CollectionDiagnostic[] = [];
 
+  if (local.sourceCatalog && local.sourceCatalog.collectionId !== manifest.id) {
+    throw new CollectionDataError("source-validation-failed", "Source catalog identity does not match its manifest");
+  }
+
+  if (local.presets?.some((preset) => preset.availability) && !manifest.availability) {
+    throw new CollectionDataError(
+      "source-validation-failed",
+      "Pending presets require an explicitly staged collection",
+    );
+  }
+
   if (local.productProfile && local.productProfile.collectionId !== manifest.id) {
     diagnostics.push({
       code: "profile.collection-mismatch",
@@ -218,8 +230,42 @@ const validateLocalContracts = (
     });
   }
 
-  // The cabinet table is read through the profile's column mapping; without a profile its
-  // rows cannot be interpreted, and guessing USH columns would be wrong for any other collection.
+  if (local.skuProfile && local.skuProfile.collectionId !== manifest.id) {
+    throw new CollectionDataError("source-validation-failed", "SKU profile identity does not match its manifest");
+  }
+  if (local.productProfile && manifest.requireSourceAgreement) {
+    const refs = local.productProfile.sourceRefs;
+    const remote = manifest.remote;
+    for (const [reference, expected] of [
+      [remote?.configurator, refs.configuratorId],
+      [remote?.countertopTable, refs.countertopMatrixTableId],
+      [remote?.cabinetTable, refs.cabinetMatrixTableId],
+    ] as const) {
+      if (reference && String(reference.id) !== String(expected))
+        throw new CollectionDataError(
+          "source-validation-failed",
+          "Manifest and product profile source identities disagree",
+        );
+    }
+    if (
+      local.productProfile.ruleData.countertopCompatibility &&
+      String(remote?.countertopTable?.id) !== String(local.productProfile.ruleData.countertopCompatibility.tableId)
+    )
+      throw new CollectionDataError(
+        "source-validation-failed",
+        "Countertop compatibility identity disagrees with its manifest",
+      );
+    if (
+      remote?.cabinetTable &&
+      String(remote.cabinetTable.id) !== String(local.productProfile.ruleData.cabinetMatrixLegacyAdapter.tableId)
+    )
+      throw new CollectionDataError(
+        "source-validation-failed",
+        "Cabinet matrix adapter identity disagrees with its manifest",
+      );
+  }
+
+  // Matrix rows require the profile's mapping; guessing USH columns would be wrong for other collections.
   if ((local.cabinetTable || manifest.remote?.cabinetTable) && !local.productProfile) {
     diagnostics.push({
       code: "cabinet.missing-product-profile",
@@ -296,6 +342,7 @@ const loadLocalSources = async (
     ui,
     runtimeBindings,
     cabinetTable,
+    sourceCatalog,
   ] = await Promise.all([
     local.navigation
       ? fetchSource(navigationSchema, local.navigation, manifestUrl, dependencies, signal, "Navigation data")
@@ -325,6 +372,9 @@ const loadLocalSources = async (
     local.cabinetTable
       ? fetchSource(productDatatableSchema, local.cabinetTable, manifestUrl, dependencies, signal, "Cabinet table")
       : undefined,
+    local.sourceCatalog
+      ? fetchSource(sourceCatalogSchema, local.sourceCatalog, manifestUrl, dependencies, signal, "Source catalog")
+      : undefined,
   ]);
 
   validateCustomizationContract(manifest, navigation, ui);
@@ -333,7 +383,7 @@ const loadLocalSources = async (
     navigation,
     presets: presets?.map((preset) => ({
       ...preset,
-      img: resolveCollectionImageUrl(preset.img, manifestUrl, dependencies.collectionsRootUrl),
+      img: preset.img ? resolveCollectionImageUrl(preset.img, manifestUrl, dependencies.collectionsRootUrl) : "",
     })),
     staticOptions,
     cabinetSkuMappings,
@@ -342,6 +392,7 @@ const loadLocalSources = async (
     ui,
     runtimeBindings,
     cabinetTable,
+    sourceCatalog,
   };
 };
 
@@ -404,6 +455,10 @@ export const assembleCollectionData = (
 ): LoadedCollectionData => {
   const configuratorGroups = remote.configurator?.availableOptions;
   const cabinetTable = local.cabinetTable ?? remote.cabinetTable;
+  const countertops = remote.countertopTable ? parseCountertopMatrix(remote.countertopTable) : undefined;
+  const productProfile = local.productProfile?.ruleData.countertopCompatibility
+    ? { ...local.productProfile, countertopRules: countertops }
+    : local.productProfile;
   return {
     id: manifest.id,
     manifest,
@@ -412,6 +467,7 @@ export const assembleCollectionData = (
     catalog: {
       navigation: local.ui ? deriveCollectionNavigation(local.ui) : local.navigation,
       presets: local.presets,
+      sourceCatalog: local.sourceCatalog,
       staticOptions: local.staticOptions,
       cabinetSkuMappings: local.cabinetSkuMappings,
       skuProfile: local.skuProfile,
@@ -421,7 +477,7 @@ export const assembleCollectionData = (
             groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
           }
         : undefined,
-      productProfile: local.productProfile,
+      productProfile,
       customization: local.ui,
       runtimeBindings: local.runtimeBindings,
       // Normalized against the profile: the handle -> column mapping of the legacy
@@ -434,8 +490,13 @@ export const assembleCollectionData = (
               buildCabinetCatalogFromMatrix(cabinetTable, local.productProfile, local.runtimeBindings),
               local.runtimeBindings,
             )
-          : undefined,
-      countertops: remote.countertopTable ? parseCountertopMatrix(remote.countertopTable) : undefined,
+          : local.productProfile?.ruleData.cabinetModules
+            ? withoutUnplacedCabinetTypes(
+                buildCabinetCatalogFromProfile(local.productProfile, local.runtimeBindings),
+                local.runtimeBindings,
+              )
+            : undefined,
+      countertops,
     },
   };
 };

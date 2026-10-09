@@ -4,6 +4,7 @@ uniform float tri_bumpiness;
 uniform sampler2D tri_detailNormalTex;
 uniform float tri_hasDetailNormal;
 uniform float tri_detailBumpiness;
+uniform float tri_surfaceGradientNormals;
 
 #ifndef TRI_DETAIL_PARAMS
 #define TRI_DETAIL_PARAMS
@@ -24,8 +25,48 @@ uniform float tri_detailBumpiness;
     }
 #endif
 
+// ==================== GRAIN DIRECTION ====================
+#ifndef GRAIN_FLIP_COMMON
+#define GRAIN_FLIP_COMMON
+    uniform float grain_mode;
+    uniform float grain_stripWidth;
+
+    vec2 applyGrainFlip(vec2 uv) {
+        if (grain_mode < 0.5) return uv;
+        float axis = (grain_mode < 1.5) ? uv.x : uv.y;
+        float sw = max(grain_stripWidth, 0.001);
+        float idx = floor(axis / sw);
+        if (mod(idx, 2.0) > 0.5) {
+            float local = axis - idx * sw;
+            float mirrored = sw - local;
+            if (grain_mode < 1.5) {
+                uv.x = idx * sw + mirrored;
+            } else {
+                uv.y = idx * sw + mirrored;
+            }
+        }
+        return uv;
+    }
+#endif
+// =========================================================
+
 vec3 triUnpack(vec4 n) {
     return n.rgb * 2.0 - 1.0;
+}
+
+// Convert tangent normal to slopes, then undo UV mirroring and rotation.
+// A neutral normal contributes zero; base and detail slopes add without
+// adding extra forward normals that dilute the relief.
+vec2 triPatternSlope(vec3 n, float strength, vec2 rotatedUV) {
+    vec2 slope = n.xy * strength / max(n.z, 0.05);
+    if (grain_mode > 0.5) {
+        float axis = grain_mode < 1.5 ? rotatedUV.x : rotatedUV.y;
+        if (mod(floor(axis / max(grain_stripWidth, 0.001)), 2.0) > 0.5) {
+            if (grain_mode < 1.5) slope.x = -slope.x;
+            else slope.y = -slope.y;
+        }
+    }
+    return rotateUV(slope, -tri_rotation);
 }
 
 void getNormal() {
@@ -50,6 +91,34 @@ void getNormal() {
     vec2 r_uvX = rotateUV(uvX, tri_rotation);
     vec2 r_uvY = rotateUV(uvY, tri_rotation);
     vec2 r_uvZ = rotateUV(uvZ, tri_rotation);
+
+    // — GRAIN FLIP
+    r_uvX = applyGrainFlip(r_uvX);
+    r_uvY = applyGrainFlip(r_uvY);
+    r_uvZ = applyGrainFlip(r_uvZ);
+
+    if (tri_surfaceGradientNormals > 0.5) {
+        // Use pre-flip coordinates for the derivative sign of mirrored strips.
+        vec2 pX = rotateUV(uvX, tri_rotation);
+        vec2 pY = rotateUV(uvY, tri_rotation);
+        vec2 pZ = rotateUV(uvZ, tri_rotation);
+        vec2 slopeX = triPatternSlope(triUnpack(texture2D(tri_normalTex, r_uvX)), tri_bumpiness, pX);
+        vec2 slopeY = triPatternSlope(triUnpack(texture2D(tri_normalTex, r_uvY)), tri_bumpiness, pY);
+        vec2 slopeZ = triPatternSlope(triUnpack(texture2D(tri_normalTex, r_uvZ)), tri_bumpiness, pZ);
+        if (tri_hasDetailNormal > 0.5) {
+            slopeX += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvX * tri_detailTiling)), tri_detailBumpiness, pX);
+            slopeY += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvY * tri_detailTiling)), tri_detailBumpiness, pY);
+            slopeZ += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvZ * tri_detailTiling)), tri_detailBumpiness, pZ);
+        }
+        // All projection UVs have a minus sign. Convert slopes into local
+        // coordinates and remove their component along the geometric normal.
+        vec3 perturbation = vec3(0.0, -slopeX.y, -slopeX.x) * blend.x
+            + vec3(-slopeY.x, 0.0, -slopeY.y) * blend.y
+            + vec3(-slopeZ.x, -slopeZ.y, 0.0) * blend.z;
+        perturbation -= localNormal * dot(localNormal, perturbation);
+        dNormalW = normalize(rotationMatrix * (localNormal + perturbation));
+        return;
+    }
 
     vec3 nX = triUnpack(texture2D(tri_normalTex, r_uvX));
     nX = vec3(nX.z, nX.y, nX.x); 

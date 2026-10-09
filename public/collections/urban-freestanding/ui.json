@@ -1,0 +1,181 @@
+{
+  "collectionId": "urban-freestanding",
+  "optionImages": {
+    "sinkType": {
+      "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
+      "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Top_HPL/Fenix_Cover_Gres": "images/basin/fenix_Cover.jpg",
+      "Top_HPL/Fenix_Prisma_Gres": "images/basin/fenix_Prisma.jpg",
+      "Top_HPL/Fenix_Quadra_Gres": "images/basin/fenix_Quadra.jpg",
+      "Top_HPLStrip": "images/basin/strip.jpg",
+      "Top_HPLCover": "images/basin/cover.jpg",
+      "Top_HPLPrisma": "images/basin/prisma.jpg",
+      "Top_HPLQuadra": "images/basin/quadro.jpg",
+      "Top_Porcelain_Strip": "images/basin/strip.jpg",
+      "Top_Porcelain_Cover": "images/basin/cover.jpg",
+      "Top_Porcelain_Prisma": "images/basin/prisma.jpg",
+      "Top_Porcelain_Quadra": "images/basin/quadro.jpg",
+      "Vessel_Blade11": "images/vessel/Vessel_Blade11.png",
+      "Vessel_Blade18": "images/vessel/Vessel_Blade18.png",
+      "Vessel_UrbanModo": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanMorris": "images/vessel/Vessel_UrbanMorris.png"
+    }
+  },
+  "flows": {
+    "prebuilt": {
+      "entryStepId": "model",
+      "steps": [
+        { "stepId": "model", "path": "/prebuilt/model" },
+        { "stepId": "cabinet", "path": "/prebuilt/color" },
+        { "stepId": "countertop", "path": "/prebuilt/countertop" },
+        { "stepId": "accessories", "path": "/prebuilt/accessories", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
+        { "stepId": "summary", "path": "/prebuilt/summary" }
+      ]
+    },
+    "custom": {
+      "entryStepId": "cabinet-builder",
+      "steps": [
+        { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
+        { "stepId": "cabinet", "path": "/custom/color" },
+        { "stepId": "countertop", "path": "/custom/countertop" },
+        { "stepId": "accessories", "path": "/custom/accessories", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
+        { "stepId": "summary", "path": "/custom/summary" }
+      ]
+    }
+  },
+  "steps": {
+    "model": { "label": "Model", "kind": "preset-picker" },
+    "cabinet-builder": {
+      "label": "Cabinet Builder",
+      "headerPrefix": null,
+      "kind": "cabinet-builder",
+      "sectionIds": ["cabinet-type", "cabinet-style"]
+    },
+    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove"] },
+    "countertop": {
+      "label": "Countertop & Basin",
+      "kind": "fields",
+      "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
+    },
+    "accessories": { "label": "Accessories", "kind": "fields", "sectionIds": ["side-panels", "dividers", "towel-bar"] },
+    "faucet-holes": { "label": "Faucet Details", "kind": "fields", "sectionIds": ["faucet-holes-amount"] },
+    "summary": { "label": "Summary", "kind": "summary" }
+  },
+  "sections": {
+    "cabinet-type": {
+      "label": "Cabinet Type",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetType", "control": "options-grid" }]
+    },
+    "cabinet-style": {
+      "label": "Cabinet Style",
+      "fields": [{ "attributeId": "Drawers", "control": "options-grid" }]
+    },
+    "cabinet-color": {
+      "label": "Cabinet Color",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "CabinetColor", "control": "colors", "optionsRef": "CabinetColor" }]
+    },
+    "handle-groove": {
+      "label": "Handle Color",
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "colors",
+          "optionsRef": "HandleGrooveColor",
+          "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "countertop-color": {
+      "label": "Countertop Color",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "CountertopColor",
+          "control": "colors",
+          "optionsRef": "CountertopColor",
+          "availabilityRef": "CountertopColor.allowed"
+        }
+      ]
+    },
+    "thickness": {
+      "label": "Thickness",
+      "fields": [
+        {
+          "attributeId": "Thickness",
+          "control": "swatches",
+          "availabilityRef": "Thickness.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "countertop-style": {
+      "label": "Countertop Style",
+      "fields": [
+        { "attributeId": "CountertopStyle", "control": "options-grid", "availabilityRef": "CountertopStyle.allowed" }
+      ]
+    },
+    "basin-style": {
+      "label": "Basin Style",
+      "labelWhenVessel": "Vessel Sink Style",
+      "fields": [
+        {
+          "attributeId": "sinkType",
+          "control": "options-grid",
+          "availabilityRef": "sinkType.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "vessel-color": {
+      "label": "Vessel Color",
+      "fields": [
+        {
+          "attributeId": "VesselColor",
+          "control": "colors",
+          "optionsRef": "VesselColor",
+          "availabilityRef": "VesselColor.allowed",
+          "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "side-panels": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
+    },
+    "dividers": {
+      "label": "Dividers",
+      "fields": [
+        { "attributeId": "DividersOption", "control": "swatches" },
+        { "attributeId": "DividersStyle", "control": "options-grid", "availabilityRef": "DividersStyle.available" }
+      ]
+    },
+    "towel-bar": {
+      "label": "Towel Bar",
+      "fields": [
+        { "attributeId": "TowelBarOption", "control": "swatches" },
+        { "attributeId": "TowelBarColor", "control": "options-grid", "availabilityRef": "TowelBarColor.available" }
+      ]
+    },
+    "faucet-holes-amount": {
+      "label": "Faucet Holes",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed",
+          "hints": {
+            "1": "Faucet hole placement to be specified at time of order.",
+            "2": "Faucet hole placement and spacing to be specified at time of order.",
+            "3": "Faucet hole placement and spacing to be specified at time of order."
+          }
+        }
+      ]
+    }
+  }
+}

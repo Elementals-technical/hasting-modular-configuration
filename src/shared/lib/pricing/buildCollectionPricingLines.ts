@@ -14,17 +14,19 @@ import {
   type ScopedValue,
   type ValueTarget,
 } from "@/entities/configuration";
-import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
   createConfiguratorColorReader,
   isChosenColor,
+  OPEN_SIDE_SHELF_SIDE,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
+  resolveOpenSideShelfSide,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
   type CollectionValueReader,
@@ -36,6 +38,7 @@ import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLi
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
 import { buildUshTowelBarLines } from "./ushTowelBarLines";
 import { buildUshVesselLines } from "./ushVesselLines";
+import { buildCollectionSidePanelSku } from "../sku/buildCollectionSidePanelSku";
 
 /**
  * Order lines of a collection priced from its `sku-profile.json` (D04): Class, Mako and Urban Low
@@ -62,6 +65,14 @@ type InputGap = { owner: string; reason: (attributeId: string) => string };
 
 /** What an attribute the cabinet SKU could not spell says about the order, by why it could not. */
 const INPUT_GAP: Record<CollectionCabinetSkuGap["cause"], InputGap> = {
+  "invalid-option": {
+    owner: "product",
+    reason: (attributeId) => `${attributeId} is unsupported or incompatible; no cabinet price request is allowed.`,
+  },
+  "invalid-dimension": {
+    owner: "product",
+    reason: (attributeId) => `${attributeId} is not a supported module dimension; no cabinet price request is allowed.`,
+  },
   "not-chosen": {
     owner: "C",
     reason: (attributeId) => `${attributeId} is not chosen, so the cabinet material cannot be priced exactly.`,
@@ -74,7 +85,7 @@ const INPUT_GAP: Record<CollectionCabinetSkuGap["cause"], InputGap> = {
 };
 
 /** Why a vessel the collection prices has no line: its colour does not give the SKU a material and a code. */
-const UNPRICED_VESSEL: Record<CollectionCabinetSkuGap["cause"], { owner: string; reason: string }> = {
+const UNPRICED_VESSEL: Record<"not-chosen" | "no-material", { owner: string; reason: string }> = {
   "not-chosen": { owner: "C", reason: "VesselColor is not chosen, so the vessel has no price." },
   "no-material": {
     owner: "product",
@@ -135,6 +146,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const cabinets = [...input.cabinetEntries].sort((left, right) => left.index - right.index);
   const lines: PricingLine[] = [];
   const gaps: PricingGap[] = [];
+  if ("status" in skuProfile.countertop && cabinets.length > 0)
+    gaps.push({ group: "countertop", blocksTotal: true, owner: "product/API", reason: skuProfile.countertop.reason });
   const add = (line: PricingLine) => {
     if (line.sku && line.quantity > 0) lines.push(line);
   };
@@ -153,6 +166,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     const cabinetTarget: ValueTarget = { scope: "cabinet", cabinetId: entry.stableKey };
     return (attributeId) => {
       if (attributeId === "CabinetType") return cabinetTypeOf(entry.runtimeId);
+      // An open side shelf is spelled with the end it stands at: the first cabinet is L, any other R.
+      if (attributeId === OPEN_SIDE_SHELF_SIDE) {
+        return resolveOpenSideShelfSide({
+          productIds: [entry.runtimeId],
+          orderedProductIds: cabinets.map(({ runtimeId }) => runtimeId),
+          fallbackIndex: entry.index,
+        });
+      }
       const own = valueAt(values, attributeId, cabinetTarget) ?? globalValue(attributeId);
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;
@@ -180,6 +201,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     });
 
     cabinetSku.missing.forEach(({ attributeId, cause }) => missing.set(attributeId, cause));
+    if (skuProfile.cabinet.requireCompleteInput && cabinetSku.missing.length) return;
     add({
       id: cabinetLineId(entry.runtimeId),
       group: "cabinet",
@@ -200,7 +222,18 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     typeof committedCountertopLengthCm === "number" &&
     Number.isFinite(committedCountertopLengthCm) &&
     committedCountertopLengthCm > 0;
-  const ownCountertopWidthCm = hasCommittedCountertopLength ? committedCountertopLengthCm : widthCm;
+  const panelContract = skuProfile.sidePanel && "baseSku" in skuProfile.sidePanel ? skuProfile.sidePanel : null;
+  const activeSideCount = getActiveSidePanelCount(input.sidePanelLeft, input.sidePanelRight);
+  const sideReadbackKnown = [input.sidePanelLeft, input.sidePanelRight].every((side) =>
+    ["active", "none", "auto-removed"].includes(side),
+  );
+  const ownCompositionWidthCm =
+    panelContract?.status === "confirmed" && panelContract.countertopWidthOffsetCm === 1 && widthCm !== null
+      ? sideReadbackKnown
+        ? calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight)
+        : null
+      : widthCm;
+  const ownCountertopWidthCm = hasCommittedCountertopLength ? committedCountertopLengthCm : ownCompositionWidthCm;
   // The basin and vessel colour the builder shows, for a sink base C holds none for.
   const builderBasinValues: Record<string, string> = { sinkType: input.sinkType, VesselColor: input.vesselColor };
   // A value of the basin of one sink base: its own, a cleared one too, as a switch to vessel clears
@@ -277,7 +310,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       vessels.forEach(({ id, quantity }, sku) => add({ id, group: "vessel", sku, quantity }));
       if (unpricedVessel) gaps.push({ group: "input", blocksTotal: true, ...UNPRICED_VESSEL[unpricedVessel] });
     }
-  } else if (countertopColor && cabinets.length > 0) {
+  } else if ("pricedAs" in skuProfile.countertop && countertopColor && cabinets.length > 0) {
     // A countertop priced as Urban Standard Height's (Urban Low Height): its SKUs and rules, on this
     // composition — as deep as its cabinets, as wide as they are with their side panels.
     const firstSize = dimensionsByCabinet[cabinets[0].stableKey];
@@ -310,12 +343,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (!countertopLines.some(({ group }) => group === "countertop")) {
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
+    const vesselColor = sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null;
     buildUshVesselLines({
       profile,
       countertop,
       countertopColorSkuCandidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
       sinkType,
-      vesselColor: sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null,
+      vesselColor,
+      vesselColorSku: vesselColor ? readConfiguratorColor("VesselColor", vesselColor)?.sku : null,
       widthCm: compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
       sinkBaseCount: sinkBases.length,
@@ -357,7 +392,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
 
   // 6) Side panels: a collection that reuses Urban Standard Height's orders them as USH does, at the
   // size and in the colours of the first cabinet. A groove without a colour of its own is the cabinet's.
-  if (skuProfile.sidePanel && cabinets.length > 0) {
+  if (skuProfile.sidePanel && "pricedAs" in skuProfile.sidePanel && cabinets.length > 0) {
     const [first] = cabinets;
     const read = readerOf(first);
     const colorSku = (attributeId: string, value: string) => ({
@@ -380,6 +415,44 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         ? colorSku("HandleGrooveColor", grooveColor)
         : { materialSku: null, colorCode: null },
     }).forEach(add);
+  }
+
+  const ownPanel = skuProfile.sidePanel;
+  if (ownPanel && "baseSku" in ownPanel && cabinets.length > 0) {
+    const selected = globalValue(ownPanel.selection.attributeId) ?? asText(input.sidePanelsOption);
+    const enabled = Boolean(selected && ownPanel.selection.enabledValues.includes(selected));
+    if (!enabled && ownPanel.quantitySource === "activeSides" && (!sideReadbackKnown || activeSideCount > 0)) {
+      gaps.push({
+        group: "sidePanel",
+        blocksTotal: true,
+        owner: "runtime",
+        reason: "Side panel selection and actual side activation disagree; scene synchronization is required.",
+      });
+    } else if (enabled) {
+      const rawQuantity = ownPanel.quantityAttributeId ? globalValue(ownPanel.quantityAttributeId) : null;
+      const read = readerOf(cabinets[0]);
+      const panel = buildCollectionSidePanelSku(ownPanel, skuProfile, profile, {
+        quantity:
+          ownPanel.quantitySource === "activeSides"
+            ? sideReadbackKnown
+              ? activeSideCount
+              : null
+            : rawQuantity === null
+              ? null
+              : Number(rawQuantity),
+        color: ownPanel.colorAttributeId ? read(ownPanel.colorAttributeId) : null,
+        readConfiguratorColor,
+      });
+      if (panel.sku && panel.quantity !== null)
+        add({ id: "sidePanel:composition", group: "sidePanel", sku: panel.sku, quantity: panel.quantity });
+      else
+        gaps.push({
+          group: "sidePanel",
+          blocksTotal: true,
+          owner: "product",
+          reason: panel.reason ?? "Panel pricing inputs are missing.",
+        });
+    }
   }
 
   // 7) What the order uses and the collection has not confirmed. The basins it uses are those of its

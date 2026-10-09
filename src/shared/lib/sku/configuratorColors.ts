@@ -1,4 +1,9 @@
-import { selectConfiguratorSection } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  selectAttribute,
+  selectConfiguratorGroup,
+  selectConfiguratorSection,
+} from "@/entities/collection";
 import type { ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
@@ -24,14 +29,15 @@ export const createConfiguratorColorReader = (
   productProfile: ProductProfile | null,
   configurator: ConfiguratorGroupCatalog | null,
 ): ConfiguratorColorReader => {
-  const bySection = new Map<string, Map<string, ConfiguratorColor>>();
+  // Keyed by the whole source: two attributes may read different options of one section.
+  const bySource = new Map<string, Map<string, ConfiguratorColor>>();
 
-  const sectionColors = (section: string): Map<string, ConfiguratorColor> => {
-    const cached = bySection.get(section);
+  const sourceColors = (attributeId: string, source: string): Map<string, ConfiguratorColor> => {
+    const cached = bySource.get(source);
     if (cached) return cached;
 
     const colors = new Map<string, ConfiguratorColor>();
-    configurator?.groupsByName[section]?.options.forEach((option) =>
+    selectConfiguratorGroup(productProfile, attributeId, configurator)?.options.forEach((option) =>
       option.variants.forEach((variant) => {
         if (!isVisibleConfiguratorVariant(variant)) return;
 
@@ -49,12 +55,23 @@ export const createConfiguratorColorReader = (
       }),
     );
 
-    bySection.set(section, colors);
+    bySource.set(source, colors);
     return colors;
   };
 
   return (attributeId, value) => {
-    const section = selectConfiguratorSection(productProfile, attributeId);
-    return section ? (sectionColors(section).get(value) ?? null) : null;
+    const attribute = selectAttribute(productProfile, attributeId);
+    const source = attribute?.optionsSource;
+    if (!source || !selectConfiguratorSection(productProfile, attributeId)) return null;
+    const canonical = normalizeOptionValue(productProfile, attributeId, value);
+    if (attribute?.options && !canonical) return null;
+    const colors = sourceColors(attributeId, source);
+    const direct = colors.get(value);
+    if (direct) return direct;
+    if (canonical) {
+      for (const [external, metadata] of colors)
+        if (normalizeOptionValue(productProfile, attributeId, external) === canonical) return metadata;
+    }
+    return null;
   };
 };
