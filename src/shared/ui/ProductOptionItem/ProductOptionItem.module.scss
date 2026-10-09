@@ -34,12 +34,12 @@
     justify-content: center;
 
     background-color: #fbfaf9;
+    // Clip visuals to the inner border curve instead of rounding them independently.
     overflow: hidden;
 
     .colorSwatch {
       width: 100%;
       height: 100%;
-      border-radius: 10px;
     }
   }
 
@@ -48,7 +48,6 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 10px;
     }
   }
 
@@ -219,7 +218,6 @@
       border-radius: 7px;
 
       img {
-        border-radius: 7px;
         object-fit: contain;
       }
     }
