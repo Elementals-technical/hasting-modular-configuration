@@ -124,6 +124,7 @@ export {
   isStateOnlyResolution,
   resolveRuntimeBinding,
   selectRuntimeBinding,
+  semanticValueOf,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
 export type {
   ResolvedRuntimeBinding,

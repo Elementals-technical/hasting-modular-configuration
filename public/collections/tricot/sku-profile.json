@@ -49,10 +49,7 @@
     ]
   },
   "colors": {
-    "materialByCategory": {
-      "Lacquered MT": "LACM",
-      "Wood Veneer": "WDV"
-    },
+    "materialByCategory": {},
     "codeByValue": {}
   },
   "countertop": {

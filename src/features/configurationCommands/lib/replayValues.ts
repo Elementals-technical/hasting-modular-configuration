@@ -177,7 +177,7 @@ export const replayValues = async (
       const request = { attributeId: change.attributeId, value: canonical, ...change.target };
       const verdict = selectAttribute(profile, change.attributeId) ? validateChange(request, profile) : { ok: true };
       const undetermined = checkUndetermined(request, change.target, state, profile);
-      const countertop = evaluateCountertopChange(request, change.target, state, profile);
+      const countertop = evaluateCountertopChange(request, change.target, state, profile, configurator ?? null);
       const invalidPattern =
         change.attributeId === "DrawerPanelFluting" &&
         Boolean(canonical) &&

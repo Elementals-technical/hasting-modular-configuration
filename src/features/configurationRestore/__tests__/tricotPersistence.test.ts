@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
-import { tricotMatrixProfile, tricotTestBindings, tricotUi } from "@/entities/collection/__tests__/tricotFixtures";
+import {
+  tricotConfigurator,
+  tricotMatrixProfile,
+  tricotTestBindings,
+  tricotUi,
+} from "@/entities/collection/__tests__/tricotFixtures";
 import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
 import {
   clearRestore,
@@ -73,7 +78,13 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
     }),
   );
   const runtime = createTestRuntimePort();
-  const deps = { getState: store.getState, dispatch: store.dispatch, runtime: runtime.port, flow };
+  const deps = {
+    getState: store.getState,
+    dispatch: store.dispatch,
+    runtime: runtime.port,
+    flow,
+    configurator: tricotConfigurator,
+  };
   expect(
     (await changeAttribute({ attributeId: "CountertopColor", scope: "countertop", value: "Matte White" }, deps)).status,
   ).toBe("applied");

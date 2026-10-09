@@ -1,6 +1,18 @@
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue } from "@/entities/collection";
-import { getActiveProductProfile, getAttributeValue, getCabinetEntries, isSinkBase } from "@/entities/configuration";
+import {
+  normalizeOptionValue,
+  selectConfiguratorGroup,
+  semanticValueOf,
+  type ProductProfile,
+} from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import {
+  getActiveProductProfile,
+  getActiveRuntimeBindings,
+  getAttributeValue,
+  getCabinetEntries,
+  isSinkBase,
+} from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
@@ -58,9 +70,38 @@ const toSelection = (state: RootState): Selection => {
   };
 };
 
-export const evaluateChange = (change: AttributeChange, state: RootState): ChangeEvaluation => {
+/** A value the collection offers: an option its profile lists, or one of the configurator section it names. */
+const isOfferedValue = (
+  profile: ProductProfile | null,
+  configurator: ConfiguratorGroupCatalog | null,
+  attributeId: string,
+  value: string,
+): boolean =>
+  normalizeOptionValue(profile, attributeId, value) !== null ||
+  Boolean(
+    selectConfiguratorGroup(profile, attributeId, configurator)?.options.some(({ variants }) =>
+      variants.some((variant) => (variant.metadata?.value ?? variant.name) === value),
+    ),
+  );
+
+export const evaluateChange = (
+  requested: AttributeChange,
+  state: RootState,
+  /** Configurator sections of the active collection, for the material of a colour it lists. */
+  configurator: ConfiguratorGroupCatalog | null = null,
+): ChangeEvaluation => {
   const profile = getActiveProductProfile(state);
   const cabinets = getCabinetEntries(state);
+  // A value read back from the scene ("Nero 433 Lacquered MT") changes the configuration value the
+  // bindings send as it ("Nero 433 MT"). A value the collection offers is never translated.
+  const change =
+    typeof requested.value === "string" &&
+    !isOfferedValue(profile, configurator, requested.attributeId, requested.value)
+      ? {
+          ...requested,
+          value: semanticValueOf(getActiveRuntimeBindings(state), requested.attributeId, requested.value),
+        }
+      : requested;
 
   // Gates 1-3: attribute known, scope matches, value in catalog.
   const verdict = validateChange(change, profile);
@@ -87,7 +128,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
   // Gate 4 for attributes outside the rule selection.
   const unavailable = checkAvailability(change.attributeId, change.value, state, activeProfile);
   if (unavailable) return { kind: "blocked", ...unavailable };
-  const countertop = evaluateCountertopChange(change, targetResult.target, state, activeProfile);
+  const countertop = evaluateCountertopChange(change, targetResult.target, state, activeProfile, configurator);
   if (countertop.blocked) return { kind: "blocked", ...countertop.blocked };
 
   // Gate 4 for the rule selection, plus the dependent changes.
@@ -118,6 +159,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
       vesselColor: getVesselColor(state),
     },
     cabinets,
+    configurator,
   });
 
   if (!planResult.ok) {

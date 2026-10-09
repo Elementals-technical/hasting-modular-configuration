@@ -53,7 +53,7 @@
       "kind": "cabinet-builder",
       "sectionIds": ["cabinet-type", "cabinet-style"]
     },
-    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove", "drawer-panel"] },
+    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove"] },
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
@@ -86,16 +86,6 @@
           "control": "colors",
           "optionsRef": "HandleGrooveColor",
           "availabilityRef": "Handle.supportsGrooveColor"
-        }
-      ]
-    },
-    "drawer-panel": {
-      "label": "Drawer Panel Fluting",
-      "fields": [
-        {
-          "attributeId": "DrawerPanelFluting",
-          "control": "options-grid",
-          "availabilityRef": "DrawerPanelFluting.available"
         }
       ]
     },

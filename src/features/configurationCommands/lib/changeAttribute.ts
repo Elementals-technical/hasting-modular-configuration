@@ -34,7 +34,7 @@ export const changeAttribute = async (
   { getState, dispatch, runtime, flow, configurator }: ChangeAttributeDeps,
 ): Promise<ChangeResult> => {
   const state = getState();
-  const evaluation = evaluateChange(change, state);
+  const evaluation = evaluateChange(change, state, configurator);
 
   if (evaluation.kind !== "planned") return toStoppedResult(evaluation);
 
